@@ -1,0 +1,108 @@
+openapi: 3.0.1
+info:
+  title: PeopleService.WebApi
+  version: v1
+paths:
+  /People/GetPerson:
+    get:
+      tags:
+        - People
+      summary: Get a person from directory by logon or employee ID
+      parameters:
+        - name: LogonId
+          in: query
+          schema:
+            type: string
+            nullable: true
+        - name: EmployeeId
+          in: query
+          schema:
+            type: string
+            nullable: true
+      responses:
+        '200':
+          description: The person with the specified identity was found
+          content:
+            "application/json":
+              schema:
+                $ref: '#/components/schemas/Person'
+        '400':
+          description: The request was invalid
+        '404':
+          description: The person with the specified identity was not found
+  /People/GetMatchingPeople:
+    get:
+      tags:
+        - People
+      summary: Get all the people from the directory whose logonId or full name contain the search text
+      parameters:
+        - name: SearchText
+          in: query
+          schema:
+            type: string
+            nullable: true
+        - name: Take
+          in: query
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: List of People whose LogonId or FullName contain the search text
+          content:
+            "application/json":
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Person'
+        '400':
+          description: The request was invalid
+        '404':
+          description: People with the specified search text were not found
+  /People/ValidatePerson:
+    get:
+      tags:
+        - People
+      summary: Validate a person against the firmwide directory without returning any attributes.
+      parameters:
+        - name: LogonId
+          in: query
+          schema:
+            type: string
+            nullable: true
+        - name: EmployeeId
+          in: query
+          schema:
+            type: string
+            nullable: true
+      responses:
+        '200':
+          description: The person with the specified identity was found
+        '400':
+          description: The request was invalid
+        '404':
+          description: The person with the specified identity was not found
+components:
+  schemas:
+    Person:
+      type: object
+      properties:
+        logonId:
+          type: string
+          nullable: true
+        fullName:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        employeeId:
+          type: string
+          nullable: true
+        department:
+          type: string
+          nullable: true
+        photoUrl:
+          type: string
+          nullable: true
+      additionalProperties: false

@@ -1,45 +1,68 @@
 [![FINOS - Incubating](https://cdn.jsdelivr.net/gh/finos/contrib-toolbox@master/images/badge-incubating.svg)](https://finosfoundation.atlassian.net/wiki/display/FINOS/Incubating)
 
-# TraderX
+# FINOS | TraderX Example of a Simple Trading App
 
-Short blurb about what your project does.
+![DEV Only Warning](https://badgen.net/badge/warning/not-for-production/red) ![Local Dev Machine Supported](http://badgen.net/badge/local-dev/supported/green)
 
-## Installation
+The Sample Trading Application is a usable simple yet distributed reference application
+in the financial services domain which can be used for experimenting with various 
+techniques and other open source projects.  It is designed to be simple and accessible
+to programmers of all backgrounds, and can serve as a starting point for educational
+and experimentation purposes.
 
-OS X & Linux:
+It is designed to be runnable from any developer workstation with minimal assumptions 
+other than Node, Java and Python runtimes.
 
-```sh
-npm install my-crazy-module --save
+It contains Java, NodeJS, Python, .NET components that communicate over REST APIs and 
+messaging systems and are able to showcase a wide range of technical challenges to solve.
+
+More detailed information about this project can be found in the website which is generated 
+from the code under the `docs` directory of this project.
+
+## Installation (WIP)
+
+This section will be filled out once the code is in place.
+
+## Usage example (WIP)
+
+In order to get things working together, it is recommended to select a range of ports to provde all running processes with, so that the pieces can interconnect as needed.  A more advanced instance of this project would do things using container/service location abstractions.  Here's one such example convention.
+
+```bash
+export DATABASE_TCP_PORT=18082
+export DATABASE_PG_PORT=18083
+export DATABASE_WEB_PORT=18084
+export REFERENCE_DATA_SERVICE_PORT=18085
+export TRADE_FEED_PORT=18086
+export ACCOUNT_SERVICE_PORT=18088
+export PEOPLE_SERVICE_PORT=18089
+export POSITION_SERVICE_PORT=18090
+export TRADE_PROCESSOR_SERVICE_PORT=18091
+export TRADING_SERVICE_PORT=18092
+export WEB_SERVICE_PORT=18093
 ```
 
-Windows:
-
-```sh
-edit autoexec.bat
+The recommended starting sequence to let everything find what it needs is:
+```bash
+database
+reference-data
+trade-feed
+people-service
+account-service
+position-service
+trade-processor
+trade-service
+web-front-end
 ```
-
-## Usage example
-
-A few motivating and useful examples of how your project can be used. Spice this up with code blocks and potentially screenshots / videos ([LiceCap](https://www.cockos.com/licecap/) is great for this kind of thing).
-
-_For more examples and usage, please refer to the [Wiki][wiki]._
 
 ## Development setup
 
-Describe how to install all development dependencies and how to run an automated test-suite of some kind. Potentially do this for multiple platforms.
-
-```sh
-make install
-npm test
-```
+At the moment, the repository has architecture documents and API schema doc documents.  When the code is populated in this repo, build instructions will be listed here.
 
 ## Roadmap
 
-List the roadmap steps; alternatively link the Confluence Wiki page where the project roadmap is published.
-
-1. Item 1
-2. Item 2
-3. ....
+1. Submit architecture diagram, API Specifications, and Flow Diagrams
+2. Submit a working, simple pub-sub engine to use with this demo
+3. Submit working implementations of components
 
 ## Contributing
 
@@ -53,7 +76,6 @@ List the roadmap steps; alternatively link the Confluence Wiki page where the pr
 _NOTE:_ Commits and pull requests to FINOS repositories will only be accepted from those contributors with an active, executed Individual Contributor License Agreement (ICLA) with FINOS OR who are covered under an existing and active Corporate Contribution License Agreement (CCLA) executed with FINOS. Commits from individuals not covered under an ICLA or CCLA will be flagged and blocked by the FINOS Clabot tool. Please note that some CCLAs require individuals/employees to be explicitly named on the CCLA.
 
 *Need an ICLA? Unsure if you are covered under an existing CCLA? Email [help@finos.org](mailto:help@finos.org)*
-
 
 ## License
 

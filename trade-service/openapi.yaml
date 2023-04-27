@@ -1,0 +1,69 @@
+openapi: 3.0.0
+info:
+  title: FINOS TraderX | Trade Service
+  description: 'Trade Capture Service'
+  version: '1.0'
+  contact: {}
+paths:
+  /trades:
+    post:
+      tags:
+        - trading-service-controller
+      operationId: createNewTrade
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TradeRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            "*/*":
+              schema:
+                $ref: "#/components/schemas/TradeResponse"
+  /trades/:
+    get:
+      tags:
+        - trading-service-controller
+      operationId: sayHello
+      responses:
+        "200":
+          description: OK
+          content:
+            "*/*":
+              schema:
+                type: string
+components:
+  schemas:
+    TradeRequest:
+      type: object
+      properties:
+        accountId:
+          type: integer
+          format: int32
+          example: 1
+        security:
+          type: string
+          example: IBM
+        side:
+          type: string
+          example: Sell
+          enum:
+            - Buy
+            - Sell
+        quantity:
+          type: integer
+          format: int32
+          example: 10
+    TradeResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        id:
+          type: string
+          example: 4e7d4734-52eb-4390-bbde-441585a92bd7
+        errorMessage:
+          type: string
