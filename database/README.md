@@ -16,17 +16,25 @@ This uses H2 Java-based database as a standalone server, has NO authentication b
 | HTTP | 8084 |
  
 ## Connecting to this database remotely
-You can use the `$DATABASE_TCP_PORT`  or `$DATABASE_PG_PORT` and the database URL in JDBC is `jdbc:h2:./data/test`
+You can use the `$DATABASE_TCP_PORT`  or `$DATABASE_PG_PORT` and the database URL in JDBC is `jdbc:h2:./_data/traderx`
 
 The default username and password are both *sa*
 
 ## Connecting to the web console
-You can use the `$DATABASE_HTTP_PORT`  or `$DATABASE_PG_PORT` and the database URL in JDBC is `jdbc:h2:test` (This is because -baseDir is already set to ./data) - NOTE you will have to change the default setting in the web console which often uses a home directory path. 
+You can use the `$DATABASE_HTTP_PORT`  or `$DATABASE_PG_PORT` and the database URL in JDBC is `jdbc:h2:traderx` (This is because -baseDir is already set to ./_data) - NOTE you will have to change the default setting in the web console which often uses a home directory path. 
 
 The default username and password are both `sa`
 
 ## Output Directory
-Data is stored in the local `./data` directory from where the script is run. This is .gitignore'd 
+Data is stored in the local `./_data` directory from where the script is run. This is .gitignore'd 
+
+## Building
+
+This builds in gradle to retrieve H2.
+
+```shell
+$> gradle build
+```
 
 ## Running on Linux
 
