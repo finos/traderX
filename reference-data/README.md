@@ -8,19 +8,6 @@ The Reference Data service provides a list of stock tickers and their associated
 
 This project assumes that your environment is already configured to use node and npm
 
-## Install dependencies (WIP)
-
-```bash
-npm install
-```
-
-## Running the Reference Data service (WIP)
-
-```bash
-npm ci
-npm run start
-```
-
 By default this will run the application on localhost, port 3000, however the hostname and port can be modified by the following environment variables:
 
 | Environment Variable Name  | Default Value    |
@@ -28,14 +15,44 @@ By default this will run the application on localhost, port 3000, however the ho
 | REFERENCE_DATA_SERVICE_PORT| 3000             |
 | HOSTNAME                   | localhost        |
 
-### Running in dev
+
+## Installation
+
+```bash
+$ npm install
+```
+
+## Running the app
 
 If you are developing the Reference Data service you can use the **start:dev** script instead. This runs with file
 watchers that will automatically rebuild and redeploy the application when the code changes:
 
 ```bash
-npm run start:dev
+# development
+$ npm run start
+
+# watch mode
+$ npm run start:dev
+
+# production mode
+$ npm run start:prod
 ```
+
+
+
+##  Testing
+
+```bash
+# unit tests
+$ npm run test
+
+# e2e tests
+$ npm run test:e2e
+
+# test coverage
+$ npm run test:cov
+```
+
 
 ## Accessing the Reference Data service
 
