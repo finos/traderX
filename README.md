@@ -19,6 +19,26 @@ messaging systems and are able to showcase a wide range of technical challenges 
 More detailed information about this project can be found in the website which is generated 
 from the code under the `docs` directory of this project.
 
+## Current Project Status
+
+This is currently a Work-In-Progress. At the moment there are some components which are just placeholder API contracts for an implementation to be created, while others are already runnable reference implementations.
+
+Below is a table on status, listed in the order things need to start up for the system to operate. 
+
+_Pleae note, that for things not yet implemented (or things you'd like to reimplement) the tech stack selected is a suggestion. Feel free to swap things out as you see fit!_
+
+| *Component* | *Tech Stack* | *Status* | *Comment* |
+| :--- | :--- | :---: | :--- |
+| [database](database) | java/h2 | :white_check_mark: | |
+| [reference-data](reference-data) | node/nestjs | :white_check_mark: | |
+| [trade-feed](trade-feed) | node/socketio | :white_check_mark: | |
+| [people-service](people-service) | .Net core | :white_large_square: | API Spec Only |
+| [account-service](account-service) | java/spring | :white_large_square: | API Spec Only |
+| [position-service](position-service) | python/flask | :white_large_square: | API Spec Only |
+| [trade-service](trade-service) | java/spring | :white_large_square: | API Spec Only |
+| [trade-processor](trade-processor) | java/spring | :white_large_square: | Readme Only |
+| [web-front-end](web-front-end) | html/angular or react | :white_large_square: | Readme Only |
+
 ## Installation (WIP)
 
 This section will be filled out once the code is in place.
