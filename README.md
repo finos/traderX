@@ -29,6 +29,7 @@ _Pleae note, that for things not yet implemented (or things you'd like to reimpl
 
 | *Component* | *Tech Stack* | *Status* | *Comment* |
 | :--- | :--- | :---: | :--- |
+| [docs](docs) | markdown | :white_check_mark: | Architecture and Flow Diagrams are here! |
 | [database](database) | java/h2 | :white_check_mark: | |
 | [reference-data](reference-data) | node/nestjs | :white_check_mark: | |
 | [trade-feed](trade-feed) | node/socketio | :white_check_mark: | |
