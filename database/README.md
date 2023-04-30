@@ -11,9 +11,9 @@ This uses H2 Java-based database as a standalone server, has NO authentication b
 ## Default Port Numbers
 | Protocol | Port Number |
 | :--- | :--- |
-| TCP | 8082 |
-| PG | 8083 |
-| HTTP | 8084 |
+| TCP | 18082 |
+| PG | 18083 |
+| HTTP | 18084 |
  
 ## Connecting to this database remotely
 You can use the `$DATABASE_TCP_PORT`  or `$DATABASE_PG_PORT` and the database URL in JDBC is `jdbc:h2:./_data/traderx`
@@ -61,13 +61,13 @@ You will see the following output
 ```
 
 Runing startup script
-Web Console server running at http://[your IP]:8084 (others can connect)
+Web Console server running at http://[your IP]:18084 (others can connect)
 finished startup script
-TCP server running at tcp://[your IP]:8082 (others can connect)
-PG server running at pg://[your IP]:8083 (others can connect)
+TCP server running at tcp://[your IP]:18082 (others can connect)
+PG server running at pg://[your IP]:18083 (others can connect)
 ```
 
 On my windows PC, it actually doesn't work with the public IP address. Just change the above URLs/Host Addresses to use `localhost`  and they work fine.
 
-Example: http://localhost:8084 
+Example: http://localhost:18084 
 
