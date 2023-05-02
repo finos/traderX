@@ -18,9 +18,9 @@ Spin up a local environment to see your changes live (optional, but encouraged)
 
 ```shell
 cd trade-feed (this directory)
-# Default port is 3000 (Controlled with the `TRADE_FEED_PORT` environment variable)
+# Default port is 18086 (Controlled with the `TRADE_FEED_PORT` environment variable)
 npm ci
 npm run start
 ```
 
-Now you can edit the site, commit and merge as normal. If you performed the optional live environment step, you'll see a live-reloading copy of the site open in your browser at <http://localhost:3000/> (or whaterver port you are using)
+Now you can edit the site, commit and merge as normal. If you performed the optional live environment step, you'll see a live-reloading copy of the site open in your browser at <http://localhost:18086/> (or whaterver port you are using)
