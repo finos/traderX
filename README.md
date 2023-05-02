@@ -34,7 +34,7 @@ _Pleae note, that for things not yet implemented (or things you'd like to reimpl
 | [reference-data](reference-data) | node/nestjs | :white_check_mark: | |
 | [trade-feed](trade-feed) | node/socketio | :white_check_mark: | |
 | [people-service](people-service) | .Net core | :white_large_square: | API Spec Only |
-| [account-service](account-service) | java/spring | :white_checlk_mark: | Initial Checkin Complete |
+| [account-service](account-service) | java/spring | :white_check_mark: | Initial Checkin Complete |
 | [position-service](position-service) | python/flask | :white_large_square: | API Spec Only |
 | [trade-service](trade-service) | java/spring | :white_large_square: | API Spec Only |
 | [trade-processor](trade-processor) | java/spring | :white_large_square: | Readme Only |
