@@ -20,7 +20,7 @@ echo "Data will be located in $DATABASE_DATA_DIR"
 echo "Database name is $DATABASE_DBNAME"
 echo 'Running schema setup script with log output to stdout below'
 echo '---------------------------------------------------------------------------'
-java -cp $DATABASE_H2JAR org.h2.tools.RunScript -url "jdbc:h2:$DATABASE_DATA_DIR/$DATABASE_DBNAME;CASE_INSENSITIVE_IDENTIFIERS=TRUE;TRACE_LEVEL_SYSTEM_OUT=3" -user $DATABASE_DBUSER -password $DATABASE_DBPASS -script initialSchema.sql
+java -cp $DATABASE_H2JAR org.h2.tools.RunScript -url "jdbc:h2:$DATABASE_DATA_DIR/$DATABASE_DBNAME;DATABASE_TO_UPPER=TRUE;TRACE_LEVEL_SYSTEM_OUT=3" -user $DATABASE_DBUSER -password $DATABASE_DBPASS -script initialSchema.sql
 echo 'Starting Database Server - DB logs below'
 echo '---------------------------------------------------------------------------'
 exec java -jar $DATABASE_H2JAR -pg -pgPort $DATABASE_PG_PORT -pgAllowOthers -baseDir $DATABASE_DATA_DIR -tcp -tcpPort $DATABASE_TCP_PORT -tcpAllowOthers -web -webPort $DATABASE_WEB_PORT -webAllowOthers
