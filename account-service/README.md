@@ -2,22 +2,42 @@
 
 ![DEV Only Warning](https://badgen.net/badge/warning/not-for-production/red) ![Local Dev Machine Supported](http://badgen.net/badge/local-dev/supported/green)
 
+
+## Prerequisites and Config
+
+You will need a running instance of the database. This currently is configured to be a H2 Database running on tcp at `$DATABASE_TCP_HOST`:`$DATABASE_TCP_PORT` on the database `$DATABASE_NAME` 
+
+Login details are `$DATABASE_DBUSER` and `$DATABASE_DBPASS`
+
+Default `$ACCOUNT_SERVICE_PORT` is `18088`
+
+In this project, you can run the database by running a shell in the [database](../database/README.md) project and running
+
+```bash
+./gradlew build
+./run.sh
+``` 
+## Running The Account Service`
+
 A simple application that exposes CRUD functionality over accounts
 
 The API documentation is available via swagger:
 
-`http://localhost:8081/api-docs`
+`http://localhost:18088/api-docs`
 
 And via UI:
 
-`http://localhost:8081/swagger-ui.html`
+`http://localhost:18088/swagger-ui.html`
 
-It runs on port 8081 which can be changed via the
+It runs on port 18088 which can be changed via the
 
-`server.port=8081` property
+`server.port=18088`  system property or `$ACCOUNT_SERVICE_PORT` environment variable.
 
 How to run the application
 Check out the source code from git
-`gradlew bootRun`
-The app runs on port 8081 and you can access the swagger on `http://localhost:8081/swagger-ui.html`
+
+```bash
+gradlew bootRun
+```
+
 Configuration can be found in `application.properties` and can be overridden with env vars or command line parameters
