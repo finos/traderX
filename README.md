@@ -33,7 +33,7 @@ _Pleae note, that for things not yet implemented (or things you'd like to reimpl
 | [database](database) | java/h2 | :white_check_mark: | |
 | [reference-data](reference-data) | node/nestjs | :white_check_mark: | |
 | [trade-feed](trade-feed) | node/socketio | :white_check_mark: | |
-| [people-service](people-service) | .Net core | :white_large_square: | API Spec Only |
+| [people-service](people-service) | .Net core | :white_check_mark:  | Initial implementation complete |
 | [account-service](account-service) | java/spring | :white_check_mark: | Initial Checkin Complete |
 | [position-service](position-service) | python/flask | :white_large_square: | API Spec Only |
 | [trade-service](trade-service) | java/spring | :white_large_square: | API Spec Only |
