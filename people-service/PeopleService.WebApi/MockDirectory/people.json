@@ -1,0 +1,82 @@
+[
+    {
+      "LogonId": "user01",
+      "FullName": "Alice Johnson",
+      "Email": "alice.johnson@example.com",
+      "EmployeeId": "E0001",
+      "Department": "HR",
+      "PhotoUrl": "https://example.com/pthotos/user01.jpg"
+    },
+    {
+      "LogonId": "user02",
+      "FullName": "Bob Smith",
+      "Email": "bob.smith@example.com",
+      "EmployeeId": "E0002",
+      "Department": "Finance",
+      "PhotoUrl": "https://example.com/pthotos/user02.jpg"
+    },
+    {
+      "LogonId": "user03",
+      "FullName": "Carol Brown",
+      "Email": "carol.brown@example.com",
+      "EmployeeId": "E0003",
+      "Department": "IT",
+      "PhotoUrl": "https://example.com/pthotos/user03.jpg"
+    },
+    {
+      "LogonId": "user04",
+      "FullName": "David Lee",
+      "Email": "david.lee@example.com",
+      "EmployeeId": "E0004",
+      "Department": "Sales",
+      "PhotoUrl": "https://example.com/pthotos/user04.jpg"
+    },
+    {
+      "LogonId": "user05",
+      "FullName": "Eva Garcia",
+      "Email": "eva.garcia@example.com",
+      "EmployeeId": "E0005",
+      "Department": "Marketing",
+      "PhotoUrl": "https://example.com/pthotos/user05.jpg"
+    },
+    {
+      "LogonId": "user06",
+      "FullName": "Frank Wilson",
+      "Email": "frank.wilson@example.com",
+      "EmployeeId": "E0006",
+      "Department": "HR",
+      "PhotoUrl": "https://example.com/pthotos/user06.jpg"
+    },
+    {
+      "LogonId": "user07",
+      "FullName": "Grace Harris",
+      "Email": "grace.harris@example.com",
+      "EmployeeId": "E0007",
+      "Department": "Finance",
+      "PhotoUrl": "https://example.com/pthotos/user07.jpg"
+    },
+    {
+      "LogonId": "user08",
+      "FullName": "Henry Martinez",
+      "Email": "henry.martinez@example.com",
+      "EmployeeId": "E0008",
+      "Department": "IT",
+      "PhotoUrl": "https://example.com/pthotos/user08.jpg"
+    },
+    {
+      "LogonId": "user09",
+      "FullName": "Ivy Clark",
+      "Email": "ivy.clark@example.com",
+      "EmployeeId": "E0009",
+      "Department": "Sales",
+      "PhotoUrl": "https://example.com/pthotos/user09.jpg"
+    },
+    {
+      "LogonId": "user10",
+      "FullName": "Jack Lewis",
+      "Email": "jack.lewis@example.com",
+      "EmployeeId": "E0010",
+      "Department": "Marketing",
+      "PhotoUrl": "https://example.com/pthotos/user10.jpg"
+    }
+ ]

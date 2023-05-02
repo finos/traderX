@@ -1,6 +1,7 @@
 # FINOS | TraderX Sample Trading App | People Service
 
-![DEV Only Warning](https://badgen.net/badge/warning/not-for-production/red) ![Local Dev Machine Supported](http://badgen.net/badge/local-dev/supported/green)
+![DEV Only Warning](http://badgen.net/badge/warning/not-for-production/red)
+![Local Dev Machine Supported](http://badgen.net/badge/windows-dev/supported/green)
 
 The people service is used for managing users in the system, and associating them with accounts.
 
