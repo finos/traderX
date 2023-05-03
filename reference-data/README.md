@@ -8,11 +8,11 @@ The Reference Data service provides a list of stock tickers and their associated
 
 This project assumes that your environment is already configured to use node and npm
 
-By default this will run the application on localhost, port 3000, however the hostname and port can be modified by the following environment variables:
+By default this will run the application on localhost, port 18085, however the hostname and port can be modified by the following environment variables:
 
 | Environment Variable Name  | Default Value    |
 | -------------------------  | ---------------- |
-| REFERENCE_DATA_SERVICE_PORT| 3000             |
+| REFERENCE_DATA_SERVICE_PORT| 18085             |
 | HOSTNAME                   | localhost        |
 
 
@@ -58,9 +58,9 @@ $ npm run test:cov
 
 Assuming the Reference Data service is running from the default location, otherwise modify the hostname and/or port
 accordingly, then the following links are available:
- - http://localhost:3000/api/ - the OpenAPI UI
- - http://localhost:3000/stocks - the reference data
- - http://localhost:3000/stocks/:ticker - the reference data for a specific ticker (or 404 if it does not exist)
+ - http://localhost:18085/api/ - the OpenAPI UI
+ - http://localhost:18085/stocks - the reference data
+ - http://localhost:18085/stocks/:ticker - the reference data for a specific ticker (or 404 if it does not exist)
 
  ## S&P 500 companies
 
