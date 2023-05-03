@@ -25,6 +25,8 @@ You can use the `$DATABASE_HTTP_PORT`  or `$DATABASE_PG_PORT` and the database U
 
 The default username and password are both `sa`
 
+The database you want to use in the H2 GUI is `./traderx` (This may not be the default listed in the GUI)
+
 ## Output Directory
 Data is stored in the local `./_data` directory from where the script is run. This is .gitignore'd 
 
