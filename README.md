@@ -35,7 +35,7 @@ _Pleae note, that for things not yet implemented (or things you'd like to reimpl
 | [trade-feed](trade-feed) | node/socketio | :white_check_mark: | |
 | [people-service](people-service) | .Net core | :white_check_mark:  | Initial implementation complete |
 | [account-service](account-service) | java/spring | :white_check_mark: | Initial Checkin Complete |
-| [position-service](position-service) | python/flask | :white_large_square: | API Spec Only |
+| [position-service](position-service) | java/spring | :white_check_mark: | Initial Service Checked In |
 | [trade-service](trade-service) | java/spring | :white_large_square: | API Spec Only |
 | [trade-processor](trade-processor) | java/spring | :white_large_square: | Readme Only |
 | [web-front-end](web-front-end) | html/angular or react | :white_large_square: | Readme Only |
