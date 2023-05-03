@@ -31,27 +31,27 @@ INSERT into Accounts (ID, DisplayName) VALUES (62654, 'Hedge Fund TXY1');
 INSERT into Accounts (ID, DisplayName) VALUES (10031, 'Internal Trading Book'); 
 INSERT into Accounts (ID, DisplayName) VALUES (44044, 'Trading Account 1'); 
 
-INSERT into AccountUsers (AccountID, Username) VALUES (22214, 'john'); 
-INSERT into AccountUsers (AccountID, Username) VALUES (22214, 'steve'); 
-INSERT into AccountUsers (AccountID, Username) VALUES (22214, 'jane'); 
-INSERT into AccountUsers (AccountID, Username) VALUES (22214, 'stacy'); 
-INSERT into AccountUsers (AccountID, Username) VALUES (22214, 'julia'); 
+INSERT into AccountUsers (AccountID, Username) VALUES (22214, 'user01'); 
+INSERT into AccountUsers (AccountID, Username) VALUES (22214, 'user03'); 
+INSERT into AccountUsers (AccountID, Username) VALUES (22214, 'user09'); 
+INSERT into AccountUsers (AccountID, Username) VALUES (22214, 'user05'); 
+INSERT into AccountUsers (AccountID, Username) VALUES (22214, 'user07'); 
 
-INSERT into AccountUsers (AccountID, Username) VALUES (62654, 'jane'); 
-INSERT into AccountUsers (AccountID, Username) VALUES (62654, 'stacy'); 
-INSERT into AccountUsers (AccountID, Username) VALUES (62654, 'julia'); 
-INSERT into AccountUsers (AccountID, Username) VALUES (62654, 'john'); 
+INSERT into AccountUsers (AccountID, Username) VALUES (62654, 'user09'); 
+INSERT into AccountUsers (AccountID, Username) VALUES (62654, 'user05'); 
+INSERT into AccountUsers (AccountID, Username) VALUES (62654, 'user07'); 
+INSERT into AccountUsers (AccountID, Username) VALUES (62654, 'user01'); 
 
-INSERT into AccountUsers (AccountID, Username) VALUES (10031, 'john'); 
-INSERT into AccountUsers (AccountID, Username) VALUES (10031, 'steve'); 
-INSERT into AccountUsers (AccountID, Username) VALUES (10031, 'jane'); 
+INSERT into AccountUsers (AccountID, Username) VALUES (10031, 'user01'); 
+INSERT into AccountUsers (AccountID, Username) VALUES (10031, 'user03'); 
+INSERT into AccountUsers (AccountID, Username) VALUES (10031, 'user09'); 
 
-INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'jane'); 
-INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'stacy'); 
-INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'julia'); 
-INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'dave'); 
-INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'john'); 
-INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'brian'); 
+INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user09'); 
+INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user05'); 
+INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user07'); 
+INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user04'); 
+INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user01'); 
+INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user06'); 
  
 
 INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, State, AccountID) VALUES('TRADE-22214-AABBCC', NOW(), NOW(), 'IBM', 'Sell', 100, 'Settled', 22214); 
