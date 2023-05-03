@@ -2,12 +2,7 @@ package finos.traderx.tradeprocessor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import finos.traderx.messaging.PubSubException;
-import finos.traderx.messaging.Publisher;
 import finos.traderx.messaging.socketio.SocketIOJSONSubscriber;
-import finos.traderx.tradeprocessor.model.Position;
-import finos.traderx.tradeprocessor.model.Trade;
-import finos.traderx.tradeprocessor.model.TradeBookingResult;
 import finos.traderx.tradeprocessor.model.TradeOrder;
 import finos.traderx.tradeprocessor.service.TradeService;
 
