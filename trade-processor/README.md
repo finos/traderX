@@ -20,24 +20,29 @@ The easiest way to reconfigure the application is by editing properties in:
 
 Alternatively you can use environment variables to override certain values:
 
-   `export server.port=8089`
+   `export TRADE_PROCESSOR_SERVICE_PORT=18091`
 
 Or you can use command line arguments:
     
-   $ gradlew bootRun --args='--server.port=8888'
+   $ gradlew bootRun --args='--server.port=18091'
    
-The app by default runs on port 8089
+The app by default runs on port 18091
 
 ## Trade Feed Location
 
-To specify the host and the port for the TradeFeed instance to subscribe to use the `tradeFeedAddress` property using one of the ways describe above, like
+You can either specify `TRADE_FEED_ADDRESS` as an environment variable (should be a URL in the current SocketIO implementation) or specify the app property per below
 
-   $ gradlew bootRun --args='--tradeFeedAddress=icompile12.heathrow.ms.com:8888'
+To specify the host and the port for the TradeFeed instance to subscribe to use the `trade.feed.address` property using one of the ways describe above, like
+
+   $ gradlew bootRun --args='--trade.feed.address=http://localhost:18086
 
 ## Database settings
 
 To specify the database properties, the following properties should be used
 
-    spring.datasource.url=jdbc:h2:tcp://localhost:8082/test
+    spring.datasource.url=jdbc:h2:tcp://localhost:18082/traderx
     spring.datasource.username=sa
     spring.datasource.password=sa
+
+
+You can see all configuration details in [src/main/resources/application.properties](application.properties)
