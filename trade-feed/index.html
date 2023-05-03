@@ -50,6 +50,7 @@
       const UNSUBSCRIBE='unsubscribe';
       socket.on(PUBLISH,(data)=>{
         data=typeof(data)!="object"?JSON.parse(data):data;
+        console.log("PUBLISH DATA "+JSON.stringify(data));
         addMessage(data.topic||'GENERAL',data);
       });
 
