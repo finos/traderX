@@ -37,7 +37,7 @@ _Pleae note, that for things not yet implemented (or things you'd like to reimpl
 | [account-service](account-service) | java/spring | :white_check_mark: | Initial Checkin Complete |
 | [position-service](position-service) | java/spring | :white_check_mark: | Initial Service Checked In |
 | [trade-service](trade-service) | java/spring | :white_large_square: | API Spec Only |
-| [trade-processor](trade-processor) | java/spring | :white_large_square: | Readme Only |
+| [trade-processor](trade-processor) | java/spring | :white_check_mark:  | Initial Implementation Checked in |
 | [web-front-end](web-front-end) | html/angular or react | :white_large_square: | Readme Only |
 
 ## Installation (WIP)
