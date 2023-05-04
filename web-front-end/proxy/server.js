@@ -7,7 +7,7 @@ const morgan = require("morgan");
 
 const app = express()
 app.use(morgan('combined'));
-const port = 18093;
+const port = process.env.WEB_SERVICE_PORT || 18093;
 
 const { createProxyMiddleware } = require('http-proxy-middleware');
 routes.forEach(r => {
