@@ -16,7 +16,7 @@ const ROUTES = [
     {
         url: '/database',
         proxy: {
-            target: `http://localhost::${process.env.DATABASE_WEB_PORT | 18084}`,
+            target: `http://localhost:${process.env.DATABASE_WEB_PORT | 18084}`,
             changeOrigin: true,
             autoRewrite: true,
             pathRewrite: {
@@ -28,7 +28,7 @@ const ROUTES = [
         url: '/trade',
 
         proxy: {
-            target:  `http://localhost::${process.env.TRADING_SERVICE_PORT | 18092}`,
+            target:  `http://localhost:${process.env.TRADING_SERVICE_PORT | 18092}`,
             changeOrigin: true,
             autoRewrite: true,
 
@@ -42,7 +42,7 @@ const ROUTES = [
         url: '/people',
 
         proxy: {
-            target: `http://localhost::${process.env.PEOPLE_SERVICE_PORT | 18089}`,
+            target: `http://localhost:${process.env.PEOPLE_SERVICE_PORT | 18089}`,
             changeOrigin: true,
             autoRewrite: true,
 
@@ -56,7 +56,7 @@ const ROUTES = [
         url: '/accounts',
 
         proxy: {
-            target: `http://localhost::${process.env.ACCOUNT_SERVICE_PORT | 18088}`,
+            target: `http://localhost:${process.env.ACCOUNT_SERVICE_PORT | 18088}`,
             changeOrigin: true,
             autoRewrite: true,
 
@@ -69,7 +69,7 @@ const ROUTES = [
         url: '/positions',
 
         proxy: {
-            target: `http://localhost::${process.env.POSITION_SERVICE_PORT | 18090}`,
+            target: `http://localhost:${process.env.POSITION_SERVICE_PORT | 18090}`,
             changeOrigin: true,
             autoRewrite: true,
 
