@@ -58,7 +58,7 @@ sudo npm install -g @stoplight/prism-cli
 
 Run prism to mock your OpenAPI spec as follows (Specify `port` as you see fit)
 ```bash
-prism --cors -port 18090 mock openapi.yaml
+prism --cors --port 18090 mock openapi.yaml
 ```
 
 You can then try out your requests against the mock service as follows: (or from a browser)
