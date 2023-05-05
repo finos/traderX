@@ -66,3 +66,31 @@ accordingly, then the following links are available:
 
 The [CSV of S&P 500 companies](./data/s-and-p-500-companies.csv) was populated by copying the data from
 [this table from Wikipedia](https://en.wikipedia.org/wiki/List_of_S%26P_500_companies#S&P_500_component_stocks).
+
+
+
+## Simple Testing of Reference Data Service`
+
+Obviously this is a lightweight nodeJS service, which you can run, but if you prefer, you can also run a mock of this service by installing `@stoplight/prism-cli`
+
+This statically uses the example content in the OpenAPI spec to mock the service (you can specify `--dynamic` to let it be more creative)
+
+```bash
+# Only need to do this once for your machine
+sudo npm install -g @stoplight/prism-cli
+```
+
+Run prism to mock your OpenAPI spec as follows (Specify `port` as you see fit).
+ecurities is random on each request).
+
+```bash
+prism --cors -port 18085  mock openapi.yaml
+```
+
+You can then try out your requests against the mock service as follows: (or from a browser)
+
+```bash
+curl -X GET "http://localhost:18085/stocks" -H "accept: application/json"
+curl -X GET "http://localhost:18085/stocks/ADBE" -H "accept: application/json"
+
+```

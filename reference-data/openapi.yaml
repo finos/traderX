@@ -18,6 +18,13 @@ paths:
                 type: "array"
                 items: 
                   $ref: '#/components/schemas/Security'
+                example:
+                  - ticker: 'SSSS'
+                    companyName: 'SSSS Corporation, Inc.'
+                  - ticker: 'YYYX'
+                    companyName: 'YYYX Corp.'
+                  - ticker: 'XXXY'
+                    companyName: 'XXXY Corporation, Inc.'
           
   /stocks/{ticker}:
     get:
@@ -45,6 +52,7 @@ components:
         ticker: 
           type: string
           example: 'XXXY'
+          pattern: '^[A-Z]{3,4}$'
         companyName:
           type: string
           example: 'XXXY Corporation, Inc.'
