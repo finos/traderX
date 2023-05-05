@@ -14,13 +14,14 @@ paths:
               schema:
                 type: object
                 example: { "State" : "HEALTHY" }
-  /trades:
+  /trades/{accountId}:
     get:
       operationId: getTradesByAccount
       description: "Gets trades for a specific account"
       parameters: 
-        - in: query
-          name: account_id
+        - in: path
+          name: accountId
+          example: 22214
           required: true
           schema:
             type: integer
@@ -35,13 +36,14 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Trade'
-  /positions:
+  /positions/{accountId}:
     get:
       operationId: getPositionsByAccount
       description: "Gets all Positions for a specific account"
       parameters: 
-        - in: query
-          name: account_id
+        - in: path
+          name: accountId
+          example: 22214
           required: true
           schema:
             type: integer
@@ -93,6 +95,7 @@ components:
         quantity:
           type: integer
           format: int32
+          example: 200
         security:
           type: string
           example: 'XXXY'
@@ -102,6 +105,7 @@ components:
         side:
           type: string
           example: 'Buy or Sell'
+          example: Sell
         updated: 
           type: string
           format: date-time
