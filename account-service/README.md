@@ -41,3 +41,28 @@ gradlew bootRun
 ```
 
 Configuration can be found in `application.properties` and can be overridden with env vars or command line parameters
+
+``` 
+## Simple Testing of Account Service`
+
+You can run a mock of this service by installing @stoplight/prism 
+
+This statically uses the example content in the OpenAPI spec to mock the service (you can specify `--dynamic` to let it be more creative)
+
+```bash
+# Only need to do this once for your machine
+sudo npm install -g @stoplight/prism-cli
+```
+
+Run prism to mock your OpenAPI spec as follows (Specify `port` as you see fit)
+```bash
+prism --cors -port 4567 mock openapi.yaml
+```
+
+You can then try out your requests against the mock service as follows: (or from a browser)
+
+```bash
+curl -X GET "http://localhost:4567/account/" -H "accept: application/json"
+curl -X GET "http://localhost:4567/account/22141" -H "accept: application/json"
+
+```
