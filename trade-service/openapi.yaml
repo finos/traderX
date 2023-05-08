@@ -1,69 +1,47 @@
-openapi: 3.0.0
+openapi: 3.0.1
 info:
-  title: FINOS TraderX | Trade Service
-  description: 'Trade Capture Service'
-  version: '1.0'
-  contact: {}
+  title: FINOS TraderX Trade Service
+  version: 0.1.0
+servers:
+  - url: ''
 paths:
-  /trades:
+  /trade/:
     post:
       tags:
-        - trading-service-controller
-      operationId: createNewTrade
+        - trade-order-controller
+      operationId: createTradeOrder
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/TradeRequest"
+              $ref: '#/components/schemas/TradeOrder'
         required: true
       responses:
-        "200":
+        '200':
           description: OK
           content:
-            "*/*":
+            '*/*':
               schema:
-                $ref: "#/components/schemas/TradeResponse"
-  /trades/:
-    get:
-      tags:
-        - trading-service-controller
-      operationId: sayHello
-      responses:
-        "200":
-          description: OK
-          content:
-            "*/*":
-              schema:
-                type: string
+                $ref: '#/components/schemas/TradeOrder'
 components:
   schemas:
-    TradeRequest:
+    TradeOrder:
       type: object
       properties:
-        accountId:
-          type: integer
-          format: int32
-          example: 1
+        id:
+          type: string
+        state:
+          type: string
         security:
           type: string
-          example: IBM
-        side:
-          type: string
-          example: Sell
-          enum:
-            - Buy
-            - Sell
         quantity:
           type: integer
           format: int32
-          example: 10
-    TradeResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        id:
+        accountID:
+          type: integer
+          format: int32
+        side:
           type: string
-          example: 4e7d4734-52eb-4390-bbde-441585a92bd7
-        errorMessage:
-          type: string
+          enum:
+            - Buy
+            - Sell

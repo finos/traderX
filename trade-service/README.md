@@ -25,14 +25,47 @@ Or you can also use command line arguments:
     
    $ gradlew bootRun --args='--TRADING_SERVICE_PORT=XXXX'
    
-The app by default runs on port 7070 and you can access the swagger on http://localhost:7070/swagger-ui.html
+The app by default runs on port `18092` and you can access the swagger on http://localhost:18092/swagger-ui.html
 
 # API documentation
 
 The API documentation is available via swagger:
 
-http://localhost:7070/api-docs
+http://localhost:18092/api-docs
 
 And via UI:
 
-http://localhost:7070/swagger-ui.html
+http://localhost:18092/swagger-ui.html
+
+
+
+## Simple Testing of Position Service`
+
+You can run a mock of this service by installing @stoplight/prism 
+
+This statically uses the example content in the OpenAPI spec to mock the service (you can specify `--dynamic` to let it be more creative)
+
+```bash
+# Only need to do this once for your machine
+sudo npm install -g @stoplight/prism-cli
+```
+
+Run prism to mock your OpenAPI spec as follows (Specify `port` as you see fit)
+```bash
+prism --cors --port 18092 mock openapi.yaml
+```
+
+You can then try out your requests against the mock service as follows: (or from a browser)
+
+```bash
+curl -X 'POST' \
+  'http://localhost:18092/trade/' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "security": "ADBE",
+  "quantity": 200,
+  "accountID": 22214,
+  "side": "Buy"
+}'
+```
