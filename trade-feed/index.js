@@ -14,8 +14,10 @@ const log = winston.createLogger({
 const SUBSCRIBE = "subscribe";
 const UNSUBSCRIBE = "unusbscribe";
 const PUBLISH = "publish";
-
-
+const cors=require('cors');
+app.use(cors({
+  origin: '*'
+}));
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
