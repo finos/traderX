@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @CrossOrigin("*")
 @RestController
-@RequestMapping("/account")
+@RequestMapping(value="/account", produces="application/json")
 public class AccountController {
 
 	@Autowired

@@ -27,7 +27,7 @@ import org.springframework.web.client.RestTemplate;
 
 @CrossOrigin("*")
 @RestController
-@RequestMapping("/accountuser")
+@RequestMapping(value="/accountuser", produces="application/json")
 public class AccountUserController {
 
 	private static final Logger logger = LoggerFactory.getLogger(AccountUserController.class);

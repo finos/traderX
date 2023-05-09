@@ -13,7 +13,7 @@ paths:
         "200":
           description: OK
           content:
-            "*/*":
+            "application/json":
               schema:
                 type: array
                 items:
@@ -33,7 +33,7 @@ paths:
         "200":
           description: OK
           content:
-            "*/*":
+            "application/json":
               schema:
                 $ref: "#/components/schemas/AccountUser"
     post:
@@ -51,7 +51,7 @@ paths:
         "200":
           description: OK
           content:
-            "*/*":
+            "application/json":
               schema:
                 $ref: "#/components/schemas/AccountUser"
   /account/:
@@ -83,7 +83,7 @@ paths:
         "200":
           description: OK
           content:
-            "*/*":
+            "application/json":
               schema:
                 $ref: "#/components/schemas/Account"
     post:
@@ -101,7 +101,7 @@ paths:
         "200":
           description: OK
           content:
-            "*/*":
+            "application/json":
               schema:
                 $ref: "#/components/schemas/Account"
   /accountuser/{id}:
@@ -147,8 +147,7 @@ paths:
 components:
   schemas:
     AccountList:
-      type: object
-      schema: array
+      type: array
       items:
         $ref: "#/components/schemas/Account"
       example:
