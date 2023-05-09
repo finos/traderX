@@ -1,9 +1,11 @@
 openapi: 3.0.1
 info:
   title: FINOS TraderX Position Service
+  description: Service for retrieving blotter data, for trades and positions
   version: 0.1.0
 servers:
   - url: ''
+    description: Empty URL to help proxied documentation work
 paths:
   /trades/{accountId}:
     get:
@@ -21,7 +23,7 @@ paths:
         '200':
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 type: array
                 items:
@@ -35,7 +37,7 @@ paths:
         '200':
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 type: array
                 items:
@@ -56,7 +58,7 @@ paths:
         '200':
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 type: array
                 items:
@@ -70,7 +72,7 @@ paths:
         '200':
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 type: array
                 items:
@@ -82,18 +84,24 @@ components:
       properties:
         id:
           type: string
+          example: 'ABC-123-XYZ'
         accountId:
           type: integer
           format: int32
+          example: 22214
         security:
           type: string
+          example: 'ADBE'
         side:
           type: string
+          example: 'Buy'
         state:
           type: string
+          example: 'New'
         quantity:
           type: integer
           format: int32
+          example: 100
         updated:
           type: string
           format: date-time
@@ -106,11 +114,15 @@ components:
         accountId:
           type: integer
           format: int32
+          example: 22214
         security:
           type: string
+          example: 'ADBE'
         quantity:
           type: integer
           format: int32
+          example: 100
         updated:
           type: string
           format: date-time
+          example: '2020-01-01T00:00:00.000Z'

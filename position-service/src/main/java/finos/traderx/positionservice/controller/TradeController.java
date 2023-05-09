@@ -17,7 +17,7 @@ import finos.traderx.positionservice.service.TradeService;
 
 @CrossOrigin("*")
 @RestController
-@RequestMapping("/trades")
+@RequestMapping(value="/trades", produces="application/json")
 public class TradeController {
 
 	@Autowired
