@@ -24,7 +24,7 @@ import io.swagger.annotations.ApiParam;
 
 @CrossOrigin("*")
 @RestController
-@RequestMapping("/trade")
+@RequestMapping(value="/trade", produces = "application/json")
 public class TradeOrderController {
 
 	private static final Logger log = LoggerFactory.getLogger(TradeOrderController.class);

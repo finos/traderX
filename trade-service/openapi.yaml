@@ -20,7 +20,7 @@ paths:
         '200':
           description: OK
           content:
-            '*/*':
+            'application/json':
               schema:
                 $ref: '#/components/schemas/TradeOrder'
 components:
@@ -30,16 +30,21 @@ components:
       properties:
         id:
           type: string
+          example: 'ABC-123-XYZ'
         state:
           type: string
+          example: 'New'
         security:
           type: string
+          example: 'ADBE'
         quantity:
           type: integer
           format: int32
+          example: 100
         accountID:
           type: integer
           format: int32
+          example: 22214
         side:
           type: string
           enum:
