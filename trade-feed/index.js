@@ -1,7 +1,13 @@
+const sockio = require("socket.io");
 const app = require('express')();
-const http = require('http').Server(app);
-const io = require('socket.io')(http);
 const winston = require('winston');
+const http = require('http').createServer(app);
+
+const io = new sockio.Server(http, {
+  cors: {
+    origin: "*"
+  }
+});
 const port = process.env.TRADE_FEED_PORT || 18086;
 
 const log = winston.createLogger({
@@ -14,10 +20,7 @@ const log = winston.createLogger({
 const SUBSCRIBE = "subscribe";
 const UNSUBSCRIBE = "unusbscribe";
 const PUBLISH = "publish";
-const cors=require('cors');
-app.use(cors({
-  origin: '*'
-}));
+
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
