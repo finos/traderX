@@ -1,0 +1,177 @@
+openapi: 3.0.1
+info:
+  title: "Account Service - TraderX"
+  version: "1.0"
+paths:
+  /accountuser/:
+    get:
+      tags:
+        - account-user-controller
+      operationId: getAllAccountUsers
+      description: "Gets all user-account mappings"
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AccountUser"
+    put:
+      tags:
+        - account-user-controller
+      operationId: updateAccountUser
+      description: "Update user-account mapping"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountUser"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/AccountUser"
+    post:
+      tags:
+        - account-user-controller
+      operationId: createAccountUser
+      description: "Creates a user-account mapping"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountUser"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/AccountUser"
+  /account/:
+    get:
+      tags:
+        - account-controller
+      operationId: getAllAccount
+      description: "Retrieves all accounts"
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/AccountList"
+    put:
+      tags:
+        - account-controller
+      operationId: updateAccount
+      description: "Updates an account"
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Account"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Account"
+    post:
+      tags:
+        - account-controller
+      operationId: createAccount
+      description: "Creates an account"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Account"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Account"
+  /accountuser/{id}:
+    get:
+      tags:
+        - account-user-controller
+      operationId: getAccountUserById
+      description: "Gets an account-user mapping"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/AccountUser"
+  /account/{id}:
+    get:
+      tags:
+        - account-controller
+      operationId: getAccountById
+      description: "Gets an account by ID"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Account"
+components:
+  schemas:
+    AccountList:
+      type: array
+      items:
+        $ref: "#/components/schemas/Account"
+      example:
+        - id: 22214
+          displayName: "test account 4"
+        - id: 22215
+          displayName: "test account 5"
+    AccountUser:
+      type: object
+      properties:
+        accountId:
+          type: integer
+          format: int32
+          example: 22214
+        username:
+          type: string
+          example: user02
+    Account:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 22215
+        displayName:
+          type: string
+          example: "test account 5"

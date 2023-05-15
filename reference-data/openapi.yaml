@@ -1,0 +1,58 @@
+openapi: 3.0.0
+info:
+  title: FINOS TraderX | Reference Data Service
+  description: The Reference Data API description
+  version: '1.0'
+  contact: {}
+paths:
+  /stocks:
+    get:
+      operationId: StocksController_findAll
+      parameters: []
+      responses:
+        '200':
+          description: 'All Securities'
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items: 
+                  $ref: '#/components/schemas/Security'
+                example:
+                  - ticker: 'SSSS'
+                    companyName: 'SSSS Corporation, Inc.'
+                  - ticker: 'YYYX'
+                    companyName: 'YYYX Corp.'
+                  - ticker: 'XXXY'
+                    companyName: 'XXXY Corporation, Inc.'
+          
+  /stocks/{ticker}:
+    get:
+      operationId: StocksController_findByTicker
+      parameters: 
+      - name: ticker
+        in: "path"
+        required: true
+        schema:
+          type: string
+          maxLength: 100
+      responses:
+        '200':
+          description: 'Single Security'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Security'
+tags: []
+components:
+  schemas:
+    Security:
+      type: object
+      properties:
+        ticker: 
+          type: string
+          example: 'XXXY'
+          pattern: '^[A-Z]{3,4}$'
+        companyName:
+          type: string
+          example: 'XXXY Corporation, Inc.'

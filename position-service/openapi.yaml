@@ -1,0 +1,128 @@
+openapi: 3.0.1
+info:
+  title: FINOS TraderX Position Service
+  description: Service for retrieving blotter data, for trades and positions
+  version: 0.1.0
+servers:
+  - url: ''
+    description: Empty URL to help proxied documentation work
+paths:
+  /trades/{accountId}:
+    get:
+      tags:
+        - trade-controller
+      operationId: getByAccountId
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Trade'
+  /trades/:
+    get:
+      tags:
+        - trade-controller
+      operationId: getAllTrades
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Trade'
+  /positions/{accountId}:
+    get:
+      tags:
+        - position-controller
+      operationId: getByAccountId_1
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Position'
+  /positions/:
+    get:
+      tags:
+        - position-controller
+      operationId: getAllPositions
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Position'
+components:
+  schemas:
+    Trade:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'ABC-123-XYZ'
+        accountId:
+          type: integer
+          format: int32
+          example: 22214
+        security:
+          type: string
+          example: 'ADBE'
+        side:
+          type: string
+          example: 'Buy'
+        state:
+          type: string
+          example: 'New'
+        quantity:
+          type: integer
+          format: int32
+          example: 100
+        updated:
+          type: string
+          format: date-time
+        created:
+          type: string
+          format: date-time
+    Position:
+      type: object
+      properties:
+        accountId:
+          type: integer
+          format: int32
+          example: 22214
+        security:
+          type: string
+          example: 'ADBE'
+        quantity:
+          type: integer
+          format: int32
+          example: 100
+        updated:
+          type: string
+          format: date-time
+          example: '2020-01-01T00:00:00.000Z'
