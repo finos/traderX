@@ -5,6 +5,9 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+# Excluding Local Build folder for company-specific building
+.corp
+
 #NodeJS
 node_modules
 build
