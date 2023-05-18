@@ -6,13 +6,13 @@ public class TradeOrder {
     private String state;
     private String security;
     private Integer quantity;
-    private Integer accountID;
+    private Integer accountId;
     private TradeSide side;
 
     public TradeOrder(){}
     
-    public TradeOrder(String id, int accountID, String security, TradeSide side, int quantity) {
-        this.accountID = accountID;
+    public TradeOrder(String id, int accountId, String security, TradeSide side, int quantity) {
+        this.accountId = accountId;
         this.security = security;
         this.side = side;
         this.quantity = quantity;
@@ -27,8 +27,8 @@ public class TradeOrder {
         return state;
     }
 
-    public Integer getAccountID() {
-        return accountID;
+    public Integer getAccountId() {
+        return accountId;
     }
 
     public String getSecurity() {
