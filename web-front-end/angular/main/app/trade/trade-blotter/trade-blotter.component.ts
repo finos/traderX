@@ -49,7 +49,7 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
                 this.processPendingTrades();
             });
             this.socketUnSubscribeFn?.();
-            this.socketUnSubscribeFn = this.tradeFeed.subscribe(`accounts/${accountId}/trades`, (data: Trade) => {
+            this.socketUnSubscribeFn = this.tradeFeed.subscribe(`/accounts/${accountId}/trades`, (data: Trade) => {
                 console.log('Trade blotter feed...', data);
                 this.updateTrades(data);
             });

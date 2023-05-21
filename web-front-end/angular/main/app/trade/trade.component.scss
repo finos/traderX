@@ -15,7 +15,14 @@
     .trade-blotter {
         display: flex;
         &-items {
-         flex-basis: 50%;
+         flex-basis: 60%;
+         min-width: 300px;
+        }
+    }
+    .position-blotter {
+        display: flex;
+        &-items {
+         flex-basis: 40%;
          min-width: 300px;
         }
     }

@@ -33,7 +33,7 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
   ];
 
   constructor(private tradeService: PositionService,
-    private tardeFeed: TradeFeedService) { }
+    private tradeFeed: TradeFeedService) { }
 
   ngOnChanges(change: SimpleChanges) {
     if (change.account?.currentValue && change.account.currentValue !== change.account.previousValue) {
@@ -49,7 +49,7 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
 
 
       this.socketUnSubscribeFn?.();
-      this.socketUnSubscribeFn = this.tardeFeed.subscribe(`accounts/${accountId}/positions`, (data: any) => {
+      this.socketUnSubscribeFn = this.tradeFeed.subscribe(`/accounts/${accountId}/positions`, (data: any) => {
         console.log('Position blotter feed...', data);
         this.updatePosition(data);
       });
