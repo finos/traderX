@@ -27,14 +27,16 @@ export class TradeFeedService {
     }
 
     public subscribe(topic: string, callback: (...args: any[]) => void) {
-        this.socket.emit('subscribe', topic);
-        console.log('subscribing', topic);
+       
         const callbackFn = (args: any) => {
+            console.log("received message -> "+ JSON.stringify(args));
             if (args._from !== 'System' && args.topic === topic) {
-                callback(args.message);
+                callback(args);
             }
         }
-        this.socket.on('publish', callbackFn)
+        this.socket.on('publish', callbackFn);
+        this.socket.emit('subscribe', topic);
+        console.log('subscribing', topic);
         return () => {
             this.unSubscribe(topic, callbackFn);
         }
