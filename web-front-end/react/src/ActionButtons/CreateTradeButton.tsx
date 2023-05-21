@@ -62,7 +62,7 @@ export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 				return (
 					setRefData((
 						prevData:RefDataCompanyNames[]
-						) => [...prevData, refData.companyName]))
+						) => [...prevData, refData.ticker]))
 			})
 		} catch (error) {
 			return error

@@ -41,8 +41,8 @@ export const Datatable = () => {
 
 	useEffect(() => {
 		if (positionData.length !== 0) {
-			const positionKeys = Object.keys(positionData[0]);
-			const tradeKeys = Object.keys(tradeData[0]);
+			const positionKeys = ['security','quantity','updated'];
+			const tradeKeys = ['security','quantity','side','state','updated'];
 			setPositionRowData(positionData);
 			setTradeRowData(tradeData);
 			setPositionColumnDefs([])
