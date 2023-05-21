@@ -85,6 +85,56 @@ At the moment, the repository has architecture documents and API schema doc docu
 2. Submit a working, simple pub-sub engine to use with this demo
 3. Submit working implementations of components
 
+## Local Building (Company Specific)
+
+When building locally, if you are using a corporate artifact repository, you might need to override certain settings such as mavenCentral() in gradle, for the Java projects.
+
+In order to do this, we have designated a `.gitignore`'d folder where you can leave company-specific build scripts. This folder is not managed by git and can be modified locally.
+
+### Local Gradle Use Case
+
+Create a `.corp` directory and in there you can create a `settings.gradle` file which will allow you to build all gradle projects
+```
+# in the traderX main directory
+mkdir .corp
+touch settings.gradle
+```
+
+The `settings.gradle` file should contain any overrides on your `repositories` and `plugins` block but should also contain these contents:
+
+```
+rootProject.name = 'finos-traderX'
+includeFlat 'database'
+includeFlat 'account-service'
+includeFlat 'position-service'
+includeFlat 'trade-service'
+includeFlat 'trade-processor'
+```
+
+This will include projects in directories at the same level as the .corp directory. 
+
+You can also store a separate gradle wrapper here, if you need the `distributionUrl` in your `gradle.properties`  to differ from the public internet one.
+
+To build and run these projects, you can do the following:
+
+```
+###### From traderX root #####
+# Note: gradle or ./gradlew can be used, depending on your path
+
+gradle --settings-file .corp/settings.gradle build
+
+# Build specific project
+gradle --settings-file .corp/settings.gradle database:build
+
+# Run specific project
+gradle --settings-file .corp/settings.gradle account-service:bootRun
+
+##### From inside the .corp directory ####
+cd .corp
+./gradlew build
+./gradlew account-service:bootRun
+```
+
 ## Contributing
 
 1. Fork it (<https://github.com/finos/TraderX/fork>)
