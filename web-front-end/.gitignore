@@ -2,6 +2,9 @@
 /dist
 /node_modules
 
+# Angular CLI related
+.angular
+
 # Suppressing package-lock so that corporate envs can build locally without leaking local repos
 package-lock.json
 

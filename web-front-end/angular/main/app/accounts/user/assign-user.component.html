@@ -1,0 +1,15 @@
+<form class="d-flex flex-row">
+    <input style="width: 300px;" class="me-4" id="account-user" name="account-user" [(ngModel)]="search"
+        [typeahead]="users$" (typeaheadOnSelect)="onSelect($event)" [typeaheadAsync]="true"
+        typeaheadOptionField="fullName" [isAnimated]="true" aria-label="Add User to Account"
+        placeholder="Add User to Account" class="form-control" />
+    <app-ngx-dropdown id="account-name" class="d-inline-flex me-4" name="account" style="height: 38px;"
+        [items]="accounts" itemKey="displayName" placeholder="Select an account"
+        [selectionComparator]="comparatorFunction" [(selectedItem)]="account">
+    </app-ngx-dropdown>
+    <button type="button" class="btn btn-sm btn-primary me-4" (click)="add()">Add User</button>
+    <button type="button" class="btn btn-sm btn-secondary" (click)="reset()">Reset</button>
+</form>
+<alert *ngIf="addUserResponse" [dismissOnTimeout]="2000" [type]="addUserResponse.success ? 'success' : 'danger'"
+    [dismissible]="true" (onClosed)="onCloseAlert()">
+    {{ addUserResponse.msg }}</alert>

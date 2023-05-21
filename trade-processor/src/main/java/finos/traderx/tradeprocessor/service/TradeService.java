@@ -35,7 +35,7 @@ public class TradeService {
 	public TradeBookingResult processTrade(TradeOrder order) {
 		log.info("Trade order received : "+order);
         Trade t=new Trade();
-        t.setAccountId(order.getAccountID());
+        t.setAccountId(order.getAccountId());
 
 		log.info("Setting a random TradeID");
 		t.setId(UUID.randomUUID().toString());
@@ -47,12 +47,12 @@ public class TradeService {
         t.setSide(order.getSide());
         t.setQuantity(order.getQuantity());
 		t.setState(TradeState.New);
-		Position position=positionRepository.findByAccountIdAndSecurity(order.getAccountID(), order.getSecurity());
-		log.info("Position for "+order.getAccountID()+" "+order.getSecurity()+" is "+position);
+		Position position=positionRepository.findByAccountIdAndSecurity(order.getAccountId(), order.getSecurity());
+		log.info("Position for "+order.getAccountId()+" "+order.getSecurity()+" is "+position);
 		if(position==null) {
-			log.info("Creating new position for "+order.getAccountID()+" "+order.getSecurity());
+			log.info("Creating new position for "+order.getAccountId()+" "+order.getSecurity());
 			position=new Position();
-			position.setAccountId(order.getAccountID());
+			position.setAccountId(order.getAccountId());
 			position.setSecurity(order.getSecurity());
 			position.setQuantity(0);
 		}
@@ -75,8 +75,8 @@ public class TradeService {
 		log.info("Trade Processing complete : "+result);
 		try{
 			log.info("Publishing : "+result);
-			tradePublisher.publish("/accounts/"+order.getAccountID()+"/trades", result.getTrade());
-			positionPublisher.publish("/accounts/"+order.getAccountID()+"/positions", result.getPosition());
+			tradePublisher.publish("/accounts/"+order.getAccountId()+"/trades", result.getTrade());
+			positionPublisher.publish("/accounts/"+order.getAccountId()+"/positions", result.getPosition());
 		} catch (PubSubException exc){
 			log.error("Error publishing trade "+order,exc);
 		}
