@@ -16,12 +16,7 @@ import java.net.URI;
 /**
  * Simple socketIO Publisher, which uses 3 commands - 'subscribe',
  * 'unsubscribe', and 'publish' followed by payload
- * The server may add additional fields prefixed by underscores, with _from and
- * _at (timestamp) and the 'topic' field gets added
- * to every message.
- * 
- * This is a rudimentary implementation which needs to be fixed to more of an
- * envelope/payload format.
+ * Publish events consist of an envelope and an internal payload.
  * 
  */
 public abstract class SocketIOJSONPublisher<T> implements Publisher<T>, InitializingBean {
@@ -66,9 +61,9 @@ public abstract class SocketIOJSONPublisher<T> implements Publisher<T>, Initiali
             throw new PubSubException(String.format("Cannot send %s on topic %s - not connected", message, topic));
         }
         try {
-            String msgString = objectMapper.writerFor(message.getClass()).writeValueAsString(message);
+            SocketIOEnvelope<T> envelope = new SocketIOEnvelope<T>(topic, message);
+            String msgString = objectMapper.writerFor(SocketIOEnvelope.class).writeValueAsString(envelope);
             JSONObject obj = new JSONObject(msgString);
-            obj.put("topic", topic);
             log.debug("PUBLISH->" + obj);
             socket.emit("publish", obj);
         } catch (Exception x) {

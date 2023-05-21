@@ -7,8 +7,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import finos.traderx.messaging.Envelope;
 import finos.traderx.messaging.PubSubException;
 import finos.traderx.messaging.Subscriber;
 import io.socket.client.IO;
@@ -16,29 +18,26 @@ import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
 /**
- * Simple socketIO Subscribe, which uses 3 commands - 'subscribe',
+ * Simple socketIO Subscriber, which uses 3 commands - 'subscribe',
  * 'unsubscribe', and 'publish' followed by payload
- * The server may add additional fields prefixed by underscores, with _from and
- * _at (timestamp) and the 'topic' field gets added
- * to every message.
- * 
- * This is a rudimentary implementation which needs to be fixed to more of an
- * envelope/payload format.
- * 
+ * Publish events consist of an envelope and an internal payload.
  */
 public abstract class SocketIOJSONSubscriber<T> implements Subscriber<T>, InitializingBean {
     private static ObjectMapper objectMapper = new ObjectMapper()
             .setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
     public SocketIOJSONSubscriber(Class<T> typeClass) {
-        this.type = typeClass;
+        JavaType type = objectMapper.getTypeFactory().constructParametricType(SocketIOEnvelope.class, typeClass );
+        this.envelopeType = type;
+        this.objectType = typeClass;
     }
 
     protected IO.Options getIOOptions() {
         return new IO.Options();
     }
 
-    final Class<T> type;
+    final JavaType envelopeType;
+    final Class<T> objectType;
 
     org.slf4j.Logger log = LoggerFactory.getLogger(this.getClass().getName());
 
@@ -62,7 +61,7 @@ public abstract class SocketIOJSONSubscriber<T> implements Subscriber<T>, Initia
         defaultTopic = topic;
     }
 
-    public abstract void onMessage(T message);
+    public abstract void onMessage(Envelope<?> envelope, T message);
 
     @Override
     public void subscribe(String topic) throws PubSubException {
@@ -123,13 +122,17 @@ public abstract class SocketIOJSONSubscriber<T> implements Subscriber<T>, Initia
             @Override
             public void call(Object... args) {
                 try {
-                    JSONObject json = (JSONObject) args[0];
-                    if ("System".equals(json.getString("_from"))) {
-                        log.info("INCOMING>>>>> " + args[0].toString());
+                    JSONObject json = (JSONObject) args[0]; 
+                    log.info("Raw Payload " + args[0].toString());
+                    if(! objectType.getSimpleName().equals(json.get("type"))){
+                        log.info("System Message>>>>> " + args[0].toString());
                     } else {
-                        T obj = objectMapper.readValue(scrubJson(json).toString(), SocketIOJSONSubscriber.this.type);
-                        SocketIOJSONSubscriber.this.onMessage(obj);
+                        SocketIOEnvelope<T> envelope = (SocketIOEnvelope<T>) objectMapper.readValue(json.toString(),  envelopeType);
+                        log.info("Incoming Payload: " + envelope.getPayload());
+                        SocketIOJSONSubscriber.this.onMessage(envelope, envelope.getPayload());
                     }
+
+                   
                 } catch (Exception x) {
                     log.error("Threw exception while handling incoming message", x);
                 }
@@ -138,18 +141,6 @@ public abstract class SocketIOJSONSubscriber<T> implements Subscriber<T>, Initia
         });
         s.connect();
         return s;
-    }
-
-    // This is a form of 'envelope unwrapping' until a better payload format is
-    // introduced
-    JSONObject scrubJson(JSONObject obj) {
-        obj.remove("topic");
-        for (String name : JSONObject.getNames(obj)) {
-            if (name.startsWith("_"))
-                obj.remove(name);
-        }
-
-        return obj;
     }
 
     @Override
