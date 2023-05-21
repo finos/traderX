@@ -11,7 +11,7 @@ import { ColDef } from 'ag-grid-community';
 import { PositionData, TradeData } from './types';
 import { AccountsDropdown } from '../AccountsDropdown';
 
-// const PUBLISH='publish';
+const PUBLISH='publish';
 const SUBSCRIBE='subscribe';
 const UNSUBSCRIBE='unsubscribe';
 
@@ -29,6 +29,7 @@ export const Datatable = () => {
 	const tradeData = GetTrades(selectedId);
 
 	const handleChange = useCallback((event:SelectChangeEvent<any>) => {
+		socket.off(PUBLISH);
 		if (selectedId !== 0){
 			socket.emit(UNSUBSCRIBE,`/accounts/${selectedId}/trades`);
 			socket.emit(UNSUBSCRIBE,`/accounts/${selectedId}/positions`);
@@ -37,10 +38,19 @@ export const Datatable = () => {
 		setCurrentAccount(event.target.value);
 		socket.emit(SUBSCRIBE,`/accounts/${event.target.value}/trades`);
 		socket.emit(SUBSCRIBE,`/accounts/${event.target.value}/positions`);
+		socket.on(PUBLISH, (data:any) => {
+			if (data.topic === `/accounts/${event.target.value}/trades`) {
+				console.log("INCOMING TRADE DATA: ", data);
+				setTradeRowData((current: TradeData[]) => [...current, data]);
+			}
+			if (data.topic === `/accounts/${event.target.value}/positions`) {
+				console.log("INCOMING POSITION DATA: ", data);
+				setPositionRowData((current: PositionData[]) => [...current, data]);
+			}
+		});
   }, [selectedId])
 
 	useEffect(() => {
-		if (positionData.length !== 0) {
 			const positionKeys = ['security','quantity','updated'];
 			const tradeKeys = ['security','quantity','side','state','updated'];
 			setPositionRowData(positionData);
@@ -49,7 +59,6 @@ export const Datatable = () => {
 			setTradeColumnDefs([]);
 			positionKeys.forEach((key:string) => setPositionColumnDefs((current: ColDef<PositionData>[]) => [...current, {field: key}]));
 			tradeKeys.forEach((key:string) => setTradeColumnDefs((current: ColDef<TradeData>[]) => [...current, {field: key}]));
-		}
 	}, [positionData, tradeData, selectedId, currentAccount])
 
 
