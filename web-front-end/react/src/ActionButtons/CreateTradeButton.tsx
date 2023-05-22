@@ -12,28 +12,34 @@ export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 	);
 	
 	const handleSubmit = async () => {
-		const response = await fetch('http://127.0.0.1:18092/trade/', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({
-				id: `TRADE-${tradeId}`,
-				security: security,
-				quantity: quantity,
-				accountId: accountId,
-				side: side,
-			}),
-		});
-		if (response.ok) {
-			setTradeSuccess(true);
-			await delay(2000);
-			setTradeSuccess(false);
-			setOpen(false);
-			console.log('success');
-		} else {
-			console.log('error');
+		try {
+			const response = await fetch('http://127.0.0.1:18092/trade/', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					id: `TRADE-${tradeId}`,
+					security: security,
+					quantity: quantity,
+					accountId: accountId,
+					side: side,
+				}),
+			});
+			if (response.ok) {
+				setTradeSuccess(true);
+				await delay(2000);
+				setTradeSuccess(false);
+				setOpen(false);
+				console.log('success');
+				return;
+			}
+		} catch (error) {
+			console.log(error);
+			setError(error);
+			return error;
 		}
 	}
 	const [open, setOpen] = useState<boolean>(false);
+	const [error, setError] = useState<any>('');
   const handleClose = () => setOpen(false);
 	const handleOpen = async () => {
 		setOpen(true);
@@ -118,6 +124,7 @@ export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 							<Button variant="contained" color="success" onClick={handleSubmit}>Submit</Button>
 						</div>}
 						{tradeSuccess && <div style={{backgroundColor: "greenyellow", width: "5em"}}> Trade Created!</div>}
+						<span style={{color: "red", width: "5em"}}>{error}</span>
 					</div>
 				</Box>
 				</Modal>
