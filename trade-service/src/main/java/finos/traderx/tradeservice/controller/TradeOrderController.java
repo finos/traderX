@@ -49,9 +49,9 @@ public class TradeOrderController {
 		{
 			throw new ResourceNotFoundException(tradeOrder.getSecurity() + " not found in Reference data service.");
 		}
-		else if(!validateAccount(tradeOrder.getAccountID()))
+		else if(!validateAccount(tradeOrder.getAccountId()))
 		{
-			throw new ResourceNotFoundException(tradeOrder.getAccountID() + " not found in Account service.");
+			throw new ResourceNotFoundException(tradeOrder.getAccountId() + " not found in Account service.");
 		}
 		else
 		{

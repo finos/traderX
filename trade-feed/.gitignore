@@ -5,6 +5,9 @@ npm-debug.log
 .env
 .DS_Store
 
+# Suppressing package-lock so that corporate envs can build locally without leaking local repos
+package-lock.json
+
 ### IntelliJ IDEA ###
 .idea
 *.iws
