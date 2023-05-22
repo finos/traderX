@@ -5,7 +5,11 @@ import { ActionButtonsProps, Side } from "./types";
 
 export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 	const [refData, setRefData] = useState<any>([]);
-	const tradeId = Math.floor(Math.random() * 1000000)
+	const tradeId = Math.floor(Math.random() * 1000000);
+
+	const delay = (ms:number) => new Promise(
+		resolve => setTimeout(resolve, ms)
+	);
 	
 	const handleSubmit = async () => {
 		const response = await fetch('http://127.0.0.1:18092/trade/', {
@@ -20,6 +24,9 @@ export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 			}),
 		});
 		if (response.ok) {
+			setTradeSuccess(true);
+			await delay(2000);
+			setTradeSuccess(false);
 			setOpen(false);
 			console.log('success');
 		} else {
@@ -48,6 +55,7 @@ export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 	const [side, setSide] = useState<Side>();
 	const [security, setSecurity] = useState<string>('');
 	const [quantity, setQuantity] = useState<number>(0);
+	const [tradeSuccess, setTradeSuccess] = useState<boolean>(false);
 	
   const handleToggleChange = useCallback((
     _event: MouseEvent<HTMLElement>,
@@ -106,9 +114,10 @@ export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 							<ToggleButton value="Buy">Buy</ToggleButton>
 							<ToggleButton value="Sell">Sell</ToggleButton>
 						</ToggleButtonGroup>
-						<div style={{float: 'left'}} className="submit-button-container">
+						{!tradeSuccess && <div style={{float: 'left'}} className="submit-button-container">
 							<Button variant="contained" color="success" onClick={handleSubmit}>Submit</Button>
-						</div>
+						</div>}
+						{tradeSuccess && <div style={{backgroundColor: "greenyellow", width: "5em"}}> Trade Created!</div>}
 					</div>
 				</Box>
 				</Modal>
