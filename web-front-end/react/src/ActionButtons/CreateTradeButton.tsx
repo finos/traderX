@@ -1,4 +1,4 @@
-import { Box, Button,  Modal, ToggleButton, ToggleButtonGroup } from "@mui/material"
+import { Box, Button,  MenuItem,  Modal, TextField, ToggleButton, ToggleButtonGroup } from "@mui/material"
 import { MouseEvent, useCallback, useRef, useState } from "react";
 import { RJSFSchema, } from '@rjsf/utils';
 import validator from '@rjsf/validator-ajv8';
@@ -31,16 +31,17 @@ export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 	}
 	const log = (type:string) => console.log.bind(console, type);
 	const handleSubmit = async () => {
-		const tradeDetails = formDataRef.current;
+		// const tradeDetails = formDataRef.current;
+		console.log(security, side, quantity);
 		const response = await fetch('http://127.0.0.1:18092/trade/', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
 				id: `TRADE-${tradeId}`,
-				security: tradeDetails.security,
-				quantity: tradeDetails.quantity,
+				security: security,
+				quantity: quantity,
 				accountId: accountId,
-				side: sideRef.current,
+				side: side,
 			}),
 		});
 		if (response.ok) {
@@ -57,19 +58,27 @@ export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 		try {
 			const response = await fetch("http://127.0.0.1:18085/stocks");
 			const data = await response.json();
-			setRefData([])
-			data.forEach((refData:RefData) => {
-				return (
-					setRefData((
-						prevData:RefDataCompanyNames[]
-						) => [...prevData, refData.ticker]))
-			})
+			setRefData(data)
+			// data.forEach((refData:RefData) => {
+			// 	return (
+			// 		setRefData((
+			// 			prevData:RefDataCompanyNames[]
+			// 			) => [...prevData, refData.ticker]))
+			// })
 		} catch (error) {
 			return error
 		}
 	}
 
+	const tickerItem = refData.map((option:any) => (
+		<MenuItem key={option.ticker} value={option.ticker}>
+			{option.ticker}
+		</MenuItem>
+	))
+
 	const [side, setSide] = useState<Side>();
+	const [security, setSecurity] = useState<any>();
+	const [quantity, setQuantity] = useState<number>(0);
 	const sideRef = useRef<Side>();
 	const formDataRef = useRef<any>([]);
 
@@ -78,14 +87,17 @@ export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 		newSide: Side,
   ) => {
 		sideRef.current = newSide;
-    // setSide(newSide);
+    setSide(newSide);
   }, []);
 
-	const handleFormChange = useCallback((
-		data: IChangeEvent<any, RJSFSchema, any>
-	) => {
-		formDataRef.current = data.formData
-		console.log(formDataRef.current, sideRef.current);
+	const handleSecurityChange = useCallback(
+		(event: any) => {
+			setSecurity(event.target.value);
+	}, [])
+
+	const handleQuantityChange = useCallback(
+		(event: any) => {
+			setQuantity(event.target.value);
 	}, [])
 
 	return (
@@ -98,18 +110,26 @@ export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 					aria-describedby="modal-modal-description"
 				>
 				<Box className="modal-components" sx={style}>
-					<Form
-						schema={schema}
-						uiSchema={uiSchema}
-						validator={validator}
-						onChange={handleFormChange}
-						// onSubmit={onSubmit}
-						onError={log('errors')}
-					>
+					<div>
+						<TextField
+							select
+							label="Security"
+							onChange={handleSecurityChange}
+						>
+							{tickerItem}
+						</TextField>
+						<TextField
+						type="number"
+						label="Quantity"
+						onChange={handleQuantityChange}
+						>
+
+						</TextField>
 						<ToggleButtonGroup
 							color="primary"
-							size="small"
-							// value={sideRef.current}
+							size="medium"
+							style={{height: "3.5em"}}
+							value={side}
 							exclusive
 							onChange={handleToggleChange}
 							aria-label="tradeSide"
@@ -117,10 +137,10 @@ export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 							<ToggleButton value="Buy">Buy</ToggleButton>
 							<ToggleButton value="Sell">Sell</ToggleButton>
 						</ToggleButtonGroup>
-						<div style={{float: 'right'}} className="submit-button-container">
+						<div style={{float: 'left'}} className="submit-button-container">
 							<Button variant="contained" color="success" onClick={handleSubmit}>Submit</Button>
 						</div>
-					</Form>
+					</div>
 				</Box>
 				</Modal>
 		</div>
