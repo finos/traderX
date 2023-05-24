@@ -41,11 +41,11 @@ export const Datatable = () => {
 		socket.on(PUBLISH, (data:any) => {
 			if (data.topic === `/accounts/${event.target.value}/trades`) {
 				console.log("INCOMING TRADE DATA: ", data);
-				setTradeRowData((current: TradeData[]) => [...current, data]);
+				setTradeRowData((current: TradeData[]) => [...current, data.payload]);
 			}
 			if (data.topic === `/accounts/${event.target.value}/positions`) {
 				console.log("INCOMING POSITION DATA: ", data);
-				setPositionRowData((current: PositionData[]) => [...current, data]);
+				setPositionRowData((current: PositionData[]) => [...current, data.payload]);
 			}
 		});
   }, [selectedId])

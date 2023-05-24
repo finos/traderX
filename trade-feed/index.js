@@ -1,17 +1,9 @@
-<<<<<<< HEAD
-const sockio=require("socket.io");
-=======
 const sockio = require("socket.io");
->>>>>>> 33871b473e388b9937d47e886979cadc2d2862cc
 const app = require('express')();
 const winston = require('winston');
 const http = require('http').createServer(app);
 
-<<<<<<< HEAD
-const io = new sockio.Server(http,{
-=======
 const io = new sockio.Server(http, {
->>>>>>> 33871b473e388b9937d47e886979cadc2d2862cc
   cors: {
     origin: "*"
   }

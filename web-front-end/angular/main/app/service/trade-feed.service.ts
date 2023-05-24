@@ -30,8 +30,8 @@ export class TradeFeedService {
        
         const callbackFn = (args: any) => {
             console.log("received message -> "+ JSON.stringify(args));
-            if (args._from !== 'System' && args.topic === topic) {
-                callback(args);
+            if (args.from !== 'System' && args.topic === topic) {
+                callback(args.payload);
             }
         }
         this.socket.on('publish', callbackFn);
