@@ -18,7 +18,7 @@
   <body>
     <ul id="messages"></ul>
     <form id="form" action="">
-      <input id="input" autocomplete="off" /><button>Send</button>
+      <input title="Send Message" id="input" autocomplete="off" /><button>Send</button>
     </form>
     <script src="/socket.io/socket.io.js"></script>
 
@@ -39,7 +39,7 @@
       form.addEventListener('submit', function(e) {
         e.preventDefault();
         if (input.value) {
-          socket.emit(PUBLISH, { topic:'/chat',message:input.value});
+          socket.emit(PUBLISH, { topic:'/chat',payload:{message:input.value}});
           input.value = '';
         }
       });

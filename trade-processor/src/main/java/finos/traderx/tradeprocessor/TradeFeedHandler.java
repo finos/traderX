@@ -1,7 +1,9 @@
 package finos.traderx.tradeprocessor;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 
+import finos.traderx.messaging.Envelope;
 import finos.traderx.messaging.socketio.SocketIOJSONSubscriber;
 import finos.traderx.tradeprocessor.model.TradeOrder;
 import finos.traderx.tradeprocessor.service.TradeService;
@@ -16,11 +18,12 @@ public class TradeFeedHandler extends SocketIOJSONSubscriber<TradeOrder> {
     private TradeService tradeService;
 
     @Override
-    public void onMessage(TradeOrder order) {
+    public void onMessage(Envelope<?> envelope, TradeOrder order) {
         try{
             tradeService.processTrade(order);
         } catch (Exception x){
-            log.error("Error handling incoming trade order {}",order,x);
+            log.error("Error processing trade order {} in envelope {}",order,envelope);
+            log.error("Error handling incoming trade order:",x);
         }
        
     }
