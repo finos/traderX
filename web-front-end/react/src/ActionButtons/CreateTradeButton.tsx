@@ -1,91 +1,83 @@
-import { Box, Button,  Modal, ToggleButton, ToggleButtonGroup } from "@mui/material"
-import { MouseEvent, useCallback, useRef, useState } from "react";
-import { RJSFSchema, } from '@rjsf/utils';
-import validator from '@rjsf/validator-ajv8';
-import Form, { IChangeEvent } from '@rjsf/core';
+import { Box, Button,  MenuItem,  Modal, TextField, ToggleButton, ToggleButtonGroup } from "@mui/material"
+import { ChangeEvent, MouseEvent, useCallback, useState } from "react";
 import { style } from "../style";
-import { ActionButtonsProps, RefData, RefDataCompanyNames, Side } from "./types";
+import { ActionButtonsProps, Side } from "./types";
 
 export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 	const [refData, setRefData] = useState<any>([]);
-	const tradeId = Math.floor(Math.random() * 1000000)
-	const schema: RJSFSchema = {
-		title: 'Create Trade',
-		type: 'object',
-		required: ['security', 'quantity'],
-		properties: {
-			security: { type: 'string', title: 'Security', enum: refData },
-			quantity: { type: 'integer', title: 'Quantity'},
-			// side: { type: 'string', title: 'Side', enum: ['Buy', 'Sell'] },
-		},
-	};
-	const uiSchema = {
-		"ui:submitButtonOptions": {
-			"submitText": "Confirm Details",
-			"norender": false,
-			"props": {
-				"disabled": false,
-				"className": "btn btn-info"
-			}
-		}
-	}
-	const log = (type:string) => console.log.bind(console, type);
+	const tradeId = Math.floor(Math.random() * 1000000);
+
+	const delay = (ms:number) => new Promise(
+		resolve => setTimeout(resolve, ms)
+	);
+	
 	const handleSubmit = async () => {
-		const tradeDetails = formDataRef.current;
-		const response = await fetch('http://127.0.0.1:18092/trade/', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({
-				id: `TRADE-${tradeId}`,
-				security: tradeDetails.security,
-				quantity: tradeDetails.quantity,
-				accountId: accountId,
-				side: sideRef.current,
-			}),
-		});
-		if (response.ok) {
-			setOpen(false);
-			console.log('success');
-		} else {
-			console.log('error');
+		try {
+			const response = await fetch('http://127.0.0.1:18092/trade/', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					id: `TRADE-${tradeId}`,
+					security: security,
+					quantity: quantity,
+					accountId: accountId,
+					side: side,
+				}),
+			});
+			if (response.ok) {
+				setTradeSuccess(true);
+				await delay(2000);
+				setTradeSuccess(false);
+				setOpen(false);
+				console.log('success');
+				return;
+			}
+		} catch (error) {
+			console.log(error);
+			setError(error);
+			return error;
 		}
 	}
 	const [open, setOpen] = useState<boolean>(false);
+	const [error, setError] = useState<any>('');
   const handleClose = () => setOpen(false);
 	const handleOpen = async () => {
 		setOpen(true);
 		try {
 			const response = await fetch("http://127.0.0.1:18085/stocks");
 			const data = await response.json();
-			setRefData([])
-			data.forEach((refData:RefData) => {
-				return (
-					setRefData((
-						prevData:RefDataCompanyNames[]
-						) => [...prevData, refData.ticker]))
-			})
+			setRefData(data)
 		} catch (error) {
 			return error
 		}
 	}
 
-	const [side, setSide] = useState<Side>();
-	const sideRef = useRef<Side>();
-	const formDataRef = useRef<any>([]);
+	const tickerItem = refData.map((option:any) => (
+		<MenuItem key={option.ticker} value={option.ticker}>
+			{option.ticker}
+		</MenuItem>
+	))
 
+	const [side, setSide] = useState<Side>();
+	const [security, setSecurity] = useState<string>('');
+	const [quantity, setQuantity] = useState<number>(0);
+	const [tradeSuccess, setTradeSuccess] = useState<boolean>(false);
+	
   const handleToggleChange = useCallback((
     _event: MouseEvent<HTMLElement>,
 		newSide: Side,
   ) => {
-		sideRef.current = newSide;
-    // setSide(newSide);
+    setSide(newSide);
   }, []);
 
-	const handleFormChange = useCallback((
-		data: IChangeEvent<any, RJSFSchema, any>
-	) => {
-		formDataRef.current = data.formData
-		console.log(formDataRef.current, sideRef.current);
+	const handleSecurityChange = useCallback(
+		(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+			setSecurity(event.target.value);
+	}, [])
+
+	const handleQuantityChange = useCallback(
+		(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+			setQuantity(parseInt(event.target.value));
 	}, [])
 
 	return (
@@ -98,18 +90,29 @@ export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 					aria-describedby="modal-modal-description"
 				>
 				<Box className="modal-components" sx={style}>
-					<Form
-						schema={schema}
-						uiSchema={uiSchema}
-						validator={validator}
-						onChange={handleFormChange}
-						// onSubmit={onSubmit}
-						onError={log('errors')}
-					>
+					<div className="form-container">
+						<TextField
+							select
+							label="Security"
+							variant="outlined"
+							style={{width: "8em"}}
+							onChange={handleSecurityChange}
+						>
+							{tickerItem}
+						</TextField>
+						<TextField
+						type="number"
+						style={{width: "6em"}}
+						label="Quantity"
+						onChange={handleQuantityChange}
+						>
+
+						</TextField>
 						<ToggleButtonGroup
 							color="primary"
-							size="small"
-							// value={sideRef.current}
+							size="medium"
+							style={{height: "3.5em"}}
+							value={side}
 							exclusive
 							onChange={handleToggleChange}
 							aria-label="tradeSide"
@@ -117,10 +120,12 @@ export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 							<ToggleButton value="Buy">Buy</ToggleButton>
 							<ToggleButton value="Sell">Sell</ToggleButton>
 						</ToggleButtonGroup>
-						<div style={{float: 'right'}} className="submit-button-container">
+						{!tradeSuccess && <div style={{float: 'left'}} className="submit-button-container">
 							<Button variant="contained" color="success" onClick={handleSubmit}>Submit</Button>
-						</div>
-					</Form>
+						</div>}
+						{tradeSuccess && <div style={{backgroundColor: "greenyellow", width: "5em"}}> Trade Created!</div>}
+						<span style={{color: "red", width: "5em"}}>{error}</span>
+					</div>
 				</Box>
 				</Modal>
 		</div>

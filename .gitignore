@@ -8,12 +8,16 @@ build/
 # Excluding Local Build folder for company-specific building
 .corp
 
+# Exclude package-lock to avoid company builds overriding standard locations
+package-lock.json
+
 #NodeJS
 node_modules
 build
 npm-debug.log
 .env
 .DS_Store
+.angular
 
 
 ### STS ###

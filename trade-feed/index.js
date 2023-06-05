@@ -25,11 +25,28 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
 
+function wrapMessage( sender, topic, payloadType, payload){
+  return {
+    type: payloadType || "message",
+    from: sender,
+    topic: topic,
+    date: new Date().getTime(),
+    payload: payload
+  }
+}
+
+function joinMessage(user,topic){
+  return wrapMessage('System',topic,'message',{message: `New Joiner ${user} to topic ${topic}`});
+}
+
+function leaveMessage(user,topic){
+  return wrapMessage('System',topic,'message',{message: `${user} has left ${topic}`});
+}
+
 function broadcast(from, data) {
-  data._from = from;
-  data._at = new Date().getTime();
-  log.info(`Publish ${data.topic} -> ${JSON.stringify(data)}`);
-  io.sockets.in([data.topic, "/*"]).emit(PUBLISH, data);
+  var message=wrapMessage(from,data.topic,data.type,data.payload);
+  log.info(`Publish ${data.topic} -> ${JSON.stringify(message)}`);
+  io.sockets.in([data.topic, "/*"]).emit(PUBLISH, message);
 }
 
 io.on('connection', (socket) => {
@@ -37,11 +54,11 @@ io.on('connection', (socket) => {
   socket.on(SUBSCRIBE, (topic) => {
     log.info(`Subscribe ${topic}`);
     socket.join(topic);
-    broadcast('System', { topic: topic, message: `New Joiner ${socket.id} to topic ${topic}` });
+    broadcast('System', joinMessage(socket.id,topic));
   });
   socket.on(UNSUBSCRIBE, (topic) => {
     log.info(`Unsubscribe ${topic}`);
-    broadcast('System', { topic: topic, message: `${socket.id} has left topic ${topic}` });
+    broadcast('System', leaveMessage(socket.id,topic));
     socket.leave(topic);
   });
   socket.on(PUBLISH, (data) => {
