@@ -4,7 +4,7 @@
     "scripts": {
         "ng": "ng",
         "lint": "ng lint",
-        "start": "ng serve --host 0.0.0.0 --disable-host-check --port 18093",
+        "start": "ng serve --host 0.0.0.0 --disable-host-check --port ${WEB_SERVICE_PORT:-18093}",
         "build": "cross-env NG_CLI_ANALYTICS=ci ng build --base-href=. --configuration production --output-path=./dist --aot --output-hashing=all",
         "test": "ng test --code-coverage --watch=true",
         "test:ci": "ng test --code-coverage --watch=false --browsers=ChromeHeadlessNoSandbox"
@@ -36,7 +36,6 @@
         "@faker-js/faker": "^7.6.0",
         "@types/jasmine": "^4.3.1",
         "@types/node": "^14.14.0",
-        
         "codelyzer": "^6.0.2",
         "cross-env": "^7.0.3",
         "jasmine-core": "~4.5.0",
