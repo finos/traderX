@@ -3,7 +3,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 const port = parseInt(process.env.REFERENCE_DATA_SERVICE_PORT, 10) || 18085;
-const hostname = process.env.REFERENCE_DATA_HOSTNAME || 'localhost';
+const hostname = process.env.REFERENCE_DATA_HOSTNAME || '0.0.0.0';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, { cors: true });
