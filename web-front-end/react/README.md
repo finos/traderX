@@ -8,6 +8,8 @@ In the project directory, you can run:
 
 ### `npm start`
 
+This will run on port `18094` and is controlled via this environment variable: `$WEB_SERVICE_REACT_PORT`
+
 For managing accounts it will need to connect to the account service to query and update accounts, and to the people service for resolving users to associate with accounts.
 
 ## API Gateway / Service Proxy

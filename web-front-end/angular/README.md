@@ -18,7 +18,7 @@ users to associate with accounts.
 This application was written using Angular, and has hardcoded references to the various services it consumes in `environments` directory in  [environment.ts](environments/environment.ts) and [environment.prod.ts](environments/environment.prod.ts)
 
 ### Port Number
-This runs an embedded webserver on default port `18093` - which can be changed in the package.json 'start' script, or override using the `WEB_SERVICE_PORT` environment variable
+This runs an embedded webserver on default port `18093` - which can be changed in the package.json 'start' script, or override using the `WEB_SERVICE_ANGULAR_PORT` environment variable
 
 ### Building and Running
 To build and run this project:

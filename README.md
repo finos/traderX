@@ -59,8 +59,8 @@ export PEOPLE_SERVICE_PORT=18089
 export POSITION_SERVICE_PORT=18090
 export TRADE_PROCESSOR_SERVICE_PORT=18091
 export TRADING_SERVICE_PORT=18092
-export WEB_FRONT_END_PORT=18093  #Angular
-export WEB_FRONT_END_PORT=18094  #React
+export WEB_SERVICE_ANGULAR_PORT=18093  #Angular
+export WEB_SERVICE_REACT_PORT=18094  #React
 ```
 
 The recommended starting sequence to let everything find what it needs is:
