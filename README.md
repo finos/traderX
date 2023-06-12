@@ -77,6 +77,19 @@ trade-service
 web-front-end
 ```
 
+## Usage (Docker + Docker Compose)
+
+The easiest way to run up the entire system is using Docker Compose. This should work on your local computer using Docker Desktop / Docker Compose (tested on Mac Silicon) and also in Github Codespaces.
+
+From the root traderX directory run
+```
+docker compose up
+```
+On first run this will build all of the containers from the project specific Dockerfile's and then start them in the correct sequence.
+
+The Docker containers are configured via Docker Compose to connect to a shred virtual network enabling them to communciate whether running on your local computer or via a Codespace.
+
+The WebUIs will be added to this setup later, but in the interim you should be able to start either (or both) in the same environment to connect to the backend components.
 ## Development setup
 
 At the moment, the repository has architecture documents and API schema doc documents.  When the code is populated in this repo, build instructions will be listed here.
