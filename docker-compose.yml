@@ -6,7 +6,7 @@ services:
     build: 
       context: database
       dockerfile: Dockerfile
-    working_dir: /workspace/database
+    working_dir: /database
     expose:
       - 18082
       - 18083
@@ -26,7 +26,7 @@ services:
     build: 
       context: reference-data
       dockerfile: Dockerfile
-    working_dir: /workspace/reference-data
+    working_dir: /reference-data
     expose:
       - 18085
     ports:
@@ -42,7 +42,7 @@ services:
     build: 
       context: trade-feed
       dockerfile: Dockerfile
-    working_dir: /workspace/trade-feed
+    working_dir: /trade-feed
     expose:
       - 18086
     ports:
@@ -58,7 +58,7 @@ services:
     build: 
       context: people-service
       dockerfile: Dockerfile
-    working_dir: /workspace/people-service
+    working_dir: /people-service
     expose:
       - 18089
     ports:
@@ -74,7 +74,7 @@ services:
     build: 
       context: account-service
       dockerfile: Dockerfile
-    working_dir: /workspace/account-service
+    working_dir: /account-service
     expose:
       - 18088
     ports:
@@ -96,7 +96,7 @@ services:
     build: 
       context: position-service
       dockerfile: Dockerfile
-    working_dir: /workspace/position-service
+    working_dir: /position-service
     expose:
       - 18090
     ports:
@@ -116,7 +116,7 @@ services:
     build: 
       context: trade-service
       dockerfile: Dockerfile
-    working_dir: /workspace/trade-service
+    working_dir: /trade-service
     expose:
       - 18092
     ports:
@@ -144,7 +144,7 @@ services:
     build: 
       context: trade-processor
       dockerfile: Dockerfile
-    working_dir: /workspace/trade-processor
+    working_dir: /trade-processor
     expose:
       - 18091
     ports:
