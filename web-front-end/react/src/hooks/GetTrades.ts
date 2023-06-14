@@ -1,5 +1,6 @@
 import { SetStateAction, useEffect, useState } from "react";
 import { TradeData } from "../Datatable/types";
+import { Environment } from '../env';
 
 export const GetTrades = (accountId:number) => {
 	const [tradesData, setTradesData] = useState<TradeData[]>([]);
@@ -9,7 +10,7 @@ export const GetTrades = (accountId:number) => {
 		let json:SetStateAction<TradeData[]>;
 		const fetchData: data = async () => {
 			try {
-				const response = await fetch(`http://127.0.0.1:18090/trades/${accountId}`);
+				const response = await fetch(`${Environment.position_service_url}/trades/${accountId}`);
 				if (response.ok) {
 					json = await response.json();
 					setTradesData(json);
