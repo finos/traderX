@@ -1,5 +1,6 @@
 import { SetStateAction, useEffect, useState } from "react";
 import { PositionData } from "../Datatable/types";
+import { Environment } from '../env';
 
 export const GetPositions = (accountId:number) => {
 	const [positionsData, setPositionsData] = useState<PositionData[]>([]);
@@ -8,7 +9,7 @@ export const GetPositions = (accountId:number) => {
 		let json:SetStateAction<PositionData[]>;
 		const fetchData: data = async () => {
 			try {
-				const response = await fetch(`http://127.0.0.1:18090/positions/${accountId}`);
+				const response = await fetch(`${Environment.position_service_url}/positions/${accountId}`);
 				if (response.ok) {
 					json = await response.json();
 					setPositionsData(json);
