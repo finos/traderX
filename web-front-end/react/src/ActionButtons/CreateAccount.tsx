@@ -4,6 +4,7 @@ import { RJSFSchema, } from '@rjsf/utils';
 import validator from '@rjsf/validator-ajv8';
 import Form, { IChangeEvent } from '@rjsf/core';
 import { style } from "../style";
+import { Environment } from '../env';
 
 export const CreateAccount = () => {
 	const accountId = Math.floor(Math.random() * 10000)
@@ -36,7 +37,7 @@ export const CreateAccount = () => {
 	const onSubmit = async (data: IChangeEvent<any>, _event: FormEvent<any>) => {
 		const accountDetails = data.formData;
 		try {
-			await fetch('http://127.0.0.1:18088/account/', {
+			await fetch(`${Environment.account_service_url}/account/`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({

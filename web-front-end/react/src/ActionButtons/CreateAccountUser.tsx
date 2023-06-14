@@ -6,6 +6,7 @@ import Form, { IChangeEvent } from '@rjsf/core';
 import { style } from "../style";
 import { ActionButtonsProps, PeopleData } from "./types";
 import { MatchingPeople } from "../AccountsDropdown";
+import { Environment } from '../env';
 
 export const CreateAccountUser = (
 	{accountId}:ActionButtonsProps
@@ -41,7 +42,7 @@ export const CreateAccountUser = (
 	const onSubmit = async (data: IChangeEvent<any>, _event: FormEvent<any>) => {
 		const accountDetails = data.formData;
 		try {
-				await fetch('http://127.0.0.1:18088/accountuser/', {
+				await fetch(`${Environment.account_service_url}/accountuser/`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
@@ -60,7 +61,7 @@ export const CreateAccountUser = (
 		let json:PeopleData[];
 		console.log(data.formData)
 			try {
-					const response = await fetch(`http://127.0.0.1:18095/People/GetMatchingPeople?SearchText=${data.formData.fullName}`);
+					const response = await fetch(`${Environment.people_service_url}/People/GetMatchingPeople?SearchText=${data.formData.fullName}`);
 					json = await response.json();
 					setMatchingPeople([]);
 					json.forEach((data:any) => {

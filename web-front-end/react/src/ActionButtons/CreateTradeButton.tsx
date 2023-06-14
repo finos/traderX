@@ -2,6 +2,7 @@ import { Box, Button,  MenuItem,  Modal, TextField, ToggleButton, ToggleButtonGr
 import { ChangeEvent, MouseEvent, useCallback, useState } from "react";
 import { style } from "../style";
 import { ActionButtonsProps, Side } from "./types";
+import { Environment } from '../env';
 
 export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 	const [refData, setRefData] = useState<any>([]);
@@ -13,7 +14,7 @@ export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 	
 	const handleSubmit = async () => {
 		try {
-			const response = await fetch('http://127.0.0.1:18092/trade/', {
+			const response = await fetch(`${Environment.trade_service_url}/trade/`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -44,7 +45,7 @@ export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 	const handleOpen = async () => {
 		setOpen(true);
 		try {
-			const response = await fetch("http://127.0.0.1:18085/stocks");
+			const response = await fetch(`${Environment.reference_data_url}/stocks`);
 			const data = await response.json();
 			setRefData(data)
 		} catch (error) {
