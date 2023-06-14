@@ -3,7 +3,7 @@ version: '3.4'
 services:
   database:
     image: database
-    build: 
+    build:
       context: database
       dockerfile: Dockerfile
     working_dir: /database
@@ -23,7 +23,7 @@ services:
       - localnet
   reference-data:
     image: reference-data
-    build: 
+    build:
       context: reference-data
       dockerfile: Dockerfile
     working_dir: /reference-data
@@ -39,7 +39,7 @@ services:
       - localnet
   trade-feed:
     image: trade-feed
-    build: 
+    build:
       context: trade-feed
       dockerfile: Dockerfile
     working_dir: /trade-feed
@@ -55,7 +55,7 @@ services:
       - localnet
   people-service:
     image: people-service
-    build: 
+    build:
       context: people-service
       dockerfile: Dockerfile
     working_dir: /people-service
@@ -71,7 +71,7 @@ services:
       - localnet
   account-service:
     image: account-service
-    build: 
+    build:
       context: account-service
       dockerfile: Dockerfile
     working_dir: /account-service
@@ -88,12 +88,12 @@ services:
     command: ./gradlew bootRun
     networks:
       - localnet
-    depends_on: 
+    depends_on:
       - database
       - people-service
   position-service:
     image: position-service
-    build: 
+    build:
       context: position-service
       dockerfile: Dockerfile
     working_dir: /position-service
@@ -109,11 +109,11 @@ services:
     command: ./gradlew bootRun
     networks:
       - localnet
-    depends_on: 
+    depends_on:
       - database
   trade-service:
     image: trade-service
-    build: 
+    build:
       context: trade-service
       dockerfile: Dockerfile
     working_dir: /trade-service
@@ -133,7 +133,7 @@ services:
     command: ./gradlew bootRun
     networks:
       - localnet
-    depends_on: 
+    depends_on:
       - database
       - people-service
       - account-service
@@ -141,7 +141,7 @@ services:
       - trade-feed
   trade-processor:
     image: trade-processor
-    build: 
+    build:
       context: trade-processor
       dockerfile: Dockerfile
     working_dir: /trade-processor
@@ -158,7 +158,26 @@ services:
     command: ./gradlew bootRun
     networks:
       - localnet
-    depends_on: 
+    depends_on:
+      - database
+      - trade-feed
+  web-front-end-angular:
+    image: web-front-end-angular
+    build:
+      context: web-front-end/angular
+      dockerfile: Dockerfile
+    working_dir: /web-front-end/angular
+    expose:
+      - 18093
+    ports:
+      - 18093:18093
+    volumes:
+      # Mount the root folder that contains .git
+      - .:/workspace:cached
+    command: npm run start
+    networks:
+      - localnet
+    depends_on:
       - database
       - trade-feed
 
