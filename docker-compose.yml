@@ -1,0 +1,186 @@
+version: '3.4'
+
+services:
+  database:
+    image: database
+    build:
+      context: database
+      dockerfile: Dockerfile
+    working_dir: /database
+    expose:
+      - 18082
+      - 18083
+      - 18084
+    ports:
+      - 18082:18082
+      - 18083:18083
+      - 18084:18084
+    volumes:
+      # Mount the root folder that contains .git
+      - .:/workspace:cached
+    command: ./run.sh
+    networks:
+      - localnet
+  reference-data:
+    image: reference-data
+    build:
+      context: reference-data
+      dockerfile: Dockerfile
+    working_dir: /reference-data
+    expose:
+      - 18085
+    ports:
+      - 18085:18085
+    volumes:
+      # Mount the root folder that contains .git
+      - .:/workspace:cached
+    command: npm run start
+    networks:
+      - localnet
+  trade-feed:
+    image: trade-feed
+    build:
+      context: trade-feed
+      dockerfile: Dockerfile
+    working_dir: /trade-feed
+    expose:
+      - 18086
+    ports:
+      - 18086:18086
+    volumes:
+      # Mount the root folder that contains .git
+      - .:/workspace:cached
+    command: npm run start
+    networks:
+      - localnet
+  people-service:
+    image: people-service
+    build:
+      context: people-service
+      dockerfile: Dockerfile
+    working_dir: /people-service
+    expose:
+      - 18089
+    ports:
+      - 18089:18089
+    volumes:
+      # Mount the root folder that contains .git
+      - .:/workspace:cached
+    command: /PeopleService.WebApi dotnet run
+    networks:
+      - localnet
+  account-service:
+    image: account-service
+    build:
+      context: account-service
+      dockerfile: Dockerfile
+    working_dir: /account-service
+    expose:
+      - 18088
+    ports:
+      - 18088:18088
+    environment:
+      - DATABASE_TCP_HOST=database
+      - PEOPLE_SERVICE_HOST=people-service
+    volumes:
+      # Mount the root folder that contains .git
+      - .:/workspace:cached
+    command: ./gradlew bootRun
+    networks:
+      - localnet
+    depends_on:
+      - database
+      - people-service
+  position-service:
+    image: position-service
+    build:
+      context: position-service
+      dockerfile: Dockerfile
+    working_dir: /position-service
+    expose:
+      - 18090
+    ports:
+      - 18090:18090
+    environment:
+      - DATABASE_TCP_HOST=database
+    volumes:
+      # Mount the root folder that contains .git
+      - .:/workspace:cached
+    command: ./gradlew bootRun
+    networks:
+      - localnet
+    depends_on:
+      - database
+  trade-service:
+    image: trade-service
+    build:
+      context: trade-service
+      dockerfile: Dockerfile
+    working_dir: /trade-service
+    expose:
+      - 18092
+    ports:
+      - 18092:18092
+    environment:
+      - DATABASE_TCP_HOST=database
+      - PEOPLE_SERVICE_HOST=people-service
+      - ACCOUNT_SERVICE_HOST=account-service
+      - REFERENCE_DATA_HOST=reference-data
+      - TRADE_FEED_HOST=trade-feed
+    volumes:
+      # Mount the root folder that contains .git
+      - .:/workspace:cached
+    command: ./gradlew bootRun
+    networks:
+      - localnet
+    depends_on:
+      - database
+      - people-service
+      - account-service
+      - reference-data
+      - trade-feed
+  trade-processor:
+    image: trade-processor
+    build:
+      context: trade-processor
+      dockerfile: Dockerfile
+    working_dir: /trade-processor
+    expose:
+      - 18091
+    ports:
+      - 18091:18091
+    environment:
+      - DATABASE_TCP_HOST=database
+      - TRADE_FEED_HOST=trade-feed
+    volumes:
+      # Mount the root folder that contains .git
+      - .:/workspace:cached
+    command: ./gradlew bootRun
+    networks:
+      - localnet
+    depends_on:
+      - database
+      - trade-feed
+  web-front-end-angular:
+    image: web-front-end-angular
+    build:
+      context: web-front-end/angular
+      dockerfile: Dockerfile
+    working_dir: /web-front-end/angular
+    expose:
+      - 18093
+    ports:
+      - 18093:18093
+    volumes:
+      # Mount the root folder that contains .git
+      - .:/workspace:cached
+    command: npm run start
+    networks:
+      - localnet
+    depends_on:
+      - database
+      - trade-feed
+
+networks:
+  localnet:
+    driver: bridge
