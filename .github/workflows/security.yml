@@ -1,0 +1,167 @@
+name: CVE Scanning
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 8,18 * * 1-5'
+  push:
+    paths:
+      - '**/build.gradle'
+      - '**/package.json'
+      - '**/package-lock.json'
+      - '**/*.csproj'
+      - '**/Dockerfile'
+      - '.github/workflows/*-ignore-list.xml'
+      - '.github/workflows/security.yml'
+
+jobs:
+  node-modules-scan:
+    name: ${{ matrix.module-folder }}-node-scan
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    strategy:
+        matrix:
+          module-folder: [
+            'reference-data',
+            'trade-feed',
+            'web-front-end/angular',
+            'web-front-end/proxy',
+            'web-front-end/react']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Build project with NPM
+        run: npm install --omit=dev
+        working-directory: ${{ matrix.module-folder }}
+      - name: Depcheck
+        uses: dependency-check/Dependency-Check_Action@main
+        id: Depcheck
+        with:
+          project: '${{ matrix.module-folder }}'
+          path: '${{ matrix.module-folder }}'
+          format: 'HTML'
+          out: '${{ matrix.module-folder }}-reports'
+          args: >
+            --suppression .github/node-cve-ignore-list.xml
+            --nodeAuditSkipDevDependencies
+            --nodePackageSkipDevDependencies
+            --failOnCVSS 5
+            --enableRetired
+      - name: Upload Test results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: Depcheck report
+          path: ${{ github.workspace }}/${{ matrix.module-folder }}-reports
+
+  dotnet-modules-scan:
+    name: ${{ matrix.module-folder }}-dotnet-scan
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    strategy:
+        matrix:
+          module-folder: ['people-service']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Build project with dotnet
+        run: dotnet build --configuration Release
+        working-directory: ${{ matrix.module-folder }}
+      - name: List vulnerable libraries
+        run: dotnet list package --vulnerable --include-transitive
+        working-directory: ${{ matrix.module-folder }}
+      - name: Depcheck
+        uses: dependency-check/Dependency-Check_Action@main
+        id: Depcheck
+        with:
+          project: '${{ matrix.module-folder }}'
+          path: '${{ matrix.module-folder }}'
+          format: 'HTML'
+          out: '${{ matrix.module-folder }}-reports'
+          args: >
+            --suppression .github/dotnet-cve-ignore-list.xml
+            --failOnCVSS 5
+            --enableRetired
+      - name: Upload Test results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: Depcheck report
+          path: ${{ github.workspace }}/${{ matrix.module-folder }}-reports
+
+  gradle-modules-scan:
+    name: ${{ matrix.module-folder }}-gradle-scan
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    strategy:
+        matrix:
+          module-folder: [
+            'account-service',
+            'database',
+            'position-service',
+            'trade-processor',
+            'trade-service',]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: 17
+      - name: Build project with Gradle
+        run: gradle clean build
+        working-directory: ${{ matrix.module-folder }}
+      - name: Depcheck
+        uses: dependency-check/Dependency-Check_Action@main
+        id: Depcheck
+        env:
+          JAVA_HOME: /opt/jdk
+        with:
+          project: '${{ matrix.module-folder }}'
+          path: '${{ matrix.module-folder }}'
+          format: 'HTML'
+          out: '${{ matrix.module-folder }}-reports'
+          args: >
+            --suppression .github/gradle-cve-ignore-list.xml
+            --failOnCVSS 5
+            --enableRetired
+      - name: Upload Test results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: Depcheck report
+          path: ${{ github.workspace }}/${{ matrix.module-folder }}-reports
+
+  dockerfile-scan:
+    name: ${{ matrix.module-folder }}-dockerfile-scan
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    strategy:
+        matrix:
+          module-folder: [
+            'trade-processor',
+            'database',
+            'account-service',
+            'trade-feed',
+            'position-service',
+            'trade-service',
+            'web-front-end/angular',
+            'people-service',
+            'reference-data']
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker-practice/actions-setup-docker@master
+      - name: Build
+        run: docker build -f Dockerfile -t user/app:latest .
+        working-directory: ${{ matrix.module-folder }}
+      - name: Scan for vulnerabilities
+        uses: crazy-max/ghaction-container-scan@v2
+        with:
+          image: user/app:latest
+          dockerfile: ./Dockerfile
+          severity: HIGH
