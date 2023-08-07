@@ -21,6 +21,8 @@ dependencies {
 	implementation 'com.h2database:h2:2.1.214'
 	implementation 'org.springdoc:springdoc-openapi-ui:1.6.4'
 	implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
+	implementation 'com.microsoft.sqlserver:mssql-jdbc:12.2.0.jre11'
+	implementation 'com.azure:azure-identity:1.9.2'
 
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'

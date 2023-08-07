@@ -26,7 +26,8 @@ dependencies {
 	implementation 'io.socket:socket.io-client:2.1.0'
    	implementation 'io.swagger:swagger-core:1.6.6'
 	implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
-
+	implementation 'com.microsoft.sqlserver:mssql-jdbc:12.2.0.jre11'
+	implementation 'com.azure:azure-identity:1.9.2'
 
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
