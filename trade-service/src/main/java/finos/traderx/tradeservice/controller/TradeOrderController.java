@@ -19,8 +19,8 @@ import finos.traderx.tradeservice.exceptions.ResourceNotFoundException;
 import finos.traderx.tradeservice.model.Account;
 import finos.traderx.tradeservice.model.Security;
 import finos.traderx.tradeservice.model.TradeOrder;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 
 @CrossOrigin("*")
 @RestController
@@ -40,9 +40,9 @@ public class TradeOrderController {
 	@Value("${account.service.url}")
 	private String accountServiceAddress;
 
-	@ApiOperation("Submit a new trade order")
+	@Operation(description = "Submit a new trade order")
 	@PostMapping("/")
-	public ResponseEntity<TradeOrder> createTradeOrder(@ApiParam("the intendeded trade order") @RequestBody TradeOrder tradeOrder) {
+	public ResponseEntity<TradeOrder> createTradeOrder(@Parameter(description = "the intendeded trade order") @RequestBody TradeOrder tradeOrder) {
 		log.info("Called createTradeOrder");
 		
 		if (!validateTicker(tradeOrder.getSecurity())) 
