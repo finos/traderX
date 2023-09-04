@@ -28,7 +28,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm ci --prod
+      - run: npm install --omit=dev
 #       - run: yarn install --production --frozen-lockfile
         working-directory: ${{ matrix.module-folder }}
       - run: npm install -g node-license-validator
