@@ -14,7 +14,14 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [16.x]
+        node-version: ['16.x']
+        module-folder: [
+          'reference-data',
+          'trade-feed',
+          'web-front-end/angular',
+          'web-front-end/proxy',
+          'web-front-end/react'
+        ]
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js ${{ matrix.node-version }}
@@ -23,8 +30,8 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: npm ci --prod
 #       - run: yarn install --production --frozen-lockfile
-        working-directory: node
+        working-directory: ${{ matrix.module-folder }}
       - run: npm install -g node-license-validator
-        working-directory: node
+        working-directory: ${{ matrix.module-folder }}
       - run: node-license-validator . --allow-licenses Apache-2.0 MIT BSD-2-Clause BSD BSD-3-Clause Unlicense
-        working-directory: node
+        working-directory: ${{ matrix.module-folder }}
