@@ -33,5 +33,5 @@ jobs:
         working-directory: ${{ matrix.module-folder }}
       - run: npm install -g node-license-validator
         working-directory: ${{ matrix.module-folder }}
-      - run: node-license-validator . --allow-licenses Apache-2.0 MIT BSD-2-Clause BSD BSD-3-Clause Unlicense
+      - run: node-license-validator . --allow-licenses Apache-2.0 MIT BSD-2-Clause BSD BSD-3-Clause Unlicense ISC
         working-directory: ${{ matrix.module-folder }}
