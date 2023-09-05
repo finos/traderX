@@ -10,6 +10,7 @@
         "test:ci": "ng test --code-coverage --watch=false --browsers=ChromeHeadlessNoSandbox"
     },
     "private": true,
+    "license": "Apache-2.0",
     "dependencies": {
         "@angular/animations": "^15.1.2",
         "@angular/common": "^15.1.2",
