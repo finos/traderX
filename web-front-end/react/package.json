@@ -2,6 +2,7 @@
   "name": "web-front-end",
   "version": "0.1.0",
   "private": true,
+  "license": "Apache-2.0",
   "dependencies": {
     "@rjsf/core": "^5.7.2",
     "@rjsf/utils": "^5.7.2",
