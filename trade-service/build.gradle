@@ -21,7 +21,20 @@ configurations.all {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation ('org.springframework.boot:spring-boot-starter-web') {
+		exclude group: 'org.apache.tomcat.embed', module: 'tomcat-embed-core'
+		exclude group: 'org.apache.tomcat.embed', module: 'tomcat-embed-websocket'
+		exclude group: 'org.apache.tomcat.embed', module: 'tomcat-embed-el'
+	}
+	implementation('org.apache.tomcat.embed:tomcat-embed-core:10.1.13') {
+		because 'previous versions are affected by CVE-2023-41080'
+	}
+	implementation('org.apache.tomcat.embed:tomcat-embed-websocket:10.1.13') {
+		because 'previous versions are affected by CVE-2023-41080'
+	}
+	implementation('org.apache.tomcat.embed:tomcat-embed-el:10.1.13') {
+		because 'previous versions are affected by CVE-2023-41080'
+	}
 	implementation 'org.json:json'
 	implementation 'io.socket:socket.io-client:2.1.0'
 	implementation 'com.h2database:h2:2.2.220'
