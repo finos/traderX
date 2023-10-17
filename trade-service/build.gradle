@@ -26,13 +26,13 @@ dependencies {
 		exclude group: 'org.apache.tomcat.embed', module: 'tomcat-embed-websocket'
 		exclude group: 'org.apache.tomcat.embed', module: 'tomcat-embed-el'
 	}
-	implementation('org.apache.tomcat.embed:tomcat-embed-core:10.1.13') {
+	implementation('org.apache.tomcat.embed:tomcat-embed-core:10.1.14') {
 		because 'previous versions are affected by CVE-2023-41080'
 	}
-	implementation('org.apache.tomcat.embed:tomcat-embed-websocket:10.1.13') {
+	implementation('org.apache.tomcat.embed:tomcat-embed-websocket:10.1.14') {
 		because 'previous versions are affected by CVE-2023-41080'
 	}
-	implementation('org.apache.tomcat.embed:tomcat-embed-el:10.1.13') {
+	implementation('org.apache.tomcat.embed:tomcat-embed-el:10.1.14') {
 		because 'previous versions are affected by CVE-2023-41080'
 	}
 	implementation('org.json:json:20231013') {
