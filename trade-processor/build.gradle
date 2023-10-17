@@ -35,12 +35,13 @@ dependencies {
 	implementation('org.apache.tomcat.embed:tomcat-embed-el:10.1.13') {
 		because 'previous versions are affected by CVE-2023-41080'
 	}
+	implementation('org.json:json:20231013') {
+		because 'previous versions are affected by multiple CVE'
+	}
 	implementation 'com.h2database:h2:2.2.220'
 	implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
-	implementation 'org.json:json'
 	implementation 'io.socket:socket.io-client:2.1.0'
    	implementation 'io.swagger.core.v3:swagger-core:2.2.15'
-	implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
 	implementation 'org.yaml:snakeyaml:2.0'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
