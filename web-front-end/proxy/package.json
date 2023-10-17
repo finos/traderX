@@ -25,6 +25,10 @@
     "keycloak-connect": "^22.0.4",
     "morgan": "^1.10.0"
   },
+  "overrides": {
+    "axios": "^1.5.1",
+    "chromedriver": "^118.0.1"
+  },
   "devDependencies": {
     "nodemon": "^2.0.7"
   }
