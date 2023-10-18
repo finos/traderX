@@ -26,18 +26,17 @@ dependencies {
 		exclude group: 'org.apache.tomcat.embed', module: 'tomcat-embed-websocket'
 		exclude group: 'org.apache.tomcat.embed', module: 'tomcat-embed-el'
 	}
-	implementation('org.apache.tomcat.embed:tomcat-embed-core:10.1.13') {
-		because 'previous versions are affected by CVE-2023-41080'
+	implementation('org.apache.tomcat.embed:tomcat-embed-core:10.1.15') {
+		because 'previous versions are affected by CVE-2023-41080 and others'
 	}
-	implementation('org.apache.tomcat.embed:tomcat-embed-websocket:10.1.13') {
-		because 'previous versions are affected by CVE-2023-41080'
+	implementation('org.apache.tomcat.embed:tomcat-embed-websocket:10.1.15') {
+		because 'previous versions are affected by CVE-2023-41080 and others'
 	}
-	implementation('org.apache.tomcat.embed:tomcat-embed-el:10.1.13') {
-		because 'previous versions are affected by CVE-2023-41080'
+	implementation('org.apache.tomcat.embed:tomcat-embed-el:10.1.15') {
+		because 'previous versions are affected by CVE-2023-41080 and others'
 	}
 	implementation 'com.h2database:h2:2.2.220'
 	implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
-	implementation group: 'org.slf4j', name: 'slf4j-api', version: '2.0.7'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
