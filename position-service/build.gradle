@@ -35,7 +35,7 @@ dependencies {
 	implementation('org.apache.tomcat.embed:tomcat-embed-el:10.1.15') {
 		because 'previous versions are affected by CVE-2023-41080 and others'
 	}
-	implementation 'com.h2database:h2:2.2.220'
+	implementation 'com.h2database:h2:2.2.224'
 	implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
 	
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
