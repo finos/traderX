@@ -14,6 +14,7 @@ plugins {
 group = 'finos.traderx.trade-service'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '17'
+targetCompatibility = '17'
 
 configurations.all {
   exclude group: 'org.yaml', module: 'snakeyaml'
@@ -45,9 +46,9 @@ dependencies {
 	implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
 	implementation 'io.swagger.core.v3:swagger-core:2.2.15'
 	implementation 'io.swagger.core.v3:swagger-annotations:2.2.15'
+	implementation project(':morphir-module')
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-
 }
 
 
