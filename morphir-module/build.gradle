@@ -19,6 +19,15 @@ dependencies {
     testImplementation 'org.scalatest:scalatest_2.11:3.0.0'
 }
 
+//tasks.withType(ScalaCompile) {
+//    scalaCompileOptions.useAnt = false
+//}
+
+sourceSets {
+    main.scala.srcDirs = ["src/main/scala", "src/main/java"]
+    main.java.srcDirs = []
+}
+
 test {
     useJUnitPlatform()
 }

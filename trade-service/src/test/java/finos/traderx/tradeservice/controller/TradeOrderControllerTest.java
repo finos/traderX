@@ -1,9 +1,10 @@
 package finos.traderx.tradeservice.controller;
 
+import dist.traderx.models.TradeOrder;
 import finos.traderx.messaging.PubSubException;
 import finos.traderx.messaging.Publisher;
 import finos.traderx.tradeservice.exceptions.ResourceNotFoundException;
-import finos.traderx.tradeservice.model.TradeOrder;
+//import finos.traderx.tradeservice.model.TradeOrder;
 import finos.traderx.tradeservice.model.TradeSide;
 import finos.traderx.tradeservice.service.TradeService;
 import org.junit.jupiter.api.BeforeEach;

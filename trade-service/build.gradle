@@ -46,10 +46,11 @@ dependencies {
 	implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
 	implementation 'io.swagger.core.v3:swagger-core:2.2.15'
 	implementation 'io.swagger.core.v3:swagger-annotations:2.2.15'
-	implementation project(':account-service')
+	implementation project(':morphir-module')
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
+
 
 task prepareKotlinBuildScriptModel {
 

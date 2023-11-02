@@ -1,5 +1,7 @@
 package finos.traderx.tradeservice.controller;
 
+//import dist.traderx.models.TradeOrder;
+import dist.traderx.models.TradeOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,12 +20,11 @@ import finos.traderx.messaging.Publisher;
 import finos.traderx.tradeservice.exceptions.ResourceNotFoundException;
 import finos.traderx.tradeservice.model.Account;
 import finos.traderx.tradeservice.model.Security;
-import finos.traderx.tradeservice.model.TradeOrder;
+//import finos.traderx.tradeservice.model.TradeOrder;
 import finos.traderx.tradeservice.service.TradeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-
-
+//import org.example.*;
 
 @CrossOrigin("*")
 @RestController
@@ -46,7 +47,8 @@ public class TradeOrderController {
 	public ResponseEntity<TradeOrder> createTradeOrder(@Parameter(description = "the intendeded trade order") @RequestBody TradeOrder tradeOrder) {
 		log.info("Called createTradeOrder");
 
-		if (!tradeService.validateTicker(tradeOrder.getSecurity()))
+
+		if (!tradeService.validateTicker(tradeOrder.getSecurity())
 		{
 			throw new ResourceNotFoundException(tradeOrder.getSecurity() + " not found in Reference data service.");
 		}
