@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 
 
+
 @CrossOrigin("*")
 @RestController
 @RequestMapping(value="/trade", produces = "application/json")
