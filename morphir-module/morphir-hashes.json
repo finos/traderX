@@ -1,0 +1,18 @@
+{
+    "src\\TraderX\\TradeService\\Models\\Account.elm": "4fa7b4a3b1ce1ffc895b5067339d8874",
+    "src\\TraderX\\TradeService\\Models\\Security.elm": "706048483a17880202cc9e3c1ab73b16",
+    "src\\TraderX\\TradeService\\Logic\\TradeOrder.elm": "72af445c302aaae83c7ba38a0a704592",
+    "src\\TraderX\\TradeProcessor\\Models\\Position.elm": "3042ef394f9f979c44698deef744fe8c",
+    "src\\TraderX\\TradeProcessor\\Models\\PositionID.elm": "27fcae17a5fba64f4ebe8ae2aa13f07e",
+    "src\\TraderX\\TradeProcessor\\Models\\Trade.elm": "07e6f730551dd741b01c0f6050abf725",
+    "src\\TraderX\\TradeProcessor\\Models\\TradeBookingResult.elm": "38b4e90ab242c21a682d57aa8d8de7d4",
+    "src\\TraderX\\Shared\\TradeOrder.elm": "20e2fcc2b6e230c2e35823e5b2c7b37d",
+    "src\\TraderX\\Shared\\TradeRequest.elm": "651ccd454150bf7e48d87d3a443e360a",
+    "src\\TraderX\\Shared\\TradeResponse.elm": "bed64231fd12f583d3eb52c09a80a61d",
+    "src\\TraderX\\Shared\\TradeSide.elm": "b13e75b8af6aebea006c1ae0f78fe30b",
+    "src\\TraderX\\Shared\\TradeState.elm": "258938a6de815d3b8ceba06290789372",
+    "src\\main\\scala\\dist\\traderx\\models\\TradeOrder.scala": "676ca3052db518547992de2322db6004",
+    "src\\main\\scala\\dist\\traderx\\models\\TradeSide.scala": "71cbd2da148de0085e1d9ae78e2068f4",
+    "src\\main\\scala\\dist\\traderx\\models\\TradeState.scala": "21c0e0667282ee28107694c8858e70b7",
+    "src\\main\\java\\org\\example\\Main.java": "8f2641de123650456ef509dda9cd433a"
+}

@@ -1,6 +1,6 @@
-module TraderX.Models.TradeOrder exposing (..)
+module TraderX.Shared.TradeOrder exposing (..)
 
-import TraderX.Models.TradeSide exposing (TradeSide)
+import TraderX.Shared.TradeSide exposing (TradeSide)
 type alias TradeOrder =
     { id : String
     , state : String

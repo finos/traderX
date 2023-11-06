@@ -1,4 +1,4 @@
-module TraderX.Models.TradeState exposing (..)
+module TraderX.Shared.TradeState exposing (..)
 
 type TradeState
     = New
