@@ -1,0 +1,10 @@
+rootProject.name = 'traderX'
+include 'morphir-module'
+include 'trade-service'
+
+dependencyResolutionManagement {
+    repositories {
+        // Use Maven Central for resolving dependencies.
+        mavenCentral()
+    }
+}

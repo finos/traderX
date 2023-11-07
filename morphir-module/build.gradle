@@ -1,0 +1,34 @@
+plugins {
+    id 'java'
+    id 'scala'
+    }
+
+group = 'org.example'
+version = '1.0-SNAPSHOT'
+sourceCompatibility = '17'
+targetCompatibility = '17'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    implementation 'org.scala-lang:scala-library:2.11.12'
+    testImplementation 'org.scalatest:scalatest_2.11:3.0.0'
+    implementation 'org.morphir:morphir-sdk-core_2.12:0.18.2'
+}
+
+//tasks.withType(ScalaCompile) {
+//    scalaCompileOptions.useAnt = false
+//}
+
+sourceSets {
+    main.scala.srcDirs = ["src/main/scala", "src/main/java"]
+    main.java.srcDirs = []
+}
+
+test {
+    useJUnitPlatform()
+}

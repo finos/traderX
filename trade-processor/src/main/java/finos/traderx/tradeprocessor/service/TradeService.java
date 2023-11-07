@@ -19,33 +19,40 @@ import finos.traderx.tradeprocessor.repository.*;
 @Service
 public class TradeService {
 	Logger log= LoggerFactory.getLogger(TradeService.class);
-	@Autowired
+	// @Autowired
 	TradeRepository tradeRepository;
 
-	@Autowired
+	// @Autowired
 	PositionRepository positionRepository;
 
-	
-    @Autowired 
-    private Publisher<Trade> tradePublisher;
-    
-    @Autowired
-    private Publisher<Position> positionPublisher;
-    
+
+	//    @Autowired
+	private Publisher<Trade> tradePublisher;
+
+	//    @Autowired
+	private Publisher<Position> positionPublisher;
+
+	public TradeService(TradeRepository tradeRepository, PositionRepository positionRepository, Publisher<Trade> tradePublisher, Publisher<Position> positionPublisher) {
+		this.tradeRepository = tradeRepository;
+		this.positionRepository = positionRepository;
+		this.tradePublisher = tradePublisher;
+		this.positionPublisher = positionPublisher;
+	}
+
 	public TradeBookingResult processTrade(TradeOrder order) {
 		log.info("Trade order received : "+order);
-        Trade t=new Trade();
-        t.setAccountId(order.getAccountId());
+		Trade t=new Trade();
+		t.setAccountId(order.getAccountId());
 
 		log.info("Setting a random TradeID");
 		t.setId(UUID.randomUUID().toString());
 
 
-        t.setCreated(new Date());
-        t.setUpdated(new Date());
-        t.setSecurity(order.getSecurity());
-        t.setSide(order.getSide());
-        t.setQuantity(order.getQuantity());
+		t.setCreated(new Date());
+		t.setUpdated(new Date());
+		t.setSecurity(order.getSecurity());
+		t.setSide(order.getSide());
+		t.setQuantity(order.getQuantity());
 		t.setState(TradeState.New);
 		Position position=positionRepository.findByAccountIdAndSecurity(order.getAccountId(), order.getSecurity());
 		log.info("Position for "+order.getAccountId()+" "+order.getSecurity()+" is "+position);
@@ -69,7 +76,7 @@ public class TradeService {
 		t.setUpdated(new Date());
 		t.setState(TradeState.Settled);
 		tradeRepository.save(t);
-		
+
 
 		TradeBookingResult result=new TradeBookingResult(t, position);
 		log.info("Trade Processing complete : "+result);
@@ -80,8 +87,8 @@ public class TradeService {
 		} catch (PubSubException exc){
 			log.error("Error publishing trade "+order,exc);
 		}
-		
-		return result;	
+
+		return result;
 	}
 
 }
