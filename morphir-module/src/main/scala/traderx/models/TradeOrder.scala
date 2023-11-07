@@ -1,4 +1,4 @@
-package dist.traderx.models
+package traderx.models
 
 /** Generated based on Models.TradeOrder
 */
