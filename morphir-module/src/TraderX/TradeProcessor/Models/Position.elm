@@ -6,5 +6,5 @@ type alias Position =
     , accountId : Int
     , security : String
     , quantity : Int
-    , updated : LocalDate
+    , updated : Maybe String
     }
