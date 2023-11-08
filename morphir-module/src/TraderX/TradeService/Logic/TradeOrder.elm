@@ -1,8 +1,10 @@
 module TraderX.TradeService.Logic.TradeOrder exposing (..)
+
+import TraderX.Models.AccountId exposing (AccountId)
+import TraderX.Models.Id exposing (ID)
 import TraderX.TradeService.Models.Security exposing (Security)
-import TraderX.Shared.AccountId exposing (AccountId)
-import TraderX.Shared.TradeSide exposing (TradeSide)
-import TraderX.Shared.Id exposing (ID)
+import TraderX.TradeService.Models.TradeQuantity exposing (TradeQuantity)
+import TraderX.TradeService.Models.TradeSide exposing (TradeSide)
 
 type Ticker
     = TickerInvalid
@@ -19,7 +21,7 @@ type ResourceNotFound
 type alias TradeOrder =
     { id : ID
     , security : Ticker
-    , quantity : Int
+    , quantity : TradeQuantity
     , accountId : Account
     , side : TradeSide
     }

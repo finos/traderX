@@ -1,10 +1,9 @@
 module TraderX.TradeProcessor.Logic.TradeService exposing (..)
-import TraderX.Shared.TradeOrder exposing (TradeOrder)
-import TraderX.TradeProcessor.Models.TradeBookingResult exposing (TradeBookingResult)
-import TraderX.Shared.TradeState exposing (TradeState(..))
-import TraderX.Shared.TradeSide exposing (TradeSide(..))
-import Morphir.SDK.LocalDate as LocalDate exposing(..)
 
+import TraderX.TradeProcessor.Models.TradeBookingResult exposing (TradeBookingResult)
+import TraderX.TradeService.Models.TradeOrder exposing (TradeOrder)
+import TraderX.TradeService.Models.TradeSide exposing (TradeSide(..))
+import TraderX.TradeService.Models.TradeState exposing (TradeState(..))
 
 calculateQuantity: TradeSide -> Int -> Int
 calculateQuantity side tradeQuantity =

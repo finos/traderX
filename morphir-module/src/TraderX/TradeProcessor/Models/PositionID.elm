@@ -1,6 +1,7 @@
 module TraderX.TradeProcessor.Models.PositionID exposing (..)
-import TraderX.Shared.AccountId exposing (AccountId)
-import TraderX.Shared.Security exposing (Security)
+import TraderX.Models.AccountId exposing (AccountId)
+import TraderX.Models.Security exposing (Security)
+
 
 type alias PositionID =
     { accountId : AccountId

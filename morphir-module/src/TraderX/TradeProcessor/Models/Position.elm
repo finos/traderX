@@ -1,13 +1,16 @@
 module TraderX.TradeProcessor.Models.Position exposing (..)
-import Morphir.SDK.LocalDate exposing (..)
-import TraderX.Shared.Security exposing (Security)
-import TraderX.Shared.Quantity exposing (Quantity)
-import TraderX.Shared.AccountId exposing (AccountId)
+
+import TraderX.Models.AccountId exposing (AccountId)
+import TraderX.Models.Date exposing (Date)
+import TraderX.Models.Quantity exposing (Quantity)
+import TraderX.Models.Security exposing (Security)
+import TraderX.TradeProcessor.Models.PositionQuantity exposing (PositionQuantity)
+
 
 type alias Position =
     { serialVersionUID : Int
     , accountId : AccountId
     , security : Security
-    , quantity : Quantity
-    , updated : Maybe String
+    , quantity : PositionQuantity
+    , updated : Maybe Date
     }

@@ -1,20 +1,17 @@
-module TraderX.TradeProcessor.Models.Trade exposing (..)
+module TraderX.TradeService.Models.TradeOrder exposing (..)
+
 import TraderX.Models.AccountId exposing (AccountId)
-import TraderX.Models.Date exposing (Date)
 import TraderX.Models.Id exposing (ID)
 import TraderX.Models.Security exposing (Security)
+import TraderX.Models.State exposing (State)
 import TraderX.TradeService.Models.TradeQuantity exposing (TradeQuantity)
 import TraderX.TradeService.Models.TradeSide exposing (TradeSide)
-import TraderX.TradeService.Models.TradeState exposing (TradeState)
 
-
-type alias Trade =
+type alias TradeOrder =
     { id : ID
-    , accountId : AccountId
+    , state : State
     , security : Security
-    , side : TradeSide
-    , state :  TradeState
     , quantity : TradeQuantity
-    , updated : Maybe Date
-    , created : Maybe Date
+    , accountId : AccountId
+    , side : TradeSide
     }
