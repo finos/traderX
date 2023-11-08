@@ -1,5 +1,5 @@
 {
-  "name": "trade-feed",
+  "name": "@finos/trade-feed",
   "version": "1.0.0",
   "description": "Simple SocketIO based publish-subscribe server",
   "main": "index.js",

@@ -1,5 +1,5 @@
 {
-  "name": "web-front-end",
+  "name": "@finos/web-front-end",
   "version": "0.1.0",
   "private": true,
   "license": "Apache-2.0",
