@@ -1,7 +1,7 @@
 package finos.traderx.tradeservice.controller;
 
 //import dist.traderx.models.TradeOrder;
-import dist.traderx.models.TradeOrder.TradeOrder;
+import traderx.models.TradeOrder.TradeOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,13 +48,12 @@ public class TradeOrderController {
 		log.info("Called createTradeOrder");
 
 
-		if (!tradeService.validateTicker(tradeOrder.security())
-		{
-			throw new ResourceNotFoundException(tradeOrder.getSecurity() + " not found in Reference data service.");
+		if (!tradeService.validateTicker(tradeOrder.security())){
+			throw new ResourceNotFoundException(tradeOrder.security() + " not found in Reference data service.");
 		}
-		else if(!tradeService.validateAccount(tradeOrder.getAccountId()))
+		else if(!tradeService.validateAccount(tradeOrder.accountId()))
 		{
-			throw new ResourceNotFoundException(tradeOrder.getAccountId() + " not found in Account service.");
+			throw new ResourceNotFoundException(tradeOrder.accountId() + " not found in Account service.");
 		}
 		else
 		{

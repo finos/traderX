@@ -47,6 +47,8 @@ dependencies {
 	implementation 'io.swagger.core.v3:swagger-core:2.2.15'
 	implementation 'io.swagger.core.v3:swagger-annotations:2.2.15'
 	implementation project(':morphir-module')
+	implementation 'org.scala-lang:scala-library:2.11.12'
+	implementation('org.morphir:morphir-sdk-core_2.12:0.18.2')
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
