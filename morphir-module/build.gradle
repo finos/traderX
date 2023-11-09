@@ -31,11 +31,11 @@ test {
 }
 
 task compileElm(type: Exec) {
-    commandLine 'YOUR morphir-elm command location', 'make'
+    commandLine 'morphir-elm.cmd', 'make'
 }
 
 task generateScala(type: Exec) {
-    commandLine 'YOUR morphir-elm command location', 'gen'
+    commandLine 'morphir-elm.cmd', 'gen'
 }
 
 build{
