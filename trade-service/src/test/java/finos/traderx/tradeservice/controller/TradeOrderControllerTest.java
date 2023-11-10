@@ -2,6 +2,7 @@ package finos.traderx.tradeservice.controller;
 
 import finos.traderx.messaging.PubSubException;
 import finos.traderx.messaging.Publisher;
+import finos.traderx.tradeservice.exceptions.ResourceNotFoundException;
 import finos.traderx.tradeservice.model.TradeOrder;
 import finos.traderx.tradeservice.model.TradeSide;
 import finos.traderx.tradeservice.service.TradeService;
@@ -48,6 +49,16 @@ class TradeOrderControllerTest {
 
         assertEquals(expected, result);
         Mockito.verify(tradePublisherMock, Mockito.times(1)).publish("/trades", tradeOrder);
+    }
+
+    @Test
+    public void testTradeOrderWithInvalidTickerThrowsException() throws PubSubException {
+        Mockito.doNothing().when(tradePublisherMock).publish("/trades", tradeOrder);
+        Mockito.when(tradeServiceMock.validateTicker(tradeOrder.getSecurity())).thenReturn(false);
+
+        assertThrows(ResourceNotFoundException.class, () -> {underTest.createTradeOrder(tradeOrder);});
+        Mockito.verify(tradePublisherMock, Mockito.times(0)).publish("/trades", tradeOrder);
+        Mockito.verify(tradeServiceMock, Mockito.times(0)).validateAccount(tradeOrder.getAccountId());
     }
 
 }
