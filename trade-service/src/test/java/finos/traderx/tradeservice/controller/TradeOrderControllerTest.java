@@ -71,4 +71,16 @@ class TradeOrderControllerTest {
         Mockito.verify(tradePublisherMock, Mockito.times(0)).publish("/trades", tradeOrder);
     }
 
+    @Test
+    public void testTradeOrderWithInvalidAccountAndTickerThrowsException() throws PubSubException {
+        Mockito.doNothing().when(tradePublisherMock).publish("/trades", tradeOrder);
+        Mockito.when(tradeServiceMock.validateAccount(tradeOrder.getAccountId())).thenReturn(false);
+        Mockito.when(tradeServiceMock.validateTicker(tradeOrder.getSecurity())).thenReturn(false);
+
+        assertThrows(ResourceNotFoundException.class, () -> {underTest.createTradeOrder(tradeOrder);});
+        Mockito.verify(tradePublisherMock, Mockito.times(0)).publish("/trades", tradeOrder);
+        Mockito.verify(tradeServiceMock, Mockito.times(0)).validateAccount(tradeOrder.getAccountId());
+
+    }
+
 }
