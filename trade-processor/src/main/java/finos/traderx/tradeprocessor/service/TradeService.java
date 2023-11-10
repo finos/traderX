@@ -24,9 +24,9 @@ public class TradeService {
 
 	PositionRepository positionRepository;
 
-    private Publisher<Trade> tradePublisher;
+    private final Publisher<Trade> tradePublisher;
 
-    private Publisher<Position> positionPublisher;
+    private final Publisher<Position> positionPublisher;
 
 	public TradeService(TradeRepository tradeRepository, PositionRepository positionRepository, Publisher<Trade> tradePublisher, Publisher<Position> positionPublisher) {
 		this.tradeRepository = tradeRepository;
