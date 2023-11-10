@@ -1,5 +1,6 @@
 package finos.traderx.tradeservice.controller;
 
+import finos.traderx.tradeservice.service.TradeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,8 @@ public class TradeOrderController {
 	private static final Logger log = LoggerFactory.getLogger(TradeOrderController.class);
 
 	private Publisher<TradeOrder> tradePublisher;
+
+	private TradeService tradeService;
 	
 	private RestTemplate restTemplate = new RestTemplate();
 
