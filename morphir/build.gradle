@@ -30,14 +30,3 @@ test {
     useJUnitPlatform()
 }
 
-task compileElm(type: Exec) {
-    commandLine 'morphir-elm.cmd', 'make'
-}
-
-task generateScala(type: Exec) {
-    commandLine 'morphir-elm.cmd', 'gen'
-}
-
-build{
-    dependsOn("compileElm", "generateScala")
-}
