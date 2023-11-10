@@ -33,6 +33,11 @@ public class TradeOrderController {
 	private Publisher<TradeOrder> tradePublisher;
 
 	private TradeService tradeService;
+
+	public TradeOrderController(TradeService tradeService, Publisher<TradeOrder> tradePublisher){
+		this.tradeService = tradeService;
+		this.tradePublisher = tradePublisher;
+	}
 	
 	private RestTemplate restTemplate = new RestTemplate();
 
