@@ -27,6 +27,13 @@ public class TradeService {
     private Publisher<Trade> tradePublisher;
 
     private Publisher<Position> positionPublisher;
+
+	public TradeService(TradeRepository tradeRepository, PositionRepository positionRepository, Publisher<Trade> tradePublisher, Publisher<Position> positionPublisher) {
+		this.tradeRepository = tradeRepository;
+		this.positionRepository = positionRepository;
+		this.tradePublisher = tradePublisher;
+		this.positionPublisher = positionPublisher;
+	}
     
 	public TradeBookingResult processTrade(TradeOrder order) {
 		log.info("Trade order received : "+order);
