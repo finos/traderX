@@ -30,3 +30,22 @@ test {
     useJUnitPlatform()
 }
 
+task compileElm(type: Exec) {
+    def morphirCommand = isWindows() ? 'morphir-elm.cmd' : 'morphir-elm'
+
+    commandLine morphirCommand, 'make'
+}
+
+task generateScala(type: Exec) {
+    def morphirCommand = isWindows() ? 'morphir-elm.cmd' : 'morphir-elm'
+
+    commandLine morphirCommand, 'gen'
+}
+
+def isWindows() {
+    return System.properties['os.name'].toLowerCase().contains('win')
+}
+
+build{
+    dependsOn("compileElm", "generateScala")
+}
