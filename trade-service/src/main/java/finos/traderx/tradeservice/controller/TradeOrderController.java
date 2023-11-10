@@ -29,7 +29,6 @@ public class TradeOrderController {
 
 	private static final Logger log = LoggerFactory.getLogger(TradeOrderController.class);
 
-	@Autowired
 	private Publisher<TradeOrder> tradePublisher;
 	
 	private RestTemplate restTemplate = new RestTemplate();
