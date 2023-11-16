@@ -44,7 +44,7 @@ dependencies {
 	implementation 'com.h2database:h2:2.2.220'
 	implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
 	implementation 'io.swagger.core.v3:swagger-core:2.2.15'
-	implementation 'io.swagger.core.v3:swagger-annotations:2.2.15'
+	implementation 'io.swagger.core.v3:swagger-annotations:2.2.19'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
