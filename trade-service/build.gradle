@@ -29,7 +29,7 @@ dependencies {
 	implementation('org.apache.tomcat.embed:tomcat-embed-core:10.1.16') {
 		because 'previous versions are affected by CVE-2023-41080 and others'
 	}
-	implementation('org.apache.tomcat.embed:tomcat-embed-websocket:10.1.15') {
+	implementation('org.apache.tomcat.embed:tomcat-embed-websocket:10.1.16') {
 		because 'previous versions are affected by CVE-2023-41080 and others'
 	}
 	implementation('org.apache.tomcat.embed:tomcat-embed-el:10.1.16') {
