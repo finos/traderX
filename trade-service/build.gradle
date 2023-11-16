@@ -26,7 +26,7 @@ dependencies {
 		exclude group: 'org.apache.tomcat.embed', module: 'tomcat-embed-websocket'
 		exclude group: 'org.apache.tomcat.embed', module: 'tomcat-embed-el'
 	}
-	implementation('org.apache.tomcat.embed:tomcat-embed-core:10.1.15') {
+	implementation('org.apache.tomcat.embed:tomcat-embed-core:10.1.16') {
 		because 'previous versions are affected by CVE-2023-41080 and others'
 	}
 	implementation('org.apache.tomcat.embed:tomcat-embed-websocket:10.1.15') {
