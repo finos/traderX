@@ -4,7 +4,7 @@
 
 ![DEV Only Warning](https://badgen.net/badge/warning/not-for-production/red) ![Local Dev Machine Supported](https://badgen.net/badge/local-dev/supported/green)
 
-<div style="float:right; padding-bottom:5px"><img src="./docs/img/2023_TraderX_Vertical.png" alt="TraderX Logo" width="250"/></div>
+<img align="right" src="./docs/img/2023_TraderX_Vertical.png" alt="TraderX Logo" width="250"/>
 
 TraderX is a Sample Trading Application, designed to be a distributed reference application 
 in the financial services domain which can serve as a starting point for experimentation 
