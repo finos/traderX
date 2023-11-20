@@ -2,16 +2,19 @@
 
 # FINOS | TraderX Example of a Simple Trading App
 
-![DEV Only Warning](https://badgen.net/badge/warning/not-for-production/red) ![Local Dev Machine Supported](http://badgen.net/badge/local-dev/supported/green)
+![DEV Only Warning](https://badgen.net/badge/warning/not-for-production/red) ![Local Dev Machine Supported](https://badgen.net/badge/local-dev/supported/green)
 
-The Sample Trading Application is a usable simple yet distributed reference application
-in the financial services domain which can be used for experimenting with various
-techniques and other open source projects.  It is designed to be simple and accessible
-to programmers of all backgrounds, and can serve as a starting point for educational
-and experimentation purposes.
+<div style="float:right; padding-bottom:5px"><img src="./docs/img/2023_TraderX_Vertical.png" alt="TraderX Logo" width="250"/></div>
+
+TraderX is a Sample Trading Application, designed to be a distributed reference application 
+in the financial services domain which can serve as a starting point for experimentation 
+with various techniques and other open source projects.  It is designed to be simple
+and accessible to developers of all backgrounds, with minimal pre-assumptions, and it 
+can serve as a starting point for educational and experimentation purposes.
 
 It is designed to be runnable from any developer workstation with minimal assumptions
-other than Node, Java and Python runtimes.
+other than Node, Java and Python runtimes. The libraries and toolkits it uses are meant
+to be as vanilla as possible, to preserve its approachability by developers of all levels.
 
 It contains Java, NodeJS, Python, .NET components that communicate over REST APIs and
 messaging systems and are able to showcase a wide range of technical challenges to solve.
@@ -19,34 +22,40 @@ messaging systems and are able to showcase a wide range of technical challenges 
 More detailed information about this project can be found in the website which is generated
 from the code under the `docs` directory of this project.
 
-## Current Project Status
 
-This is currently a Work-In-Progress. At the moment there are some components which are just placeholder API contracts for an implementation to be created, while others are already runnable reference implementations.
+## Project Demo and Overview Presentation
 
-Below is a table on status, listed in the order things need to start up for the system to operate.
+Learn more about the project - including a brief demo, in the Keynote Demo session 
+that was presented at the [Open Source in Finance Forum 2023](https://events.linuxfoundation.org/open-source-finance-forum-new-york/)
 
-*Pleae note, that for things not yet implemented (or things you'd like to reimplement) the tech stack selected is a suggestion. Feel free to swap things out as you see fit!*
+[![FINOS - Incubating](./docs/img/2023_osff_video_thumb.png)](https://youtu.be/fO-T3V-GKBs?t=326)
 
-| *Component* | *Tech Stack* | *Status* | *Comment* |
-| :--- | :--- | :---: | :--- |
-| [docs](docs) | markdown | :white_check_mark: | Architecture and Flow Diagrams are here! |
-| [database](database) | java/h2 | :white_check_mark: | |
-| [reference-data](reference-data) | node/nestjs | :white_check_mark: | |
-| [trade-feed](trade-feed) | node/socketio | :white_check_mark: | |
-| [people-service](people-service) | .Net core | :white_check_mark:  | Initial implementation complete |
-| [account-service](account-service) | java/spring | :white_check_mark: | Initial Checkin Complete |
-| [position-service](position-service) | java/spring | :white_check_mark: | Initial Service Checked In |
-| [trade-service](trade-service) | java/spring | :white_check_mark: | Initial Service Checked In |
-| [trade-processor](trade-processor) | java/spring | :white_check_mark:  | Initial Implementation Checked in |
-| [web-front-end](web-front-end) | html/angular or react | :white_check_mark: | Initial Implementation in React and Angular |
 
-## Installation (WIP)
+## Project Components
 
-This section will be filled out once the code is in place.
+The project consists of multiple moving parts, and you can see how things hang together by reviewing the architecture and sequence diagrams located in the [docs](docs) directory.
 
-## Usage example (WIP)
 
-In order to get things working together, it is recommended to select a range of ports to provde all running processes with, so that the pieces can interconnect as needed.  A more advanced instance of this project would do things using container/service location abstractions.  Here's one such example convention.
+| *Component* | *Tech Stack* |*Description* |
+| :--- | :--- | :--- |
+| [docs](docs) | markdown | Architecture and Flow Diagrams are here! |
+| [database](database) | java/h2 | A simple self-contained SQL database |
+| [reference-data](reference-data) | node/nestjs | REST service (off a flat file) for querying ticker symbols |
+| [trade-feed](trade-feed) | node/socketio | Message bus used for trade flows, as well as streaming to the GUI |
+| [people-service](people-service) | .Net core | Service for looking up users, for account mangement |
+| [account-service](account-service) | java/spring | Service for querying and validating accounts |
+| [position-service](position-service) | java/spring | Position service for looking up positions and trades by the blotter |
+| [trade-service](trade-service) | java/spring | Service for submitting trade/order requests for further processing |
+| [trade-processor](trade-processor) | java/spring | Trade Feed consumer which processes trade/orders |
+| [web-front-end](web-front-end) | html/angular or react | Interactive UI for executing trades and viewing blotter. Note: the AngularJS GUI was an initial contribution and contains account management capabilities. The React GUI was contributed during a hack day and may not work for managing accounts, but it does work for executing trades and viewing the blotter |
+
+## Installation  
+
+This is installed locally through normal git clone operations.
+
+## Usage example (Simple)
+
+In order to get things working together, it is recommended to select a range of ports to provde all running processes with, so that the pieces can interconnect as needed.  A more advanced instance of this project is possible using the docker compose files which are present in each project directory. To run this all up 'by hand' here are default ports which are used, and you can easily export these variables to your favorite shell. 
 
 ```bash
 export DATABASE_TCP_PORT=18082
@@ -90,19 +99,10 @@ On first run this will build all of the containers from the project specific Doc
 The Docker containers are configured via Docker Compose to connect to a shred virtual network enabling them to communciate whether running on your local computer or via a Codespace.
 
 The WebUIs will be added to this setup later, but in the interim you should be able to start either (or both) in the same environment to connect to the backend components.
-## Development setup
 
-At the moment, the repository has architecture documents and API schema doc documents.  When the code is populated in this repo, build instructions will be listed here.
+## Local Building (Corporate Environments)
 
-## Roadmap
-
-1. Submit architecture diagram, API Specifications, and Flow Diagrams
-2. Submit a working, simple pub-sub engine to use with this demo
-3. Submit working implementations of components
-
-## Local Building (Company Specific)
-
-When building locally, if you are using a corporate artifact repository, you might need to override certain settings such as mavenCentral() in gradle, for the Java projects.
+When building locally in your company, if you are using a corporate artifact repository, you might need to override certain settings such as mavenCentral() in gradle, for the Java projects.
 
 In order to do this, we have designated a `.gitignore`'d folder where you can leave company-specific build scripts. This folder is not managed by git and can be modified locally.
 
