@@ -28,7 +28,7 @@ from the code under the `docs` directory of this project.
 Learn more about the project - including a brief demo, in the Keynote Demo session 
 that was presented at the [Open Source in Finance Forum 2023](https://events.linuxfoundation.org/open-source-finance-forum-new-york/)
 
-[![FINOS - Incubating](./docs/img/2023_osff_video_thumb.png)](https://youtu.be/fO-T3V-GKBs?t=326)
+[![TraderX Overview Video - OSFF 2023](./docs/img/2023_osff_video_thumb.png)](https://youtu.be/fO-T3V-GKBs?t=326)
 
 
 ## Project Components
@@ -55,7 +55,7 @@ This is installed locally through normal git clone operations.
 
 ## Usage example (Simple)
 
-In order to get things working together, it is recommended to select a range of ports to provde all running processes with, so that the pieces can interconnect as needed.  A more advanced instance of this project is possible using the docker compose files which are present in each project directory. To run this all up 'by hand' here are default ports which are used, and you can easily export these variables to your favorite shell. 
+In order to get things working together, it is recommended to select a range of ports to provide all running processes with, so that the pieces can interconnect as needed.  A more advanced instance of this project is possible using the docker compose files which are present in each project directory. To run this all up 'by hand' here are default ports which are used, and you can easily export these variables to your favorite shell. 
 
 ```bash
 export DATABASE_TCP_PORT=18082
