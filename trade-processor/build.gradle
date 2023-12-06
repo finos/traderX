@@ -43,7 +43,7 @@ dependencies {
 		exclude group: 'org.json', module: 'json'
 	}
    	implementation 'io.swagger.core.v3:swagger-core:2.2.15'
-	implementation 'org.yaml:snakeyaml:2.0'
+	implementation 'org.yaml:snakeyaml:2.2'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
