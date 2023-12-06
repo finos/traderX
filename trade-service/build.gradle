@@ -7,7 +7,7 @@
 
 plugins {
   id 'java'
-  id 'org.springframework.boot' version '3.1.5'
+  id 'org.springframework.boot' version '3.2.0'
   id 'io.spring.dependency-management' version '1.1.4'
 }
 
@@ -20,31 +20,32 @@ configurations.all {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation ('org.springframework.boot:spring-boot-starter-web') {
-		exclude group: 'org.apache.tomcat.embed', module: 'tomcat-embed-core'
-		exclude group: 'org.apache.tomcat.embed', module: 'tomcat-embed-websocket'
-		exclude group: 'org.apache.tomcat.embed', module: 'tomcat-embed-el'
+	implementation ('org.springframework.boot:spring-boot-starter-data-jpa'){
+		exclude group: 'ch.qos.logback', module: 'logback-classic'
+		exclude group: 'ch.qos.logback', module: 'logback-core'
 	}
-	implementation('org.apache.tomcat.embed:tomcat-embed-core:10.1.16') {
-		because 'previous versions are affected by CVE-2023-41080 and others'
+
+	implementation('ch.qos.logback:logback-classic:1.4.14') {
+		because 'previous versions are affected by multiple CVE'
 	}
-	implementation('org.apache.tomcat.embed:tomcat-embed-websocket:10.1.16') {
-		because 'previous versions are affected by CVE-2023-41080 and others'
+	implementation('ch.qos.logback:logback-core:1.4.14') {
+		because 'previous versions are affected by multiple CVE'
 	}
-	implementation('org.apache.tomcat.embed:tomcat-embed-el:10.1.16') {
-		because 'previous versions are affected by CVE-2023-41080 and others'
-	}
+	
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'com.h2database:h2:2.2.224'
+	implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
+
+
 	implementation('org.json:json:20231013') {
 		because 'previous versions are affected by multiple CVE'
 	}
 	implementation ('io.socket:socket.io-client:2.1.0') {
 		exclude group: 'org.json', module: 'json'
 	}
-	implementation 'com.h2database:h2:2.2.224'
-	implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
-	implementation 'io.swagger.core.v3:swagger-core:2.2.19'
-	implementation 'io.swagger.core.v3:swagger-annotations:2.2.19'
+
+	implementation 'io.swagger.core.v3:swagger-core:2.2.15'
+	implementation 'io.swagger.core.v3:swagger-annotations:2.2.15'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
