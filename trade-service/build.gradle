@@ -44,7 +44,7 @@ dependencies {
 		exclude group: 'org.json', module: 'json'
 	}
 
-	implementation 'io.swagger.core.v3:swagger-core:2.2.15'
+	implementation 'io.swagger.core.v3:swagger-core:2.2.19'
 	implementation 'io.swagger.core.v3:swagger-annotations:2.2.15'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
