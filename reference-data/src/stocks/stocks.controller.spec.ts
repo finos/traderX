@@ -24,15 +24,15 @@ describe('StocksController', () => {
         expect(stocks.length).toBe(505);
     });
 
-    it('gets the stock for ticker MS', async () => {
-        const stock = await controller.findByTicker({ ticker: 'MSFT' });
+    it('gets the stock for ticker MSFT', async () => {
+        const stock = await controller.findByTicker('MSFT');
         expect(stock).toEqual({ ticker: 'MSFT', companyName: 'Microsoft' });
     });
 
     it('throws an error for the non existant ticker BADTICKER', async () => {
         expect.assertions(1);
         try {
-            await controller.findByTicker({ ticker: 'BADTICKER' });
+            await controller.findByTicker('BADTICKER');
         } catch (e) {
             expect(e).toEqual(
                 new NotFoundException('Stock ticker "BADTICKER" not found.')
