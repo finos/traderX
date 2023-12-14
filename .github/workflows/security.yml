@@ -160,7 +160,7 @@ jobs:
         run: docker build -f Dockerfile -t user/app:latest .
         working-directory: ${{ matrix.module-folder }}
       - name: Scan for vulnerabilities
-        uses: crazy-max/ghaction-container-scan@v2
+        uses: crazy-max/ghaction-container-scan@v3
         with:
           image: user/app:latest
           dockerfile: ./Dockerfile
