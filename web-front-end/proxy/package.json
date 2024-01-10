@@ -24,6 +24,11 @@
     "http-proxy-middleware": "^2.0.6",
     "morgan": "^1.10.0"
   },
+  "overrides": {
+    "http-proxy":{
+        "follow-redirects":"1.15.4"
+    }
+  },
   "devDependencies": {
     "nodemon": "^3.0.2"
   }
