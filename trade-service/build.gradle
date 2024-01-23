@@ -45,7 +45,7 @@ dependencies {
 	}
 
 	implementation 'io.swagger.core.v3:swagger-core:2.2.20'
-	implementation 'io.swagger.core.v3:swagger-annotations:2.2.10'
+	implementation 'io.swagger.core.v3:swagger-annotations:2.2.20'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
