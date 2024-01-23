@@ -51,11 +51,14 @@ jobs:
             --nodePackageSkipDevDependencies
             --failOnCVSS 5
             --enableRetired
+      - run: | 
+          echo "UPNAME=echo ${{matrix.module-folder}} | tr '/' '-' >> $GITHUB_ENV"
+        shell: bash
       - name: Upload Test results
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: Depcheck report ${{ github.job }} ${{ github.job_workflow_sha}}
+          name: Depcheck report ${{ env.UPNAME }}
           path: ${{ github.workspace }}/${{ matrix.module-folder }}-reports
 
   dotnet-modules-scan:
@@ -134,7 +137,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: Depcheck report ${{ github.job }} ${{ github.job_workflow_sha}}
+          name: Depcheck report ${{ github.job }} ${{ matrix.module-folder }} 
           path: ${{ github.workspace }}/${{ matrix.module-folder }}-reports
 
   dockerfile-scan:
