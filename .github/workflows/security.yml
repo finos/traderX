@@ -52,7 +52,7 @@ jobs:
             --failOnCVSS 5
             --enableRetired
       - run: | 
-          echo `UPNAME=${{matrix.module-folder}} | tr '/' '-'` >> $GITHUB_ENV
+          echo `echo UPNAME=${{matrix.module-folder}} | tr '/' '-'` >> $GITHUB_ENV
         shell: bash
       - name: Upload Test results
         if: ${{ always() }}
