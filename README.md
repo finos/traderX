@@ -151,6 +151,13 @@ cd .corp
 ./gradlew account-service:bootRun
 ```
 
+# Getting Involved
+
+### Project Meetings
+
+A great way to interact with the TraderX community is to attend the bi-weekly Friday TraderX meetings.
+Email help@finos.org to be added to the meeting invite directly, or find the meeting in the [FINOS Community Calendar](https://calendar.finos.org/).
+
 ## Contributing
 
 1. Fork it (<https://github.com/finos/traderx/fork>)
