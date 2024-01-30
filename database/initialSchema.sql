@@ -20,6 +20,7 @@ CREATE TABLE Trades ( ID Varchar (50) Primary Key, AccountID INTEGER, Created TI
 
 Alter Table Trades Add Foreign Key (AccountID) references Accounts(ID); 
 
+CREATE SEQUENCE ACCOUNTS_SEQ start with 65000 INCREMENT BY 1;
 
 --- SAMPLE DATA ---
 

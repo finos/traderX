@@ -30,7 +30,7 @@ dependencies {
 	
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'com.h2database:h2:2.2.224'
-	implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
 	
 	implementation('org.json:json:20231013') {
 		because 'previous versions are affected by multiple CVE'
@@ -38,8 +38,6 @@ dependencies {
 	implementation ('io.socket:socket.io-client:2.1.0'){
 		exclude group: 'org.json', module: 'json'
 	}
-   	implementation 'io.swagger.core.v3:swagger-core:2.2.20'
-	implementation 'org.yaml:snakeyaml:2.2'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
