@@ -12,6 +12,7 @@ set -a
 : ${DATABASE_DBNAME:=traderx}
 : ${DATABASE_HOSTNAME:=$HOSTNAME}
 : ${DATABASE_JDBC_URL:="jdbc:h2:tcp://$HOSTNAME:$DATABASE_TCP_PORT/$DATABASE_DBNAME"}
+: ${DATABASE_WEB_HOSTNAMES:=$HOSTNAME}
 
 set +a
 
@@ -23,4 +24,4 @@ echo '--------------------------------------------------------------------------
 java -cp $DATABASE_H2JAR org.h2.tools.RunScript -url "jdbc:h2:$DATABASE_DATA_DIR/$DATABASE_DBNAME;DATABASE_TO_UPPER=TRUE;TRACE_LEVEL_SYSTEM_OUT=3" -user $DATABASE_DBUSER -password $DATABASE_DBPASS -script initialSchema.sql
 echo 'Starting Database Server - DB logs below'
 echo '---------------------------------------------------------------------------'
-exec java -jar $DATABASE_H2JAR -pg -pgPort $DATABASE_PG_PORT -pgAllowOthers -baseDir $DATABASE_DATA_DIR -tcp -tcpPort $DATABASE_TCP_PORT -tcpAllowOthers -web -webPort $DATABASE_WEB_PORT -webAllowOthers
+exec java -jar $DATABASE_H2JAR -pg -pgPort $DATABASE_PG_PORT -pgAllowOthers -baseDir $DATABASE_DATA_DIR -tcp -tcpPort $DATABASE_TCP_PORT -tcpAllowOthers -web -webPort $DATABASE_WEB_PORT -webExternalNames $DATABASE_WEB_HOSTNAMES -webAllowOthers
