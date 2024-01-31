@@ -2,6 +2,8 @@ version: '3.4'
 
 services:
   database:
+    environment:
+      - DATABASE_WEB_HOSTNAMES=${TRADERX_FQDN:-localhost}
     image: database
     build:
       context: database
