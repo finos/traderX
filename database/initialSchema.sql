@@ -6,6 +6,8 @@ Drop Table Positions IF EXISTS;
 
 Drop Table Accounts IF EXISTS; 
 
+Drop Sequence ACCOUNTS_SEQ IF EXISTS;
+
 CREATE TABLE Accounts ( ID INTEGER PRIMARY KEY, DisplayName VARCHAR (50) ) ; 
 
 CREATE TABLE AccountUsers ( AccountID INTEGER NOT NULL, Username VARCHAR(15) NOT NULL, PRIMARY KEY (AccountID,Username));  
