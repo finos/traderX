@@ -28,7 +28,7 @@ from the code under the `docs` directory of this project.
 Learn more about the project - including a brief demo, in the Keynote Demo session 
 that was presented at the [Open Source in Finance Forum 2023](https://events.linuxfoundation.org/open-source-finance-forum-new-york/)
 
-[![TraderX Overview Video - OSFF 2023](./docs/img/2023_osff_video_thumb.png)](https://youtu.be/fO-T3V-GKBs?t=326)
+[![TraderX Overview Video - OSFF 2023](./docs/img/2023_osff_video_thumb.png)](https://youtu.be/tSKDJlRYkm0?list=PLmPXh6nBuhJueQS5q-5IU3-0vmZEIUbz0&t=400)
 
 
 ## Project Components
