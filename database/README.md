@@ -27,6 +27,9 @@ The default username and password are both `sa`
 
 The database you want to use in the H2 GUI is `./traderx` (This may not be the default listed in the GUI)
 
+## Using Web Console behind proxy/K8S/Env
+By default, the hostname, localhost, 127.0.0.1 are all valid host headers to access the database. If you wish to connect using another IP, or via some proxy/gateway that's set up through K8S or other environment, you will need to specify the hostname your browser is using to access the web console. This is done by setting the environment variable `$DATABASE_WEB_HOSTNAMES` to the hostname you are using to access the web console. This is a comma-delimited list of fully qualified hostnames.
+
 ## Output Directory
 Data is stored in the local `./_data` directory from where the script is run. This is .gitignore'd 
 
