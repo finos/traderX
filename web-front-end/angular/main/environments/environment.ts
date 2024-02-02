@@ -5,7 +5,7 @@
 export const environment = {
     production: false,
     accountUrl: 'http://' + window.location.hostname + ':18088',
-    refrenceDataUrl: 'http://' + window.location.hostname + ':18085',
+    refrenceDataUrl: 'http://' + window.location.hostname + '/reference-data',
     tradesUrl: 'http://' + window.location.hostname + ':18092/trade/',
     positionsUrl: 'http://' + window.location.hostname + ':18090',
     peopleUrl: 'http://' + window.location.hostname + ':18089/people',

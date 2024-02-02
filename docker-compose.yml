@@ -182,7 +182,28 @@ services:
     depends_on:
       - database
       - trade-feed
-
+  ingress:
+    image: ingress
+    build:
+      context: ingress
+      dockerfile: Dockerfile
+    working_dir: /ingress
+    expose:
+      - 80
+    ports:
+      - 8080:80
+    environment:
+      - DATABASE_TCP_HOST=database
+      - PEOPLE_SERVICE_HOST=people-service
+    volumes:
+      # Mount the root folder that contains .git
+      - .:/workspace:cached
+    command: ./gradlew bootRun
+    networks:
+      - localnet
+    depends_on:
+      - database
+      - people-service
 networks:
   localnet:
     driver: bridge
