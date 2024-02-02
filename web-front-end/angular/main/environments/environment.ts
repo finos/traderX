@@ -4,12 +4,12 @@
 
 export const environment = {
     production: false,
-    accountUrl: 'http://' + window.location.hostname + ':18088',
+    accountUrl: 'http://' + window.location.hostname + '/account-service',
     refrenceDataUrl: 'http://' + window.location.hostname + '/reference-data',
-    tradesUrl: 'http://' + window.location.hostname + ':18092/trade/',
-    positionsUrl: 'http://' + window.location.hostname + ':18090',
-    peopleUrl: 'http://' + window.location.hostname + ':18089/people',
-    tradeFeedUrl: 'http://' + window.location.hostname + ':18086/'
+    tradesUrl: 'http://' + window.location.hostname + '/trade-service/trade/',
+    positionsUrl: 'http://' + window.location.hostname + '/position-service',
+    peopleUrl: 'http://' + window.location.hostname + '/people-service/people',
+    tradeFeedUrl: 'http://' + window.location.hostname + '/trade-feed/'
 };
 
 /*
