@@ -202,7 +202,7 @@ services:
       - position-service
       - trade-service
       - trade-processor
-      - web-front-end-angulars
+      - web-front-end-angular
 
 networks:
   localnet:
