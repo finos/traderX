@@ -1,8 +1,8 @@
 # See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.245.2/containers/dotnet/.devcontainer/base.Dockerfile
 
-# [Choice] .NET version: 6.0, 3.1, 6.0-bullseye, 3.1-bullseye, 6.0-focal, 3.1-focal
-ARG VARIANT="7.0"
-FROM mcr.microsoft.com/vscode/devcontainers/dotnet:0-${VARIANT}
+# [Choice] .NET version: 8.0 /8.0-bookworm, 8.0-jammy, 7.0 /7.0-bookworm, 7.0-bullseye, 7.0-jammy, 6.0 /6.0-bookworm, 6.0-bullseye, 6.0-jammy, 6.0-focal
+ARG VARIANT="8.0"
+FROM mcr.microsoft.com/vscode/devcontainers/dotnet:${VARIANT}
 
 WORKDIR /people-service
 COPY . .
