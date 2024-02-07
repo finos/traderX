@@ -2,6 +2,7 @@ version: '3.4'
 
 services:
   database:
+    restart: always
     environment:
       - DATABASE_WEB_HOSTNAMES=${TRADERX_FQDN:-localhost}
     image: database
@@ -24,6 +25,7 @@ services:
     networks:
       - localnet
   reference-data:
+    restart: always
     image: reference-data
     build:
       context: reference-data
@@ -40,6 +42,7 @@ services:
     networks:
       - localnet
   trade-feed:
+    restart: always
     image: trade-feed
     build:
       context: trade-feed
@@ -56,6 +59,7 @@ services:
     networks:
       - localnet
   people-service:
+    restart: always
     image: people-service
     build:
       context: people-service
@@ -72,6 +76,7 @@ services:
     networks:
       - localnet
   account-service:
+    restart: always
     image: account-service
     build:
       context: account-service
@@ -94,6 +99,7 @@ services:
       - database
       - people-service
   position-service:
+    restart: always
     image: position-service
     build:
       context: position-service
@@ -114,6 +120,7 @@ services:
     depends_on:
       - database
   trade-service:
+    restart: always
     image: trade-service
     build:
       context: trade-service
@@ -142,6 +149,7 @@ services:
       - reference-data
       - trade-feed
   trade-processor:
+    restart: always
     image: trade-processor
     build:
       context: trade-processor
@@ -164,6 +172,7 @@ services:
       - database
       - trade-feed
   web-front-end-angular:
+    restart: always
     image: web-front-end-angular
     build:
       context: web-front-end/angular
