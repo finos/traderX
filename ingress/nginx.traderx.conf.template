@@ -1,0 +1,32 @@
+server { 
+    listen 8080;
+    server_name $NGINX_HOST;
+
+    location /db-web/ {
+        proxy_pass http://database:18084/;
+    }
+    location /reference-data/ {
+        proxy_pass http://reference-data:18085/;
+    }
+    location /trade-feed/ {
+        proxy_pass http://trade-feed:18086/;
+    }
+    location /people-service/ {
+        proxy_pass http://people-service:18089/;
+    }
+    location /account-service/ {
+        proxy_pass http://account-service:18088/;
+    }
+    location /position-service/ {
+        proxy_pass http://position-service:18090/;
+    }
+    location /trade-service/ {
+        proxy_pass http://trade-service:18092/;
+    }
+    location /trade-processor/ {
+        proxy_pass http://trade-processor:18091/;
+    }
+    location / {
+        proxy_pass http://web-front-end-angular:18093/;
+    }
+}

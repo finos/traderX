@@ -196,6 +196,8 @@ services:
     build:
       context: ingress
       dockerfile: Dockerfile
+      args:
+        - NGINX_HOST=${TRADERX_FQDN:-localhost}
     working_dir: /ingress
     expose:
       - 8080
