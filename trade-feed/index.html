@@ -20,7 +20,7 @@
     <form id="form" action="">
       <input title="Send Message" id="input" autocomplete="off" /><button>Send</button>
     </form>
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="/trade-feed/socket.io.js"></script>
 
     <script>
       var messages = document.getElementById('messages');
@@ -44,7 +44,7 @@
         }
       });
 
-      var socket=io();
+      var socket=io({path:"/trade-feed"});
       const PUBLISH='publish';
       const SUBSCRIBE='subscribe';
       const UNSUBSCRIBE='unsubscribe';
