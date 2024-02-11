@@ -33,9 +33,7 @@ public abstract class SocketIOJSONSubscriber<T> implements Subscriber<T>, Initia
     }
 
     protected IO.Options getIOOptions() {
-        IO.Options o =new IO.Options();
-        o.path = "/trade-feed";
-        return o;
+        return new IO.Options();
     }
 
     final JavaType envelopeType;

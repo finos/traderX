@@ -4,7 +4,6 @@ const winston = require('winston');
 const http = require('http').createServer(app);
 
 const io = new sockio.Server(http, {
-  path: "/trade-feed",
   cors: {
     origin: "*",
     methods: ["GET", "POST"]

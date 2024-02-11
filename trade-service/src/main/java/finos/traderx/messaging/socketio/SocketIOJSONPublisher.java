@@ -26,9 +26,7 @@ public abstract class SocketIOJSONPublisher<T> implements Publisher<T>, Initiali
             .setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
     protected IO.Options getIOOptions() {
-        IO.Options o =new IO.Options();
-        o.path = "/trade-feed";
-        return o;
+        return new IO.Options();
     }
 
     org.slf4j.Logger log = LoggerFactory.getLogger(this.getClass().getName());

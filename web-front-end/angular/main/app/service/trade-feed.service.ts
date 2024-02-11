@@ -14,7 +14,7 @@ export class TradeFeedService {
 
     private connect() {
         // create socketio client with long polling only
-        this.socket = io(environment.tradeFeedUrl, {path: environment.tradeFeedPath});
+        this.socket = io(environment.tradeFeedUrl);
         
         this.socket.on("connect", this.onConnect);
         this.socket.on("disconnect", this.onDisconnect);
