@@ -9,7 +9,7 @@ export const environment = {
     tradesUrl: 'https://' + window.location.hostname + '/trade-service/trade/',
     positionsUrl: 'https://' + window.location.hostname + '/position-service',
     peopleUrl: 'https://' + window.location.hostname + '/people-service/people',
-    tradeFeedUrl: 'https://' + window.location.hostname + '/trade-feed/'
+    tradeFeedUrl: 'https://' + window.location.hostname
 };
 
 /*
