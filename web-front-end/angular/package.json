@@ -4,8 +4,10 @@
     "scripts": {
         "ng": "ng",
         "lint": "ng lint",
+        "start-prod": "ng serve --host 0.0.0.0 --disable-host-check --configuration=production --port ${WEB_SERVICE_PORT:-18093}",
         "start": "ng serve --host 0.0.0.0 --disable-host-check --port ${WEB_SERVICE_PORT:-18093}",
         "build": "cross-env NG_CLI_ANALYTICS=ci ng build --base-href=. --configuration production --output-path=./dist --aot --output-hashing=all",
+        "buildlocal": "cross-env NG_CLI_ANALYTICS=ci ng build --base-href=. --configuration local --output-path=./dist --aot --output-hashing=all",
         "test": "ng test --code-coverage --watch=true",
         "test:ci": "ng test --code-coverage --watch=false --browsers=ChromeHeadlessNoSandbox"
     },
