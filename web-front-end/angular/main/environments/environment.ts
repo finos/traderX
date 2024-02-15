@@ -3,13 +3,13 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-    production: false,
-    accountUrl: 'https://' + window.location.hostname + '/account-service',
-    refrenceDataUrl: 'https://' + window.location.hostname + '/reference-data',
-    tradesUrl: 'https://' + window.location.hostname + '/trade-service/trade/',
-    positionsUrl: 'https://' + window.location.hostname + '/position-service',
-    peopleUrl: 'https://' + window.location.hostname + '/people-service/people',
-    tradeFeedUrl: 'https://' + window.location.hostname
+    production:         false,
+    accountUrl:         `//${window.location.hostname}:18088`,
+    refrenceDataUrl:    `//${window.location.hostname}:18085`,
+    tradesUrl:          `//${window.location.hostname}:18092/trade/`,
+    positionsUrl:       `//${window.location.hostname}:18090`,
+    peopleUrl:          `//${window.location.hostname}:18088/people`,
+    tradeFeedUrl:       `//${window.location.hostname}:18086`
 };
 
 /*

@@ -34,11 +34,11 @@
                         "scripts": []
                     },
                     "configurations": {
-                        "demo": {
+                        "local": {
                             "fileReplacements": [
                                 {
                                     "replace": "main/environments/environment.ts",
-                                    "with": "main/environments/environment.demo.ts"
+                                    "with": "main/environments/environment.local.ts"
                                 }
                             ]
                         },
@@ -81,8 +81,8 @@
                         "production": {
                             "browserTarget": "main-application:build:production"
                         },
-                        "demo": {
-                            "browserTarget": "main-application:build:demo"
+                        "local": {
+                            "browserTarget": "main-application:build:local"
                         }
                     }
                 },
