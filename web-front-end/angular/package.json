@@ -4,8 +4,10 @@
     "scripts": {
         "ng": "ng",
         "lint": "ng lint",
+        "start-prod": "ng serve --host 0.0.0.0 --disable-host-check --configuration=production --port ${WEB_SERVICE_PORT:-18093}",
         "start": "ng serve --host 0.0.0.0 --disable-host-check --port ${WEB_SERVICE_PORT:-18093}",
         "build": "cross-env NG_CLI_ANALYTICS=ci ng build --base-href=. --configuration production --output-path=./dist --aot --output-hashing=all",
+        "buildlocal": "cross-env NG_CLI_ANALYTICS=ci ng build --base-href=. --configuration local --output-path=./dist --aot --output-hashing=all",
         "test": "ng test --code-coverage --watch=true",
         "test:ci": "ng test --code-coverage --watch=false --browsers=ChromeHeadlessNoSandbox"
     },
@@ -25,7 +27,7 @@
         "bootstrap": "^5.2.0",
         "ngx-bootstrap": "^10.3.0",
         "rxjs": "^7.8.0",
-        "socket.io-client": "^4.6.1",
+        "socket.io-client": "4.7.3",
         "tslib": "^2.4.1",
         "zone.js": "^0.12.0"
     },
@@ -58,6 +60,9 @@
     "overrides": {
         "http-proxy":{
             "follow-redirects":"1.15.4"
+        },
+        "socket.io-client": {
+            "engine.io-parser": "5.2.1"
         }
     }
 }

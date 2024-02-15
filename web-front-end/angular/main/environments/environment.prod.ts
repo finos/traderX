@@ -1,9 +1,9 @@
 export const environment = {
-    production: true,
-    accountUrl: 'http://' + window.location.hostname + ':18088/accounts',
-    refrenceDataUrl: 'http://' + window.location.hostname + ':18085/refdata',
-    tradesUrl: 'http://' + window.location.hostname + ':18092/trade/',
-    positionsUrl: 'http://' + window.location.hostname + ':18090',
-    peopleUrl: 'http://' + window.location.hostname + ':18089/people',
-    tradeFeedUrl: 'http://' + window.location.hostname + ':18086/'
+    production:         true,
+    accountUrl:         `//${window.location.host}/account-service`,
+    refrenceDataUrl:    `//${window.location.host}/reference-data`,
+    tradesUrl:          `//${window.location.host}/trade-service/trade/`,
+    positionsUrl:       `//${window.location.host}/position-service`,
+    peopleUrl:          `//${window.location.host}/people-service/people`,
+    tradeFeedUrl:       `//${window.location.host}`
 };

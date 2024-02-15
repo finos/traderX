@@ -5,7 +5,8 @@ const http = require('http').createServer(app);
 
 const io = new sockio.Server(http, {
   cors: {
-    origin: "*"
+    origin: "*",
+    methods: ["GET", "POST"]
   }
 });
 const port = process.env.TRADE_FEED_PORT || 18086;

@@ -17,4 +17,4 @@ RUN su node -c "source /usr/local/share/nvm/nvm.sh && nvm install ${EXTRA_NODE_V
 # [Optional] Uncomment if you want to install more global node modules
 # RUN su node -c "npm install -g <your-package-list-here>"
 RUN npm install --ignore-scripts puppeteer
-ENTRYPOINT npm start
+ENTRYPOINT npm run start-prod

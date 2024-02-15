@@ -191,6 +191,29 @@ services:
     depends_on:
       - database
       - trade-feed
+  ingress:
+    image: ingress
+    build:
+      context: ingress
+      dockerfile: Dockerfile
+      args:
+        - NGINX_HOST=${TRADERX_FQDN:-localhost}
+    working_dir: /ingress
+    expose:
+      - 8080
+    ports:
+      - 8080:8080
+    networks:
+      - localnet
+    depends_on:
+      - database
+      - trade-feed
+      - people-service
+      - account-service
+      - position-service
+      - trade-service
+      - trade-processor
+      - web-front-end-angular
 
 networks:
   localnet:
