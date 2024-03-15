@@ -12,7 +12,7 @@ import { map, noop, Observable, Observer, of, switchMap, tap } from 'rxjs';
 })
 export class AssignUserToAccountComponent implements OnInit {
     @Input() accounts: any = [];
-    account?: Account = undefined;
+    @Input() account?: Account = undefined;
     users$: Observable<User[]>;
     user?: User = undefined;
     search?: string = undefined;
