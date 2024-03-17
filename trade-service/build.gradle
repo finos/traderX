@@ -25,7 +25,7 @@ dependencies {
 	implementation 'com.h2database:h2:2.2.224'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
 
-	implementation('org.json:json:20240205') {
+	implementation('org.json:json:20240303') {
 		because 'previous versions are affected by multiple CVE'
 	}
 	implementation ('io.socket:socket.io-client:2.1.0') {
