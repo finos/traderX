@@ -5,6 +5,7 @@ const projectSlug = 'traderX'
 const copyrightOwner = 'UBS'
 
 module.exports = {
+  onBrokenLinks: 'ignore',
   title: `${projectName}`,
   tagline: `${projectName}`, 
   url: 'https://finos.org',
@@ -106,8 +107,7 @@ module.exports = {
           path: '../docs',
           editUrl:
             'https://github.com/finos/traderX/edit/main/website/',
-          sidebarPath: require.resolve('./sidebars.js'),
-          onBrokenLinks: 'ignore'
+          sidebarPath: require.resolve('./sidebars.js')
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
