@@ -19,7 +19,6 @@ module.exports = {
   scripts: ['https://buttons.github.io/buttons.js'],
   stylesheets: ['https://fonts.googleapis.com/css?family=Overpass:400,400i,700'],
   themeConfig: {
-    onBrokenLinks: 'ignore', // Ignore broken links during the build
     navbar: {
       title: `TraderX`,
       logo: {
@@ -107,7 +106,8 @@ module.exports = {
           path: '../docs',
           editUrl:
             'https://github.com/finos/traderX/edit/main/website/',
-          sidebarPath: require.resolve('./sidebars.js')
+          sidebarPath: require.resolve('./sidebars.js'),
+          onBrokenLinks: 'ignore'
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
