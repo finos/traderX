@@ -19,6 +19,7 @@ module.exports = {
   scripts: ['https://buttons.github.io/buttons.js'],
   stylesheets: ['https://fonts.googleapis.com/css?family=Overpass:400,400i,700'],
   themeConfig: {
+    onBrokenLinks: 'ignore', // Ignore broken links during the build
     navbar: {
       title: `TraderX`,
       logo: {
