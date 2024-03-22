@@ -10,6 +10,7 @@
 dependencyResolutionManagement {
     repositories {
         // Use Maven Central for resolving dependencies.
+        maven { url = 'https://regnosys.jfrog.io/regnosys/libs-release' }
         mavenCentral()
     }
 }

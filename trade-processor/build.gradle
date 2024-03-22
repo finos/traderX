@@ -16,11 +16,17 @@ version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '17'
 
 dependencies {
+	implementation('com.regnosys.rosetta:com.regnosys.rosetta:9.7.0') {
+		exclude group: 'org.antlr', module: 'antlr-runtime'
+	}
+	implementation('org.finos.cdm:cdm-java:6.0.0-dev.27') {
+		exclude group: 'org.antlr', module: 'antlr-runtime'
+	}
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'com.h2database:h2:2.2.224'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.4.0'
-	
+
 	implementation('org.json:json:20240303') {
 		because 'previous versions are affected by multiple CVE'
 	}
