@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { map, catchError } from 'rxjs/operators';
 import { environment } from 'main/environments/environment';
 import { User } from '../model/user.model';
 
@@ -19,14 +19,15 @@ export class UserService {
     constructor(private http: HttpClient) { }
 
     getUsers(searchText: string): Observable<User[]> {
-        return this.http.get<User[]>(`${this.baseUrl}/People/GetMatchingPeople`, {
-            headers: this.httpOptions.headers,
-            params: { SearchText: searchText, Take: 10 }
+        return this.http.get<{ people: User[] }>(`${this.baseUrl}/People/GetMatchingPeople`, {
+          headers: this.httpOptions.headers,
+          params: { SearchText: searchText, Take: '10' }
         }).pipe(
-            catchError((error: HttpErrorResponse) => {
-                console.error(error);
-                return throwError(() => error);
-            })
+          map(response => response.people || []),
+          catchError((error: HttpErrorResponse) => {
+            console.error(error);
+            return throwError(() => error);
+          })
         );
+      }
     }
-}
