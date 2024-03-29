@@ -52,7 +52,7 @@ export class AssignUserToAccountComponent implements OnInit {
         this.accountService.addAccountUser(accountUser).subscribe(() => {
             this.addUserResponse = { success: true, msg: 'User added successfully!' };
             this.update.emit(this.account);
-            this.reset();
+            this.reset(true);
         }, (err) => {
             this.addUserResponse = { error: true, msg: 'There is some error!' };
             console.error(err);
@@ -63,9 +63,12 @@ export class AssignUserToAccountComponent implements OnInit {
         this.user = event.item;
     }
 
-    reset() {
-        this.account = undefined;
+    reset(fromAdd: boolean = false) {
         this.user = undefined;
+        this.search = undefined;
+        // keep account sticky if we are just adding a user
+        if(!fromAdd)
+            this.account = undefined;
     }
 
     onCloseAlert() {
