@@ -11,7 +11,7 @@
     </div>
 
     <div class="mt-4">
-        <app-assign-user class="mt-2" (update)="onUpdate($event)" [accounts]="accounts$ | async"></app-assign-user>
+        <app-assign-user class="mt-2" (update)="onUpdate($event)" [account]="selectedAccount" [accounts]="accounts$ | async"></app-assign-user>
         <div class="mt-4">
             <h6>Users List {{selectedAccount ? '(' + selectedAccount.displayName + ')' : ''}}</h6>
             <ag-grid-angular #agGrid style="width: 800px; height: 300px;" id="usergrid" class="ag-theme-alpine"
