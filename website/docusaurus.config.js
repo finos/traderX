@@ -2,7 +2,7 @@
 
 const projectName = 'TraderX'
 const projectSlug = 'traderX'
-const copyrightOwner = 'UBS'
+const copyrightOwner = 'FINOS - The Fintech Open Source Foundation'
 
 module.exports = {
   onBrokenLinks: 'ignore',

@@ -1,6 +1,7 @@
 import React from 'react';
 import classnames from 'classnames';
 import Layout from '@theme/Layout';
+import clsx from 'clsx'
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import styles from './styles.module.css';
@@ -8,6 +9,7 @@ import Feature from '../components/feature';
 import { features } from '../components/feature-config';
 import FeaturesTwo from '../components/featuresTwo';
 import { featuresTwo } from '../components/featuresTwo-config';
+import HomepageFeatures from '../components/HomepageFeatures'
 
 function Home() {
   const context = useDocusaurusContext();
@@ -17,6 +19,7 @@ function Home() {
       title={`${siteConfig.title}`}
       description={`${siteConfig.tagline}`}>
       <header className={classnames('hero hero--primary', styles.heroBanner)}>
+
         <div className="container">
         <img className={styles.featureImage} src='img/traderX/TraderX_Horizontal_BLK.svg' alt='TraderX Logo' />
           <div className={styles.buttons}>
@@ -33,6 +36,14 @@ function Home() {
                 'button button--outline button--secondary button--lg',
                 styles.getStarted
               )}
+              to={'https://demo.traderx.finos.org'}>
+              Live Demo
+            </Link>
+            <Link
+              className={classnames(
+                'button button--outline button--secondary button--lg',
+                styles.getStarted
+              )}
               to={'https://github.com/finos/traderX'}>
               GITHUB
             </Link>
@@ -40,6 +51,8 @@ function Home() {
         </div>
       </header>
       <main>
+        <HomepageFeatures />
+        {/*
         {features && features.length && (
           <section className={styles.features}>
             <div className="container">
@@ -65,6 +78,7 @@ function Home() {
             </div>
           </section>
         )}
+                */}
       </main>
     </Layout>
   );
