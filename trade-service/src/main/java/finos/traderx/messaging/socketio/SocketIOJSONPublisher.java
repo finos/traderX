@@ -60,7 +60,7 @@ public abstract class SocketIOJSONPublisher<T> implements Publisher<T>, Initiali
     @Override
     public void publish(String topic, T message) throws PubSubException {
         if (!isConnected()) {
-            throw new PubSubException(String.format("Cannot send %s on topic %s - not connected", message, topic));
+            throw new PubSubException("Cannot send %s on topic %s - not connected".formatted(message, topic));
         }
         try {
             SocketIOEnvelope<T> envelope = new SocketIOEnvelope<T>(topic, message);
