@@ -18,7 +18,7 @@ public class AccountService {
 	AccountRepository accountRepository;
 
 	public List<Account> getAllAccount() {
-		List<Account> accounts = new ArrayList<Account>();
+		List<Account> accounts = new ArrayList<>();
 		this.accountRepository.findAll().forEach(account -> accounts.add(account));
 		return accounts;
 	}

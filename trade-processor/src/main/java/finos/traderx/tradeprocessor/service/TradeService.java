@@ -56,7 +56,7 @@ public class TradeService {
 			position.setSecurity(order.getSecurity());
 			position.setQuantity(0);
 		}
-		int newQuantity=((order.getSide()==TradeSide.Buy)?1:-1)*t.getQuantity();
+		int newQuantity=(order.getSide()==TradeSide.Buy?1:-1)*t.getQuantity();
 		position.setQuantity(position.getQuantity()+newQuantity);
 		log.info("Trade {}",t);
 		tradeRepository.save(t);

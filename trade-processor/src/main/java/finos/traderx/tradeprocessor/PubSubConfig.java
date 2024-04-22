@@ -18,14 +18,14 @@ public class PubSubConfig {
 
     @Bean 
     public Publisher<Position> positionPublisher() {
-        SocketIOJSONPublisher<Position> publisher = new SocketIOJSONPublisher<Position>(){};
+        SocketIOJSONPublisher<Position> publisher = new SocketIOJSONPublisher<>(){};
         publisher.setSocketAddress(tradeFeedAddress);
         return publisher;
     }
 
     @Bean 
     public Publisher<Trade> tradePublisher() {
-        SocketIOJSONPublisher<Trade> publisher = new SocketIOJSONPublisher<Trade>(){};
+        SocketIOJSONPublisher<Trade> publisher = new SocketIOJSONPublisher<>(){};
         publisher.setSocketAddress(tradeFeedAddress);
         return publisher;
     }

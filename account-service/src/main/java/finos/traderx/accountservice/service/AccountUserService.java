@@ -23,7 +23,7 @@ public class AccountUserService {
 	AccountRepository accountRepository;
 
 	public List<AccountUser> getAllAccountUsers() {
-		List<AccountUser> accountUsers = new ArrayList<AccountUser>();
+		List<AccountUser> accountUsers = new ArrayList<>();
 		this.accountUserRepository.findAll().forEach(accountUser -> accountUsers.add(accountUser));
 		return accountUsers;
 	}

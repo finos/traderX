@@ -15,7 +15,7 @@ public class PubSubConfig {
 
     @Bean 
     public Publisher<TradeOrder> tradePublisher() {
-        SocketIOJSONPublisher<TradeOrder> publisher = new SocketIOJSONPublisher<TradeOrder>(){};
+        SocketIOJSONPublisher<TradeOrder> publisher = new SocketIOJSONPublisher<>(){};
         publisher.setTopic("/trades");
         publisher.setSocketAddress(tradeFeedAddress);
         return publisher;

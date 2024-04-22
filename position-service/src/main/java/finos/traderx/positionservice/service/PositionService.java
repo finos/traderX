@@ -17,7 +17,7 @@ public class PositionService {
 	PositionRepository positionRepository;
 
 	public List<Position> getAllPositions() {
-		List<Position> positions = new ArrayList<Position>();
+		List<Position> positions = new ArrayList<>();
 		this.positionRepository.findAll().forEach(account -> positions.add(account));
 		return positions;
 	}

@@ -20,7 +20,7 @@ import java.net.URI;
  * 
  */
 public abstract class SocketIOJSONPublisher<T> implements Publisher<T>, InitializingBean {
-    private static ObjectMapper objectMapper = new ObjectMapper()
+    private static final ObjectMapper objectMapper = new ObjectMapper()
             .setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
     protected IO.Options getIOOptions() {
@@ -29,7 +29,7 @@ public abstract class SocketIOJSONPublisher<T> implements Publisher<T>, Initiali
 
     org.slf4j.Logger log = LoggerFactory.getLogger(this.getClass().getName());
 
-    boolean connected = false;
+    boolean connected;
 
     @Override
     public boolean isConnected() {
@@ -61,7 +61,7 @@ public abstract class SocketIOJSONPublisher<T> implements Publisher<T>, Initiali
             throw new PubSubException(String.format("Cannot send %s on topic %s - not connected", message, topic));
         }
         try {
-            SocketIOEnvelope<T> envelope = new SocketIOEnvelope<T>(topic, message);
+            SocketIOEnvelope<T> envelope = new SocketIOEnvelope<>(topic, message);
             String msgString = objectMapper.writerFor(SocketIOEnvelope.class).writeValueAsString(envelope);
             JSONObject obj = new JSONObject(msgString);
             log.debug("PUBLISH->" + obj);
@@ -73,15 +73,17 @@ public abstract class SocketIOJSONPublisher<T> implements Publisher<T>, Initiali
 
     @Override
     public void disconnect() throws PubSubException {
-        if (socket != null && isConnected())
+        if (socket != null && isConnected()) {
             socket.disconnect();
+        }
         socket = null;
     }
 
     @Override
     public void connect() throws PubSubException {
-        if (socket != null)
+        if (socket != null) {
             socket.disconnect();
+        }
         try {
             socket = internalConnect(URI.create(socketAddress));
         } catch (Exception x) {

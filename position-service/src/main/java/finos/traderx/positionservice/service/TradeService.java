@@ -17,7 +17,7 @@ public class TradeService {
 	TradeRepository tradeRepository;
 
 	public List<Trade> getAllTrades() {
-		List<Trade> trades = new ArrayList<Trade>();
+		List<Trade> trades = new ArrayList<>();
 		this.tradeRepository.findAll().forEach(trade -> trades.add(trade));
 		return trades;
 	}

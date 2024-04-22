@@ -23,7 +23,7 @@ import io.socket.emitter.Emitter;
  * Publish events consist of an envelope and an internal payload.
  */
 public abstract class SocketIOJSONSubscriber<T> implements Subscriber<T>, InitializingBean {
-    private static ObjectMapper objectMapper = new ObjectMapper()
+    private static final ObjectMapper objectMapper = new ObjectMapper()
             .setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
     public SocketIOJSONSubscriber(Class<T> typeClass) {
@@ -41,7 +41,7 @@ public abstract class SocketIOJSONSubscriber<T> implements Subscriber<T>, Initia
 
     org.slf4j.Logger log = LoggerFactory.getLogger(this.getClass().getName());
 
-    boolean connected = false;
+    boolean connected;
 
     @Override
     public boolean isConnected() {
@@ -76,15 +76,17 @@ public abstract class SocketIOJSONSubscriber<T> implements Subscriber<T>, Initia
 
     @Override
     public void disconnect() throws PubSubException {
-        if (socket != null && isConnected())
+        if (socket != null && isConnected()) {
             socket.disconnect();
+        }
         socket = null;
     }
 
     @Override
     public void connect() throws PubSubException {
-        if (socket != null)
+        if (socket != null) {
             socket.disconnect();
+        }
         try {
             socket = internalConnect(URI.create(socketAddress));
         } catch (Exception x) {
