@@ -76,3 +76,10 @@ On my windows PC, it actually doesn't work with the public IP address. Just chan
 
 Example: http://localhost:18084 
 
+
+## Accessing the Web Console
+
+1. Visit http://localhost:18084 or whatever port you run your service on
+2. You should see a web console, prompting you for a username, password, and JDBC URL - Values might not be auto-populated correctly
+3. Username and password should both be `sa` and the JDBC URL should be `jdbc:h2:./traderx` and the Driver should be `Generic H2 Embedded`
+4. Click `Connect`
