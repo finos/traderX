@@ -60,9 +60,6 @@
   "overrides": {
     "http-proxy": {
       "follow-redirects": "1.15.6"
-    },
-    "socket.io-client": {
-      "engine.io-parser": "5.2.1"
-    }
+    }     
   }
 }
