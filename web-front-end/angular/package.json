@@ -56,10 +56,5 @@
     "serve-handler": "^6.1.5",
     "ts-node": "^10.9.1",
     "typescript": "~5.2.2"
-  },
-  "overrides": {
-    "http-proxy": {
-      "follow-redirects": "1.15.6"
-    }     
   }
 }
