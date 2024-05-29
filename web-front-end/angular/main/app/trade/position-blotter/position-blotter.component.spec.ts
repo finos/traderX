@@ -13,7 +13,7 @@ describe('PositionBlotterComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [PositionBlotterComponent],
       imports: [
-        AgGridModule.withComponents([])
+        AgGridModule
       ],
       providers: [
         {
