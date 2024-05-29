@@ -19,7 +19,6 @@ jobs:
           'reference-data',
           'trade-feed',
           'web-front-end/angular',
-          'web-front-end/proxy',
           'web-front-end/react'
         ]
     steps:
