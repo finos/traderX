@@ -20,7 +20,7 @@ import { PageNotFoundComponent } from './page-not-found.component';
     AccountsModule,
     HttpClientModule,
     HttpClientJsonpModule,
-    AgGridModule.withComponents([]),
+    AgGridModule,
     RouterModule.forRoot(routes)
   ],
   providers: [],

@@ -18,7 +18,7 @@ import { DropdownModule } from '../dropdown/dropdown.module';
     TypeaheadModule.forRoot(),
     DropdownModule,
     AlertModule.forRoot(),
-    AgGridModule.withComponents([ButtonCellRendererComponent])
+    AgGridModule
   ],
   exports: [AccountComponent, EditAccountComponent, AssignUserToAccountComponent]
 })

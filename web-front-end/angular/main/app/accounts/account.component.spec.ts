@@ -15,7 +15,7 @@ describe('Account tests', () => {
     waitForAsync(() => {
       TestBed.configureTestingModule({
         declarations: [AccountComponent],
-        imports: [AgGridModule.withComponents([ButtonCellRendererComponent])],
+        imports: [AgGridModule],
         providers: [
           {
             provide: AccountService,
