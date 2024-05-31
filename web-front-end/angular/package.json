@@ -24,7 +24,7 @@
     "@angular/router": "^17.0.0",
     "ag-grid-angular": "^29.3.3",
     "ag-grid-community": "^29.3.5",
-    "bootstrap": "^5.2.0",
+    "bootstrap": "^5.3.3",
     "ngx-bootstrap": "^12.0.0",
     "rxjs": "^7.8.1",
     "socket.io-client": "4.7.5",
