@@ -28,7 +28,7 @@ module.exports = function (config) {
             clearContext: false // leave Jasmine Spec Runner output visible in browser
         },
         coverageReporter: {
-            dir: require('path').join(__dirname, '../install/common/coverage-results/karma-coverage'),
+            dir: require('path').join(__dirname, '.test-results/coverage-results/karma-coverage'),
             subdir: '.',
             reporters: [
                 { type: 'html', subdir: 'html' },
@@ -51,7 +51,7 @@ module.exports = function (config) {
             }
         },
         junitReporter: {
-            outputDir: path.join(__dirname, '../install/common/test-results/junit'),
+            outputDir: path.join(__dirname, '.test-results/junit'),
             xmlVersion: 1 // use '1' if reporting to be per SonarQube 6.2 XML format
         },
         reporters: ['progress', 'kjhtml', 'junit'],
