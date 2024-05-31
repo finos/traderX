@@ -21,7 +21,7 @@ configurations.all {
 
 dependencies {
     constraints {
-        implementation('org.springframework:spring-web:6.1.5') {
+        implementation('org.springframework:spring-web:6.1.8') {
             because 'CVE-2024-22259'
         }
     }
