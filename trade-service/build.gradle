@@ -20,11 +20,6 @@ configurations.all {
 }
 
 dependencies {
-    constraints {
-        implementation('org.springframework:spring-web:6.1.5') {
-            because 'CVE-2024-22259'
-        }
-    }
 
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
