@@ -13,8 +13,10 @@ plugins {
 
 group = 'finos.traderx.position-service'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '17'
 
+java{
+	sourceCompatibility = JavaVersion.VERSION_21
+}
 dependencies {
 
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
