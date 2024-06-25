@@ -453,3 +453,16 @@ obj/
 # End of https://www.toptal.com/developers/gitignore/api/dotnetcore,csharp
 
 sdk/**/launchSettings.json
+
+# dependencies
+website/node_modules
+
+# production
+website/build
+
+# generated files
+website/.docusaurus
+.cache-loader
+website/npm-debug.log*
+website/yarn-debug.log*
+website/yarn-error.log*
