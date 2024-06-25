@@ -13,7 +13,10 @@ plugins {
 
 group = 'finos.traderx.trade-service'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '21'
+
+java{
+	sourceCompatibility = JavaVersion.VERSION_21
+}
 
 configurations.all {
   exclude group: 'org.yaml', module: 'snakeyaml'

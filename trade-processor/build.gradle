@@ -11,9 +11,12 @@ plugins {
   id 'io.spring.dependency-management' version '1.1.5'
 }
 
-group = 'finos.traderx.position-service'
+group = 'finos.traderx.trade-processor'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '21'
+
+java{
+	sourceCompatibility = JavaVersion.VERSION_21
+}
 
 dependencies {
     
