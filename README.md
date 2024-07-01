@@ -54,9 +54,9 @@ The project consists of multiple moving parts, and you can see how things hang t
 
 This is installed locally through normal git clone operations.
 
-## Usage example (Simple)
+## Usage example (Manual)
 
-In order to get things working together, it is recommended to select a range of ports to provide all running processes with, so that the pieces can interconnect as needed.  A more advanced instance of this project is possible using the docker compose files which are present in each project directory. To run this all up 'by hand' here are default ports which are used, and you can easily export these variables to your favorite shell. 
+In order to get things working together, it is recommended to select a range of ports to provide all running processes with, so that the pieces can interconnect as needed.  To run this all up 'by hand' here are default ports which are used, and you can easily export these variables to your favorite shell. 
 
 ```bash
 export DATABASE_TCP_PORT=18082
@@ -89,9 +89,19 @@ web-front-end
 
 ## Usage (Docker + Docker Compose)
 
-The easiest way to run up the entire system is using Docker Compose. This should work on your local computer using Docker Desktop / Docker Compose (tested on Mac Silicon) and also in Github Codespaces.
+The easiest way to run up the entire system is using Docker Compose. This should work on your local computer using Docker Desktop / Docker Compose (tested on Mac Silicon) and also in Github Codespaces. 
 
-From the root traderX directory run
+### Codespaces
+If using Github Codespaces it is recommended you select an 8-core type machine with 32GB RAM to ensure all the components have the required resources to start. 
+
+To do this 
+* Select the Green Code menu at the top of this page
+* Select the Codespace tab then click the three dots '...' and select 'New with options...'.
+* Change the machine type to '8-core' and click 'Create codespace'
+
+As of writing, personal Github accounts receive 120 free core hours per month for using Codespaces, see the most recent details [here](https://docs.github.com/en/billing/managing-billing-for-github-codespaces/about-billing-for-github-codespaces#monthly-included-storage-and-core-hours-for-personal-accounts) 
+
+Once you have cloned the repository locally or once your Codespace has started, from the root traderX directory run
 ```
 docker compose up
 ```
@@ -99,7 +109,7 @@ On first run this will build all of the containers from the project specific Doc
 
 The Docker containers are configured via Docker Compose to connect to a shred virtual network enabling them to communciate whether running on your local computer or via a Codespace.
 
-The WebUIs will be added to this setup later, but in the interim you should be able to start either (or both) in the same environment to connect to the backend components.
+Once everything has started the WebUI will be accessible at http://localhost:8080 (even if using a codespace, the localhost URL will be mapped through from your local browser to the Codespace).
 
 ## Local Building (Corporate Environments)
 
