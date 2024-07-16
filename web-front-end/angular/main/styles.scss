@@ -1,33 +1,32 @@
-@import "~bootstrap/dist/css/bootstrap.css";
-@import '~ag-grid-community/styles/ag-grid.css';
-@import '~ag-grid-community/styles/ag-theme-alpine.css';
-
+@import 'bootstrap/dist/css/bootstrap.css';
+@import 'ag-grid-community/styles/ag-grid.css';
+@import 'ag-grid-community/styles/ag-theme-alpine.css';
 
 .btn-primary {
-    background-color: #044fbd;
-    border-color: #044fbd;
-}  
+  background-color: #044fbd;
+  border-color: #044fbd;
+}
 
 .btn-primary:hover {
-    background-color: #0d6efd;
+  background-color: #0d6efd;
 }
 
 #buyButton {
-    background-color: green;
+  background-color: green;
 }
 
 #sellButton {
-    background-color: red;
+  background-color: red;
 }
 
 .btn-info {
-    background-color: #0d6efd;
+  background-color: #0d6efd;
 }
 
 .btn-info:hover {
-    background-color: #3583f9;
+  background-color: #3583f9;
 }
 
 .drpbtn3 {
-    margin-left: 5px;
+  margin-left: 5px;
 }
