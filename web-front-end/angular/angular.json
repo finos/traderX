@@ -21,17 +21,21 @@
             "prefix": "app",
             "architect": {
                 "build": {
-                    "builder": "@angular-devkit/build-angular:browser",
+                    "builder": "@angular-devkit/build-angular:application",
                     "options": {
-                        "outputPath": "dist/main-application",
+                        "outputPath": {
+                          "base": "dist/main-application"
+                        },
                         "index": "main/index.html",
-                        "main": "main/main.ts",
-                        "polyfills": "main/polyfills.ts",
+                        "polyfills": [
+                          "main/polyfills.ts"
+                        ],
                         "tsConfig": "tsconfig.app.json",
                         "inlineStyleLanguage": "scss",
                         "assets": ["main/favicon.ico", "main/assets"],
                         "styles": ["main/styles.scss"],
-                        "scripts": []
+                        "scripts": [],
+                        "browser": "main/main.ts"
                     },
                     "configurations": {
                         "local": {
@@ -55,8 +59,6 @@
                             "namedChunks": false,
                             "aot": true,
                             "extractLicenses": true,
-                            "vendorChunk": false,
-                            "buildOptimizer": true,
                             "budgets": [
                                 {
                                     "type": "initial",
