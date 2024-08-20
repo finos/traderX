@@ -1,5 +1,3 @@
-version: '3.4'
-
 services:
   database:
     restart: always
@@ -214,6 +212,19 @@ services:
       - trade-service
       - trade-processor
       - web-front-end-angular
+  xtdb:
+    image: ghcr.io/xtdb/xtdb-standalone-ea:latest
+    expose:
+      - 18099
+      - 18100
+    ports:
+      - 18099:5432
+      - 18100:3000
+    volumes:
+      # Mount the root folder that contains .git
+      - .:/workspace:cached
+    networks:
+      - localnet
 
 networks:
   localnet:

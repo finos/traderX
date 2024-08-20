@@ -1,0 +1,17 @@
+<configuration>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} %-5level [%thread] %logger{36} – %m%n</pattern>
+    </encoder>
+  </appender>
+
+  <logger name="com.zaxxer.hikari" level="WARN"/>
+  <logger name="aleph" level="WARN"/>
+
+  <!-- THIS IS FOR DEV / DEBUGGING -->
+  <logger name="price-service" level="DEBUG"/>
+
+  <root level="INFO">
+    <appender-ref ref="STDOUT"/>
+  </root>
+</configuration>
