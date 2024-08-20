@@ -1,9 +1,11 @@
 (ns price-service.price-service
   (:gen-class)
-  (:require [next.jdbc.sql :as sql]
+  (:require [next.jdbc :as jdbc]
+            [next.jdbc.sql :as sql]
             [next.jdbc.connection :as connection]
             [clojure.java.io :as io]
             [clojure.data.csv :as csv]
+            [clojure.string :as str]
             [clojure.tools.logging :as log])
   (:import
    (com.zaxxer.hikari HikariDataSource)))
@@ -12,44 +14,39 @@
 
 (def insert-stocks
   "insert into stocks
-     (_id, security, sec_filings, gics_sector, gics_sub_industry, headquarters, first_added, cik, founded)
-     values (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+     (_id, security, sec_filings, gics_sector,
+      gics_sub_industry, headquarters, first_added,
+      cik, founded)
+    values
+     (?,?,?,?,?,?,?,?,?)")
 
-(def stock-columns
-  [:_id :security :sec_filings
-   :gics_sector :gics_sub_industry
-   :headquarters :first_added :cik
-   :founded])
-
-(def insert-stock-prices
+(def insert-prices
   "insert into stock_prices
-     (_id, ts, price)
-     values (?, ?, ?")
-
-(def stock-price-columns
-  [:_id :price])
+     (_id, price)
+    values (?,?)")
 
 (defn do-insert
   [jdbc-ds data]
-  (sql/insert-multi! jdbc-ds
-                     :stocks
-                     stock-columns
-                     (mapv
-                      (fn [line]
-                        (update line 7 #(Integer/parseInt %)))
-                      data)
-                     {:batch true
-                      :return-keys false})
-  (sql/insert-multi! jdbc-ds
-                     :stock_prices
-                     stock-price-columns
-                     (mapv
-                      (fn [line]
-                        [(first line)
-                         (rand-int 1000)])
-                      data)
-                     {:batch true
-                      :return-keys false}))
+  (with-open [conn (jdbc/get-connection jdbc-ds)
+              stocks-ps (jdbc/prepare conn
+                                      [insert-stocks])
+              prices-ps (jdbc/prepare conn
+                                      [insert-prices])]
+    (jdbc/execute-batch! stocks-ps
+                         (mapv
+                          (fn [line]
+                            (update line 7 #(Integer/parseInt %)))
+                          data)
+                         {:return-keys false
+                          :return-generated-keys false})
+    (jdbc/execute-batch! prices-ps
+                         (mapv
+                          (fn [line]
+                            [(first line)
+                             (rand-int 1000)])
+                          data)
+                         {:return-keys false
+                          :return-generated-keys false})))
 
 (defn populate-stocks
   [jdbc-ds csv]
