@@ -221,11 +221,17 @@ services:
       - 18099:5432
       - 18100:3000
     volumes:
-      # Mount the root folder that contains .git
-      - .:/workspace:cached
+      - xtdb-data:/var/lib/xtdb
     networks:
       - localnet
 
 networks:
   localnet:
     driver: bridge
+
+volumes:
+  xtdb-data:
+    driver: local
+ 
+ 
+
