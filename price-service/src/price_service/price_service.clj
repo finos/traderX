@@ -1,8 +1,6 @@
 (ns price-service.price-service
   (:gen-class)
-  (:require [next.jdbc.types]
-            [next.jdbc.date-time]
-            [next.jdbc.sql :as sql]
+  (:require [next.jdbc.sql :as sql]
             [next.jdbc.connection :as connection]
             [clojure.java.io :as io]
             [clojure.data.csv :as csv]
@@ -36,14 +34,14 @@
   [jdbc-ds data]
   (let [timestamp (LocalDateTime/now)]
     (sql/insert-multi! jdbc-ds
-                         :stocks
-                         stock-columns
-                         (mapv
-                          (fn [line]
-                            (update line 7 #(Integer/parseInt %)))
-                          data)
-                         {:batch true
-                          :return-keys false})
+                       :stocks
+                       stock-columns
+                       (mapv
+                        (fn [line]
+                          (update line 7 #(Integer/parseInt %)))
+                        data)
+                       {:batch true
+                        :return-keys false})
     (sql/insert-multi! jdbc-ds
                        :stock_prices
                        stock-price-columns
@@ -54,18 +52,7 @@
                            (rand-int 1000)])
                         data)
                        {:batch true
-                        :return-keys false}))
-  ;; [(jdbc-types/as-varchar (first line))
-  ;;  (jdbc-types/as-timestamp timestamp)
-  ;;  (jdbc-types/as-integer (rand-int 1000))]
-  ;; doesn't cope with creating preped statement from vectors
-  #_(jdbc/execute-batch! conn
-                         (into [insert-stocks]
-                               (mapv
-                                (fn [line]
-                                  (update line 7 #(Integer/parseInt %)))
-                                data-lines))
-                         {:return-keys false}))
+                        :return-keys false})))
 
 (defn populate-stocks
   [jdbc-ds csv]
