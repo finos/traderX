@@ -6,7 +6,6 @@
             [clojure.data.csv :as csv]
             [clojure.tools.logging :as log])
   (:import
-   (java.time LocalDateTime)
    (com.zaxxer.hikari HikariDataSource)))
 
 (def csv "../reference-data/data/s-and-p-500-companies.csv")
@@ -28,31 +27,29 @@
      values (?, ?, ?")
 
 (def stock-price-columns
-  [:_id :ts :price])
+  [:_id :price])
 
 (defn do-insert
   [jdbc-ds data]
-  (let [timestamp (LocalDateTime/now)]
-    (sql/insert-multi! jdbc-ds
-                       :stocks
-                       stock-columns
-                       (mapv
-                        (fn [line]
-                          (update line 7 #(Integer/parseInt %)))
-                        data)
-                       {:batch true
-                        :return-keys false})
-    (sql/insert-multi! jdbc-ds
-                       :stock_prices
-                       stock-price-columns
-                       (mapv
-                        (fn [line]
-                          [(first line)
-                           timestamp
-                           (rand-int 1000)])
-                        data)
-                       {:batch true
-                        :return-keys false})))
+  (sql/insert-multi! jdbc-ds
+                     :stocks
+                     stock-columns
+                     (mapv
+                      (fn [line]
+                        (update line 7 #(Integer/parseInt %)))
+                      data)
+                     {:batch true
+                      :return-keys false})
+  (sql/insert-multi! jdbc-ds
+                     :stock_prices
+                     stock-price-columns
+                     (mapv
+                      (fn [line]
+                        [(first line)
+                         (rand-int 1000)])
+                      data)
+                     {:batch true
+                      :return-keys false}))
 
 (defn populate-stocks
   [jdbc-ds csv]
@@ -83,7 +80,6 @@
 
 (comment
 
-
   (def jdbc-url (connection/jdbc-url
                  {:dbtype "postgresql"
                   :dbname "traderX"
@@ -95,21 +91,5 @@
                                    :maxLifetime 60000}))
   (with-open [rdr (io/reader csv)]
     (do-insert jdbc-ds (drop 1 (csv/read-csv rdr))))
-
-  ;; this runs against postgres:15.2 - works OK (just need to create the table first)
-  ;; create table stock_prices (_id text, ts timestamp, price integer);
-  (let [csv "../reference-data/data/s-and-p-500-companies.csv"
-        jdbc-url (connection/jdbc-url
-                  {:dbtype "postgresql"
-                   :dbname "postgres"
-                   :host "localhost"
-                   :port 5432
-                   :useSSL false})
-        jdbc-ds (connection/->pool HikariDataSource
-                                   {:jdbcUrl jdbc-url
-                                    :username "postgres"
-                                    :maxLifetime 60000})]
-    (with-open [rdr (io/reader csv)]
-      (do-insert jdbc-ds (drop 1 (csv/read-csv rdr)))))
 
   #_1)
