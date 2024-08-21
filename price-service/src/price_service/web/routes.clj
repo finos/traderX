@@ -37,7 +37,9 @@
       {:handler
        (fn [_]
          (log/info "Get all stocks.")
-         (response/ok (to-json (loader/get-all-stocks jdbc-ds))))}}]
+         (response/header
+          (response/ok (to-json (loader/get-all-stocks jdbc-ds)))
+          "Content-Type" "application/json"))}}]
     ["/:ticker"
      {:allow-methods [:get]
       :get
@@ -46,7 +48,9 @@
          (let [ticker (:ticker path-params)]
            (log/info "Get stock:" ticker)
            (if-let [stock (loader/get-stock jdbc-ds ticker)]
-             (response/ok (to-json stock))
+             (response/header
+              (response/ok (to-json stock))
+              "Content-Type" "application/json")
              (response/not-found (str "Stock not found: " ticker)))))}}]]])
 
 (comment

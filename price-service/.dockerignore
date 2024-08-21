@@ -1,0 +1,7 @@
+# Ignore all files
+*
+
+# Include Clojure code and config
+!deps.edn
+!src/
+!resources/

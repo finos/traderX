@@ -1,6 +1,7 @@
 {:paths ["src" "resources"]
+ :mvn/local-repo "m2-repo"
  :mvn/repos {"ossrh-snapshots" {:url "https://s01.oss.sonatype.org/content/repositories/snapshots"}}
- :deps {org.clojure/clojure {:mvn/version "1.11.3"}
+ :deps {org.clojure/clojure {:mvn/version "1.11.4"}
         com.xtdb/xtdb-api {:mvn/version "2.0.0-SNAPSHOT"}
         com.xtdb/xtdb-http-client-jvm {:mvn/version "2.0.0-SNAPSHOT"}
         com.xtdb/xtdb-core {:mvn/version "2.0.0-SNAPSHOT"}
@@ -28,7 +29,7 @@
                     "-Dio.netty.tryReflectionSetAccessible=true"]}
   :run-x {:ns-default price-service.price-service
           :exec-fn -main
-          :exec-args {:name "Clojure"}}
+          :exec-args {}}
   :build {:deps {io.github.clojure/tools.build
                  {:git/tag "v0.9.2" :git/sha "fe6b140"}}
           :ns-default build}

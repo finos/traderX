@@ -22,23 +22,31 @@ services:
     command: ./run.sh
     networks:
       - localnet
-  reference-data:
+  xtdb:
+    image: ghcr.io/xtdb/xtdb-standalone-ea:latest
+    expose:
+      - 5432
+      - 3000
+    ports:
+      - 18099:5432
+      - 18100:3000
+    volumes:
+      - xtdb-data:/var/lib/xtdb
+    networks:
+      - localnet
+  price-service:
     restart: always
-    image: reference-data
     build:
-      context: reference-data
+      context: price-service
       dockerfile: Dockerfile
-    working_dir: /reference-data
     expose:
       - 18085
     ports:
       - 18085:18085
-    volumes:
-      # Mount the root folder that contains .git
-      - .:/workspace:cached
-    command: npm run start
     networks:
       - localnet
+    depends_on:
+      - xtdb
   trade-feed:
     restart: always
     image: trade-feed
@@ -132,7 +140,7 @@ services:
       - DATABASE_TCP_HOST=database
       - PEOPLE_SERVICE_HOST=people-service
       - ACCOUNT_SERVICE_HOST=account-service
-      - REFERENCE_DATA_HOST=reference-data
+      - REFERENCE_DATA_HOST=price-service
       - TRADE_FEED_HOST=trade-feed
     volumes:
       # Mount the root folder that contains .git
@@ -144,7 +152,7 @@ services:
       - database
       - people-service
       - account-service
-      - reference-data
+      - price-service
       - trade-feed
   trade-processor:
     restart: always
@@ -211,19 +219,8 @@ services:
       - position-service
       - trade-service
       - trade-processor
+      - price-service
       - web-front-end-angular
-  xtdb:
-    image: ghcr.io/xtdb/xtdb-standalone-ea:latest
-    expose:
-      - 18099
-      - 18100
-    ports:
-      - 18099:5432
-      - 18100:3000
-    volumes:
-      - xtdb-data:/var/lib/xtdb
-    networks:
-      - localnet
 
 networks:
   localnet:

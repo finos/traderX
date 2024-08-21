@@ -38,7 +38,12 @@
   "Indexes stocks by ticker"
   [stockz]
   (reset! stocks
-          (medley/index-by :ticker stockz)))
+          (->>  stockz
+                (map (fn [stock]
+                       (-> stock
+                           (assoc :companyName (:company stock))
+                           (dissoc :company))))
+                (medley/index-by :ticker))))
 
 (defn read-stocks
   [connection-like]
