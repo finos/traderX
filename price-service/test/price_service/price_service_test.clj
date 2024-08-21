@@ -3,5 +3,5 @@
             [price-service.price-service :refer :all]))
 
 (deftest a-test
-  (testing "FIXME, I fail."
+  (testing "FIXME, write some tests"
     (is (= 0 1))))

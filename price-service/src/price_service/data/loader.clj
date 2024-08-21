@@ -1,16 +1,18 @@
 (ns price-service.data.loader
-  (:require [next.jdbc :as jdbc]
-            [next.jdbc.sql :as sql]
-            [next.jdbc.connection :as connection]
-            [medley.core :as medley]
-            [clojure.java.io :as io]
-            [clojure.data.csv :as csv]
-            [clojure.tools.logging :as log])
+  (:require
+   [clojure.data.csv :as csv]
+   [clojure.java.io :as io]
+   [clojure.string :as str]
+   [clojure.tools.logging :as log]
+   [medley.core :as medley]
+   [next.jdbc :as jdbc]
+   [next.jdbc.connection :as connection]
+   [next.jdbc.sql :as sql])
   (:import
    (com.zaxxer.hikari HikariDataSource)))
 
 (def csv
-  "../reference-data/data/s-and-p-500-companies.csv")
+  "./resources/s-and-p-500-companies.csv")
 
 (def insert-stocks
   "insert into stocks
@@ -26,18 +28,25 @@
     values
      (?,?)")
 
+(def select-stocks
+  "select _id as ticker, security as company from stocks")
+
 (defonce stocks
   (atom {}))
 
 (defn cache-stocks
+  "Indexes stocks by ticker"
   [stockz]
   (reset! stocks
-          (medley/index-by :_id stockz)))
+          (medley/index-by :ticker stockz)))
 
 (defn read-stocks
   [connection-like]
-  (sql/query connection-like
-             ["select * from stocks"]))
+  (let [stocks
+        (sql/query connection-like
+                   [select-stocks])]
+    (when (seq stocks)
+      (cache-stocks stocks))))
 
 (defn do-insert
   [jdbc-ds data]
@@ -70,16 +79,26 @@
           input-stock-count (count data-lines)
           stocks (read-stocks jdbc-ds)]
       (if (= (count stocks) input-stock-count)
-        (do
-          (log/infof "Stocks already populated, there are %d stocks" (count stocks))
-          (cache-stocks stocks))
+        (log/infof "Stocks already populated, there are %d stocks" (count stocks))
         (do
           (log/infof "Populating %d stocks and prices" input-stock-count)
-          (let [stocks (do-insert jdbc-ds data-lines)]
-            (cache-stocks stocks)))))))
+          (do-insert jdbc-ds data-lines))))))
+
+(defn get-stock
+  [jdbc-ds ticker]
+  (when (nil? @stocks)
+    (read-stocks jdbc-ds))
+  (get @stocks
+       (when ticker
+         (str/upper-case ticker))))
+
+(defn get-all-stocks
+  [jdbc-ds]
+  (when (nil? @stocks)
+    (read-stocks jdbc-ds))
+  (vals @stocks))
 
 (comment
-
   (def jdbc-url (connection/jdbc-url
                  {:dbtype "postgresql"
                   :dbname "traderX"
