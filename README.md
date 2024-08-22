@@ -41,7 +41,7 @@ The project consists of multiple moving parts, and you can see how things hang t
 | :--- | :--- | :--- |
 | [docs](docs) | markdown | Architecture and Flow Diagrams are here! |
 | [database](database) | java/h2 | A simple self-contained SQL database |
-| [reference-data](reference-data) | node/nestjs | REST service (off a flat file) for querying ticker symbols |
+| [reference-service](reference-service) | node/nestjs | REST service (off a flat file) for querying ticker symbols |
 | [trade-feed](trade-feed) | node/socketio | Message bus used for trade flows, as well as streaming to the GUI |
 | [people-service](people-service) | .Net core | Service for looking up users, for account mangement |
 | [account-service](account-service) | java/spring | Service for querying and validating accounts |
@@ -62,7 +62,7 @@ In order to get things working together, it is recommended to select a range of 
 export DATABASE_TCP_PORT=18082
 export DATABASE_PG_PORT=18083
 export DATABASE_WEB_PORT=18084
-export REFERENCE_DATA_SERVICE_PORT=18085
+export REFERENCE_SERVICE_PORT=18085
 export TRADE_FEED_PORT=18086
 export ACCOUNT_SERVICE_PORT=18088
 export PEOPLE_SERVICE_PORT=18089
@@ -77,7 +77,7 @@ The recommended starting sequence to let everything find what it needs is:
 
 ```bash
 database
-reference-data
+reference-service
 trade-feed
 people-service
 account-service

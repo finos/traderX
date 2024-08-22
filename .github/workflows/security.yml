@@ -22,7 +22,7 @@ jobs:
     strategy:
         matrix:
           module-folder: [
-            'reference-data',
+            'reference-service',
             'trade-feed',
             'web-front-end/angular',
             'web-front-end/react']
@@ -154,7 +154,7 @@ jobs:
             'trade-service',
             'web-front-end/angular',
             'people-service',
-            'reference-data']
+            'reference-service']
     steps:
       - uses: actions/checkout@v4
       - uses: docker-practice/actions-setup-docker@master

@@ -34,7 +34,7 @@ public class TradeOrderController {
 	
 	private RestTemplate restTemplate = new RestTemplate();
 
-	@Value("${reference.data.service.url}")
+	@Value("${reference.service.url}")
 	private String referenceDataServiceAddress;
 
 	@Value("${account.service.url}")

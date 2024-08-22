@@ -1,11 +1,11 @@
-(ns price-service.price-service
+(ns reference-service.reference-service
   (:gen-class)
   (:require [next.jdbc.connection :as connection]
             [clojure.tools.logging :as log]
             [clojure.java.io :as io]
             [aero.core :as aero]
-            [price-service.data.loader :as loader]
-            [price-service.web.server :as server])
+            [reference-service.data.loader :as loader]
+            [reference-service.web.server :as server])
   (:import
    (com.zaxxer.hikari HikariDataSource)))
 
@@ -34,7 +34,7 @@
 
 (defn -main
   [& _args]
-  (log/info "Starting price-service.")
+  (log/info "Starting reference-service.")
   (Thread/setDefaultUncaughtExceptionHandler
    (reify Thread$UncaughtExceptionHandler
      (uncaughtException
@@ -58,7 +58,7 @@
      (Runtime/getRuntime)
      (Thread.
       (fn []
-        (log/info "Shutting down price-service.")
+        (log/info "Shutting down reference-service.")
         (.close ^java.io.Closeable jdbc-ds)
         (server/stop)))))
   #_1)

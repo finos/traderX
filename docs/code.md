@@ -22,7 +22,7 @@ You can find the coordinates of the codebase here. Their relationship is explain
 * Python / Flask
 * [Source Code](../position-service)
 
-### `reference-data`
+### `reference-service`
 
 * NodeJS
 * [Source Code](../refdata-service)

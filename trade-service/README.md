@@ -18,7 +18,7 @@ so no need to override them if you are happy with these values!
 
    $ export TRADING_SERVICE_PORT=XXXXX
    $ export ACCOUNT_SERVICE_URL=http://HOSTPORT
-   $ export REFERENCE_DATA_SERVICE_URL=http://HOSTPORT
+   $ export REFERENCE_SERVICE_URL=http://HOSTPORT
    $ export TRADE_FEED_ADDRESS=HOSTPORT
 
 Or you can also use command line arguments:

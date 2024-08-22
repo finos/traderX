@@ -34,10 +34,10 @@ services:
       - xtdb-data:/var/lib/xtdb
     networks:
       - localnet
-  price-service:
+  reference-service:
     restart: always
     build:
-      context: price-service
+      context: reference-service
       dockerfile: Dockerfile
     expose:
       - 18085
@@ -52,7 +52,7 @@ services:
     depends_on:
       - xtdb
     volumes:
-      - ./price-service:/price-service
+      - ./reference-service:/reference-service
   trade-feed:
     restart: always
     image: trade-feed
@@ -146,7 +146,7 @@ services:
       - DATABASE_TCP_HOST=database
       - PEOPLE_SERVICE_HOST=people-service
       - ACCOUNT_SERVICE_HOST=account-service
-      - REFERENCE_DATA_HOST=price-service
+      - REFERENCE_SERVICE_HOST=reference-service
       - TRADE_FEED_HOST=trade-feed
     volumes:
       # Mount the root folder that contains .git
@@ -158,7 +158,7 @@ services:
       - database
       - people-service
       - account-service
-      - price-service
+      - reference-service
       - trade-feed
   trade-processor:
     restart: always
@@ -225,7 +225,7 @@ services:
       - position-service
       - trade-service
       - trade-processor
-      - price-service
+      - reference-service
       - web-front-end-angular
 
 networks:

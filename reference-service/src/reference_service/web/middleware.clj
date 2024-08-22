@@ -1,4 +1,4 @@
-(ns price-service.web.middleware)
+(ns reference-service.web.middleware)
 
 (defn add-cors-headers
   [response]

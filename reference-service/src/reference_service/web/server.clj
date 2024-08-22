@@ -1,4 +1,4 @@
-(ns price-service.web.server
+(ns reference-service.web.server
   (:require [aleph.http :as http]
             [aleph.netty :as netty]
             [clojure.tools.logging :as log]
@@ -8,8 +8,8 @@
             [reitit.ring.coercion :as coercion]
             [reitit.ring.middleware.muuntaja :as muuntaja]
             [reitit.ring.middleware.parameters :as parameters]
-            [price-service.web.routes :as routes]
-            [price-service.web.middleware :as mw]))
+            [reference-service.web.routes :as routes]
+            [reference-service.web.middleware :as mw]))
 
 (defonce server
   (atom nil))

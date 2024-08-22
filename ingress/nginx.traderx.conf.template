@@ -5,11 +5,8 @@
         location /db-web/ {
             proxy_pass http://database:18084/;
         }
-        location /reference-data/ {
-            proxy_pass http://price-service:18085/;
-        }
-        location /price-service/ {
-            proxy_pass http://price-service:18085/;
+        location /reference-service/ {
+            proxy_pass http://reference-service:18085/;
         }
 
         location /ng-cli-ws {

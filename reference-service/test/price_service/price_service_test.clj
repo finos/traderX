@@ -1,6 +1,6 @@
-(ns price-service.price-service-test
+(ns reference-service.reference-service-test
   (:require [clojure.test :refer :all]
-            [price-service.price-service :refer :all]))
+            [reference-service.reference-service :refer :all]))
 
 (deftest a-test
   (testing "FIXME, write some tests"

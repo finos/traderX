@@ -1,9 +1,9 @@
-(ns price-service.web.routes
+(ns reference-service.web.routes
   (:require
    [clojure.tools.logging :as log]
    [jsonista.core :as json]
    [reitit.core :as r]
-   [price-service.data.loader :as loader]
+   [reference-service.data.loader :as loader]
    [ring.util.http-response :as response]))
 
 (defn to-json

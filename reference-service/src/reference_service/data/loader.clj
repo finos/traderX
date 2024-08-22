@@ -1,4 +1,4 @@
-(ns price-service.data.loader
+(ns reference-service.data.loader
   (:require
    [clojure.data.csv :as csv]
    [clojure.java.io :as io]

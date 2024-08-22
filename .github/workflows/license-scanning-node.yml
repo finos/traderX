@@ -16,7 +16,7 @@ jobs:
       matrix:
         node-version: ['20.x']
         module-folder: [
-          'reference-data',
+          'reference-service',
           'trade-feed',
           'web-front-end/angular',
           'web-front-end/react'

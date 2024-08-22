@@ -45,7 +45,7 @@ export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 	const handleOpen = async () => {
 		setOpen(true);
 		try {
-			const response = await fetch(`${Environment.reference_data_url}/stocks`);
+			const response = await fetch(`${Environment.reference_service_url}/stocks`);
 			const data = await response.json();
 			setRefData(data)
 		} catch (error) {

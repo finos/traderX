@@ -25,10 +25,10 @@
         clojure.java-time/clojure.java-time {:mvn/version "1.4.2"}
         aero/aero {:mvn/version "1.1.6"}}
  :aliases
- {:run-m {:main-opts ["-m" "price-service.price-service"]}
+ {:run-m {:main-opts ["-m" "reference-service.reference-service"]}
   :xtdb {:jvm-opts ["--add-opens=java.base/java.nio=ALL-UNNAMED"
                     "-Dio.netty.tryReflectionSetAccessible=true"]}
-  :run-x {:ns-default price-service.price-service
+  :run-x {:ns-default reference-service.reference-service
           :exec-fn -main
           :exec-args {}}
   :build {:deps {io.github.clojure/tools.build
@@ -37,4 +37,4 @@
   :test {:extra-paths ["test"]
          :extra-deps {org.clojure/test.check {:mvn/version "1.1.1"}
                       io.github.cognitect-labs/test-runner
-                      {:git/tag "v0.5.1" :git/sha "dfb30dd"}}} :neil {:project {:name price-service/price-service}}}}
+                      {:git/tag "v0.5.1" :git/sha "dfb30dd"}}} :neil {:project {:name reference-service/reference-service}}}}
