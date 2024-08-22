@@ -43,6 +43,10 @@ services:
       - 18085
     ports:
       - 18085:18085
+    environment:
+      - XTDB_HOST=xtdb
+      - XTDB_PORT=5432
+      - WEB_PORT=18085
     networks:
       - localnet
     depends_on:

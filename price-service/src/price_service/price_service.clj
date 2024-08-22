@@ -2,6 +2,8 @@
   (:gen-class)
   (:require [next.jdbc.connection :as connection]
             [clojure.tools.logging :as log]
+            [clojure.java.io :as io]
+            [aero.core :as aero]
             [price-service.data.loader :as loader]
             [price-service.web.server :as server])
   (:import
@@ -22,6 +24,14 @@
           nil
           (range 3)))
 
+(defn read-config
+  []
+  (let [cfg (aero/read-config
+             (io/resource "application.edn"))]
+    (-> cfg
+        (update :xtdb-port #(Integer/parseInt %))
+        (update :web-port #(Integer/parseInt %)))))
+
 (defn -main
   [& _args]
   (log/info "Starting price-service.")
@@ -31,15 +41,18 @@
        [_ t e]
        (log/error e "Uncaught exception in thread" t)
        (throw e))))
-  (let [jdbc-url (connection/jdbc-url
+  (let [{:keys [xtdb-port
+                xtdb-host
+                web-port]} (read-config)
+        jdbc-url (connection/jdbc-url
                   {:dbtype "postgresql"
                    :dbname "traderX"
-                   :host "xtdb"
-                   :port 5432
+                   :host xtdb-host
+                   :port xtdb-port
                    :useSSL false})
         jdbc-ds (try-connection jdbc-url)]
     (loader/populate-stocks jdbc-ds)
-    (server/start 18085 jdbc-ds)
+    (server/start web-port jdbc-ds)
 
     (.addShutdownHook
      (Runtime/getRuntime)
