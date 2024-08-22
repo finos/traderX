@@ -10,7 +10,7 @@ import { environment } from 'main/environments/environment';
     providedIn: 'root'
 })
 export class SymbolService {
-    private stocksUrl = `${environment.refrenceDataUrl}/stocks`;
+    private stocksUrl = `${environment.referenceServiceUrl}/stocks`;
     private createTicketUrl = `${environment.tradesUrl}`;
     constructor(private http: HttpClient) { }
 
