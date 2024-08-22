@@ -47,6 +47,8 @@ services:
       - localnet
     depends_on:
       - xtdb
+    volumes:
+      - ./price-service:/price-service
   trade-feed:
     restart: always
     image: trade-feed
