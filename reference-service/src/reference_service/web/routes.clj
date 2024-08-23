@@ -30,6 +30,19 @@
       (fn [_]
         (log/info "Health check.")
         (response/ok "OK"))}}]
+   ["price/:ticker"
+     {:allow-methods [:get]
+      :get
+      {:handler
+       (fn [{:keys [path-params]}]
+         (let [ticker (:ticker path-params)]
+           (log/info "Get price for stock:" ticker)
+           (if-let [price (loader/get-price jdbc-ds ticker)]
+             (-> price
+                 to-json
+                 response/ok
+                 (response/header "Content-Type" "application/json"))
+             (response/not-found (str "Price not found for stock: " ticker)))))}}]
    ["stocks"
     [""
      {:allow-methods [:get]
@@ -37,9 +50,11 @@
       {:handler
        (fn [_]
          (log/info "Get all stocks.")
-         (response/header
-          (response/ok (to-json (loader/get-all-stocks jdbc-ds)))
-          "Content-Type" "application/json"))}}]
+         (-> (loader/get-all-stocks jdbc-ds)
+             to-json
+             response/ok
+             (response/header "Content-Type" "application/json"))
+         )}}]
     ["/:ticker"
      {:allow-methods [:get]
       :get
@@ -48,9 +63,10 @@
          (let [ticker (:ticker path-params)]
            (log/info "Get stock:" ticker)
            (if-let [stock (loader/get-stock jdbc-ds ticker)]
-             (response/header
-              (response/ok (to-json stock))
-              "Content-Type" "application/json")
+             (-> stock
+                 to-json
+                 response/ok
+                 (response/header "Content-Type" "application/json"))
              (response/not-found (str "Stock not found: " ticker)))))}}]]])
 
 (comment

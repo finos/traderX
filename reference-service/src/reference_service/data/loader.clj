@@ -7,7 +7,8 @@
    [medley.core :as medley]
    [next.jdbc :as jdbc]
    [next.jdbc.connection :as connection]
-   [next.jdbc.sql :as sql])
+   [next.jdbc.sql :as sql]
+   [clojure.math :as math])
   (:import
    (com.zaxxer.hikari HikariDataSource)))
 
@@ -30,6 +31,16 @@
 
 (def select-stocks
   "select _id as ticker, security as company from stocks")
+
+(def select-stock-price
+  "select price
+   from stock_prices
+   where _id = ?")
+
+(def update-price
+  "update stock_prices
+   set price = ?
+   where _id = ?")
 
 (defonce stocks
   (atom {}))
@@ -102,6 +113,28 @@
   (when (nil? @stocks)
     (read-stocks jdbc-ds))
   (vals @stocks))
+
+(defn get-price
+  [jdbc-ds ticker]
+  (if (nil? (get-stock jdbc-ds ticker))
+    (do
+      (log/infof "Stock %s not found, cannot quote price." ticker)
+      nil)
+    (let [last-price (:price
+                      (first
+                       (sql/query jdbc-ds
+                                  [select-stock-price
+                                   ticker])))
+          delta (* (if (> 0.5 (rand)) 0.1 -0.1)
+                   last-price)
+          new-price (int (math/floor (+ last-price (rand-int delta))))]
+      (log/infof "Quoting new price for %s: %d" ticker new-price)
+      (jdbc/execute-one! jdbc-ds
+                         [update-price
+                          new-price
+                          ticker])
+      {:ticker ticker
+       :price new-price})))
 
 (comment
   (def jdbc-url (connection/jdbc-url
