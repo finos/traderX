@@ -47,10 +47,12 @@ services:
       - XTDB_HOST=xtdb
       - XTDB_PORT=5432
       - WEB_PORT=18085
+      - TRADE_FEED_ADDRESS=http://trade-feed:18086
     networks:
       - localnet
     depends_on:
       - xtdb
+      - trade-feed
     volumes:
       - ./reference-service:/reference-service
   trade-feed:

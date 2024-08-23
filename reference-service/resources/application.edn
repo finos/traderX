@@ -1,3 +1,4 @@
 {:xtdb-host #or [#env XTDB_HOST "xtdb"]
  :xtdb-port #or [#env XTDB_PORT "5432"]
- :web-port #or [#env WEB_PORT "18085"]}
+ :web-port #or [#env WEB_PORT "18085"]
+ :trade-feed-address #or [#env TRADE_FEED_ADDRESS "http://localhost:18086/"]}

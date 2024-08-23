@@ -5,7 +5,8 @@
             [clojure.java.io :as io]
             [aero.core :as aero]
             [reference-service.data.loader :as loader]
-            [reference-service.web.server :as server])
+            [reference-service.web.server :as server]
+            [reference-service.web.socket :as websocket])
   (:import
    (com.zaxxer.hikari HikariDataSource)))
 
@@ -41,9 +42,12 @@
        [_ t e]
        (log/error e "Uncaught exception in thread" t)
        (throw e))))
+
   (let [{:keys [xtdb-port
                 xtdb-host
-                web-port]} (read-config)
+                web-port
+                trade-feed-address]} (read-config)
+
         jdbc-url (connection/jdbc-url
                   {:dbtype "postgresql"
                    :dbname "traderX"
@@ -53,6 +57,7 @@
         jdbc-ds (try-connection jdbc-url)]
     (loader/populate-stocks jdbc-ds)
     (server/start web-port jdbc-ds)
+    (websocket/create-client trade-feed-address)
 
     (.addShutdownHook
      (Runtime/getRuntime)
