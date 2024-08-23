@@ -7,4 +7,5 @@ export interface Symbol {
 export interface Stock {
     ticker: string;
     companyName: string;
+    unitPrice: number;
 }

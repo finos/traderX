@@ -7,6 +7,7 @@ export interface Trade {
     side: Side;
     state: State;
     updated: Date;
+    unitPrice?: number;
 }
 
 export enum Side {

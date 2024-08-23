@@ -8,6 +8,7 @@ public class TradeOrder {
     private Integer quantity;
     private Integer accountId;
     private TradeSide side;
+    private Integer unitPrice;
 
     public TradeOrder(){}
     
@@ -41,5 +42,13 @@ public class TradeOrder {
 
     public TradeSide getSide() {
         return side;
+    }
+
+    public Integer getUnitPrice() {
+        return unitPrice;
+    }
+
+    public void setUnitPrice(Integer unitPrice) {
+        this.unitPrice = unitPrice;
     }
 }

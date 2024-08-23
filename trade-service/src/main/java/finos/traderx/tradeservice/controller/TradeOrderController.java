@@ -18,6 +18,7 @@ import finos.traderx.messaging.Publisher;
 import finos.traderx.tradeservice.exceptions.ResourceNotFoundException;
 import finos.traderx.tradeservice.model.Account;
 import finos.traderx.tradeservice.model.Security;
+import finos.traderx.tradeservice.model.SecurityPrice;
 import finos.traderx.tradeservice.model.TradeOrder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -31,7 +32,7 @@ public class TradeOrderController {
 
 	@Autowired
 	private Publisher<TradeOrder> tradePublisher;
-	
+
 	private RestTemplate restTemplate = new RestTemplate();
 
 	@Value("${reference.service.url}")
@@ -44,8 +45,8 @@ public class TradeOrderController {
 	@PostMapping("/")
 	public ResponseEntity<TradeOrder> createTradeOrder(@Parameter(description = "the intendeded trade order") @RequestBody TradeOrder tradeOrder) {
 		log.info("Called createTradeOrder");
-		
-		if (!validateTicker(tradeOrder.getSecurity())) 
+
+		if (!validateTicker(tradeOrder.getSecurity()))
 		{
 			throw new ResourceNotFoundException(tradeOrder.getSecurity() + " not found in Reference data service.");
 		}
@@ -56,6 +57,11 @@ public class TradeOrderController {
 		else
 		{
 			try{
+				SecurityPrice price = getTickerPrice(tradeOrder.getSecurity());
+				if (price != null) {
+					tradeOrder.setUnitPrice(price.getPrice());
+				}
+
 				log.info("Trade is valid. Submitting {}", tradeOrder);
 				tradePublisher.publish("/trades",tradeOrder);
 				return  ResponseEntity.ok(tradeOrder);
@@ -67,7 +73,7 @@ public class TradeOrderController {
 
 	private boolean validateTicker(String ticker)
 	{
-		// Move whole method to a sperate class that handles all reference data 
+		// Move whole method to a sperate class that handles all reference data
 		// so we can mock it and run without this service up.
 		String url = this.referenceDataServiceAddress + "//stocks/" + ticker;
 		ResponseEntity<Security> response = null;
@@ -86,17 +92,17 @@ public class TradeOrderController {
 			}
 			return false;
 		}
-	}		
-	
+	}
+
 	private boolean validateAccount(Integer id)
 	{
-		// Move whole method to a sperate class that handles all accounts 
+		// Move whole method to a sperate class that handles all accounts
 		// so we can mock it and run without this service up.
 
 		String url = this.accountServiceAddress + "//account/" + id;
 		ResponseEntity<Account> response = null;
 
-		try 
+		try
 		{
 				response = this.restTemplate.getForEntity(url, Account.class);
 				log.info("Validate account " + response.getBody().toString());
@@ -104,12 +110,30 @@ public class TradeOrderController {
 		}
 		catch (HttpClientErrorException ex) {
 			if (ex.getRawStatusCode() == 404) {
-				log.info("Account" + id + " not found in account service.");				
+				log.info("Account" + id + " not found in account service.");
 			}
 			else {
 				log.error(ex.getMessage());
 			}
 			return false;
 		}
+	}
+
+	private SecurityPrice getTickerPrice(String ticker)
+	{
+		String url = this.referenceDataServiceAddress + "//price/" + ticker;
+		ResponseEntity<SecurityPrice> response = null;
+
+
+			response = this.restTemplate.getForEntity(url, SecurityPrice.class);
+			if (response.getBody() == null) {
+				log.info("Could not get price for Security " + ticker);
+				return null;
+			}
+			else {
+				log.info("Security Price " + response.getBody().toString());
+				return response.getBody();
+
+			}
 	}
 }

@@ -35,6 +35,10 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
             headerName: 'STATE',
             field: 'state',
             enableCellChangeFlash: true
+        },
+        {
+            headerName: 'UNIT PRICE',
+            field: 'unitPrice'
         }
     ];
 
@@ -93,7 +97,8 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
                     security: data.security,
                     side: data.side,
                     state: data.state,
-                    updated: data.updated
+                    updated: data.updated,
+                    unitPrice: data.unitPrice
                 }],
                 addIndex: 0
             };
