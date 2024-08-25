@@ -8,11 +8,11 @@ namespace PeopleService.Core.DirectoryService
 {
     public class Person
     {
-        public string LogonId { get; set; }
-        public string FullName{ get; set; }
-        public string Email { get; set; }
-        public string EmployeeId { get; set; }
-        public string Department { get; set; }
-        public string PhotoUrl { get; set; }
+        public required string LogonId { get; set; }
+        public required string FullName{ get; set; }
+        public required string Email { get; set; }
+        public required string EmployeeId { get; set; }
+        public required string Department { get; set; }
+        public required string? PhotoUrl { get; set; }
     }
 }
