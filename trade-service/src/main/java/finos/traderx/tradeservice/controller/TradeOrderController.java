@@ -57,11 +57,6 @@ public class TradeOrderController {
 		else
 		{
 			try{
-				SecurityPrice price = getTickerPrice(tradeOrder.getSecurity());
-				if (price != null) {
-					tradeOrder.setUnitPrice(price.getPrice());
-				}
-
 				log.info("Trade is valid. Submitting {}", tradeOrder);
 				tradePublisher.publish("/trades",tradeOrder);
 				return  ResponseEntity.ok(tradeOrder);
@@ -119,21 +114,4 @@ public class TradeOrderController {
 		}
 	}
 
-	private SecurityPrice getTickerPrice(String ticker)
-	{
-		String url = this.referenceDataServiceAddress + "//price/" + ticker;
-		ResponseEntity<SecurityPrice> response = null;
-
-
-			response = this.restTemplate.getForEntity(url, SecurityPrice.class);
-			if (response.getBody() == null) {
-				log.info("Could not get price for Security " + ticker);
-				return null;
-			}
-			else {
-				log.info("Security Price " + response.getBody().toString());
-				return response.getBody();
-
-			}
-	}
 }

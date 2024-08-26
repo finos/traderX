@@ -29,6 +29,10 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
       headerName: 'QUANTITY',
       field: 'quantity',
       enableCellChangeFlash: true
+    },
+    {
+      headerName: 'VALUE',
+      field: 'value'
     }
   ];
 
@@ -83,7 +87,8 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
           accountid: data.accountid,
           quantity: data.quantity,
           security: data.security,
-          updated: data.updated
+          updated: data.updated,
+          value: data.value
         }],
         addIndex: 0
       };

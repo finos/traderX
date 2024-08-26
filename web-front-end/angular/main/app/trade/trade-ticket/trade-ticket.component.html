@@ -60,6 +60,12 @@
         </div>
     </div>
     <div class="mb-3 row">
+      <label class="col-sm-2 col-form-label me-3">Unit Price</label>
+      <div class="col-sm-8">
+          <input readonly class="form-control d-inline-block" id="unitPriceField" type="number" [(ngModel)]="ticket.unitPrice" />
+      </div>
+  </div>
+    <div class="mb-3 row">
         <button class="btn btn-sm btn-primary col-sm-3 me-2" id="createButton" (click)="onCreate()">Create</button>
         <button class="btn btn-sm btn-secondary col-sm-3" id="cancelButton" (click)="onCancel()">Close</button>
     </div>

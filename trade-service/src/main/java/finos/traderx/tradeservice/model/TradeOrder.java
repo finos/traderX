@@ -11,13 +11,14 @@ public class TradeOrder {
     private Integer unitPrice;
 
     public TradeOrder(){}
-    
-    public TradeOrder(String id, int accountId, String security, TradeSide side, int quantity) {
+
+    public TradeOrder(String id, int accountId, String security, TradeSide side, int quantity, int unitPrice) {
         this.accountId = accountId;
         this.security = security;
         this.side = side;
         this.quantity = quantity;
         this.id = id;
+        this.unitPrice = unitPrice;
     }
 
     public String getId() {

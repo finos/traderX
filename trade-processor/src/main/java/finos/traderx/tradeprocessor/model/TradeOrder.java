@@ -8,15 +8,17 @@ public class TradeOrder {
     private Integer quantity;
     private Integer accountId;
     private TradeSide side;
+    private Integer unitPrice;
 
     public TradeOrder(){}
-    
-    public TradeOrder(String id, int accountId, String security, TradeSide side, int quantity) {
+
+    public TradeOrder(String id, int accountId, String security, TradeSide side, int quantity, int unitPrice) {
         this.accountId = accountId;
         this.security = security;
         this.side = side;
         this.quantity = quantity;
         this.id = id;
+        this.unitPrice = unitPrice;
     }
 
     public String getId() {
@@ -41,5 +43,9 @@ public class TradeOrder {
 
     public TradeSide getSide() {
         return side;
+    }
+
+    public Integer getUnitPrice() {
+        return unitPrice;
     }
 }

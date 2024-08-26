@@ -27,6 +27,7 @@ export interface Position {
     quantity: number;
     security: string;
     updated: Date;
+    value: number;
 }
 
 export interface TradeTicket {
@@ -34,4 +35,10 @@ export interface TradeTicket {
     quantity: number;
     security: string;
     accountId: number;
+    unitPrice?: number;
+}
+
+export interface TradePrice {
+    price: number;
+    ticker: string;
 }

@@ -14,7 +14,7 @@ import jakarta.persistence.Table;
 @Table(name = "POSITIONS")
 public class Position implements Serializable {
 
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Id
@@ -51,6 +51,17 @@ public class Position implements Serializable {
 	public void setQuantity(Integer quantity) {
 		this.quantity = quantity;
 	}
+
+  @Column(name = "PVALUE")
+  private Integer value;
+
+  public Integer getValue() {
+    return this.value;
+  }
+
+  public void setValue(Integer value) {
+    this.value = value;
+  }
 
 	@Column(name = "UPDATED")
 	private Date updated;

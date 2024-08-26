@@ -17,6 +17,9 @@ public class TradeRequest {
     @Schema(name = "The quantity of the stocks in the order", example = "10")
     private Integer quantity;
 
+    @Schema(name = "The unit price of the security", example = "100")
+    private Integer unitPrice;
+
     public int getAccountId() {
         return accountId;
     }
@@ -47,5 +50,13 @@ public class TradeRequest {
 
     public void setQuantity(Integer quantity) {
         this.quantity = quantity;
+    }
+
+    public Integer getUnitPrice() {
+        return unitPrice;
+    }
+
+    public void setUnitPrice(Integer unitPrice) {
+        this.unitPrice = unitPrice;
     }
 }

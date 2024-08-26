@@ -25,13 +25,13 @@ public class TradeService {
 	@Autowired
 	PositionRepository positionRepository;
 
-	
-    @Autowired 
+
+    @Autowired
     private Publisher<Trade> tradePublisher;
-    
+
     @Autowired
     private Publisher<Position> positionPublisher;
-    
+
 	public TradeBookingResult processTrade(TradeOrder order) {
 		log.info("Trade order received : "+order);
         Trade t=new Trade();
@@ -40,12 +40,12 @@ public class TradeService {
 		log.info("Setting a random TradeID");
 		t.setId(UUID.randomUUID().toString());
 
-
-        t.setCreated(new Date());
-        t.setUpdated(new Date());
-        t.setSecurity(order.getSecurity());
-        t.setSide(order.getSide());
-        t.setQuantity(order.getQuantity());
+    t.setCreated(new Date());
+    t.setUpdated(new Date());
+    t.setSecurity(order.getSecurity());
+    t.setSide(order.getSide());
+    t.setQuantity(order.getQuantity());
+    t.setUnitPrice(order.getUnitPrice());
 		t.setState(TradeState.New);
 		Position position=positionRepository.findByAccountIdAndSecurity(order.getAccountId(), order.getSecurity());
 		log.info("Position for "+order.getAccountId()+" "+order.getSecurity()+" is "+position);
@@ -55,9 +55,11 @@ public class TradeService {
 			position.setAccountId(order.getAccountId());
 			position.setSecurity(order.getSecurity());
 			position.setQuantity(0);
+      position.setValue(0);
 		}
 		int newQuantity=((order.getSide()==TradeSide.Buy)?1:-1)*t.getQuantity();
 		position.setQuantity(position.getQuantity()+newQuantity);
+    position.setValue(position.getValue() - newQuantity * t.getUnitPrice());
 		log.info("Trade {}",t);
 		tradeRepository.save(t);
 		positionRepository.save(position);
@@ -69,7 +71,7 @@ public class TradeService {
 		t.setUpdated(new Date());
 		t.setState(TradeState.Settled);
 		tradeRepository.save(t);
-		
+
 
 		TradeBookingResult result=new TradeBookingResult(t, position);
 		log.info("Trade Processing complete : "+result);
@@ -80,8 +82,8 @@ public class TradeService {
 		} catch (PubSubException exc){
 			log.error("Error publishing trade "+order,exc);
 		}
-		
-		return result;	
+
+		return result;
 	}
 
 }

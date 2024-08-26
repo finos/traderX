@@ -25,7 +25,7 @@ public class Trade implements Serializable {
 	public void setId(String id) {
 		this.id = id;
 	}
-    
+
 	@Column(name = "ACCOUNTID")
 	private Integer accountId;
 
@@ -82,6 +82,17 @@ public class Trade implements Serializable {
 	public void setQuantity(Integer quantity) {
 		this.quantity = quantity;
 	}
+
+  @Column(name = "UNITPRICE")
+  private Integer unitPrice;
+
+  public Integer getUnitPrice() {
+    return this.unitPrice;
+  }
+
+  public void setUnitPrice(Integer unitPrice) {
+    this.unitPrice = unitPrice;
+  }
 
 	@Column(name = "UPDATED")
 	private Date updated;

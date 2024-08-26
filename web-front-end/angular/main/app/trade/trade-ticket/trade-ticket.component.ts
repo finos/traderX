@@ -1,8 +1,9 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
-import { TradeTicket } from 'main/app/model/trade.model';
+import { TradeTicket, TradePrice } from 'main/app/model/trade.model';
 import { Stock } from 'main/app/model/symbol.model';
 import { Account } from 'main/app/model/account.model';
 import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
+import { SymbolService } from '../../service/symbols.service';
 
 @Component({
   selector: 'app-trade-ticket',
@@ -21,12 +22,15 @@ export class TradeTicketComponent implements OnInit {
   ticket: TradeTicket;
   filteredStocks: Stock[] = [];
 
+  constructor(private symbolService: SymbolService) { }
+
   ngOnInit() {
     this.ticket = {
       quantity: 0,
       accountId: this.account?.id || 0,
       side: 'Buy',
-      security: ''
+      security: '',
+      unitPrice: 0
     };
 
     this.filteredStocks = this.stocks;
@@ -36,11 +40,14 @@ export class TradeTicketComponent implements OnInit {
   onSelect(e: TypeaheadMatch): void {
     console.log('Selected value: ', e.value);
     this.ticket.security = e.item.ticker;
+    this.symbolService.getPrice(e.item.ticker).subscribe(
+      (price: TradePrice) => this.ticket.unitPrice = price.price);
   }
 
   onBlur(): void {
     if (this.selectedCompany) return;
     this.ticket.security = '';
+    this.ticket.unitPrice = 0;
   }
 
   onCreate() {
@@ -48,7 +55,6 @@ export class TradeTicketComponent implements OnInit {
       console.warn('Either security is not selected or quanity is not set!')
       return;
     }
-    console.log('create tradeTicket', this.ticket);
     this.create.emit(this.ticket);
   }
 

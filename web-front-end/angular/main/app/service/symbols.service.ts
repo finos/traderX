@@ -3,7 +3,7 @@ import { Stock } from '../model/symbol.model';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
-import { TradeTicket } from '../model/trade.model';
+import { TradeTicket, TradePrice } from '../model/trade.model';
 import { environment } from 'main/environments/environment';
 
 @Injectable({
@@ -11,6 +11,7 @@ import { environment } from 'main/environments/environment';
 })
 export class SymbolService {
     private stocksUrl = `${environment.referenceServiceUrl}/stocks`;
+    private priceUrl = `${environment.referenceServiceUrl}/price/`;
     private createTicketUrl = `${environment.tradesUrl}`;
     constructor(private http: HttpClient) { }
 
@@ -23,6 +24,13 @@ export class SymbolService {
 
     createTicket(ticket: TradeTicket): Observable<any> {
         return this.http.post(this.createTicketUrl, ticket).pipe(
+            catchError(this.handleError)
+        );
+    }
+
+    getPrice(ticker: string): Observable<TradePrice> {
+        return this.http.get<TradePrice>(`${this.priceUrl}/${ticker}`).pipe(
+            retry(2),
             catchError(this.handleError)
         );
     }
