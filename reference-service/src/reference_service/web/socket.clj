@@ -21,9 +21,7 @@
 
 (defmethod handle "/trades"
   [{:keys [payload]}]
-  (log/info "Received trade" payload)
-  ;; TODO store in XTDB
-  )
+  (loader/save-trade (:jdbc-ds @client) payload))
 
 
 (defn disconnect
@@ -35,11 +33,12 @@
       (reset! client {:connected? false}))))
 
 (defn connect
-  [uri]
+  [jdbc-ds uri]
   (disconnect client)
   (log/infof "Connecting to websocket %s" uri)
   (let [socket (IO/socket uri)]
     (reset! client {:socket socket
+                    :jdbc-ds jdbc-ds
                     :connected? false})
     (.on socket
          "connect"
@@ -77,6 +76,6 @@
     socket))
 
 (defn create-client
-  [uri]
-  (connect uri)
+  [jdbc-ds uri]
+  (connect jdbc-ds uri)
   client)

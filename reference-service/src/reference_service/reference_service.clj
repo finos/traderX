@@ -57,7 +57,7 @@
         jdbc-ds (try-connection jdbc-url)]
     (loader/populate-stocks jdbc-ds)
     (server/start web-port jdbc-ds)
-    (websocket/create-client trade-feed-address)
+    (websocket/create-client jdbc-ds trade-feed-address)
 
     (.addShutdownHook
      (Runtime/getRuntime)

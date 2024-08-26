@@ -29,6 +29,12 @@
     values
      (?,?)")
 
+(def insert-trade
+  "insert into trades
+     (_id, ticker, account_id, price, quantity, side)
+   values
+     (?,?,?,?,?,?)")
+
 (def select-stocks
   "select _id as ticker, security as company from stocks")
 
@@ -136,6 +142,17 @@
       {:ticker ticker
        :price new-price})))
 
+(defn save-trade
+  [jdbc-ds trade]
+  (log/infof "Saving trade %s" trade)
+  (jdbc/execute-one! jdbc-ds
+                     [insert-trade
+                      (str (java.util.UUID/randomUUID))
+                      (:security trade)
+                      (:accountId trade)
+                      (:unitPrice trade)
+                      (:quantity trade)
+                      (:side trade)]))
 (comment
   (def jdbc-url (connection/jdbc-url
                  {:dbtype "postgresql"
