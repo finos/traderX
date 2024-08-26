@@ -32,6 +32,19 @@
       (.disconnect ^Socket socket)
       (reset! client {:connected? false}))))
 
+(defn publish
+  [topic payload]
+  (let [{:keys [socket connected?]} @client]
+    (when (and socket
+               connected?)
+      (.emit ^Socket socket
+             "publish"
+             (to-array
+              [(json/write-value-as-string
+                {:topic (str "/" topic)
+                 :payload payload
+                 :type topic})])))))
+
 (defn connect
   [jdbc-ds uri]
   (disconnect client)
@@ -79,3 +92,14 @@
   [jdbc-ds uri]
   (connect jdbc-ds uri)
   client)
+
+(comment
+  (def sock (connect nil "http://localhost:18086"))
+  (.emit ^Socket sock
+         "publish"
+         (to-array [(json/write-value-as-string
+                     {:topic "/prices"
+                      :payload {:ticker "AAPL"
+                                :price 100}
+                      :type "Price"})]))
+  #_1)
