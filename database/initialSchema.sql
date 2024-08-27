@@ -57,14 +57,14 @@ INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user01');
 INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user06');
 
 
-INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, UnitPrice, State, AccountID) VALUES('TRADE-22214-AABBCC', NOW(), NOW(), 'IBM', 'Sell', 100, 123, 'Settled', 22214);
+INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, UnitPrice, State, AccountID) VALUES('TRADE-22214-AABBCC', NOW(), NOW(), 'IBM', 'Buy', 100, 123, 'Settled', 22214);
 INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, UnitPrice, State, AccountID) VALUES('TRADE-22214-DDEEFF', NOW(), NOW(), 'MS', 'Buy', 1000, 88, 'Settled', 22214);
-INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, UnitPrice, State, AccountID) VALUES('TRADE-22214-GGHHII', NOW(), NOW(), 'C', 'Sell', 2000, 321, 'Settled', 22214);
+INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, UnitPrice, State, AccountID) VALUES('TRADE-22214-GGHHII', NOW(), NOW(), 'C', 'Buy', 2000, 321, 'Settled', 22214);
 
 INSERT into Positions (AccountID, Security, Updated, Quantity, PValue) VALUES(22214, 'MS',NOW(), 1000, -88000);
-INSERT into Positions (AccountID, Security, Updated, Quantity, PValue) VALUES(22214, 'IBM',NOW(), -100, 12300);
-INSERT into Positions (AccountID, Security, Updated, Quantity, PValue) VALUES(22214, 'C',NOW(), -2000, 642000);
+INSERT into Positions (AccountID, Security, Updated, Quantity, PValue) VALUES(22214, 'IBM',NOW(), 100, -12300);
+INSERT into Positions (AccountID, Security, Updated, Quantity, PValue) VALUES(22214, 'C',NOW(), 2000, -642000);
 
 
-INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, UnitPrice, State, AccountID) VALUES('TRADE-52355-AABBCC', NOW(), NOW(), 'BAC', 'Sell', 2400, 20, 'Settled', 52355);
-INSERT into Positions (AccountID, Security, Updated, Quantity, PValue) VALUES(52355, 'BAC',NOW(), -2400, 84000);
+INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, UnitPrice, State, AccountID) VALUES('TRADE-52355-AABBCC', NOW(), NOW(), 'BAC', 'Buy', 2400, 20, 'Settled', 52355);
+INSERT into Positions (AccountID, Security, Updated, Quantity, PValue) VALUES(52355, 'BAC',NOW(), 2400, -48000);
