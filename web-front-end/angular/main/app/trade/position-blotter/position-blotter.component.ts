@@ -79,7 +79,7 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
     let positionData;
     if (row) {
       positionData = {
-        update: [Object.assign(row.data, { quantity: data.quantity })]
+        update: [Object.assign(row.data, { quantity: data.quantity, value: data.value })],
       };
     } else {
       positionData = {

@@ -1,9 +1,11 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
-import { TradeTicket, TradePrice } from 'main/app/model/trade.model';
+import { TradeTicket, TradePrice, Position } from 'main/app/model/trade.model';
 import { Stock } from 'main/app/model/symbol.model';
 import { Account } from 'main/app/model/account.model';
 import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
 import { SymbolService } from '../../service/symbols.service';
+import { PositionService } from '../../service/position.service';
+
 
 @Component({
   selector: 'app-trade-ticket',
@@ -21,8 +23,11 @@ export class TradeTicketComponent implements OnInit {
   selectedCompany?: string = undefined;
   ticket: TradeTicket;
   filteredStocks: Stock[] = [];
+  sellDisabled = true;
+  position?: Position = undefined;
+  positions: Position[] = [];
 
-  constructor(private symbolService: SymbolService) { }
+  constructor(private symbolService: SymbolService, private positionService: PositionService) { }
 
   ngOnInit() {
     this.ticket = {
@@ -34,12 +39,34 @@ export class TradeTicketComponent implements OnInit {
     };
 
     this.filteredStocks = this.stocks;
+
+    this.positionService.getPositions(this.account?.id || 0).subscribe((positions) => {
+      this.positions = positions;
+      console.log(this.positions);
+    });
   }
 
+  maxQuantity() {
+    return this.position && this.ticket.side == 'Sell' ?
+      this.position?.quantity : Number.MAX_SAFE_INTEGER;
+  }
+
+  hasErrors() {
+    return !this.ticket.security || !this.ticket.quantity || this.ticket.quantity > this.maxQuantity();
+  }
 
   onSelect(e: TypeaheadMatch): void {
     console.log('Selected value: ', e.value);
+    console.log('Positions: ', this.positions);
     this.ticket.security = e.item.ticker;
+    this.position = this.positions.find((p) => p.security === this.ticket.security);
+    if (this.position) {
+      console.log('Position found: ', this.position);
+      this.sellDisabled = false;
+    } else {
+      console.log('Position not found!');
+      this.sellDisabled = true;
+    }
     this.symbolService.getPrice(e.item.ticker).subscribe(
       (price: TradePrice) => this.ticket.unitPrice = price.price);
   }
@@ -51,8 +78,8 @@ export class TradeTicketComponent implements OnInit {
   }
 
   onCreate() {
-    if (!this.ticket.security || !this.ticket.quantity) {
-      console.warn('Either security is not selected or quanity is not set!')
+    if (this.hasErrors()) {
+      console.warn('Either security is not selected, quanity is not set or trying to sell more than you have!')
       return;
     }
     this.create.emit(this.ticket);
