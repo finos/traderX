@@ -1,39 +1,39 @@
 (ns reference-service.web.socket
-  (:require [clojure.tools.logging :as log]
-            [jsonista.core :as json]
-            [reference-service.data.loader :as loader]
-            [manifold.stream :as s])
+  (:require
+   [clojure.string :as str]
+   [clojure.tools.logging :as log]
+   [jsonista.core :as json]
+   [manifold.stream :as s]
+   [reference-service.data.loader :as loader])
   (:import
-   (java.net URI)
-   (io.socket.client IO Socket Ack)
+   (io.socket.client IO Socket)
    (io.socket.emitter Emitter$Listener)))
 
 (def trades-topic
   "/trades")
+(def prices-topic
+  "/prices")
+(def market-value-topic
+  "/market-value")
 
 (defonce client
   (atom {:socket nil
+         :jdbc-ds nil
+         :price-update-stream nil
          :connected? false}))
 
-(defmulti handle
-  (fn [message]
-    (:topic message)))
+(defn start-price-update-stream
+  [stocks]
+  (when-let [previous (:price-update-stream @client)]
+    (s/close! previous))
+  (let [price-stream (s/periodically
+                      (* 2 1000 60)
+                      (loader/get-prices (:jdbc-ds @client) stocks))]
+    (swap! client assoc :price-update-stream price-stream)
+    price-stream))
 
-(defmethod handle "/trades"
-  [{:keys [payload]}]
-  (loader/save-trade (:jdbc-ds @client) payload))
-
-
-(defn disconnect
-  [client]
-  (let [{:keys [socket connected?]} @client]
-    (when (and socket
-               connected?)
-      (.disconnect ^Socket socket)
-      (reset! client {:connected? false}))))
-
-(defn publish
-  [topic payload]
+(defn publish-market-value
+  [payload]
   (let [{:keys [socket connected?]} @client]
     (when (and socket
                connected?)
@@ -41,9 +41,36 @@
              "publish"
              (to-array
               [(json/write-value-as-string
-                {:topic (str "/" topic)
+                {:topic market-value-topic
                  :payload payload
-                 :type topic})])))))
+                 :type "MarketValue"})])))))
+
+(defmulti handle
+  (fn [message]
+    (:topic message)))
+
+(defmethod handle trades-topic
+  [{:keys [payload]}]
+  (loader/save-trade (:jdbc-ds @client) payload))
+
+(defmethod handle prices-topic
+  [{:keys [payload]}]
+  (log/infof "received stock price update subscription for %s" (str/join ", " payload))
+  (when (seq payload)
+    (let [price-stream (start-price-update-stream payload)]
+     (s/consume price-stream
+                (fn [prices]
+                  (publish-market-value prices))))))
+
+(defn disconnect
+  [client]
+  (let [{:keys [socket connected? price-update-stream]} @client]
+    (when (and socket
+               connected?)
+      (.disconnect ^Socket socket)
+      (reset! client {:connected? false}))
+    (when price-update-stream
+      (s/close! price-update-stream))))
 
 (defn connect
   [jdbc-ds uri]
@@ -86,12 +113,17 @@
     (.connect socket)
     (log/info "Will subscribe to /trades")
     (.emit socket "subscribe" (into-array Object [trades-topic]))
+    (.emit socket "subscribe" (into-array Object [prices-topic]))
     socket))
 
 (defn create-client
   [jdbc-ds uri]
   (connect jdbc-ds uri)
   client)
+
+(defn stop-client
+  []
+  (disconnect client))
 
 (comment
   (def sock (connect nil "http://localhost:18086"))

@@ -31,18 +31,18 @@
         (log/info "Health check.")
         (response/ok "OK"))}}]
    ["price/:ticker"
-     {:allow-methods [:get]
-      :get
-      {:handler
-       (fn [{:keys [path-params]}]
-         (let [ticker (:ticker path-params)]
-           (log/info "Get price for stock:" ticker)
-           (if-let [price (loader/get-price jdbc-ds ticker)]
-             (-> price
-                 to-json
-                 response/ok
-                 (response/header "Content-Type" "application/json"))
-             (response/not-found (str "Price not found for stock: " ticker)))))}}]
+    {:allow-methods [:get]
+     :get
+     {:handler
+      (fn [{:keys [path-params]}]
+        (let [ticker (:ticker path-params)]
+          (log/info "Get price for stock:" ticker)
+          (if-let [price (first (loader/get-prices jdbc-ds [ticker]))]
+            (-> price
+                to-json
+                response/ok
+                (response/header "Content-Type" "application/json"))
+            (response/not-found (str "Price not found for stock: " ticker)))))}}]
    ["stocks"
     [""
      {:allow-methods [:get]
@@ -53,8 +53,7 @@
          (-> (loader/get-all-stocks jdbc-ds)
              to-json
              response/ok
-             (response/header "Content-Type" "application/json"))
-         )}}]
+             (response/header "Content-Type" "application/json")))}}]
     ["/:ticker"
      {:allow-methods [:get]
       :get

@@ -8,6 +8,7 @@
    [next.jdbc :as jdbc]
    [next.jdbc.connection :as connection]
    [next.jdbc.sql :as sql]
+   [next.jdbc.prepare :as p]
    [clojure.math :as math])
   (:import
    (com.zaxxer.hikari HikariDataSource)))
@@ -38,12 +39,12 @@
 (def select-stocks
   "select _id as ticker, security as company from stocks")
 
-(def select-stock-price
-  "select price
+(def select-stock-prices
+  "select _id as ticker, price
    from stock_prices
-   where _id = ?")
+   where _id in ")
 
-(def update-price
+(def update-prices
   "update stock_prices
    set price = ?
    where _id = ?")
@@ -120,27 +121,38 @@
     (read-stocks jdbc-ds))
   (vals @stocks))
 
-(defn get-price
-  [jdbc-ds ticker]
-  (if (nil? (get-stock jdbc-ds ticker))
-    (do
-      (log/infof "Stock %s not found, cannot quote price." ticker)
-      nil)
-    (let [last-price (:price
-                      (first
-                       (sql/query jdbc-ds
-                                  [select-stock-price
-                                   ticker])))
-          delta (* (if (> 0.5 (rand)) 0.1 -0.1)
-                   last-price)
-          new-price (int (math/floor (+ last-price (rand-int delta))))]
-      (log/infof "Quoting new price for %s: %d" ticker new-price)
-      (jdbc/execute-one! jdbc-ds
-                         [update-price
-                          new-price
-                          ticker])
-      {:ticker ticker
-       :price new-price})))
+(defn generate-new-price
+  "Generates a new price for a stock, within +- 10% of the last price."
+  [last-price]
+  (let [delta (* (if (> 0.5 (rand)) 0.1 -0.1)
+                 last-price)]
+    (int (math/floor (+ last-price (rand-int delta))))))
+
+(defn save-prices
+  [jdbc-ds prices]
+  (with-open [conn (jdbc/get-connection jdbc-ds)
+              ps (jdbc/prepare conn
+                               [update-prices])]
+    (doseq [price prices]
+      (p/set-parameters ps [(-> price :price int)
+                            (-> price :ticker str)])
+      (.addBatch ps))
+    (.executeBatch ps)))
+
+(defn get-prices
+  [jdbc-ds tickers]
+  (let [params (str "(" (str/join ", " (repeat (count tickers) "?")) ")")
+        prices (sql/query jdbc-ds
+                          (into
+                           [(str select-stock-prices params)]
+                           tickers))
+        _ (log/infof "prices %s" (str/join ", " (map pr-str prices)))
+        new-prices (map #(update %
+                                :price
+                                generate-new-price)
+                        prices)]
+    (save-prices jdbc-ds new-prices)
+    new-prices))
 
 (defn save-trade
   [jdbc-ds trade]
@@ -163,8 +175,33 @@
   (def jdbc-ds (connection/->pool HikariDataSource
                                   {:jdbcUrl jdbc-url
                                    :maxLifetime 60000}))
+  (populate-stocks jdbc-ds)
   (with-open [rdr (io/reader csv)]
     (do-insert jdbc-ds (drop 1 (csv/read-csv rdr))))
+
+  (def prices (sql/query jdbc-ds
+                         ["select * from stock_prices where _id in (?,?)"
+                          "AAPL" "IBM"]))
+  (jdbc/execute! jdbc-ds
+                 ["insert into stock_prices (price,_id) values (?,?),(?,?)"
+                  101 "AAPL"
+                  201 "IBM"])
+  (with-open [con (jdbc/get-connection jdbc-ds)
+              ps (jdbc/prepare con ["update stock_prices set price=? where _id=?"])]
+    (p/set-parameters ps [(with-meta 301 {:pgtype "integer"}) "IBM"])
+    ;; (.setInt ps 1 301)
+    ;; (.setString ps 2 "IBM")
+    (.addBatch ps)
+    ;; (.addBatch ps)
+    (p/set-parameters ps [(with-meta 201 {:pgtype "integer"}) "AAPL"])
+    ;; (.setInt ps 1 201)
+    ;; (.setString ps 2 "AAPL")
+    (.addBatch ps)
+    (.executeBatch ps))
+  (def pricez (sql/query jdbc-ds
+                         ["select _id as stock, price, _valid_from, _system_from from stock_prices where _id = ?
+               order by _valid_from desc"
+                          "AAPL" #_"IBM"]))
 
   (def stocks (cache-stocks (read-stocks jdbc-ds)))
   #_1)
