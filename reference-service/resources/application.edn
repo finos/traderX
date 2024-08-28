@@ -1,4 +1,6 @@
 {:xtdb-host #or [#env XTDB_HOST "xtdb"]
  :xtdb-port #or [#env XTDB_PORT "5432"]
  :web-port #or [#env WEB_PORT "18085"]
- :trade-feed-address #or [#env TRADE_FEED_ADDRESS "http://localhost:18086/"]}
+ :trade-feed-address #or [#env TRADE_FEED_ADDRESS "http://localhost:18086/"]
+ :price-update-interval-ms #or [#env PRICE_UPDATE_INTERVAL_MS "120000"] ;; 2 minutes
+ }

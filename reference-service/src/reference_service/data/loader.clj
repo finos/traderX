@@ -146,11 +146,11 @@
                           (into
                            [(str select-stock-prices params)]
                            tickers))
-        _ (log/infof "prices %s" (str/join ", " (map pr-str prices)))
         new-prices (map #(update %
-                                :price
-                                generate-new-price)
+                                 :price
+                                 generate-new-price)
                         prices)]
+    (log/infof "generated new prices %s" (str/join ", " (map pr-str new-prices)))
     (save-prices jdbc-ds new-prices)
     new-prices))
 

@@ -31,7 +31,8 @@
              (io/resource "application.edn"))]
     (-> cfg
         (update :xtdb-port #(Integer/parseInt %))
-        (update :web-port #(Integer/parseInt %)))))
+        (update :web-port #(Integer/parseInt %))
+        (update :price-update-interval-ms #(Integer/parseInt %)))))
 
 (defn -main
   [& _args]
@@ -46,6 +47,7 @@
   (let [{:keys [xtdb-port
                 xtdb-host
                 web-port
+                price-update-interval-ms
                 trade-feed-address]} (read-config)
 
         jdbc-url (connection/jdbc-url
@@ -57,7 +59,7 @@
         jdbc-ds (try-connection jdbc-url)]
     (loader/populate-stocks jdbc-ds)
     (server/start web-port jdbc-ds)
-    (websocket/create-client jdbc-ds trade-feed-address)
+    (websocket/create-client jdbc-ds trade-feed-address price-update-interval-ms)
 
     (.addShutdownHook
      (Runtime/getRuntime)
@@ -65,7 +67,8 @@
       (fn []
         (log/info "Shutting down reference-service.")
         (.close ^java.io.Closeable jdbc-ds)
-        (server/stop)))))
+        (server/stop)
+        (websocket/stop-client)))))
   #_1)
 
 (comment

@@ -48,6 +48,7 @@ services:
       - XTDB_PORT=5432
       - WEB_PORT=18085
       - TRADE_FEED_ADDRESS=http://trade-feed:18086
+      - PRICE_UPDATE_INTERVAL_MS=120000
     networks:
       - localnet
     depends_on:
@@ -237,6 +238,6 @@ networks:
 volumes:
   xtdb-data:
     driver: local
- 
- 
+
+
 
