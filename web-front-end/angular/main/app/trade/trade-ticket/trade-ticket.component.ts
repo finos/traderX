@@ -52,7 +52,8 @@ export class TradeTicketComponent implements OnInit {
   }
 
   hasErrors() {
-    return !this.ticket.security || !this.ticket.quantity || this.ticket.quantity > this.maxQuantity();
+    return !this.ticket.security || !this.ticket.quantity
+    || this.ticket.quantity > this.maxQuantity() || this.ticket.quantity <= 0;
   }
 
   onSelect(e: TypeaheadMatch): void {
