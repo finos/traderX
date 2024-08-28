@@ -28,6 +28,7 @@ export interface Position {
     security: string;
     updated: Date;
     value: number;
+    marketValue?: number;
 }
 
 export interface TradeTicket {
@@ -38,7 +39,7 @@ export interface TradeTicket {
     unitPrice?: number;
 }
 
-export interface TradePrice {
+export interface StockPrice {
     price: number;
     ticker: string;
 }

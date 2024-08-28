@@ -15,7 +15,7 @@ export class TradeFeedService {
     private connect() {
         // create socketio client with long polling only
         this.socket = io(environment.tradeFeedUrl);
-        
+
         this.socket.on("connect", this.onConnect);
         this.socket.on("disconnect", this.onDisconnect);
     }
@@ -29,7 +29,7 @@ export class TradeFeedService {
     }
 
     public subscribe(topic: string, callback: (...args: any[]) => void) {
-       
+
         const callbackFn = (args: any) => {
             console.log("received message -> "+ JSON.stringify(args));
             if (args.from !== 'System' && args.topic === topic) {
@@ -48,5 +48,10 @@ export class TradeFeedService {
         console.log('unsubscribing' + topic)
         this.socket.emit('unsubscribe', topic);
         this.socket.off('publish', callback)
+    }
+
+    public emit(topic: string, payload: any) {
+        console.log('emitting message to topic', topic);
+        this.socket.emit('publish', { topic, payload });
     }
 }

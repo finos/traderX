@@ -3,7 +3,7 @@ import { Stock } from '../model/symbol.model';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
-import { TradeTicket, TradePrice } from '../model/trade.model';
+import { TradeTicket, StockPrice } from '../model/trade.model';
 import { environment } from 'main/environments/environment';
 
 @Injectable({
@@ -28,8 +28,8 @@ export class SymbolService {
         );
     }
 
-    getPrice(ticker: string): Observable<TradePrice> {
-        return this.http.get<TradePrice>(`${this.priceUrl}/${ticker}`).pipe(
+    getPrice(ticker: string): Observable<StockPrice> {
+        return this.http.get<StockPrice>(`${this.priceUrl}/${ticker}`).pipe(
             retry(2),
             catchError(this.handleError)
         );
