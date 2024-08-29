@@ -52,12 +52,10 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
       this.isPending = true;
 
       this.tradeService.getPositions(accountId).subscribe((positions: Position[]) => {
+        console.log('Position blotter tradeService feed...', positions);
         this.positions = positions;
         this.processPendingPositions();
-        const securities = this.positions.map((position: Position) => position.security);
-        console.log('Done processing positions for stocks', securities);
-        // signal what securities' market price updates should be sent.
-        this.tradeFeed.emit('/prices', securities);
+        this.subscribeToMarketValue(positions.map((p: Position) => p.security));
       }, () => {
         this.isPending = false;
       });
@@ -65,8 +63,11 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
 
       this.socketUnSubscribeFn?.();
       this.socketUnSubscribeFn = this.tradeFeed.subscribe(`/accounts/${accountId}/positions`, (data: any) => {
-        console.log('Position blotter feed...', data);
+        console.log('Position blotter websocket feed...', data);
         this.updatePosition(data);
+        const securities = this.positions.map((p: Position) => p.security);
+        securities.push(data.security);
+        this.subscribeToMarketValue(securities);
       });
 
       this.marketValueUnSubscribeFn?.();
@@ -75,6 +76,12 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
         this.updateMarketValues(data);
       });
     }
+  }
+
+  // signal what securities' market price updates should be sent.
+  subscribeToMarketValue(securities: String[]) {
+    console.log('Will subscribe to prices for stocks', securities);
+    this.tradeFeed.emit('/prices', securities);
   }
 
   processPendingPositions() {
