@@ -2,14 +2,15 @@
   (:require
    [clojure.data.csv :as csv]
    [clojure.java.io :as io]
+   [clojure.math :as math]
    [clojure.string :as str]
    [clojure.tools.logging :as log]
+   [manifold.stream :as s]
    [medley.core :as medley]
    [next.jdbc :as jdbc]
    [next.jdbc.connection :as connection]
-   [next.jdbc.sql :as sql]
    [next.jdbc.prepare :as p]
-   [clojure.math :as math])
+   [next.jdbc.sql :as sql])
   (:import
    (com.zaxxer.hikari HikariDataSource)))
 
@@ -44,6 +45,10 @@
    from stock_prices
    where _id in ")
 
+(def all-stock-prices
+  "select _id as ticker, price
+   from stock_prices")
+
 (def update-prices
   "update stock_prices
    set price = ?
@@ -51,6 +56,12 @@
 
 (defonce stocks
   (atom {}))
+
+(def recent-prices
+  (atom {}))
+
+(def price-update-stream
+  (atom nil))
 
 (defn cache-stocks
   "Indexes stocks by ticker"
@@ -122,11 +133,16 @@
   (vals @stocks))
 
 (defn generate-new-price
-  "Generates a new price for a stock, within +- 10% of the last price."
+  "Generates a new price for a stock, within +- 5% of the last price.
+   If the new price is zero, it will recursively call itself until a non-zero price is generated."
   [last-price]
-  (let [delta (* (if (> 0.5 (rand)) 0.1 -0.1)
-                 last-price)]
-    (int (math/floor (+ last-price (rand-int delta))))))
+  (let [delta (* (if (> 0.5 (rand)) 0.05 -0.05)
+                 last-price)
+        new-price (int (math/floor
+                        (+ last-price (rand-int delta))))]
+    (if (zero? new-price)
+      (+ 1 (rand-int 10))
+      new-price)))
 
 (defn save-prices
   [jdbc-ds prices]
@@ -145,13 +161,22 @@
         prices (sql/query jdbc-ds
                           (into
                            [(str select-stock-prices params)]
-                           tickers))
+                           tickers))]
+    prices))
+
+(defn generate-new-prices
+  [jdbc-ds]
+  (let [prices (if (seq @recent-prices)
+                 (vals @recent-prices)
+                 (sql/query jdbc-ds
+                            [all-stock-prices]))
         new-prices (map #(update %
                                  :price
                                  generate-new-price)
                         prices)]
-    (log/infof "generated new prices %s" (str/join ", " (map pr-str new-prices)))
-    (save-prices jdbc-ds new-prices)
+    (log/info "Generated new prices")
+    (reset! recent-prices
+            (medley/index-by :ticker new-prices))
     new-prices))
 
 (defn save-trade
@@ -165,6 +190,33 @@
                       (:unitPrice trade)
                       (:quantity trade)
                       (:side trade)]))
+
+(defn get-recent-prices
+  [stocks]
+  (mapv
+   #(get @recent-prices %)
+   stocks))
+
+(defn start-price-update-stream
+  [jdbc-ds price-update-interval-ms]
+  (let [price-stream (s/periodically
+                      price-update-interval-ms
+                      0
+                      (fn []
+                        (generate-new-prices jdbc-ds)))]
+    (when-let [previous @price-update-stream]
+      (s/close! previous))
+    (reset! price-update-stream price-stream)
+    (s/consume (fn [new-prices]
+                 (save-prices jdbc-ds new-prices))
+               price-stream)))
+
+(defn stop-price-update-stream
+  []
+  (when-let [previous @price-update-stream]
+    (s/close! previous)
+    (reset! price-update-stream nil)))
+
 (comment
   (def jdbc-url (connection/jdbc-url
                  {:dbtype "postgresql"

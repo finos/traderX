@@ -58,6 +58,7 @@
                    :useSSL false})
         jdbc-ds (try-connection jdbc-url)]
     (loader/populate-stocks jdbc-ds)
+    (loader/start-price-update-stream jdbc-ds price-update-interval-ms)
     (server/start web-port jdbc-ds)
     (websocket/create-client jdbc-ds trade-feed-address price-update-interval-ms)
 
@@ -67,6 +68,7 @@
       (fn []
         (log/info "Shutting down reference-service.")
         (.close ^java.io.Closeable jdbc-ds)
+        (loader/stop-price-update-stream)
         (server/stop)
         (websocket/stop-client)))))
   #_1)

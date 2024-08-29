@@ -37,7 +37,7 @@
       (fn [{:keys [path-params]}]
         (let [ticker (:ticker path-params)]
           (log/info "Get price for stock:" ticker)
-          (if-let [price (first (loader/get-prices jdbc-ds [ticker]))]
+          (if-let [price (first (loader/get-recent-prices [ticker]))]
             (-> price
                 to-json
                 response/ok

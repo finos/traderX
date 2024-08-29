@@ -32,8 +32,7 @@
                       (:price-update-interval-ms @client)
                       0 ;; start immediately
                       (fn []
-                        (loader/get-prices
-                         (:jdbc-ds @client)
+                        (loader/get-recent-prices
                          stocks)))]
     (swap! client assoc :price-update-stream price-stream)
     price-stream))
@@ -66,8 +65,7 @@
   (log/infof "received stock price update subscription for %s" (str/join ", " payload))
   (when (seq payload)
     (let [price-stream (start-price-update-stream payload)]
-      (s/consume (fn [prices]
-                   (publish-market-value prices))
+      (s/consume publish-market-value
                  price-stream))))
 
 (defn disconnect
