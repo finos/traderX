@@ -96,7 +96,7 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
     let positionData;
     if (row) {
       positionData = {
-        update: [Object.assign(row.data, { quantity: data.quantity, value: data.value, marketValue: Math.abs(data.value)})],
+        update: [Object.assign(row.data, { quantity: data.quantity, value: data.value })],
       };
     } else {
       positionData = {
@@ -105,8 +105,7 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
           quantity: data.quantity,
           security: data.security,
           updated: data.updated,
-          value: data.value,
-          marketValue: Math.abs(data.value)
+          value: data.value
         }],
         addIndex: 0
       };
