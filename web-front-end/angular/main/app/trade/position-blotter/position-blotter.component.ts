@@ -1,7 +1,7 @@
 import { ColDef, GridApi, GridReadyEvent, Module } from 'ag-grid-community';
 import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { Account } from 'main/app/model/account.model';
-import { Position } from 'main/app/model/trade.model';
+import { Position, StockPrice } from 'main/app/model/trade.model';
 import { PositionService } from 'main/app/service/position.service';
 import { Observable } from 'rxjs';
 import { TradeFeedService } from 'main/app/service/trade-feed.service';
@@ -19,6 +19,7 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
   pendingPosition: any[] = [];
   isPending = true;
   socketUnSubscribeFn: Function;
+  marketValueUnSubscribeFn: Function;
 
   columnDefs: ColDef[] = [
     {
@@ -31,8 +32,13 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
       enableCellChangeFlash: true
     },
     {
-      headerName: 'VALUE',
+      headerName: 'MONEY IN/OUT',
       field: 'value'
+    },
+    {
+      headerName: 'MARKET VALUE',
+      field: 'marketValue',
+      enableCellChangeFlash: true
     }
   ];
 
@@ -40,6 +46,7 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
     private tradeFeed: TradeFeedService) { }
 
   ngOnChanges(change: SimpleChanges) {
+    console.log('Position blotter changes...', change);
     if (change.account?.currentValue && change.account.currentValue !== change.account.previousValue) {
       const accountId = change.account.currentValue.id;
       this.isPending = true;
@@ -47,6 +54,10 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
       this.tradeService.getPositions(accountId).subscribe((positions: Position[]) => {
         this.positions = positions;
         this.processPendingPositions();
+        const securities = this.positions.map((position: Position) => position.security);
+        console.log('Done processing positions for stocks', securities);
+        // signal what securities' market price updates should be sent.
+        this.tradeFeed.emit('/prices', securities);
       }, () => {
         this.isPending = false;
       });
@@ -56,6 +67,12 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
       this.socketUnSubscribeFn = this.tradeFeed.subscribe(`/accounts/${accountId}/positions`, (data: any) => {
         console.log('Position blotter feed...', data);
         this.updatePosition(data);
+      });
+
+      this.marketValueUnSubscribeFn?.();
+      this.marketValueUnSubscribeFn = this.tradeFeed.subscribe('/marketValue', (data: StockPrice[]) => {
+        console.log('Market value feed...', data);
+        this.updateMarketValues(data);
       });
     }
   }
@@ -79,7 +96,7 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
     let positionData;
     if (row) {
       positionData = {
-        update: [Object.assign(row.data, { quantity: data.quantity, value: data.value })],
+        update: [Object.assign(row.data, { quantity: data.quantity, value: data.value, marketValue: Math.abs(data.value)})],
       };
     } else {
       positionData = {
@@ -88,12 +105,25 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
           quantity: data.quantity,
           security: data.security,
           updated: data.updated,
-          value: data.value
+          value: data.value,
+          marketValue: Math.abs(data.value)
         }],
         addIndex: 0
       };
     }
     this.gridApi.applyTransaction(positionData);
+  }
+
+  updateMarketValues(data: StockPrice[]) {
+    data.forEach((price) => {
+      const row = this.gridApi.getRowNode(price.ticker);
+      if (row) {
+        const positionData = {
+          update: [Object.assign(row.data, { marketValue: Math.abs(row.data.quantity * price.price) })],
+        };
+        this.gridApi.applyTransaction(positionData);
+      }
+    });
   }
 
   onGridReady(params: GridReadyEvent) {
@@ -107,6 +137,7 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
 
   ngOnDestroy() {
     this.socketUnSubscribeFn?.();
+    this.marketValueUnSubscribeFn?.();
   }
 
 }

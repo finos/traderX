@@ -29,12 +29,12 @@ export class TradeComponent implements OnInit {
 
     ngOnInit(): void {
         this.accountService.getAccounts().subscribe((accounts) => {
+            console.log('TradeComponent init', accounts);
             this.accounts = accounts;
             this.setAccount(this.accounts[5]);
-            console.log(this.accounts);
             this.positionService.getPositions(this.accounts[5].id).subscribe((positions) => {
               this.positions = positions;
-              console.log(this.positions);
+              console.log('TradeComponent, positions:', this.positions);
           });
         });
         this.symbolService.getStocks().subscribe((stocks) => this.stocks = stocks);

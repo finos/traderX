@@ -65,7 +65,7 @@ export class TradeTicketComponent implements OnInit {
       console.log('Position found: ', this.position);
       this.sellDisabled = false;
     } else {
-      console.log('Position not found!');
+      console.log(`Position not found for stock ${this.ticket.security}!`);
       this.sellDisabled = true;
     }
     this.symbolService.getPrice(e.item.ticker).subscribe(
