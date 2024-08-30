@@ -12,9 +12,10 @@ import { DropdownModule } from '../dropdown/dropdown.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
+import { ClosedPositionBlotterComponent } from './closed-position-blotter/closed-position-blotter.component';
 
 @NgModule({
-  declarations: [TradeComponent, TradeTicketComponent, TradeBlotterComponent, PositionBlotterComponent],
+  declarations: [TradeComponent, TradeTicketComponent, TradeBlotterComponent, PositionBlotterComponent, ClosedPositionBlotterComponent],
   imports: [
     CommonModule,
     AgGridModule,

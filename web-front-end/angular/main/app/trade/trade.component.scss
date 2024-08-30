@@ -27,10 +27,28 @@
         }
     }
 
+    .closed-trade-blotter {
+      display: flex;
+      justify-content: flex-end;
+      &-items {
+       flex-basis: 60%;
+       min-width: 300px;
+      }
+    }
+
+    .closed-position-blotter {
+      display: flex;
+      &-items {
+       flex-basis: 40%;
+       min-width: 300px;
+      }
+  }
+
     .disclaimer {
         display: flex;
         justify-content: right;
         flex-basis: 40%;
+        padding: 5px;
     }
 }
 

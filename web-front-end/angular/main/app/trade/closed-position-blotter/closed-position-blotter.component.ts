@@ -7,21 +7,20 @@ import { Observable } from 'rxjs';
 import { TradeFeedService } from 'main/app/service/trade-feed.service';
 
 @Component({
-  selector: 'app-position-blotter',
-  templateUrl: './position-blotter.component.html',
-  styleUrls: ['./position-blotter.component.scss']
+  selector: 'app-closed-position-blotter',
+  templateUrl: '../position-blotter/position-blotter.component.html',
+  styleUrls: ['../position-blotter/position-blotter.component.scss']
 })
-export class PositionBlotterComponent implements OnChanges, OnDestroy {
+export class ClosedPositionBlotterComponent implements OnChanges, OnDestroy {
   @Input() account?: Account;
   positions$: Observable<Position[]>;
-  positions: any = [];
   filteredPositions: any = [];
   gridApi: GridApi;
   pendingPosition: any[] = [];
   isPending = true;
   socketUnSubscribeFn: Function;
   marketValueUnSubscribeFn: Function;
-  title = 'Positions';
+  title = 'Closed Positions';
 
   columnDefs: ColDef[] = [
     {
@@ -29,17 +28,12 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
       headerName: 'SECURITY'
     },
     {
-      headerName: 'QUANTITY',
-      field: 'quantity',
-      enableCellChangeFlash: true
-    },
-    {
-      headerName: 'MONEY IN/OUT',
+      headerName: 'SALE PRICE',
       field: 'value'
     },
     {
-      headerName: 'MARKET VALUE',
-      field: 'marketValue',
+      headerName: 'UNIT PRICE',
+      field: 'unitPrice',
       enableCellChangeFlash: true
     }
   ];
@@ -54,11 +48,9 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
       this.isPending = true;
 
       this.tradeService.getPositions(accountId).subscribe((positions: Position[]) => {
-        console.log('Position blotter tradeService feed...', positions);
-        this.positions = positions;
-        this.filteredPositions = positions.filter((p) => p.quantity > 0);
+        console.log('Closed Position blotter tradeService feed...', positions);
+        this.filteredPositions = positions.filter((p: Position) => p.quantity === 0);
         this.processPendingPositions();
-        this.subscribeToMarketValue(positions.map((p: Position) => p.security));
       }, () => {
         this.isPending = false;
       });
@@ -67,12 +59,11 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
       this.socketUnSubscribeFn?.();
       this.socketUnSubscribeFn = this.tradeFeed.subscribe(`/accounts/${accountId}/positions`, (data: any) => {
         console.log('Position blotter websocket feed...', data);
-        if (data.quantity > 0) {
+        if (data.quantity === 0) {
           this.updatePosition(data);
+          const securities = this.filteredPositions.map((p: Position) => p.security);
+          securities.push(data.security);
         }
-        const securities = this.positions.map((p: Position) => p.security);
-        securities.push(data.security);
-        this.subscribeToMarketValue(securities);
       });
 
       this.marketValueUnSubscribeFn?.();
@@ -81,12 +72,6 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
         this.updateMarketValues(data);
       });
     }
-  }
-
-  // signal what securities' market price updates should be sent.
-  subscribeToMarketValue(securities: String[]) {
-    console.log('Will subscribe to prices for stocks', securities);
-    this.tradeFeed.emit('/prices', securities);
   }
 
   processPendingPositions() {
@@ -130,7 +115,7 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
       const row = this.gridApi.getRowNode(price.ticker);
       if (row) {
         const positionData = {
-          update: [Object.assign(row.data, { marketValue: Math.abs(row.data.quantity * price.price) })],
+          update: [Object.assign(row.data, { unitPrice: price.price })],
         };
         this.gridApi.applyTransaction(positionData);
       }
