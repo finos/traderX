@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: people-service
+  name: people-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: people-service
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: people-service
+    spec:
+      containers:
+        - name: people-service
+          image: traderx/people-service
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 18089
+              protocol: TCP
+      restartPolicy: Always
