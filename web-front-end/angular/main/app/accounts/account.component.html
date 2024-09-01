@@ -4,7 +4,7 @@
         <div class="mt-4">
             <h6> Account List </h6>
             <ag-grid-angular #agGrid style="width: 800px; height: 300px;" id="accountgrid" class="ag-theme-alpine"
-                [columnDefs]="columnDefs" rowSelection='single' [frameworkComponents]="frameworkComponents"
+                [columnDefs]="columnDefs" rowSelection='single' [components]="frameworkComponents"
                 [rowData]="accounts$ | async" (selectionChanged)="onSelectionChanged()"
                 (gridReady)="onGridReady($event)"></ag-grid-angular>
         </div>
@@ -15,7 +15,7 @@
         <div class="mt-4">
             <h6>Users List {{selectedAccount ? '(' + selectedAccount.displayName + ')' : ''}}</h6>
             <ag-grid-angular #agGrid style="width: 800px; height: 300px;" id="usergrid" class="ag-theme-alpine"
-                [columnDefs]="columnDefsUser" [frameworkComponents]="frameworkComponents" [rowData]="users$ | async">
+                [columnDefs]="columnDefsUser" [components]="frameworkComponents" [rowData]="users$ | async">
             </ag-grid-angular>
         </div>
     </div>
