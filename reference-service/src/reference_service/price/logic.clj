@@ -147,7 +147,7 @@
                                      accountId security]))]
     [(or posid
          (str (java.util.UUID/randomUUID)))
-     (Integer/parseInt accountId)
+     accountId
      security
      (+ (or oldquantity 0)
         (if (= side "Buy")
@@ -157,10 +157,9 @@
         (* unitPrice quantity
            (if (= side "Sell") 1 -1)))
      id
-     ;; FIXME - find a better way of expressing this - quoting doesn't do what i want
-     (pr-str '(+ ~(or value 0)
-                 (* ~unitPrice ~quantity
-                    (if (= ~side "Sell") 1 -1))))]))
+     (str "(+ " (or value 0)
+          " (* " unitPrice " " quantity " "
+          (if (= "Sell" side) -1 1) "))")]))
 
 (defn save-trades
   [jdbc-ds trades]
@@ -170,17 +169,18 @@
                                      [insert-trade])
               position-ps (jdbc/prepare conn
                                         [insert-position])]
-    (doseq [trade trades]
-      (p/set-parameters trade-ps [(:id trade)
-                                  (:security trade)
-                                  (Integer/parseInt (:accountId trade))
-                                  (Integer/parseInt (:unitPrice trade))
-                                  (Integer/parseInt (:quantity trade))
-                                  (:side trade)])
+    (doseq [{:keys [id security accountId
+                    unitPrice quantity side]
+             :as trade} trades]
+      (p/set-parameters trade-ps [id
+                                  security
+                                  accountId
+                                  unitPrice
+                                  quantity
+                                  side])
       (.addBatch trade-ps)
       (let [position (position-for jdbc-ds trade)]
         (log/infof "Saving position %s" position)
-
         (p/set-parameters position-ps position)
         (.addBatch position-ps)))
     (.executeBatch trade-ps)
@@ -251,7 +251,6 @@
 
   (LocalDateTime/ofInstant (Instant/ofEpochMilli 6477227720)
                            (ZoneId/of "UTC"))
-
   (def prices (sql/query jdbc-ds
                          [all-stock-prices]))
   (defn populate-prices
