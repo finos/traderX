@@ -147,7 +147,7 @@
                                      accountId security]))]
     [(or posid
          (str (java.util.UUID/randomUUID)))
-     accountId
+     (Integer/parseInt accountId)
      security
      (+ (or oldquantity 0)
         (if (= side "Buy")
@@ -157,10 +157,10 @@
         (* unitPrice quantity
            (if (= side "Sell") 1 -1)))
      id
+     ;; FIXME - find a better way of expressing this - quoting doesn't do what i want
      (pr-str '(+ ~(or value 0)
                  (* ~unitPrice ~quantity
-                    (if (= ~side "Sell") 1 -1))))
-     ]))
+                    (if (= ~side "Sell") 1 -1))))]))
 
 (defn save-trades
   [jdbc-ds trades]
@@ -173,9 +173,9 @@
     (doseq [trade trades]
       (p/set-parameters trade-ps [(:id trade)
                                   (:security trade)
-                                  (:accountId trade)
-                                  (:unitPrice trade)
-                                  (:quantity trade)
+                                  (Integer/parseInt (:accountId trade))
+                                  (Integer/parseInt (:unitPrice trade))
+                                  (Integer/parseInt (:quantity trade))
                                   (:side trade)])
       (.addBatch trade-ps)
       (let [position (position-for jdbc-ds trade)]
