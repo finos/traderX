@@ -1,4 +1,4 @@
-import { ColDef, GridApi, GridReadyEvent, Module } from 'ag-grid-community';
+import { ColDef, GridApi, GridReadyEvent, GetRowIdParams } from 'ag-grid-community';
 import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { Account } from 'main/app/model/account.model';
 import { Position } from 'main/app/model/trade.model';
@@ -96,8 +96,8 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
     this.gridApi = params.api;
   }
 
-  getRowNodeId(data: Position) {
-    return data.security;
+  getRowId(params: GetRowIdParams<any>):string {
+    return `Position-${params.data.security}`;
   }
 
   ngOnDestroy() {
