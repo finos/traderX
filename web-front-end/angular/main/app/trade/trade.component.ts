@@ -6,6 +6,7 @@ import { AccountService } from '../service/account.service';
 import { Stock } from '../model/symbol.model';
 import { SymbolService } from '../service/symbols.service';
 import { PositionService } from '../service/position.service';
+import { TradeFeedService } from 'main/app/service/trade-feed.service';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
 @Component({
@@ -25,7 +26,8 @@ export class TradeComponent implements OnInit {
     constructor(private accountService: AccountService,
         private symbolService: SymbolService,
         private modalService: BsModalService,
-        private positionService: PositionService) { }
+        private positionService: PositionService,
+        private tradeFeed: TradeFeedService) { }
 
     ngOnInit(): void {
         this.accountService.getAccounts().subscribe((accounts) => {
@@ -77,5 +79,6 @@ export class TradeComponent implements OnInit {
     private setAccount(account: Account) {
         this.accountModel = account;
         this.account.next(account);
+        this.tradeFeed.emit('/account', account.id);
     }
 }

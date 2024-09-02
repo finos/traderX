@@ -45,7 +45,7 @@ export class TradeFeedService {
     }
 
     public unSubscribe(topic: string, callback: (...args: any[]) => void) {
-        console.log('unsubscribing' + topic)
+        console.log('unsubscribing ' + topic);
         this.socket.emit('unsubscribe', topic);
         this.socket.off('publish', callback)
     }

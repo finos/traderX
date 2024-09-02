@@ -5,17 +5,21 @@
    [jsonista.core :as json]
    [manifold.stream :as s]
    [medley.core :as medley]
-   [reference-service.data.loader :as loader])
+   [reference-service.price.logic :as prices])
   (:import
    (io.socket.client IO Socket)
    (io.socket.emitter Emitter$Listener)))
 
 (def trades-topic
   "/trades")
-(def prices-topic
-  "/prices")
-(def market-value-topic
-  "/marketValue")
+(defn account-prices-topic
+  [account-id]
+  (str "/accounts/" account-id "/prices"))
+(def account-topic
+  "/account")
+(defn account-trades-topic
+  [account-id]
+  (str "/accounts/" account-id "/trades"))
 
 (defonce client
   (atom {:socket nil
@@ -24,49 +28,75 @@
          :price-update-interval-ms nil
          :connected? false}))
 
+(defonce account
+  (atom {:id nil
+         :trades []
+         :positions []}))
+
 (defn start-price-update-stream
-  [stocks]
+  []
   (when-let [previous (:price-update-stream @client)]
     (s/close! previous))
   (let [price-stream (s/periodically
                       (:price-update-interval-ms @client)
                       0 ;; start immediately
                       (fn []
-                        (loader/get-recent-prices
-                         stocks)))]
+                        (log/info "Updating prices for " (map :security (:positions @account)))
+                        (prices/get-recent-prices
+                         (map :security (:positions @account)))))]
     (swap! client assoc :price-update-stream price-stream)
     price-stream))
 
 (defn publish-market-value
   [payload]
-  (let [{:keys [socket connected?]} @client
-        message {"topic" market-value-topic
-                 "payload" (mapv #(medley/map-keys name %)
-                                 payload)
-                 "type" "MarketValue"}]
-    (when (and socket
-               connected?)
-      (.emit ^Socket socket
-             "publish"
-             (into-array
-              Object
-              [message])))))
+  (if (seq payload)
+    (let [{:keys [socket connected?]} @client
+          message {"topic" (account-prices-topic (:id @account))
+                   "payload" (mapv #(medley/map-keys name %)
+                                   payload)
+                   "type" "MarketValue"}]
+      (when (and socket
+                 connected?)
+        (.emit ^Socket socket
+               "publish"
+               (into-array
+                Object
+                [message]))))
+    (log/info "No market value to publish, skipping")))
 
-(defmulti handle
-  (fn [message]
-    (:topic message)))
+(defn match-topic
+  [{:keys [topic]}]
+  (cond
+    (= trades-topic topic) :trades-topic
+    (= account-topic topic) :account-topic
+    (re-find (re-matcher #"/accounts/\d+/trades" topic)) :account-trades-topic))
 
-(defmethod handle trades-topic
+(defmulti handle match-topic)
+
+(defmethod handle :account-topic
   [{:keys [payload]}]
-  (loader/save-trade (:jdbc-ds @client) payload))
+  ;; TODO think if we should have multiple accounts and publish prices to /marketValue/<ACCT-ID>
+  ;; we'd have to watch unsubscriptions too - so we remove those accounts from stream
+  (log/infof "current account %s" (pr-str payload))
+  (let [trades (prices/account-trades (:jdbc-ds @client) payload)
+        positions (prices/account-positions (:jdbc-ds @client) payload)]
+    (log/infof "account positions %s" positions)
+    (reset! account {:id payload
+                     :trades trades
+                     :positions positions}))
+  (let [price-stream (start-price-update-stream)]
+    (s/consume publish-market-value
+               price-stream))
+  (.emit ^Socket (:socket @client)
+         "subscribe"
+         (into-array Object [(account-trades-topic payload)])))
 
-(defmethod handle prices-topic
+(defmethod handle :account-trades-topic
   [{:keys [payload]}]
-  (log/infof "received stock price update subscription for %s" (str/join ", " payload))
-  (when (seq payload)
-    (let [price-stream (start-price-update-stream payload)]
-      (s/consume publish-market-value
-                 price-stream))))
+  (log/infof "received account trades subscription for %s" (pr-str payload))
+  (swap! account update :trades into payload)
+  (swap! account update :securities into (:security payload))
+  (prices/save-trades (:jdbc-ds @client) [payload]))
 
 (defn disconnect
   [client]
@@ -117,10 +147,14 @@
                    (handle msg)))
                (catch Exception e
                  (log/error e "Exception handling incoming message"))))))
+    (.on socket
+         "unsubscribe"
+         (reify Emitter$Listener
+           (call [_ args]
+             (log/info "Unsubscribed from topic" (pr-str args)))))
     (.connect socket)
-    (log/info "Will subscribe to /trades and /prices topics.")
-    (.emit socket "subscribe" (into-array Object [trades-topic]))
-    (.emit socket "subscribe" (into-array Object [prices-topic]))
+    (log/info "Will subscribe to /account topic.")
+    (.emit socket "subscribe" (into-array Object [account-topic]))
     socket))
 
 (defn create-client
@@ -143,4 +177,7 @@
   (mapv #(medley/map-keys name %)
         [{:ticker "AAPL"
           :price 100}])
+  (case (re-find (re-matcher #"/accounts*" "/accounts/123/trades"))
+    "/accounts" 1)
+  (re-find (re-matcher #"/accounts/\d+/trades" "/accounts/123/trades"))
   #_1)

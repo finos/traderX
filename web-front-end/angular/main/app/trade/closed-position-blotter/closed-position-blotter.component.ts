@@ -28,7 +28,7 @@ export class ClosedPositionBlotterComponent implements OnChanges, OnDestroy {
       headerName: 'SECURITY'
     },
     {
-      headerName: 'SALE PRICE',
+      headerName: 'VALUE',
       field: 'value'
     },
     {
@@ -61,13 +61,11 @@ export class ClosedPositionBlotterComponent implements OnChanges, OnDestroy {
         console.log('Position blotter websocket feed...', data);
         if (data.quantity === 0) {
           this.updatePosition(data);
-          const securities = this.filteredPositions.map((p: Position) => p.security);
-          securities.push(data.security);
         }
       });
 
       this.marketValueUnSubscribeFn?.();
-      this.marketValueUnSubscribeFn = this.tradeFeed.subscribe('/marketValue', (data: StockPrice[]) => {
+      this.marketValueUnSubscribeFn = this.tradeFeed.subscribe(`/accounts/${accountId}/prices`, (data: StockPrice[]) => {
         console.log('Market value feed...', data);
         this.updateMarketValues(data);
       });
@@ -99,7 +97,6 @@ export class ClosedPositionBlotterComponent implements OnChanges, OnDestroy {
       positionData = {
         add: [{
           accountid: data.accountid,
-          quantity: data.quantity,
           security: data.security,
           updated: data.updated,
           value: data.value
@@ -135,5 +132,4 @@ export class ClosedPositionBlotterComponent implements OnChanges, OnDestroy {
     this.socketUnSubscribeFn?.();
     this.marketValueUnSubscribeFn?.();
   }
-
 }

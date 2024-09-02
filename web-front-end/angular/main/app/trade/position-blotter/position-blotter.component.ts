@@ -58,7 +58,6 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
         this.positions = positions;
         this.filteredPositions = positions.filter((p) => p.quantity > 0);
         this.processPendingPositions();
-        this.subscribeToMarketValue(positions.map((p: Position) => p.security));
       }, () => {
         this.isPending = false;
       });
@@ -67,26 +66,15 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
       this.socketUnSubscribeFn?.();
       this.socketUnSubscribeFn = this.tradeFeed.subscribe(`/accounts/${accountId}/positions`, (data: any) => {
         console.log('Position blotter websocket feed...', data);
-        if (data.quantity > 0) {
-          this.updatePosition(data);
-        }
-        const securities = this.positions.map((p: Position) => p.security);
-        securities.push(data.security);
-        this.subscribeToMarketValue(securities);
+        this.updatePosition(data);
       });
 
       this.marketValueUnSubscribeFn?.();
-      this.marketValueUnSubscribeFn = this.tradeFeed.subscribe('/marketValue', (data: StockPrice[]) => {
+      this.marketValueUnSubscribeFn = this.tradeFeed.subscribe(`/accounts/${accountId}/prices`, (data: StockPrice[]) => {
         console.log('Market value feed...', data);
         this.updateMarketValues(data);
       });
     }
-  }
-
-  // signal what securities' market price updates should be sent.
-  subscribeToMarketValue(securities: String[]) {
-    console.log('Will subscribe to prices for stocks', securities);
-    this.tradeFeed.emit('/prices', securities);
   }
 
   processPendingPositions() {
@@ -107,9 +95,15 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
     const row = this.gridApi.getRowNode(data.security);
     let positionData;
     if (row) {
-      positionData = {
-        update: [Object.assign(row.data, { quantity: data.quantity, value: data.value })],
-      };
+      if (data.quantity === 0) {
+        positionData = {
+          remove: [{security: data.security}]
+        };
+      } else {
+        positionData = {
+          update: [Object.assign(row.data, { quantity: data.quantity, value: data.value })],
+        };
+      }
     } else {
       positionData = {
         add: [{

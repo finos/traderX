@@ -5,6 +5,7 @@
             [clojure.java.io :as io]
             [aero.core :as aero]
             [reference-service.data.loader :as loader]
+            [reference-service.price.logic :as prices]
             [reference-service.web.server :as server]
             [reference-service.web.socket :as websocket])
   (:import
@@ -58,7 +59,9 @@
                    :useSSL false})
         jdbc-ds (try-connection jdbc-url)]
     (loader/populate-stocks jdbc-ds)
-    (loader/start-price-update-stream jdbc-ds price-update-interval-ms)
+    (loader/seed jdbc-ds)
+    (prices/populate-prices jdbc-ds)
+    (prices/start-price-update-stream jdbc-ds price-update-interval-ms)
     (server/start web-port jdbc-ds)
     (websocket/create-client jdbc-ds trade-feed-address price-update-interval-ms)
 
@@ -68,7 +71,7 @@
       (fn []
         (log/info "Shutting down reference-service.")
         (.close ^java.io.Closeable jdbc-ds)
-        (loader/stop-price-update-stream)
+        (prices/stop-price-update-stream)
         (server/stop)
         (websocket/stop-client)))))
   #_1)

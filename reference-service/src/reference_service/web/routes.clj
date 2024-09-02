@@ -4,6 +4,7 @@
    [jsonista.core :as json]
    [reitit.core :as r]
    [reference-service.data.loader :as loader]
+   [reference-service.price.logic :as prices]
    [ring.util.http-response :as response]))
 
 (defn to-json
@@ -37,7 +38,7 @@
       (fn [{:keys [path-params]}]
         (let [ticker (:ticker path-params)]
           (log/info "Get price for stock:" ticker)
-          (if-let [price (first (loader/get-recent-prices [ticker]))]
+          (if-let [price (first (prices/get-recent-prices [ticker]))]
             (-> price
                 to-json
                 response/ok
