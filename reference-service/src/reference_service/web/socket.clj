@@ -37,7 +37,7 @@
   (when-let [previous (:price-update-stream @client)]
     (s/close! previous))
   (let [price-stream (s/periodically
-                      (:price-update-interval-ms @client)
+                      30000
                       0 ;; start immediately
                       (fn []
                         (log/info "Sending market prices for " (:securities @account))
