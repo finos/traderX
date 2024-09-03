@@ -40,6 +40,12 @@
   "select _id as ticker, price
    from stock_prices")
 
+(def account-prices
+  "select sp._id as ticker, sp.price
+   from stock_prices sp
+   join positions p on sp._id = p.security
+   where p.account_id = ?")
+
 (def update-prices
   "update stock_prices
    set price = ?
@@ -232,6 +238,12 @@
   (when-let [previous @price-update-stream]
     (s/close! previous)
     (reset! price-update-stream nil)))
+
+(defn get-recent-prices-for-account
+  [jdbc-ds account-id]
+  (sql/query jdbc-ds
+             [account-prices
+              account-id]))
 
 (comment
   (def jdbc-url (connection/jdbc-url

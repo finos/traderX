@@ -44,6 +44,20 @@
                 response/ok
                 (response/header "Content-Type" "application/json"))
             (response/not-found (str "Price not found for stock: " ticker)))))}}]
+   ["prices/:account-id"
+    {:allow-methods [:get]
+     :get
+     {:handler
+      (fn [{:keys [path-params]}]
+        (let [account-id (try (Integer/parseInt (:account-id path-params))
+                              (catch Exception _ "-666"))]
+          (log/info "Get prices for stocks in account:" (:account-id path-params))
+          (if-let [prices (seq (prices/get-recent-prices-for-account jdbc-ds account-id))]
+            (-> prices
+                to-json
+                response/ok
+                (response/header "Content-Type" "application/json"))
+            (response/not-found (str "Prices not found for stocks in account: " (:account-id path-params))))))}}]
    ["stocks"
     [""
      {:allow-methods [:get]
