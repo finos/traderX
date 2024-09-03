@@ -11,7 +11,8 @@ import { environment } from 'main/environments/environment';
 })
 export class SymbolService {
     private stocksUrl = `${environment.referenceServiceUrl}/stocks`;
-    private priceUrl = `${environment.referenceServiceUrl}/price/`;
+    private priceUrl = `${environment.referenceServiceUrl}/price`;
+    private pricesUrl = `${environment.referenceServiceUrl}/prices`;
     private createTicketUrl = `${environment.tradesUrl}`;
     constructor(private http: HttpClient) { }
 
@@ -30,6 +31,13 @@ export class SymbolService {
 
     getPrice(ticker: string): Observable<StockPrice> {
         return this.http.get<StockPrice>(`${this.priceUrl}/${ticker}`).pipe(
+            retry(2),
+            catchError(this.handleError)
+        );
+    }
+
+    getAccountPrices(accountId: number): Observable<StockPrice[]> {
+        return this.http.get<StockPrice[]>(`${this.pricesUrl}/${accountId}`).pipe(
             retry(2),
             catchError(this.handleError)
         );

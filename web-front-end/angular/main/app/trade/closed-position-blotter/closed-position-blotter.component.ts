@@ -3,6 +3,7 @@ import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/
 import { Account } from 'main/app/model/account.model';
 import { Position, StockPrice } from 'main/app/model/trade.model';
 import { PositionService } from 'main/app/service/position.service';
+import { SymbolService } from 'main/app/service/symbols.service';
 import { Observable } from 'rxjs';
 import { TradeFeedService } from 'main/app/service/trade-feed.service';
 
@@ -14,10 +15,8 @@ import { TradeFeedService } from 'main/app/service/trade-feed.service';
 export class ClosedPositionBlotterComponent implements OnChanges, OnDestroy {
   @Input() account?: Account;
   positions$: Observable<Position[]>;
-  filteredPositions: any = [];
+  positions: any = [];
   gridApi: GridApi;
-  pendingPosition: any[] = [];
-  isPending = true;
   socketUnSubscribeFn: Function;
   marketValueUnSubscribeFn: Function;
   title = 'Closed Positions';
@@ -39,20 +38,27 @@ export class ClosedPositionBlotterComponent implements OnChanges, OnDestroy {
   ];
 
   constructor(private tradeService: PositionService,
-    private tradeFeed: TradeFeedService) { }
+    private tradeFeed: TradeFeedService,
+    private symbolService: SymbolService) { }
 
   ngOnChanges(change: SimpleChanges) {
     console.log('Position blotter changes...', change);
     if (change.account?.currentValue && change.account.currentValue !== change.account.previousValue) {
       const accountId = change.account.currentValue.id;
-      this.isPending = true;
 
       this.tradeService.getPositions(accountId).subscribe((positions: Position[]) => {
         console.log('Closed Position blotter tradeService feed...', positions);
-        this.filteredPositions = positions.filter((p: Position) => p.quantity === 0);
-        this.processPendingPositions();
-      }, () => {
-        this.isPending = false;
+        this.positions = positions.filter((p: Position) => p.quantity === 0);
+        this.symbolService.getAccountPrices(accountId).subscribe((prices: StockPrice[]) => {
+          prices.forEach((price) => {
+            let position = this.positions.find((p: Position) =>
+              p.security === price.ticker);
+            if (position) {
+              position = Object.assign(position, { unitPrice: price.price });
+              this.update(position);
+            }
+          });
+        });
       });
 
 
@@ -60,7 +66,7 @@ export class ClosedPositionBlotterComponent implements OnChanges, OnDestroy {
       this.socketUnSubscribeFn = this.tradeFeed.subscribe(`/accounts/${accountId}/positions`, (data: any) => {
         console.log('Position blotter websocket feed...', data);
         if (data.quantity === 0) {
-          this.updatePosition(data);
+          this.update(data);
         }
       });
 
@@ -69,20 +75,6 @@ export class ClosedPositionBlotterComponent implements OnChanges, OnDestroy {
         console.log('Market value feed...', data);
         this.updateMarketValues(data);
       });
-    }
-  }
-
-  processPendingPositions() {
-    this.pendingPosition.forEach((position) => this.update(position));
-    this.pendingPosition = [];
-    this.isPending = false;
-  }
-
-  updatePosition(data: any) {
-    if (this.isPending) {
-      this.pendingPosition.push(data);
-    } else {
-      this.update(data);
     }
   }
 

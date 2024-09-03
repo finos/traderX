@@ -32,7 +32,7 @@ describe('PositionBlotterComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(ClosedPositionBlotterComponent);
     component = fixture.componentInstance;
-    component.filteredPositions = positions;
+    component.positions = positions;
     fixture.detectChanges();
   });
 
@@ -46,8 +46,8 @@ describe('PositionBlotterComponent', () => {
     expect(columns.length).toEqual(2);
     expect(rows.length).toEqual(2);
     const firstRow = rows[0];
-    expect(firstRow.children[0].innerText).toEqual(component.filteredPositions[0].security);
-    expect(firstRow.children[1].innerText).toEqual(component.filteredPositions[0].value.toString());
+    expect(firstRow.children[0].innerText).toEqual(component.positions[0].security);
+    expect(firstRow.children[1].innerText).toEqual(component.positions[0].value.toString());
   });
 
 });
