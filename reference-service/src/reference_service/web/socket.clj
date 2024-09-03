@@ -1,6 +1,5 @@
 (ns reference-service.web.socket
   (:require
-   [clojure.string :as str]
    [clojure.tools.logging :as log]
    [jsonista.core :as json]
    [manifold.stream :as s]
@@ -41,9 +40,9 @@
                       (:price-update-interval-ms @client)
                       0 ;; start immediately
                       (fn []
-                        (log/info "Updating prices for " (map :security (:positions @account)))
+                        (log/info "Sending market prices for " (:securities @account))
                         (prices/get-recent-prices
-                         (map :security (:positions @account)))))]
+                         (:securities @account))))]
     (swap! client assoc :price-update-stream price-stream)
     price-stream))
 
@@ -75,15 +74,19 @@
 
 (defmethod handle :account-topic
   [{:keys [payload]}]
-  ;; TODO think if we should have multiple accounts and publish prices to /marketValue/<ACCT-ID>
+  ;; TODO think if we should have multiple accounts and publish prices to all subscribed
   ;; we'd have to watch unsubscriptions too - so we remove those accounts from stream
-  (log/infof "current account %s" (pr-str payload))
+  (log/infof "current account %d" payload)
   (let [trades (prices/account-trades (:jdbc-ds @client) payload)
-        positions (prices/account-positions (:jdbc-ds @client) payload)]
-    (log/infof "account positions %s" positions)
+        positions (prices/account-positions (:jdbc-ds @client) payload)
+        securities (set (map :security trades))]
+    (log/infof "Account positions %s" positions)
     (reset! account {:id payload
                      :trades trades
-                     :positions positions}))
+                     :securities securities
+                     :positions positions})
+    (log/infof "Will publish prices for: %s" securities)
+    (publish-market-value (prices/get-recent-prices securities)))
   (let [price-stream (start-price-update-stream)]
     (s/consume publish-market-value
                price-stream))
@@ -93,10 +96,11 @@
 
 (defmethod handle :account-trades-topic
   [{:keys [payload]}]
-  (log/infof "received account trades subscription for %s" (pr-str payload))
-  (swap! account update :trades into payload)
-  (swap! account update :securities into (:security payload))
-  (prices/save-trades (:jdbc-ds @client) [payload]))
+  (log/infof "Received account trades subscription for %s" (pr-str payload))
+  (swap! account update :trades into [payload])
+  (swap! account update :securities into [(:security payload)])
+  (prices/save-trades (:jdbc-ds @client) [payload])
+  (publish-market-value (prices/get-recent-prices [(:security payload)])))
 
 (defn disconnect
   [client]

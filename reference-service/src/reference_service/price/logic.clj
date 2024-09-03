@@ -157,7 +157,7 @@
                         (if (= side "Sell") 1 -1)))
         calculation (format "(+ %d (* %d %d %d))"
                             value unitPrice quantity
-                            (if (= "Sell" side) -1 1))]
+                            (if (= "Sell" side) 1 -1))]
     [posid
      accountId
      security
@@ -200,13 +200,17 @@
 (defn account-trades
   [jdbc-ds account-id]
   (sql/query jdbc-ds
-             ["select * from trades where account_id = ?"
+             ["select _id as id, security, quantity, side, price
+               from trades
+               where account_id = ?"
               account-id]))
 
 (defn account-positions
   [jdbc-ds account-id]
   (sql/query jdbc-ds
-             ["select * from positions where account_id = ?"
+             ["select _id as id, security, trade, value
+               from positions
+               where account_id = ?"
               account-id]))
 
 (defn start-price-update-stream
