@@ -141,25 +141,30 @@
   [jdbc-ds {:keys [security id accountId quantity unitPrice side]}]
   (let [{:keys [posid
                 oldquantity
-                value]} (first
+                value]
+         :or {posid (str (java.util.UUID/randomUUID))
+              oldquantity 0
+              value 0}} (first
                          (sql/query jdbc-ds
                                     [select-position
-                                     accountId security]))]
-    [(or posid
-         (str (java.util.UUID/randomUUID)))
+                                     accountId security]))
+        new-quantity (+ oldquantity
+                        (if (= side "Buy")
+                          quantity
+                          (- quantity)))
+        new-value (+ value
+                     (* unitPrice quantity
+                        (if (= side "Sell") 1 -1)))
+        calculation (format "(+ %d (* %d %d %d))"
+                            value unitPrice quantity
+                            (if (= "Sell" side) -1 1))]
+    [posid
      accountId
      security
-     (+ (or oldquantity 0)
-        (if (= side "Buy")
-          quantity
-          (- quantity)))
-     (+ (or value 0)
-        (* unitPrice quantity
-           (if (= side "Sell") 1 -1)))
+     new-quantity
+     new-value
      id
-     (str "(+ " (or value 0)
-          " (* " unitPrice " " quantity " "
-          (if (= "Sell" side) -1 1) "))")]))
+     calculation]))
 
 (defn save-trades
   [jdbc-ds trades]
