@@ -20,7 +20,7 @@ The command should open your browser and point to `http://localhost:3000`.
 
 You can configure Netlify using your own GitHub account, pointing to a personal repository (or fork); when adding a new site, please use the following configuration:
 - Woeking directory: `website`
-- Build command: `yarn build`
+- Build command: `npm run build`
 - Build directory: `website/build`
 
 If you want to serve your website through `https://<project_name>.finos.org`, please email [help@finos.org](mailto:help@finos.org). To check a preview, visit https://project-blueprint.finos.org .
