@@ -1,0 +1,88 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: traderx-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: localhost
+      http:
+        paths:
+          - path: /db-web/
+            pathType: Prefix
+            backend:
+              service:
+                name: database
+                port:
+                  number: 18084
+          - path: /reference-data/
+            pathType: Prefix
+            backend:
+              service:
+                name: reference-data
+                port:
+                  number: 18085
+          - path: /ng-cli-ws
+            pathType: Prefix
+            backend:
+              service:
+                name: web-front-end-angular
+                port:
+                  number: 18093
+          - path: /trade-feed/
+            pathType: Prefix
+            backend:
+              service:
+                name: trade-feed
+                port:
+                  number: 18086
+          - path: /socket.io/
+            pathType: Prefix
+            backend:
+              service:
+                name: trade-feed
+                port:
+                  number: 18086
+          - path: /people-service/
+            pathType: Prefix
+            backend:
+              service:
+                name: people-service
+                port:
+                  number: 18089
+          - path: /account-service/
+            pathType: Prefix
+            backend:
+              service:
+                name: account-service
+                port:
+                  number: 18088
+          - path: /position-service/
+            pathType: Prefix
+            backend:
+              service:
+                name: position-service
+                port:
+                  number: 18090
+          - path: /trade-service/
+            pathType: Prefix
+            backend:
+              service:
+                name: trade-service
+                port:
+                  number: 18092
+          - path: /trade-processor/
+            pathType: Prefix
+            backend:
+              service:
+                name: trade-processor
+                port:
+                  number: 18091
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web-front-end-angular
+                port:
+                  number: 18093

@@ -4,8 +4,9 @@ namespace: traderx
 
 resources:
  - namespace.yaml
-#  - ../../base/ingress2
+ - ../../base/ingress
  - ../../base/database
+ - ../../base/account-service
  - ../../base/people-service
  - ../../base/position-service
  - ../../base/reference-data

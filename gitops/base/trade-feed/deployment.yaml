@@ -20,6 +20,9 @@ spec:
         - image: traderx/trade-feed
           imagePullPolicy: IfNotPresent
           name: trade-feed
+          env:
+            - name: TRADE_FEED_PORT
+              value: "18086"
           ports:
             - containerPort: 18086
               protocol: TCP
