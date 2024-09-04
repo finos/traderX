@@ -7,8 +7,8 @@
 
 plugins {
   id 'java'
-  id 'org.springframework.boot' version '3.3.1'
-  id 'io.spring.dependency-management' version '1.1.5'
+  id 'org.springframework.boot' version '3.3.3'
+  id 'io.spring.dependency-management' version '1.1.6'
 }
 
 group = 'finos.traderx.trade-service'
@@ -27,7 +27,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'com.h2database:h2:2.2.224'
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
 
 	implementation('org.json:json:20240303') {
 		because 'previous versions are affected by multiple CVE'
