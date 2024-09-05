@@ -214,7 +214,7 @@
 (defn account-positions
   [jdbc-ds account-id]
   (sql/query jdbc-ds
-             ["select _id as id, security, trade, value
+             ["select _id as id, security, trade, value, quantity, calculation
                from positions
                where account_id = ?"
               account-id]))

@@ -20,6 +20,10 @@
                  :coerce-response
                  :coerce-request])
 
+(defn get-account-id
+  [path-params]
+  (Integer/parseInt (:account-id path-params)))
+
 (defn routes
   [jdbc-ds]
   ["/"
@@ -49,8 +53,7 @@
      :get
      {:handler
       (fn [{:keys [path-params]}]
-        (let [account-id (try (Integer/parseInt (:account-id path-params))
-                              (catch Exception _ "-666"))]
+        (let [account-id (get-account-id path-params)]
           (log/info "Get prices for stocks in account:" (:account-id path-params))
           (if-let [prices (seq (prices/get-recent-prices-for-account jdbc-ds account-id))]
             (-> prices
@@ -58,6 +61,26 @@
                 response/ok
                 (response/header "Content-Type" "application/json"))
             (response/not-found (str "Prices not found for stocks in account: " (:account-id path-params))))))}}]
+   ["trades/:account-id"
+    {:allow-methods [:get]
+     :get
+     {:handler
+      (fn [{:keys [path-params]}]
+        (let [account-id (get-account-id path-params)]
+          (-> (prices/account-trades jdbc-ds account-id)
+              to-json
+              response/ok
+              (response/header "Content-Type" "application/json"))))}}]
+   ["positions/:account-id"
+    {:allow-methods [:get]
+     :get
+     {:handler
+      (fn [{:keys [path-params]}]
+        (let [account-id (get-account-id path-params)]
+          (-> (prices/account-positions jdbc-ds account-id)
+              to-json
+              response/ok
+              (response/header "Content-Type" "application/json"))))}}]
    ["stocks"
     [""
      {:allow-methods [:get]

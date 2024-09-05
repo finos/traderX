@@ -15,28 +15,12 @@
                   ([request]
                    (add-cors-headers (handler request))))))})
 
-(def wrap-exceptions
-  "Middleware which catches exceptions and returns a 400 response with the exception message."
-  {:name ::exceptions
-   ::compile
-   (fn exceptions-compile [_ _]
-     (fn exceptions-middleware
-       [handler]
-       (fn
-         ([request]
-          (try
-            (handler request)
-            (catch Exception e
-              (add-cors-headers
-               {:status 400
-                :body {:error (.getMessage e)}}))))
-         ([request respond raise]
-          (handler request
-                   (fn [response]
-                     (try
-                       (respond response)
-                       (catch Exception e
-                         (respond (add-cors-headers
-                                   {:status 400
-                                    :body {:error (.getMessage e)}}))))
-                     raise))))))})
+(defn wrap-exceptions
+  [handler]
+  (fn [request]
+    (try
+      (handler request)
+      (catch Exception e
+        (add-cors-headers
+         {:status 400
+          :body {:error (.getMessage e)}})))))
