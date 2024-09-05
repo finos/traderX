@@ -2,6 +2,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
 import { TradeModule } from './trade/trade.module';
+import { ReportModule } from './report/report.module';
 import { HttpClientJsonpModule, HttpClientModule } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { AgGridModule } from 'ag-grid-angular';

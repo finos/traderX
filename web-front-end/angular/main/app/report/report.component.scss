@@ -1,0 +1,54 @@
+.trade-container {
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
+
+    .trade-blotter {
+        padding: 5px;
+    }
+
+    .trade-ops {
+        display: flex;
+        justify-content:  flex-start;
+    }
+
+    .trade-blotter {
+        display: flex;
+        &-items {
+         flex-basis: 50%;
+         min-width: 300px;
+        }
+    }
+    .position-blotter {
+        display: flex;
+        &-items {
+         flex-basis: 50%;
+         min-width: 300px;
+        }
+    }
+
+    .closed-trade-blotter {
+      display: flex;
+      justify-content: flex-end;
+      &-items {
+       flex-basis: 50%;
+       min-width: 300px;
+      }
+    }
+
+    .closed-position-blotter {
+      display: flex;
+      &-items {
+       flex-basis: 50%;
+       min-width: 300px;
+      }
+  }
+
+    .disclaimer {
+        display: flex;
+        justify-content: right;
+        flex-basis: 40%;
+        padding: 5px;
+    }
+}
+

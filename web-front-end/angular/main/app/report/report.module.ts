@@ -1,10 +1,9 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TradeTicketComponent } from './trade-ticket/trade-ticket.component';
-import { TradeBlotterComponent } from './trade-blotter/trade-blotter.component';
+import { ReportComponent } from './report.component';
 import { ClosedPositionBlotterComponent } from './closed-position-blotter/closed-position-blotter.component';
 import { PositionBlotterComponent } from './position-blotter/position-blotter.component';
-import { TradeComponent } from './trade.component';
+import { TradeBlotterComponent } from './trade-blotter/trade-blotter.component';
 import { AgGridModule } from 'ag-grid-angular';
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { FormsModule } from '@angular/forms';
@@ -15,7 +14,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
 
 @NgModule({
-  declarations: [TradeComponent, TradeTicketComponent, TradeBlotterComponent, PositionBlotterComponent, ClosedPositionBlotterComponent],
+  declarations: [ReportComponent, TradeBlotterComponent, PositionBlotterComponent, ClosedPositionBlotterComponent],
   imports: [
     CommonModule,
     AgGridModule,
@@ -26,6 +25,6 @@ import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
     FormsModule,
     DropdownModule
   ],
-  exports: [TradeComponent, TradeTicketComponent, TradeBlotterComponent]
+  exports: [ReportComponent, TradeBlotterComponent]
 })
-export class TradeModule { }
+export class ReportModule { }
