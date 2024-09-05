@@ -185,13 +185,13 @@
              :as trade} trades]
       (p/set-parameters trade-ps [id
                                   security
-                                  accountId
-                                  unitPrice
-                                  quantity
+                                  (long accountId)
+                                  (long unitPrice)
+                                  (long quantity)
                                   side])
       (.addBatch trade-ps)
       (let [position (position-for jdbc-ds trade)]
-        (log/infof "Saving position %s" position)
+        (log/infof "Saving position %s" (pr-str position))
         (p/set-parameters position-ps position)
         (.addBatch position-ps)))
     (.executeBatch trade-ps)

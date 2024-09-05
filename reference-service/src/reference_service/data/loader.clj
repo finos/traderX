@@ -98,10 +98,10 @@
    ["TRADE-52355-AABBCC" "BAC" 52355  20 2400 "Buy"]])
 
 (def position-seed
-  [[(str (UUID/randomUUID)) 22214 "MS" 1000 -88000 "TRADE-22214-DDEEFF" "(* 1000 88 -1)"]
-   [(str (UUID/randomUUID)) 22214 "IBM" 100 -12300 "TRADE-22214-AABBCC" "(* 100 123 -1)"]
-   [(str (UUID/randomUUID)) 22214 "C" 2000 -642000 "TRADE-22214-GGHHII" "(* 2000 321 -1)"]
-   [(str (UUID/randomUUID)) 52355 "BAC" 2400 -48000 "TRADE-52355-AABBCC" "(* 2400 20 -1)"]])
+  [[(str (UUID/randomUUID)) 22214 "MS" 1000 -88000 "TRADE-22214-DDEEFF" "(+ 0 (* 1000 88 -1))"]
+   [(str (UUID/randomUUID)) 22214 "IBM" 100 -12300 "TRADE-22214-AABBCC" "(+ 0 (* 100 123 -1))"]
+   [(str (UUID/randomUUID)) 22214 "C" 2000 -642000 "TRADE-22214-GGHHII" "(+ 0 (* 2000 321 -1))"]
+   [(str (UUID/randomUUID)) 52355 "BAC" 2400 -48000 "TRADE-52355-AABBCC" "(+ 0 (* 2400 20 -1))"]])
 
 (defn seed
   [jdbc-ds]
