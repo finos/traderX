@@ -18,6 +18,7 @@ import { PageNotFoundComponent } from './page-not-found.component';
     BrowserModule,
     CommonModule,
     TradeModule,
+    ReportModule,
     AccountsModule,
     HttpClientModule,
     HttpClientJsonpModule,
