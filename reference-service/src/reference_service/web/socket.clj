@@ -99,7 +99,7 @@
   (log/infof "Received account trades subscription for %s" (pr-str payload))
   (swap! account update :trades into [payload])
   (swap! account update :securities into [(:security payload)])
-  (prices/save-trades (:jdbc-ds @client) [payload])
+  (prices/save-trade (:jdbc-ds @client) payload)
   (publish-market-value (prices/get-recent-prices [(:security payload)])))
 
 (defn disconnect

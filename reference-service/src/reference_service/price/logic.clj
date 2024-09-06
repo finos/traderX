@@ -21,15 +21,15 @@
 
 (def insert-trade
   "insert into trades
-     (_id, security, account_id, price, quantity, side)
+     (_id, security, account_id, price, quantity, side, state, _valid_from)
    values
-     (?,?,?,?,?,?)")
+     (?,?,?,?,?,?,?,?)")
 
 (def insert-position
   "insert into positions
-     (_id, account_id, security, quantity, value, trade, calculation)
+     (_id, account_id, security, quantity, value, trade, calculation, _valid_from)
    values
-     (?,?,?,?,?,?,?)")
+     (?,?,?,?,?,?,?,?)")
 
 (def select-stock-prices
   "select _id as ticker, price
@@ -173,30 +173,45 @@
      id
      calculation]))
 
-(defn save-trades
-  [jdbc-ds trades]
-  (log/infof "Saving trade %s" trades)
-  (with-open [conn (jdbc/get-connection jdbc-ds)
-              trade-ps (jdbc/prepare conn
-                                     [insert-trade])
-              position-ps (jdbc/prepare conn
-                                        [insert-position])]
-    (doseq [{:keys [id security accountId
-                    unitPrice quantity side]
-             :as trade} trades]
-      (p/set-parameters trade-ps [id
-                                  security
-                                  (long accountId)
-                                  (long unitPrice)
-                                  (long quantity)
-                                  side])
-      (.addBatch trade-ps)
-      (let [position (position-for jdbc-ds trade)]
-        (log/infof "Saving position %s" (pr-str position))
-        (p/set-parameters position-ps position)
-        (.addBatch position-ps)))
-    (.executeBatch trade-ps)
-    (.executeBatch position-ps)))
+(defn save-trade
+  [jdbc-ds {:keys [id security accountId
+                   unitPrice quantity side
+                   created updated]
+            :as trade}]
+  (log/infof "Saving trade %s" trade)
+  (with-open [conn (jdbc/get-connection jdbc-ds)]
+    (let [trade-pending (LocalDateTime/ofInstant
+                         (Instant/ofEpochMilli created)
+                         (ZoneId/of "UTC"))
+          trade-settled (LocalDateTime/ofInstant
+                         (Instant/ofEpochMilli updated)
+                         (ZoneId/of "UTC"))
+          position (conj (position-for jdbc-ds trade)
+                         trade-settled)]
+      (sql/query conn ["BEGIN READ WRITE"])
+      (jdbc/execute! conn [insert-trade
+                           id
+                           security
+                           (long accountId)
+                           (long unitPrice)
+                           (long quantity)
+                           side
+                           "Pending"
+                           trade-pending])
+      (jdbc/execute! conn [insert-trade
+                           id
+                           security
+                           (long accountId)
+                           (long unitPrice)
+                           (long quantity)
+                           side
+                           "Settled"
+                           trade-settled])
+      (log/infof "Saving position %s" (pr-str position))
+      (jdbc/execute! conn (into
+                           [insert-position]
+                           position))
+      (sql/query conn ["COMMIT"]))))
 
 (defn get-recent-prices
   [stocks]
