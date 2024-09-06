@@ -12,11 +12,9 @@ import { PriceService } from 'main/app/service/price.service';
 })
 export class ClosedPositionBlotterComponent implements OnChanges, OnDestroy {
   @Input() account?: Account;
-  @Input() accountPositions: Position[];
   gridApi: GridApi;
   marketValueUnSubscribeFn: Function;
   title = 'Closed Positions';
-  positions$: Observable<Position[]>;
   positions: Position[] = [];
 
   columnDefs: ColDef[] = [
@@ -32,6 +30,11 @@ export class ClosedPositionBlotterComponent implements OnChanges, OnDestroy {
       headerName: 'UNIT PRICE',
       field: 'unitPrice',
       enableCellChangeFlash: true
+    },
+    {
+      headerName: 'CALCULATION',
+      field: 'calc',
+      width: 400
     }
   ];
 
@@ -41,16 +44,18 @@ export class ClosedPositionBlotterComponent implements OnChanges, OnDestroy {
     console.log('Position blotter changes...', change);
     if (change.account?.currentValue && change.account.currentValue !== change.account.previousValue) {
       const accountId = change.account.currentValue.id;
-      console.log('Closed Position blotter', this.accountPositions);
-      this.positions = this.accountPositions?.filter((p) => p.quantity === 0);
-      this.priceService.getAccountPrices(accountId).subscribe((prices: StockPrice[]) => {
-        prices.forEach((price) => {
-          let position = this.positions?.find((p: Position) =>
-            p.security === price.ticker);
-          if (position) {
-            position = Object.assign(position, { unitPrice: price.price });
-            this.update(position);
-          }
+      this.priceService.getPositions(accountId).subscribe((positions: Position[]) => {
+        this.positions = positions.filter((p) => p.quantity === 0);
+        console.log('Closed Position blotter', this.positions);
+        this.priceService.getAccountPrices(accountId).subscribe((prices: StockPrice[]) => {
+          prices.forEach((price) => {
+            let position = this.positions?.find((p: Position) =>
+              p.security === price.ticker);
+            if (position) {
+              position = Object.assign(position, { unitPrice: price.price });
+              this.update(position);
+            }
+          });
         });
       });
     }
@@ -61,7 +66,7 @@ export class ClosedPositionBlotterComponent implements OnChanges, OnDestroy {
     let positionData;
     if (row) {
       positionData = {
-        update: [Object.assign(row.data, { quantity: data.quantity, value: data.value })],
+        update: [Object.assign(row.data, { quantity: data.quantity, value: data.value, calc: data.calculation  })],
       };
     } else {
       positionData = {
@@ -69,7 +74,8 @@ export class ClosedPositionBlotterComponent implements OnChanges, OnDestroy {
           accountid: data.accountid,
           security: data.security,
           updated: data.updated,
-          value: data.value
+          value: data.value,
+          calc: data.calculation
         }],
         addIndex: 0
       };

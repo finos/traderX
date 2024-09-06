@@ -2,7 +2,7 @@ import { ColDef, GridApi, GridReadyEvent, Module } from 'ag-grid-community';
 import { Account } from 'main/app/model/account.model';
 import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { Position, StockPrice } from 'main/app/model/trade.model';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { PriceService } from 'main/app/service/price.service';
 
 @Component({
@@ -12,7 +12,7 @@ import { PriceService } from 'main/app/service/price.service';
 })
 export class PositionBlotterComponent implements OnChanges, OnDestroy {
   @Input() account?: Account;
-  accountPositions$: Observable<Position[]>;
+  // accountPositions$: Observable<Position[]>;
   @Input() accountPositions: Position[];
   gridApi: GridApi;
   socketUnSubscribeFn: Function;
@@ -39,6 +39,11 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
       headerName: 'MARKET VALUE',
       field: 'marketValue',
       enableCellChangeFlash: true
+    },
+    {
+      headerName: 'CALCULATION',
+      field: 'calc',
+      width: 400
     }
   ];
 
@@ -49,20 +54,18 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
     if (change.account?.currentValue && change.account.currentValue !== change.account.previousValue) {
       const accountId = change.account.currentValue.id;
       this.priceService.getPositions(accountId).subscribe((positions: Position[]) => {
-        console.log('Account Positions', positions);
-        this.positions = positions.filter((p: Position) => p.quantity > 0);
+        this.positions = positions.filter((p) => p.quantity > 0);
         console.log('Position blotter', this.positions);
-      });
+        this.priceService.getAccountPrices(accountId).subscribe((prices: StockPrice[]) => {
+          prices.forEach((price) => {
+            let position = this.positions.find((p: Position) =>
+              p.security === price.ticker);
+            if (position) {
+              position = Object.assign(position, { marketValue: Math.abs(position.quantity * price.price) });
+              this.update(position);
+            }
 
-      this.priceService.getAccountPrices(accountId).subscribe((prices: StockPrice[]) => {
-        prices.forEach((price) => {
-          let position = this.positions.find((p: Position) =>
-            p.security === price.ticker);
-          if (position) {
-            position = Object.assign(position, { marketValue: Math.abs(position.quantity * price.price) });
-            this.update(position);
-          }
-
+          });
         });
       });
     }
@@ -78,7 +81,7 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
         };
       } else {
         positionData = {
-          update: [Object.assign(row.data, { quantity: data.quantity, value: data.value })],
+          update: [Object.assign(row.data, { quantity: data.quantity, value: data.value, calc: data.calculation })],
         };
       }
     } else {
@@ -88,7 +91,8 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
           quantity: data.quantity,
           security: data.security,
           updated: data.updated,
-          value: data.value
+          value: data.value,
+          calc: data.calculation
         }],
         addIndex: 0
       };

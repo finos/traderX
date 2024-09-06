@@ -5,7 +5,6 @@ import { Account } from '../model/account.model';
 import { AccountService } from '../service/account.service';
 import { Stock } from '../model/symbol.model';
 import { SymbolService } from '../service/symbols.service';
-import { PositionService } from '../service/position.service';
 import { TradeFeedService } from 'main/app/service/trade-feed.service';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
@@ -26,7 +25,6 @@ export class TradeComponent implements OnInit {
     constructor(private accountService: AccountService,
         private symbolService: SymbolService,
         private modalService: BsModalService,
-        private positionService: PositionService,
         private tradeFeed: TradeFeedService) { }
 
     ngOnInit(): void {
@@ -34,10 +32,6 @@ export class TradeComponent implements OnInit {
             console.log('TradeComponent init', accounts);
             this.accounts = accounts;
             this.setAccount(this.accounts[5]);
-            this.positionService.getPositions(this.accounts[5].id).subscribe((positions) => {
-              this.positions = positions;
-              console.log('TradeComponent, positions:', this.positions);
-          });
         });
         this.symbolService.getStocks().subscribe((stocks) => this.stocks = stocks);
     }
@@ -45,10 +39,6 @@ export class TradeComponent implements OnInit {
     onAccountChange(account: Account) {
         console.log('onAccountChange', arguments);
         account && this.setAccount(account);
-        account && this.positionService.getPositions(account.id).subscribe((positions) => {
-            this.positions = positions;
-            console.log(this.positions);
-        });
     }
 
     getAccountName(item: Account) {

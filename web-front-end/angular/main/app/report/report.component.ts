@@ -1,11 +1,9 @@
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Subject } from 'rxjs';
-import { Position, TradeTicket } from '../model/trade.model';
 import { Account } from '../model/account.model';
 import { AccountService } from '../service/account.service';
 import { Stock } from '../model/symbol.model';
 import { SymbolService } from '../service/symbols.service';
-import { PositionService } from '../service/position.service';
 import { TradeFeedService } from 'main/app/service/trade-feed.service';
 
 @Component({
@@ -16,14 +14,14 @@ import { TradeFeedService } from 'main/app/service/trade-feed.service';
 export class ReportComponent implements OnInit {
 
   accounts: Account[] = [];
-    accountModel?: Account = undefined;
-    stocks: Stock[] = [];
-    createTicketResponse: any;
-    private account = new Subject<Account>();
+  accountModel?: Account = undefined;
+  stocks: Stock[] = [];
+  createTicketResponse: any;
+  private account = new Subject<Account>();
 
-    constructor(private accountService: AccountService,
-        private symbolService: SymbolService,
-        private tradeFeed: TradeFeedService) { }
+  constructor(private accountService: AccountService,
+      private symbolService: SymbolService,
+      private tradeFeed: TradeFeedService) { }
 
   ngOnInit(): void {
     this.accountService.getAccounts().subscribe((accounts) => {
