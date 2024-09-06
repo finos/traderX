@@ -63,15 +63,12 @@
 
 (defn populate-prices
   [jdbc-ds]
-  ;; TODO also populate initial trades and positions
   (let [prices (sql/query jdbc-ds
                           [all-stock-prices])]
     (if (seq prices)
       (reset! recent-prices
               (medley/index-by :ticker prices))
-      (with-open [conn (jdbc/get-connection jdbc-ds)
-                  prices-ps (jdbc/prepare conn
-                                          [insert-prices])]
+      (with-open [conn (jdbc/get-connection jdbc-ds {:read-only false})]
         (let [stocks (map :ticker
                           (sql/query conn
                                      [select-stocks]))
@@ -83,13 +80,17 @@
               cache-prices (map (fn [[ticker price]]
                                   {:ticker ticker
                                    :price price})
-                                prices) ]
+                                prices)
+              insert-prices-statement (str "insert into stock_prices (_id, price) values "
+                                           (str/join "," (repeat (count prices) "(?,?)")))]
           (reset! recent-prices
                   (medley/index-by :ticker cache-prices))
-          (jdbc/execute-batch! prices-ps
-                               prices
-                               {:return-keys false
-                                :return-generated-keys false}))))))
+          (sql/query conn ["BEGIN READ WRITE"])
+          (jdbc/execute! conn
+                         (reduce into
+                                 [insert-prices-statement]
+                                 prices))
+          (sql/query conn ["COMMIT"]))))))
 
 (defn generate-new-price
   "Generates a new price for a stock, within +- 5% of the last price.
