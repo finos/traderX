@@ -98,8 +98,8 @@
    {:id "TRADE-52355-AABBCC" :security "BAC" :accountId 52355 :unitPrice 20 :quantity 2400 :side "Buy"}])
 
 (def trade-dates
-  (let [t0 (System/currentTimeMillis)
-        day (* 24 60 60 1000)]
+  (let [day (* 24 60 60 1000)
+        t0 (- (System/currentTimeMillis) (* 30 day))]
     (mapv
      (fn [t]
        {:created (+ (* t day) t0)
