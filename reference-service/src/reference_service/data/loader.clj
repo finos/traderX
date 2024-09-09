@@ -92,45 +92,39 @@
    [44044 "Trading Account 1"]])
 
 (def trade-seed
-  [["TRADE-22214-AABBCC" "IBM" 22214  123 100 "Buy"]
-   ["TRADE-22214-DDEEFF" "MS" 22214  88 1000 "Buy"]
-   ["TRADE-22214-GGHHII" "C" 22214  321 2000 "Buy"]
-   ["TRADE-52355-AABBCC" "BAC" 52355  20 2400 "Buy"]])
+  [{:id "TRADE-22214-AABBCC" :security "IBM" :accountId 22214 :unitPrice 123 :quantity 100 :side "Buy"}
+   {:id "TRADE-22214-DDEEFF" :security "MS" :accountId 22214 :unitPrice 88 :quantity 1000 :side "Buy"}
+   {:id "TRADE-22214-GGHHII" :security "C" :accountId 22214 :unitPrice 321 :quantity 2000 :side "Buy"}
+   {:id "TRADE-52355-AABBCC" :security "BAC" :accountId 52355 :unitPrice 20 :quantity 2400 :side "Buy"}])
 
-(def position-seed
-  [[(str (UUID/randomUUID)) 22214 "MS" 1000 -88000 "TRADE-22214-DDEEFF" "(+ 0 (* 1000 88 -1))"]
-   [(str (UUID/randomUUID)) 22214 "IBM" 100 -12300 "TRADE-22214-AABBCC" "(+ 0 (* 100 123 -1))"]
-   [(str (UUID/randomUUID)) 22214 "C" 2000 -642000 "TRADE-22214-GGHHII" "(+ 0 (* 2000 321 -1))"]
-   [(str (UUID/randomUUID)) 52355 "BAC" 2400 -48000 "TRADE-52355-AABBCC" "(+ 0 (* 2400 20 -1))"]])
+(def trade-dates
+  (let [t0 (System/currentTimeMillis)
+        day (* 24 60 60 1000)]
+    (mapv
+     (fn [t]
+       {:created (+ (* t day) t0)
+        :updated (+ (* t day) t0 day day)}) ; settles 2 days after trade
+     (range (count trade-seed)))))
 
 (defn seed
   [jdbc-ds]
-  (if (-> (sql/query jdbc-ds
-                     ["select count(*) as cnt from accounts"])
-          first
-          :cnt
-          zero?)
-    (with-open [conn (jdbc/get-connection jdbc-ds)
-                account-ps (jdbc/prepare conn
-                                         [insert-account])
-                trade-ps (jdbc/prepare conn
-                                       [prices/insert-trade])
-                position-ps (jdbc/prepare conn
-                                          [prices/insert-position])]
-      (log/info "Seeding database")
-      (doseq [account account-seed]
-        (p/set-parameters account-ps account)
-        (.addBatch account-ps))
-      (.executeBatch account-ps)
-      (doseq [trade trade-seed]
-        (p/set-parameters trade-ps trade)
-        (.addBatch trade-ps))
-      (.executeBatch trade-ps)
-      (doseq [position position-seed]
-        (p/set-parameters position-ps position)
-        (.addBatch position-ps))
-      (.executeBatch position-ps))
-    (log/info "Database had already been seeded")))
+  (with-open [conn (jdbc/get-connection jdbc-ds)]
+    (if (-> (sql/query conn
+                       ["select count(*) as cnt from accounts"])
+            first
+            :cnt
+            zero?)
+      (do
+        (log/info "Seeding database")
+        (sql/query conn ["BEGIN READ WRITE"])
+        (run! #(jdbc/execute! conn (into [insert-account] %))
+              account-seed)
+        (sql/query conn ["COMMIT"])
+        (run! (fn [trade-dates]
+                (prices/save-trade jdbc-ds
+                                   trade-dates))
+              (map merge trade-seed trade-dates)))
+      (log/info "Database had already been seeded"))))
 
 (defn get-stock
   [jdbc-ds ticker]
@@ -157,6 +151,8 @@
                                   {:jdbcUrl jdbc-url
                                    :maxLifetime 60000}))
   (seed jdbc-ds)
+  (jdbc/execute! jdbc-ds ["select *, _valid_from from trades for all valid_time"])
+  (jdbc/execute! jdbc-ds ["delete from accounts"])
   (with-open [rdr (io/reader csv)]
     (do-insert jdbc-ds (drop 1 (csv/read-csv rdr))))
 

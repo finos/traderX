@@ -188,6 +188,7 @@
                          (ZoneId/of "UTC"))
           position (conj (position-for jdbc-ds trade)
                          trade-settled)]
+      (log/infof "Saving trade %s and position %s" (pr-str trade) (pr-str position))
       (sql/query conn ["BEGIN READ WRITE"])
       (jdbc/execute! conn [insert-trade
                            id
@@ -198,16 +199,14 @@
                            side
                            "Pending"
                            trade-pending])
-      (jdbc/execute! conn [insert-trade
-                           id
-                           security
-                           (long accountId)
-                           (long unitPrice)
-                           (long quantity)
-                           side
+      (jdbc/execute! conn ["update trades
+                            for portion of valid_time
+                            from ? to null
+                            set state = ?
+                            where _id = ?"
+                           trade-settled
                            "Settled"
-                           trade-settled])
-      (log/infof "Saving position %s" (pr-str position))
+                           id])
       (jdbc/execute! conn (into
                            [insert-position]
                            position))
@@ -222,7 +221,7 @@
 (defn account-trades
   [jdbc-ds account-id]
   (sql/query jdbc-ds
-             ["select _id as id, security, quantity, side, price
+             ["select _id as id, security, quantity, side, price, state
                from trades
                where account_id = ?"
               account-id]))
