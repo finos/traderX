@@ -3,7 +3,6 @@
             [aleph.netty :as netty]
             [clojure.tools.logging :as log]
             [muuntaja.core :as m]
-            [reitit.core :as r]
             [reitit.ring :as ring]
             [reitit.ring.coercion :as coercion]
             [reitit.ring.middleware.muuntaja :as muuntaja]

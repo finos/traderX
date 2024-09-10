@@ -11,7 +11,8 @@
    [next.jdbc.sql :as sql])
   (:import
    (com.zaxxer.hikari HikariDataSource)
-   (java.time Instant LocalDateTime ZoneId)))
+   (java.time Instant LocalDateTime ZoneId)
+   (java.time.format DateTimeFormatter)))
 
 (def insert-prices
   "insert into stock_prices
@@ -54,6 +55,20 @@
 (def select-stocks
   "select _id as ticker
    from stocks")
+
+(def select-points-in-time
+  "select distinct (coalesce (_valid_to, timestamp '9999-12-31 23:59:59+00:00')) as point, security, account_id as accountId
+   from trades
+   for all valid_time
+   where account_id=?
+   order by point asc")
+
+(def trade-intervals
+  "select _valid_to as end, _valid_from as start, security, account_id as accountId, state
+   from trades
+   for all valid_time
+   where account_id=?
+   order by start")
 
 (def recent-prices
   (atom {}))
@@ -218,21 +233,54 @@
    #(get @recent-prices %)
    stocks))
 
+(def date-time-formatter
+  (DateTimeFormatter/ofPattern "yyyy-MM-dd'T'HH:mm:ss'Z'"))
+
+(defn parse-date-time
+  [dt]
+  (LocalDateTime/parse dt date-time-formatter))
+
 (defn account-trades
-  [jdbc-ds account-id]
-  (sql/query jdbc-ds
-             ["select _id as id, security, quantity, side, price, state
-               from trades
-               where account_id = ?"
-              account-id]))
+  ([jdbc-ds account-id start end]
+   (log/infof "Get account trades start %s end %s" start end)
+   (sql/query jdbc-ds
+              (if start
+                ["select _id as id, security, quantity, side, price, state, _valid_from, _valid_to
+                  from trades
+                  for valid_time
+                  from ? to ?
+                  where account_id = ?"
+                 (parse-date-time start)
+                 (when-not (or (nil? end)
+                               (= "null" end))
+                   (.plusSeconds (parse-date-time end) 0))
+                 account-id]
+                ["select _id as id, security, quantity, side, price, state, _valid_from, _valid_to
+                  from trades
+                  for valid_time all
+                  where account_id = ?"
+                 account-id]))))
 
 (defn account-positions
-  [jdbc-ds account-id]
+  [jdbc-ds account-id start end]
+  (log/infof "Get account positions start %s end %s" start end)
   (sql/query jdbc-ds
-             ["select _id as id, security, trade, value, quantity, calculation
-               from positions
-               where account_id = ?"
-              account-id]))
+             (if start
+               ["select _id as id, security, trade, value, quantity, calculation, _valid_from, _valid_to
+                 from positions
+                 for valid_time
+                 from ? to ?
+                 where account_id = ?"
+                (parse-date-time start)
+                (when-not (or (nil? end)
+                              (= "null" end))
+                  (.plusSeconds (parse-date-time end) 0))
+                account-id]
+               ["select _id as id, security, trade, value, quantity, calculation, _valid_from, _valid_to
+                 from positions
+                 for valid_time all
+                 where account_id = ?"
+                account-id])))
 
 (defn start-price-update-stream
   [jdbc-ds price-update-interval-ms]
@@ -260,6 +308,18 @@
              [account-prices
               account-id]))
 
+(defn get-trade-points-in-time
+  [jdbc-ds account-id]
+  (sql/query jdbc-ds
+             [select-points-in-time
+              account-id]))
+
+(defn get-trade-intervals
+  [jdbc-ds account-id]
+  (sql/query jdbc-ds
+             [trade-intervals
+              account-id]))
+
 (comment
   (def jdbc-url (connection/jdbc-url
                  {:dbtype "postgresql"
@@ -270,11 +330,13 @@
   (def jdbc-ds (connection/->pool HikariDataSource
                                   {:jdbcUrl jdbc-url
                                    :maxLifetime 60000}))
-  (map :security (account-positions jdbc-ds 22214))
+  (map :security (account-positions jdbc-ds 22214 nil nil))
   (def prices (sql/query jdbc-ds
                          ["select * from stock_prices where _id in (?,?)"
                           "AAPL" "IBM"]))
-  (populate-prices jdbc-ds)
+  (get-trade-intervals jdbc-ds 52355)
+
+  (sql/query jdbc-ds [select-points-in-time])
   (jdbc/execute! jdbc-ds
                  ["insert into stock_prices (price,_id) values (?,?),(?,?)"
                   101 "AAPL"

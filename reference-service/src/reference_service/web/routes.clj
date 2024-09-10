@@ -62,22 +62,72 @@
                 (response/header "Content-Type" "application/json"))
             (response/not-found (str "Prices not found for stocks in account: " (:account-id path-params))))))}}]
    ["trades/:account-id"
+    [""
+     {:allow-methods [:get]
+      :get
+      {:handler
+       (fn [{:keys [path-params]}]
+         (let [account-id (get-account-id path-params)
+               trades (prices/account-trades jdbc-ds account-id nil nil)]
+           (log/infof "Get account %s trades for all time %s" account-id trades)
+           (-> trades
+               to-json
+               response/ok
+               (response/header "Content-Type" "application/json"))))}}]
+    ["/:start/:end"
+     {:allow-methods [:get]
+      :get
+      {:handler
+       (fn [{:keys [path-params]}]
+         (let [account-id (get-account-id path-params)
+               trades (prices/account-trades jdbc-ds account-id (:start path-params) (:end path-params))]
+           (log/infof "Get account %s trades from %s to %s: %s" account-id (:start path-params) (:end path-params) trades)
+           (-> trades
+               to-json
+               response/ok
+               (response/header "Content-Type" "application/json"))))}}]]
+   ["positions/:account-id"
+    [""
+     {:allow-methods [:get]
+      :get
+      {:handler
+       (fn [{:keys [path-params]}]
+         (let [account-id (get-account-id path-params)
+               positions (prices/account-positions jdbc-ds account-id nil nil)]
+           (log/infof "Get account %s positions for all time %s" account-id positions)
+           (-> positions
+               to-json
+               response/ok
+               (response/header "Content-Type" "application/json"))))}}]
+    ["/:start/:end"
+     {:allow-methods [:get]
+      :get
+      {:handler
+       (fn [{:keys [path-params]}]
+         (let [account-id (get-account-id path-params)
+               positions (prices/account-positions jdbc-ds account-id (:start path-params) (:end path-params))]
+           (log/infof "Get account %s positions from %s to %s: %s" account-id (:start path-params) (:end path-params) positions)
+           (-> positions
+               to-json
+               response/ok
+               (response/header "Content-Type" "application/json"))))}}]]
+   ["points-in-time/:account-id"
     {:allow-methods [:get]
      :get
      {:handler
       (fn [{:keys [path-params]}]
         (let [account-id (get-account-id path-params)]
-          (-> (prices/account-trades jdbc-ds account-id)
+          (-> (prices/get-trade-points-in-time jdbc-ds account-id)
               to-json
               response/ok
               (response/header "Content-Type" "application/json"))))}}]
-   ["positions/:account-id"
+   ["trade-intervals/:account-id"
     {:allow-methods [:get]
      :get
      {:handler
       (fn [{:keys [path-params]}]
         (let [account-id (get-account-id path-params)]
-          (-> (prices/account-positions jdbc-ds account-id)
+          (-> (prices/get-trade-intervals jdbc-ds account-id)
               to-json
               response/ok
               (response/header "Content-Type" "application/json"))))}}]
@@ -111,6 +161,6 @@
   (r/match-by-path router "/")
   (r/match-by-path router "/health")
   (r/match-by-path router "/stocks")
-  (r/match-by-path router "/stocks/x")
+  (r/match-by-path router "/trades/124")
 
   #_1)

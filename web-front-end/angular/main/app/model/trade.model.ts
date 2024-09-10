@@ -10,6 +10,19 @@ export interface Trade {
     unitPrice?: number;
 }
 
+export interface TradePointInTime {
+    point: Date;
+    security: string;
+    accountId: number;
+}
+
+export interface TradeInterval {
+    start: string;
+    end: string;
+    accountId: number;
+    label: string;
+}
+
 export enum Side {
     Sell = 'Sell',
     Buy = 'Buy'

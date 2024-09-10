@@ -77,8 +77,8 @@
   ;; TODO think if we should have multiple accounts and publish prices to all subscribed
   ;; we'd have to watch unsubscriptions too - so we remove those accounts from stream
   (log/infof "current account %d" payload)
-  (let [trades (prices/account-trades (:jdbc-ds @client) payload)
-        positions (prices/account-positions (:jdbc-ds @client) payload)
+  (let [trades (prices/account-trades (:jdbc-ds @client) payload nil nil)
+        positions (prices/account-positions (:jdbc-ds @client) payload nil nil)
         securities (set (map :security trades))]
     (log/infof "Account positions %s" positions)
     (reset! account {:id payload

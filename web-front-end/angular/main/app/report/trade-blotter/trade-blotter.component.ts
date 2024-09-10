@@ -3,7 +3,7 @@ import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/
 import { Account } from 'main/app/model/account.model';
 import { PriceService } from 'main/app/service/price.service';
 import { Observable } from 'rxjs';
-import { Trade } from '../../model/trade.model';
+import { Trade, TradeInterval } from '../../model/trade.model';
 
 @Component({
     selector: 'app-trade-blotter',
@@ -12,6 +12,7 @@ import { Trade } from '../../model/trade.model';
 export class TradeBlotterComponent implements OnChanges, OnDestroy {
     trades$: Observable<Trade[]>;
     @Input() account?: Account;
+    @Input() interval?: TradeInterval;
     trades: Trade[] = [];
     gridApi: GridApi;
     pendingTrades: Trade[] = [];
@@ -31,6 +32,10 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
             field: 'side'
         },
         {
+          headerName: 'STATE',
+          field: 'state'
+        },
+        {
             headerName: 'UNIT PRICE',
             field: 'price'
         }
@@ -39,14 +44,20 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
     constructor(private priceService: PriceService) { }
 
     ngOnChanges(change: SimpleChanges) {
+      console.log(`Trade blotter change:`, change);
         if (change.account?.currentValue && change.account.currentValue !== change.account.previousValue) {
-            const accountId = change.account.currentValue.id;
-            this.isPending = true;
-            this.priceService.getTrades(accountId).subscribe((trades: Trade[]) => {
-                this.trades = trades;
-                this.processPendingTrades();
-            });
+            this.account = change.account.currentValue;
         }
+        if (change.interval?.currentValue && change.interval.currentValue !== change.interval.previousValue) {
+          this.interval = change.interval.currentValue;
+        }
+        const interval = this.interval;
+        const accountId = this.account?.id || 52355;
+        this.isPending = true;
+        this.priceService.getTrades(accountId, interval).subscribe((trades: Trade[]) => {
+            this.trades = trades;
+            this.processPendingTrades();
+        });
     }
 
     onGridReady(params: GridReadyEvent) {

@@ -1,6 +1,6 @@
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Subject } from 'rxjs';
-import { Position, TradeTicket } from '../model/trade.model';
+import { TradePointInTime, TradeTicket } from '../model/trade.model';
 import { Account } from '../model/account.model';
 import { AccountService } from '../service/account.service';
 import { Stock } from '../model/symbol.model';
@@ -17,7 +17,6 @@ export class TradeComponent implements OnInit {
     accounts: Account[] = [];
     accountModel?: Account = undefined;
     stocks: Stock[] = [];
-    positions: Position[] = [];
     modalRef?: BsModalRef;
     createTicketResponse: any;
     private account = new Subject<Account>();

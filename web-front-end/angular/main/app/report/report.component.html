@@ -11,15 +11,26 @@
             >
             </app-ngx-dropdown>
         </div>
+        <div class="trade-filter me-3">
+            <app-ngx-dropdown
+                name="interval"
+                [items]="intervals"
+                itemKey="label"
+                [selectedItem]="intervalModel"
+                placeholder="Select Time Interval"
+                (selectedItemChange)="onIntervalChange($event)"
+            >
+            </app-ngx-dropdown>
+        </div>
     </div>
 
     <div class="trade-blotter">
-        <app-trade-blotter [account]="accountModel" class="trade-blotter-items me-2"> </app-trade-blotter>
-        <app-position-blotter [account]="accountModel" class="position-blotter-items"> </app-position-blotter>
+        <app-trade-blotter [account]="accountModel" [interval]="intervalModel" class="trade-blotter-items me-2"> </app-trade-blotter>
+        <app-position-blotter [account]="accountModel" [interval]="intervalModel" class="position-blotter-items"> </app-position-blotter>
     </div>
 
     <div class="closed-trade-blotter">
-      <app-closed-position-blotter [account]="accountModel" class="closed-position-blotter-items"> </app-closed-position-blotter>
+      <app-closed-position-blotter [account]="accountModel" [interval]="intervalModel" class="closed-position-blotter-items"> </app-closed-position-blotter>
     </div>
 
     <div class="disclaimer mt-4">

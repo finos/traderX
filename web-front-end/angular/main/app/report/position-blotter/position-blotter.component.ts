@@ -1,7 +1,7 @@
 import { ColDef, GridApi, GridReadyEvent, Module } from 'ag-grid-community';
 import { Account } from 'main/app/model/account.model';
 import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
-import { Position, StockPrice } from 'main/app/model/trade.model';
+import { Position, StockPrice, TradeInterval, TradePointInTime } from 'main/app/model/trade.model';
 import { Observable, Subject } from 'rxjs';
 import { PriceService } from 'main/app/service/price.service';
 
@@ -12,13 +12,12 @@ import { PriceService } from 'main/app/service/price.service';
 })
 export class PositionBlotterComponent implements OnChanges, OnDestroy {
   @Input() account?: Account;
-  // accountPositions$: Observable<Position[]>;
   @Input() accountPositions: Position[];
+  @Input() interval?: TradeInterval;
   gridApi: GridApi;
   socketUnSubscribeFn: Function;
   marketValueUnSubscribeFn: Function;
   title = 'Positions';
-  // positions$: Observable<Position[]>;
   positions: Position[];
 
   columnDefs: ColDef[] = [
@@ -51,24 +50,32 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
 
   ngOnChanges(change: SimpleChanges) {
     console.log('Position blotter changes...', change);
-    if (change.account?.currentValue && change.account.currentValue !== change.account.previousValue) {
-      const accountId = change.account.currentValue.id;
-      this.priceService.getPositions(accountId).subscribe((positions: Position[]) => {
-        this.positions = positions.filter((p) => p.quantity > 0);
-        console.log('Position blotter', this.positions);
-        this.priceService.getAccountPrices(accountId).subscribe((prices: StockPrice[]) => {
-          prices.forEach((price) => {
-            let position = this.positions.find((p: Position) =>
-              p.security === price.ticker);
-            if (position) {
-              position = Object.assign(position, { marketValue: Math.abs(position.quantity * price.price) });
-              this.update(position);
-            }
-
-          });
-        });
-      });
+    if (change.account?.currentValue &&
+        change.account.currentValue !== change.account.previousValue) {
+      this.account = change.account.currentValue;
     }
+    if (change.interval?.currentValue &&
+        change.interval.currentValue !== change.interval.previousValue) {
+      this.interval = change.interval.currentValue;
+    }
+    const accountId = this.account?.id || 52355;
+    const interval = this.interval;
+    console.log('Position blotter', accountId, interval);
+    this.priceService.getPositions(accountId, interval).subscribe((positions: Position[]) => {
+    this.positions = positions.filter((p) => p.quantity > 0);
+    console.log('Position blotter', this.positions);
+    this.priceService.getAccountPrices(accountId).subscribe((prices: StockPrice[]) => {
+      prices.forEach((price) => {
+        let position = this.positions.find((p: Position) =>
+          p.security === price.ticker);
+        if (position) {
+          position = Object.assign(position, { marketValue: Math.abs(position.quantity * price.price) });
+          this.update(position);
+        }
+
+      });
+    });
+    });
   }
 
   update(data: any) {
