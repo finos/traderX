@@ -17,9 +17,9 @@ spec:
         app: reference-data
     spec:
       containers:
-        - image: traderx/reference-data
+        - name: reference-data
+          image: traderx/reference-data
           imagePullPolicy: IfNotPresent
-          name: reference-data
           ports:
             - containerPort: 18085
               protocol: TCP

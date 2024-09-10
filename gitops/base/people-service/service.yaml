@@ -7,7 +7,7 @@ metadata:
 spec:
   ports:
     - name: "18089"
-      port: 18089
+      port: 8080
       targetPort: 18089
   selector:
     app: people-service

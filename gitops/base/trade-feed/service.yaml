@@ -7,7 +7,7 @@ metadata:
 spec:
   ports:
     - name: "18086"
-      port: 18086
+      port: 8080
       targetPort: 18086
   selector:
     app: trade-feed

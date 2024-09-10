@@ -22,7 +22,7 @@ spec:
           name: web-front-end-angular
           env:
             - name: WEB_FRONT_END_START_MODE
-              value: "start"
+              value: "start-prod"
           ports:
             - containerPort: 18093
               protocol: TCP
