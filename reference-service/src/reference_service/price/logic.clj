@@ -68,7 +68,7 @@
    from trades
    for all valid_time
    where account_id=?
-   order by start")
+   order by start, end nulls last")
 
 (def recent-prices
   (atom {}))
