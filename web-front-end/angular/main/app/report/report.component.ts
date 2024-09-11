@@ -1,4 +1,5 @@
 import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Options } from '@angular-slider/ngx-slider';
 import { Subject } from 'rxjs';
 import { Account } from '../model/account.model';
 import { TradeInterval, TradePointInTime } from '../model/trade.model';
@@ -23,6 +24,21 @@ export class ReportComponent implements OnInit {
   createTicketResponse: any;
   private account = new Subject<Account>();
   private interval = new Subject<TradeInterval>();
+  points: String[] = [];
+  hideSlider = true;
+  value: number = 0;
+  highValue: number = 1;
+  options: Options = {
+    floor: 0,
+    ceil: 1,
+    step: 1,
+    showTicks: true,
+    translate: (index): string => {
+      if (index === this.points.length) {
+        return 'All';
+      } else {
+        return `v${index}`;
+      }}};
 
   constructor(private accountService: AccountService,
       private symbolService: SymbolService,
@@ -51,6 +67,12 @@ export class ReportComponent implements OnInit {
     interval && this.setInterval(interval);
   }
 
+  onSliderChange(event: any) {
+    console.log('onSliderChange', event);
+    this.value = event.value;
+    this.highValue = event.highValue;
+  }
+
   private setAccount(account: Account) {
     this.accountModel = account;
     this.account.next(account);
@@ -62,7 +84,16 @@ export class ReportComponent implements OnInit {
       console.log('Report Comp : Trade intervals', this.intervals);
 
       intervals.length > 0 && this.setInterval(this.intervals[0]);
+      this.setSliderValues(intervals);
     });
+  }
+
+  private setSliderValues(intervals: TradeInterval[]) {
+    const pointsSet = new Set(intervals.map((i) => i.start)
+    .concat(intervals.map((i) => i.end).filter((v, i, a) => v  !== null)));
+    this.points = Array.from(pointsSet).sort();
+    this.options = Object.assign({}, this.options, {ceil: this.points.length});
+    this.hideSlider = false;
   }
 
   private setInterval(interval: TradeInterval) {

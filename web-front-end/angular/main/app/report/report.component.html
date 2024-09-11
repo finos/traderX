@@ -1,5 +1,5 @@
 <div class="trade-container p-5">
-    <div class="trade-ops mb-4">
+    <nav></nav><div class="trade-ops mb-4">
         <div class="trade-filter me-3">
             <app-ngx-dropdown
                 name="account"
@@ -22,6 +22,16 @@
             >
             </app-ngx-dropdown>
         </div>
+
+      </div>
+
+      <div class="trade-ops mb-4" [hidden]="hideSlider">
+        <ngx-slider
+          [options]="options"
+          [(value)]="value"
+          [(highValue)]="highValue"
+          (userChangeEnd)="onSliderChange($event)">
+        </ngx-slider>
     </div>
 
     <div class="trade-blotter">

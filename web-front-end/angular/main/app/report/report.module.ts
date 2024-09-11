@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { NgxSliderModule } from '@angular-slider/ngx-slider';
 import { ReportComponent } from './report.component';
 import { ClosedPositionBlotterComponent } from './closed-position-blotter/closed-position-blotter.component';
 import { PositionBlotterComponent } from './position-blotter/position-blotter.component';
@@ -23,7 +24,8 @@ import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
     ModalModule.forRoot(),
     AlertModule.forRoot(),
     FormsModule,
-    DropdownModule
+    DropdownModule,
+    NgxSliderModule
   ],
   exports: [ReportComponent, TradeBlotterComponent]
 })
