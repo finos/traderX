@@ -73,7 +73,7 @@
       (if (= (count stocks) input-stock-count)
         (log/infof "Stocks already populated, there are %d stocks" (count stocks))
         (do
-          (log/infof "Populating %d stocks and prices" input-stock-count)
+          (log/infof "Populating %d stocks" input-stock-count)
           (do-insert jdbc-ds data-lines))))))
 
 (def insert-account

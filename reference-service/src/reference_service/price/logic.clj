@@ -52,6 +52,13 @@
    set price = ?
    where _id = ?")
 
+(def update-prices-at
+  "update stock_prices
+   for portion of valid_time
+   from ? to null
+   set price = ?
+   where _id = ?")
+
 (def select-stocks
   "select _id as ticker
    from stocks")
@@ -76,37 +83,6 @@
 (def price-update-stream
   (atom nil))
 
-(defn populate-prices
-  [jdbc-ds]
-  (let [prices (sql/query jdbc-ds
-                          [all-stock-prices])]
-    (if (seq prices)
-      (reset! recent-prices
-              (medley/index-by :ticker prices))
-      (with-open [conn (jdbc/get-connection jdbc-ds {:read-only false})]
-        (let [stocks (map :ticker
-                          (sql/query conn
-                                     [select-stocks]))
-              prices (mapv
-                      (fn [stock]
-                        [stock
-                         (rand-int 1000)])
-                      stocks)
-              cache-prices (map (fn [[ticker price]]
-                                  {:ticker ticker
-                                   :price price})
-                                prices)
-              insert-prices-statement (str "insert into stock_prices (_id, price) values "
-                                           (str/join "," (repeat (count prices) "(?,?)")))]
-          (reset! recent-prices
-                  (medley/index-by :ticker cache-prices))
-          (sql/query conn ["BEGIN READ WRITE"])
-          (jdbc/execute! conn
-                         (reduce into
-                                 [insert-prices-statement]
-                                 prices))
-          (sql/query conn ["COMMIT"]))))))
-
 (defn generate-new-price
   "Generates a new price for a stock, within +- 5% of the last price.
    If the new price is zero, it will recursively call itself until a non-zero price is generated."
@@ -118,6 +94,48 @@
     (if (zero? new-price)
       (+ 1 (rand-int 10))
       new-price)))
+
+(defn populate-prices
+  [jdbc-ds]
+  (let [prices (sql/query jdbc-ds
+                          [all-stock-prices])]
+    (if (seq prices)
+      (reset! recent-prices
+              (medley/index-by :ticker prices))
+      (with-open [conn (jdbc/get-connection jdbc-ds {:read-only false})]
+        (let [stocks (map :ticker
+                          (sql/query conn
+                                     [select-stocks]))
+              year-ago (.minusDays (LocalDateTime/now) 366)
+              prices (mapv
+                      (fn [stock]
+                        [stock
+                         (rand-int 1000)
+                         year-ago])
+                      stocks)
+              insert-prices-statement (str "insert into stock_prices (_id, price, _valid_from) values "
+                                           (str/join "," (repeat (count prices) "(?,?,?)")))]
+          (sql/query conn ["BEGIN READ WRITE"])
+          (jdbc/execute! conn
+                         (reduce into
+                                 [insert-prices-statement]
+                                 prices))
+          (sql/query conn ["COMMIT"])
+          (run! (fn [offset]
+                  (sql/query conn ["BEGIN READ WRITE"])
+                  (run! (fn [[ticker price]]
+                          (sql/query conn
+                                     [update-prices-at
+                                      (.plusDays year-ago offset)
+                                      (generate-new-price price)
+                                      ticker]))
+                        prices)
+                  (sql/query conn ["COMMIT"]))
+                (range 1 367))
+          (reset! recent-prices
+                  (medley/index-by :ticker
+                                   (sql/query conn
+                                              [all-stock-prices]))))))))
 
 (defn save-prices
   [jdbc-ds prices]
@@ -353,25 +371,24 @@
                          [all-stock-prices]))
   (defn populate-prices
     [jdbc-ds]
-    (let []
-      (if (seq prices)
-        (reset! recent-prices
-                (medley/index-by :ticker prices))
-        (with-open [conn (jdbc/get-connection jdbc-ds)
-                    prices-ps (jdbc/prepare conn
-                                            [insert-prices])]
-          (let [stocks (map :ticker
-                            (sql/query conn
-                                       [select-stocks]))
-                prices (mapv
-                        (fn [stock]
-                          [stock
-                           (rand-int 1000)])
-                        stocks)]
-            (reset! recent-prices
-                    (medley/index-by :ticker prices))
-            (jdbc/execute-batch! prices-ps
-                                 prices
-                                 {:return-keys false
-                                  :return-generated-keys false}))))))
+    (if (seq prices)
+      (reset! recent-prices
+              (medley/index-by :ticker prices))
+      (with-open [conn (jdbc/get-connection jdbc-ds)
+                  prices-ps (jdbc/prepare conn
+                                          [insert-prices])]
+        (let [stocks (map :ticker
+                          (sql/query conn
+                                     [select-stocks]))
+              prices (mapv
+                      (fn [stock]
+                        [stock
+                         (rand-int 1000)])
+                      stocks)]
+          (reset! recent-prices
+                  (medley/index-by :ticker prices))
+          (jdbc/execute-batch! prices-ps
+                               prices
+                               {:return-keys false
+                                :return-generated-keys false})))))
   #_1)
