@@ -139,14 +139,13 @@
 
 (defn save-prices
   [jdbc-ds prices]
-  (with-open [conn (jdbc/get-connection jdbc-ds)
-              ps (jdbc/prepare conn
-                               [update-prices])]
-    (doseq [price prices]
-      (p/set-parameters ps [(-> price :price int)
-                            (-> price :ticker str)])
-      (.addBatch ps))
-    (.executeBatch ps)))
+  (with-open [conn (jdbc/get-connection jdbc-ds)]
+    (jdbc/execute! conn ["BEGIN READ WRITE"])
+    (doseq [{:keys [price ticker]} prices]
+      (jdbc/execute! conn
+                     [update-prices
+                      price ticker] ))
+    (jdbc/execute! conn ["COMMIT"])))
 
 (defn get-prices
   [jdbc-ds tickers]
@@ -354,6 +353,9 @@
                           "AAPL" "IBM"]))
   (get-trade-intervals jdbc-ds 52355)
 
+  (generate-new-prices jdbc-ds)
+
+  (generate-new-price 100)
   (sql/query jdbc-ds [select-points-in-time])
   (jdbc/execute! jdbc-ds
                  ["insert into stock_prices (price,_id) values (?,?),(?,?)"
