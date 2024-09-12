@@ -1,0 +1,89 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: traderx-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: localhost
+      http:
+        paths:
+        - path: /account-service(/|$)(.*)
+          pathType: Prefix
+          backend:
+            service:
+              name: account-service
+              port:
+                number: 8080
+        - path: /db-web(/|$)(.*)
+          pathType: Prefix
+          backend:
+            service:
+              name: database
+              port:
+                number: 18084
+        - path: /ng-cli-ws
+          pathType: Prefix
+          backend:
+            service:
+              name: web-front-end-angular
+              port:
+                number: 8080
+        - path: /people-service(/|$)(.*)
+          pathType: Prefix
+          backend:
+            service:
+              name: people-service
+              port:
+                number: 8080
+        - path: /position-service(/|$)(.*)
+          pathType: Prefix
+          backend:
+            service:
+              name: position-service
+              port:
+                number: 8080
+        - path: /reference-data(/|$)(.*)
+          pathType: Prefix
+          backend:
+            service:
+              name: reference-data
+              port:
+                number: 8080
+        - path: /socket.io/
+          pathType: Prefix
+          backend:
+            service:
+              name: trade-feed
+              port:
+                number: 8080
+        - path: /trade-feed(/|$)(.*)
+          pathType: Prefix
+          backend:
+            service:
+              name: trade-feed
+              port:
+                number: 8080
+        - path: /trade-service(/|$)(.*)
+          pathType: Prefix
+          backend:
+            service:
+              name: trade-service
+              port:
+                number: 8080
+        - path: /trade-processor(/|$)(.*)
+          pathType: Prefix
+          backend:
+            service:
+              name: trade-processor
+              port:
+                number: 8080
+        - path: /traderx(/|$)(.*)
+          pathType: Prefix
+          backend:
+            service:
+              name: web-front-end-angular
+              port:
+                number: 8080

@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database-deployment
+  labels:
+    app: database
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: database
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      containers:
+      - name: database-app
+        image: traderx/database
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 18082
+            protocol: TCP
+          - containerPort: 18083
+            protocol: TCP
+          - containerPort: 18084
+            protocol: TCP

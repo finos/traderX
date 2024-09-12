@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: position-service
+  name: position-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: position-service
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: position-service
+    spec:
+      containers:
+        - name: position-service
+          env:
+            - name: DATABASE_TCP_HOST
+              value: database
+            - name: POSITION_SERVICE_PORT
+              value: "18090"
+          image: traderx/position-service
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 18090
+              protocol: TCP
+          workingDir: /position-service
+      restartPolicy: Always
+

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: account-service
+  name: account-service
+spec:
+  ports:
+    - name: "18088"
+      port: 8080
+      targetPort: 18088
+  selector:
+    app: account-service

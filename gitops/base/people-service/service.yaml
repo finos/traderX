@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: people-service
+  name: people-service
+spec:
+  ports:
+    - name: "18089"
+      port: 8080
+      targetPort: 18089
+  selector:
+    app: people-service

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: trade-service
+  name: trade-service
+spec:
+  ports:
+    - name: "18092"
+      port: 8080
+      targetPort: 18092
+  selector:
+    app: trade-service

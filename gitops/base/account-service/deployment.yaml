@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: account-service
+  name: account-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: account-service
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: account-service
+    spec:
+      containers:
+        - name: account-service
+          env:
+            - name: ACCOUNT_SERVICE_PORT
+              value: "18088"
+            - name: DATABASE_TCP_HOST
+              value: database
+          image: traderx/account-service
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 18088
+              protocol: TCP
+      restartPolicy: Always

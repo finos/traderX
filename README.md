@@ -162,6 +162,35 @@ cd .corp
 ./gradlew account-service:bootRun
 ```
 
+## Usage (K8s)
+
+The following are instructions to build and deploy all TraderX apps to your local enviroment using [tilt](https://tilt.dev) and kustomize files.
+
+## Prerequistes 
+- Running [Docker](https://www.docker.com/products/docker-desktop/) or similar
+- Running K8s - [Kind](https://kind.sigs.k8s.io/) /[Minikube](https://minikube.sigs.k8s.io/docs/start/)/[k3s](https://k3s.io/) or similar
+- Install an [Ingress Controller](https://kubernetes.github.io/ingress-nginx/deploy/)
+
+### Preflight checks
+
+```
+kubectl get pods
+```
+
+or 
+
+Check your cluster is running using the epic tool `k9s` - https://k9scli.io/  
+
+### Start Tilt
+
+This command will build and start all locally built applications and deploy them to your local K8s environment.
+
+```
+cd ./gitops/local/
+tilt up
+```
+
+
 # Getting Involved
 
 ### Project Meetings

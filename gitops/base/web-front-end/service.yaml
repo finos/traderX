@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: web-front-end-angular
+  name: web-front-end-angular
+spec:
+  ports:
+    - name: "18093"
+      port: 8080
+      targetPort: 18093
+      protocol: TCP
+  selector:
+    app: web-front-end-angular
