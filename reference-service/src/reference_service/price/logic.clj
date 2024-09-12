@@ -12,7 +12,8 @@
   (:import
    (com.zaxxer.hikari HikariDataSource)
    (java.time Instant LocalDateTime ZoneId)
-   (java.time.format DateTimeFormatter)))
+   (java.time.format DateTimeFormatter)
+   (java.time.temporal ChronoUnit)))
 
 (def insert-prices
   "insert into stock_prices
@@ -215,11 +216,13 @@
     (let [trade-pending (LocalDateTime/ofInstant
                          (Instant/ofEpochMilli created)
                          (ZoneId/of "UTC"))
-          trade-settled (LocalDateTime/ofInstant
-                         (Instant/ofEpochMilli updated)
-                         (ZoneId/of "UTC"))
-          position (conj (position-for jdbc-ds trade)
-                         trade-settled)]
+          ui-settled (LocalDateTime/ofInstant
+                      (Instant/ofEpochMilli updated)
+                      (ZoneId/of "UTC"))
+          settled (if (zero? (.until trade-pending ui-settled ChronoUnit/HOURS))
+                    (.plusHours trade-pending 1)
+                    ui-settled)
+          position (conj (position-for jdbc-ds trade))]
       (log/infof "Saving trade %s and position %s" (pr-str trade) (pr-str position))
       (sql/query conn ["BEGIN READ WRITE"])
       (jdbc/execute! conn [insert-trade
@@ -231,17 +234,19 @@
                            side
                            "Pending"
                            trade-pending])
+      (sql/query conn ["COMMIT"])
+      (sql/query conn ["BEGIN READ WRITE"])
       (jdbc/execute! conn ["update trades
-                            for portion of valid_time
+                            for valid_time
                             from ? to null
                             set state = ?
                             where _id = ?"
-                           trade-settled
+                           settled
                            "Settled"
                            id])
       (jdbc/execute! conn (into
                            [insert-position]
-                           position))
+                           (conj position settled)))
       (sql/query conn ["COMMIT"]))))
 
 (defn get-recent-prices
@@ -270,7 +275,7 @@
                  (parse-date-time start)
                  (when-not (or (nil? end)
                                (= "null" end))
-                   (.plusSeconds (parse-date-time end) 0))
+                   (parse-date-time end))
                  account-id]
                 ["select _id as id, security, quantity, side, price, state, _valid_from, _valid_to
                   from trades
@@ -291,7 +296,7 @@
                 (parse-date-time start)
                 (when-not (or (nil? end)
                               (= "null" end))
-                  (.plusSeconds (parse-date-time end) 0))
+                  (parse-date-time end))
                 account-id]
                ["select _id as id, security, trade, value, quantity, calculation, _valid_from, _valid_to
                  from positions
