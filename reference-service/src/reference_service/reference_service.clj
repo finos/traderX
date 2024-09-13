@@ -59,8 +59,8 @@
                    :useSSL false})
         jdbc-ds (try-connection jdbc-url)]
     (loader/populate-stocks jdbc-ds)
-    (loader/seed jdbc-ds)
     (prices/populate-prices jdbc-ds)
+    (loader/seed jdbc-ds)
     (prices/start-price-update-stream jdbc-ds price-update-interval-ms)
     (server/start web-port jdbc-ds)
     (websocket/create-client jdbc-ds trade-feed-address price-update-interval-ms)

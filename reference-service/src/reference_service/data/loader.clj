@@ -7,11 +7,10 @@
    [medley.core :as medley]
    [next.jdbc :as jdbc]
    [next.jdbc.connection :as connection]
-   [next.jdbc.prepare :as p]
    [next.jdbc.sql :as sql]
    [reference-service.price.logic :as prices])
   (:import
-   (java.util UUID)
+   (java.time LocalDateTime)
    (com.zaxxer.hikari HikariDataSource)))
 
 (def csv
@@ -22,8 +21,7 @@
      (_id, security, sec_filings, gics_sector,
       gics_sub_industry, headquarters, first_added,
       cik, founded)
-    values
-     (?,?,?,?,?,?,?,?,?)")
+    values ")
 
 (def select-stocks
   "select _id as ticker, security as company from stocks")
@@ -52,17 +50,20 @@
 
 (defn do-insert
   [jdbc-ds data]
-  (with-open [conn (jdbc/get-connection jdbc-ds)
-              stocks-ps (jdbc/prepare conn
-                                      [insert-stocks])]
-    (jdbc/execute-batch! stocks-ps
-                         (mapv
-                          (fn [line]
-                            (update line 7 #(Integer/parseInt %)))
-                          data)
-                         {:return-keys false
-                          :return-generated-keys false})
-    (read-stocks conn)))
+  (let [stocks (mapv
+                (fn [line]
+                  (update line 7 #(Integer/parseInt %)))
+                data)
+        values-clause (str/join ", " (repeat (count stocks) "(?,?,?,?,?,?,?,?,?)"))]
+    (with-open [conn (jdbc/get-connection jdbc-ds)]
+      (prices/set-system-time conn (.minusDays (LocalDateTime/now) 365))
+      (sql/query conn ["BEGIN"])
+      (jdbc/execute! conn (reduce
+                           into
+                           [(str insert-stocks values-clause)]
+                           stocks))
+      (sql/query conn ["COMMIT"])
+      (read-stocks conn))))
 
 (defn populate-stocks
   [jdbc-ds]
@@ -70,7 +71,7 @@
     (let [data-lines (drop 1 (csv/read-csv rdr))
           input-stock-count (count data-lines)
           stocks (read-stocks jdbc-ds)]
-      (if (= (count stocks) input-stock-count)
+      (if (pos? (count stocks))
         (log/infof "Stocks already populated, there are %d stocks" (count stocks))
         (do
           (log/infof "Populating %d stocks" input-stock-count)
@@ -116,7 +117,8 @@
             zero?)
       (do
         (log/info "Seeding database")
-        (sql/query conn ["BEGIN READ WRITE"])
+        (prices/set-system-time conn (.minusDays (LocalDateTime/now) 365))
+        (sql/query conn ["BEGIN"])
         (run! #(jdbc/execute! conn (into [insert-account] %))
               account-seed)
         (sql/query conn ["COMMIT"])

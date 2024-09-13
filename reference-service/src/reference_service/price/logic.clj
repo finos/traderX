@@ -55,8 +55,6 @@
 
 (def update-prices-at
   "update stock_prices
-   for portion of valid_time
-   from ? to null
    set price = ?
    where _id = ?")
 
@@ -90,11 +88,17 @@
   [last-price]
   (let [delta (* (if (> 0.5 (rand)) 0.05 -0.05)
                  last-price)
-        new-price (int (math/floor
-                        (+ last-price (rand-int delta))))]
-    (if (zero? new-price)
-      (+ 1 (rand-int 10))
-      new-price)))
+        new-price (math/floor
+                   (+ last-price (rand-int delta)))
+        non-zero-price (if (zero? new-price)
+                         (+ 1 (rand-int 10))
+                         new-price)]
+    (int non-zero-price)))
+
+(defn set-system-time
+  [conn timestamp]
+  (sql/query conn [(str "SET TRANSACTION READ WRITE, AT SYSTEM_TIME TIMESTAMP '"
+                        timestamp "'")]))
 
 (defn populate-prices
   [jdbc-ds]
@@ -107,32 +111,34 @@
         (let [stocks (map :ticker
                           (sql/query conn
                                      [select-stocks]))
-              year-ago (.minusDays (LocalDateTime/now) 366)
+              year-ago (.minusDays (LocalDateTime/now) 365)
               prices (mapv
                       (fn [stock]
                         [stock
-                         (rand-int 1000)
-                         year-ago])
+                         (rand-int 1000)])
                       stocks)
-              insert-prices-statement (str "insert into stock_prices (_id, price, _valid_from) values "
-                                           (str/join "," (repeat (count prices) "(?,?,?)")))]
-          (sql/query conn ["BEGIN READ WRITE"])
+              insert-prices-statement (str "insert into stock_prices (_id, price) values "
+                                           (str/join "," (repeat (count prices) "(?,?)")))]
+          (set-system-time conn year-ago)
+          (sql/query conn ["BEGIN"])
           (jdbc/execute! conn
-                         (reduce into
-                                 [insert-prices-statement]
-                                 prices))
+                         (reduce
+                          into
+                          [insert-prices-statement]
+                          prices))
           (sql/query conn ["COMMIT"])
           (run! (fn [offset]
-                  (sql/query conn ["BEGIN READ WRITE"])
+                  (set-system-time conn
+                                   (.plusDays year-ago offset))
+                  (sql/query conn ["BEGIN"])
                   (run! (fn [[ticker price]]
                           (sql/query conn
                                      [update-prices-at
-                                      (.plusDays year-ago offset)
                                       (generate-new-price price)
                                       ticker]))
                         prices)
                   (sql/query conn ["COMMIT"]))
-                (range 1 367))
+                (range 1 366))
           (reset! recent-prices
                   (medley/index-by :ticker
                                    (sql/query conn
@@ -376,26 +382,5 @@
                            (ZoneId/of "UTC"))
   (def prices (sql/query jdbc-ds
                          [all-stock-prices]))
-  (defn populate-prices
-    [jdbc-ds]
-    (if (seq prices)
-      (reset! recent-prices
-              (medley/index-by :ticker prices))
-      (with-open [conn (jdbc/get-connection jdbc-ds)
-                  prices-ps (jdbc/prepare conn
-                                          [insert-prices])]
-        (let [stocks (map :ticker
-                          (sql/query conn
-                                     [select-stocks]))
-              prices (mapv
-                      (fn [stock]
-                        [stock
-                         (rand-int 1000)])
-                      stocks)]
-          (reset! recent-prices
-                  (medley/index-by :ticker prices))
-          (jdbc/execute-batch! prices-ps
-                               prices
-                               {:return-keys false
-                                :return-generated-keys false})))))
+
   #_1)
