@@ -4,6 +4,7 @@ import { Account } from 'main/app/model/account.model';
 import { Position, StockPrice, TradeInterval, TradePointInTime } from 'main/app/model/trade.model';
 import { Observable } from 'rxjs';
 import { PriceService } from 'main/app/service/price.service';
+import { TradeFeedService } from 'main/app/service/trade-feed.service';
 
 @Component({
   selector: 'app-closed-position-blotter',
@@ -34,12 +35,13 @@ export class ClosedPositionBlotterComponent implements OnChanges, OnDestroy {
     },
     {
       headerName: 'CALCULATION',
-      field: 'calc',
+      field: 'calculation',
       width: 400
     }
   ];
 
-  constructor(private priceService: PriceService) { }
+  constructor(private priceService: PriceService,
+    private tradeFeed: TradeFeedService) { }
 
   ngOnChanges(change: SimpleChanges) {
     console.log('Position blotter changes...', change);
@@ -68,6 +70,11 @@ export class ClosedPositionBlotterComponent implements OnChanges, OnDestroy {
           }
         });
       });
+      this.marketValueUnSubscribeFn?.();
+      this.marketValueUnSubscribeFn = this.tradeFeed.subscribe(`/accounts/${accountId}/prices`, (data: StockPrice[]) => {
+          console.log('Report Closed Position Market value feed...', data);
+          this.updateUnitPrice(data);
+      });
     });
   }
 
@@ -76,7 +83,7 @@ export class ClosedPositionBlotterComponent implements OnChanges, OnDestroy {
     let positionData;
     if (row) {
       positionData = {
-        update: [Object.assign(row.data, { quantity: data.quantity, value: data.value, calc: data.calculation  })],
+        update: [Object.assign(row.data, { quantity: data.quantity, value: data.value, calculation: data.calculation  })],
       };
     } else {
       positionData = {
@@ -85,12 +92,23 @@ export class ClosedPositionBlotterComponent implements OnChanges, OnDestroy {
           security: data.security,
           updated: data.updated,
           value: data.value,
-          calc: data.calculation
+          calculation: data.calculation
         }],
         addIndex: 0
       };
     }
     this.gridApi.applyTransaction(positionData);
+  }
+
+  updateUnitPrice(data: StockPrice[]) {
+    data.forEach((price) => {
+      let position = this.positions?.find((p: Position) =>
+        p.security === price.ticker);
+      if (position) {
+        position = Object.assign(position, { unitPrice: price.price });
+        this.update(position);
+      }
+    });
   }
 
   onGridReady(params: GridReadyEvent) {

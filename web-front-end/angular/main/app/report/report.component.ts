@@ -57,7 +57,7 @@ export class ReportComponent implements OnInit {
   onAccountChange(account: Account) {
     console.log('onAccountChange', arguments);
     account && this.setAccount(account);
-}
+  }
 
   getAccountName(item: Account) {
       return item.displayName;
