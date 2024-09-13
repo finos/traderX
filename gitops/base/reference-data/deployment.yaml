@@ -20,7 +20,7 @@ spec:
         - name: reference-data
           env:
             - name: REFERENCE_DATA_SERVICE_PORT
-              value: "18095"
+              value: "18085"
           image: traderx/reference-data
           imagePullPolicy: IfNotPresent
           ports:
