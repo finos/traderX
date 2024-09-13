@@ -42,8 +42,8 @@ export class PriceService {
     }
 
     getTrades(accountId: number, interval?: TradeInterval): Observable<Trade[]> {
-      const url = interval !== undefined
-                ? `${this.tradesUrl}/${accountId}/${interval.start}/${interval.end}`
+      const url = (interval !== undefined && interval.start !== undefined)
+                ? `${this.tradesUrl}/${accountId}/${interval.start}/${interval.end || 'null'}`
                 : `${this.tradesUrl}/${accountId}`;
       console.log(`getTrades ${interval}`, url);
       return this.http.get<Trade[]>(url).pipe(
@@ -53,18 +53,18 @@ export class PriceService {
     }
 
     getPositions(accountId: number, interval?: TradeInterval): Observable<Position[]> {
-      const url = interval !== undefined
-                ? `${this.positionsUrl}/${accountId}/${interval.start}/${interval.end}`
-                : `${this.positionsUrl}/${accountId}`;
-      console.log(`getPositions ${interval}`, url);
+      const url = (interval && interval.start !== undefined)
+                ? `${this.positionsUrl}/${accountId}/${interval.start}/${interval.end || 'null'}`
+                :  `${this.positionsUrl}/${accountId}`;
+      console.log(`getPositions ${url}`);
       return this.http.get<Position[]>(url).pipe(
         retry(2),
         catchError(this.handleError)
       );
     }
 
-    getPointsInTime(accountId: number): Observable<TradePointInTime[]> {
-      return this.http.get<TradePointInTime[]>(`${this.pointsInTimeUrl}/${accountId}`).pipe(
+    getPointsInTime(accountId: number): Observable<string[]> {
+      return this.http.get<string[]>(`${this.pointsInTimeUrl}/${accountId}`).pipe(
         retry(2),
         catchError(this.handleError)
       );

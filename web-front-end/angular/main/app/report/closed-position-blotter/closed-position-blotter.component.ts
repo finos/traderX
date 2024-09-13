@@ -58,7 +58,7 @@ export class ClosedPositionBlotterComponent implements OnChanges, OnDestroy {
 
     console.log('Closed Position blotter', accountId, interval);
     this.priceService.getPositions(accountId, interval).subscribe((positions: Position[]) => {
-      this.positions = positions.filter((p) => p.quantity === 0);
+      this.positions = positions.filter((p) => p.quantity <= 0);
       console.log('Closed Position blotter', this.positions);
       this.priceService.getAccountPrices(accountId).subscribe((prices: StockPrice[]) => {
         prices.forEach((price) => {

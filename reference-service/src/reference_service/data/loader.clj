@@ -48,6 +48,21 @@
     (when (seq stocks)
       (cache-stocks stocks))))
 
+(def account-seed
+  [[22214 "Test Account 20"]
+   [11413 "Private Clients Fund TTXX"]
+   [42422 "Algo Execution Partners"]
+   [52355 "Big Corporate Fund"]
+   [62654 "Hedge Fund TXY1"]
+   [10031 "Internal Trading Book"]
+   [44044 "Trading Account 1"]])
+
+(def insert-account
+  "insert into accounts
+     (_id, name)
+    values
+     (?,?)")
+
 (defn do-insert
   [jdbc-ds data]
   (let [stocks (mapv
@@ -62,6 +77,8 @@
                            into
                            [(str insert-stocks values-clause)]
                            stocks))
+      (run! #(jdbc/execute! conn (into [insert-account] %))
+            account-seed)
       (sql/query conn ["COMMIT"])
       (read-stocks conn))))
 
@@ -77,20 +94,6 @@
           (log/infof "Populating %d stocks" input-stock-count)
           (do-insert jdbc-ds data-lines))))))
 
-(def insert-account
-  "insert into accounts
-     (_id, name)
-    values
-     (?,?)")
-
-(def account-seed
-  [[22214 "Test Account 20"]
-   [11413 "Private Clients Fund TTXX"]
-   [42422 "Algo Execution Partners"]
-   [52355 "Big Corporate Fund"]
-   [62654 "Hedge Fund TXY1"]
-   [10031 "Internal Trading Book"]
-   [44044 "Trading Account 1"]])
 
 (def trade-seed
   [{:id "TRADE-22214-AABBCC" :security "IBM" :accountId 22214 :unitPrice 123 :quantity 100 :side "Buy"}
@@ -111,17 +114,12 @@
   [jdbc-ds]
   (with-open [conn (jdbc/get-connection jdbc-ds)]
     (if (-> (sql/query conn
-                       ["select count(*) as cnt from accounts"])
+                       ["select count(*) as cnt from trades"])
             first
             :cnt
             zero?)
       (do
-        (log/info "Seeding database")
-        (prices/set-system-time conn (.minusDays (LocalDateTime/now) 365))
-        (sql/query conn ["BEGIN"])
-        (run! #(jdbc/execute! conn (into [insert-account] %))
-              account-seed)
-        (sql/query conn ["COMMIT"])
+        (log/info "Seeding trades")
         (run! (fn [trade-dates]
                 (prices/save-trade jdbc-ds
                                    trade-dates))

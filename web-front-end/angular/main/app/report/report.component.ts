@@ -2,7 +2,7 @@ import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Options } from '@angular-slider/ngx-slider';
 import { Subject } from 'rxjs';
 import { Account } from '../model/account.model';
-import { TradeInterval, TradePointInTime } from '../model/trade.model';
+import { TradeInterval  } from '../model/trade.model';
 import { AccountService } from '../service/account.service';
 import { Stock } from '../model/symbol.model';
 import { SymbolService } from '../service/symbols.service';
@@ -19,12 +19,10 @@ export class ReportComponent implements OnInit {
   accounts: Account[] = [];
   accountModel?: Account = undefined;
   stocks: Stock[] = [];
-  intervals: TradeInterval[] = [];
   intervalModel?: TradeInterval = undefined;
   createTicketResponse: any;
   private account = new Subject<Account>();
-  private interval = new Subject<TradeInterval>();
-  points: String[] = [];
+  points: string[] = [];
   hideSlider = true;
   value: number = 0;
   highValue: number = 1;
@@ -33,6 +31,7 @@ export class ReportComponent implements OnInit {
     ceil: 1,
     step: 1,
     showTicks: true,
+    showTicksValues: true,
     translate: (index): string => {
       if (index === this.points.length) {
         return 'All';
@@ -63,42 +62,37 @@ export class ReportComponent implements OnInit {
       return item.displayName;
   }
 
-  onIntervalChange(interval: TradeInterval) {
-    interval && this.setInterval(interval);
-  }
-
   onSliderChange(event: any) {
     console.log('onSliderChange', event);
-    this.value = event.value;
+    this.value = (event.value > this.points.length) ? this.points.length : event.value;
     this.highValue = event.highValue;
+    const start = this.points[this.value];
+    const end = event.highValue > this.points.length ? 'null' : this.points[event.highValue];
+    const label = `${start} - ${end ? end : '...'}`;
+    const accountId = this.accountModel?.id || 52355;
+    console.log('onSliderChange', start, end, accountId, label);
+    this.intervalModel = {
+      start,
+      end,
+      accountId,
+      label
+    };
   }
 
   private setAccount(account: Account) {
     this.accountModel = account;
     this.account.next(account);
     this.tradeFeed.emit('/account', account.id);
-    this.priceService.getTradeIntervals(account.id).subscribe((intervals: TradeInterval[]) => {
-      this.intervals = intervals.map((i) =>
-        Object.assign(i, { label: `${i.start} - ${i.end ? i.end : '...'}` })
-      );
-      console.log('Report Comp : Trade intervals', this.intervals);
-
-      intervals.length > 0 && this.setInterval(this.intervals[0]);
-      this.setSliderValues(intervals);
+    this.priceService.getPointsInTime(account.id).subscribe((points:  string[]) => {
+      console.log('Report Comp : Trade points', points);
+      this.points = points;
+      this.setSliderValues(this.points);
     });
   }
 
-  private setSliderValues(intervals: TradeInterval[]) {
-    const pointsSet = new Set(intervals.map((i) => i.start)
-    .concat(intervals.map((i) => i.end).filter((v, i, a) => v  !== null)));
-    this.points = Array.from(pointsSet).sort();
-    this.options = Object.assign({}, this.options, {ceil: this.points.length});
+  private setSliderValues(points: String[]) {
+    this.options = Object.assign({}, this.options, {ceil: points.length});
     this.hideSlider = false;
   }
 
-  private setInterval(interval: TradeInterval) {
-    console.log('setInterval', interval);
-    this.intervalModel = interval;
-    this.interval.next(interval);
-  }
 }

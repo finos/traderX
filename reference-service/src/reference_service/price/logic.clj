@@ -63,11 +63,11 @@
    from stocks")
 
 (def select-points-in-time
-  "select distinct (coalesce (_valid_to, timestamp '9999-12-31 23:59:59+00:00')) as point, security, account_id as accountId
+  "select _valid_to as end, _valid_from as start
    from trades
    for all valid_time
    where account_id=?
-   order by point asc")
+   order by start, end nulls last")
 
 (def trade-intervals
   "select _valid_to as end, _valid_from as start, security, account_id as accountId, state
@@ -104,6 +104,9 @@
   [jdbc-ds]
   (let [prices (sql/query jdbc-ds
                           [all-stock-prices])]
+    (log/info (if (seq prices)
+                "Prices had been populated"
+                "Populating prices"))
     (if (seq prices)
       (reset! recent-prices
               (medley/index-by :ticker prices))
@@ -222,12 +225,9 @@
     (let [trade-pending (LocalDateTime/ofInstant
                          (Instant/ofEpochMilli created)
                          (ZoneId/of "UTC"))
-          ui-settled (LocalDateTime/ofInstant
+          settled (LocalDateTime/ofInstant
                       (Instant/ofEpochMilli updated)
                       (ZoneId/of "UTC"))
-          settled (if (zero? (.until trade-pending ui-settled ChronoUnit/HOURS))
-                    (.plusHours trade-pending 1)
-                    ui-settled)
           position (conj (position-for jdbc-ds trade))]
       (log/infof "Saving trade %s and position %s" (pr-str trade) (pr-str position))
       (sql/query conn ["BEGIN READ WRITE"])
@@ -337,10 +337,20 @@
               account-id]))
 
 (defn get-trade-points-in-time
+  "Get all the different valid time points sorted. ALL (open end) not included."
   [jdbc-ds account-id]
-  (sql/query jdbc-ds
-             [select-points-in-time
-              account-id]))
+  (let [start-ends (sql/query jdbc-ds
+                              [select-points-in-time
+                               account-id])
+        points (sort
+                (distinct
+                 (mapcat
+                  (fn [{:keys [start end]}]
+                    (if end
+                      [start end]
+                      [start]))
+                  start-ends)))]
+    points))
 
 (defn get-trade-intervals
   [jdbc-ds account-id]
