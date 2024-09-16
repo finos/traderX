@@ -82,7 +82,7 @@
       (sql/query conn ["COMMIT"])
       (read-stocks conn))))
 
-(defn populate-stocks
+(defn populate-stocks-and-accounts
   [jdbc-ds]
   (with-open [rdr (io/reader csv)]
     (let [data-lines (drop 1 (csv/read-csv rdr))
@@ -110,7 +110,7 @@
         :updated (+ (* t day) t0 day day)}) ; settles 2 days after trade
      (range (count trade-seed)))))
 
-(defn seed
+(defn seed-trades
   [jdbc-ds]
   (with-open [conn (jdbc/get-connection jdbc-ds)]
     (if (-> (sql/query conn
@@ -150,7 +150,7 @@
   (def jdbc-ds (connection/->pool HikariDataSource
                                   {:jdbcUrl jdbc-url
                                    :maxLifetime 60000}))
-  (seed jdbc-ds)
+  (seed-trades jdbc-ds)
   (jdbc/execute! jdbc-ds ["select *, _valid_from from trades for all valid_time"])
   (jdbc/execute! jdbc-ds ["delete from accounts"])
   (with-open [rdr (io/reader csv)]
