@@ -25,11 +25,14 @@
 
       </div>
 
+      <h5>{{intervalModel ? intervalModel.label : null }}</h5>
       <div class="trade-ops mb-4" [hidden]="hideSlider">
         <ngx-slider
           [options]="options"
           [(value)]="value"
           [(highValue)]="highValue"
+          (userChange)="onSliderChange($event)"
+          (userChangeStart)="onSliderChange($event)"
           (userChangeEnd)="onSliderChange($event)">
         </ngx-slider>
     </div>
