@@ -7,13 +7,11 @@
    [medley.core :as medley]
    [next.jdbc :as jdbc]
    [next.jdbc.connection :as connection]
-   [next.jdbc.prepare :as p]
    [next.jdbc.sql :as sql])
   (:import
    (com.zaxxer.hikari HikariDataSource)
    (java.time Instant LocalDateTime ZoneId)
-   (java.time.format DateTimeFormatter)
-   (java.time.temporal ChronoUnit)))
+   (java.time.format DateTimeFormatter)))
 
 (def insert-prices
   "insert into stock_prices
@@ -99,6 +97,12 @@
   [conn timestamp]
   (sql/query conn [(str "SET TRANSACTION READ WRITE, AT SYSTEM_TIME TIMESTAMP '"
                         timestamp "'")]))
+
+(defn local-date
+  [timestamp]
+  (LocalDateTime/ofInstant
+   (Instant/ofEpochMilli timestamp)
+   (ZoneId/of "UTC")))
 
 (defn populate-prices
   [jdbc-ds]
@@ -208,10 +212,10 @@
                             value unitPrice quantity
                             (if (= "Sell" side) 1 -1))]
     [posid
-     accountId
+     (long accountId)
      security
-     new-quantity
-     new-value
+     (long new-quantity)
+     (long new-value)
      id
      calculation]))
 
@@ -220,15 +224,10 @@
                    unitPrice quantity side
                    created updated]
             :as trade}]
-  (log/infof "Saving trade %s" trade)
   (with-open [conn (jdbc/get-connection jdbc-ds)]
-    (let [trade-pending (LocalDateTime/ofInstant
-                         (Instant/ofEpochMilli created)
-                         (ZoneId/of "UTC"))
-          settled (LocalDateTime/ofInstant
-                      (Instant/ofEpochMilli updated)
-                      (ZoneId/of "UTC"))
-          position (conj (position-for jdbc-ds trade))]
+    (let [trade-pending (local-date created)
+          settled (local-date updated)
+          position (conj (position-for jdbc-ds trade) settled)]
       (log/infof "Saving trade %s and position %s" (pr-str trade) (pr-str position))
       (sql/query conn ["BEGIN READ WRITE"])
       (jdbc/execute! conn [insert-trade
@@ -239,7 +238,8 @@
                            (long quantity)
                            side
                            "Pending"
-                           trade-pending])
+                           trade-pending]
+                     {:return-keys false})
       (sql/query conn ["COMMIT"])
       (sql/query conn ["BEGIN READ WRITE"])
       (jdbc/execute! conn ["update trades
@@ -252,7 +252,8 @@
                            id])
       (jdbc/execute! conn (into
                            [insert-position]
-                           (conj position settled)))
+                           position)
+                     {:return-keys false})
       (sql/query conn ["COMMIT"]))))
 
 (defn get-recent-prices
