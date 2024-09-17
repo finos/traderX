@@ -23,7 +23,6 @@ export class ReportComponent implements OnInit {
   createTicketResponse: any;
   private account = new Subject<Account>();
   points: string[] = [];
-  hideSlider = true;
   value: number = 0;
   highValue: number = 1;
   options: Options = {
@@ -111,6 +110,5 @@ export class ReportComponent implements OnInit {
 
   private setSliderValues(points: String[]) {
     this.options = Object.assign({}, this.options, {ceil: points.length});
-    this.hideSlider = false;
   }
 }
