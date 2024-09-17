@@ -39,12 +39,11 @@ export class ReportComponent implements OnInit {
         return `v${index}`;
       }
     },
+    ticksValuesTooltip: (index): string => {
+      return this.getPointDate(index);
+    },
     ticksTooltip: (index): string => {
-      if (index === this.points.length) {
-        return 'All';
-      } else {
-        return `${this.points[index]}`;
-      }
+      return this.getPointDate(index)
     }
   };
 
@@ -60,6 +59,14 @@ export class ReportComponent implements OnInit {
         this.setAccount(this.accounts[5]);
     });
     this.symbolService.getStocks().subscribe((stocks) => this.stocks = stocks);
+  }
+
+  getPointDate(index: number) {
+    if (index === this.points.length) {
+      return 'All';
+    } else {
+      return `${this.points[index]}`;
+    }
   }
 
   onAccountChange(account: Account) {
