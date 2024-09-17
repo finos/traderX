@@ -2,7 +2,7 @@ import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Options } from '@angular-slider/ngx-slider';
 import { Subject } from 'rxjs';
 import { Account } from '../model/account.model';
-import { TradeInterval  } from '../model/trade.model';
+import { TradeInterval } from '../model/trade.model';
 import { AccountService } from '../service/account.service';
 import { Stock } from '../model/symbol.model';
 import { SymbolService } from '../service/symbols.service';
@@ -37,7 +37,16 @@ export class ReportComponent implements OnInit {
         return 'All';
       } else {
         return `v${index}`;
-      }}};
+      }
+    },
+    ticksTooltip: (index): string => {
+      if (index === this.points.length) {
+        return 'All';
+      } else {
+        return `${this.points[index]}`;
+      }
+    }
+  };
 
   constructor(private accountService: AccountService,
       private symbolService: SymbolService,
