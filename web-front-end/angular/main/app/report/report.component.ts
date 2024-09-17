@@ -75,34 +75,37 @@ export class ReportComponent implements OnInit {
   }
 
   getAccountName(item: Account) {
-      return item.displayName;
+    return item.displayName;
+  }
+
+  updateSlider(accountId: number, start: number, end: number) {
+    const startDate = this.points[start];
+    const endDate = end > this.points.length ? 'null' : this.points[end];
+
+    this.intervalModel = {
+      start: startDate,
+      end: endDate,
+      accountId,
+      label: `${startDate} - ${endDate ? endDate : '...'}`
+    };
   }
 
   onSliderChange(event: any) {
     console.log('onSliderChange', event);
     this.value = (event.value > this.points.length) ? this.points.length : event.value;
     this.highValue = event.highValue;
-    const start = this.points[this.value];
-    const end = event.highValue > this.points.length ? 'null' : this.points[event.highValue];
-    const label = `${start} - ${end ? end : '...'}`;
-    const accountId = this.accountModel?.id || 52355;
-    console.log('onSliderChange', start, end, accountId, label);
-    this.intervalModel = {
-      start,
-      end,
-      accountId,
-      label
-    };
+    this.updateSlider(this.accountModel?.id || 52355, this.value, this.highValue);
   }
 
   private setAccount(account: Account) {
     this.accountModel = account;
     this.account.next(account);
     this.tradeFeed.emit('/account', account.id);
-    this.priceService.getPointsInTime(account.id).subscribe((points:  string[]) => {
+    this.priceService.getPointsInTime(account.id).subscribe((points: string[]) => {
       console.log('Report Comp : Trade points', points);
       this.points = points;
       this.setSliderValues(this.points);
+      this.updateSlider(this.accountModel?.id || 52355, this.value, this.highValue);
     });
   }
 
@@ -110,5 +113,4 @@ export class ReportComponent implements OnInit {
     this.options = Object.assign({}, this.options, {ceil: points.length});
     this.hideSlider = false;
   }
-
 }
