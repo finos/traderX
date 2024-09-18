@@ -158,7 +158,7 @@
     (doseq [{:keys [price ticker]} prices]
       (jdbc/execute! conn
                      [update-prices
-                      price ticker] ))
+                      price ticker]))
     (jdbc/execute! conn ["COMMIT"])))
 
 (defn get-prices
@@ -293,23 +293,35 @@
 (defn account-positions
   [jdbc-ds account-id start end]
   (log/infof "Get account positions start %s end %s" start end)
-  (sql/query jdbc-ds
-             (if start
-               ["select _id as id, security, trade, value, quantity, calculation, _valid_from, _valid_to
-                 from positions
-                 for valid_time
-                 from ? to ?
-                 where account_id = ?"
-                (parse-date-time start)
-                (when-not (or (nil? end)
-                              (= "null" end))
-                  (parse-date-time end))
-                account-id]
-               ["select _id as id, security, trade, value, quantity, calculation, _valid_from, _valid_to
-                 from positions
-                 for valid_time all
-                 where account_id = ?"
-                account-id])))
+  (let [positions
+        (sql/query jdbc-ds
+                   (if start
+                     ["select _id as id, security, trade, value, quantity, calculation, _valid_from, _valid_to
+                       from positions
+                       for valid_time
+                       from ? to ?
+                       where account_id = ?
+                       order by security,
+                                _valid_from desc,
+                                _valid_to desc nulls last"
+                      (parse-date-time start)
+                      (when-not (or (nil? end)
+                                    (= "null" end))
+                        (parse-date-time end))
+                      account-id]
+                     ["select _id as id, security, trade, value, quantity, calculation, _valid_from, _valid_to
+                       from positions
+                       for valid_time all
+                       where account_id = ?
+                       order by security,
+                                _valid_from desc,
+                                _valid_to desc nulls first"
+                      account-id]))]
+    (->> positions
+         (group-by :security)
+         vals
+         (map first)
+         flatten)))
 
 (defn start-price-update-stream
   [jdbc-ds price-update-interval-ms]
