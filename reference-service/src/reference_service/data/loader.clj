@@ -156,7 +156,11 @@
                                     (let [id (str (UUID/randomUUID))
                                           buy-date (+ start (* offset day))
                                           sell-date (+ buy-date week)
-                                          half-buy-quantity (int (/ (inc quantity) 2))]
+                                          half-buy-quantity (int (/ (inc quantity) 2))
+                                          sell-quantity (if (> (rand-int 10) 8)
+                                                          quantity
+                                                          (+ half-buy-quantity
+                                                             (rand-int half-buy-quantity)))]
                                       [{:created buy-date
                                         :updated (+ buy-date hour hour)
                                         :id id
@@ -171,7 +175,7 @@
                                         :accountId account
                                         :security stock
                                         :unitPrice (stock-price-for-date jdbc-ds stock sell-date)
-                                        :quantity (+ half-buy-quantity (rand-int half-buy-quantity))
+                                        :quantity sell-quantity
                                         :side "Sell"}]))
                                   stock-quantities))
                                account-stocks))]
