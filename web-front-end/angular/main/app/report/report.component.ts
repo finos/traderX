@@ -103,6 +103,7 @@ export class ReportComponent implements OnInit {
     this.priceService.getPointsInTime(account.id).subscribe((points: string[]) => {
       console.log('Report Comp : Trade points', points);
       this.points = points;
+      this.highValue = points.length;
       this.setSliderValues(this.points);
       this.updateSlider(this.accountModel?.id || 52355, this.value, this.highValue);
     });
