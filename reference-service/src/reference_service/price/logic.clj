@@ -46,6 +46,12 @@
    join positions p on sp._id = p.security
    where p.account_id = ?")
 
+(def account-prices-at
+  "select sp._id as ticker, sp.price
+   from stock_prices for valid_time as of ? sp
+   join positions p on sp._id = p.security
+   where p.account_id = ?")
+
 (def update-prices
   "update stock_prices
    set price = ?
@@ -267,7 +273,9 @@
 
 (defn parse-date-time
   [dt]
-  (LocalDateTime/parse dt date-time-formatter))
+  (-> dt
+      (str/replace #"\.\d\d\d" "")
+      (LocalDateTime/parse date-time-formatter)))
 
 (defn account-trades
   ([jdbc-ds account-id start end]
@@ -348,6 +356,14 @@
   (sql/query jdbc-ds
              [account-prices
               account-id]))
+
+(defn get-prices-for-account-at
+  [jdbc-ds account-id for-date]
+  (let [valid-at (parse-date-time for-date)]
+    (sql/query jdbc-ds
+               [account-prices-at
+                valid-at
+                account-id])))
 
 (defn get-trade-points-in-time
   "Get all the different valid time points sorted. ALL (open end) not included."

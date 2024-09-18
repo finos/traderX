@@ -14,6 +14,7 @@ import { TradeFeedService } from 'main/app/service/trade-feed.service';
 export class ClosedPositionBlotterComponent implements OnChanges, OnDestroy {
   @Input() account?: Account;
   @Input() interval?: TradeInterval;
+  @Input() priceDate?: Date;
   gridApi: GridApi;
   marketValueUnSubscribeFn: Function;
   title = 'Closed Positions';
@@ -53,6 +54,10 @@ export class ClosedPositionBlotterComponent implements OnChanges, OnDestroy {
         change.interval.currentValue !== change.interval.previousValue) {
       this.interval = change.interval.currentValue;
     }
+    if (change.priceDate &&
+        change.priceDate.currentValue !== change.priceDate.previousValue) {
+      this.priceDate = change.priceDate.currentValue;
+    }
     const accountId = this.account?.id || 52355;
     const interval = this.interval;
 
@@ -60,7 +65,7 @@ export class ClosedPositionBlotterComponent implements OnChanges, OnDestroy {
     this.priceService.getPositions(accountId, interval).subscribe((positions: Position[]) => {
       this.positions = positions.filter((p) => p.quantity <= 0);
       console.log('Closed Position blotter', this.positions);
-      this.priceService.getAccountPrices(accountId).subscribe((prices: StockPrice[]) => {
+      this.priceService.getAccountPrices(accountId, this.priceDate).subscribe((prices: StockPrice[]) => {
         prices.forEach((price) => {
           let position = this.positions?.find((p: Position) =>
             p.security === price.ticker);
@@ -71,10 +76,12 @@ export class ClosedPositionBlotterComponent implements OnChanges, OnDestroy {
         });
       });
       this.marketValueUnSubscribeFn?.();
-      this.marketValueUnSubscribeFn = this.tradeFeed.subscribe(`/accounts/${accountId}/prices`, (data: StockPrice[]) => {
-          console.log('Report Closed Position Market value feed...', data);
-          this.updateUnitPrice(data);
-      });
+      if (this.priceDate === undefined) {
+        this.marketValueUnSubscribeFn = this.tradeFeed.subscribe(`/accounts/${accountId}/prices`, (data: StockPrice[]) => {
+            console.log('Report Closed Position Market value feed...', data);
+            this.updateUnitPrice(data);
+        });
+      }
     });
   }
 

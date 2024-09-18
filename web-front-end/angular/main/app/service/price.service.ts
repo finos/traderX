@@ -34,8 +34,11 @@ export class PriceService {
         );
     }
 
-    getAccountPrices(accountId: number): Observable<StockPrice[]> {
-        return this.http.get<StockPrice[]>(`${this.pricesUrl}/${accountId}`).pipe(
+    getAccountPrices(accountId: number, forDate?: Date): Observable<StockPrice[]> {
+        const url = (forDate !== undefined) ?
+          `${this.pricesUrl}/${accountId}/${forDate.toISOString()}` :
+          `${this.pricesUrl}/${accountId}`;
+        return this.http.get<StockPrice[]>(url).pipe(
             retry(2),
             catchError(this.handleError)
         );

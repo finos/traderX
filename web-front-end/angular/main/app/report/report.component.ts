@@ -20,6 +20,7 @@ export class ReportComponent implements OnInit {
   accountModel?: Account = undefined;
   stocks: Stock[] = [];
   intervalModel?: TradeInterval = undefined;
+  dateModel?: Date = undefined;
   createTicketResponse: any;
   private account = new Subject<Account>();
   points: string[] = [];
@@ -43,6 +44,16 @@ export class ReportComponent implements OnInit {
     },
     ticksTooltip: (index): string => {
       return this.getPointDate(index)
+    }
+  };
+  dateValue: number = 0;
+  dateOptions: Options = {
+    floor: 0,
+    ceil: 365,
+    step: 1,
+    rightToLeft: true,
+    translate: (index): string => {
+      return this.getDateAt(index).toDateString();
     }
   };
 
@@ -90,10 +101,24 @@ export class ReportComponent implements OnInit {
   }
 
   onSliderChange(event: any) {
-    console.log('onSliderChange', event);
     this.value = (event.value > this.points.length) ? this.points.length : event.value;
     this.highValue = event.highValue;
+    this.dateValue = 0;
     this.updateSlider(this.accountModel?.id || 52355, this.value, this.highValue);
+  }
+
+  onDateSliderChange(event: any) {
+    this.dateValue = event.value;
+    this.value = 0;
+    this.highValue = this.points.length;
+    this.updateSlider(this.accountModel?.id || 52355, this.value, this.highValue);
+    this.dateModel = this.dateValue == 0 ? undefined : this.getDateAt(this.dateValue);
+  }
+
+  private getDateAt(index: number) {
+    let date = new Date();
+     date.setDate(date.getDate() - index);
+     return date;
   }
 
   private setAccount(account: Account) {

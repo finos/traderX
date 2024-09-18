@@ -54,7 +54,7 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
       this.tradeService.getPositions(accountId).subscribe((positions: Position[]) => {
         console.log('Position blotter tradeService feed...', positions);
         this.positions = positions.filter((p) => p.quantity > 0);
-        this.priceService.getAccountPrices(accountId).subscribe((prices: StockPrice[]) => {
+        this.priceService.getAccountPrices(accountId, undefined).subscribe((prices: StockPrice[]) => {
           prices.forEach((price) => {
             let position = this.positions.find((p: Position) =>
               p.security === price.ticker);

@@ -23,15 +23,24 @@
           (userChangeStart)="onSliderChange($event)"
           (userChangeEnd)="onSliderChange($event)">
         </ngx-slider>
-    </div>
+      </div>
 
     <div class="trade-blotter">
-        <app-trade-blotter [account]="accountModel" [interval]="intervalModel" class="trade-blotter-items me-2"> </app-trade-blotter>
-        <app-position-blotter [account]="accountModel" [interval]="intervalModel" class="position-blotter-items"> </app-position-blotter>
+        <app-trade-blotter [account]="accountModel"
+                           [interval]="intervalModel"
+                        class="trade-blotter-items me-2">
+        </app-trade-blotter>
+        <app-position-blotter [account]="accountModel"
+                              [interval]="intervalModel"
+                              [priceDate]="dateModel"
+                        class="position-blotter-items"> </app-position-blotter>
     </div>
 
     <div class="closed-trade-blotter">
-      <app-closed-position-blotter [account]="accountModel" [interval]="intervalModel" class="closed-position-blotter-items"> </app-closed-position-blotter>
+      <app-closed-position-blotter [account]="accountModel"
+                                   [interval]="intervalModel"
+                                   [priceDate]="dateModel"
+                          class="closed-position-blotter-items"> </app-closed-position-blotter>
     </div>
 
     <div class="disclaimer mt-4">
@@ -40,6 +49,18 @@
                 <strong>Market Value updates every 2 minutes</strong>
             </small>
         </p>
+    </div>
+    <div class="trade-ops mb-4">
+      <p>Drag Slider To See Positions with Values Based on Prices a Date</p>
+    </div>
+    <div  class="trade-ops mb-4">
+      <ngx-slider
+        [options]="dateOptions"
+        [(value)]="dateValue"
+        (userChange)="onDateSliderChange($event)"
+        (userChangeStart)="onDateSliderChange($event)"
+        (userChangeEnd)="onDateSliderChange($event)">
+      </ngx-slider>
     </div>
 
 </div>

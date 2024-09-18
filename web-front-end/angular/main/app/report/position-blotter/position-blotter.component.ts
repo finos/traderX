@@ -15,6 +15,7 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
   @Input() account?: Account;
   @Input() accountPositions: Position[];
   @Input() interval?: TradeInterval;
+  @Input() priceDate?: Date;
   gridApi: GridApi;
   marketValueUnSubscribeFn: Function;
   title = 'Positions';
@@ -60,13 +61,17 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
         change.interval.currentValue !== change.interval.previousValue) {
       this.interval = change.interval.currentValue;
     }
+    if (change.priceDate &&
+        change.priceDate.currentValue !== change.priceDate.previousValue) {
+      this.priceDate = change.priceDate.currentValue;
+    }
     const accountId = this.account?.id || 52355;
     const interval = this.interval;
     console.log('Position blotter', accountId, interval);
     this.priceService.getPositions(accountId, interval).subscribe((positions: Position[]) => {
       this.positions = positions.filter((p) => p.quantity > 0);
       console.log('Position blotter', this.positions);
-      this.priceService.getAccountPrices(accountId).subscribe((prices: StockPrice[]) => {
+      this.priceService.getAccountPrices(accountId, this.priceDate).subscribe((prices: StockPrice[]) => {
         this.prices = prices;
         prices.forEach((price) => {
           let position = this.positions.find((p: Position) =>
@@ -79,10 +84,12 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
         });
       });
       this.marketValueUnSubscribeFn?.();
-      this.marketValueUnSubscribeFn = this.tradeFeed.subscribe(`/accounts/${accountId}/prices`, (data: StockPrice[]) => {
-          console.log('Report Position Market value feed...', data);
-          this.updateMarketValues(data);
-      });
+      if (this.priceDate === undefined) {
+        this.marketValueUnSubscribeFn = this.tradeFeed.subscribe(`/accounts/${accountId}/prices`, (data: StockPrice[]) => {
+            console.log('Report Position Market value feed...', data);
+            this.updateMarketValues(data);
+        });
+      }
     });
   }
 

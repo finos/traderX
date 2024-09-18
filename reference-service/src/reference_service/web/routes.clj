@@ -49,18 +49,33 @@
                 (response/header "Content-Type" "application/json"))
             (response/not-found (str "Price not found for stock: " ticker)))))}}]
    ["prices/:account-id"
-    {:allow-methods [:get]
-     :get
-     {:handler
-      (fn [{:keys [path-params]}]
-        (let [account-id (get-account-id path-params)]
-          (log/info "Get prices for stocks in account:" (:account-id path-params))
-          (if-let [prices (seq (prices/get-recent-prices-for-account jdbc-ds account-id))]
-            (-> prices
-                to-json
-                response/ok
-                (response/header "Content-Type" "application/json"))
-            (response/not-found (str "Prices not found for stocks in account: " (:account-id path-params))))))}}]
+    [""
+     {:allow-methods [:get]
+      :get
+      {:handler
+       (fn [{:keys [path-params]}]
+         (let [account-id (get-account-id path-params)]
+           (log/info "Get prices for stocks in account:" (:account-id path-params))
+           (if-let [prices (seq (prices/get-recent-prices-for-account jdbc-ds account-id))]
+             (-> prices
+                 to-json
+                 response/ok
+                 (response/header "Content-Type" "application/json"))
+             (response/not-found (str "Prices not found for stocks in account: " (:account-id path-params))))))}}]
+    ["/:for-date"
+     {:allow-methods [:get]
+      :get
+      {:handler
+       (fn [{:keys [path-params]}]
+         (let [account-id (get-account-id path-params)
+               for-date (:for-date path-params)]
+           (log/info "Get prices for stocks in account:" (:account-id path-params) "for date:" for-date)
+           (if-let [prices (seq (prices/get-prices-for-account-at jdbc-ds account-id for-date))]
+             (-> prices
+                 to-json
+                 response/ok
+                 (response/header "Content-Type" "application/json"))
+             (response/not-found (str "Prices not found for stocks in account: " (:account-id path-params))))))}}]]
    ["trades/:account-id"
     [""
      {:allow-methods [:get]
