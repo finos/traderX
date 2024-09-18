@@ -157,7 +157,7 @@
                                           buy-date (+ start (* offset day))
                                           sell-date (+ buy-date week)
                                           half-buy-quantity (int (/ (inc quantity) 2))
-                                          sell-quantity (if (> (rand-int 10) 8)
+                                          sell-quantity (if (> (rand-int 10) 6)
                                                           quantity
                                                           (+ half-buy-quantity
                                                              (rand-int half-buy-quantity)))]
