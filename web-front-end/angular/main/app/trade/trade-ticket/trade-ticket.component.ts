@@ -3,8 +3,8 @@ import { TradeTicket, StockPrice, Position } from 'main/app/model/trade.model';
 import { Stock } from 'main/app/model/symbol.model';
 import { Account } from 'main/app/model/account.model';
 import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
-import { SymbolService } from '../../service/symbols.service';
 import { PositionService } from '../../service/position.service';
+import { PriceService } from 'main/app/service/price.service';
 
 
 @Component({
@@ -27,7 +27,8 @@ export class TradeTicketComponent implements OnInit {
   position?: Position = undefined;
   positions: Position[] = [];
 
-  constructor(private symbolService: SymbolService, private positionService: PositionService) { }
+  constructor(private positionService: PositionService,
+              private priceService: PriceService) { }
 
   ngOnInit() {
     this.ticket = {
@@ -68,7 +69,7 @@ export class TradeTicketComponent implements OnInit {
       console.log(`Position not found for stock ${this.ticket.security}!`);
       this.sellDisabled = true;
     }
-    this.symbolService.getPrice(e.item.ticker).subscribe(
+    this.priceService.getPrice(e.item.ticker).subscribe(
       (price: StockPrice) => this.ticket.unitPrice = price.price);
   }
 
