@@ -106,7 +106,7 @@ export class ReportComponent implements OnInit {
 
   onDateSliderChange(event: any) {
     this.dateValue = event.value;
-    this.value = 0;
+    this.value = this.points.length;
     this.updateSlider(this.accountModel?.id || 52355, this.value);
     this.dateModel = this.dateValue == 0 ? undefined : this.getDateAt(this.dateValue);
   }
