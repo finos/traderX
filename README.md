@@ -53,7 +53,7 @@ The project consists of multiple moving parts, and you can see how things hang t
 | [trade-service](trade-service) | java/spring | Service for submitting trade/order requests for further processing |
 | [trade-processor](trade-processor) | java/spring | Trade Feed consumer which processes trade/orders |
 | [web-front-end](web-front-end) | html/angular or react | Interactive UI for executing trades and viewing blotter. Note: the AngularJS GUI was an initial contribution and contains account management capabilities. The React GUI was contributed during a hack day and may not work for managing accounts, but it does work for executing trades and viewing the blotter |
-[xtdb](./docker-compose.yml#25) | [bitermporal database](https://github.com/xtdb/xtdb) | open-source immutable database with comprehensive time-travel. XTDB has been built to simplify application development and address complex data compliance requirements. XTDB can be used via SQL and [XTQL](https://docs.xtdb.com/tutorials/introducing-xtql.html) |
+[xtdb](./docker-compose.yml#25) | [bitemporal database](https://github.com/xtdb/xtdb) | open-source immutable database with comprehensive time-travel. XTDB has been built to simplify application development and address complex data compliance requirements. XTDB can be used via SQL and [XTQL](https://docs.xtdb.com/tutorials/introducing-xtql.html) |
 
 ## Installation
 
