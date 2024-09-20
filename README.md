@@ -7,10 +7,10 @@
 
 <img align="right" src="./docs/img/2023_TraderX_Vertical.png" alt="TraderX Logo" width="250"/>
 
-TraderX is a Sample Trading Application, designed to be a distributed reference application 
-in the financial services domain which can serve as a starting point for experimentation 
+TraderX is a Sample Trading Application, designed to be a distributed reference application
+in the financial services domain which can serve as a starting point for experimentation
 with various techniques and other open source projects.  It is designed to be simple
-and accessible to developers of all backgrounds, with minimal pre-assumptions, and it 
+and accessible to developers of all backgrounds, with minimal pre-assumptions, and it
 can serve as a starting point for educational and experimentation purposes.
 
 It is designed to be runnable from any developer workstation with minimal assumptions
@@ -23,14 +23,18 @@ messaging systems and are able to showcase a wide range of technical challenges 
 More detailed information about this project can be found in the website which is generated
 from the code under the `docs` directory of this project.
 
-
 ## Project Demo and Overview Presentation
 
-Learn more about the project - including a brief demo, in the Keynote Demo session 
+Learn more about the project - including a brief demo, in the Keynote Demo session
 that was presented at the [Open Source in Finance Forum 2023](https://events.linuxfoundation.org/open-source-finance-forum-new-york/)
 
 [![TraderX Overview Video - OSFF 2023](./docs/img/2023_osff_video_thumb.png)](https://youtu.be/tSKDJlRYkm0?list=PLmPXh6nBuhJueQS5q-5IU3-0vmZEIUbz0&t=400)
 
+### Application Logic Changes
+
+The application has been modified so that it starts with a seed of only `Buy` trades so that we can open stock positions. The naive rationale is that you should not be able to sell securities that you don't have. Therefore if you do not have an open position with given security - you cannot sell it - and if you do have the security - you can only sell as much as you currently have. After all the securities have been sold - a position is closed.
+
+Trades and Positions are additionally saved to XTDB so that we can show a history of changes and consecutive trades. We introduced Prices (as discussed above - randomly generated rather than taken from some Exchange feed - for demonstration running locally they are a good enough approximation of 'live market').
 
 ## Project Components
 
@@ -41,7 +45,7 @@ The project consists of multiple moving parts, and you can see how things hang t
 | :--- | :--- | :--- |
 | [docs](docs) | markdown | Architecture and Flow Diagrams are here! |
 | [database](database) | java/h2 | A simple self-contained SQL database |
-| [reference-service](reference-service) | node/nestjs | REST service (off a flat file) for querying ticker symbols |
+| [reference-service](reference-service) | clojure | REST service (off a flat file) for querying ticker symbols, providing stock prices and also storing trades and positions in XTDB in order to provide history for Reports |
 | [trade-feed](trade-feed) | node/socketio | Message bus used for trade flows, as well as streaming to the GUI |
 | [people-service](people-service) | .Net core | Service for looking up users, for account mangement |
 | [account-service](account-service) | java/spring | Service for querying and validating accounts |
@@ -49,14 +53,15 @@ The project consists of multiple moving parts, and you can see how things hang t
 | [trade-service](trade-service) | java/spring | Service for submitting trade/order requests for further processing |
 | [trade-processor](trade-processor) | java/spring | Trade Feed consumer which processes trade/orders |
 | [web-front-end](web-front-end) | html/angular or react | Interactive UI for executing trades and viewing blotter. Note: the AngularJS GUI was an initial contribution and contains account management capabilities. The React GUI was contributed during a hack day and may not work for managing accounts, but it does work for executing trades and viewing the blotter |
+[xtdb](./docker-compose.yml#25) | [bitermporal database](https://github.com/xtdb/xtdb) | open-source immutable database with comprehensive time-travel. XTDB has been built to simplify application development and address complex data compliance requirements. XTDB can be used via SQL and [XTQL](https://docs.xtdb.com/tutorials/introducing-xtql.html) |
 
-## Installation  
+## Installation
 
 This is installed locally through normal git clone operations.
 
 ## Usage example (Manual)
 
-In order to get things working together, it is recommended to select a range of ports to provide all running processes with, so that the pieces can interconnect as needed.  To run this all up 'by hand' here are default ports which are used, and you can easily export these variables to your favorite shell. 
+In order to get things working together, it is recommended to select a range of ports to provide all running processes with, so that the pieces can interconnect as needed.  To run this all up 'by hand' here are default ports which are used, and you can easily export these variables to your favorite shell.
 
 ```bash
 export DATABASE_TCP_PORT=18082
@@ -77,6 +82,7 @@ The recommended starting sequence to let everything find what it needs is:
 
 ```bash
 database
+xtdb
 reference-service
 trade-feed
 people-service
@@ -89,17 +95,17 @@ web-front-end
 
 ## Usage (Docker + Docker Compose)
 
-The easiest way to run up the entire system is using Docker Compose. This should work on your local computer using Docker Desktop / Docker Compose (tested on Mac Silicon) and also in Github Codespaces. 
+The easiest way to run up the entire system is using Docker Compose. This should work on your local computer using Docker Desktop / Docker Compose (tested on Mac Silicon) and also in Github Codespaces.
 
 ### Codespaces
-If using Github Codespaces it is recommended you select an 8-core type machine with 32GB RAM to ensure all the components have the required resources to start. 
+If using Github Codespaces it is recommended you select an 8-core type machine with 32GB RAM to ensure all the components have the required resources to start.
 
-To do this 
+To do this
 * Select the Green Code menu at the top of this page
 * Select the Codespace tab then click the three dots '...' and select 'New with options...'.
 * Change the machine type to '8-core' and click 'Create codespace'
 
-As of writing, personal Github accounts receive 120 free core hours per month for using Codespaces, see the most recent details [here](https://docs.github.com/en/billing/managing-billing-for-github-codespaces/about-billing-for-github-codespaces#monthly-included-storage-and-core-hours-for-personal-accounts) 
+As of writing, personal Github accounts receive 120 free core hours per month for using Codespaces, see the most recent details [here](https://docs.github.com/en/billing/managing-billing-for-github-codespaces/about-billing-for-github-codespaces#monthly-included-storage-and-core-hours-for-personal-accounts)
 
 Once you have cloned the repository locally or once your Codespace has started, from the root traderX directory run
 ```
