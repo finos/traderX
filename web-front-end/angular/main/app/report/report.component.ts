@@ -39,10 +39,10 @@ export class ReportComponent implements OnInit {
       }
     },
     ticksValuesTooltip: (index): string => {
-      return this.getPointDate(index);
+      return this.getPointDate(index).replace('T', '@').replace('Z','');
     },
     ticksTooltip: (index): string => {
-      return this.getPointDate(index)
+      return this.getPointDate(index).replace('T', '@').replace('Z','');
     }
   };
   dateValue: number = 0;
@@ -90,11 +90,11 @@ export class ReportComponent implements OnInit {
   updateSlider(accountId: number, start: number) {
     console.log('updateSlider', start, this.points[start]);
     const startDate = this.points[start];
-
+    const label = `${startDate ? ('Time as of: ' + startDate.replace('T', '@').replace('Z','')) : 'All Time'}`;
     this.intervalModel = {
       start: startDate,
       accountId,
-      label: `${startDate ? startDate : 'All Time'}`
+      label,
     };
   }
 
