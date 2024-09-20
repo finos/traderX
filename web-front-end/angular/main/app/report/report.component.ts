@@ -25,7 +25,6 @@ export class ReportComponent implements OnInit {
   private account = new Subject<Account>();
   points: string[] = [];
   value: number = 0;
-  highValue: number = 1;
   options: Options = {
     floor: 0,
     ceil: 1,
@@ -88,30 +87,27 @@ export class ReportComponent implements OnInit {
     return item.displayName;
   }
 
-  updateSlider(accountId: number, start: number, end: number) {
+  updateSlider(accountId: number, start: number) {
+    console.log('updateSlider', start, this.points[start]);
     const startDate = this.points[start];
-    const endDate = end > this.points.length ? 'null' : this.points[end];
 
     this.intervalModel = {
       start: startDate,
-      end: endDate,
       accountId,
-      label: `${startDate} - ${endDate ? endDate : '...'}`
+      label: `${startDate ? startDate : 'All Time'}`
     };
   }
 
   onSliderChange(event: any) {
     this.value = (event.value > this.points.length) ? this.points.length : event.value;
-    this.highValue = event.highValue;
     this.dateValue = 0;
-    this.updateSlider(this.accountModel?.id || 52355, this.value, this.highValue);
+    this.updateSlider(this.accountModel?.id || 52355, this.value);
   }
 
   onDateSliderChange(event: any) {
     this.dateValue = event.value;
     this.value = 0;
-    this.highValue = this.points.length;
-    this.updateSlider(this.accountModel?.id || 52355, this.value, this.highValue);
+    this.updateSlider(this.accountModel?.id || 52355, this.value);
     this.dateModel = this.dateValue == 0 ? undefined : this.getDateAt(this.dateValue);
   }
 
@@ -128,9 +124,8 @@ export class ReportComponent implements OnInit {
     this.priceService.getPointsInTime(account.id).subscribe((points: string[]) => {
       console.log('Report Comp : Trade points', points);
       this.points = points;
-      this.highValue = points.length;
       this.setSliderValues(this.points);
-      this.updateSlider(this.accountModel?.id || 52355, this.value, this.highValue);
+      this.updateSlider(this.accountModel?.id || 52355, this.value);
     });
   }
 

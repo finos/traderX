@@ -46,7 +46,7 @@ export class PriceService {
 
     getTrades(accountId: number, interval?: TradeInterval): Observable<Trade[]> {
       const url = (interval !== undefined && interval.start !== undefined)
-                ? `${this.tradesUrl}/${accountId}/${interval.start}/${interval.end || 'null'}`
+                ? `${this.tradesUrl}/${accountId}/${interval.start}`
                 : `${this.tradesUrl}/${accountId}`;
       console.log(`getTrades ${interval}`, url);
       return this.http.get<Trade[]>(url).pipe(
@@ -57,7 +57,7 @@ export class PriceService {
 
     getPositions(accountId: number, interval?: TradeInterval): Observable<Position[]> {
       const url = (interval && interval.start !== undefined)
-                ? `${this.positionsUrl}/${accountId}/${interval.start}/${interval.end || 'null'}`
+                ? `${this.positionsUrl}/${accountId}/${interval.start}`
                 :  `${this.positionsUrl}/${accountId}`;
       console.log(`getPositions ${url}`);
       return this.http.get<Position[]>(url).pipe(

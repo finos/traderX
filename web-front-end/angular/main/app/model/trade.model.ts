@@ -18,7 +18,6 @@ export interface TradePointInTime {
 
 export interface TradeInterval {
     start: string;
-    end: string;
     accountId: number;
     label: string;
 }

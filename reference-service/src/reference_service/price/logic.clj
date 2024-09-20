@@ -67,11 +67,11 @@
    from stocks")
 
 (def select-points-in-time
-  "select _valid_to as end, _valid_from as start
+  "select distinct(_valid_from) as start
    from trades
    for all valid_time
    where account_id=?
-   order by start, end nulls last")
+   order by start")
 
 (def trade-intervals
   "select _valid_to as end, _valid_from as start, security, account_id as accountId, state
@@ -278,19 +278,15 @@
       (LocalDateTime/parse date-time-formatter)))
 
 (defn account-trades
-  ([jdbc-ds account-id start end]
-   (log/infof "Get account trades start %s end %s" start end)
+  ([jdbc-ds account-id as-of]
+   (log/infof "Get account trades as of %s" as-of)
    (sql/query jdbc-ds
-              (if start
+              (if as-of
                 ["select _id as id, security, quantity, side, price, state, _valid_from, _valid_to
                   from trades
-                  for valid_time
-                  from ? to ?
+                  for valid_time as of ?
                   where account_id = ?"
-                 (parse-date-time start)
-                 (when-not (or (nil? end)
-                               (= "null" end))
-                   (parse-date-time end))
+                 (parse-date-time as-of)
                  account-id]
                 ["select _id as id, security, quantity, side, price, state, _valid_from, _valid_to
                   from trades
@@ -299,23 +295,19 @@
                  account-id]))))
 
 (defn account-positions
-  [jdbc-ds account-id start end]
-  (log/infof "Get account positions start %s end %s" start end)
+  [jdbc-ds account-id as-of]
+  (log/infof "Get account positions as of %s" as-of)
   (let [positions
         (sql/query jdbc-ds
-                   (if start
+                   (if as-of
                      ["select _id as id, security, trade, value, quantity, calculation, _valid_from, _valid_to
                        from positions
-                       for valid_time
-                       from ? to ?
+                       for valid_time as of ?
                        where account_id = ?
                        order by security,
                                 _valid_from desc,
                                 _valid_to desc nulls last"
-                      (parse-date-time start)
-                      (when-not (or (nil? end)
-                                    (= "null" end))
-                        (parse-date-time end))
+                      (parse-date-time as-of)
                       account-id]
                      ["select _id as id, security, trade, value, quantity, calculation, _valid_from, _valid_to
                        from positions
@@ -368,17 +360,10 @@
 (defn get-trade-points-in-time
   "Get all the different valid time points sorted. ALL (open end) not included."
   [jdbc-ds account-id]
-  (let [start-ends (sql/query jdbc-ds
-                              [select-points-in-time
-                               account-id])
-        points (sort
-                (distinct
-                 (mapcat
-                  (fn [{:keys [start end]}]
-                    (if end
-                      [start end]
-                      [start]))
-                  start-ends)))]
+  (let [points (mapv :start
+                     (sql/query jdbc-ds
+                                [select-points-in-time
+                                 account-id]))]
     points))
 
 (defn get-trade-intervals
@@ -401,16 +386,14 @@
   (def prices (sql/query jdbc-ds
                          ["select * from stock_prices where _id in (?,?)"
                           "AAPL" "IBM"]))
-  (get-trade-intervals jdbc-ds 52355)
+  (get-trade-points-in-time jdbc-ds 52355)
 
   (generate-new-prices jdbc-ds)
 
   (generate-new-price 100)
   (sql/query jdbc-ds [select-points-in-time])
   (jdbc/execute! jdbc-ds
-                 ["insert into stock_prices (price,_id) values (?,?),(?,?)"
-                  101 "AAPL"
-                  201 "IBM"])
+                 [select-points-in-time 52355])
 
   (def pricez (sql/query jdbc-ds
                          ["select _id as stock, price, _valid_from, _system_from from stock_prices where _id = ?

@@ -83,20 +83,20 @@
       {:handler
        (fn [{:keys [path-params]}]
          (let [account-id (get-account-id path-params)
-               trades (prices/account-trades jdbc-ds account-id nil nil)]
+               trades (prices/account-trades jdbc-ds account-id nil)]
            (log/infof "Get account %s trades for all time %s" account-id trades)
            (-> trades
                to-json
                response/ok
                (response/header "Content-Type" "application/json"))))}}]
-    ["/:start/:end"
+    ["/:as-of"
      {:allow-methods [:get]
       :get
       {:handler
        (fn [{:keys [path-params]}]
          (let [account-id (get-account-id path-params)
-               trades (prices/account-trades jdbc-ds account-id (:start path-params) (:end path-params))]
-           (log/infof "Get account %s trades from %s to %s: %s" account-id (:start path-params) (:end path-params) trades)
+               trades (prices/account-trades jdbc-ds account-id (:as-of path-params))]
+           (log/infof "Get account %s trades as-of %s : %s" account-id (:as-of path-params) trades)
            (-> trades
                to-json
                response/ok
@@ -108,20 +108,20 @@
       {:handler
        (fn [{:keys [path-params]}]
          (let [account-id (get-account-id path-params)
-               positions (prices/account-positions jdbc-ds account-id nil nil)]
+               positions (prices/account-positions jdbc-ds account-id nil)]
            (log/infof "Get account %s positions for all time %s" account-id positions)
            (-> positions
                to-json
                response/ok
                (response/header "Content-Type" "application/json"))))}}]
-    ["/:start/:end"
+    ["/:as-of"
      {:allow-methods [:get]
       :get
       {:handler
        (fn [{:keys [path-params]}]
          (let [account-id (get-account-id path-params)
-               positions (prices/account-positions jdbc-ds account-id (:start path-params) (:end path-params))]
-           (log/infof "Get account %s positions from %s to %s: %s" account-id (:start path-params) (:end path-params) positions)
+               positions (prices/account-positions jdbc-ds account-id (:as-of path-params))]
+           (log/infof "Get account %s positions as-of %s : %s" account-id (:as-of path-params) positions)
            (-> positions
                to-json
                response/ok
