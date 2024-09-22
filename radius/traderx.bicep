@@ -1,4 +1,4 @@
-import radius as radius
+extension radius
 
 // Parameters
 param application string
