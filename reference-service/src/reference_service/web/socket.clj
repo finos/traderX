@@ -36,8 +36,9 @@
   []
   (when-let [previous (:price-update-stream @client)]
     (s/close! previous))
-  (let [price-stream (s/periodically
-                      30000
+  (let [interval (:price-update-interval-ms @client)
+        price-stream (s/periodically
+                      interval
                       0 ;; start immediately
                       (fn []
                         (log/info "Sending market prices for " (:securities @account))
@@ -77,8 +78,8 @@
   ;; TODO think if we should have multiple accounts and publish prices to all subscribed
   ;; we'd have to watch unsubscriptions too - so we remove those accounts from stream
   (log/infof "current account %d" payload)
-  (let [trades (prices/account-trades (:jdbc-ds @client) payload nil nil)
-        positions (prices/account-positions (:jdbc-ds @client) payload nil nil)
+  (let [trades (prices/account-trades (:jdbc-ds @client) payload nil)
+        positions (prices/account-positions (:jdbc-ds @client) payload nil)
         securities (set (map :security trades))]
     (log/infof "Account positions %s" positions)
     (reset! account {:id payload
