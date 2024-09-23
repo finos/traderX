@@ -145,6 +145,26 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
     return data.security;
   }
 
+  getRowClass(params: any) {
+    if (params.data.marketValue + params.data.value < 0) {
+      return 'negative';
+    } else if (params.data.marketValue + params.data.value > 0) {
+      return 'positive';
+    } else {
+      return '';
+    }
+  }
+
+  getRowStyle(params: any) {
+    if (params.data.marketValue + params.data.value < 0) {
+      return { "background-color": "rgba(226, 2, 2, 0.1)" };
+    } else if (params.data.marketValue + params.data.value > 0) {
+      return { "background-color": "rgba(2, 226, 2, 0.1)" };
+    } else {
+      return { "background-color": "rgba(226, 226, 226, 0.1)" };
+   }
+  }
+
   ngOnDestroy() {
     this.marketValueUnSubscribeFn?.();
   }
