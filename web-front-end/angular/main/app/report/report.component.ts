@@ -29,11 +29,10 @@ export class ReportComponent implements OnInit {
     floor: 0,
     ceil: 1,
     step: 1,
-    showTicks: true,
     showTicksValues: true,
     translate: (index): string => {
       if (index === this.points.length) {
-        return 'All';
+        return 'Now';
       } else {
         return `v${index}`;
       }
@@ -72,7 +71,7 @@ export class ReportComponent implements OnInit {
 
   getPointDate(index: number) {
     if (index === this.points.length) {
-      return 'All';
+      return 'Now';
     } else {
       return `${this.points[index]}`;
     }
@@ -90,7 +89,7 @@ export class ReportComponent implements OnInit {
   updateSlider(accountId: number, start: number) {
     console.log('updateSlider', start, this.points[start]);
     const startDate = this.points[start];
-    const label = `${startDate ? ('Time as of: ' + startDate.replace('T', '@').replace('Z','')) : 'All Time'}`;
+    const label = `${startDate ? ('Time as of: ' + startDate.replace('T', ' ').replace('Z','')) : 'Now'}`;
     this.intervalModel = {
       start: startDate,
       accountId,
@@ -124,6 +123,7 @@ export class ReportComponent implements OnInit {
     this.priceService.getPointsInTime(account.id).subscribe((points: string[]) => {
       console.log('Report Comp : Trade points', points);
       this.points = points;
+      this.value = this.points.length;
       this.setSliderValues(this.points);
       this.updateSlider(this.accountModel?.id || 52355, this.value);
     });

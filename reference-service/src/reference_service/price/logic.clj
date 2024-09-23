@@ -290,7 +290,6 @@
                  account-id]
                 ["select _id as id, security, quantity, side, price, state, _valid_from, _valid_to
                   from trades
-                  for valid_time all
                   where account_id = ?"
                  account-id]))))
 
@@ -311,7 +310,6 @@
                       account-id]
                      ["select _id as id, security, trade, value, quantity, calculation, _valid_from, _valid_to
                        from positions
-                       for valid_time all
                        where account_id = ?
                        order by security,
                                 _valid_from desc,
