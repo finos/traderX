@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trade-processor-deployment
+  labels:
+    app: trade-processor
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: trade-processor
+  template:
+    metadata:
+      labels:
+        app: trade-processor
+    spec:
+      containers:
+      - name: trade-processor-app
+        image: traderx/trade-processor
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 18091
+        env:
+        - name: DATABASE_TCP_HOST
+          value: database
+        - name: TRADE_FEED_HOST
+          value: trade-feed

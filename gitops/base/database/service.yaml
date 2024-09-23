@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: database
+spec:
+  selector:
+    app: database
+  ports:
+    - name: "18082"
+      port: 18082
+      targetPort: 18082
+    - name: "18083"
+      port: 18083
+      targetPort: 18083
+    - name: "18084"
+      port: 18084
+      targetPort: 18084

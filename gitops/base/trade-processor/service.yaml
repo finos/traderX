@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: trade-processor
+spec:
+  selector:
+    app: trade-processor
+  ports:
+  - port: 8080
+    targetPort: 18091

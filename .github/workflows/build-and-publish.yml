@@ -1,0 +1,58 @@
+name: Build and Publish Application Images
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+env:
+  VERSION: 'latest'
+  CONTAINER_REGISTRY: 'ghcr.io/finos'
+ 
+jobs:
+  build-ghcr:
+    name: Build and push application images to GHCR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - directory: account-service/
+            image: traderx/account-service
+          - directory: database/
+            image: traderx/database
+          - directory: ingress/
+            image: traderx/ingress
+          - directory: people-service/
+            image: traderx/people-service
+          - directory: position-service/
+            image: traderx/position-service
+          - directory: reference-data/
+            image: traderx/reference-data
+          - directory: trade-feed/
+            image: traderx/trade-feed
+          - directory: trade-processor/
+            image: traderx/trade-processor
+          - directory: trade-service/
+            image: traderx/trade-service
+          - directory: web-front-end/angular/
+            image: traderx/web-front-end-angular
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push ${{ matrix.image }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ./${{ matrix.directory }}
+          push: ${{ github.event_name == 'push' && true || false }}
+          tags: ${{ env.CONTAINER_REGISTRY }}/${{ matrix.image }}:${{ env.VERSION }}

@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: reference-data
+  name: reference-data
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reference-data
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: reference-data
+    spec:
+      containers:
+        - name: reference-data
+          env:
+            - name: REFERENCE_DATA_SERVICE_PORT
+              value: "18095"
+          image: traderx/reference-data
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 18085
+              protocol: TCP
+          workingDir: /reference-data
+      restartPolicy: Always

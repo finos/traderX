@@ -1,4 +1,4 @@
-import { ColDef, GridApi, GridReadyEvent } from 'ag-grid-community';
+import { ColDef, GridApi, GridReadyEvent, GetRowIdParams } from 'ag-grid-community';
 import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { Account } from 'main/app/model/account.model';
 import { PositionService } from 'main/app/service/position.service';
@@ -62,8 +62,8 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
         this.gridApi.sizeColumnsToFit();
     }
 
-    getRowNodeId(data: Trade) {
-        return data.id;
+    getRowId(params: GetRowIdParams<any>):string {
+        return  `Trade-${params.data.id}`;
     }
 
     ngOnDestroy() {

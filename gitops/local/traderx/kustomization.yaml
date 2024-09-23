@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: traderx
+
+resources:
+ - namespace.yaml
+ - ../../base/ingress
+ - ../../base/database
+ - ../../base/account-service
+ - ../../base/people-service
+ - ../../base/position-service
+ - ../../base/reference-data
+ - ../../base/trade-feed 
+ - ../../base/trade-processor
+ - ../../base/trade-service
+ - ../../base/web-front-end 

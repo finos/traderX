@@ -1,5 +1,6 @@
 import { ColDef, GridApi, GridReadyEvent, Module } from 'ag-grid-community';
 import { Component, OnInit } from '@angular/core';
+import { AgGridModule } from 'ag-grid-angular';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AccountService } from '../service/account.service';
 import { Account } from '../model/account.model';

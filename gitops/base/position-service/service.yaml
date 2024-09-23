@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: position-service
+  name: position-service
+spec:
+  ports:
+    - name: "18090"
+      port: 8080
+      targetPort: 18090
+
+  selector:
+    app: position-service

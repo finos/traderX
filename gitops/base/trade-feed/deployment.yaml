@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: trade-feed
+  name: trade-feed
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trade-feed
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: trade-feed
+    spec:
+      containers:
+        - image: traderx/trade-feed
+          imagePullPolicy: IfNotPresent
+          name: trade-feed
+          env:
+            - name: TRADE_FEED_PORT
+              value: "18086"
+          ports:
+            - containerPort: 18086
+              protocol: TCP
+          workingDir: /trade-feed
+      restartPolicy: Always

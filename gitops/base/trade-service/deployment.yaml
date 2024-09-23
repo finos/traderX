@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: trade-service
+  name: trade-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trade-service
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: trade-service
+    spec:
+      containers:
+        - env:
+            - name: ACCOUNT_SERVICE_HOST
+              value: account-service
+            - name: DATABASE_TCP_HOST
+              value: database
+            - name: PEOPLE_SERVICE_HOST
+              value: people-service
+            - name: REFERENCE_DATA_HOST
+              value: reference-data
+            - name: TRADE_FEED_HOST
+              value: trade-feed
+          image: traderx/trade-service
+          imagePullPolicy: IfNotPresent
+          name: trade-service
+          ports:
+            - containerPort: 18092
+              protocol: TCP
+          workingDir: /trade-service
+      restartPolicy: Always
