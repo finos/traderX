@@ -22,25 +22,25 @@ jobs:
       matrix:
         include:
           - directory: traderX/account-service/
-            image: traderX/account-service
+            image: traderx/account-service
           - directory: traderX/database/
-            image: traderX/database
+            image: traderx/database
           - directory: traderX/ingress/
-            image: traderX/ingress
+            image: traderx/ingress
           - directory: traderX/people-service/
-            image: traderX/people-service
+            image: traderx/people-service
           - directory: traderX/position-service/
-            image: traderX/position-service
+            image: traderx/position-service
           - directory: traderX/reference-data/
-            image: traderX/reference-data
+            image: traderx/reference-data
           - directory: traderX/trade-feed/
-            image: traderX/trade-feed
+            image: traderx/trade-feed
           - directory: traderX/trade-processor/
-            image: traderX/trade-processor
+            image: traderx/trade-processor
           - directory: traderX/trade-service/
-            image: traderX/trade-service
+            image: traderx/trade-service
           - directory: traderX/web-front-end/angular/
-            image: traderX/web-front-end-angular
+            image: traderx/web-front-end-angular
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
