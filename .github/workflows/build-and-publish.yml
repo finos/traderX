@@ -21,25 +21,25 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - directory: traderX/account-service/
+          - directory: account-service/
             image: traderx/account-service
-          - directory: traderX/database/
+          - directory: database/
             image: traderx/database
-          - directory: traderX/ingress/
+          - directory: ingress/
             image: traderx/ingress
-          - directory: traderX/people-service/
+          - directory: people-service/
             image: traderx/people-service
-          - directory: traderX/position-service/
+          - directory: position-service/
             image: traderx/position-service
-          - directory: traderX/reference-data/
+          - directory: reference-data/
             image: traderx/reference-data
-          - directory: traderX/trade-feed/
+          - directory: trade-feed/
             image: traderx/trade-feed
-          - directory: traderX/trade-processor/
+          - directory: trade-processor/
             image: traderx/trade-processor
-          - directory: traderX/trade-service/
+          - directory: trade-service/
             image: traderx/trade-service
-          - directory: traderX/web-front-end/angular/
+          - directory: web-front-end/angular/
             image: traderx/web-front-end-angular
     steps:
       - name: Checkout code
