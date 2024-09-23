@@ -21,26 +21,26 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - directory: traderx/account-service/
-            image: traderx/account-service
-          - directory: traderx/database/
-            image: traderx/database
-          - directory: traderx/ingress/
-            image: traderx/ingress
-          - directory: traderx/people-service/
-            image: traderx/people-service
-          - directory: traderx/position-service/
-            image: traderx/position-service
-          - directory: traderx/reference-data/
-            image: traderx/reference-data
-          - directory: traderx/trade-feed/
-            image: traderx/trade-feed
-          - directory: traderx/trade-processor/
-            image: traderx/trade-processor
-          - directory: traderx/trade-service/
-            image: traderx/trade-service
-          - directory: traderx/web-front-end/angular/
-            image: traderx/web-front-end-angular
+          - directory: traderX/account-service/
+            image: traderX/account-service
+          - directory: traderX/database/
+            image: traderX/database
+          - directory: traderX/ingress/
+            image: traderX/ingress
+          - directory: traderX/people-service/
+            image: traderX/people-service
+          - directory: traderX/position-service/
+            image: traderX/position-service
+          - directory: traderX/reference-data/
+            image: traderX/reference-data
+          - directory: traderX/trade-feed/
+            image: traderX/trade-feed
+          - directory: traderX/trade-processor/
+            image: traderX/trade-processor
+          - directory: traderX/trade-service/
+            image: traderX/trade-service
+          - directory: traderX/web-front-end/angular/
+            image: traderX/web-front-end-angular
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
