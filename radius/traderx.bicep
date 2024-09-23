@@ -8,7 +8,7 @@ resource database 'Applications.Core/containers@2023-10-01-preview' = {
   properties: {
     application: application
     container: {
-      image: 'ghcr.io/willtsai/traderx/database:latest'
+      image: 'ghcr.io/finos/traderx/database:latest'
       ports: {
         tcp: {
           containerPort: 18082
@@ -29,7 +29,7 @@ resource referencedata 'Applications.Core/containers@2023-10-01-preview' = {
   properties: {
     application: application
     container: {
-      image: 'ghcr.io/willtsai/traderx/reference-data:latest'
+      image: 'ghcr.io/finos/traderx/reference-data:latest'
       ports: {
         web: {
           containerPort: 18085
@@ -44,7 +44,7 @@ resource tradefeed 'Applications.Core/containers@2023-10-01-preview' = {
   properties: {
     application: application
     container: {
-      image: 'ghcr.io/willtsai/traderx/trade-feed:latest'
+      image: 'ghcr.io/finos/traderx/trade-feed:latest'
       ports: {
         web: {
           containerPort: 18086
@@ -59,7 +59,7 @@ resource peopleservice 'Applications.Core/containers@2023-10-01-preview' = {
   properties: {
     application: application
     container: {
-      image: 'ghcr.io/willtsai/traderx/people-service:latest'
+      image: 'ghcr.io/finos/traderx/people-service:latest'
       ports: {
         web: {
           containerPort: 18089
@@ -74,7 +74,7 @@ resource accountservice 'Applications.Core/containers@2023-10-01-preview' = {
   properties: {
     application: application
     container: {
-      image: 'ghcr.io/willtsai/traderx/account-service:latest'
+      image: 'ghcr.io/finos/traderx/account-service:latest'
       ports: {
         web: {
           containerPort: 18088
@@ -101,7 +101,7 @@ resource positionservice 'Applications.Core/containers@2023-10-01-preview' = {
   properties: {
     application: application
     container: {
-      image: 'ghcr.io/willtsai/traderx/position-service:latest'
+      image: 'ghcr.io/finos/traderx/position-service:latest'
       ports: {
         web: {
           containerPort: 18090
@@ -124,7 +124,7 @@ resource tradeservice 'Applications.Core/containers@2023-10-01-preview' = {
   properties: {
     application: application
     container: {
-      image: 'ghcr.io/willtsai/traderx/trade-service:latest'
+      image: 'ghcr.io/finos/traderx/trade-service:latest'
       ports: {
         web: {
           containerPort: 18092
@@ -163,7 +163,7 @@ resource tradeprocessor 'Applications.Core/containers@2023-10-01-preview' = {
   properties: {
     application: application
     container: {
-      image: 'ghcr.io/willtsai/traderx/trade-processor:latest'
+      image: 'ghcr.io/finos/traderx/trade-processor:latest'
       ports: {
         web: {
           containerPort: 18091
@@ -190,7 +190,7 @@ resource webfrontend 'Applications.Core/containers@2023-10-01-preview' = {
   properties: {
     application: application
     container: {
-      image: 'ghcr.io/willtsai/traderx/web-front-end-angular:latest'
+      image: 'ghcr.io/finos/traderx/web-front-end-angular:latest'
       ports: {
         web: {
           containerPort: 18093
@@ -216,7 +216,7 @@ resource ingress 'Applications.Core/containers@2023-10-01-preview' = {
   properties: {
     application: application
     container: {
-      image: 'ghcr.io/willtsai/traderx/ingress:latest'
+      image: 'ghcr.io/finos/traderx/ingress:latest'
       ports: {
         web: {
           containerPort: 8080
