@@ -8,14 +8,15 @@ import { Stock } from '../model/symbol.model';
 import { SymbolService } from '../service/symbols.service';
 import { TradeFeedService } from 'main/app/service/trade-feed.service';
 import { PriceService } from '../service/price.service';
+import { environment } from 'main/environments/environment';
 
 @Component({
-    selector: 'app-report',
-    templateUrl: './report.component.html',
-    styleUrls: ['./report.component.scss']
+  selector: 'app-report',
+  templateUrl: './report.component.html',
+  styleUrls: ['./report.component.scss']
 })
 export class ReportComponent implements OnInit {
-
+  priceUpdateIntervalMs = environment.priceUpdateIntervalMs;
   accounts: Account[] = [];
   accountModel?: Account = undefined;
   stocks: Stock[] = [];

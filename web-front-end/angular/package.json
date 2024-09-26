@@ -39,7 +39,7 @@
     "@angular/language-service": "^17.0.0",
     "@faker-js/faker": "^7.6.0",
     "@types/jasmine": "^5.1.4",
-    "@types/node": "^20.12.13",
+    "@types/node": "^20.16.9",
     "codelyzer": "^6.0.2",
     "cross-env": "^7.0.3",
     "jasmine-core": "~5.1.2",

@@ -3,13 +3,14 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-    production:         false,
-    accountUrl:         `//${window.location.hostname}:18088`,
+    production: false,
+    accountUrl: `//${window.location.hostname}:18088`,
     referenceServiceUrl: `//${window.location.hostname}:18085`,
-    tradesUrl:          `//${window.location.hostname}:18092/trade/`,
-    positionsUrl:       `//${window.location.hostname}:18090`,
-    peopleUrl:          `//${window.location.hostname}:18089`,
-    tradeFeedUrl:       `//${window.location.hostname}:18086`
+    tradesUrl: `//${window.location.hostname}:18092/trade/`,
+    positionsUrl: `//${window.location.hostname}:18090`,
+    peopleUrl: `//${window.location.hostname}:18089`,
+    tradeFeedUrl: `//${window.location.hostname}:18086`,
+    priceUpdateIntervalMs: 99999 // process.env["PRICE_UPDATE_INTERVAL_MS"] || '120000'
 };
 
 /*

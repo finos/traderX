@@ -49,7 +49,7 @@ services:
       - XTDB_PORT=5432
       - WEB_PORT=18085
       - TRADE_FEED_ADDRESS=http://trade-feed:18086
-      - PRICE_UPDATE_INTERVAL_MS=10000
+      - PRICE_UPDATE_INTERVAL_MS
     networks:
       - localnet
     depends_on:
@@ -207,6 +207,8 @@ services:
     depends_on:
       - database
       - trade-feed
+    environment:
+      - PRICE_UPDATE_INTERVAL_MS
   ingress:
     image: ingress
     build:
