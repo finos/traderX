@@ -38,6 +38,7 @@
     "@angular/compiler-cli": "^17.0.0",
     "@angular/language-service": "^17.0.0",
     "@faker-js/faker": "^7.6.0",
+    "@ngx-env/builder": "^18.0.1",
     "@types/jasmine": "^5.1.4",
     "@types/node": "^20.16.9",
     "codelyzer": "^6.0.2",

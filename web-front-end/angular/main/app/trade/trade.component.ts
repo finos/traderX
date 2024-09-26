@@ -7,6 +7,7 @@ import { Stock } from '../model/symbol.model';
 import { SymbolService } from '../service/symbols.service';
 import { TradeFeedService } from 'main/app/service/trade-feed.service';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
+import { environment } from 'main/environments/environment';
 
 @Component({
     selector: 'app-trade',
@@ -20,6 +21,7 @@ export class TradeComponent implements OnInit {
     modalRef?: BsModalRef;
     createTicketResponse: any;
     private account = new Subject<Account>();
+    priceUpdateIntervalSeconds: number = parseInt(environment.priceUpdateIntervalMs) / 1000;
 
     constructor(private accountService: AccountService,
         private symbolService: SymbolService,

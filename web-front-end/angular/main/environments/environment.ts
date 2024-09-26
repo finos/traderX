@@ -10,7 +10,7 @@ export const environment = {
     positionsUrl: `//${window.location.hostname}:18090`,
     peopleUrl: `//${window.location.hostname}:18089`,
     tradeFeedUrl: `//${window.location.hostname}:18086`,
-    priceUpdateIntervalMs: 99999 // process.env["PRICE_UPDATE_INTERVAL_MS"] || '120000'
+    priceUpdateIntervalMs: process.env.NG_APP_PRICE_UPDATE_INTERVAL_MS || '120000'
 };
 
 /*

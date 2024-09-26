@@ -16,7 +16,6 @@ import { environment } from 'main/environments/environment';
   styleUrls: ['./report.component.scss']
 })
 export class ReportComponent implements OnInit {
-  priceUpdateIntervalMs = environment.priceUpdateIntervalMs;
   accounts: Account[] = [];
   accountModel?: Account = undefined;
   stocks: Stock[] = [];
@@ -55,6 +54,7 @@ export class ReportComponent implements OnInit {
       return this.getDateAt(index).toDateString();
     }
   };
+  priceUpdateIntervalSeconds: number = parseInt(environment.priceUpdateIntervalMs) / 1000;
 
   constructor(private accountService: AccountService,
       private symbolService: SymbolService,
