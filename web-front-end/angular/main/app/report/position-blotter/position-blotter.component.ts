@@ -70,6 +70,7 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
     if (change.priceDate &&
         change.priceDate.currentValue !== change.priceDate.previousValue) {
       this.priceDate = change.priceDate.currentValue;
+      this.marketValueUnSubscribeFn?.();
     }
     const accountId = this.account?.id || 52355;
     const interval = this.interval;
