@@ -23,7 +23,7 @@ services:
     networks:
       - localnet
   xtdb:
-    image: ghcr.io/xtdb/xtdb-standalone-ea:latest
+    image: ghcr.io/xtdb/xtdb:latest
     pull_policy: always
     expose:
       - 5432
