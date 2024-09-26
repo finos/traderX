@@ -14,7 +14,7 @@
       </div>
 
       <h5>{{intervalModel ? intervalModel.label : null }}</h5>
-      <div class="trade-ops mb-2">
+      <div class="trade-ops mb-2" style="width:98%;">
         <ngx-slider
           [options]="options"
           [(value)]="value"
@@ -45,14 +45,14 @@
     <div class="disclaimer mt-4">
         <p>
             <small>
-                <strong>Market Value updates every 10 seconds</strong>
+                <strong>(live) Market Values refresh every 10s</strong>
             </small>
         </p>
     </div>
     <div class="trade-ops mb-4">
-      <p>View prices as of {{pricesAsOf}}</p>
+      <p>Re-calculate Market Values using prices as-of: {{pricesAsOf}}</p>
     </div>
-    <div  class="trade-ops mb-4">
+    <div class="trade-ops mb-4" style="width:98%;">
       <ngx-slider
         [options]="dateOptions"
         [(value)]="dateValue"

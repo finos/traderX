@@ -72,7 +72,7 @@ export class ReportComponent implements OnInit {
 
   getPointDate(index: number) {
     if (index === this.points.length) {
-      return 'Now';
+      return 'Latest';
     } else {
       return `${this.points[index]}`;
     }
@@ -89,7 +89,7 @@ export class ReportComponent implements OnInit {
 
   updateSlider(accountId: number, start: number) {
     const startDate = this.points[start];
-    const label = `${startDate ? ('Time as of: ' + startDate.replace('T', ' ').replace('Z','')) : 'Now'}`;
+    const label = `${startDate ? ('Reporting timestamp: ' + startDate.replace('T', ' ').replace('Z','')) : 'Latest'}`;
     this.intervalModel = {
       start: startDate,
       accountId,

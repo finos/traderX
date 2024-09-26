@@ -18,27 +18,34 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
     pendingTrades: Trade[] = [];
     isPending = true;
     socketUnSubscribeFn: Function;
+    width = '100%';
+    height = '350px';
     columnDefs: ColDef[] = [
         {
             headerName: 'SECURITY',
-            field: 'security'
+            field: 'security',
+	    width: 50
         },
         {
             headerName: 'QUANTITY',
-            field: 'quantity'
+            field: 'quantity',
+	    width: 50
         },
         {
             headerName: 'SIDE',
-            field: 'side'
+            field: 'side',
+	    width: 50
         },
         {
             headerName: 'STATE',
             field: 'state',
-            enableCellChangeFlash: true
+            enableCellChangeFlash: true,
+	    width: 50
         },
         {
             headerName: 'UNIT PRICE',
-            field: 'unitPrice'
+            field: 'unitPrice',
+	    width: 50
         }
     ];
 
