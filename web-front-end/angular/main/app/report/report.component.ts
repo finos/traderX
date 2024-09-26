@@ -54,6 +54,7 @@ export class ReportComponent implements OnInit {
       return this.getDateAt(index).toDateString();
     }
   };
+  pricesAsOf: string = this.getDateAt(this.dateValue).toDateString();
 
   constructor(private accountService: AccountService,
       private symbolService: SymbolService,
@@ -104,6 +105,7 @@ export class ReportComponent implements OnInit {
   onDateSliderChange(event: any) {
     this.dateValue = event.value;
     this.updateSlider(this.accountModel?.id || 52355, this.value);
+    this.pricesAsOf = this.getDateAt(this.dateValue).toDateString();
     this.dateModel = this.dateValue == 0 ? undefined : this.getDateAt(this.dateValue);
   }
 
