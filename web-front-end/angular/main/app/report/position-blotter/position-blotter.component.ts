@@ -19,32 +19,38 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
   gridApi: GridApi;
   marketValueUnSubscribeFn: Function;
   title = 'Positions';
+  height = '350px';
+  width = '100%';
   positions: Position[];
   prices: StockPrice[];
 
   columnDefs: ColDef[] = [
     {
       field: 'security',
-      headerName: 'SECURITY'
+      headerName: 'SECURITY',
+      width: 110
     },
     {
       headerName: 'QUANTITY',
       field: 'quantity',
-      enableCellChangeFlash: true
+      enableCellChangeFlash: true,
+      width: 130
     },
     {
       headerName: 'MONEY IN/OUT',
-      field: 'value'
+      field: 'value',
+      width: 140
     },
     {
       headerName: 'MARKET VALUE',
       field: 'marketValue',
-      enableCellChangeFlash: true
+      enableCellChangeFlash: true,
+      width: 140
     },
     {
       headerName: 'CALCULATION',
       field: 'calculation',
-      width: 400
+      width: 250
     }
   ];
 

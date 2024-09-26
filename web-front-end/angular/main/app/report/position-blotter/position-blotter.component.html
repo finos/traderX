@@ -1,6 +1,6 @@
 <h5>{{title}}</h5>
 
-<ag-grid-angular #agGrid style="width: 100%; height: 350px;" id="myGrid"
+<ag-grid-angular #agGrid [style.width]="width" [style.height]="height" id="myGrid"
     class="ag-theme-alpine" [columnDefs]="columnDefs" [rowData]="positions"
     (gridReady)="onGridReady($event)" [getRowNodeId]="getRowNodeId"
     [getRowClass]="getRowClass" [getRowStyle]="getRowStyle">

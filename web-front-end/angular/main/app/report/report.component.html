@@ -1,5 +1,5 @@
-<div class="trade-container p-5">
-    <nav></nav><div class="trade-ops mb-4">
+<div class="trade-container p-2">
+    <nav></nav><div class="trade-ops mb-2">
         <div class="trade-filter me-3">
             <app-ngx-dropdown
                 name="account"
@@ -14,7 +14,7 @@
       </div>
 
       <h5>{{intervalModel ? intervalModel.label : null }}</h5>
-      <div class="trade-ops mb-4">
+      <div class="trade-ops mb-2">
         <ngx-slider
           [options]="options"
           [(value)]="value"
@@ -45,12 +45,12 @@
     <div class="disclaimer mt-4">
         <p>
             <small>
-                <strong>Market Value updates every 2 minutes</strong>
+                <strong>Market Value updates every 10 seconds</strong>
             </small>
         </p>
     </div>
     <div class="trade-ops mb-4">
-      <p>Drag Slider To See Positions with Values Based on Prices a Date</p>
+      <p>View prices as of</p>
     </div>
     <div  class="trade-ops mb-4">
       <ngx-slider

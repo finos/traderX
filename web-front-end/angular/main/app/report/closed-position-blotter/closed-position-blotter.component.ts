@@ -18,26 +18,31 @@ export class ClosedPositionBlotterComponent implements OnChanges, OnDestroy {
   gridApi: GridApi;
   marketValueUnSubscribeFn: Function;
   title = 'Closed Positions';
+  height = '150px';
+  width = '100%';
   positions: Position[] = [];
 
   columnDefs: ColDef[] = [
     {
       field: 'security',
-      headerName: 'SECURITY'
+      headerName: 'SECURITY',
+      width: 110
     },
     {
       headerName: 'P & L',
-      field: 'value'
+      field: 'value',
+      width: 130
     },
     {
       headerName: 'UNIT PRICE',
       field: 'unitPrice',
-      enableCellChangeFlash: true
+      enableCellChangeFlash: true,
+      width: 130
     },
     {
       headerName: 'CALCULATION',
       field: 'calculation',
-      width: 400
+      width: 250
     }
   ];
 
