@@ -65,6 +65,10 @@
     (server/start web-port jdbc-ds)
     (websocket/create-client jdbc-ds trade-feed-address price-update-interval-ms)
 
+    (log/info "============================================================\n\n")
+    (log/info "REFERENCE SERVICE READY\n\n")
+    (log/info "============================================================\n\n")
+
     (.addShutdownHook
      (Runtime/getRuntime)
      (Thread.
