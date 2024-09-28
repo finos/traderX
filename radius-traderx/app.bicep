@@ -81,8 +81,12 @@ resource accountservice 'Applications.Core/containers@2023-10-01-preview' = {
         }
       }
       env: {
-        DATABASE_TCP_HOST: database.name
-        PEOPLE_SERVICE_HOST: peopleservice.name
+        DATABASE_TCP_HOST: {
+          value: database.name
+        }
+        PEOPLE_SERVICE_HOST: {
+          value: peopleservice.name
+        }
       }
     }
     connections: {
@@ -108,7 +112,9 @@ resource positionservice 'Applications.Core/containers@2023-10-01-preview' = {
         }
       }
       env: {
-        DATABASE_TCP_HOST: database.name
+        DATABASE_TCP_HOST: {
+          value: database.name
+        }
       }
     }
     connections: {
@@ -131,11 +137,21 @@ resource tradeservice 'Applications.Core/containers@2023-10-01-preview' = {
         }
       }
       env: {
-        DATABASE_TCP_HOST: database.name
-        PEOPLE_SERVICE_HOST: peopleservice.name
-        ACCOUNT_SERVICE_HOST: accountservice.name
-        REFERENCE_DATA_HOST: referencedata.name
-        TRADE_FEED_HOST: tradefeed.name
+        DATABASE_TCP_HOST: {
+          value: database.name
+        }
+        PEOPLE_SERVICE_HOST: {
+          value: peopleservice.name
+        }
+        ACCOUNT_SERVICE_HOST: {
+          value: accountservice.name
+        }
+        REFERENCE_DATA_HOST: {
+          value: referencedata.name
+        }
+        TRADE_FEED_HOST: {
+          value: tradefeed.name
+        }
       }
     }
     connections: {
@@ -170,8 +186,12 @@ resource tradeprocessor 'Applications.Core/containers@2023-10-01-preview' = {
         }
       }
       env: {
-        DATABASE_TCP_HOST: database.name
-        TRADE_FEED_HOST: tradefeed.name
+        DATABASE_TCP_HOST: {
+          value: database.name
+        }
+        TRADE_FEED_HOST: {
+          value: tradefeed.name
+        }
       }
     }
     connections: {
@@ -197,7 +217,9 @@ resource webfrontend 'Applications.Core/containers@2023-10-01-preview' = {
         }
       }
       env: {
-        DATABASE_TCP_HOST: database.name
+        DATABASE_TCP_HOST: {
+          value: database.name
+        }
       }
     }
     connections: {
@@ -223,7 +245,9 @@ resource ingress 'Applications.Core/containers@2023-10-01-preview' = {
         }
       }
       env: {
-        DATABASE_TCP_HOST: database.name
+        DATABASE_TCP_HOST: {
+          value: database.name
+        }
       }
     }
     connections: {
