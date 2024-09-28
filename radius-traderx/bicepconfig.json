@@ -1,0 +1,11 @@
+{
+	"experimentalFeaturesEnabled": {
+		"extensibility": true,
+		"extensionRegistry": true,
+		"dynamicTypeLoading": true
+	},
+	"extensions": {
+		"radius": "br:biceptypes.azurecr.io/radius:0.38",
+		"aws": "br:biceptypes.azurecr.io/aws:0.38"
+	}
+}
