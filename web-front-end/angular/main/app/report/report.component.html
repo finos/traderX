@@ -18,9 +18,9 @@
         <ngx-slider
           [options]="options"
           [(value)]="value"
-          (userChange)="onSliderChange($event)"
-          (userChangeStart)="onSliderChange($event)"
-          (userChangeEnd)="onSliderChange($event)">
+          (userChange)="onSliderChangeUpdateLabel($event)"
+          (userChangeStart)="onSliderChangeUpdateLabel($event)"
+          (userChangeEnd)="onSliderChangeFetchData($event)">
         </ngx-slider>
       </div>
 
