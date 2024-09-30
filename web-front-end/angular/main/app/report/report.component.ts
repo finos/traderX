@@ -97,9 +97,19 @@ export class ReportComponent implements OnInit {
     };
   }
 
-  onSliderChange(event: any) {
+  onSliderChangeFetchData(event: any) {
     this.value = (event.value > this.points.length) ? this.points.length : event.value;
     this.updateSlider(this.accountModel?.id || 52355, this.value);
+  }
+
+  onSliderChangeUpdateLabel(event: any) {
+    const date = this.points[event.value]
+    const label = date
+      ? `Reporting timestamp: ${date.replace('T', ' ').replace('Z', '')}`
+      : 'Latest';
+    if (this.intervalModel) {
+      this.intervalModel.label = label;
+    }
   }
 
   onDateSliderChange(event: any) {

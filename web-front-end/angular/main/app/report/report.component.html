@@ -14,13 +14,13 @@
       </div>
 
       <h5>{{intervalModel ? intervalModel.label : null }}</h5>
-      <div class="trade-ops mb-2" style="width:98%;">
+      <div class="trade-ops mb-2">
         <ngx-slider
           [options]="options"
           [(value)]="value"
-          (userChange)="onSliderChange($event)"
-          (userChangeStart)="onSliderChange($event)"
-          (userChangeEnd)="onSliderChange($event)">
+          (userChange)="onSliderChangeUpdateLabel($event)"
+          (userChangeStart)="onSliderChangeUpdateLabel($event)"
+          (userChangeEnd)="onSliderChangeFetchData($event)">
         </ngx-slider>
       </div>
 
