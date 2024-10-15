@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: database-app
-        image: traderx/database
+        image: ghcr.io/finos/traderx/database
         imagePullPolicy: IfNotPresent
         ports:
           - containerPort: 18082
