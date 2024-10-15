@@ -164,7 +164,7 @@ cd .corp
 
 ## Usage (K8s)
 
-The following are instructions to build and deploy all TraderX apps to your local enviroment using [tilt](https://tilt.dev) and kustomize files.
+The following are instructions to deploy all TraderX apps to your local enviroment using [tilt](https://tilt.dev) and kustomize files.
 
 ## Prerequistes 
 - Running [Docker](https://www.docker.com/products/docker-desktop/) or similar
@@ -183,12 +183,20 @@ Check your cluster is running using the epic tool `k9s` - https://k9scli.io/
 
 ### Start Tilt
 
-This command will build and start all locally built applications and deploy them to your local K8s environment.
+This command will deploy all the services to your local K8s environment.
 
 ```
 cd ./gitops/local/
 tilt up
 ```
+
+### Local Developement
+
+With all the services running you can then chose which ones you actively build locally.
+
+If you go to your local [Tiltfile](./gitops/local/Tiltfile) you simply need to uncomment all the lines, or just for the respective applicaiton that you want to work on. Those applications will be built locally and deployed to your cluster instead of the host images.
+
+
 
 
 # Getting Involved

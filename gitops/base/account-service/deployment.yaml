@@ -23,7 +23,7 @@ spec:
               value: "18088"
             - name: DATABASE_TCP_HOST
               value: database
-          image: traderx/account-service
+          image: ghcr.io/finos/traderx/account-service
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 18088

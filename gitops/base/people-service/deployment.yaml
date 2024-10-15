@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: people-service
-          image: traderx/people-service
+          image: ghcr.io/finos/traderx/people-service
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 18089
