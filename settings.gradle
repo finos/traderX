@@ -5,4 +5,4 @@ dependencyResolutionManagement {
     }
 }
 
-include 'account-service','position-service','trade-processor','trade-service','database'
+include 'account-service','models','position-service','trade-processor','trade-service','database'
