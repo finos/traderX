@@ -17,7 +17,7 @@ spec:
         app: web-front-end-angular
     spec:
       containers:
-        - image: traderx/web-front-end-angular
+        - image: ghcr.io/finos/traderx/web-front-end-angular
           imagePullPolicy: IfNotPresent
           name: web-front-end-angular
           env:
