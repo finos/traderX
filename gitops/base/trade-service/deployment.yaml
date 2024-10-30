@@ -28,7 +28,7 @@ spec:
               value: reference-data
             - name: TRADE_FEED_HOST
               value: trade-feed
-          image: ghcr.io/finos/traderx/trade-service:latest
+          image: ghcr.io/finos/traderx/trade-service
           imagePullPolicy: IfNotPresent
           name: trade-service
           ports:
