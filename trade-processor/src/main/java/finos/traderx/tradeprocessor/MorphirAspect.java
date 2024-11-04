@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import traderx.morphir.rulesengine.BuyRule;
 import traderx.morphir.rulesengine.models.Error;
 import traderx.morphir.rulesengine.models.TradeOrder.TradeOrder;
+import traderx.morphir.rulesengine.models.TradeState;
 
 @Component
 @Aspect
