@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import traderx.morphir.rulesengine.models.TradeOrder.TradeOrder;
 import traderx.morphir.rulesengine.models.TradeSide;
-import traderx.morphir.rulesengine.models.TradeState;
 
 @Service
 public class TradeService {
@@ -30,8 +29,10 @@ public class TradeService {
 
   @Autowired private Publisher<Position> positionPublisher;
 
-  @Validate //(attempt = TradeState.New)
-  public TradeBookingResult makeNewTrade(TradeOrder order) {
+  @Validate(attempt = traderx.morphir.rulesengine.models
+                          .TradeState$TradeState$New$.class)
+  public TradeBookingResult
+  makeNewTrade(TradeOrder order) {
     log.info("Trade order received : " + order);
     Trade t = new Trade();
 
@@ -96,8 +97,10 @@ public class TradeService {
     return result;
   }
 
-  @Validate //(attempt = TradeState.Cancelled)
-  public void cancelTrade(TradeOrder order) {
+  @Validate(attempt = traderx.morphir.rulesengine.models
+                          .TradeState$TradeState$Cancelled$.class)
+  public void
+  cancelTrade(String orderId) {
     log.warn("Cancelling trade");
   }
 }

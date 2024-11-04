@@ -30,4 +30,11 @@ public class TradeServiceController {
     TradeBookingResult result = tradeService.makeNewTrade(order);
     return ResponseEntity.ok(result);
   }
+
+  @PostMapping("/cancel")
+  public ResponseEntity<String> cancelOrder() {
+
+    tradeService.cancelTrade("1234");
+    return ResponseEntity.ok("complete");
+  }
 }
