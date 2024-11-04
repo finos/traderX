@@ -6,7 +6,21 @@
  */
 
 // Apply the java plugin to add support for Java
-apply plugin: 'scala'
+plugins {
+  id 'scala'
+  id "com.github.node-gradle.node" version "7.1.0"
+}
+
+node {
+  npmInstallCommand = System.getenv("CI") ? 'ci' : 'install'
+
+  // Enabled the automatic download.
+  download = true
+}
+
+repositories {
+  mavenCentral()
+}
 
 // In this section you declare the dependencies for your production and test code
 dependencies {
@@ -14,8 +28,16 @@ dependencies {
   implementation 'org.scala-lang:scala-library:2.13.15'
 }
 
-task "GenMorphir" (type: Exec) {
-  commandLine './run.sh'
+tasks.register('generateMorphirIR', NpxTask) {
+  dependsOn 'npmInstall'
+  command = "morphir-elm"
+  args = ["make"]
 }
 
-compileScala.dependsOn GenMorphir
+tasks.register('morphirScalaGen', NpxTask) {
+  dependsOn 'generateMorphirIR'
+  command = "morphir-elm"
+  args = ['gen', '-t', 'scala', '-o', './src/main/scala']
+}
+
+compileScala.dependsOn morphirScalaGen

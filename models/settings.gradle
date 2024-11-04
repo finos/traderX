@@ -12,3 +12,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = 'models'
+include 'npm', 'npx'

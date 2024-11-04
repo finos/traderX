@@ -1,0 +1,16 @@
+{
+    "src/main/scala/traderx/morphir/rulesengine/BuyRule.scala": "7367497749626bc738ccb7f15f6e8028",
+    "src/main/scala/traderx/morphir/rulesengine/CancelTradeRule.scala": "4b0898b72b012a98cbf633e26325d811",
+    "src/main/scala/traderx/morphir/rulesengine/SellRule.scala": "54a0668085911113710a4d18961ac5ed",
+    "src/main/scala/traderx/morphir/rulesengine/models/Error.scala": "252887e20a025dfffd40fc75caef56c6",
+    "src/main/scala/traderx/morphir/rulesengine/models/TradeOrder.scala": "f56af1ef0c5fbfa67a2c805c235b7349",
+    "src/main/scala/traderx/morphir/rulesengine/models/TradeSide.scala": "c1096baeadde1ea8089dfa37aca3e4fb",
+    "src/main/scala/traderx/morphir/rulesengine/models/TradeState.scala": "cad58d977be8d1e48f6c2670a59d86a2",
+    "src/Traderx/Morphir/Rulesengine/BuyRule.elm": "cbd9abc540d58b19f6bd1a4ad7d266d5",
+    "src/Traderx/Morphir/Rulesengine/CancelTradeRule.elm": "2974b2f8472cb0e364aede3ffbcaedca",
+    "src/Traderx/Morphir/Rulesengine/SellRule.elm": "b1d756ebeddb790b16c92c11e58635ad",
+    "src/Traderx/Morphir/Rulesengine/Models/Error.elm": "d297393bfc1dba0109ababaa1c256c83",
+    "src/Traderx/Morphir/Rulesengine/Models/TradeOrder.elm": "6749c7a8a41fa586fd228ab9b6d60a3b",
+    "src/Traderx/Morphir/Rulesengine/Models/TradeSide.elm": "ed6feada33d83d6e0cbb6f909c466ba5",
+    "src/Traderx/Morphir/Rulesengine/Models/TradeState.elm": "782b008320c844215c8ba020e3a95d6c"
+}
