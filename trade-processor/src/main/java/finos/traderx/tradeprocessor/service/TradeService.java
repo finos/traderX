@@ -3,17 +3,17 @@ package finos.traderx.tradeprocessor.service;
 import finos.traderx.messaging.PubSubException;
 import finos.traderx.messaging.Publisher;
 import finos.traderx.tradeprocessor.annotations.Validate;
-import finos.traderx.tradeprocessor.model.*;
-import finos.traderx.tradeprocessor.repository.*;
-import java.util.ArrayList;
+import finos.traderx.tradeprocessor.model.Position;
+import finos.traderx.tradeprocessor.model.Trade;
+import finos.traderx.tradeprocessor.model.TradeBookingResult;
+import finos.traderx.tradeprocessor.repository.PositionRepository;
+import finos.traderx.tradeprocessor.repository.TradeRepository;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import traderx.morphir.rulesengine.models.TradeOrder.TradeOrder;
 import traderx.morphir.rulesengine.models.TradeSide;
 import traderx.morphir.rulesengine.models.TradeState;
@@ -30,7 +30,7 @@ public class TradeService {
 
   @Autowired private Publisher<Position> positionPublisher;
 
-  @Validate(attempt = TradeState.New)
+  @Validate //(attempt = TradeState.New)
   public TradeBookingResult makeNewTrade(TradeOrder order) {
     log.info("Trade order received : " + order);
     Trade t = new Trade();
@@ -45,7 +45,7 @@ public class TradeService {
     t.setSecurity(order.security());
     t.setSide(order.side());
     t.setQuantity(order.quantity());
-    t.setState(TradeState.New);
+    // t.setState(TradeState.New);
 
     Position position = positionRepository.findByAccountIdAndSecurity(
         Integer.valueOf(order.accountId()), order.security());
@@ -73,10 +73,11 @@ public class TradeService {
     // Simulate the handling of this trade...
     // Now mark as processing
     t.setUpdated(new Date());
-    t.setState(TradeState.Processing);
+    // t.setState(TradeState.Processing);
+
     // Now mark as settled
     t.setUpdated(new Date());
-    t.setState(TradeState.Settled);
+    // t.setState(TradeState.Settled);
     tradeRepository.save(t);
 
     TradeBookingResult result = new TradeBookingResult(t, position);
@@ -95,7 +96,7 @@ public class TradeService {
     return result;
   }
 
-  @Validate(attempt = TradeState.Cancelled)
+  @Validate //(attempt = TradeState.Cancelled)
   public void cancelTrade(TradeOrder order) {
     log.warn("Cancelling trade");
   }

@@ -1,6 +1,7 @@
 package finos.traderx.tradeprocessor.model;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Converter;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -11,7 +12,7 @@ import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.Date;
 import traderx.morphir.rulesengine.models.TradeSide.TradeSide;
-import traderx.morphir.rulesengine.models.TradeState.TradeState;
+import traderx.morphir.rulesengine.models.TradeState;
 
 @Entity
 @Table(name = "TRADES")
@@ -42,8 +43,7 @@ public class Trade implements Serializable {
 
   public void setSide(TradeSide side) { this.side = side; }
 
-  @Column(length = 20, name = "STATE")
-  private TradeState state = TradeState.New;
+  @Column(length = 20, name = "STATE") private TradeState state;
 
   public TradeState getState() { return this.state; }
 
