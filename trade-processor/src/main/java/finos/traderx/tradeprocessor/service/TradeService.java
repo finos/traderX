@@ -9,6 +9,7 @@ import finos.traderx.tradeprocessor.model.TradeBookingResult;
 import finos.traderx.tradeprocessor.repository.PositionRepository;
 import finos.traderx.tradeprocessor.repository.TradeRepository;
 import java.util.Date;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import org.slf4j.Logger;
@@ -51,7 +52,7 @@ public class TradeService {
     t.setSecurity(order.security());
     t.setSide(order.side());
     t.setQuantity(order.quantity());
-    // t.setState(TradeState.New);
+    t.setState(TradeState.New());
 
     Position position = positionRepository.findByAccountIdAndSecurity(
         Integer.valueOf(order.accountId()), order.security());
@@ -79,22 +80,22 @@ public class TradeService {
     // Simulate the handling of this trade...
     // Now mark as processing
     t.setUpdated(new Date());
-    // t.setState(TradeState.Processing);
+    t.setState(TradeState.Processing());
+
+    doSomeProcessing();
 
     // Now mark as settled
     t.setUpdated(new Date());
-    // t.setState(TradeState.Settled);
+    t.setState(TradeState.Settled());
     tradeRepository.save(t);
 
     TradeBookingResult result = new TradeBookingResult(t, position);
     log.info("Trade Processing complete : " + result);
 
+    // publish trade
+
     try {
-      log.info("Publishing : " + result);
-      tradePublisher.publish("/accounts/" + order.accountId() + "/trades",
-                             result.getTrade());
-      positionPublisher.publish("/accounts/" + order.accountId() + "/positions",
-                                result.getPosition());
+      publish(result, order.accountId());
     } catch (PubSubException exc) {
       log.error("Error publishing trade " + order, exc);
     }
@@ -102,10 +103,17 @@ public class TradeService {
     return result;
   }
 
-  private void publish(TradeBookingResult result, String accountId)
-      throws PubSubException {
+  void doSomeProcessing() {
+    try {
+      int random = new Random().nextInt(10) + 1;
+      Thread.sleep(random * 1000);
+    } catch (Exception e) {
+      log.warn(e.getLocalizedMessage());
+    }
+  }
 
-    log.info("Trade Processing complete : " + result);
+  void publish(TradeBookingResult result, String accountId)
+      throws PubSubException {
 
     log.info("Publishing : " + result);
     tradePublisher.publish("/accounts/" + accountId + "/trades",

@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,10 +33,13 @@ public class TradeServiceController {
     return ResponseEntity.ok(result);
   }
 
-  @PostMapping("/cancel")
-  public ResponseEntity<String> cancelOrder() {
+  @DeleteMapping("/cancel/{id}")
+  public ResponseEntity<String>
+  cancelOrder(@PathVariable("id") String orderId) {
 
-    tradeService.cancelTrade("1234");
+    log.warn(String.format("Cancelling order %s", orderId));
+
+    tradeService.cancelTrade(orderId);
     return ResponseEntity.ok("complete");
   }
 }
