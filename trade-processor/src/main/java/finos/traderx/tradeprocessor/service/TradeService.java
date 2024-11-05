@@ -10,16 +10,21 @@ import finos.traderx.tradeprocessor.repository.PositionRepository;
 import finos.traderx.tradeprocessor.repository.TradeRepository;
 import java.util.Date;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import traderx.morphir.rulesengine.models.TradeOrder.TradeOrder;
 import traderx.morphir.rulesengine.models.TradeSide;
+import traderx.morphir.rulesengine.models.TradeState;
 
 @Service
 public class TradeService {
   Logger log = LoggerFactory.getLogger(TradeService.class);
+
+  private ConcurrentLinkedQueue<TradeOrder> queue =
+      new ConcurrentLinkedQueue<>();
 
   @Autowired TradeRepository tradeRepository;
 
@@ -95,6 +100,18 @@ public class TradeService {
     }
 
     return result;
+  }
+
+  private void publish(TradeBookingResult result, String accountId)
+      throws PubSubException {
+
+    log.info("Trade Processing complete : " + result);
+
+    log.info("Publishing : " + result);
+    tradePublisher.publish("/accounts/" + accountId + "/trades",
+                           result.getTrade());
+    positionPublisher.publish("/accounts/" + accountId + "/positions",
+                              result.getPosition());
   }
 
   @Validate(attempt = traderx.morphir.rulesengine.models

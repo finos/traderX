@@ -2,7 +2,8 @@ package finos.traderx.tradeprocessor.model;
 
 import jakarta.persistence.AttributeConverter;
 
-public class ScalaCaseConverter<T> implements AttributeConverter<T, String> {
+public abstract class ScalaCaseConverter<T>
+    implements AttributeConverter<T, String> {
 
   @Override
   public String convertToDatabaseColumn(T object) {
