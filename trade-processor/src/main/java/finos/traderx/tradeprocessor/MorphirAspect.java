@@ -25,21 +25,14 @@ public class MorphirAspect {
     Object[] args = joinPoint.getArgs();
     TradeOrder order = (TradeOrder)args[0];
 
-    switch (annotation.attempt().newInstance()) {
-        case traderx.morphir.rulesengine.models.TradeState$TradeState$New$ c1 -> {
-                Result<Errors<Object>, Object> result = traderx.morphir.rulesengine.BuyRule.buyStock(order);
-                if (result.isErr()) {
-                    throw new Exception("Could not create new trade");
-                }
-                lg.info("Passed New Trade Checks");
-            }
+    Result<Errors<Object>, Object> result =
+        traderx.morphir.rulesengine.TradingRules.processTrade(order);
 
-        case traderx.morphir.rulesengine.models.TradeState$TradeState$Cancelled$ c2 -> {
-                lg.info("Passed Cancel Trade Checks");
-            }
-            default -> throw new IllegalStateException("Unexpected value: " +
-                    annotation.attempt());
-        }
-        return joinPoint.proceed();
+    if (result.isErr()) {
+      throw new Exception("Could not create new trade");
     }
+    lg.info("Passed New Trade Checks");
+
+    return joinPoint.proceed();
+  }
 }

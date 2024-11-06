@@ -13,6 +13,7 @@ type alias Stock =
 type alias TradeOrder =
     { id : String
     , state : TradeState
+    , desired : TradeState
     , security : String
     , quantity : Int
     , accountId : String
