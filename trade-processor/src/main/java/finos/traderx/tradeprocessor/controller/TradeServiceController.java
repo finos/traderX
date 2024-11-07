@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import traderx.morphir.rulesengine.models.TradeMetadata.TradeMetadata;
 import traderx.morphir.rulesengine.models.TradeOrder.TradeOrder;
 import traderx.morphir.rulesengine.models.TradeState;
 
@@ -31,8 +30,7 @@ public class TradeServiceController {
   public ResponseEntity<TradeBookingResult>
   processOrder(@RequestBody TradeOrder order) {
 
-    TradeMetadata metadata = new TradeMetadata(1, TradeState.New());
-    TradeBookingResult result = tradeService.makeNewTrade(order, metadata);
+    TradeBookingResult result = tradeService.makeNewTrade(order);
     return ResponseEntity.ok(result);
   }
 

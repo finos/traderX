@@ -8,8 +8,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import traderx.morphir.rulesengine.models.Error.Errors;
-import traderx.morphir.rulesengine.models.TradeMetadata.TradeMetadata;
+import traderx.morphir.rulesengine.models.Errors.Errors;
 import traderx.morphir.rulesengine.models.TradeOrder.TradeOrder;
 
 @Component
@@ -25,11 +24,9 @@ public class MorphirAspect {
 
     Object[] args = joinPoint.getArgs();
     TradeOrder order = (TradeOrder)args[0];
-    TradeMetadata metadata = (TradeMetadata)args[0];
 
-    int filled = 0;
     Result<Errors<Object>, Object> result =
-        traderx.morphir.rulesengine.TradingRules.processTrade(order, metadata);
+        traderx.morphir.rulesengine.TradingRules.processTrade(order);
 
     if (result.isErr()) {
       throw new Exception("Could not create new trade");

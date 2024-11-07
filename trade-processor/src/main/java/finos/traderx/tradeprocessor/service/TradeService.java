@@ -16,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import traderx.morphir.rulesengine.models.TradeMetadata.TradeMetadata;
 import traderx.morphir.rulesengine.models.TradeOrder.TradeOrder;
 import traderx.morphir.rulesengine.models.TradeSide;
 import traderx.morphir.rulesengine.models.TradeState;
@@ -39,7 +38,7 @@ public class TradeService {
   @Validate(attempt = traderx.morphir.rulesengine.models
                           .TradeState$TradeState$New$.class)
   public TradeBookingResult
-  makeNewTrade(TradeOrder order, TradeMetadata metadata) {
+  makeNewTrade(TradeOrder order) {
     log.info("Trade order received : " + order);
     Trade t = new Trade();
 
@@ -106,14 +105,14 @@ public class TradeService {
 
   void doSomeProcessing() {
     try {
-      int random = new Random().nextInt(10) + 1;
+      int random = new Random().nextInt(20) + 11;
       Thread.sleep(random * 1000);
     } catch (Exception e) {
       log.warn(e.getLocalizedMessage());
     }
   }
 
-  void publish(TradeBookingResult result, String accountId)
+  void publish(TradeBookingResult result, Integer accountId)
       throws PubSubException {
 
     log.info("Publishing : " + result);
@@ -123,21 +122,14 @@ public class TradeService {
                               result.getPosition());
   }
 
-  public void cancelTrade(TradeOrder order) {
-    log.warn("Cancelling trade");
-
-    Position position = positionRepository.findByAccountIdAndSecurity(
-        Integer.valueOf(order.accountId()), order.security());
-    TradeMetadata metadata =
-        new TradeMetadata(position.getQuantity(), TradeState.Cancelled());
-    cancelTradeHelper(order, metadata);
-  }
-
   @Validate(attempt = traderx.morphir.rulesengine.models
                           .TradeState$TradeState$Cancelled$.class)
   public void
-  cancelTradeHelper(TradeOrder order, TradeMetadata metadata) {
+  cancelTrade(TradeOrder order) {
     log.warn("Cancelling trade");
+
+    // Position position = positionRepository.findByAccountIdAndSecurity(
+    //     Integer.valueOf(order.accountId()), order.security());
 
     Trade t = new Trade();
 
