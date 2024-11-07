@@ -17,7 +17,7 @@ public class TradeFeedHandler extends SocketIOJSONSubscriber<TradeOrder> {
   @Override
   public void onMessage(Envelope<?> envelope, TradeOrder order) {
     try {
-      tradeService.makeNewTrade(order);
+      tradeService.makeNewTrade(order, null);
     } catch (Exception x) {
       log.error("Error processing trade order {} in envelope {}", order,
                 envelope);

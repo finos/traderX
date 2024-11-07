@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import traderx.morphir.rulesengine.models.TradeMetadata.TradeMetadata;
 import traderx.morphir.rulesengine.models.TradeOrder.TradeOrder;
+import traderx.morphir.rulesengine.models.TradeState;
 
 @CrossOrigin("*")
 @RestController
@@ -29,17 +31,15 @@ public class TradeServiceController {
   public ResponseEntity<TradeBookingResult>
   processOrder(@RequestBody TradeOrder order) {
 
-    TradeBookingResult result = tradeService.makeNewTrade(order);
+    TradeMetadata metadata = new TradeMetadata(1, TradeState.New());
+    TradeBookingResult result = tradeService.makeNewTrade(order, metadata);
     return ResponseEntity.ok(result);
   }
 
-  @DeleteMapping("/cancel/{id}")
-  public ResponseEntity<String>
-  cancelOrder(@PathVariable("id") String orderId) {
+  @PostMapping("/cancel")
+  public ResponseEntity<String> cancelOrder(@RequestBody TradeOrder order) {
 
-    log.warn(String.format("Cancelling order %s", orderId));
-
-    tradeService.cancelTrade(orderId);
+    tradeService.cancelTrade(order);
     return ResponseEntity.ok("complete");
   }
 }

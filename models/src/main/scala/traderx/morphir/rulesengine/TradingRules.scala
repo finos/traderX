@@ -37,25 +37,36 @@ object TradingRules{
   
   def cancelTrade[Err](
     tradeOrder: traderx.morphir.rulesengine.models.TradeOrder.TradeOrder
+  )(
+    filled: morphir.sdk.Basics.Int
   ): morphir.sdk.Result.Result[traderx.morphir.rulesengine.models.Error.Errors[Err], morphir.sdk.Basics.Bool] =
     tradeOrder.state match {
       case traderx.morphir.rulesengine.models.TradeState.Processing => 
-        (morphir.sdk.Result.Ok(true) : morphir.sdk.Result.Result[traderx.morphir.rulesengine.models.Error.Errors[Err], morphir.sdk.Basics.Bool])
+        if (morphir.sdk.Basics.equal(filled)(morphir.sdk.Basics.Int(0))) {
+          (morphir.sdk.Result.Ok(true) : morphir.sdk.Result.Result[traderx.morphir.rulesengine.models.Error.Errors[Err], morphir.sdk.Basics.Bool])
+        } else {
+          (morphir.sdk.Result.Err((traderx.morphir.rulesengine.models.Error.CancelTradeError(traderx.morphir.rulesengine.models.Error.ErrResponse(
+            code = morphir.sdk.Basics.Int(300),
+            msg = """Cancelled trade must have exactly 0 filled trades"""
+          )) : traderx.morphir.rulesengine.models.Error.Errors[Err])) : morphir.sdk.Result.Result[traderx.morphir.rulesengine.models.Error.Errors[Err], morphir.sdk.Basics.Bool])
+        }
       case _ => 
         (morphir.sdk.Result.Err((traderx.morphir.rulesengine.models.Error.CancelTradeError(traderx.morphir.rulesengine.models.Error.ErrResponse(
           code = morphir.sdk.Basics.Int(600),
-          msg = """Trade State must be Processing"""
+          msg = """Trade must be in a Processing state"""
         )) : traderx.morphir.rulesengine.models.Error.Errors[Err])) : morphir.sdk.Result.Result[traderx.morphir.rulesengine.models.Error.Errors[Err], morphir.sdk.Basics.Bool])
     }
   
   def processTrade[Err](
     trd: traderx.morphir.rulesengine.models.TradeOrder.TradeOrder
+  )(
+    metadata: traderx.morphir.rulesengine.models.TradeMetadata.TradeMetadata
   ): morphir.sdk.Result.Result[traderx.morphir.rulesengine.models.Error.Errors[Err], morphir.sdk.Basics.Bool] =
-    trd.desired match {
+    metadata.desired match {
       case traderx.morphir.rulesengine.models.TradeState.New => 
         traderx.morphir.rulesengine.TradingRules.buyStock(trd)
       case traderx.morphir.rulesengine.models.TradeState.Cancelled => 
-        traderx.morphir.rulesengine.TradingRules.cancelTrade(trd)
+        traderx.morphir.rulesengine.TradingRules.cancelTrade(trd)(metadata.filled)
       case _ => 
         (morphir.sdk.Result.Err((traderx.morphir.rulesengine.models.Error.INVALIDTRADESTATE(traderx.morphir.rulesengine.models.Error.ErrResponse(
           code = morphir.sdk.Basics.Int(900),

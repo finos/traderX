@@ -1,12 +1,14 @@
 {
-    "src/main/scala/traderx/morphir/rulesengine/TradingRules.scala": "0f9a5a382dbeb6f74e8c491697ba725a",
+    "src/main/scala/traderx/morphir/rulesengine/TradingRules.scala": "273008bc096ada4fad973b40bfd0e6fc",
     "src/main/scala/traderx/morphir/rulesengine/models/Error.scala": "252887e20a025dfffd40fc75caef56c6",
-    "src/main/scala/traderx/morphir/rulesengine/models/TradeOrder.scala": "b4e10dda4f722a6e1717be1011854f75",
+    "src/main/scala/traderx/morphir/rulesengine/models/TradeMetadata.scala": "503c945a23327d5d6b58c6f4ab838ab9",
+    "src/main/scala/traderx/morphir/rulesengine/models/TradeOrder.scala": "f56af1ef0c5fbfa67a2c805c235b7349",
     "src/main/scala/traderx/morphir/rulesengine/models/TradeSide.scala": "c1096baeadde1ea8089dfa37aca3e4fb",
     "src/main/scala/traderx/morphir/rulesengine/models/TradeState.scala": "cad58d977be8d1e48f6c2670a59d86a2",
-    "src/Traderx/Morphir/Rulesengine/TradingRules.elm": "ff03478aeeefd681601985f4e0aeafd9",
+    "src/Traderx/Morphir/Rulesengine/TradingRules.elm": "bcd9f51da31f11513319e8faa1d00f26",
     "src/Traderx/Morphir/Rulesengine/Models/Error.elm": "d297393bfc1dba0109ababaa1c256c83",
-    "src/Traderx/Morphir/Rulesengine/Models/TradeOrder.elm": "bbabd5a8a9212160abaad678710f42bc",
+    "src/Traderx/Morphir/Rulesengine/Models/TradeMetadata.elm": "89e5204a186dc65246161e99cd1de5b8",
+    "src/Traderx/Morphir/Rulesengine/Models/TradeOrder.elm": "6749c7a8a41fa586fd228ab9b6d60a3b",
     "src/Traderx/Morphir/Rulesengine/Models/TradeSide.elm": "ed6feada33d83d6e0cbb6f909c466ba5",
     "src/Traderx/Morphir/Rulesengine/Models/TradeState.elm": "782b008320c844215c8ba020e3a95d6c"
 }

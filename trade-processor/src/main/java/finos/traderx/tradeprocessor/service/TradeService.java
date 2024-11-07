@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import traderx.morphir.rulesengine.models.TradeMetadata.TradeMetadata;
 import traderx.morphir.rulesengine.models.TradeOrder.TradeOrder;
 import traderx.morphir.rulesengine.models.TradeSide;
 import traderx.morphir.rulesengine.models.TradeState;
@@ -38,7 +39,7 @@ public class TradeService {
   @Validate(attempt = traderx.morphir.rulesengine.models
                           .TradeState$TradeState$New$.class)
   public TradeBookingResult
-  makeNewTrade(TradeOrder order) {
+  makeNewTrade(TradeOrder order, TradeMetadata metadata) {
     log.info("Trade order received : " + order);
     Trade t = new Trade();
 
@@ -122,10 +123,36 @@ public class TradeService {
                               result.getPosition());
   }
 
+  public void cancelTrade(TradeOrder order) {
+    log.warn("Cancelling trade");
+
+    Position position = positionRepository.findByAccountIdAndSecurity(
+        Integer.valueOf(order.accountId()), order.security());
+    TradeMetadata metadata =
+        new TradeMetadata(position.getQuantity(), TradeState.Cancelled());
+    cancelTradeHelper(order, metadata);
+  }
+
   @Validate(attempt = traderx.morphir.rulesengine.models
                           .TradeState$TradeState$Cancelled$.class)
   public void
-  cancelTrade(String orderId) {
+  cancelTradeHelper(TradeOrder order, TradeMetadata metadata) {
     log.warn("Cancelling trade");
+
+    Trade t = new Trade();
+
+    t.setAccountId(Integer.valueOf(order.accountId()));
+
+    log.info("Setting a random TradeID");
+
+    t.setId(UUID.randomUUID().toString());
+    t.setCreated(new Date());
+    t.setUpdated(new Date());
+    t.setSecurity(order.security());
+    t.setSide(order.side());
+    t.setQuantity(order.quantity());
+    t.setState(TradeState.Cancelled());
+
+    tradeRepository.save(t);
   }
 }
