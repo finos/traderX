@@ -1,4 +1,4 @@
-module Traderx.Morphir.Rulesengine.Models.Error exposing (..)
+module Traderx.Morphir.Rulesengine.Models.Errors exposing (..)
 
 
 type alias ErrResponse =

@@ -1,13 +1,8 @@
 module Traderx.Morphir.Rulesengine.Models.TradeOrder exposing (..)
 
+import Traderx.Morphir.Rulesengine.Models.DesiredAction exposing (DesiredAction)
 import Traderx.Morphir.Rulesengine.Models.TradeSide exposing (TradeSide)
 import Traderx.Morphir.Rulesengine.Models.TradeState exposing (TradeState)
-
-
-type alias Stock =
-    { security : String
-    , quantity : Int
-    }
 
 
 type alias TradeOrder =
@@ -15,9 +10,8 @@ type alias TradeOrder =
     , state : TradeState
     , security : String
     , quantity : Int
-    , accountId : String
+    , accountId : Int
     , side : TradeSide
-
-    --, portfolio : Maybe (List Stock)
-    --, accountBalance : Float
+    , action : DesiredAction
+    , filled : Maybe Int
     }
