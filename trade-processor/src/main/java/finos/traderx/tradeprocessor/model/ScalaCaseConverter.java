@@ -2,6 +2,10 @@ package finos.traderx.tradeprocessor.model;
 
 import jakarta.persistence.AttributeConverter;
 
+/**
+ * Used to serialize scala case classes to strings
+ * before insertion into database. And to deserialize back.
+ */
 public abstract class ScalaCaseConverter<T>
     implements AttributeConverter<T, String> {
 
