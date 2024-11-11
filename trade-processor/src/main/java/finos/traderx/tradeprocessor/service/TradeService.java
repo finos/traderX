@@ -11,7 +11,6 @@ import finos.traderx.tradeprocessor.repository.TradeRepository;
 import java.util.Date;
 import java.util.Random;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +23,6 @@ import traderx.morphir.rulesengine.models.TradeState;
 public class TradeService {
   Logger log = LoggerFactory.getLogger(TradeService.class);
 
-  private ConcurrentLinkedQueue<TradeOrder> queue =
-      new ConcurrentLinkedQueue<>();
-
   @Autowired TradeRepository tradeRepository;
 
   @Autowired PositionRepository positionRepository;
@@ -35,8 +31,8 @@ public class TradeService {
 
   @Autowired private Publisher<Position> positionPublisher;
 
-  @Validate(attempt = traderx.morphir.rulesengine.models
-                          .TradeState$TradeState$New$.class)
+  @Validate(desired = traderx.morphir.rulesengine.models
+                          .DesiredAction$DesiredAction$BUYSTOCK$.class)
   public TradeBookingResult
   makeNewTrade(TradeOrder order) {
     log.info("Trade order received : " + order);
@@ -122,8 +118,8 @@ public class TradeService {
                               result.getPosition());
   }
 
-  @Validate(attempt = traderx.morphir.rulesengine.models
-                          .TradeState$TradeState$Cancelled$.class)
+  @Validate(desired = traderx.morphir.rulesengine.models
+                          .DesiredAction$DesiredAction$CANCELTRADE$.class)
   public void
   cancelTrade(TradeOrder order) {
     log.warn("Cancelling trade");
