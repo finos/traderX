@@ -1,14 +1,18 @@
 {
-    "src/main/scala/traderx/morphir/rulesengine/TradingRules.scala": "273008bc096ada4fad973b40bfd0e6fc",
-    "src/main/scala/traderx/morphir/rulesengine/models/Error.scala": "252887e20a025dfffd40fc75caef56c6",
-    "src/main/scala/traderx/morphir/rulesengine/models/TradeMetadata.scala": "503c945a23327d5d6b58c6f4ab838ab9",
-    "src/main/scala/traderx/morphir/rulesengine/models/TradeOrder.scala": "f56af1ef0c5fbfa67a2c805c235b7349",
+    "src/main/scala/traderx/morphir/rulesengine/TradingRules.scala": "a4ca95824db060659367014b11cbaf5e",
+    "src/main/scala/traderx/morphir/rulesengine/rules/CancelTradeRules.scala": "3b2b0b493d5aa06a422eaa6b547c97db",
+    "src/main/scala/traderx/morphir/rulesengine/rules/ClientAccountRule.scala": "f2ec341273e6bdb75dcc8825c8f04c4d",
+    "src/main/scala/traderx/morphir/rulesengine/models/DesiredAction.scala": "fd9e3a210fe25312688601bb6953ce61",
+    "src/main/scala/traderx/morphir/rulesengine/models/Errors.scala": "9c9aeff22d711fb9ca49baddfffbfb0f",
+    "src/main/scala/traderx/morphir/rulesengine/models/TradeOrder.scala": "0abc8db5ddc1c595940f52cc1d92e2e8",
     "src/main/scala/traderx/morphir/rulesengine/models/TradeSide.scala": "c1096baeadde1ea8089dfa37aca3e4fb",
     "src/main/scala/traderx/morphir/rulesengine/models/TradeState.scala": "cad58d977be8d1e48f6c2670a59d86a2",
-    "src/Traderx/Morphir/Rulesengine/TradingRules.elm": "bcd9f51da31f11513319e8faa1d00f26",
-    "src/Traderx/Morphir/Rulesengine/Models/Error.elm": "d297393bfc1dba0109ababaa1c256c83",
-    "src/Traderx/Morphir/Rulesengine/Models/TradeMetadata.elm": "89e5204a186dc65246161e99cd1de5b8",
-    "src/Traderx/Morphir/Rulesengine/Models/TradeOrder.elm": "6749c7a8a41fa586fd228ab9b6d60a3b",
+    "src/Traderx/Morphir/Rulesengine/TradingRules.elm": "83eb267e7179bcfefb0e5f13dc8a11cd",
+    "src/Traderx/Morphir/Rulesengine/Rules/CancelTradeRules.elm": "ce4bed3183e46e1846891e499282f34c",
+    "src/Traderx/Morphir/Rulesengine/Rules/ClientAccountRule.elm": "79fd3e4ec517d4567ad3195cc0445e92",
+    "src/Traderx/Morphir/Rulesengine/Models/DesiredAction.elm": "0289298179f39cb9142793b088f56ecb",
+    "src/Traderx/Morphir/Rulesengine/Models/Errors.elm": "154d09ffde174a250baa846a80e906f3",
+    "src/Traderx/Morphir/Rulesengine/Models/TradeOrder.elm": "1bec97ba41308e94f53a096814b3a80b",
     "src/Traderx/Morphir/Rulesengine/Models/TradeSide.elm": "ed6feada33d83d6e0cbb6f909c466ba5",
-    "src/Traderx/Morphir/Rulesengine/Models/TradeState.elm": "782b008320c844215c8ba020e3a95d6c"
+    "src/Traderx/Morphir/Rulesengine/Models/TradeState.elm": "1ef58329127d4a3f3593559d2ef7ce67"
 }

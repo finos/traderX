@@ -4,7 +4,7 @@ import Traderx.Morphir.Rulesengine.Models.Errors exposing (Errors(..))
 import Traderx.Morphir.Rulesengine.Models.TradeOrder exposing (TradeOrder)
 
 
-validateIdLength : TradeOrder -> Result (Errors msg) Bool
+validateIdLength : TradeOrder -> Result String Bool
 validateIdLength trdOrder =
     let
         accountNumberLength : Int
@@ -15,4 +15,4 @@ validateIdLength trdOrder =
         Ok True
 
     else
-        Err (INVALID_ACCOUNT { code = 700, msg = "Invalid Account Length" })
+        Err "INVALID_ACCOUNT"

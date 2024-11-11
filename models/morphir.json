@@ -1,7 +1,5 @@
 {
+  "name": "Traderx",
 
-    "name": "Traderx",
-
-    "sourceDirectory": "src"
-
+  "sourceDirectory": "src"
 }

@@ -5,7 +5,7 @@ import Traderx.Morphir.Rulesengine.Models.TradeOrder exposing (TradeOrder)
 import Traderx.Morphir.Rulesengine.Models.TradeState exposing (TradeState(..))
 
 
-validateOrderState : TradeOrder -> Result (Errors msg) Bool
+validateOrderState : TradeOrder -> Result String Bool
 validateOrderState tradeOrder =
     case tradeOrder.state of
         New ->
@@ -15,29 +15,16 @@ validateOrderState tradeOrder =
             Ok True
 
         Settled ->
-            Err (INVALID_TRADE_STATE { code = 700, msg = "Trade Already Cancelled" })
+            Err "INVALID_TRADE_STATE"
 
         Cancelled ->
-            Err (INVALID_TRADE_STATE { code = 700, msg = "Trade Already Cancelled" })
+            Err "INVALID_TRADE_STATE"
 
 
-validateOrderState2 : TradeOrder -> Result (Errors msg) Bool
+validateOrderState2 : TradeOrder -> Result String Bool
 validateOrderState2 tradeOrder =
     if tradeOrder.state == New || tradeOrder.state == Processing then
         Ok True
 
     else
-        Err (INVALID_TRADE_STATE { code = 700, msg = "Trade Already Cancelled" })
-
-
-
---New ->
---    Ok True
---
---Processing ->
---    Ok True
---
---Settled ->
---    Err (INVALID_TRADE_STATE { code = 700, msg = "Trade Already Cancelled" })
---
---Cancelled ->
+        Err "INVALID_TRADE_STATE"
