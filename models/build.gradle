@@ -37,7 +37,7 @@ tasks.register('generateMorphirIR', NpxTask) {
 tasks.register('morphirScalaGen', NpxTask) {
   dependsOn 'generateMorphirIR'
   command = "morphir-elm"
-  args = ['gen', '-t', 'scala', '-o', './src/main/scala']
+  args = ['gen', '-t', 'scala', '-s', '-o', './src/main/scala']
 }
 
 compileScala.dependsOn morphirScalaGen
