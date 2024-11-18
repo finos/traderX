@@ -3,6 +3,7 @@ package finos.traderx.tradeprocessor;
 import finos.traderx.tradeprocessor.annotations.Validate;
 import java.lang.reflect.Method;
 import java.util.UUID;
+import morphir.sdk.Maybe;
 import morphir.sdk.Result;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -34,9 +35,14 @@ public class MorphirAspect {
         UUID.randomUUID().toString().replaceAll("-", "").substring(0, 15),
         // order.state(),
         traderx.morphir.rulesengine.models.TradeState.New(), order.security(),
-        order.quantity(), order.accountId(), order.side(),
+        order.quantity(), order.accountId(),
+        traderx.morphir.rulesengine.models.TradeSide.BUY(),
+        // order.side(),
         traderx.morphir.rulesengine.models.DesiredAction.BUYSTOCK(),
-        order.filled());
+        // order.filled()
+        new Maybe.Just<>(1)
+
+    );
 
     lg.info(String.format("order: %s", order.toString()));
 

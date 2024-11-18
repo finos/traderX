@@ -22,11 +22,13 @@ public class TradeSideDeserializer extends StdDeserializer<TradeSide> {
   public TradeSide deserialize(JsonParser jp, DeserializationContext ctxt)
       throws IOException, JacksonException {
 
-    String value = jp.getText();
-    if (value.contentEquals("BUY")) {
-      return new traderx.morphir.rulesengine.models.TradeSide$TradeSide$BUY$();
+    String value = jp.getText().toLowerCase();
+    if ("buy".contentEquals(value)) {
+      return traderx.morphir.rulesengine.models.TradeSide.BUY();
+    } else if ("sell".contentEquals(value)) {
+      return traderx.morphir.rulesengine.models.TradeSide.SELL();
     } else {
-      return new traderx.morphir.rulesengine.models.TradeSide$TradeSide$SELL$();
+      throw new IOException("Could not parse side");
     }
   }
 }

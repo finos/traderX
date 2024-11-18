@@ -39,7 +39,7 @@ public class Trade implements Serializable {
 
   public void setSecurity(String security) { this.security = security; }
 
-  @Column(length = 4, name = "SIDE")
+  @Column(name = "SIDE")
   @Convert(converter = TradeSideConverter.class)
   private TradeSide side;
 
@@ -47,7 +47,7 @@ public class Trade implements Serializable {
 
   public void setSide(TradeSide side) { this.side = side; }
 
-  @Column(length = 20, name = "STATE")
+  @Column(name = "STATE")
   @Convert(converter = TradeStateConverter.class)
   private TradeState state;
 
