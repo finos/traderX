@@ -18,6 +18,10 @@ java{
 	sourceCompatibility = JavaVersion.VERSION_21
 }
 
+repositories {
+	mavenCentral()
+}
+
 configurations.all {
   exclude group: 'org.yaml', module: 'snakeyaml'
 }
