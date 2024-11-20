@@ -25,6 +25,7 @@ repositories {
 // In this section you declare the dependencies for your production and test code
 dependencies {
   implementation 'org.morphir:morphir-sdk-core_2.13:0.21.0'
+  implementation 'org.morphir:morphir-sdk-json_2.13:0.21.0'
   implementation 'org.scala-lang:scala-library:2.13.15'
   implementation 'io.circe:circe-core_2.13:0.14.10'
 }
