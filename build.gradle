@@ -1,0 +1,19 @@
+plugins {
+	id 'info.solidsoft.pitest' version '1.15.0' apply false
+}
+apply plugin: 'info.solidsoft.pitest.aggregator'
+
+
+subprojects {
+	apply plugin: 'java'
+	apply plugin: 'info.solidsoft.pitest'
+
+	pitest {
+		targetClasses = ['finos.traderx.*']
+		outputFormats = ['XML', 'HTML']
+		exportLineCoverage = true
+		timestampedReports = false
+		testPlugin = 'junit5'
+
+	}
+}

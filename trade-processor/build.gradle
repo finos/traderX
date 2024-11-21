@@ -9,6 +9,7 @@ plugins {
   id 'java'
   id 'org.springframework.boot' version '3.3.3'
   id 'io.spring.dependency-management' version '1.1.6'
+  id 'info.solidsoft.pitest' version '1.15.0'
 }
 
 group = 'finos.traderx.trade-processor'
@@ -35,6 +36,7 @@ dependencies {
 	}
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	pitest 'org.pitest:pitest-junit5-plugin:1.2.1'
 }
 sourceSets {
 	test {
@@ -42,6 +44,14 @@ sourceSets {
 			srcDirs = ['src/test/java']
 		}
 	}
+}
+pitest {
+	targetTests = ['**DiffblueTest*']
+	failWhenNoMutations = false
+	exportLineCoverage = true
+	outputFormats = ['XML', 'HTML']
+	timestampedReports = false
+	targetClasses = ['finos.traderx.*']
 }
 
 tasks.named('test') {
