@@ -4,8 +4,13 @@
 ARG VARIANT="21"
 FROM mcr.microsoft.com/vscode/devcontainers/java:1-${VARIANT}
 
-WORKDIR /trade-service
-COPY . .
+WORKDIR /source
+
+COPY models models
+COPY trade-service trade-service
+COPY settings.gradle .
+
+WORKDIR trade-service
 
 EXPOSE 18092
 

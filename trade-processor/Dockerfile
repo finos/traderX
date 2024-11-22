@@ -4,8 +4,13 @@
 ARG VARIANT="21"
 FROM mcr.microsoft.com/vscode/devcontainers/java:1-${VARIANT}
 
-WORKDIR /trade-processor
-COPY . .
+WORKDIR /source
+
+COPY models models
+COPY trade-processor trade-processor
+COPY settings.gradle .
+
+WORKDIR trade-processor
 
 # [Optional] Uncomment this section to install additional OS packages.
 # RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \

@@ -123,9 +123,8 @@ services:
     restart: always
     image: trade-service
     build:
-      context: trade-service
-      dockerfile: Dockerfile
-    working_dir: /trade-service
+      context: .
+      dockerfile: trade-service/Dockerfile
     expose:
       - 18092
     ports:
@@ -152,9 +151,8 @@ services:
     restart: always
     image: trade-processor
     build:
-      context: trade-processor
-      dockerfile: Dockerfile
-    working_dir: /trade-processor
+      context: .
+      dockerfile: trade-processor/Dockerfile
     expose:
       - 18091
     ports:
