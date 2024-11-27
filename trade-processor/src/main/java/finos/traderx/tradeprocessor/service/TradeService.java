@@ -9,11 +9,15 @@ import finos.traderx.tradeprocessor.model.TradeBookingResult;
 import finos.traderx.tradeprocessor.repository.PositionRepository;
 import finos.traderx.tradeprocessor.repository.TradeRepository;
 import java.util.Date;
+import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import morphir.sdk.Maybe;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import traderx.morphir.rulesengine.models.TradeOrder.TradeOrder;
 import traderx.morphir.rulesengine.models.TradeSide;
@@ -22,6 +26,9 @@ import traderx.morphir.rulesengine.models.TradeState;
 @Service
 public class TradeService {
   Logger log = LoggerFactory.getLogger(TradeService.class);
+
+  private ConcurrentLinkedQueue<TradeOrder> queue =
+      new ConcurrentLinkedQueue<>();
 
   @Autowired TradeRepository tradeRepository;
 
@@ -78,28 +85,18 @@ public class TradeService {
     t.setUpdated(new Date());
     t.setState(TradeState.Processing());
 
-    doSomeProcessing();
-
-    // Now mark as settled
-    t.setUpdated(new Date());
-    t.setState(TradeState.Settled());
-    tradeRepository.save(t);
-
-    TradeBookingResult result = new TradeBookingResult(t, position);
-    log.info("Trade Processing complete : " + result);
-
-    // publish trade
-
     try {
-      publish(result, order.accountId());
+      publish(position, t, order.accountId());
     } catch (PubSubException exc) {
       log.error("Error publishing trade " + order, exc);
     }
 
-    return result;
+    queue.offer(order);
+
+    return new TradeBookingResult(t, position);
   }
 
-  void doSomeProcessing() {
+  void simulateProcessing() {
     try {
       int random = new Random().nextInt(20) + 11;
       Thread.sleep(random * 1000);
@@ -108,14 +105,31 @@ public class TradeService {
     }
   }
 
-  void publish(TradeBookingResult result, Integer accountId)
+  void publish(Position pos, Trade trade, Integer accountId)
       throws PubSubException {
 
-    log.info("Publishing : " + result);
-    tradePublisher.publish("/accounts/" + accountId + "/trades",
-                           result.getTrade());
-    positionPublisher.publish("/accounts/" + accountId + "/positions",
-                              result.getPosition());
+    tradePublisher.publish("/accounts/" + accountId + "/trades", trade);
+    positionPublisher.publish("/accounts/" + accountId + "/positions", pos);
+  }
+
+  TradeOrder createCancelledOrder(TradeOrder order, int filled) {
+    return new TradeOrder(
+        order.id(), order.state(), order.security(), order.quantity(),
+        order.accountId(), order.side(),
+        traderx.morphir.rulesengine.models.DesiredAction.CANCELTRADE(),
+        new Maybe.Just<>(filled));
+  }
+
+  public Optional<TradeOrder> prepareCancelledOrder(String orderId) {
+    for (TradeOrder tradeOrder : queue) {
+      if (tradeOrder.id() == orderId) {
+        Position position = positionRepository.findByAccountIdAndSecurity(
+          Integer.valueOf(tradeOrder.accountId()), tradeOrder.security());
+        int filled = position.getQuantity();
+        return Optional.of(createCancelledOrder(tradeOrder, filled));
+      }
+    }
+    return Optional.empty();
   }
 
   @Validate(desired = traderx.morphir.rulesengine.models
@@ -125,22 +139,60 @@ public class TradeService {
     log.warn("Cancelling trade");
 
     // Position position = positionRepository.findByAccountIdAndSecurity(
-    //     Integer.valueOf(order.accountId()), order.security());
+    // Integer.valueOf(order.accountId()), order.security());
 
-    Trade t = new Trade();
+    if(!queue.remove(order)) {
+      log.error("Could not find trade to cancel");
+      return;
+    }
 
-    t.setAccountId(Integer.valueOf(order.accountId()));
+    Trade t = tradeRepository.findByAccountId(order.accountId())
+                  .stream()
+                  .findFirst()
+                  .orElse(null);
 
-    log.info("Setting a random TradeID");
-
-    t.setId(UUID.randomUUID().toString());
-    t.setCreated(new Date());
     t.setUpdated(new Date());
-    t.setSecurity(order.security());
-    t.setSide(order.side());
-    t.setQuantity(order.quantity());
     t.setState(TradeState.Cancelled());
 
     tradeRepository.save(t);
+  }
+
+  // event loop for orders
+  @Scheduled(fixedDelay = 1500)
+  public void processQueue() {
+    // pick order off the queue
+    // check if time reached
+    // process order and pop off
+
+    // Now mark as settled
+
+    if (queue.isEmpty())
+      return;
+
+    final TradeOrder order = queue.poll();
+    Trade t = tradeRepository.findByAccountId(order.accountId())
+                  .stream()
+                  .findFirst()
+                  .orElse(null);
+    Position position = positionRepository.findByAccountIdAndSecurity(
+        Integer.valueOf(order.accountId()), order.security());
+
+    t.setUpdated(new Date());
+    t.setState(TradeState.Settled());
+
+    simulateProcessing();
+
+    tradeRepository.save(t);
+
+    TradeBookingResult result = new TradeBookingResult(t, position);
+    log.info("Trade Processing complete : " + result);
+
+    // publish trade
+    try {
+      log.info("Publishing : " + result);
+      publish(position, t, order.accountId());
+    } catch (PubSubException exc) {
+      log.error("Error publishing trade " + order, exc);
+    }
   }
 }

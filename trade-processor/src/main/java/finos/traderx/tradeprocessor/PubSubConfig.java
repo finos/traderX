@@ -8,9 +8,11 @@ import finos.traderx.tradeprocessor.model.Trade;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import traderx.morphir.rulesengine.models.TradeOrder.TradeOrder;
 
 @Configuration
+@EnableScheduling
 public class PubSubConfig {
   @Value("${trade.feed.address}") private String tradeFeedAddress;
 
