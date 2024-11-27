@@ -14,6 +14,8 @@ import java.net.URI;
 import org.json.JSONObject;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import traderx.morphir.rulesengine.models.TradeSide.TradeSide;
+import traderx.morphir.rulesengine.models.TradeState.TradeState;
 
 /**
  * Simple socketIO Publisher, which uses 3 commands - 'subscribe',
@@ -27,6 +29,10 @@ public abstract class SocketIOJSONPublisher<T>
       JsonMapper.builder()
           .addModule(DefaultScalaModule$.MODULE$)
           .build()
+          .registerModule(
+              new SimpleModule()
+                  .addSerializer(TradeState.class, new TradeStateSerializer())
+                  .addSerializer(TradeSide.class, new TradeSideSerializer()))
           .setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
   protected IO.Options getIOOptions() { return new IO.Options(); }

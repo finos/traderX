@@ -17,7 +17,9 @@ import morphir.sdk.Maybe.Maybe;
 import org.json.JSONObject;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import traderx.morphir.rulesengine.models.DesiredAction.DesiredAction;
 import traderx.morphir.rulesengine.models.TradeSide.TradeSide;
+import traderx.morphir.rulesengine.models.TradeState.TradeState;
 
 /**
  * Simple socketIO Subscriber, which uses 3 commands - 'subscribe',
@@ -41,7 +43,10 @@ public abstract class SocketIOJSONSubscriber<T>
     var module = new SimpleModule();
 
     module.addDeserializer(Maybe.class, new MaybeDeserializer());
+    module.addDeserializer(DesiredAction.class,
+                           new DesiredActionDeserializer());
     module.addDeserializer(TradeSide.class, new TradeSideDeserializer());
+    module.addDeserializer(TradeState.class, new TradeStateDeserializer());
     objectMapper.registerModule(module);
   }
 
