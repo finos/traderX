@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { ICellRendererAngularComp } from 'ag-grid-angular';
 import { ICellRendererParams } from 'ag-grid-community';
+import { SymbolService } from 'main/app/service/symbols.service';
 
 @Component({
   standalone: true,
@@ -10,23 +11,29 @@ import { ICellRendererParams } from 'ag-grid-community';
     }`
 })
 export class TradeStateComponent implements ICellRendererAngularComp {
-  static PENDING_STATE: string = 'Pending';
+  static PROCESSING_STATE: string = 'Processing';
   txnState: string = '';
   action: string = '';
-
-  // constructor(private symbolService: SymbolService) {}
+  valid: boolean = true;
+  id: string = '';
+  constructor(private symbolService: SymbolService) {}
 
   agInit(params: ICellRendererParams): void {
-    if (params.value == TradeStateComponent.PENDING_STATE) {
-      this.action = 'Cancel';
-    } else {
-      this.txnState = params.value + ' ';
+    this.id = params.data.id;
+    this.txnState = params.data.state + ' ';
+    if (params.data.state == TradeStateComponent.PROCESSING_STATE) {
+      this.action = 'Cancel?';
     }
   }
+
   refresh(params: ICellRendererParams) {
-    return true;
+    return this.valid;
   }
+
   buttonClicked() {
+    this.symbolService.cancelTrade(this.id)
+      .subscribe((response) => console.log("Completed cancel"));
+    this.valid = !this.valid;
     alert('Cancelled trade');
   }
 }

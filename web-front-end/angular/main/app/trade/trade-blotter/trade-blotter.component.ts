@@ -34,12 +34,7 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
     },
     {
       headerName: 'STATE',
-      field: 'state',
-      enableCellChangeFlash: true
-    },
-    {
-      headerName: 'ACTION',
-      field: 'state',
+      field: 'data',
       cellRenderer: TradeStateComponent,
       enableCellChangeFlash: true
     }
