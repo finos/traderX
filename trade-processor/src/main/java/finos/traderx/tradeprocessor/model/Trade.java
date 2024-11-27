@@ -21,19 +21,23 @@ public class Trade implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  @Column(length = 100, name = "ID") @Id private String id;
+  @Column(length = 100, name = "ID")
+  @Id
+  private String id;
 
   public String getId() { return this.id; }
 
   public void setId(String id) { this.id = id; }
 
-  @Column(name = "ACCOUNTID") private Integer accountId;
+  @Column(name = "ACCOUNTID")
+  private Integer accountId;
 
   public Integer getAccountId() { return this.accountId; }
 
   public void setAccountId(Integer id) { this.accountId = id; }
 
-  @Column(length = 50, name = "SECURITY") private String security;
+  @Column(length = 50, name = "SECURITY")
+  private String security;
 
   public String getSecurity() { return this.security; }
 
@@ -55,19 +59,22 @@ public class Trade implements Serializable {
 
   public void setState(TradeState state) { this.state = state; }
 
-  @Column(name = "QUANTITY") private Integer quantity;
+  @Column(name = "QUANTITY")
+  private Integer quantity;
 
   public Integer getQuantity() { return this.quantity; }
 
   public void setQuantity(Integer quantity) { this.quantity = quantity; }
 
-  @Column(name = "UPDATED") private Date updated;
+  @Column(name = "UPDATED")
+  private Date updated;
 
   public void setUpdated(Date u) { this.updated = u; }
 
   public Date getUpdated() { return this.updated; }
 
-  @Column(name = "CREATED") private Date created;
+  @Column(name = "CREATED")
+  private Date created;
 
   public void setCreated(Date u) { this.created = u; }
 
