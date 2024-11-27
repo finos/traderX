@@ -30,18 +30,16 @@ public class MorphirAspect {
     Object[] args = joinPoint.getArgs();
     TradeOrder order = (TradeOrder)args[0];
 
-    // TMP: way around json serialization issues, should fix
+    // redeclare to ensure filled has value
     order = new TradeOrder(
-        UUID.randomUUID().toString().replaceAll("-", "").substring(0, 15),
-        // order.state(),
-        traderx.morphir.rulesengine.models.TradeState.New(), order.security(),
-        order.quantity(), order.accountId(),
-        traderx.morphir.rulesengine.models.TradeSide.BUY(),
-        // order.side(),
-        traderx.morphir.rulesengine.models.DesiredAction.BUYSTOCK(),
-        // order.filled()
-        new Maybe.Just<>(1)
-
+      order.id(),
+      order.state(),
+      order.security(),
+      order.quantity(),
+      order.accountId(),
+      order.side(),
+      order.action(),
+      order.filled() != null ? order.filled(): new Maybe.Just<>(0)
     );
 
     lg.info(String.format("order: %s", order.toString()));
