@@ -72,15 +72,11 @@ public class TradeService {
       position.setQuantity(0);
     }
 
-    int newQuantity =
-        ((order.side() == TradeSide.BUY()) ? 1 : -1) * t.getQuantity();
-    position.setQuantity(position.getQuantity() + newQuantity);
 
     log.info("Trade {}", t);
     tradeRepository.save(t);
     positionRepository.save(position);
 
-    // Simulate the handling of this trade...
     // Now mark as processing
     t.setUpdated(new Date());
     t.setState(TradeState.Processing());
@@ -107,7 +103,6 @@ public class TradeService {
 
   void publish(Position pos, Trade trade, Integer accountId)
       throws PubSubException {
-
     tradePublisher.publish("/accounts/" + accountId + "/trades", trade);
     positionPublisher.publish("/accounts/" + accountId + "/positions", pos);
   }
@@ -138,9 +133,6 @@ public class TradeService {
   cancelTrade(TradeOrder order) {
     log.warn("Cancelling trade");
 
-    // Position position = positionRepository.findByAccountIdAndSecurity(
-    // Integer.valueOf(order.accountId()), order.security());
-
     if(!queue.remove(order)) {
       log.error("Could not find trade to cancel");
       return;
@@ -160,12 +152,6 @@ public class TradeService {
   // event loop for orders
   @Scheduled(fixedDelay = 1500)
   public void processQueue() {
-    // pick order off the queue
-    // check if time reached
-    // process order and pop off
-
-    // Now mark as settled
-
     if (queue.isEmpty())
       return;
 
@@ -177,12 +163,17 @@ public class TradeService {
     Position position = positionRepository.findByAccountIdAndSecurity(
         Integer.valueOf(order.accountId()), order.security());
 
+    int newQuantity =
+      ((order.side() == TradeSide.BUY()) ? 1 : -1) * t.getQuantity();
+    position.setQuantity(position.getQuantity() + newQuantity);
+
     t.setUpdated(new Date());
     t.setState(TradeState.Settled());
 
     simulateProcessing();
 
     tradeRepository.save(t);
+    positionRepository.save(position);
 
     TradeBookingResult result = new TradeBookingResult(t, position);
     log.info("Trade Processing complete : " + result);
