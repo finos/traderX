@@ -71,7 +71,7 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
   }
 
   update(data: any) {
-    const row = this.gridApi.getRowNode(data.security);
+    const row = this.gridApi.getRowNode(`Position-${data.security}`);
     let positionData;
     if (row) {
       positionData = {

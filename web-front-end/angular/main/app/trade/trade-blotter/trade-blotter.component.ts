@@ -82,11 +82,26 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
   }
 
   private update(data: Trade) {
-    const row = this.gridApi.getRowNode(data.id);
+    const row = this.gridApi.getRowNode(`Trade-${data.id}`);
     let tradeData;
+
     if (row) {
+      // have to pop/add to allow for complete update
       tradeData = {
-        update: [Object.assign(row.data, { state: data.state })]
+        remove: [row.data],
+        add: [
+          {
+            accountid: data.accountid,
+            created: data.created,
+            id: data.id,
+            quantity: data.quantity,
+            security: data.security,
+            side: data.side,
+            state: data.state,
+            updated: data.updated
+          }
+        ],
+        addIndex: 0
       };
     } else {
       tradeData = {

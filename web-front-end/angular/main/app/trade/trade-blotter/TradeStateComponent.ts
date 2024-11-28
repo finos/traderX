@@ -13,7 +13,7 @@ import { SymbolService } from 'main/app/service/symbols.service';
 export class TradeStateComponent implements ICellRendererAngularComp {
   static PROCESSING_STATE: string = 'Processing';
   txnState: string = '';
-  action: string = '';
+  action: string;
   valid: boolean = true;
   id: string = '';
   constructor(private symbolService: SymbolService) {}
@@ -23,6 +23,8 @@ export class TradeStateComponent implements ICellRendererAngularComp {
     this.txnState = params.data.state + ' ';
     if (params.data.state == TradeStateComponent.PROCESSING_STATE) {
       this.action = 'Cancel?';
+    } else {
+      this.action = '';
     }
   }
 
