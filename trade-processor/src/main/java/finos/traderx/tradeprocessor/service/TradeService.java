@@ -72,7 +72,6 @@ public class TradeService {
       position.setQuantity(0);
     }
 
-
     log.info("Trade {}", t);
     tradeRepository.save(t);
     positionRepository.save(position);
@@ -158,8 +157,9 @@ public class TradeService {
     final TradeOrder order = queue.poll();
     Trade t = tradeRepository.findByAccountId(order.accountId())
                   .stream()
+                  .filter(trade -> trade.getSecurity() == order.security())
                   .findFirst()
-                  .orElse(null);
+                  .orElseThrow();
     Position position = positionRepository.findByAccountIdAndSecurity(
         Integer.valueOf(order.accountId()), order.security());
 
