@@ -49,7 +49,7 @@ public class TradeService {
 
     log.info("Setting a random TradeID");
 
-    t.setId(UUID.randomUUID().toString());
+    t.setId(order.id());
     t.setCreated(new Date());
     t.setUpdated(new Date());
     t.setSecurity(order.security());
@@ -88,6 +88,10 @@ public class TradeService {
 
     queue.offer(order);
 
+    // ScheduledExecutorService executor = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
+    // executor.schedule(task, 120, TimeUnit.SECONDS);
+
+    log.info("Setting a random TradeID " + t.getId());
     return new TradeBookingResult(t, position);
   }
 
@@ -116,7 +120,7 @@ public class TradeService {
 
   public Optional<TradeOrder> prepareCancelledOrder(String orderId) {
     for (TradeOrder tradeOrder : queue) {
-      if (tradeOrder.id() == orderId) {
+      if (tradeOrder.id().contentEquals(orderId)) {
         Position position = positionRepository.findByAccountIdAndSecurity(
           Integer.valueOf(tradeOrder.accountId()), tradeOrder.security());
         int filled = position.getQuantity();
@@ -130,13 +134,23 @@ public class TradeService {
                           .DesiredAction$DesiredAction$CANCELTRADE$.class)
   public void
   cancelTrade(TradeOrder order) {
-    log.warn("Cancelling trade");
+    // find in queue
+    boolean found = false;
+    while(queue.peek() != null) {
+      TradeOrder curr = queue.remove();
+      if(order.id().contentEquals(curr.id())) {
+        found = true;
+        break;
+      }
+      queue.offer(curr);
+    }
 
-    if(!queue.remove(order)) {
+    if(!found) {
       log.error("Could not find trade to cancel");
       return;
     }
 
+    log.warn("Cancelling trade");
     Trade t = tradeRepository.findByAccountId(order.accountId())
                   .stream()
                   .findFirst()
@@ -146,18 +160,30 @@ public class TradeService {
     t.setState(TradeState.Cancelled());
 
     tradeRepository.save(t);
+
+    Position pos = positionRepository.findByAccountIdAndSecurity(
+      Integer.valueOf(order.accountId()), order.security());
+
+    try {
+      publish(pos, t, order.accountId());
+    } catch(Exception e) {
+    }
   }
 
   // event loop for orders
-  @Scheduled(fixedDelay = 1500)
+  // @Scheduled(fixedDelay = 1500)
   public void processQueue() {
+    simulateProcessing();
+
     if (queue.isEmpty())
       return;
+
+    log.info("ready to process");
 
     final TradeOrder order = queue.poll();
     Trade t = tradeRepository.findByAccountId(order.accountId())
                   .stream()
-                  .filter(trade -> trade.getSecurity() == order.security())
+                  .filter(trade -> trade.getSecurity().contentEquals(order.security()))
                   .findFirst()
                   .orElseThrow();
     Position position = positionRepository.findByAccountIdAndSecurity(
@@ -169,8 +195,6 @@ public class TradeService {
 
     t.setUpdated(new Date());
     t.setState(TradeState.Settled());
-
-    simulateProcessing();
 
     tradeRepository.save(t);
     positionRepository.save(position);

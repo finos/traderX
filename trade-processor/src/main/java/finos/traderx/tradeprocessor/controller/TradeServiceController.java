@@ -37,12 +37,12 @@ public class TradeServiceController {
 
   @PostMapping("/cancel/{id}")
   public ResponseEntity<String> cancelOrder(@PathVariable("id") String orderId) {
-
-    log.warn(String.format("Cancelling trade with id %s", orderId));
     var order = tradeService.prepareCancelledOrder(orderId);
 
-    if (order.isPresent())
+    if (order.isPresent()) {
+      log.warn(String.format("Cancelling trade with id %s", orderId));
       tradeService.cancelTrade(order.get());
+    }
 
     return ResponseEntity.ok().build();
   }
