@@ -96,7 +96,7 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
             id: data.id,
             quantity: data.quantity,
             security: data.security,
-            side: data.side,
+            side: this.toTitleCase(data.side),
             state: data.state,
             updated: data.updated
           }
@@ -112,7 +112,7 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
             id: data.id,
             quantity: data.quantity,
             security: data.security,
-            side: data.side,
+            side: this.toTitleCase(data.side),
             state: data.state,
             updated: data.updated
           }
@@ -129,5 +129,12 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
     } else {
       this.update(data);
     }
+  }
+
+  private toTitleCase(str: string): string {
+    return str.replace(
+      /\w\S*/g,
+      text => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
+    );
   }
 }
