@@ -11,24 +11,28 @@ import Traderx.Morphir.Rulesengine.Rules.ClientAccountRule exposing (validateIdL
 processTrade : TradeOrder -> Result String Bool
 processTrade trd =
     case trd.action of
-        BUY_STOCK ->
+        NEW_TRADE ->
+            trd
+                |> newTrade
+
+
+        CANCEL_TRADE ->
+            trd
+                |> validateOrderState
+
+
+newTrade : TradeOrder -> Result String Bool
+newTrade trd =
+    case trd.action of
+        NEW_TRADE ->
             case trd.side of
                 BUY ->
                     trd
                         |> validateIdLength
 
-                _ ->
-                    Err "INVALID_TRADE_SIDE"
-
-        SELL_STOCK ->
-            case trd.side of
                 SELL ->
                     trd
                         |> validateIdLength
 
-                _ ->
-                    Err "INVALID_TRADE_SIDE "
-
-        CANCEL_TRADE ->
-            trd
-                |> validateOrderState
+        _ ->
+            Err "Invalid Action"

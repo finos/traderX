@@ -2,6 +2,5 @@ module Traderx.Morphir.Rulesengine.Models.DesiredAction exposing (..)
 
 
 type DesiredAction
-    = BUY_STOCK
-    | SELL_STOCK
+    = NEW_TRADE
     | CANCEL_TRADE
