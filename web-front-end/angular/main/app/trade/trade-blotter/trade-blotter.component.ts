@@ -91,14 +91,8 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
         remove: [row.data],
         add: [
           {
-            accountid: data.accountid,
-            created: data.created,
-            id: data.id,
-            quantity: data.quantity,
-            security: data.security,
+            ... data,
             side: this.toTitleCase(data.side),
-            state: data.state,
-            updated: data.updated
           }
         ],
         addIndex: 0
