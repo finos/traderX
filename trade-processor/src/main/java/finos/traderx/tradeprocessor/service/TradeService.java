@@ -76,6 +76,7 @@ public class TradeService {
     }
 
     log.info("Trade {}", t);
+    log.info("Setting TradeID " + t.getId());
     tradeRepository.save(t);
     positionRepository.save(position);
 
@@ -91,7 +92,6 @@ public class TradeService {
 
     queue.offer(order);
 
-    log.info("Setting a random TradeID " + t.getId());
     return new TradeBookingResult(t, position);
   }
 
@@ -124,6 +124,7 @@ public class TradeService {
       if (tradeOrder.id().contentEquals(orderId)) {
         Position position = positionRepository.findByAccountIdAndSecurity(
           Integer.valueOf(tradeOrder.accountId()), tradeOrder.security());
+
         int filled = position.getQuantity();
         return Optional.of(createCancelledOrder(tradeOrder, filled));
       }
