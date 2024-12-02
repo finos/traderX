@@ -42,8 +42,7 @@ public class TradeService {
   @Autowired
   private Publisher<Position> positionPublisher;
 
-  @Validate(desired = traderx.morphir.rulesengine.models
-                          .DesiredAction$DesiredAction$NEWTRADE$.class)
+  @Validate
   public TradeBookingResult makeNewTrade(TradeOrder order) {
     log.info("Trade order received : " + order);
     Trade t = new Trade();
@@ -116,7 +115,7 @@ public class TradeService {
         order.id(), order.state(), order.security(), order.quantity(),
         order.accountId(), order.side(),
         traderx.morphir.rulesengine.models.DesiredAction.CANCELTRADE(),
-        new Maybe.Just<>(filled));
+        filled);
   }
 
   public Optional<TradeOrder> prepareCancelledOrder(String orderId) {
@@ -132,8 +131,7 @@ public class TradeService {
     return Optional.empty();
   }
 
-  @Validate(desired = traderx.morphir.rulesengine.models
-                          .DesiredAction$DesiredAction$CANCELTRADE$.class)
+  @Validate
   public void
   cancelTrade(TradeOrder order) {
     // find in queue
