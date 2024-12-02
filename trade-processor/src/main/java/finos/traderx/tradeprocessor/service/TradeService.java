@@ -43,7 +43,7 @@ public class TradeService {
   private Publisher<Position> positionPublisher;
 
   @Validate(desired = traderx.morphir.rulesengine.models
-                          .DesiredAction$DesiredAction$BUYSTOCK$.class)
+                          .DesiredAction$DesiredAction$NEWTRADE$.class)
   public TradeBookingResult makeNewTrade(TradeOrder order) {
     log.info("Trade order received : " + order);
     Trade t = new Trade();

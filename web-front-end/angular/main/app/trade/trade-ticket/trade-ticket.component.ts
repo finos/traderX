@@ -28,7 +28,7 @@ export class TradeTicketComponent implements OnInit {
       accountId: this.account?.id || 0,
       side: 'Buy',
       state: 'New',
-      action: 'BUYSTOCK',
+      action: 'NEWTRADE',
       security: ''
     };
 
