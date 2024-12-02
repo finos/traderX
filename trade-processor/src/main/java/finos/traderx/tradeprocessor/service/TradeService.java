@@ -30,13 +30,17 @@ public class TradeService {
   private ConcurrentLinkedQueue<TradeOrder> queue =
       new ConcurrentLinkedQueue<>();
 
-  @Autowired TradeRepository tradeRepository;
+  @Autowired
+  TradeRepository tradeRepository;
 
-  @Autowired PositionRepository positionRepository;
+  @Autowired
+  PositionRepository positionRepository;
 
-  @Autowired private Publisher<Trade> tradePublisher;
+  @Autowired
+  private Publisher<Trade> tradePublisher;
 
-  @Autowired private Publisher<Position> positionPublisher;
+  @Autowired
+  private Publisher<Position> positionPublisher;
 
   @Validate(desired = traderx.morphir.rulesengine.models
                           .DesiredAction$DesiredAction$BUYSTOCK$.class)
@@ -87,9 +91,6 @@ public class TradeService {
     }
 
     queue.offer(order);
-
-    // ScheduledExecutorService executor = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
-    // executor.schedule(task, 120, TimeUnit.SECONDS);
 
     log.info("Setting a random TradeID " + t.getId());
     return new TradeBookingResult(t, position);
