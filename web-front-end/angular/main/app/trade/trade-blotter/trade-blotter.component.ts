@@ -34,12 +34,7 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
     },
     {
       headerName: 'STATE',
-      field: 'state',
-      enableCellChangeFlash: true
-    },
-    {
-      headerName: 'ACTION',
-      field: 'state',
+      field: 'data',
       cellRenderer: TradeStateComponent,
       enableCellChangeFlash: true
     }
@@ -87,11 +82,20 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
   }
 
   private update(data: Trade) {
-    const row = this.gridApi.getRowNode(data.id);
+    const row = this.gridApi.getRowNode(`Trade-${data.id}`);
     let tradeData;
+
     if (row) {
+      // have to pop/add to allow for complete update
       tradeData = {
-        update: [Object.assign(row.data, { state: data.state })]
+        remove: [row.data],
+        add: [
+          {
+            ... data,
+            side: this.toTitleCase(data.side),
+          }
+        ],
+        addIndex: 0
       };
     } else {
       tradeData = {
@@ -102,7 +106,7 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
             id: data.id,
             quantity: data.quantity,
             security: data.security,
-            side: data.side,
+            side: this.toTitleCase(data.side),
             state: data.state,
             updated: data.updated
           }
@@ -119,5 +123,12 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
     } else {
       this.update(data);
     }
+  }
+
+  private toTitleCase(str: string): string {
+    return str.replace(
+      /\w\S*/g,
+      text => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
+    );
   }
 }
