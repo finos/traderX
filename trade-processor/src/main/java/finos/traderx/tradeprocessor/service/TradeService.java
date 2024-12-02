@@ -44,8 +44,7 @@ public class TradeService {
 
   @Validate(desired = traderx.morphir.rulesengine.models
                           .DesiredAction$DesiredAction$BUYSTOCK$.class)
-  public TradeBookingResult
-  makeNewTrade(TradeOrder order) {
+  public TradeBookingResult makeNewTrade(TradeOrder order) {
     log.info("Trade order received : " + order);
     Trade t = new Trade();
 
@@ -98,7 +97,8 @@ public class TradeService {
 
   void simulateProcessing() {
     try {
-      int random = new Random().nextInt(20) + 11;
+      // minimum 5 seconds
+      int random = new Random().nextInt(50) + 50;
       Thread.sleep(random * 1000);
     } catch (Exception e) {
       log.warn(e.getLocalizedMessage());
@@ -152,10 +152,7 @@ public class TradeService {
     }
 
     log.warn("Cancelling trade");
-    Trade t = tradeRepository.findByAccountId(order.accountId())
-                  .stream()
-                  .findFirst()
-                  .orElse(null);
+    Trade t = tradeRepository.findById(order.id()).orElse(null);
 
     t.setUpdated(new Date());
     t.setState(TradeState.Cancelled());
@@ -172,14 +169,12 @@ public class TradeService {
   }
 
   // event loop for orders
-  // @Scheduled(fixedDelay = 1500)
+  @Scheduled(fixedDelay = 1000)
   public void processQueue() {
     simulateProcessing();
 
     if (queue.isEmpty())
       return;
-
-    log.info("ready to process");
 
     final TradeOrder order = queue.poll();
     Trade t = tradeRepository.findByAccountId(order.accountId())
