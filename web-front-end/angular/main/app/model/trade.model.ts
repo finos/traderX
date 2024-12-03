@@ -31,7 +31,7 @@ export interface Position {
 export interface TradeTicket {
     id: string;
     side: 'Sell' | 'Buy';
-    action: 'BUYSTOCK' | 'SELLSTOCK' | 'CANCELTRADE';
+    action: 'NEWTRADE' | 'CANCELTRADE';
     state: 'New';
     quantity: number;
     security: string;

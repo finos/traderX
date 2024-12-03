@@ -30,18 +30,6 @@ public class MorphirAspect {
     Object[] args = joinPoint.getArgs();
     TradeOrder order = (TradeOrder)args[0];
 
-    // redeclare to ensure filled has value
-    order = new TradeOrder(
-      order.id(),
-      order.state(),
-      order.security(),
-      order.quantity(),
-      order.accountId(),
-      order.side(),
-      order.action(),
-      order.filled() != null ? order.filled(): new Maybe.Just<>(0)
-    );
-
     lg.info(String.format("order: %s", order.toString()));
 
     Result<String, Object> result =

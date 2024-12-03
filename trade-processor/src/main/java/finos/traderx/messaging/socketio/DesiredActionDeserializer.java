@@ -23,8 +23,8 @@ public class DesiredActionDeserializer extends StdDeserializer<DesiredAction> {
       throws IOException, JacksonException {
 
     String value = jp.getText().toLowerCase();
-    if ("buystock".contentEquals(value)) {
-      return traderx.morphir.rulesengine.models.DesiredAction.BUYSTOCK();
+    if ("newtrade".contentEquals(value)) {
+      return traderx.morphir.rulesengine.models.DesiredAction.NEWTRADE();
     } else if ("canceltrade".contentEquals(value)) {
       return traderx.morphir.rulesengine.models.DesiredAction.CANCELTRADE();
     } else {
