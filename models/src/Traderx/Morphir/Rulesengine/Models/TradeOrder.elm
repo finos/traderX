@@ -13,5 +13,5 @@ type alias TradeOrder =
     , accountId : Int
     , side : TradeSide
     , action : DesiredAction
-    , filled : Maybe Int
+    , filled : Int
     }

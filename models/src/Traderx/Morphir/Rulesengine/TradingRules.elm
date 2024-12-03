@@ -4,9 +4,7 @@ import Traderx.Morphir.Rulesengine.Models.DesiredAction exposing (DesiredAction(
 import Traderx.Morphir.Rulesengine.Models.Errors exposing (Errors(..))
 import Traderx.Morphir.Rulesengine.Models.TradeOrder exposing (TradeOrder)
 import Traderx.Morphir.Rulesengine.Models.TradeSide exposing (TradeSide(..))
-import Traderx.Morphir.Rulesengine.Rules.CancelTradeRules exposing (validateOrderState)
-import Traderx.Morphir.Rulesengine.Rules.ClientAccountRule exposing (validateIdLength)
-
+import Traderx.Morphir.Rulesengine.Models.TradeState exposing (TradeState(..))
 
 processTrade : TradeOrder -> Result String Bool
 processTrade trd =
@@ -18,21 +16,40 @@ processTrade trd =
 
         CANCEL_TRADE ->
             trd
-                |> validateOrderState
+                |> validateCancel
 
 
 newTrade : TradeOrder -> Result String Bool
 newTrade trd =
-    case trd.action of
-        NEW_TRADE ->
-            case trd.side of
-                BUY ->
-                    trd
-                        |> validateIdLength
+    case trd.side of
+        BUY ->
+            trd
+                |> isQuantityPositive
 
-                SELL ->
-                    trd
-                        |> validateIdLength
+        SELL ->
+            trd
+                |> isQuantityNegative
 
-        _ ->
-            Err "Invalid Action"
+validateCancel : TradeOrder -> Result String Bool
+validateCancel tradeOrder =
+    if tradeOrder.state == Cancelled || tradeOrder.state == Settled || tradeOrder.filled > 0 then
+        Err "Can't Cancel Trade"
+    else
+        Ok True
+
+
+isQuantityPositive : TradeOrder -> Result String Bool
+isQuantityPositive trdOrder =
+    if trdOrder.quantity > 0 then
+        Ok True
+
+    else
+        Err "BUY FAILED"
+
+isQuantityNegative : TradeOrder -> Result String Bool
+isQuantityNegative trdOrder =
+    if trdOrder.quantity > 0 then
+        Err "SELL FAILED"
+
+    else
+       Ok True
