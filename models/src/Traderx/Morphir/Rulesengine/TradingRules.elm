@@ -32,10 +32,10 @@ newTrade trd =
 
 validateCancel : TradeOrder -> Result String Bool
 validateCancel tradeOrder =
-    if tradeOrder.state == Cancelled || tradeOrder.state == Settled || tradeOrder.filled > 0 then
-        Err "Can't Cancel Trade"
-    else
+    if tradeOrder.state /= Cancelled || tradeOrder.state /= Settled || tradeOrder.filled == 0 then
         Ok True
+    else
+        Err "Can't Cancel Trade"
 
 
 isQuantityPositive : TradeOrder -> Result String Bool
@@ -48,8 +48,8 @@ isQuantityPositive trdOrder =
 
 isQuantityNegative : TradeOrder -> Result String Bool
 isQuantityNegative trdOrder =
-    if trdOrder.quantity > 0 then
-        Err "SELL FAILED"
+    if trdOrder.quantity < 0 then
+        Ok True
 
     else
-       Ok True
+       Err "SELL FAILED"
