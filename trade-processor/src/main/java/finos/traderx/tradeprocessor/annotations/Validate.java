@@ -9,5 +9,4 @@ import traderx.morphir.rulesengine.models.DesiredAction.DesiredAction;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Validate {
-  Class<? extends DesiredAction> desired();
 }
