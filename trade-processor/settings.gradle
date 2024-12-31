@@ -15,3 +15,6 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = 'trade-processor'
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}
