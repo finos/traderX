@@ -32,7 +32,7 @@ dependencies {
 		exclude group: 'org.json', module: 'json'
 	}
 
-    implementation ('ch.qos.logback:logback-core:1.5.13'){
+    implementation ('ch.qos.logback:logback-core:1.5.15'){
 		because 'version brought in by spring boot 3.3.7 affected by CVE-2024-12798'
 	}
 
