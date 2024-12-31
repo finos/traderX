@@ -15,7 +15,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = 'database'
-tasks.withType(Test).configureEach {
-    useJUnitPlatform()
-}
+
 

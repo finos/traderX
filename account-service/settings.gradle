@@ -14,6 +14,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = 'account-service'
-tasks.withType(Test).configureEach {
-    useJUnitPlatform()
-}
+

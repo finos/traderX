@@ -15,6 +15,3 @@
 }
 
 rootProject.name = 'trade-service'
-tasks.withType(Test).configureEach {
-    useJUnitPlatform()
-}

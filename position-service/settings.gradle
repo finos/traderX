@@ -15,6 +15,3 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = 'position-service'
-tasks.withType(Test).configureEach {
-    useJUnitPlatform()
-}
