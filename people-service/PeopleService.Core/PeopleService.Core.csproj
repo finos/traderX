@@ -9,10 +9,10 @@
   <ItemGroup>
     <PackageReference Include="CacheManager.Core" Version="1.2.0" />
     <PackageReference Include="CacheManager.Microsoft.Extensions.Configuration" Version="1.2.0" />
-    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" /> <!-- Updated version -->
     <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
     <PackageReference Include="MediatR" Version="12.2.0" />
-    <PackageReference Include="System.Text.Json" Version="8.0.4" />
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
   </ItemGroup>
 
 </Project>

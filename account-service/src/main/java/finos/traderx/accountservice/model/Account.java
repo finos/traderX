@@ -1,5 +1,6 @@
 package finos.traderx.accountservice.model;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 import jakarta.persistence.Column;
@@ -14,7 +15,8 @@ import jakarta.persistence.Table;
 @Table(name = "ACCOUNTS")
 public class Account implements Serializable {
 
-		private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 
 		@Id
 		@Column(name = "ID")

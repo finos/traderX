@@ -1,5 +1,6 @@
 package finos.traderx.positionservice.model;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -12,7 +13,8 @@ import jakarta.persistence.Table;
 @Table(name = "TRADES")
 public class Trade implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     @Column(length = 100, name = "ID")
     @Id
