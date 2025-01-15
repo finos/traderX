@@ -17,6 +17,8 @@ class PubSubConfigDiffblueTest {
   @DisplayName("Test tradeFeedHandler()")
   void testTradeFeedHandler() {
     //   Diffblue Cover was unable to create a Spring-specific test for this Spring method.
+    //   Run dcover create --keep-partial-tests to gain insights into why
+    //   a non-Spring test was created.
 
     // Arrange and Act
     Subscriber<TradeOrder> actualTradeFeedHandlerResult = (new PubSubConfig()).tradeFeedHandler();

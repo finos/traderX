@@ -68,7 +68,7 @@ class TradeDiffblueTest {
     TradeState actualState = trade.getState();
     Date actualUpdated = trade.getUpdated();
 
-    // Assert that nothing has changed
+    // Assert
     assertEquals("42", actualId);
     assertEquals("Security", actualSecurity);
     assertEquals(1, actualAccountId.intValue());

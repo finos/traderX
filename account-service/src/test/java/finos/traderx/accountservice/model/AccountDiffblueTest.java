@@ -26,7 +26,7 @@ class AccountDiffblueTest {
     actualAccount.setId(1);
     String actualDisplayName = actualAccount.getDisplayName();
 
-    // Assert that nothing has changed
+    // Assert
     assertEquals("Display Name", actualDisplayName);
     assertEquals(1, actualAccount.getId());
   }

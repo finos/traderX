@@ -40,7 +40,7 @@ class PersonDiffblueTest {
     String actualFullName = actualPerson.getFullName();
     String actualLogonId = actualPerson.getLogonId();
 
-    // Assert that nothing has changed
+    // Assert
     assertEquals("42", actualLogonId);
     assertEquals("Department", actualDepartment);
     assertEquals("Dr Jane Doe", actualFullName);

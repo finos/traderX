@@ -1,9 +1,20 @@
 plugins {
 	id 'info.solidsoft.pitest' version '1.15.0' apply false
+	id 'test-report-aggregation'
 }
+
 apply plugin: 'info.solidsoft.pitest.aggregator'
 
+// JUnit test report aggregation
+reporting {
+    reports {
+        testAggregateTestReport(AggregateTestReport) { 
+            testType = TestSuiteType.UNIT_TEST
+        }
+    }
+}
 
+// Mutation testing report aggregation
 subprojects {
 	apply plugin: 'java'
 	apply plugin: 'info.solidsoft.pitest'
@@ -15,5 +26,8 @@ subprojects {
 		timestampedReports = false
 		testPlugin = 'junit5'
 
+		if (project.name in ['database']) {
+      failWhenNoMutations = false
+    }
 	}
 }

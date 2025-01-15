@@ -17,6 +17,8 @@ class OpenApiConfigDiffblueTest {
   @DisplayName("Test config()")
   void testConfig() {
     //   Diffblue Cover was unable to create a Spring-specific test for this Spring method.
+    //   Run dcover create --keep-partial-tests to gain insights into why
+    //   a non-Spring test was created.
 
     // Arrange and Act
     OpenAPI actualConfigResult = (new OpenApiConfig()).config();

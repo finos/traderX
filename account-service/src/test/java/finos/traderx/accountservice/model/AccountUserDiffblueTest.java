@@ -26,7 +26,7 @@ class AccountUserDiffblueTest {
     actualAccountUser.setUsername("janedoe");
     Integer actualAccountId = actualAccountUser.getAccountId();
 
-    // Assert that nothing has changed
+    // Assert
     assertEquals("janedoe", actualAccountUser.getUsername());
     assertEquals(1, actualAccountId.intValue());
   }

@@ -15,6 +15,8 @@ class TradeFeedHandlerDiffblueTest {
   @DisplayName("Test new TradeFeedHandler (default constructor)")
   void testNewTradeFeedHandler() {
     //   Diffblue Cover was unable to create a Spring-specific test for this Spring method.
+    //   Run dcover create --keep-partial-tests to gain insights into why
+    //   a non-Spring test was created.
 
     // Arrange, Act and Assert
     assertFalse((new TradeFeedHandler()).isConnected());

@@ -35,7 +35,7 @@ class TradeRequestDiffblueTest {
     String actualSecurity = actualTradeRequest.getSecurity();
     TradeSide actualSide = actualTradeRequest.getSide();
 
-    // Assert that nothing has changed
+    // Assert
     assertEquals("Security", actualSecurity);
     assertEquals(1, actualAccountId);
     assertEquals(1, actualQuantity.intValue());

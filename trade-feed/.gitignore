@@ -1,6 +1,7 @@
 #NodeJS
 node_modules
 build
+!build/reports/
 npm-debug.log
 .env
 .DS_Store

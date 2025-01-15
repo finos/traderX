@@ -40,7 +40,7 @@ class PositionDiffblueTest {
     String actualSecurity = actualPosition.getSecurity();
     Date actualUpdated = actualPosition.getUpdated();
 
-    // Assert that nothing has changed
+    // Assert
     assertEquals("Security", actualSecurity);
     assertEquals(1, actualAccountId.intValue());
     assertEquals(1, actualQuantity.intValue());

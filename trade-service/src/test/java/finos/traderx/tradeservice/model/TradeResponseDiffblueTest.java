@@ -67,7 +67,7 @@ class TradeResponseDiffblueTest {
     String actualErrorMessage = actualTradeResponse.getErrorMessage();
     String actualId = actualTradeResponse.getId();
 
-    // Assert that nothing has changed
+    // Assert
     assertEquals("42", actualId);
     assertEquals("An error occurred", actualErrorMessage);
     assertTrue(actualTradeResponse.isSuccess());

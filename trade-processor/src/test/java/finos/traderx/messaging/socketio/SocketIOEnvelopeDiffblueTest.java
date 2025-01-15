@@ -46,7 +46,7 @@ class SocketIOEnvelopeDiffblueTest {
     Object actualPayload = actualSocketIOEnvelope.getPayload();
     String actualTopic = actualSocketIOEnvelope.getTopic();
 
-    // Assert that nothing has changed
+    // Assert
     assertEquals("Payload", actualPayload);
     assertEquals("Topic", actualTopic);
     assertEquals("Type", actualSocketIOEnvelope.getType());
