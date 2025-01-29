@@ -1,5 +1,8 @@
 package finos.traderx.tradeprocessor.model;
 
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.Date;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Converter;
@@ -19,7 +22,16 @@ import traderx.morphir.rulesengine.models.TradeState.TradeState;
 @Table(name = "TRADES")
 public class Trade implements Serializable {
 
+  @Serial
   private static final long serialVersionUID = 1L;
+
+  @Column(length = 100, name = "ID")
+  @Id
+	private String id;
+
+	public String getId() {
+		return this.id;
+	}
 
   @Column(length = 100, name = "ID")
   @Id

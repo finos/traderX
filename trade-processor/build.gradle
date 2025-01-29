@@ -7,8 +7,8 @@
 
 plugins {
   id 'java'
-  id 'org.springframework.boot' version '3.3.3'
-  id 'io.spring.dependency-management' version '1.1.6'
+  id 'org.springframework.boot' version '3.3.7'
+  id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'finos.traderx.trade-processor'
@@ -27,7 +27,7 @@ dependencies {
 	implementation('org.json:json:20240303') {
 		because 'previous versions are affected by multiple CVE'
 	}
-	implementation ('io.socket:socket.io-client:2.1.0'){
+	implementation ('io.socket:socket.io-client:2.1.1'){
 		exclude group: 'org.json', module: 'json'
 	}
   implementation 'com.fasterxml.jackson.module:jackson-module-scala_2.13:2.17.2'
@@ -37,9 +37,13 @@ dependencies {
 
   implementation project(':models')
 
+    implementation ('ch.qos.logback:logback-core:1.5.15'){
+		because 'version brought in by spring boot 3.3.7 affected by CVE-2024-12798'
+	}
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
-tasks.named('test') {
-  useJUnitPlatform()
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
 }

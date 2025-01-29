@@ -1,4 +1,4 @@
-FROM nginx
+FROM nginx:alpine-slim
 
 EXPOSE 8080
 ARG NGINX_HOST="localhost"
