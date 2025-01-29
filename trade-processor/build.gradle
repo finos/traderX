@@ -19,18 +19,23 @@ java{
 }
 
 dependencies {
-    
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'com.h2database:h2:2.2.224'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
-	
+
 	implementation('org.json:json:20240303') {
 		because 'previous versions are affected by multiple CVE'
 	}
 	implementation ('io.socket:socket.io-client:2.1.1'){
 		exclude group: 'org.json', module: 'json'
 	}
+  implementation 'com.fasterxml.jackson.module:jackson-module-scala_2.13:2.17.2'
+  implementation 'org.morphir:morphir-sdk-core_2.13:0.21.0'
+
+  runtimeOnly 'org.aspectj:aspectjweaver:1.9.22.1'
+
+  implementation project(':models')
 
     implementation ('ch.qos.logback:logback-core:1.5.15'){
 		because 'version brought in by spring boot 3.3.7 affected by CVE-2024-12798'

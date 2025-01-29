@@ -3,6 +3,7 @@ import { TradeTicket } from 'main/app/model/trade.model';
 import { Stock } from 'main/app/model/symbol.model';
 import { Account } from 'main/app/model/account.model';
 import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
+import { v4 as uuidv4 } from 'uuid';
 
 @Component({
   selector: 'app-trade-ticket',
@@ -10,7 +11,6 @@ import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
   styleUrls: ['./trade-ticket.component.scss']
 })
 export class TradeTicketComponent implements OnInit {
-
   @Input() stocks: Stock[];
   @Input() account: Account | undefined;
 
@@ -23,15 +23,17 @@ export class TradeTicketComponent implements OnInit {
 
   ngOnInit() {
     this.ticket = {
+      id: uuidv4(),
       quantity: 0,
       accountId: this.account?.id || 0,
       side: 'Buy',
+      state: 'New',
+      action: 'NEWTRADE',
       security: ''
     };
 
     this.filteredStocks = this.stocks;
   }
-
 
   onSelect(e: TypeaheadMatch): void {
     console.log('Selected value: ', e.value);
@@ -45,7 +47,7 @@ export class TradeTicketComponent implements OnInit {
 
   onCreate() {
     if (!this.ticket.security || !this.ticket.quantity) {
-      console.warn('Either security is not selected or quanity is not set!')
+      console.warn('Either security is not selected or quanity is not set!');
       return;
     }
     console.log('create tradeTicket', this.ticket);

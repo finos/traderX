@@ -27,4 +27,4 @@ import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
   ],
   exports: [TradeComponent, TradeTicketComponent, TradeBlotterComponent]
 })
-export class TradeModule { }
+export class TradeModule {}

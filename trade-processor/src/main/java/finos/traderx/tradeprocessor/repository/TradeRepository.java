@@ -6,8 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import finos.traderx.tradeprocessor.model.Trade;
 
-public interface TradeRepository extends JpaRepository<Trade, Integer> {
-    
+public interface TradeRepository extends JpaRepository<Trade, String> {
+
     List<Trade> findByAccountId(Integer id);
-    
+
 }

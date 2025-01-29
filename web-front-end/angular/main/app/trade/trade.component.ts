@@ -30,7 +30,7 @@ export class TradeComponent implements OnInit {
             this.setAccount(this.accounts[5]);
             console.log(this.accounts);
         });
-        this.symbolService.getStocks().subscribe((stocks) => this.stocks = stocks);
+        this.symbolService.getStocks().subscribe((stocks) => (this.stocks = stocks));
     }
 
     onAccountChange(account: Account) {

@@ -3,8 +3,9 @@ package finos.traderx.tradeprocessor.model;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
-
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Converter;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -12,105 +13,82 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.io.Serializable;
+import java.util.Date;
+import traderx.morphir.rulesengine.models.TradeSide.TradeSide;
+import traderx.morphir.rulesengine.models.TradeState.TradeState;
 
 @Entity
 @Table(name = "TRADES")
 public class Trade implements Serializable {
 
-    @Serial
-    private static final long serialVersionUID = 1L;
+  @Serial
+  private static final long serialVersionUID = 1L;
 
-    @Column(length = 100, name = "ID")
-    @Id
+  @Column(length = 100, name = "ID")
+  @Id
 	private String id;
 
 	public String getId() {
 		return this.id;
 	}
 
-	public void setId(String id) {
-		this.id = id;
-	}
-    
-	@Column(name = "ACCOUNTID")
-	private Integer accountId;
+  @Column(length = 100, name = "ID")
+  @Id
+  private String id;
 
-	public Integer getAccountId() {
-		return this.accountId;
-	}
+  public String getId() { return this.id; }
 
-	public void setAccountId(Integer id) {
-		this.accountId = id;
-	}
+  public void setId(String id) { this.id = id; }
 
+  @Column(name = "ACCOUNTID")
+  private Integer accountId;
 
+  public Integer getAccountId() { return this.accountId; }
 
-    @Column(length = 50, name = "SECURITY")
-	private String security;
+  public void setAccountId(Integer id) { this.accountId = id; }
 
-	public String getSecurity() {
-		return this.security;
-	}
+  @Column(length = 50, name = "SECURITY")
+  private String security;
 
-	public void setSecurity(String security) {
-		this.security = security;
-	}
+  public String getSecurity() { return this.security; }
 
-	@Enumerated(EnumType.STRING)
-    @Column(length = 4, name = "SIDE")
-	private TradeSide side;
+  public void setSecurity(String security) { this.security = security; }
 
-	public TradeSide getSide() {
-		return this.side;
-	}
+  @Column(name = "SIDE")
+  @Convert(converter = TradeSideConverter.class)
+  private TradeSide side;
 
-	public void setSide(TradeSide side) {
-		this.side = side;
-	}
+  public TradeSide getSide() { return this.side; }
 
-	@Enumerated(EnumType.STRING)
-    @Column(length = 20, name = "STATE")
-	private TradeState state=TradeState.New;
+  public void setSide(TradeSide side) { this.side = side; }
 
-	public TradeState getState() {
-		return this.state;
-	}
+  @Column(name = "STATE")
+  @Convert(converter = TradeStateConverter.class)
+  private TradeState state;
 
-	public void setState(TradeState state) {
-		this.state = state;
-	}
+  public TradeState getState() { return this.state; }
 
-	@Column(name = "QUANTITY")
-	private Integer quantity;
+  public void setState(TradeState state) { this.state = state; }
 
-	public Integer getQuantity() {
-		return this.quantity;
-	}
+  @Column(name = "QUANTITY")
+  private Integer quantity;
 
-	public void setQuantity(Integer quantity) {
-		this.quantity = quantity;
-	}
+  public Integer getQuantity() { return this.quantity; }
 
-	@Column(name = "UPDATED")
-	private Date updated;
+  public void setQuantity(Integer quantity) { this.quantity = quantity; }
 
-	public void setUpdated(Date u){
-		this.updated=u;
-	}
+  @Column(name = "UPDATED")
+  private Date updated;
 
-	public Date getUpdated(){
-		return this.updated;
-	}
+  public void setUpdated(Date u) { this.updated = u; }
 
+  public Date getUpdated() { return this.updated; }
 
-	@Column(name = "CREATED")
-	private Date created;
+  @Column(name = "CREATED")
+  private Date created;
 
-	public void setCreated(Date u){
-		this.created=u;
-	}
+  public void setCreated(Date u) { this.created = u; }
 
-	public Date getCreated(){
-        return this.created;
-	}
+  public Date getCreated() { return this.created; }
 }
