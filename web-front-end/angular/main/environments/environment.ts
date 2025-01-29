@@ -7,6 +7,7 @@ export const environment = {
     accountUrl:         `//${window.location.hostname}:18088`,
     refrenceDataUrl:    `//${window.location.hostname}:18085`,
     tradesUrl:          `//${window.location.hostname}:18092/trade/`,
+    tradeProcessorUrl:  `//${window.location.hostname}:18091/tradeservice`,
     positionsUrl:       `//${window.location.hostname}:18090`,
     peopleUrl:          `//${window.location.hostname}:18089`,
     tradeFeedUrl:       `//${window.location.hostname}:18086`

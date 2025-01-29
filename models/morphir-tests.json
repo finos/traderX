@@ -1,0 +1,129 @@
+[
+    [
+        [
+            [
+                [
+                    "traderx"
+                ]
+            ],
+            [
+                [
+                    "morphir"
+                ],
+                [
+                    "rulesengine"
+                ],
+                [
+                    "trading",
+                    "rules"
+                ]
+            ],
+            [
+                "process",
+                "trade"
+            ]
+        ],
+        [
+            {
+                "inputs": [
+                    {
+                        "id": "hd8e-1nid-829j",
+                        "state": [
+                            "new"
+                        ],
+                        "security": "MSFT",
+                        "quantity": 10,
+                        "accountId": 123456789012345,
+                        "side": [
+                            "bUY"
+                        ],
+                        "action": [
+                            "bUYSTOCK"
+                        ],
+                        "filled": null
+                    }
+                ],
+                "expectedOutput": [
+                    "ok",
+                    true
+                ],
+                "description": "Valid Buy Case"
+            },
+            {
+                "inputs": [
+                    {
+                        "id": "hd8e-1nid-829j",
+                        "state": [
+                            "new"
+                        ],
+                        "security": "MSFT",
+                        "quantity": 10,
+                        "accountId": 123456789012345,
+                        "side": [
+                            "sELL"
+                        ],
+                        "action": [
+                            "bUYSTOCK"
+                        ],
+                        "filled": null
+                    }
+                ],
+                "expectedOutput": [
+                    "err",
+                    "INVALID_TRADE_SIDE"
+                ],
+                "description": "Invalid trade side case"
+            },
+            {
+                "inputs": [
+                    {
+                        "id": "hd8e-1nid-829j",
+                        "state": [
+                            "new"
+                        ],
+                        "security": "MSFT",
+                        "quantity": 10,
+                        "accountId": 123456789012345,
+                        "side": [
+                            "bUY"
+                        ],
+                        "action": [
+                            "cANCELTRADE"
+                        ],
+                        "filled": null
+                    }
+                ],
+                "expectedOutput": [
+                    "ok",
+                    true
+                ],
+                "description": "Valid Cancel Case"
+            },
+            {
+                "inputs": [
+                    {
+                        "id": "hd8e-1nid-829j",
+                        "state": [
+                            "cancelled"
+                        ],
+                        "security": "MSFT",
+                        "quantity": 10,
+                        "accountId": 123456789012345,
+                        "side": [
+                            "bUY"
+                        ],
+                        "action": [
+                            "cANCELTRADE"
+                        ],
+                        "filled": null
+                    }
+                ],
+                "expectedOutput": [
+                    "err",
+                    "INVALID_TRADE_STATE"
+                ],
+                "description": "Invalid Cancel Case due to state"
+            }
+        ]
+    ]
+]

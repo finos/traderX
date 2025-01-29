@@ -12,6 +12,7 @@ import { environment } from 'main/environments/environment';
 export class SymbolService {
     private stocksUrl = `${environment.refrenceDataUrl}/stocks`;
     private createTicketUrl = `${environment.tradesUrl}`;
+    private cancelTradeUrl = `${environment.tradeProcessorUrl}/cancel`;
     constructor(private http: HttpClient) { }
 
     getStocks(): Observable<Stock[]> {
@@ -25,6 +26,11 @@ export class SymbolService {
         return this.http.post(this.createTicketUrl, ticket).pipe(
             catchError(this.handleError)
         );
+    }
+
+    cancelTrade(id: string): Observable<any> {
+        return this.http.post(`${this.cancelTradeUrl}/${id}`, null)
+          .pipe(catchError(this.handleError));
     }
 
     private handleError(error: HttpErrorResponse) {
