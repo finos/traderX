@@ -67,7 +67,7 @@ public class TradeOrderController {
 
 	private boolean validateTicker(String ticker)
 	{
-		// Move whole method to a sperate class that handles all reference data 
+		// Move whole method to a separate class that handles all reference data
 		// so we can mock it and run without this service up.
 		String url = this.referenceDataServiceAddress + "//stocks/" + ticker;
 		ResponseEntity<Security> response = null;
@@ -90,7 +90,7 @@ public class TradeOrderController {
 	
 	private boolean validateAccount(Integer id)
 	{
-		// Move whole method to a sperate class that handles all accounts 
+		// Move whole method to a separate class that handles all accounts
 		// so we can mock it and run without this service up.
 
 		String url = this.accountServiceAddress + "//account/" + id;
