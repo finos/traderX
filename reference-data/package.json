@@ -34,7 +34,7 @@
     "@nestjs/cli": "^10.4.9",
     "@nestjs/schematics": "^10.2.3",
     "@nestjs/testing": "^10.4.15",
-    "@tsconfig/node20": "20.1.4",
+    "@tsconfig/node20": "20.1.5",
     "@types/express": "^5.0.0",
     "@types/jest": "29.5.14",
     "@types/node": "22.10.2",
