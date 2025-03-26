@@ -70,6 +70,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
       - name: Build project with dotnet
         run: dotnet build --configuration Release
         working-directory: ${{ matrix.module-folder }}
