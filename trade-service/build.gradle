@@ -45,8 +45,7 @@ dependencies {
     }
 
     // Override okhttp and okio versions to address vulnerabilities
-    implementation 'com.squareup.okhttp3:okhttp:3.14.9' // Suggested version
-    implementation 'com.squareup.okio:okio:1.17.5' // Latest compatible version for okhttp 3.14.9
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0' // Suggested version
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

@@ -36,8 +36,8 @@ dependencies {
     implementation ('org.springframework.boot:spring-boot-starter-web')
 
     // Override okhttp and okio versions to address vulnerabilities
-    implementation 'com.squareup.okhttp3:okhttp:3.14.9' // Suggested version
-    implementation 'com.squareup.okio:okio:1.17.5' // Latest compatible version for okhttp 3.14.9
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0' // Suggested version
+    // implementation 'com.squareup.okio:okio:1.17.5' // Latest compatible version for okhttp 3.14.9
 
     // Add compatible logback-classic version
     implementation ('ch.qos.logback:logback-core:1.5.15') {
