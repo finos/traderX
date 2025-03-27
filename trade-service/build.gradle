@@ -7,7 +7,7 @@
 
 plugins {
   id 'java'
-  id 'org.springframework.boot' version '3.3.7'
+  id 'org.springframework.boot' version '3.4.4'
   id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -28,19 +28,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.h2database:h2:2.2.224'
 
-    // Exclude vulnerable DOMPurify version from swagger-ui and use a patched version
-    implementation ('org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0') {
-        exclude group: 'org.webjars.npm', module: 'dompurify'
-    }
-    implementation 'org.webjars.npm:dompurify:3.1.6' // Use patched version (if available)
-
-    // Exclude vulnerable Tomcat WebSocket version and use a patched version
-    implementation ('org.springframework.boot:spring-boot-starter-web') {
-        exclude group: 'org.apache.tomcat.embed', module: 'tomcat-embed-core'
-        exclude group: 'org.apache.tomcat.embed', module: 'tomcat-embed-websocket'
-    }
-    implementation 'org.apache.tomcat.embed:tomcat-embed-core:10.1.35' // Patched version
-    implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:10.1.35' // Patched version
+    implementation ('org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6')
 
     // Add compatible logback-classic version
     implementation ('ch.qos.logback:logback-core:1.5.15') {
