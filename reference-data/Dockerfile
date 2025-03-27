@@ -2,6 +2,8 @@ FROM --platform=$BUILDPLATFORM node:23 AS builder
 WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install --only=production
+RUN npm install @nestjs/cli
+
 COPY . .
 RUN npm run build
 
