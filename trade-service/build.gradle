@@ -7,40 +7,47 @@
 
 plugins {
   id 'java'
-  id 'org.springframework.boot' version '3.3.7'
+  id 'org.springframework.boot' version '3.4.4'
   id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'finos.traderx.trade-service'
 version = '0.0.1-SNAPSHOT'
 
-java{
-	sourceCompatibility = JavaVersion.VERSION_21
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
 }
 
 configurations.all {
-  exclude group: 'org.yaml', module: 'snakeyaml'
+    exclude group: 'org.yaml', module: 'snakeyaml'
 }
 
 dependencies {
 
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'com.h2database:h2:2.2.224'
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'com.h2database:h2:2.2.224'
 
-	implementation('org.json:json:20240303') {
-		because 'previous versions are affected by multiple CVE'
-	}
-	implementation ('io.socket:socket.io-client:2.1.1') {
-		exclude group: 'org.json', module: 'json'
-	}
+    implementation ('org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6')
 
-    implementation ('ch.qos.logback:logback-core:1.5.15'){
-		because 'version brought in by spring boot 3.3.7 affected by CVE-2024-12798'
-	}
+    // Add compatible logback-classic version
+    implementation ('ch.qos.logback:logback-core:1.5.15') {
+        because 'version brought in by spring boot 3.3.7 affected by CVE-2024-12798'
+    }
+    implementation 'ch.qos.logback:logback-classic:1.5.15' // Ensure compatibility
 
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    // JSON and Socket.IO dependencies
+    implementation('org.json:json:20240303') {
+        because 'previous versions are affected by multiple CVE'
+    }
+    implementation ('io.socket:socket.io-client:2.1.2') {
+        exclude group: 'org.json', module: 'json'
+    }
+
+    // Override okhttp and okio versions to address vulnerabilities
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0' // Suggested version
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 tasks.withType(Test).configureEach {
