@@ -40,10 +40,10 @@ dependencies {
     // implementation 'com.squareup.okio:okio:1.17.5' // Latest compatible version for okhttp 3.14.9
 
     // Add compatible logback-classic version
-    implementation ('ch.qos.logback:logback-core:1.5.15') {
+    implementation ('ch.qos.logback:logback-core:1.5.18') {
         because 'version brought in by spring boot 3.3.7 affected by CVE-2024-12798'
     }
-    implementation 'ch.qos.logback:logback-classic:1.5.15' // Ensure compatibility
+    implementation 'ch.qos.logback:logback-classic:1.5.18' // Ensure compatibility
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
