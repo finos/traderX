@@ -27,8 +27,8 @@ dependencies {
     implementation ('org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6')
  
     // Add compatible logback-classic version
-    implementation 'ch.qos.logback:logback-core:1.5.15'
-    implementation 'ch.qos.logback:logback-classic:1.5.15' // Ensure compatibility
+    implementation 'ch.qos.logback:logback-core:1.5.18'
+    implementation 'ch.qos.logback:logback-classic:1.5.18' // Ensure compatibility
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
