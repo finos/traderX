@@ -1,5 +1,6 @@
 package finos.traderx.accountservice.service;
 
+import finos.traderx.accountservice.model.AccountUserID;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -29,9 +30,9 @@ public class AccountUserService {
 	}
 
 	public AccountUser getAccountUserById(int id) throws ResourceNotFoundException {
-		Optional<AccountUser> accountUser = this.accountUserRepository.findById(Integer.valueOf(id));
+		Optional<AccountUser> accountUser = this.accountUserRepository.findByAccountId(id);
 		if (accountUser.isEmpty()) {
-			throw new ResourceNotFoundException("AccountUser with id " + id + "not found");
+			throw new ResourceNotFoundException("AccountUser with account id " + id + "not found");
 		}
 		return accountUser.get();
 	}
