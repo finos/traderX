@@ -12,6 +12,7 @@ import jakarta.persistence.Table;
 @Entity
 @IdClass(PositionID.class)
 @Table(name = "POSITIONS")
+@IdClass(PositionID.class)
 public class Position implements Serializable {
 
 	

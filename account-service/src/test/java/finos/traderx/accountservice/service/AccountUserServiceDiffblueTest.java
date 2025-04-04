@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -51,6 +52,7 @@ class AccountUserServiceDiffblueTest {
    */
   @Test
   @DisplayName("Test getAllAccountUsers(); given AccountUser (default constructor) AccountId is one; then return ArrayList()")
+  @Tag("MaintainedByDiffblue")
   void testGetAllAccountUsers_givenAccountUserAccountIdIsOne_thenReturnArrayList() {
     // Arrange
     AccountUser accountUser = new AccountUser();
@@ -80,6 +82,7 @@ class AccountUserServiceDiffblueTest {
    */
   @Test
   @DisplayName("Test getAllAccountUsers(); given AccountUser (default constructor) AccountId is two; then return size is two")
+  @Tag("MaintainedByDiffblue")
   void testGetAllAccountUsers_givenAccountUserAccountIdIsTwo_thenReturnSizeIsTwo() {
     // Arrange
     AccountUser accountUser = new AccountUser();
@@ -117,6 +120,7 @@ class AccountUserServiceDiffblueTest {
    */
   @Test
   @DisplayName("Test getAllAccountUsers(); then return Empty")
+  @Tag("MaintainedByDiffblue")
   void testGetAllAccountUsers_thenReturnEmpty() {
     // Arrange
     when(accountUserRepository.findAll()).thenReturn(new ArrayList<>());
@@ -139,6 +143,7 @@ class AccountUserServiceDiffblueTest {
    */
   @Test
   @DisplayName("Test getAllAccountUsers(); then throw ResourceNotFoundException")
+  @Tag("MaintainedByDiffblue")
   void testGetAllAccountUsers_thenThrowResourceNotFoundException() {
     // Arrange
     when(accountUserRepository.findAll()).thenThrow(new ResourceNotFoundException("An error occurred"));
@@ -155,14 +160,15 @@ class AccountUserServiceDiffblueTest {
    */
   @Test
   @DisplayName("Test getAccountUserById(int)")
+  @Tag("MaintainedByDiffblue")
   void testGetAccountUserById() throws ResourceNotFoundException {
     // Arrange
-    when(accountUserRepository.findById(Mockito.<Integer>any()))
+    when(accountUserRepository.findByAccountId(Mockito.<Integer>any()))
         .thenThrow(new ResourceNotFoundException("An error occurred"));
 
     // Act and Assert
     assertThrows(ResourceNotFoundException.class, () -> accountUserService.getAccountUserById(1));
-    verify(accountUserRepository).findById(eq(1));
+    verify(accountUserRepository).findByAccountId(eq(1));
   }
 
   /**
@@ -176,41 +182,42 @@ class AccountUserServiceDiffblueTest {
    */
   @Test
   @DisplayName("Test getAccountUserById(int); given AccountUser (default constructor) AccountId is one; then return AccountUser (default constructor)")
+  @Tag("MaintainedByDiffblue")
   void testGetAccountUserById_givenAccountUserAccountIdIsOne_thenReturnAccountUser() throws ResourceNotFoundException {
     // Arrange
     AccountUser accountUser = new AccountUser();
     accountUser.setAccountId(1);
     accountUser.setUsername("janedoe");
     Optional<AccountUser> ofResult = Optional.of(accountUser);
-    when(accountUserRepository.findById(Mockito.<Integer>any())).thenReturn(ofResult);
+    when(accountUserRepository.findByAccountId(Mockito.<Integer>any())).thenReturn(ofResult);
 
     // Act
     AccountUser actualAccountUserById = accountUserService.getAccountUserById(1);
 
     // Assert
-    verify(accountUserRepository).findById(eq(1));
+    verify(accountUserRepository).findByAccountId(eq(1));
     assertSame(accountUser, actualAccountUserById);
   }
 
   /**
    * Test {@link AccountUserService#getAccountUserById(int)}.
    * <ul>
-   *   <li>Given {@link AccountUserRepository}
-   * {@link CrudRepository#findById(Object)} return empty.</li>
+   *   <li>Given {@link AccountUserRepository} {@link AccountUserRepository#findByAccountId(Integer)} return empty.</li>
    * </ul>
    * <p>
    * Method under test: {@link AccountUserService#getAccountUserById(int)}
    */
   @Test
-  @DisplayName("Test getAccountUserById(int); given AccountUserRepository findById(Object) return empty")
-  void testGetAccountUserById_givenAccountUserRepositoryFindByIdReturnEmpty() throws ResourceNotFoundException {
+  @DisplayName("Test getAccountUserById(int); given AccountUserRepository findByAccountId(Integer) return empty")
+  @Tag("MaintainedByDiffblue")
+  void testGetAccountUserById_givenAccountUserRepositoryFindByAccountIdReturnEmpty() throws ResourceNotFoundException {
     // Arrange
     Optional<AccountUser> emptyResult = Optional.empty();
-    when(accountUserRepository.findById(Mockito.<Integer>any())).thenReturn(emptyResult);
+    when(accountUserRepository.findByAccountId(Mockito.<Integer>any())).thenReturn(emptyResult);
 
     // Act and Assert
     assertThrows(ResourceNotFoundException.class, () -> accountUserService.getAccountUserById(1));
-    verify(accountUserRepository).findById(eq(1));
+    verify(accountUserRepository).findByAccountId(eq(1));
   }
 
   /**
@@ -220,6 +227,7 @@ class AccountUserServiceDiffblueTest {
    */
   @Test
   @DisplayName("Test upsertAccountUser(AccountUser)")
+  @Tag("MaintainedByDiffblue")
   void testUpsertAccountUser() {
     // Arrange
     Account account = new Account();
@@ -243,14 +251,14 @@ class AccountUserServiceDiffblueTest {
   /**
    * Test {@link AccountUserService#upsertAccountUser(AccountUser)}.
    * <ul>
-   *   <li>Given {@link AccountRepository} {@link CrudRepository#findById(Object)}
-   * return empty.</li>
+   *   <li>Given {@link AccountRepository} {@link CrudRepository#findById(Object)} return empty.</li>
    * </ul>
    * <p>
    * Method under test: {@link AccountUserService#upsertAccountUser(AccountUser)}
    */
   @Test
   @DisplayName("Test upsertAccountUser(AccountUser); given AccountRepository findById(Object) return empty")
+  @Tag("MaintainedByDiffblue")
   void testUpsertAccountUser_givenAccountRepositoryFindByIdReturnEmpty() {
     // Arrange
     Optional<Account> emptyResult = Optional.empty();
@@ -276,6 +284,7 @@ class AccountUserServiceDiffblueTest {
    */
   @Test
   @DisplayName("Test upsertAccountUser(AccountUser); given AccountUser (default constructor) AccountId is one; then return AccountUser (default constructor)")
+  @Tag("MaintainedByDiffblue")
   void testUpsertAccountUser_givenAccountUserAccountIdIsOne_thenReturnAccountUser() {
     // Arrange
     Account account = new Account();
