@@ -2,7 +2,9 @@ package finos.traderx.tradeprocessor.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import com.diffblue.cover.annotations.MethodsUnderTest;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 class TradeOrderDiffblueTest {
@@ -25,6 +27,10 @@ class TradeOrderDiffblueTest {
    */
   @Test
   @DisplayName("Test getters and setters; then return Side is 'null'")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"void TradeOrder.<init>()", "void TradeOrder.<init>(String, int, String, TradeSide, int)",
+      "Integer TradeOrder.getAccountId()", "String TradeOrder.getId()", "Integer TradeOrder.getQuantity()",
+      "String TradeOrder.getSecurity()", "TradeSide TradeOrder.getSide()", "String TradeOrder.getState()"})
   void testGettersAndSetters_thenReturnSideIsNull() {
     // Arrange and Act
     TradeOrder actualTradeOrder = new TradeOrder();
@@ -63,6 +69,10 @@ class TradeOrderDiffblueTest {
    */
   @Test
   @DisplayName("Test getters and setters; when '42'; then return Id is '42'")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"void TradeOrder.<init>()", "void TradeOrder.<init>(String, int, String, TradeSide, int)",
+      "Integer TradeOrder.getAccountId()", "String TradeOrder.getId()", "Integer TradeOrder.getQuantity()",
+      "String TradeOrder.getSecurity()", "TradeSide TradeOrder.getSide()", "String TradeOrder.getState()"})
   void testGettersAndSetters_when42_thenReturnIdIs42() {
     // Arrange and Act
     TradeOrder actualTradeOrder = new TradeOrder("42", 1, "Security", TradeSide.Buy, 1);

@@ -2,10 +2,12 @@ package finos.traderx.positionservice.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import com.diffblue.cover.annotations.MethodsUnderTest;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Date;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 class PositionDiffblueTest {
@@ -27,6 +29,10 @@ class PositionDiffblueTest {
    */
   @Test
   @DisplayName("Test getters and setters")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"void Position.<init>()", "Integer Position.getAccountId()", "Integer Position.getQuantity()",
+      "String Position.getSecurity()", "Date Position.getUpdated()", "void Position.setAccountId(Integer)",
+      "void Position.setQuantity(Integer)", "void Position.setSecurity(String)", "void Position.setUpdated(Date)"})
   void testGettersAndSetters() {
     // Arrange and Act
     Position actualPosition = new Position();

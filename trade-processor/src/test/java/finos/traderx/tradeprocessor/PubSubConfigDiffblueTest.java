@@ -2,9 +2,11 @@ package finos.traderx.tradeprocessor;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.diffblue.cover.annotations.MethodsUnderTest;
 import finos.traderx.messaging.Subscriber;
 import finos.traderx.tradeprocessor.model.TradeOrder;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 class PubSubConfigDiffblueTest {
@@ -15,11 +17,9 @@ class PubSubConfigDiffblueTest {
    */
   @Test
   @DisplayName("Test tradeFeedHandler()")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"Subscriber PubSubConfig.tradeFeedHandler()"})
   void testTradeFeedHandler() {
-    //   Diffblue Cover was unable to create a Spring-specific test for this Spring method.
-    //   Run dcover create --keep-partial-tests to gain insights into why
-    //   a non-Spring test was created.
-
     // Arrange and Act
     Subscriber<TradeOrder> actualTradeFeedHandlerResult = (new PubSubConfig()).tradeFeedHandler();
 

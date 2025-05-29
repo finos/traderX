@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import com.diffblue.cover.annotations.MethodsUnderTest;
 import finos.traderx.positionservice.model.Position;
 import finos.traderx.positionservice.repository.PositionRepository;
 import java.time.LocalDate;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -24,8 +26,8 @@ import org.springframework.test.context.aot.DisabledInAotMode;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ContextConfiguration(classes = {PositionService.class})
-@ExtendWith(SpringExtension.class)
 @DisabledInAotMode
+@ExtendWith(SpringExtension.class)
 class PositionServiceDiffblueTest {
   @MockBean
   private PositionRepository positionRepository;
@@ -44,6 +46,8 @@ class PositionServiceDiffblueTest {
    */
   @Test
   @DisplayName("Test getAllPositions(); given Position (default constructor) AccountId is one; then return size is one")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"List PositionService.getAllPositions()"})
   void testGetAllPositions_givenPositionAccountIdIsOne_thenReturnSizeIsOne() {
     // Arrange
     Position position = new Position();
@@ -79,6 +83,8 @@ class PositionServiceDiffblueTest {
    */
   @Test
   @DisplayName("Test getAllPositions(); given Position (default constructor) AccountId is two; then return size is two")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"List PositionService.getAllPositions()"})
   void testGetAllPositions_givenPositionAccountIdIsTwo_thenReturnSizeIsTwo() {
     // Arrange
     Position position = new Position();
@@ -121,6 +127,8 @@ class PositionServiceDiffblueTest {
    */
   @Test
   @DisplayName("Test getAllPositions(); then return Empty")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"List PositionService.getAllPositions()"})
   void testGetAllPositions_thenReturnEmpty() {
     // Arrange
     when(positionRepository.findAll()).thenReturn(new ArrayList<>());
@@ -140,6 +148,8 @@ class PositionServiceDiffblueTest {
    */
   @Test
   @DisplayName("Test getPositionsByAccountID(int)")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"List PositionService.getPositionsByAccountID(int)"})
   void testGetPositionsByAccountID() {
     // Arrange
     when(positionRepository.findByAccountId(Mockito.<Integer>any())).thenReturn(new ArrayList<>());

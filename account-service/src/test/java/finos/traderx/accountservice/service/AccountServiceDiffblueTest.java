@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import com.diffblue.cover.annotations.MethodsUnderTest;
 import finos.traderx.accountservice.exceptions.ResourceNotFoundException;
 import finos.traderx.accountservice.model.Account;
 import finos.traderx.accountservice.repository.AccountRepository;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -26,8 +28,8 @@ import org.springframework.test.context.aot.DisabledInAotMode;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ContextConfiguration(classes = {AccountService.class})
-@ExtendWith(SpringExtension.class)
 @DisabledInAotMode
+@ExtendWith(SpringExtension.class)
 class AccountServiceDiffblueTest {
   @MockBean
   private AccountRepository accountRepository;
@@ -38,8 +40,7 @@ class AccountServiceDiffblueTest {
   /**
    * Test {@link AccountService#getAllAccount()}.
    * <ul>
-   *   <li>Given {@link Account} (default constructor) DisplayName is
-   * {@code 42}.</li>
+   *   <li>Given {@link Account} (default constructor) DisplayName is {@code 42}.</li>
    *   <li>Then return size is two.</li>
    * </ul>
    * <p>
@@ -47,6 +48,8 @@ class AccountServiceDiffblueTest {
    */
   @Test
   @DisplayName("Test getAllAccount(); given Account (default constructor) DisplayName is '42'; then return size is two")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"List AccountService.getAllAccount()"})
   void testGetAllAccount_givenAccountDisplayNameIs42_thenReturnSizeIsTwo() {
     // Arrange
     Account account = new Account();
@@ -77,8 +80,7 @@ class AccountServiceDiffblueTest {
   /**
    * Test {@link AccountService#getAllAccount()}.
    * <ul>
-   *   <li>Given {@link Account} (default constructor) DisplayName is
-   * {@code Display Name}.</li>
+   *   <li>Given {@link Account} (default constructor) DisplayName is {@code Display Name}.</li>
    *   <li>Then return {@link ArrayList#ArrayList()}.</li>
    * </ul>
    * <p>
@@ -86,6 +88,8 @@ class AccountServiceDiffblueTest {
    */
   @Test
   @DisplayName("Test getAllAccount(); given Account (default constructor) DisplayName is 'Display Name'; then return ArrayList()")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"List AccountService.getAllAccount()"})
   void testGetAllAccount_givenAccountDisplayNameIsDisplayName_thenReturnArrayList() {
     // Arrange
     Account account = new Account();
@@ -107,8 +111,7 @@ class AccountServiceDiffblueTest {
   /**
    * Test {@link AccountService#getAllAccount()}.
    * <ul>
-   *   <li>Given {@link AccountRepository} {@link CrudRepository#findAll()} return
-   * {@link ArrayList#ArrayList()}.</li>
+   *   <li>Given {@link AccountRepository} {@link CrudRepository#findAll()} return {@link ArrayList#ArrayList()}.</li>
    *   <li>Then return Empty.</li>
    * </ul>
    * <p>
@@ -116,6 +119,8 @@ class AccountServiceDiffblueTest {
    */
   @Test
   @DisplayName("Test getAllAccount(); given AccountRepository findAll() return ArrayList(); then return Empty")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"List AccountService.getAllAccount()"})
   void testGetAllAccount_givenAccountRepositoryFindAllReturnArrayList_thenReturnEmpty() {
     // Arrange
     when(accountRepository.findAll()).thenReturn(new ArrayList<>());
@@ -138,6 +143,8 @@ class AccountServiceDiffblueTest {
    */
   @Test
   @DisplayName("Test getAllAccount(); then throw ResourceNotFoundException")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"List AccountService.getAllAccount()"})
   void testGetAllAccount_thenThrowResourceNotFoundException() {
     // Arrange
     when(accountRepository.findAll()).thenThrow(new ResourceNotFoundException("An error occurred"));
@@ -154,6 +161,8 @@ class AccountServiceDiffblueTest {
    */
   @Test
   @DisplayName("Test getAccountById(int)")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"Account AccountService.getAccountById(int)"})
   void testGetAccountById() throws ResourceNotFoundException {
     // Arrange
     when(accountRepository.findById(Mockito.<Integer>any()))
@@ -167,8 +176,7 @@ class AccountServiceDiffblueTest {
   /**
    * Test {@link AccountService#getAccountById(int)}.
    * <ul>
-   *   <li>Given {@link Account} (default constructor) DisplayName is
-   * {@code Display Name}.</li>
+   *   <li>Given {@link Account} (default constructor) DisplayName is {@code Display Name}.</li>
    *   <li>Then return {@link Account} (default constructor).</li>
    * </ul>
    * <p>
@@ -176,6 +184,8 @@ class AccountServiceDiffblueTest {
    */
   @Test
   @DisplayName("Test getAccountById(int); given Account (default constructor) DisplayName is 'Display Name'; then return Account (default constructor)")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"Account AccountService.getAccountById(int)"})
   void testGetAccountById_givenAccountDisplayNameIsDisplayName_thenReturnAccount() throws ResourceNotFoundException {
     // Arrange
     Account account = new Account();
@@ -195,14 +205,15 @@ class AccountServiceDiffblueTest {
   /**
    * Test {@link AccountService#getAccountById(int)}.
    * <ul>
-   *   <li>Given {@link AccountRepository} {@link CrudRepository#findById(Object)}
-   * return empty.</li>
+   *   <li>Given {@link AccountRepository} {@link CrudRepository#findById(Object)} return empty.</li>
    * </ul>
    * <p>
    * Method under test: {@link AccountService#getAccountById(int)}
    */
   @Test
   @DisplayName("Test getAccountById(int); given AccountRepository findById(Object) return empty")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"Account AccountService.getAccountById(int)"})
   void testGetAccountById_givenAccountRepositoryFindByIdReturnEmpty() throws ResourceNotFoundException {
     // Arrange
     Optional<Account> emptyResult = Optional.empty();
@@ -216,8 +227,7 @@ class AccountServiceDiffblueTest {
   /**
    * Test {@link AccountService#upsertAccount(Account)}.
    * <ul>
-   *   <li>Given {@link Account} (default constructor) DisplayName is
-   * {@code Display Name}.</li>
+   *   <li>Given {@link Account} (default constructor) DisplayName is {@code Display Name}.</li>
    *   <li>Then return {@link Account} (default constructor).</li>
    * </ul>
    * <p>
@@ -225,6 +235,8 @@ class AccountServiceDiffblueTest {
    */
   @Test
   @DisplayName("Test upsertAccount(Account); given Account (default constructor) DisplayName is 'Display Name'; then return Account (default constructor)")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"Account AccountService.upsertAccount(Account)"})
   void testUpsertAccount_givenAccountDisplayNameIsDisplayName_thenReturnAccount() {
     // Arrange
     Account account = new Account();
@@ -254,6 +266,8 @@ class AccountServiceDiffblueTest {
    */
   @Test
   @DisplayName("Test upsertAccount(Account); then throw ResourceNotFoundException")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"Account AccountService.upsertAccount(Account)"})
   void testUpsertAccount_thenThrowResourceNotFoundException() {
     // Arrange
     when(accountRepository.save(Mockito.<Account>any())).thenThrow(new ResourceNotFoundException("An error occurred"));

@@ -2,7 +2,9 @@ package finos.traderx.messaging.socketio;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import com.diffblue.cover.annotations.MethodsUnderTest;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +36,12 @@ class SocketIOEnvelopeDiffblueTest {
    */
   @Test
   @DisplayName("Test getters and setters")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"void SocketIOEnvelope.<init>()", "java.util.Date SocketIOEnvelope.getDate()",
+      "String SocketIOEnvelope.getFrom()", "Object SocketIOEnvelope.getPayload()", "String SocketIOEnvelope.getTopic()",
+      "String SocketIOEnvelope.getType()", "void SocketIOEnvelope.setFrom(String)",
+      "void SocketIOEnvelope.setPayload(Object)", "void SocketIOEnvelope.setTopic(String)",
+      "void SocketIOEnvelope.setType(String)"})
   void testGettersAndSetters() {
     // Arrange and Act
     SocketIOEnvelope<Object> actualSocketIOEnvelope = new SocketIOEnvelope<>();
@@ -60,6 +68,8 @@ class SocketIOEnvelopeDiffblueTest {
    */
   @Test
   @DisplayName("Test new SocketIOEnvelope(String, Object)")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"void SocketIOEnvelope.<init>(String, Object)"})
   void testNewSocketIOEnvelope() {
     // Arrange and Act
     SocketIOEnvelope<Object> actualSocketIOEnvelope = new SocketIOEnvelope<>("Topic", "Payload");

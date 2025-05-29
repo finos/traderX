@@ -5,12 +5,18 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.diffblue.cover.annotations.MethodsUnderTest;
 import finos.traderx.messaging.PubSubException;
 import finos.traderx.tradeprocessor.TradeFeedHandler;
 import io.socket.client.IO;
+import io.socket.client.IO.Options;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 
+@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 class SocketIOJSONSubscriberDiffblueTest {
   /**
    * Test {@link SocketIOJSONSubscriber#getIOOptions()}.
@@ -19,16 +25,13 @@ class SocketIOJSONSubscriberDiffblueTest {
    */
   @Test
   @DisplayName("Test getIOOptions()")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"Options SocketIOJSONSubscriber.getIOOptions()"})
   void testGetIOOptions() {
-    //   Diffblue Cover was unable to create a Spring-specific test for this Spring method.
-    //   Run dcover create --keep-partial-tests to gain insights into why
-    //   a non-Spring test was created.
-
     // Arrange and Act
-    IO.Options actualIOOptions = (new TradeFeedHandler()).getIOOptions();
+    Options actualIOOptions = (new TradeFeedHandler()).getIOOptions();
 
     // Assert
-    assertNull(actualIOOptions.transports);
     assertNull(actualIOOptions.decoder);
     assertNull(actualIOOptions.encoder);
     assertNull(actualIOOptions.host);
@@ -36,6 +39,7 @@ class SocketIOJSONSubscriberDiffblueTest {
     assertNull(actualIOOptions.hostname);
     assertNull(actualIOOptions.path);
     assertNull(actualIOOptions.timestampParam);
+    assertNull(actualIOOptions.transports);
     assertNull(actualIOOptions.transportOptions);
     assertNull(actualIOOptions.auth);
     assertNull(actualIOOptions.extraHeaders);
@@ -64,31 +68,68 @@ class SocketIOJSONSubscriberDiffblueTest {
    */
   @Test
   @DisplayName("Test isConnected()")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"boolean SocketIOJSONSubscriber.isConnected()"})
   void testIsConnected() {
-    //   Diffblue Cover was unable to create a Spring-specific test for this Spring method.
-    //   Run dcover create --keep-partial-tests to gain insights into why
-    //   a non-Spring test was created.
-
     // Arrange, Act and Assert
     assertFalse((new TradeFeedHandler()).isConnected());
   }
 
   /**
+   * Test {@link SocketIOJSONSubscriber#connect()}.
+   * <ul>
+   *   <li>Given {@link TradeFeedHandler} (default constructor) SocketAddress is {@code 42 Main St}.</li>
+   * </ul>
+   * <p>
+   * Method under test: {@link SocketIOJSONSubscriber#connect()}
+   */
+  @Test
+  @DisplayName("Test connect(); given TradeFeedHandler (default constructor) SocketAddress is '42 Main St'")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"void SocketIOJSONSubscriber.connect()"})
+  void testConnect_givenTradeFeedHandlerSocketAddressIs42MainSt() throws PubSubException {
+    // Arrange
+    TradeFeedHandler tradeFeedHandler = new TradeFeedHandler();
+    tradeFeedHandler.setSocketAddress("42 Main St");
+
+    // Act and Assert
+    assertThrows(PubSubException.class, () -> tradeFeedHandler.connect());
+  }
+
+  /**
+   * Test {@link SocketIOJSONSubscriber#connect()}.
+   * <ul>
+   *   <li>Given {@link TradeFeedHandler} (default constructor) SocketAddress is {@code Addr}.</li>
+   * </ul>
+   * <p>
+   * Method under test: {@link SocketIOJSONSubscriber#connect()}
+   */
+  @Test
+  @DisplayName("Test connect(); given TradeFeedHandler (default constructor) SocketAddress is 'Addr'")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"void SocketIOJSONSubscriber.connect()"})
+  void testConnect_givenTradeFeedHandlerSocketAddressIsAddr() throws PubSubException {
+    // Arrange
+    TradeFeedHandler tradeFeedHandler = new TradeFeedHandler();
+    tradeFeedHandler.setSocketAddress("Addr");
+
+    // Act and Assert
+    assertThrows(PubSubException.class, () -> tradeFeedHandler.connect());
+  }
+
+  /**
    * Test {@link SocketIOJSONSubscriber#afterPropertiesSet()}.
    * <ul>
-   *   <li>Given {@link TradeFeedHandler} (default constructor) SocketAddress is
-   * {@code 42 Main St}.</li>
+   *   <li>Given {@link TradeFeedHandler} (default constructor) SocketAddress is {@code 42 Main St}.</li>
    * </ul>
    * <p>
    * Method under test: {@link SocketIOJSONSubscriber#afterPropertiesSet()}
    */
   @Test
   @DisplayName("Test afterPropertiesSet(); given TradeFeedHandler (default constructor) SocketAddress is '42 Main St'")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"void SocketIOJSONSubscriber.afterPropertiesSet()"})
   void testAfterPropertiesSet_givenTradeFeedHandlerSocketAddressIs42MainSt() throws Exception {
-    //   Diffblue Cover was unable to create a Spring-specific test for this Spring method.
-    //   Run dcover create --keep-partial-tests to gain insights into why
-    //   a non-Spring test was created.
-
     // Arrange
     TradeFeedHandler tradeFeedHandler = new TradeFeedHandler();
     tradeFeedHandler.setSocketAddress("42 Main St");
@@ -100,19 +141,16 @@ class SocketIOJSONSubscriberDiffblueTest {
   /**
    * Test {@link SocketIOJSONSubscriber#afterPropertiesSet()}.
    * <ul>
-   *   <li>Given {@link TradeFeedHandler} (default constructor) SocketAddress is
-   * {@code Addr}.</li>
+   *   <li>Given {@link TradeFeedHandler} (default constructor) SocketAddress is {@code Addr}.</li>
    * </ul>
    * <p>
    * Method under test: {@link SocketIOJSONSubscriber#afterPropertiesSet()}
    */
   @Test
   @DisplayName("Test afterPropertiesSet(); given TradeFeedHandler (default constructor) SocketAddress is 'Addr'")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"void SocketIOJSONSubscriber.afterPropertiesSet()"})
   void testAfterPropertiesSet_givenTradeFeedHandlerSocketAddressIsAddr() throws Exception {
-    //   Diffblue Cover was unable to create a Spring-specific test for this Spring method.
-    //   Run dcover create --keep-partial-tests to gain insights into why
-    //   a non-Spring test was created.
-
     // Arrange
     TradeFeedHandler tradeFeedHandler = new TradeFeedHandler();
     tradeFeedHandler.setSocketAddress("Addr");

@@ -3,9 +3,11 @@ package finos.traderx.positionservice.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
+import com.diffblue.cover.annotations.MethodsUnderTest;
 import finos.traderx.positionservice.service.TradeService;
 import java.util.ArrayList;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +24,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 @ContextConfiguration(classes = {TradeController.class})
-@ExtendWith(SpringExtension.class)
 @DisabledInAotMode
+@ExtendWith(SpringExtension.class)
 class TradeControllerDiffblueTest {
   @Autowired
   private TradeController tradeController;
@@ -38,6 +40,8 @@ class TradeControllerDiffblueTest {
    */
   @Test
   @DisplayName("Test getAllTrades()")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"ResponseEntity TradeController.getAllTrades()"})
   void testGetAllTrades() throws Exception {
     // Arrange
     when(tradeService.getAllTrades()).thenReturn(new ArrayList<>());
@@ -63,6 +67,8 @@ class TradeControllerDiffblueTest {
    */
   @Test
   @DisplayName("Test generalError(Exception); when Exception(String) with 'foo'; then StatusCode return HttpStatus")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"ResponseEntity TradeController.generalError(Exception)"})
   void testGeneralError_whenExceptionWithFoo_thenStatusCodeReturnHttpStatus() {
     // Arrange and Act
     ResponseEntity<String> actualGeneralErrorResult = tradeController.generalError(new Exception("foo"));

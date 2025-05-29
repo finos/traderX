@@ -2,7 +2,9 @@ package finos.traderx.tradeservice.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import com.diffblue.cover.annotations.MethodsUnderTest;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +27,8 @@ class AccountDiffblueTest {
    */
   @Test
   @DisplayName("Test new Account(); then return getid is 'null'")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"void Account.<init>()", "void Account.<init>(Integer, String)"})
   void testNewAccount_thenReturnGetidIsNull() {
     // Arrange, Act and Assert
     assertNull((new Account()).getid());
@@ -41,6 +45,8 @@ class AccountDiffblueTest {
    */
   @Test
   @DisplayName("Test new Account(Integer, String); when one; then return getid intValue is one")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"void Account.<init>()", "void Account.<init>(Integer, String)"})
   void testNewAccount_whenOne_thenReturnGetidIntValueIsOne() {
     // Arrange, Act and Assert
     assertEquals(1, (new Account(1, "Display Name")).getid().intValue());
@@ -53,6 +59,8 @@ class AccountDiffblueTest {
    */
   @Test
   @DisplayName("Test getid()")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"Integer Account.getid()"})
   void testGetid() {
     // Arrange, Act and Assert
     assertNull(account.getid());
@@ -65,6 +73,8 @@ class AccountDiffblueTest {
    */
   @Test
   @DisplayName("Test getdisplayName()")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"String Account.getdisplayName()"})
   void testGetdisplayName() {
     // Arrange, Act and Assert
     assertNull(account.getdisplayName());

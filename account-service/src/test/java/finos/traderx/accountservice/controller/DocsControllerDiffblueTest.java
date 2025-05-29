@@ -1,6 +1,8 @@
 package finos.traderx.accountservice.controller;
 
+import com.diffblue.cover.annotations.MethodsUnderTest;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,8 @@ class DocsControllerDiffblueTest {
    */
   @Test
   @DisplayName("Test index()")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"java.lang.String DocsController.index()"})
   void testIndex() throws Exception {
     // Arrange
     MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.get("/");

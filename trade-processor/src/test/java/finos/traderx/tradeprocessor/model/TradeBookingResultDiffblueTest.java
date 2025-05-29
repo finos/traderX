@@ -1,10 +1,12 @@
 package finos.traderx.tradeprocessor.model;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
+import com.diffblue.cover.annotations.MethodsUnderTest;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Date;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 class TradeBookingResultDiffblueTest {
@@ -20,6 +22,9 @@ class TradeBookingResultDiffblueTest {
    */
   @Test
   @DisplayName("Test getters and setters")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"void TradeBookingResult.<init>(Trade, Position)", "Position TradeBookingResult.getPosition()",
+      "Trade TradeBookingResult.getTrade()"})
   void testGettersAndSetters() {
     // Arrange
     Trade t = new Trade();

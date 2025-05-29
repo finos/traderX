@@ -2,9 +2,11 @@ package finos.traderx.accountservice.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.diffblue.cover.annotations.MethodsUnderTest;
 import finos.traderx.accountservice.exceptions.ResourceNotFoundException;
 import finos.traderx.accountservice.service.AccountUserService;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +19,8 @@ import org.springframework.test.context.aot.DisabledInAotMode;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ContextConfiguration(classes = {AccountUserController.class})
-@ExtendWith(SpringExtension.class)
 @DisabledInAotMode
+@ExtendWith(SpringExtension.class)
 class AccountUserControllerDiffblueTest {
   @Autowired
   private AccountUserController accountUserController;
@@ -27,17 +29,17 @@ class AccountUserControllerDiffblueTest {
   private AccountUserService accountUserService;
 
   /**
-   * Test
-   * {@link AccountUserController#resourceNotFoundExceptionMapper(ResourceNotFoundException)}.
+   * Test {@link AccountUserController#resourceNotFoundExceptionMapper(ResourceNotFoundException)}.
    * <ul>
    *   <li>Then StatusCode return {@link HttpStatus}.</li>
    * </ul>
    * <p>
-   * Method under test:
-   * {@link AccountUserController#resourceNotFoundExceptionMapper(ResourceNotFoundException)}
+   * Method under test: {@link AccountUserController#resourceNotFoundExceptionMapper(ResourceNotFoundException)}
    */
   @Test
   @DisplayName("Test resourceNotFoundExceptionMapper(ResourceNotFoundException); then StatusCode return HttpStatus")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"ResponseEntity AccountUserController.resourceNotFoundExceptionMapper(ResourceNotFoundException)"})
   void testResourceNotFoundExceptionMapper_thenStatusCodeReturnHttpStatus() {
     // Arrange and Act
     ResponseEntity<String> actualResourceNotFoundExceptionMapperResult = accountUserController
@@ -64,6 +66,8 @@ class AccountUserControllerDiffblueTest {
    */
   @Test
   @DisplayName("Test generalError(Exception); when Exception(String) with 'foo'; then StatusCode return HttpStatus")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"ResponseEntity AccountUserController.generalError(Exception)"})
   void testGeneralError_whenExceptionWithFoo_thenStatusCodeReturnHttpStatus() {
     // Arrange and Act
     ResponseEntity<String> actualGeneralErrorResult = accountUserController.generalError(new Exception("foo"));

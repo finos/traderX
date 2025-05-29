@@ -3,9 +3,11 @@ package finos.traderx.positionservice.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
+import com.diffblue.cover.annotations.MethodsUnderTest;
 import finos.traderx.positionservice.service.PositionService;
 import java.util.ArrayList;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +24,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 @ContextConfiguration(classes = {PositionController.class})
-@ExtendWith(SpringExtension.class)
 @DisabledInAotMode
+@ExtendWith(SpringExtension.class)
 class PositionControllerDiffblueTest {
   @Autowired
   private PositionController positionController;
@@ -38,6 +40,8 @@ class PositionControllerDiffblueTest {
    */
   @Test
   @DisplayName("Test getAllPositions()")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"ResponseEntity PositionController.getAllPositions()"})
   void testGetAllPositions() throws Exception {
     // Arrange
     when(positionService.getAllPositions()).thenReturn(new ArrayList<>());
@@ -63,6 +67,8 @@ class PositionControllerDiffblueTest {
    */
   @Test
   @DisplayName("Test generalError(Exception); when Exception(String) with 'foo'; then StatusCode return HttpStatus")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"ResponseEntity PositionController.generalError(Exception)"})
   void testGeneralError_whenExceptionWithFoo_thenStatusCodeReturnHttpStatus() {
     // Arrange and Act
     ResponseEntity<String> actualGeneralErrorResult = positionController.generalError(new Exception("foo"));

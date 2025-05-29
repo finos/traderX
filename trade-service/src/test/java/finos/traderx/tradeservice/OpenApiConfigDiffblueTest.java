@@ -2,9 +2,11 @@ package finos.traderx.tradeservice;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import com.diffblue.cover.annotations.MethodsUnderTest;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.SpecVersion;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 class OpenApiConfigDiffblueTest {
@@ -15,11 +17,9 @@ class OpenApiConfigDiffblueTest {
    */
   @Test
   @DisplayName("Test config()")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"OpenAPI OpenApiConfig.config()"})
   void testConfig() {
-    //   Diffblue Cover was unable to create a Spring-specific test for this Spring method.
-    //   Run dcover create --keep-partial-tests to gain insights into why
-    //   a non-Spring test was created.
-
     // Arrange and Act
     OpenAPI actualConfigResult = (new OpenApiConfig()).config();
 

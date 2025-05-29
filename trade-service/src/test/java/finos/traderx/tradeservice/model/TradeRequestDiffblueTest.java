@@ -1,7 +1,9 @@
 package finos.traderx.tradeservice.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import com.diffblue.cover.annotations.MethodsUnderTest;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 class TradeRequestDiffblueTest {
@@ -23,6 +25,11 @@ class TradeRequestDiffblueTest {
    */
   @Test
   @DisplayName("Test getters and setters")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"void TradeRequest.<init>()", "int TradeRequest.getAccountId()",
+      "Integer TradeRequest.getQuantity()", "String TradeRequest.getSecurity()", "TradeSide TradeRequest.getSide()",
+      "void TradeRequest.setAccountId(int)", "void TradeRequest.setQuantity(Integer)",
+      "void TradeRequest.setSecurity(String)", "void TradeRequest.setSide(TradeSide)"})
   void testGettersAndSetters() {
     // Arrange and Act
     TradeRequest actualTradeRequest = new TradeRequest();

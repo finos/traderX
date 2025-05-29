@@ -1,7 +1,9 @@
 package finos.traderx.accountservice.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import com.diffblue.cover.annotations.MethodsUnderTest;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 class AccountUserDiffblueTest {
@@ -19,6 +21,10 @@ class AccountUserDiffblueTest {
    */
   @Test
   @DisplayName("Test getters and setters")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"void AccountUser.<init>()", "Integer AccountUser.getAccountId()",
+      "String AccountUser.getUsername()", "void AccountUser.setAccountId(Integer)",
+      "void AccountUser.setUsername(String)"})
   void testGettersAndSetters() {
     // Arrange and Act
     AccountUser actualAccountUser = new AccountUser();

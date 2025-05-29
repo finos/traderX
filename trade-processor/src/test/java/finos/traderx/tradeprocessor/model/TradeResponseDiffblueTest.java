@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.diffblue.cover.annotations.MethodsUnderTest;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 class TradeResponseDiffblueTest {
@@ -15,6 +17,8 @@ class TradeResponseDiffblueTest {
    */
   @Test
   @DisplayName("Test success(String)")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"TradeResponse TradeResponse.success(String)"})
   void testSuccess() {
     // Arrange and Act
     TradeResponse actualSuccessResult = TradeResponse.success("42");
@@ -32,6 +36,8 @@ class TradeResponseDiffblueTest {
    */
   @Test
   @DisplayName("Test error(String)")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"TradeResponse TradeResponse.error(String)"})
   void testError() {
     // Arrange and Act
     TradeResponse actualErrorResult = TradeResponse.error("Not all who wander are lost");
@@ -58,6 +64,10 @@ class TradeResponseDiffblueTest {
    */
   @Test
   @DisplayName("Test getters and setters")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"void TradeResponse.<init>()", "String TradeResponse.getErrorMessage()",
+      "String TradeResponse.getId()", "boolean TradeResponse.isSuccess()", "void TradeResponse.setErrorMessage(String)",
+      "void TradeResponse.setId(String)", "void TradeResponse.setSuccess(boolean)"})
   void testGettersAndSetters() {
     // Arrange and Act
     TradeResponse actualTradeResponse = new TradeResponse();

@@ -3,12 +3,14 @@ package finos.traderx.accountservice.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
+import com.diffblue.cover.annotations.MethodsUnderTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import finos.traderx.accountservice.exceptions.ResourceNotFoundException;
 import finos.traderx.accountservice.model.Account;
 import finos.traderx.accountservice.service.AccountService;
 import java.util.ArrayList;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -21,7 +23,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.aot.DisabledInAotMode;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -29,8 +30,8 @@ import org.springframework.test.web.servlet.result.StatusResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 @ContextConfiguration(classes = {AccountController.class})
-@ExtendWith(SpringExtension.class)
 @DisabledInAotMode
+@ExtendWith(SpringExtension.class)
 class AccountControllerDiffblueTest {
   @Autowired
   private AccountController accountController;
@@ -41,8 +42,7 @@ class AccountControllerDiffblueTest {
   /**
    * Test {@link AccountController#createAccount(Account)}.
    * <ul>
-   *   <li>Given {@link Account} (default constructor) DisplayName is
-   * {@code Display Name}.</li>
+   *   <li>Given {@link Account} (default constructor) DisplayName is {@code Display Name}.</li>
    *   <li>Then status {@link StatusResultMatchers#isOk()}.</li>
    * </ul>
    * <p>
@@ -50,6 +50,8 @@ class AccountControllerDiffblueTest {
    */
   @Test
   @DisplayName("Test createAccount(Account); given Account (default constructor) DisplayName is 'Display Name'; then status isOk()")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"ResponseEntity AccountController.createAccount(Account)"})
   void testCreateAccount_givenAccountDisplayNameIsDisplayName_thenStatusIsOk() throws Exception {
     // Arrange
     Account account = new Account();
@@ -85,6 +87,8 @@ class AccountControllerDiffblueTest {
    */
   @Test
   @DisplayName("Test createAccount(Account); given 'https://example.org/example'; then status four hundred fifteen")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"ResponseEntity AccountController.createAccount(Account)"})
   void testCreateAccount_givenHttpsExampleOrgExample_thenStatusFourHundredFifteen() throws Exception {
     // Arrange
     Account account = new Account();
@@ -100,13 +104,11 @@ class AccountControllerDiffblueTest {
     String content = (new ObjectMapper()).writeValueAsString(account2);
     MockHttpServletRequestBuilder requestBuilder = postResult.contentType(MediaType.APPLICATION_JSON).content(content);
 
-    // Act
-    ResultActions actualPerformResult = MockMvcBuilders.standaloneSetup(accountController)
+    // Act and Assert
+    MockMvcBuilders.standaloneSetup(accountController)
         .build()
-        .perform(requestBuilder);
-
-    // Assert
-    actualPerformResult.andExpect(MockMvcResultMatchers.status().is(415));
+        .perform(requestBuilder)
+        .andExpect(MockMvcResultMatchers.status().is(415));
   }
 
   /**
@@ -119,6 +121,8 @@ class AccountControllerDiffblueTest {
    */
   @Test
   @DisplayName("Test createAccount(Account); then status isNotFound()")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"ResponseEntity AccountController.createAccount(Account)"})
   void testCreateAccount_thenStatusIsNotFound() throws Exception {
     // Arrange
     when(accountService.upsertAccount(Mockito.<Account>any()))
@@ -132,13 +136,11 @@ class AccountControllerDiffblueTest {
         .contentType(MediaType.APPLICATION_JSON)
         .content(content);
 
-    // Act
-    ResultActions actualPerformResult = MockMvcBuilders.standaloneSetup(accountController)
+    // Act and Assert
+    MockMvcBuilders.standaloneSetup(accountController)
         .build()
-        .perform(requestBuilder);
-
-    // Assert
-    actualPerformResult.andExpect(MockMvcResultMatchers.status().isNotFound())
+        .perform(requestBuilder)
+        .andExpect(MockMvcResultMatchers.status().isNotFound())
         .andExpect(MockMvcResultMatchers.content().contentType("text/plain;charset=ISO-8859-1"))
         .andExpect(MockMvcResultMatchers.content().string("An error occurred"));
   }
@@ -146,8 +148,7 @@ class AccountControllerDiffblueTest {
   /**
    * Test {@link AccountController#updateAccount(Account)}.
    * <ul>
-   *   <li>Given {@link Account} (default constructor) DisplayName is
-   * {@code Display Name}.</li>
+   *   <li>Given {@link Account} (default constructor) DisplayName is {@code Display Name}.</li>
    *   <li>Then status {@link StatusResultMatchers#isOk()}.</li>
    * </ul>
    * <p>
@@ -155,6 +156,8 @@ class AccountControllerDiffblueTest {
    */
   @Test
   @DisplayName("Test updateAccount(Account); given Account (default constructor) DisplayName is 'Display Name'; then status isOk()")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"ResponseEntity AccountController.updateAccount(Account)"})
   void testUpdateAccount_givenAccountDisplayNameIsDisplayName_thenStatusIsOk() throws Exception {
     // Arrange
     Account account = new Account();
@@ -190,6 +193,8 @@ class AccountControllerDiffblueTest {
    */
   @Test
   @DisplayName("Test updateAccount(Account); given 'https://example.org/example'; then status four hundred fifteen")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"ResponseEntity AccountController.updateAccount(Account)"})
   void testUpdateAccount_givenHttpsExampleOrgExample_thenStatusFourHundredFifteen() throws Exception {
     // Arrange
     Account account = new Account();
@@ -205,13 +210,11 @@ class AccountControllerDiffblueTest {
     String content = (new ObjectMapper()).writeValueAsString(account2);
     MockHttpServletRequestBuilder requestBuilder = putResult.contentType(MediaType.APPLICATION_JSON).content(content);
 
-    // Act
-    ResultActions actualPerformResult = MockMvcBuilders.standaloneSetup(accountController)
+    // Act and Assert
+    MockMvcBuilders.standaloneSetup(accountController)
         .build()
-        .perform(requestBuilder);
-
-    // Assert
-    actualPerformResult.andExpect(MockMvcResultMatchers.status().is(415));
+        .perform(requestBuilder)
+        .andExpect(MockMvcResultMatchers.status().is(415));
   }
 
   /**
@@ -224,6 +227,8 @@ class AccountControllerDiffblueTest {
    */
   @Test
   @DisplayName("Test updateAccount(Account); then status isNotFound()")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"ResponseEntity AccountController.updateAccount(Account)"})
   void testUpdateAccount_thenStatusIsNotFound() throws Exception {
     // Arrange
     when(accountService.upsertAccount(Mockito.<Account>any()))
@@ -237,13 +242,11 @@ class AccountControllerDiffblueTest {
         .contentType(MediaType.APPLICATION_JSON)
         .content(content);
 
-    // Act
-    ResultActions actualPerformResult = MockMvcBuilders.standaloneSetup(accountController)
+    // Act and Assert
+    MockMvcBuilders.standaloneSetup(accountController)
         .build()
-        .perform(requestBuilder);
-
-    // Assert
-    actualPerformResult.andExpect(MockMvcResultMatchers.status().isNotFound())
+        .perform(requestBuilder)
+        .andExpect(MockMvcResultMatchers.status().isNotFound())
         .andExpect(MockMvcResultMatchers.content().contentType("text/plain;charset=ISO-8859-1"))
         .andExpect(MockMvcResultMatchers.content().string("An error occurred"));
   }
@@ -251,8 +254,7 @@ class AccountControllerDiffblueTest {
   /**
    * Test {@link AccountController#getAllAccount()}.
    * <ul>
-   *   <li>Given {@link AccountService} {@link AccountService#getAllAccount()}
-   * return {@link ArrayList#ArrayList()}.</li>
+   *   <li>Given {@link AccountService} {@link AccountService#getAllAccount()} return {@link ArrayList#ArrayList()}.</li>
    *   <li>Then status {@link StatusResultMatchers#isOk()}.</li>
    * </ul>
    * <p>
@@ -260,6 +262,8 @@ class AccountControllerDiffblueTest {
    */
   @Test
   @DisplayName("Test getAllAccount(); given AccountService getAllAccount() return ArrayList(); then status isOk()")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"ResponseEntity AccountController.getAllAccount()"})
   void testGetAllAccount_givenAccountServiceGetAllAccountReturnArrayList_thenStatusIsOk() throws Exception {
     // Arrange
     when(accountService.getAllAccount()).thenReturn(new ArrayList<>());
@@ -284,34 +288,34 @@ class AccountControllerDiffblueTest {
    */
   @Test
   @DisplayName("Test getAllAccount(); then status isNotFound()")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"ResponseEntity AccountController.getAllAccount()"})
   void testGetAllAccount_thenStatusIsNotFound() throws Exception {
     // Arrange
     when(accountService.getAllAccount()).thenThrow(new ResourceNotFoundException("An error occurred"));
     MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.get("/account/");
 
-    // Act
-    ResultActions actualPerformResult = MockMvcBuilders.standaloneSetup(accountController)
+    // Act and Assert
+    MockMvcBuilders.standaloneSetup(accountController)
         .build()
-        .perform(requestBuilder);
-
-    // Assert
-    actualPerformResult.andExpect(MockMvcResultMatchers.status().isNotFound())
+        .perform(requestBuilder)
+        .andExpect(MockMvcResultMatchers.status().isNotFound())
         .andExpect(MockMvcResultMatchers.content().contentType("text/plain;charset=ISO-8859-1"))
         .andExpect(MockMvcResultMatchers.content().string("An error occurred"));
   }
 
   /**
-   * Test
-   * {@link AccountController#resourceNotFoundExceptionMapper(ResourceNotFoundException)}.
+   * Test {@link AccountController#resourceNotFoundExceptionMapper(ResourceNotFoundException)}.
    * <ul>
    *   <li>Then StatusCode return {@link HttpStatus}.</li>
    * </ul>
    * <p>
-   * Method under test:
-   * {@link AccountController#resourceNotFoundExceptionMapper(ResourceNotFoundException)}
+   * Method under test: {@link AccountController#resourceNotFoundExceptionMapper(ResourceNotFoundException)}
    */
   @Test
   @DisplayName("Test resourceNotFoundExceptionMapper(ResourceNotFoundException); then StatusCode return HttpStatus")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"ResponseEntity AccountController.resourceNotFoundExceptionMapper(ResourceNotFoundException)"})
   void testResourceNotFoundExceptionMapper_thenStatusCodeReturnHttpStatus() {
     // Arrange and Act
     ResponseEntity<String> actualResourceNotFoundExceptionMapperResult = accountController
@@ -338,6 +342,8 @@ class AccountControllerDiffblueTest {
    */
   @Test
   @DisplayName("Test generalError(Exception); when Exception(String) with 'foo'; then StatusCode return HttpStatus")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"ResponseEntity AccountController.generalError(Exception)"})
   void testGeneralError_whenExceptionWithFoo_thenStatusCodeReturnHttpStatus() {
     // Arrange and Act
     ResponseEntity<String> actualGeneralErrorResult = accountController.generalError(new Exception("foo"));

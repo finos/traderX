@@ -3,7 +3,9 @@ package finos.traderx.messaging;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import com.diffblue.cover.annotations.MethodsUnderTest;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 class PubSubExceptionDiffblueTest {
@@ -18,6 +20,9 @@ class PubSubExceptionDiffblueTest {
    */
   @Test
   @DisplayName("Test new PubSubException(String); when 'Str'; then return Cause is 'null'")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"void PubSubException.<init>(String)", "void PubSubException.<init>(String, Throwable)",
+      "void PubSubException.<init>(Throwable)"})
   void testNewPubSubException_whenStr_thenReturnCauseIsNull() {
     // Arrange and Act
     PubSubException actualPubSubException = new PubSubException("Str");
@@ -39,6 +44,9 @@ class PubSubExceptionDiffblueTest {
    */
   @Test
   @DisplayName("Test new PubSubException(String, Throwable); when 'Str'; then return Message is 'Str'")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"void PubSubException.<init>(String)", "void PubSubException.<init>(String, Throwable)",
+      "void PubSubException.<init>(Throwable)"})
   void testNewPubSubException_whenStr_thenReturnMessageIsStr() {
     // Arrange
     Throwable t = new Throwable();
@@ -56,13 +64,16 @@ class PubSubExceptionDiffblueTest {
    * Test {@link PubSubException#PubSubException(Throwable)}.
    * <ul>
    *   <li>When {@link Throwable#Throwable()}.</li>
-   *   <li>Then return Message is {@code java.lang.Throwable}.</li>
+   *   <li>Then return Message is {@code Throwable}.</li>
    * </ul>
    * <p>
    * Method under test: {@link PubSubException#PubSubException(Throwable)}
    */
   @Test
   @DisplayName("Test new PubSubException(Throwable); when Throwable(); then return Message is 'java.lang.Throwable'")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"void PubSubException.<init>(String)", "void PubSubException.<init>(String, Throwable)",
+      "void PubSubException.<init>(Throwable)"})
   void testNewPubSubException_whenThrowable_thenReturnMessageIsJavaLangThrowable() {
     // Arrange
     Throwable t = new Throwable();

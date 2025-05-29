@@ -2,7 +2,9 @@ package finos.traderx.tradeservice.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import com.diffblue.cover.annotations.MethodsUnderTest;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,8 @@ class SecurityDiffblueTest {
    */
   @Test
   @DisplayName("Test getters and setters; then return Ticker is 'null'")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"void Security.<init>()", "void Security.<init>(String, String)", "String Security.getTicker()"})
   void testGettersAndSetters_thenReturnTickerIsNull() {
     // Arrange, Act and Assert
     assertNull((new Security()).getTicker());
@@ -49,6 +53,8 @@ class SecurityDiffblueTest {
    */
   @Test
   @DisplayName("Test getters and setters; when 'Ticker'; then return 'Ticker'")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"void Security.<init>()", "void Security.<init>(String, String)", "String Security.getTicker()"})
   void testGettersAndSetters_whenTicker_thenReturnTicker() {
     // Arrange, Act and Assert
     assertEquals("Ticker", (new Security("Ticker", "Company Name")).getTicker());
@@ -61,6 +67,8 @@ class SecurityDiffblueTest {
    */
   @Test
   @DisplayName("Test getcompanyName()")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"String Security.getcompanyName()"})
   void testGetcompanyName() {
     // Arrange, Act and Assert
     assertNull(security.getcompanyName());

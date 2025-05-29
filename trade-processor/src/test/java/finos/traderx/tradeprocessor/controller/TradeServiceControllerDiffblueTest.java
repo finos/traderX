@@ -1,13 +1,20 @@
 package finos.traderx.tradeprocessor.controller;
 
 import static org.mockito.Mockito.when;
+import com.diffblue.cover.annotations.MethodsUnderTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import finos.traderx.tradeprocessor.model.Position;
 import finos.traderx.tradeprocessor.model.Trade;
 import finos.traderx.tradeprocessor.model.TradeBookingResult;
 import finos.traderx.tradeprocessor.model.TradeOrder;
+import finos.traderx.tradeprocessor.model.TradeSide;
+import finos.traderx.tradeprocessor.model.TradeState;
 import finos.traderx.tradeprocessor.service.TradeService;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.Date;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -23,8 +30,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 @ContextConfiguration(classes = {TradeServiceController.class})
-@ExtendWith(SpringExtension.class)
 @DisabledInAotMode
+@ExtendWith(SpringExtension.class)
 class TradeServiceControllerDiffblueTest {
   @MockBean
   private TradeService tradeService;
@@ -39,10 +46,26 @@ class TradeServiceControllerDiffblueTest {
    */
   @Test
   @DisplayName("Test processOrder(TradeOrder)")
+  @Tag("MaintainedByDiffblue")
+  @MethodsUnderTest({"org.springframework.http.ResponseEntity TradeServiceController.processOrder(TradeOrder)"})
   void testProcessOrder() throws Exception {
     // Arrange
     Trade t = new Trade();
-    when(tradeService.processTrade(Mockito.<TradeOrder>any())).thenReturn(new TradeBookingResult(t, new Position()));
+    t.setAccountId(1);
+    t.setCreated(Date.from(LocalDate.of(1970, 1, 1).atStartOfDay().atZone(ZoneOffset.UTC).toInstant()));
+    t.setId("42");
+    t.setQuantity(1);
+    t.setSecurity("Security");
+    t.setSide(TradeSide.Buy);
+    t.setState(TradeState.New);
+    t.setUpdated(Date.from(LocalDate.of(1970, 1, 1).atStartOfDay().atZone(ZoneOffset.UTC).toInstant()));
+
+    Position p = new Position();
+    p.setAccountId(1);
+    p.setQuantity(1);
+    p.setSecurity("Security");
+    p.setUpdated(Date.from(LocalDate.of(1970, 1, 1).atStartOfDay().atZone(ZoneOffset.UTC).toInstant()));
+    when(tradeService.processTrade(Mockito.<TradeOrder>any())).thenReturn(new TradeBookingResult(t, p));
     MockHttpServletRequestBuilder contentTypeResult = MockMvcRequestBuilders.post("/tradeservice/order")
         .contentType(MediaType.APPLICATION_JSON);
 
@@ -58,8 +81,7 @@ class TradeServiceControllerDiffblueTest {
         .andExpect(MockMvcResultMatchers.content().contentType("application/json"))
         .andExpect(MockMvcResultMatchers.content()
             .string(
-                "{\"trade\":{\"id\":null,\"accountId\":null,\"security\":null,\"side\":null,\"state\":\"New\",\"quantity\":null,"
-                    + "\"updated\":null,\"created\":null},\"position\":{\"accountId\":null,\"security\":null,\"quantity\":null,\"updated"
-                    + "\":null}}"));
+                "{\"trade\":{\"id\":\"42\",\"accountId\":1,\"security\":\"Security\",\"side\":\"Buy\",\"state\":\"New\",\"quantity\":1,\"updated"
+                    + "\":0,\"created\":0},\"position\":{\"accountId\":1,\"security\":\"Security\",\"quantity\":1,\"updated\":0}}"));
   }
 }
