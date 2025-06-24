@@ -1,0 +1,41 @@
+# .github/workflows/qodo-cover.yml
+name: Test Coverage Bot
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - labeled
+
+
+permissions:
+  pull-requests: write
+  contents: write
+
+
+jobs:
+  coverage:
+    # Only run if:
+    # 1. PR has the qodo-cover label
+    # 2. PR is open (not closed or draft)
+    if: |
+      contains(github.event.label.name, 'qodo-cover') &&
+      github.event.pull_request.state == 'open' &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Run Qodo Coverage Bot
+        uses: qodo-ai/qodo-gen-cli@v1
+        with:
+          prompt: "qodo-cover"
+          # agentfile: "${{ github.workspace }}/agent.toml"
+          key-value-pairs: |
+            desired_coverage=90
+        env:
+          QODO_API_KEY: ${{ secrets.QODO_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
