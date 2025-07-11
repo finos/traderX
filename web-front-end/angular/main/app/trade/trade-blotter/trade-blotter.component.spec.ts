@@ -66,8 +66,9 @@ describe('TradeBlotterComponent', () => {
 
     });
 
-    it('getRowNodeId should return id from trade data', () => {
-        expect(component.getRowNodeId(trades[0])).toEqual(trades[0].id);
+    it('getRowId should return id from trade data', () => {
+        const params = { data: trades[0] } as any;
+        expect(component.getRowId(params)).toEqual(trades[0].id);
     });
 
 });

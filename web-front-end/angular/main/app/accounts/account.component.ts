@@ -1,7 +1,7 @@
 import { ColDef, GridApi, GridReadyEvent, Module } from 'ag-grid-community';
 import { Component, OnInit } from '@angular/core';
 import { AgGridModule } from 'ag-grid-angular';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import { AccountService } from '../service/account.service';
 import { Account } from '../model/account.model';
 import { debounceTime, map, switchMap } from 'rxjs/operators';
@@ -67,21 +67,28 @@ export class AccountComponent implements OnInit {
 
         this.users$ = this.accountAddAction$.pipe(
             debounceTime(200),
-            switchMap((accountId) => this.accountService.getAccountUsers().pipe(
-                map((users) => users.filter((user) => user.accountId === accountId))
-            ))
+            switchMap((accountId) => {
+                if (accountId && accountId > 0) {
+                    return this.accountService.getAccountUsersByAccountId(accountId);
+                }
+                return of([]);
+            })
         );
     }
 
     onUpdate(account: Account) {
-        this.accountBehaviorSubject.next(account?.id);
         this.selectedAccount = account;
+        if (account?.id) {
+            this.accountBehaviorSubject.next(account.id);
+        }
     }
 
     onSelectionChanged() {
         const selectedRows = this.gridApi.getSelectedRows() as Account[];
-        this.selectedAccount = selectedRows[0];
-        this.accountBehaviorSubject.next(selectedRows[0].id);
+        if (selectedRows && selectedRows.length > 0) {
+            this.selectedAccount = selectedRows[0];
+            this.accountBehaviorSubject.next(selectedRows[0].id);
+        }
     }
 
     onGridReady(params: GridReadyEvent) {
