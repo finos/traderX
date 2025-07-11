@@ -55,13 +55,4 @@ export class AccountService {
       })
     );
   }
-
-  getAccountUsersByAccountId(accountId: number): Observable<AccountUser[]> {
-    return this.http.get<AccountUser[]>(`${this.baseUrl}/accountuser/account/${accountId}`, this.httpOptions).pipe(
-      catchError((error: HttpErrorResponse) => {
-        console.error(error);
-        return throwError(() => error);
-      })
-    );
-  }
 }
