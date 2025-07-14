@@ -26,8 +26,10 @@ dependencies {
 
     implementation ('org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6')
  
-    // Add compatible logback-classic version
-    implementation 'ch.qos.logback:logback-core:1.5.18'
+    // Force logback versions to fix CVE-2024-12798
+    implementation ('ch.qos.logback:logback-core:1.5.18') {
+        because 'version brought in by spring boot 3.5.3 affected by CVE-2024-12798'
+    }
     implementation 'ch.qos.logback:logback-classic:1.5.18' // Ensure compatibility
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
