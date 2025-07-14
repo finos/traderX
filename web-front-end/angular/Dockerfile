@@ -11,8 +11,9 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copy package files and install dependencies
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package*.json ./
+# Install dependencies using npm install since package-lock.json might not exist
+RUN npm install
 
 # Copy all source files including angular.json
 COPY . .
