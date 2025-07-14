@@ -12,7 +12,7 @@ plugins {
 }
 
 dependencies {
-   implementation 'com.h2database:h2:2.3.232'
+   implementation 'com.h2database:h2:2.3.234' // Updated to fix CVE-2018-14335
 }
 
 application {
