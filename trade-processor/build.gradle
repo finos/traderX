@@ -7,7 +7,7 @@
 
 plugins {
   id 'java'
-  id 'org.springframework.boot' version '3.4.4'
+  id 'org.springframework.boot' version '3.5.3'
   id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -22,8 +22,9 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'com.h2database:h2:2.2.224'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+    implementation 'com.h2database:h2:2.3.232'
+
+    implementation ('org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6')
 
     implementation('org.json:json:20240303') {
         because 'previous versions are affected by multiple CVE'
@@ -32,18 +33,14 @@ dependencies {
         exclude group: 'org.json', module: 'json'
     }
 
-    implementation ('org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6') 
-    implementation ('org.springframework.boot:spring-boot-starter-web')
-
     // Override okhttp and okio versions to address vulnerabilities
     implementation 'com.squareup.okhttp3:okhttp:4.12.0' // Suggested version
-    // implementation 'com.squareup.okio:okio:1.17.5' // Latest compatible version for okhttp 3.14.9
 
     // Add compatible logback-classic version
-    implementation ('ch.qos.logback:logback-core:1.5.15') {
-        because 'version brought in by spring boot 3.3.7 affected by CVE-2024-12798'
+    implementation ('ch.qos.logback:logback-core:1.5.18') {
+        because 'version brought in by spring boot 3.5.3 affected by CVE-2024-12798'
     }
-    implementation 'ch.qos.logback:logback-classic:1.5.15' // Ensure compatibility
+    implementation 'ch.qos.logback:logback-classic:1.5.18' // Ensure compatibility
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

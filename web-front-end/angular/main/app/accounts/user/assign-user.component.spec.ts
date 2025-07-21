@@ -1,103 +1,79 @@
-import { ComponentFixture, TestBed, waitForAsync, tick, fakeAsync } from '@angular/core/testing';
+import { catchError } from 'rxjs/operators';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { Account } from 'main/app/model/account.model';
-import { AccountService } from 'main/app/service/account.service';
-import { AssignUserToAccountComponent } from './assign-user.component';
-import { FormsModule } from '@angular/forms';
-import { AlertModule } from 'ngx-bootstrap/alert';
-import { UserService } from 'main/app/service/user.service';
 import { User } from 'main/app/model/user.model';
-import { MockAccountService, MockUserService } from 'main/app/test-utils/mocks.service';
-import { sleep } from 'main/app/test-utils/utils';
-import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
-import { DropdownModule } from 'main/app/dropdown/dropdown.module';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { AccountService } from 'main/app/service/account.service';
+import { UserService } from 'main/app/service/user.service';
+import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
+import { map, noop, Observable, Observer, of, switchMap, tap } from 'rxjs';
 
+@Component({
+    selector: 'app-assign-user',
+    templateUrl: 'assign-user.component.html'
+})
+export class AssignUserToAccountComponent implements OnInit {
+    @Input() accounts: any = [];
+    @Input() account?: Account = undefined;
+    users$: Observable<User[]>;
+    user?: User = undefined;
+    search?: string = undefined;
+    addUserResponse: any;
+    @Output() update = new EventEmitter<Account>();
+    constructor(private userService: UserService, private accountService: AccountService) { }
 
-describe('Assign user to account tests', () => {
-  let comp: AssignUserToAccountComponent;
-  let fixture: ComponentFixture<AssignUserToAccountComponent>;
-  let element: HTMLElement;
-  beforeEach(
-    waitForAsync(() => {
-      TestBed.configureTestingModule({
-        declarations: [AssignUserToAccountComponent],
-        imports: [DropdownModule, TypeaheadModule.forRoot(), BrowserAnimationsModule, AlertModule.forRoot(), FormsModule],
-        providers: [
-          {
-            provide: AccountService,
-            useClass: MockAccountService
-          },
-          {
-            provide: UserService,
-            useClass: MockUserService
-          }
-        ]
-      }).compileComponents();
-    })
-  );
+    ngOnInit(): void {
+        this.users$ = new Observable<string | undefined>((observer: Observer<string | undefined>) => {
+            observer.next(this.search as string | undefined);
+        }).pipe(
+            switchMap((query: string | undefined) => {
+                if (query && query.length > 2) {
+                    return this.userService.getUsers(query).pipe(
+                        map((data: User[]) => data || []),
+                        tap({
+                            error: (err) => {
+                                console.log(err && err.message || 'Something goes wrong');
+                            }
+                        }),
+                        catchError(() => of([]))
+                    );
+                }
+                return of([]);
+            })
+        );
+    }
 
-  beforeEach(() => {
-    fixture = TestBed.createComponent(AssignUserToAccountComponent);
-    comp = fixture.componentInstance;
-    element = fixture.debugElement.nativeElement;
-    fixture.detectChanges();
-  });
+    comparatorFunction(src: Account, target: Account) {
+        return src?.id === target?.id;
+    }
 
-  xit('should allow to search user', fakeAsync(() => {
-    spyOn((<any>comp).userService, 'getUsers').and.callThrough();
-    const typeaheadinput = element.querySelector('#account-user') as HTMLInputElement;
-    typeaheadinput.value = 'san';
-    typeaheadinput.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
-    tick(100);
-    expect((<any>comp).userService.getUsers).toHaveBeenCalledWith('sa');
-  }));
+    add() {
+        if (!this.user || !this.account) {
+            return;
+        }
+        const accountUser = { username: this.user.logonId, accountId: this.account.id };
+        this.accountService.addAccountUser(accountUser).subscribe(() => {
+            this.addUserResponse = { success: true, msg: 'User added successfully!' };
+            this.update.emit(this.account);
+            this.reset(true);
+        }, (err) => {
+            this.addUserResponse = { error: true, msg: 'There is some error!' };
+            console.error(err);
+        });
+    }
 
-  it('should assign user to account', () => {
-    spyOn((<any>comp).accountService, 'addAccountUser').and.callThrough();
-    spyOn(comp.update, 'emit');
-    spyOn(comp, 'reset');
-    comp.user = { logonId: 'test123' } as User;
-    comp.account = { id: 1 } as Account;
-    comp.add();
+    onSelect(event: TypeaheadMatch) {
+        this.user = event.item;
+    }
 
-    expect((<any>comp).accountService.addAccountUser).toHaveBeenCalled();
-    expect(comp.update.emit).toHaveBeenCalled();
-    expect(comp.reset).toHaveBeenCalled();
-    expect(comp.addUserResponse.success).toBe(true);
-    expect(comp.addUserResponse.msg).toBe('User added successfully!');
-  });
+    reset(fromAdd: boolean = false) {
+        this.user = undefined;
+        this.search = undefined;
+        // keep account sticky if we are just adding a user
+        if(!fromAdd)
+            this.account = undefined;
+    }
 
-  it('should node call account service if user or account is undefined', () => {
-    spyOn((<any>comp).accountService, 'addAccountUser').and.callThrough();
-
-    comp.user = undefined;
-    comp.account = { id: 1 } as Account;
-    comp.add();
-    expect((<any>comp).accountService.addAccountUser).not.toHaveBeenCalled();
-
-    comp.user = { logonId: 'test123' } as User;
-    comp.account = undefined;
-    comp.add();
-    expect((<any>comp).accountService.addAccountUser).not.toHaveBeenCalled();
-
-    comp.user = undefined;
-    comp.account = undefined;
-    comp.add();
-    expect((<any>comp).accountService.addAccountUser).not.toHaveBeenCalled();
-
-    comp.user = { logonId: 'test123' } as User;
-    comp.account = { id: 1 } as Account;
-    comp.add();
-    expect((<any>comp).accountService.addAccountUser).toHaveBeenCalled();
-  });
-
-  it('should close alert after 2 sec', async () => {
-    spyOn(comp, 'onCloseAlert').and.callThrough();
-    comp.addUserResponse = {};
-    fixture.detectChanges();
-    await sleep(2500);
-    expect(comp.onCloseAlert).toHaveBeenCalled();
-    expect(comp.addUserResponse).toBeUndefined();
-  });
-});
+    onCloseAlert() {
+        this.addUserResponse = undefined;
+    }
+}

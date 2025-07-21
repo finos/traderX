@@ -1,5 +1,3 @@
-version: '3.4'
-
 services:
   database:
     restart: always
@@ -30,7 +28,7 @@ services:
     build:
       context: reference-data
       dockerfile: Dockerfile
-    working_dir: /reference-data
+    working_dir: /usr/src/app
     expose:
       - 18085
     ports:
@@ -38,7 +36,6 @@ services:
     volumes:
       # Mount the root folder that contains .git
       - .:/workspace:cached
-    command: npm run start
     networks:
       - localnet
   trade-feed:
@@ -64,7 +61,7 @@ services:
     build:
       context: people-service
       dockerfile: Dockerfile
-    working_dir: /people-service
+    working_dir: /app
     expose:
       - 18089
     ports:
@@ -176,8 +173,7 @@ services:
     image: web-front-end-angular
     build:
       context: web-front-end/angular
-      dockerfile: Dockerfile
-    working_dir: /web-front-end/angular
+      dockerfile: Dockerfile.prod
     expose:
       - 18093
     ports:
@@ -185,7 +181,6 @@ services:
     volumes:
       # Mount the root folder that contains .git
       - .:/workspace:cached
-    command: npm run start
     networks:
       - localnet
     depends_on:

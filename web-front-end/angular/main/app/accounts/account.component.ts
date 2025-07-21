@@ -80,8 +80,11 @@ export class AccountComponent implements OnInit {
 
     onSelectionChanged() {
         const selectedRows = this.gridApi.getSelectedRows() as Account[];
+        if(selectedRows.length === 0) { return }
         this.selectedAccount = selectedRows[0];
-        this.accountBehaviorSubject.next(selectedRows[0].id);
+        if(this.selectedAccount) {
+            this.accountBehaviorSubject.next(this.selectedAccount.id);
+        }
     }
 
     onGridReady(params: GridReadyEvent) {
