@@ -47,6 +47,9 @@ dependencies {
     // Override okhttp and okio versions to address vulnerabilities
     implementation 'com.squareup.okhttp3:okhttp:4.12.0' // Suggested version
 
+    // Override commons-lang3 to fix CVE-2025-48924
+    implementation 'org.apache.commons:commons-lang3:3.18.0' // Latest version to fix CVE-2025-48924
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
