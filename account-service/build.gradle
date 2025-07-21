@@ -32,6 +32,9 @@ dependencies {
     }
     implementation 'ch.qos.logback:logback-classic:1.5.18' // Ensure compatibility
 
+    // Override commons-lang3 to fix CVE-2025-48924
+    implementation 'org.apache.commons:commons-lang3:3.18.0' // Latest version to fix CVE-2025-48924
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
