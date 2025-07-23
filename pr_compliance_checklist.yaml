@@ -1,0 +1,6 @@
+pr_compliances:
+  - title: "Error Handling"
+    compliance_label: true
+    objective: "All external API calls must have proper error handling"
+    success_criteria: "Try-catch blocks around external calls with appropriate logging"
+    failure_criteria: "External API calls without error handling or logging"
