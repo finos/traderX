@@ -1,0 +1,168 @@
+pr_compliances:
+  - title: "Error Handling & Exception Management"
+    compliance_label: true
+    objective: "Ensure comprehensive error handling following TraderX exception hierarchy"
+    success_criteria: |
+      - External API calls wrapped in try-catch blocks with specific exception handling
+      - Custom exceptions extend TraderXException where appropriate
+      - Exceptions include contextual information (order ID, trade ID, etc.)
+      - Error responses use proper HTTP status codes via ResponseEntity
+      - Logging at appropriate levels (ERROR for unrecoverable, WARN for recoverable)
+      - No generic Exception catches without justification
+    failure_criteria: |
+      - Catching Exception or Throwable without re-throwing
+      - Empty catch blocks or only printStackTrace()
+      - Missing error context in logs or exception messages
+      - Returning null instead of throwing exceptions for error cases
+      - HTTP 200 responses for error conditions
+
+  - title: "Business Logic Validation"
+    compliance_label: true
+    objective: "Validate business rules and domain constraints are properly implemented"
+    success_criteria: |
+      - Input validation using Bean Validation annotations (@Valid, @NotNull, etc.)
+      - Business invariants checked at service layer boundaries
+      - Domain-specific validations (e.g., trade amount > 0, valid symbols)
+      - Fail-fast principle applied with early validation
+      - Clear validation error messages that help API consumers
+    failure_criteria: |
+      - Missing validation for required fields
+      - Business logic in controllers instead of services
+      - Validation only in UI/frontend without backend checks
+      - Accepting invalid states that violate domain rules
+
+  - title: "Service Layer Architecture"
+    compliance_label: true
+    objective: "Maintain clean separation of concerns following Spring Boot best practices"
+    success_criteria: |
+      - Controllers only handle HTTP concerns and delegate to services
+      - Services contain business logic and transaction boundaries
+      - Constructor injection used consistently (no field injection)
+      - Single responsibility per service class
+      - Proper use of @Transactional with clear boundaries
+    failure_criteria: |
+      - Business logic in controllers or repositories
+      - Circular dependencies between services
+      - Mixed concerns (e.g., HTTP handling in services)
+      - Field injection with @Autowired
+      - Transaction management in controllers
+
+  - title: "Test Quality & Coverage"
+    compliance_label: true
+    objective: "Ensure comprehensive testing following Arrange-Act-Assert pattern"
+    success_criteria: |
+      - Unit tests for all public methods with edge cases covered
+      - Integration tests for API endpoints using MockMvc or WebTestClient
+      - Test method names follow pattern: methodUnderTest_scenario_expectedOutcome
+      - Proper use of mocks vs real implementations
+      - Tests verify both success and failure scenarios
+      - No test interdependencies (each test runs independently)
+    failure_criteria: |
+      - Missing tests for new functionality
+      - Tests without assertions or only testing happy path
+      - Integration tests that mock everything (not testing integration)
+      - Test data hard-coded without clear purpose
+      - Tests that always pass regardless of implementation
+
+  - title: "API Design & Documentation"
+    compliance_label: true
+    objective: "RESTful APIs with comprehensive OpenAPI documentation"
+    success_criteria: |
+      - OpenAPI/Swagger annotations on all public endpoints
+      - Proper HTTP methods (GET for reads, POST for creates, etc.)
+      - Consistent URL patterns following REST conventions
+      - Request/response examples in documentation
+      - Error response schemas documented
+      - API versioning strategy followed
+    failure_criteria: |
+      - Missing OpenAPI annotations
+      - GET endpoints with side effects
+      - Inconsistent URL naming (mixing camelCase, snake_case)
+      - No documentation of error responses
+      - Breaking changes without version updates
+
+  - title: "Security & Data Protection"
+    compliance_label: true
+    objective: "Implement security best practices and protect sensitive data"
+    success_criteria: |
+      - No hardcoded credentials or secrets
+      - PII/sensitive data masked in logs (e.g., account numbers)
+      - Input sanitization for user-provided data
+      - Proper authentication/authorization checks
+      - SQL injection prevention (parameterized queries)
+      - No sensitive data in URLs or query parameters
+    failure_criteria: |
+      - Passwords, API keys, or tokens in code
+      - Logging full request/response bodies with sensitive data
+      - String concatenation for SQL queries
+      - Missing authorization checks on protected resources
+      - Sensitive data exposed in exception messages
+
+  - title: "Domain Model Integrity"
+    compliance_label: true
+    objective: "Maintain clean domain models following DDD principles"
+    success_criteria: |
+      - Domain objects are immutable where possible (using final fields)
+      - Business logic encapsulated within domain objects
+      - Value objects for concepts like Money, AccountId
+      - Entities have clear identity and lifecycle
+      - No anemic domain models (logic in services only)
+      - Proper use of Java records for simple data carriers
+    failure_criteria: |
+      - Public setters on all fields without justification
+      - Domain objects with only getters/setters (anemic)
+      - Business rules scattered across multiple services
+      - Primitive obsession (using String for everything)
+      - Domain objects depending on infrastructure
+
+  - title: "Logging & Observability"
+    compliance_label: true
+    objective: "Implement comprehensive logging for debugging and monitoring"
+    success_criteria: |
+      - Structured logging with consistent format
+      - Correlation IDs for tracing requests
+      - Key business events logged at INFO level
+      - Performance metrics for critical operations
+      - No excessive DEBUG logging in production code
+      - Parameterized logging instead of string concatenation
+    failure_criteria: |
+      - System.out.println() instead of proper logging
+      - Logging inside loops without rate limiting
+      - Missing logs for error conditions
+      - Sensitive data in log messages
+      - Log messages without context (e.g., "Error occurred")
+
+  - title: "Code Maintainability"
+    compliance_label: true
+    objective: "Write clean, maintainable code following SOLID principles"
+    success_criteria: |
+      - Methods under 20 lines (with justified exceptions)
+      - Classes follow single responsibility principle
+      - Clear, descriptive names for classes, methods, and variables
+      - No code duplication (DRY principle applied)
+      - Complex logic extracted into well-named private methods
+      - Proper use of Java 17 features (records, switch expressions, etc.)
+    failure_criteria: |
+      - God classes with too many responsibilities
+      - Copy-pasted code blocks
+      - Cryptic variable names (e.g., temp1, data2)
+      - Deeply nested if-else chains (> 3 levels)
+      - Methods with more than 5 parameters
+      - Commented-out code left in PR
+
+  - title: "Configuration Management"
+    compliance_label: true
+    objective: "Externalize configuration following 12-factor app principles"
+    success_criteria: |
+      - All environment-specific values in application.yml/properties
+      - Use of @ConfigurationProperties for grouped configs
+      - Sensible defaults with ability to override
+      - No hardcoded URLs, ports, or timeouts
+      - Spring profiles for different environments
+      - Configuration documented in README
+    failure_criteria: |
+      - Hardcoded values that change between environments
+      - Magic numbers without explanation
+      - Missing configuration for timeouts/retries
+      - Production configs in test resources
+      - Circular dependencies in configuration
