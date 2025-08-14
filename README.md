@@ -194,7 +194,7 @@ To deploy and run the app in your local Kubernetes environment:
 rad run app.bicep
 ```
 
-This will deploy all TraderX services to your local K8s cluster using Radius and automatically port-forward the application, which will be accessible at http://localhost:8080 once all services are running.
+This will deploy all TraderX services to your local K8s cluster using Radius and automatically port-forward the application, which will be accessible at http://localhost:8080 once all services are running. To stop the port-forwarding and terminate the application, press `Ctrl+C` in the terminal where the command is running.
 
 ### Monitor and Clean Up
 
