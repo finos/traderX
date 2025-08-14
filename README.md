@@ -177,100 +177,37 @@ Once everything has started the WebUI will be accessible at http://localhost:808
 
 ## Run locally using Kubernetes
 
-Another easy way to run up the entire system is using Kubernetes (K8s), which using [tilt.dev](https://tilt.dev) also allows you to easily swap in locally built images. The following are instructions to deploy all TraderX apps to your local enviroment using [tilt.dev](https://tilt.dev) and kustomize files.
+Another easy way to run up the entire system is using Kubernetes (K8s) with [Radius](https://radapp.io). Radius provides a modern application platform that enables deployment to local, Azure, AWS, or any Kubernetes cluster using the same Bicep templates, making it ideal for production-like deployments and CI/CD practices.
 
-### Prerequistes 
-- Install and run [Docker](https://www.docker.com/products/docker-desktop/) or similar
-- Install and run K8s - this could be one of the following well know distributions
+### Prerequisites
+- Install and run K8s - this could be one of the following well-known distributions:
     - [K8s with Docker Desktop](https://docs.docker.com/desktop/kubernetes/)
     - [Kind](https://kind.sigs.k8s.io/) 
     - [Minikube](https://minikube.sigs.k8s.io/docs/start/)
     - [k3s](https://k3s.io/) or similar
-- Install an [Ingress Controller](https://kubernetes.github.io/ingress-nginx/deploy/) - this will need to match your k8s distribution
-- Install [tilt.dev](https://tilt.dev)
+- Install and set up [Radius](https://docs.radapp.io/installation/)
 
-### Preflight checks
+### Deploy with Radius
 
+To deploy and run the app in your local Kubernetes environment:
+```bash
+rad run app.bicep
 ```
+
+This will deploy all TraderX services to your local K8s cluster using Radius and automatically port-forward the application, which will be accessible at http://localhost:8080 once all services are running.
+
+### Monitor and Clean Up
+
+Use standard `kubectl` commands to monitor your deployment:
+```bash
 kubectl get pods
+kubectl logs <pod-name>
 ```
 
-You should see the kube pods as well as your ingress controller. Example below:
-
-```
-NAMESPACE       NAME                                        READY   STATUS      RESTARTS   AGE
-ingress-nginx   ingress-nginx-admission-create-6rh79        0/1     Completed   0          38s
-ingress-nginx   ingress-nginx-admission-patch-f4kdg         0/1     Completed   1          38s
-ingress-nginx   ingress-nginx-controller-7d4db76476-7wfl2   1/1     Running     0          38s
-kube-system     coredns-7db6d8ff4d-ntdcr                    1/1     Running     0          4h8m
-kube-system     coredns-7db6d8ff4d-ptfcs                    1/1     Running     0          4h8m
-kube-system     etcd-docker-desktop                         1/1     Running     2          4h8m
-kube-system     kube-apiserver-docker-desktop               1/1     Running     2          4h8m
-kube-system     kube-controller-manager-docker-desktop      1/1     Running     2          4h8m
-kube-system     kube-proxy-qt5z4                            1/1     Running     0          4h8m
-kube-system     kube-scheduler-docker-desktop               1/1     Running     10         4h8m
-kube-system     storage-provisioner                         1/1     Running     0          4h8m
-```
-
-### Start Tilt.dev
-
-This command will deploy all the services to your local K8s environment.
-Note: Ensure all the [pre-requistes](#prerequistes) are complete
-
-After cloning the repo, you should `cd` into the folder (`cd traderx`)
-```
-# cd into gitops repo
-cd ./gitops/local/
-
-# Start Tilt
-tilt up
-```
-
-Expected Console Output:
-```
-Tilt started on http://localhost:10350/
-v0.30.2, built 2022-06-06
-
-(space) to open the browser
-(s) to stream logs (--stream=true)
-(t) to open legacy terminal mode (--legacy=true)
-(ctrl-c) to exit
-```
-
-This will download all the images and start them in your local k8s cluster. 
-
-Launching the tilt.dev local webpage will allow you to monitor the progress by pressing the space bar. Or use one of the other options from the console.
-
-Note: if you run `tilt up` and you get an error stating `template engine not found for: up.`. Your OS might be trying to run a ruby library, please check the tilt.dev installation instructions, or you path settings.
-
-
-### Start Tilt.dev
-
-### Local Developement
-
-With all the services running you can then chose which ones you actively build locally.
-
-If you go to your local [Tiltfile](./gitops/local/Tiltfile) you simply need to uncomment all the lines, or just for the respective applicaiton that you want to work on. Those applications will be built locally and deployed to your cluster instead of the host images. For example. In your local [Tiltfile](./gitops/local/Tiltfile) uncommenting the line for position_service will ask that Tilt.dev builds the images and your locally built image is deployed in your local k8s cluster in place of the prebuilt image from the Github Container Registry.
-
-```
-# Uncomment lines to use locally built version
-# docker_build('ghcr.io/finos/traderx/database', './../../database/.')
-# docker_build('ghcr.io/finos/traderx/account-service', './../../account-service/.')
-# docker_build('ghcr.io/finos/traderx/people-service', './../../people-service/.')
-docker_build('ghcr.io/finos/traderx/position-service', './../../position-service/.')
-# docker_build('ghcr.io/finos/traderx/reference-data', './../../reference-data/.')
-# docker_build('ghcr.io/finos/traderx/trade-feed', './../../trade-feed/.')
-# docker_build('ghcr.io/finos/traderx/trade-processor', './../../trade-processor/.')
-# docker_build('ghcr.io/finos/traderx/trade-service', './../../trade-service/.')
-# docker_build('ghcr.io/finos/traderx/web-front-end-angular', './../../web-front-end/angular/.')
-yaml = kustomize(('./traderx'))
-print(yaml)
-k8s_yaml(yaml)
-```
-
-### Clean up
-
-Simply stop tilt and then run  `tilt down` 
+To clean up the deployment:
+```bash
+rad app delete traderx
+``` 
 
 # Getting Involved
 
