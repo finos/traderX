@@ -180,10 +180,12 @@ Once everything has started the WebUI will be accessible at http://localhost:808
 Another easy way to run up the entire system is using Kubernetes (K8s) with [Radius](https://radapp.io). Radius provides a modern application platform that enables deployment to local, Azure, AWS, or any Kubernetes cluster using the same Bicep templates, making it ideal for production-like deployments and CI/CD practices.
 
 ### Prerequisites
+- Install and run [Docker](https://www.docker.com/products/docker-desktop/) or similar
 - Install and run K8s - this could be one of the following well-known distributions:
     - [K8s with Docker Desktop](https://docs.docker.com/desktop/kubernetes/)
     - [Kind](https://kind.sigs.k8s.io/) 
     - [Minikube](https://minikube.sigs.k8s.io/docs/start/)
+    - [k3d](https://k3d.io/)
     - [k3s](https://k3s.io/) or similar
 - Install and set up [Radius](https://docs.radapp.io/installation/)
 
