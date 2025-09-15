@@ -71,9 +71,7 @@ There are a number of ways to run TraderX locally. You should choose the method 
 In order to get things working together, it is recommended to select a range of ports to provide all running processes with, so that the pieces can interconnect as needed.  To run this all up 'by hand' here are default ports which are used, and you can easily export these variables to your favorite shell. 
 
 ```bash
-export DATABASE_TCP_PORT=18082
-export DATABASE_PG_PORT=18083
-export DATABASE_WEB_PORT=18084
+export DATABASE_PORT=5432
 export REFERENCE_DATA_SERVICE_PORT=18085
 export TRADE_FEED_PORT=18086
 export ACCOUNT_SERVICE_PORT=18088

@@ -10,14 +10,19 @@ resource database 'Applications.Core/containers@2023-10-01-preview' = {
     container: {
       image: 'ghcr.io/finos/traderx/database:latest'
       ports: {
-        tcp: {
-          containerPort: 18082
+        postgres: {
+          containerPort: 5432
         }
-        pg:{
-          containerPort: 18083
+      }
+      env: {
+        POSTGRES_DB: {
+          value: 'traderx'
         }
-        web: {
-          containerPort: 18084
+        POSTGRES_USER: {
+          value: 'sa'
+        }
+        POSTGRES_PASSWORD: {
+          value: 'sa'
         }
       }
     }
@@ -81,8 +86,11 @@ resource accountservice 'Applications.Core/containers@2023-10-01-preview' = {
         }
       }
       env: {
-        DATABASE_TCP_HOST: {
+        DATABASE_HOST: {
           value: database.name
+        }
+        DATABASE_PORT: {
+          value: '5432'
         }
         PEOPLE_SERVICE_HOST: {
           value: peopleservice.name
@@ -112,8 +120,11 @@ resource positionservice 'Applications.Core/containers@2023-10-01-preview' = {
         }
       }
       env: {
-        DATABASE_TCP_HOST: {
+        DATABASE_HOST: {
           value: database.name
+        }
+        DATABASE_PORT: {
+          value: '5432'
         }
       }
     }
@@ -137,8 +148,11 @@ resource tradeservice 'Applications.Core/containers@2023-10-01-preview' = {
         }
       }
       env: {
-        DATABASE_TCP_HOST: {
+        DATABASE_HOST: {
           value: database.name
+        }
+        DATABASE_PORT: {
+          value: '5432'
         }
         PEOPLE_SERVICE_HOST: {
           value: peopleservice.name
@@ -186,8 +200,11 @@ resource tradeprocessor 'Applications.Core/containers@2023-10-01-preview' = {
         }
       }
       env: {
-        DATABASE_TCP_HOST: {
+        DATABASE_HOST: {
           value: database.name
+        }
+        DATABASE_PORT: {
+          value: '5432'
         }
         TRADE_FEED_HOST: {
           value: tradefeed.name
@@ -217,8 +234,11 @@ resource webfrontend 'Applications.Core/containers@2023-10-01-preview' = {
         }
       }
       env: {
-        DATABASE_TCP_HOST: {
+        DATABASE_HOST: {
           value: database.name
+        }
+        DATABASE_PORT: {
+          value: '5432'
         }
       }
     }
@@ -245,8 +265,11 @@ resource ingress 'Applications.Core/containers@2023-10-01-preview' = {
         }
       }
       env: {
-        DATABASE_TCP_HOST: {
+        DATABASE_HOST: {
           value: database.name
+        }
+        DATABASE_PORT: {
+          value: '5432'
         }
       }
     }
