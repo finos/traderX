@@ -24,7 +24,7 @@ class AccountServiceApplicationTests {
     @Test
     void createAccount() {
         Account input_account = new Account();
-        input_account.setDisplayName("test account");
+        input_account.setDisplayName("test accounts");
         Account created_account = accountService.upsertAccount(input_account);
 
         Account output_account = accountService.getAccountById(created_account.getId());
