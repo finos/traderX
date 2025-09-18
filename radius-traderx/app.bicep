@@ -75,16 +75,16 @@ resource accountservice 'Applications.Core/containers@2023-10-01-preview' = {
           value: database.properties.host
         }
         DATABASE_PORT: {
-          value: '5432'
+          value: string(database.properties.port)
         }
         DATABASE_NAME: {
-          value: 'traderx'
+          value: database.properties.database
         }
         DATABASE_DBUSER: {
-          value: 'sa'
+          value: database.properties.username
         }
         DATABASE_DBPASS: {
-          value: 'sa'
+          value: database.properties.password
         }
         PEOPLE_SERVICE_HOST: {
           value: peopleservice.name
@@ -118,16 +118,16 @@ resource positionservice 'Applications.Core/containers@2023-10-01-preview' = {
           value: database.properties.host
         }
         DATABASE_PORT: {
-          value: '5432'
+          value: string(database.properties.port)
         }
         DATABASE_NAME: {
-          value: 'traderx'
+          value: database.properties.database
         }
         DATABASE_DBUSER: {
-          value: 'sa'
+          value: database.properties.username
         }
         DATABASE_DBPASS: {
-          value: 'sa'
+          value: database.properties.password
         }
       }
     }
@@ -155,7 +155,7 @@ resource tradeservice 'Applications.Core/containers@2023-10-01-preview' = {
           value: database.properties.host
         }
         DATABASE_PORT: {
-          value: '5432'
+          value: string(database.properties.port)
         }
         PEOPLE_SERVICE_HOST: {
           value: peopleservice.name
@@ -207,16 +207,16 @@ resource tradeprocessor 'Applications.Core/containers@2023-10-01-preview' = {
           value: database.properties.host
         }
         DATABASE_PORT: {
-          value: '5432'
+          value: string(database.properties.port)
         }
         DATABASE_NAME: {
-          value: 'traderx'
+          value: database.properties.database
         }
         DATABASE_DBUSER: {
-          value: 'sa'
+          value: database.properties.username
         }
         DATABASE_DBPASS: {
-          value: 'sa'
+          value: database.properties.password
         }
         TRADE_FEED_HOST: {
           value: tradefeed.name
@@ -250,7 +250,7 @@ resource webfrontend 'Applications.Core/containers@2023-10-01-preview' = {
           value: database.properties.host
         }
         DATABASE_PORT: {
-          value: '5432'
+          value: string(database.properties.port)
         }
       }
     }
@@ -281,7 +281,7 @@ resource ingress 'Applications.Core/containers@2023-10-01-preview' = {
           value: database.properties.host
         }
         DATABASE_PORT: {
-          value: '5432'
+          value: string(database.properties.port)
         }
       }
     }
