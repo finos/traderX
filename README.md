@@ -175,7 +175,37 @@ Once everything has started the WebUI will be accessible at http://localhost:808
 
 ## Run locally using Kubernetes
 
-Another easy way to run up the entire system is using Kubernetes (K8s), which using [tilt.dev](https://tilt.dev) also allows you to easily swap in locally built images. The following are instructions to deploy all TraderX apps to your local enviroment using [tilt.dev](https://tilt.dev) and kustomize files.
+There are two easy ways to run the entire system on Kubernetes (K8s):
+
+### Option 1: Using Radius (Recommended)
+
+[Radius](https://docs.radapp.io/) provides a modern, cloud-native approach to application deployment with automatic service discovery and managed PostgreSQL database.
+
+**Prerequisites:**
+- Install and run [Docker](https://www.docker.com/products/docker-desktop/) or similar
+- Install and run a local Kubernetes cluster:
+  - [K8s with Docker Desktop](https://docs.docker.com/desktop/kubernetes/)
+  - [Kind](https://kind.sigs.k8s.io/)
+  - [Minikube](https://minikube.sigs.k8s.io/docs/start/)
+  - [k3s](https://k3s.io/) or similar
+- Install [Radius](https://docs.radapp.io/getting-started/)
+
+**Quick Start:**
+```bash
+cd radius-traderx
+rad init
+rad resource-type create postgreSQL -f types/types.yaml
+rad recipe register default --environment default --resource-type Radius.Resources/postgreSQL --template-kind bicep --template-path ghcr.io/willtsai/recipes/postgresql:latest
+rad run app.bicep
+```
+
+Access the application at `http://localhost:8080`
+
+For detailed instructions, see [radius-traderx/README.md](radius-traderx/README.md).
+
+### Option 2: Using Tilt
+
+[Tilt.dev](https://tilt.dev) also allows you to easily swap in locally built images for development. The following are instructions to deploy all TraderX apps to your local environment using [tilt.dev](https://tilt.dev) and kustomize files.
 
 ### Prerequistes 
 - Install and run [Docker](https://www.docker.com/products/docker-desktop/) or similar
