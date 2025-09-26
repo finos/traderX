@@ -2,24 +2,21 @@ services:
   database:
     restart: always
     environment:
-      - DATABASE_WEB_HOSTNAMES=${TRADERX_FQDN:-localhost}
+      - POSTGRES_DB=traderx
+      - POSTGRES_USER=sa
+      - POSTGRES_PASSWORD=sa
     image: database
     build:
       context: database
       dockerfile: Dockerfile
-    working_dir: /database
     expose:
-      - 18082
-      - 18083
-      - 18084
+      - 5432
     ports:
-      - 18082:18082
-      - 18083:18083
-      - 18084:18084
+      - 5432:5432
     volumes:
+      - postgres_data:/var/lib/postgresql/data
       # Mount the root folder that contains .git
       - .:/workspace:cached
-    command: ./run.sh
     networks:
       - localnet
   reference-data:
@@ -84,7 +81,8 @@ services:
     ports:
       - 18088:18088
     environment:
-      - DATABASE_TCP_HOST=database
+      - DATABASE_HOST=database
+      - DATABASE_PORT=5432
       - PEOPLE_SERVICE_HOST=people-service
     volumes:
       # Mount the root folder that contains .git
@@ -107,7 +105,8 @@ services:
     ports:
       - 18090:18090
     environment:
-      - DATABASE_TCP_HOST=database
+      - DATABASE_HOST=database
+      - DATABASE_PORT=5432
     volumes:
       # Mount the root folder that contains .git
       - .:/workspace:cached
@@ -128,7 +127,8 @@ services:
     ports:
       - 18092:18092
     environment:
-      - DATABASE_TCP_HOST=database
+      - DATABASE_HOST=database
+      - DATABASE_PORT=5432
       - PEOPLE_SERVICE_HOST=people-service
       - ACCOUNT_SERVICE_HOST=account-service
       - REFERENCE_DATA_HOST=reference-data
@@ -157,7 +157,8 @@ services:
     ports:
       - 18091:18091
     environment:
-      - DATABASE_TCP_HOST=database
+      - DATABASE_HOST=database
+      - DATABASE_PORT=5432
       - TRADE_FEED_HOST=trade-feed
     volumes:
       # Mount the root folder that contains .git
@@ -213,3 +214,6 @@ services:
 networks:
   localnet:
     driver: bridge
+
+volumes:
+  postgres_data:

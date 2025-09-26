@@ -40,7 +40,7 @@ The project consists of multiple moving parts, and you can see how things hang t
 | *Component* | *Tech Stack* |*Description* |
 | :--- | :--- | :--- |
 | [docs](docs) | markdown | Architecture and Flow Diagrams are here! |
-| [database](database) | java/h2 | A simple self-contained SQL database |
+| [database](database) | java/PostgreSQL | A simple self-contained SQL database |
 | [reference-data](reference-data) | node/nestjs | REST service (off a flat file) for querying ticker symbols |
 | [trade-feed](trade-feed) | node/socketio | Message bus used for trade flows, as well as streaming to the GUI |
 | [people-service](people-service) | .Net core | Service for looking up users, for account mangement |
@@ -71,9 +71,7 @@ There are a number of ways to run TraderX locally. You should choose the method 
 In order to get things working together, it is recommended to select a range of ports to provide all running processes with, so that the pieces can interconnect as needed.  To run this all up 'by hand' here are default ports which are used, and you can easily export these variables to your favorite shell. 
 
 ```bash
-export DATABASE_TCP_PORT=18082
-export DATABASE_PG_PORT=18083
-export DATABASE_WEB_PORT=18084
+export DATABASE_PORT=5432
 export REFERENCE_DATA_SERVICE_PORT=18085
 export TRADE_FEED_PORT=18086
 export ACCOUNT_SERVICE_PORT=18088
@@ -177,7 +175,37 @@ Once everything has started the WebUI will be accessible at http://localhost:808
 
 ## Run locally using Kubernetes
 
-Another easy way to run up the entire system is using Kubernetes (K8s), which using [tilt.dev](https://tilt.dev) also allows you to easily swap in locally built images. The following are instructions to deploy all TraderX apps to your local enviroment using [tilt.dev](https://tilt.dev) and kustomize files.
+There are two easy ways to run the entire system on Kubernetes (K8s):
+
+### Option 1: Using Radius (Recommended)
+
+[Radius](https://docs.radapp.io/) provides a modern, cloud-native approach to application deployment with automatic service discovery and managed PostgreSQL database.
+
+**Prerequisites:**
+- Install and run [Docker](https://www.docker.com/products/docker-desktop/) or similar
+- Install and run a local Kubernetes cluster:
+  - [K8s with Docker Desktop](https://docs.docker.com/desktop/kubernetes/)
+  - [Kind](https://kind.sigs.k8s.io/)
+  - [Minikube](https://minikube.sigs.k8s.io/docs/start/)
+  - [k3s](https://k3s.io/) or similar
+- Install [Radius](https://docs.radapp.io/getting-started/)
+
+**Quick Start:**
+```bash
+cd radius-traderx
+rad init
+rad resource-type create postgreSQL -f types/types.yaml
+rad recipe register default --environment default --resource-type Radius.Resources/postgreSQL --template-kind bicep --template-path ghcr.io/willtsai/recipes/postgresql:latest
+rad run app.bicep
+```
+
+Access the application at `http://localhost:8080`
+
+For detailed instructions, see [radius-traderx/README.md](radius-traderx/README.md).
+
+### Option 2: Using Tilt
+
+[Tilt.dev](https://tilt.dev) also allows you to easily swap in locally built images for development. The following are instructions to deploy all TraderX apps to your local environment using [tilt.dev](https://tilt.dev) and kustomize files.
 
 ### Prerequistes 
 - Install and run [Docker](https://www.docker.com/products/docker-desktop/) or similar

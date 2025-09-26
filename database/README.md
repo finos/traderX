@@ -6,80 +6,69 @@
 
 This is designed to play the role of a SQL database that runs standalone as part of an example environment. The other processes in this environment interact with this via SQL / JDBC drivers and therefore this component can be swapped out in other iterations of this environment and replaced with a robust and productionizable RDBMS.
 
-This uses H2 Java-based database as a standalone server, has NO authentication by default, and initializes with an empty SQL schema every time it is started.
+This uses PostgreSQL as a standalone server, with basic authentication, and initializes with an empty SQL schema every time it is started.
 
 ## Default Port Numbers
 | Protocol | Port Number |
 | :--- | :--- |
-| TCP | 18082 |
-| PG | 18083 |
-| HTTP | 18084 |
+| PostgreSQL | 5432 |
  
 ## Connecting to this database remotely
-You can use the `$DATABASE_TCP_PORT`  or `$DATABASE_PG_PORT` and the database URL in JDBC is `jdbc:h2:./_data/traderx`
+You can use the `$DATABASE_PORT` (5432) and the database URL in JDBC is `jdbc:postgresql://localhost:5432/traderx`
 
 The default username and password are both *sa*
 
-## Connecting to the web console
-You can use the `$DATABASE_HTTP_PORT`  or `$DATABASE_PG_PORT` and the database URL in JDBC is `jdbc:h2:traderx` (This is because -baseDir is already set to ./_data) - NOTE you will have to change the default setting in the web console which often uses a home directory path. 
+## Database Administration
+PostgreSQL doesn't include a built-in web console. You can connect using:
+- `psql` command line client
+- pgAdmin (separate installation)
+- Any PostgreSQL-compatible database client
 
-The default username and password are both `sa`
-
-The database you want to use in the H2 GUI is `./traderx` (This may not be the default listed in the GUI)
-
-## Using Web Console behind proxy/K8S/Env
-By default, the hostname, localhost, 127.0.0.1 are all valid host headers to access the database. If you wish to connect using another IP, or via some proxy/gateway that's set up through K8S or other environment, you will need to specify the hostname your browser is using to access the web console. This is done by setting the environment variable `$DATABASE_WEB_HOSTNAMES` to the hostname you are using to access the web console. This is a comma-delimited list of fully qualified hostnames.
+Connection details:
+- Host: localhost
+- Port: 5432
+- Database: traderx
+- Username: sa
+- Password: sa
 
 ## Output Directory
 Data is stored in the local `./_data` directory from where the script is run. This is .gitignore'd 
 
 ## Building
 
-This builds in gradle to retrieve H2.
+This uses Docker to run PostgreSQL with initialization scripts.
 
 ```shell
-$> gradle build
+$> docker build -t database .
 ```
 
-## Running on Linux
+## Running with Docker
 
-This is desinged to run on Linux but can easily run on Windows as well. It launches a DB Script runner to pre-populate the database schema- delayed by 20 seconds, and then runs the database server in the foreground.
+This runs PostgreSQL in a Docker container with automatic schema initialization.
 
-Currently the run script has environment variables defined for versions of H2 and common ports. These should be altered (or made configurable outside the script) as the environment matures.
-
-To launch, all that should be needed is running:
+To launch:
 ```shell
-$> run.sh
+$> docker run -p 5432:5432 -e POSTGRES_DB=traderx -e POSTGRES_USER=sa -e POSTGRES_PASSWORD=sa database
 ```
 
-## Running from your local Win10 Machine
+## Running with Docker Compose
 
-You CAN run this on windows, with the help of Powershell.  All you need to do is have Java on your path, and then enter bash to run the script.  First launch a Terminal/Command Console in Windows.
+The easiest way to run this is with the full TraderX stack:
 
-```
->bash
->$ . run.sh
-```
-
-You will see the following output
-
+```shell
+$> docker compose up
 ```
 
-Runing startup script
-Web Console server running at http://[your IP]:18084 (others can connect)
-finished startup script
-TCP server running at tcp://[your IP]:18082 (others can connect)
-PG server running at pg://[your IP]:18083 (others can connect)
-```
-
-On my windows PC, it actually doesn't work with the public IP address. Just change the above URLs/Host Addresses to use `localhost`  and they work fine.
-
-Example: http://localhost:18084 
+The database will be available on port 5432. 
 
 
-## Accessing the Web Console
+## Connecting to the Database
 
-1. Visit http://localhost:18084 or whatever port you run your service on
-2. You should see a web console, prompting you for a username, password, and JDBC URL - Values might not be auto-populated correctly
-3. Username and password should both be `sa` and the JDBC URL should be `jdbc:h2:./traderx` and the Driver should be `Generic H2 Embedded`
-4. Click `Connect`
+1. Use any PostgreSQL client (psql, pgAdmin, etc.)
+2. Connection details:
+   - Host: localhost
+   - Port: 5432
+   - Database: traderx
+   - Username: sa
+   - Password: sa
+3. JDBC URL: `jdbc:postgresql://localhost:5432/traderx`

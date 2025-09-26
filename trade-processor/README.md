@@ -40,7 +40,7 @@ To specify the host and the port for the TradeFeed instance to subscribe to use 
 
 To specify the database properties, the following properties should be used
 
-    spring.datasource.url=jdbc:h2:tcp://localhost:18082/traderx
+    spring.datasource.url=jdbc:postgresql://localhost:5432/traderx
     spring.datasource.username=sa
     spring.datasource.password=sa
 
