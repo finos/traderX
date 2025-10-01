@@ -1,15 +1,14 @@
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0-noble AS build
-ARG TARGETARCH
+FROM mcr.microsoft.com/dotnet/sdk:9.0-noble AS build
 WORKDIR /source
 COPY PeopleService.WebApi/PeopleService.WebApi.csproj PeopleService.WebApi/
 COPY PeopleService.Core/PeopleService.Core.csproj PeopleService.Core/
-RUN dotnet restore PeopleService.WebApi/PeopleService.WebApi.csproj -a $TARGETARCH
+RUN dotnet restore PeopleService.WebApi/PeopleService.WebApi.csproj
 COPY PeopleService.WebApi/ PeopleService.WebApi/
 COPY PeopleService.Core/ PeopleService.Core/
 
 FROM build AS publish
 WORKDIR /source/PeopleService.WebApi
-RUN dotnet publish PeopleService.WebApi.csproj -p:PublishSingleFile=true -a $TARGETARCH --self-contained true -c release -o /app
+RUN dotnet publish PeopleService.WebApi.csproj -p:PublishSingleFile=true --self-contained true -c release -o /app
 
 FROM mcr.microsoft.com/dotnet/runtime-deps:9.0-noble-chiseled
 WORKDIR /app
