@@ -1,0 +1,36 @@
+namespace: Radius.Resources
+types:
+  postgreSQL:
+    apiVersions:
+      '2023-10-01-preview':
+        schema:
+          type: object
+          properties:
+            environment:
+              type: string
+            application:
+              type: string
+            size:
+              type: string
+              description: "The size of the PostgreSQL database"
+              default: "S"
+            database:
+              type: string
+              description: "The name of the database."
+              readOnly: true
+            host:
+              type: string
+              description: "The host name of the database."
+              readOnly: true
+            port:
+              type: string
+              description: "The port number of the database."
+              readOnly: true
+            username:
+              type: string
+              description: "The username for the database."
+              readOnly: true
+            password:
+              type: string
+              description: "The password for the database."
+              readOnly: true

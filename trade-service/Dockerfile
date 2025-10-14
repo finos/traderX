@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM eclipse-temurin:21.0.7_6-jdk AS build-stage
+FROM eclipse-temurin:21.0.7_6-jdk AS build-stage
 WORKDIR /app
 COPY . .
 RUN ./gradlew build
