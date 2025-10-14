@@ -181,7 +181,7 @@ There are two easy ways to run the entire system on Kubernetes (K8s):
 
 [Radius](https://docs.radapp.io/) provides a modern, cloud-native approach to application deployment with automatic service discovery and managed PostgreSQL database.
 
-**Prerequisites:**
+#### Prerequisites:
 - Install and run [Docker](https://www.docker.com/products/docker-desktop/) or similar
 - Install and run a local Kubernetes cluster:
   - [K8s with Docker Desktop](https://docs.docker.com/desktop/kubernetes/)
@@ -190,7 +190,7 @@ There are two easy ways to run the entire system on Kubernetes (K8s):
   - [k3s](https://k3s.io/) or similar
 - Install [Radius](https://docs.radapp.io/getting-started/)
 
-**Quick Start:**
+#### Quick Start:
 ```bash
 cd radius-traderx
 rad init
@@ -207,7 +207,7 @@ For detailed instructions, see [radius-traderx/README.md](radius-traderx/README.
 
 [Tilt.dev](https://tilt.dev) also allows you to easily swap in locally built images for development. The following are instructions to deploy all TraderX apps to your local environment using [tilt.dev](https://tilt.dev) and kustomize files.
 
-### Prerequistes 
+#### Prerequisites
 - Install and run [Docker](https://www.docker.com/products/docker-desktop/) or similar
 - Install and run K8s - this could be one of the following well know distributions
     - [K8s with Docker Desktop](https://docs.docker.com/desktop/kubernetes/)
@@ -217,7 +217,7 @@ For detailed instructions, see [radius-traderx/README.md](radius-traderx/README.
 - Install an [Ingress Controller](https://kubernetes.github.io/ingress-nginx/deploy/) - this will need to match your k8s distribution
 - Install [tilt.dev](https://tilt.dev)
 
-### Preflight checks
+#### Preflight checks
 
 ```
 kubectl get pods
@@ -240,10 +240,10 @@ kube-system     kube-scheduler-docker-desktop               1/1     Running     
 kube-system     storage-provisioner                         1/1     Running     0          4h8m
 ```
 
-### Start Tilt.dev
+#### Start Tilt.dev
 
 This command will deploy all the services to your local K8s environment.
-Note: Ensure all the [pre-requistes](#prerequistes) are complete
+Note: Ensure all the [prerequisites](#prerequisites) are complete
 
 After cloning the repo, you should `cd` into the folder (`cd traderx`)
 ```
@@ -271,10 +271,7 @@ Launching the tilt.dev local webpage will allow you to monitor the progress by p
 
 Note: if you run `tilt up` and you get an error stating `template engine not found for: up.`. Your OS might be trying to run a ruby library, please check the tilt.dev installation instructions, or you path settings.
 
-
-### Start Tilt.dev
-
-### Local Developement
+#### Local Developement
 
 With all the services running you can then chose which ones you actively build locally.
 
@@ -296,7 +293,7 @@ print(yaml)
 k8s_yaml(yaml)
 ```
 
-### Clean up
+#### Clean up
 
 Simply stop tilt and then run  `tilt down` 
 
