@@ -1,8 +1,9 @@
 package finos.traderx.positionservice.service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import finos.traderx.positionservice.model.*;
 import finos.traderx.positionservice.repository.*;
@@ -17,9 +18,8 @@ public class PositionService {
 	PositionRepository positionRepository;
 
 	public List<Position> getAllPositions() {
-		List<Position> positions = new ArrayList<Position>();
-		this.positionRepository.findAll().forEach(account -> positions.add(account));
-		return positions;
+		return StreamSupport.stream(this.positionRepository.findAll().spliterator(), false)
+			.collect(Collectors.toList());
 	}
 
 	public List<Position> getPositionsByAccountID(int id) {

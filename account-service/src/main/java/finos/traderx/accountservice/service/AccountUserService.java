@@ -1,8 +1,9 @@
 package finos.traderx.accountservice.service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import finos.traderx.accountservice.exceptions.ResourceNotFoundException;
 import finos.traderx.accountservice.model.Account;
@@ -23,9 +24,8 @@ public class AccountUserService {
 	AccountRepository accountRepository;
 
 	public List<AccountUser> getAllAccountUsers() {
-		List<AccountUser> accountUsers = new ArrayList<AccountUser>();
-		this.accountUserRepository.findAll().forEach(accountUser -> accountUsers.add(accountUser));
-		return accountUsers;
+		return StreamSupport.stream(this.accountUserRepository.findAll().spliterator(), false)
+			.collect(Collectors.toList());
 	}
 
 	public AccountUser getAccountUserById(int id) throws ResourceNotFoundException {
