@@ -1,28 +1,28 @@
-Drop Table Trades IF EXISTS;
+DROP TABLE IF EXISTS Trades CASCADE;
 
-Drop Table AccountUsers IF EXISTS; 
+DROP TABLE IF EXISTS AccountUsers CASCADE; 
 
-Drop Table Positions IF EXISTS; 
+DROP TABLE IF EXISTS Positions CASCADE; 
 
-Drop Table Accounts IF EXISTS; 
+DROP TABLE IF EXISTS Accounts CASCADE; 
 
-Drop Sequence ACCOUNTS_SEQ IF EXISTS;
+DROP SEQUENCE IF EXISTS ACCOUNTS_SEQ;
 
 CREATE TABLE Accounts ( ID INTEGER PRIMARY KEY, DisplayName VARCHAR (50) ) ; 
 
 CREATE TABLE AccountUsers ( AccountID INTEGER NOT NULL, Username VARCHAR(15) NOT NULL, PRIMARY KEY (AccountID,Username));  
 
-ALTER TABLE AccountUsers ADD FOREIGN KEY (AccountID) References Accounts(ID); 
+ALTER TABLE AccountUsers ADD FOREIGN KEY (AccountID) REFERENCES Accounts(ID); 
 
-CREATE TABLE Positions ( AccountID INTEGER , Security VARCHAR(15) , Updated TIMESTAMP, Quantity INTEGER, Primary Key (AccountID, Security) );  
+CREATE TABLE Positions ( AccountID INTEGER , Security VARCHAR(15) , Updated TIMESTAMP, Quantity INTEGER, PRIMARY KEY (AccountID, Security) );  
 
-Alter Table Positions ADD FOREIGN KEY (AccountID) References Accounts(ID) ; 
+ALTER TABLE Positions ADD FOREIGN KEY (AccountID) REFERENCES Accounts(ID) ; 
 
-CREATE TABLE Trades ( ID Varchar (50) Primary Key, AccountID INTEGER, Created TIMESTAMP, Updated TIMESTAMP, Security VARCHAR (15) ,  Side VARCHAR(10) check (Side in ('Buy','Sell')),  Quantity INTEGER check Quantity > 0 , State VARCHAR(20) check (State in ('New', 'Processing', 'Settled', 'Cancelled'))) ;  
+CREATE TABLE Trades ( ID VARCHAR (50) PRIMARY KEY, AccountID INTEGER, Created TIMESTAMP, Updated TIMESTAMP, Security VARCHAR (15) ,  Side VARCHAR(10) CHECK (Side IN ('Buy','Sell')),  Quantity INTEGER CHECK (Quantity > 0) , State VARCHAR(20) CHECK (State IN ('New', 'Processing', 'Settled', 'Cancelled'))) ;  
 
-Alter Table Trades Add Foreign Key (AccountID) references Accounts(ID); 
+ALTER TABLE Trades ADD FOREIGN KEY (AccountID) REFERENCES Accounts(ID); 
 
-CREATE SEQUENCE ACCOUNTS_SEQ start with 65000 INCREMENT BY 1;
+CREATE SEQUENCE ACCOUNTS_SEQ START WITH 65000 INCREMENT BY 1;
 
 --- SAMPLE DATA ---
 

@@ -4,82 +4,97 @@
 
 ## Introduction
 
-This is designed to play the role of a SQL database that runs standalone as part of an example environment. The other processes in this environment interact with this via SQL / JDBC drivers and therefore this component can be swapped out in other iterations of this environment and replaced with a robust and productionizable RDBMS.
+This is a PostgreSQL database that runs as part of the TraderX sample trading application environment. The other processes in this environment interact with this via SQL / JDBC drivers using the PostgreSQL protocol.
 
-This uses H2 Java-based database as a standalone server, has NO authentication by default, and initializes with an empty SQL schema every time it is started.
+This uses PostgreSQL 16 as a containerized database server with basic authentication and initializes with a predefined SQL schema on first startup.
 
 ## Default Port Numbers
 | Protocol | Port Number |
 | :--- | :--- |
-| TCP | 18082 |
-| PG | 18083 |
-| HTTP | 18084 |
+| PostgreSQL | 5432 |
  
 ## Connecting to this database remotely
-You can use the `$DATABASE_TCP_PORT`  or `$DATABASE_PG_PORT` and the database URL in JDBC is `jdbc:h2:./_data/traderx`
 
-The default username and password are both *sa*
+**Connection Details:**
+- **Host:** `localhost` (or `database` when connecting from other Docker containers)
+- **Port:** `5432`
+- **Database:** `traderx`
+- **Username:** `sa`
+- **Password:** `sa`
+- **JDBC URL:** `jdbc:postgresql://localhost:5432/traderx` (or `jdbc:postgresql://database:5432/traderx` from containers)
 
-## Connecting to the web console
-You can use the `$DATABASE_HTTP_PORT`  or `$DATABASE_PG_PORT` and the database URL in JDBC is `jdbc:h2:traderx` (This is because -baseDir is already set to ./_data) - NOTE you will have to change the default setting in the web console which often uses a home directory path. 
+## Database Schema
 
-The default username and password are both `sa`
+The database includes the following tables:
+- **Accounts** - Trading accounts
+- **AccountUsers** - User associations with accounts
+- **Positions** - Current positions for each account
+- **Trades** - Trade records
 
-The database you want to use in the H2 GUI is `./traderx` (This may not be the default listed in the GUI)
+The schema is automatically initialized on first startup using the `initialSchema.sql` script.
 
-## Using Web Console behind proxy/K8S/Env
-By default, the hostname, localhost, 127.0.0.1 are all valid host headers to access the database. If you wish to connect using another IP, or via some proxy/gateway that's set up through K8S or other environment, you will need to specify the hostname your browser is using to access the web console. This is done by setting the environment variable `$DATABASE_WEB_HOSTNAMES` to the hostname you are using to access the web console. This is a comma-delimited list of fully qualified hostnames.
+## Data Persistence
 
-## Output Directory
-Data is stored in the local `./_data` directory from where the script is run. This is .gitignore'd 
+Database data is persisted in a Docker volume named `postgres_data`. This ensures that data survives container restarts. To completely reset the database, you can remove this volume:
+
+```shell
+docker-compose down -v
+```
 
 ## Building
 
-This builds in gradle to retrieve H2.
+The database service uses the official PostgreSQL 16 Docker image. No separate build step is required.
 
 ```shell
-$> gradle build
+docker-compose build database
 ```
 
-## Running on Linux
+## Running
 
-This is desinged to run on Linux but can easily run on Windows as well. It launches a DB Script runner to pre-populate the database schema- delayed by 20 seconds, and then runs the database server in the foreground.
+The database starts automatically when you run:
 
-Currently the run script has environment variables defined for versions of H2 and common ports. These should be altered (or made configurable outside the script) as the environment matures.
-
-To launch, all that should be needed is running:
 ```shell
-$> run.sh
+docker-compose up database
 ```
 
-## Running from your local Win10 Machine
+Or as part of the full TraderX stack:
 
-You CAN run this on windows, with the help of Powershell.  All you need to do is have Java on your path, and then enter bash to run the script.  First launch a Terminal/Command Console in Windows.
-
-```
->bash
->$ . run.sh
+```shell
+docker-compose up
 ```
 
-You will see the following output
+## Connecting with psql
 
+You can connect to the database using the PostgreSQL command-line client:
+
+```shell
+docker-compose exec database psql -U sa -d traderx
 ```
 
-Runing startup script
-Web Console server running at http://[your IP]:18084 (others can connect)
-finished startup script
-TCP server running at tcp://[your IP]:18082 (others can connect)
-PG server running at pg://[your IP]:18083 (others can connect)
+Or from your local machine (if you have psql installed):
+
+```shell
+psql -h localhost -p 5432 -U sa -d traderx
 ```
 
-On my windows PC, it actually doesn't work with the public IP address. Just change the above URLs/Host Addresses to use `localhost`  and they work fine.
+## Connecting with GUI Tools
 
-Example: http://localhost:18084 
+You can use any PostgreSQL-compatible GUI tool such as:
+- pgAdmin
+- DBeaver
+- DataGrip
+- Azure Data Studio (with PostgreSQL extension)
 
+Use the connection details listed above.
 
-## Accessing the Web Console
+## Environment Variables
 
-1. Visit http://localhost:18084 or whatever port you run your service on
-2. You should see a web console, prompting you for a username, password, and JDBC URL - Values might not be auto-populated correctly
-3. Username and password should both be `sa` and the JDBC URL should be `jdbc:h2:./traderx` and the Driver should be `Generic H2 Embedded`
-4. Click `Connect`
+The following environment variables can be configured in `docker-compose.yml`:
+
+- `POSTGRES_DB` - Database name (default: `traderx`)
+- `POSTGRES_USER` - Database user (default: `sa`)
+- `POSTGRES_PASSWORD` - Database password (default: `sa`)
+
+## Migration from H2
+
+This database service has been migrated from H2 to PostgreSQL for better production readiness. The schema has been updated to be PostgreSQL-compatible while maintaining the same data structure and sample data.
