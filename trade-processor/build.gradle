@@ -35,7 +35,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.h2database:h2:2.3.232'
 
-    implementation ('org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6')
+    implementation ('org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14')
 
     implementation('org.json:json:20240303') {
         because 'previous versions are affected by multiple CVE'
