@@ -1,10 +1,18 @@
 # Production-optimized Angular with Nginx
-FROM node:22-alpine as builder
+FROM node:22-bookworm-slim as builder
 
 WORKDIR /app
 
+# Install dependencies and build tools for packages that require compilation
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copy package files and install all dependencies
 COPY package.json ./
+# Use npm install; remove cache to keep image small
 RUN npm install && npm cache clean --force
 
 # Copy source files and build for production
