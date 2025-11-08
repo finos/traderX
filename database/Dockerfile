@@ -1,12 +1,12 @@
 # Multi-stage build for database service
-FROM eclipse-temurin:21-jdk-jammy AS builder
+FROM eclipse-temurin:21.0.9_10-jdk-jammy AS builder
 
 WORKDIR /database
 COPY . .
 RUN ./gradlew build --no-daemon
 
 # Runtime stage with minimal JRE
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:21.0.9_10-jre-jammy
 
 WORKDIR /database
 
