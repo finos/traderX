@@ -3,7 +3,7 @@ name: SQL Injection Scan
 on:
   pull_request:
   push:
-    branches: [ "main" ]
+    branches:  -"**"
 
 jobs:
   sql_injection_test:
