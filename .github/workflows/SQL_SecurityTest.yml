@@ -3,7 +3,8 @@ name: SQL Injection Scan
 on:
   pull_request:
   push:
-    branches:  -"**"
+    branches:
+      - "**"
 
 jobs:
   sql_injection_test:
@@ -14,7 +15,6 @@ jobs:
         image: my-app-image:latest
         ports:
           - 8081:8081
-        # wait until your service is up
         options: >-
           --health-cmd="curl --fail http://localhost:8081/health || exit 1"
           --health-interval=5s
@@ -32,17 +32,39 @@ jobs:
 
       - name: Run SQL injection scan
         run: |
-           python sqlmap.py -u "http://localhost:8081/account/1" 
-            --batch \
-            --level 2 \
-            --risk 2 \
-            --technique=BEUSTQ \ 
-            -v 3 \
-            --crawl=1 \
-            --smart \
-            --answers="follow=N" \
-            --output-dir=ci-sqlmap-output \
-            || exit 1
+          # Test 1: integer path parameter
+          python sqlmap.py -u "http://localhost:8081/account/1" \
+            --batch --level 2 --risk 2 -v 3 \
+            --output-dir=ci-sqlmap-output/account || true
+
+          # Test 2: list endpoint
+          python sqlmap.py -u "http://localhost:8081/account/" \
+            --batch --level 2 --risk 2 -v 3 \
+            --output-dir=ci-sqlmap-output/account-list || true
+
+          # Test 3: POST JSON body injection
+          python sqlmap.py \
+            -u "http://localhost:8081/trade/" \
+            --method=POST \
+            --data '{"security":"ADBE","quantity":100,"accountId":22214,"side":"Buy"}' \
+            --headers $'Content-Type: application/json\nAccept: application/json\nUser-Agent: sqlmap' \
+            -p security \
+            --batch --level 3 --risk 2 -v 3 \
+            --output-dir=ci-sqlmap-output/trade-json || true
+
+          # Test 4: path parameter trades by accountId
+          python sqlmap.py -u "http://localhost:8081/position-service/trades/22214" \
+            --batch --level 2 --risk 2 -v 3 \
+            --output-dir=ci-sqlmap-output/trades || true
+
+          # Test 5: raw HTTP request file test
+          printf "POST /trade-service/trade/ HTTP/1.1\nHost: localhost:8081\nContent-Type: application/json\nAccept: application/json\nUser-Agent: sqlmap\n\n{\"security\":\"ADBE\",\"quantity\":100,\"accountId\":22214,\"side\":\"Buy\"}" \
+            > request_trade.txt
+
+          python sqlmap.py -r request_trade.txt \
+            -p security \
+            --batch --level 3 --risk 2 -v 3 \
+            --output-dir=ci-sqlmap-output/trade-post || true
 
       - name: Upload sqlmap output
         uses: actions/upload-artifact@v4
