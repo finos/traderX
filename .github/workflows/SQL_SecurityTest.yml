@@ -1,0 +1,51 @@
+name: SQL Injection Scan
+
+on:
+  pull_request:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  sql_injection_test:
+    runs-on: ubuntu-latest
+
+    services:
+      app:
+        image: my-app-image:latest
+        ports:
+          - 8081:8081
+        # wait until your service is up
+        options: >-
+          --health-cmd="curl --fail http://localhost:8081/health || exit 1"
+          --health-interval=5s
+          --health-timeout=3s
+          --health-retries=10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install sqlmap
+        run: |
+          sudo apt update
+          sudo apt install -y sqlmap
+
+      - name: Run SQL injection scan
+        run: |
+           python sqlmap.py -u "http://localhost:8081/account/1" 
+            --batch \
+            --level 2 \
+            --risk 2 \
+            --technique=BEUSTQ \ 
+            -v 3 \
+            --crawl=1 \
+            --smart \
+            --answers="follow=N" \
+            --output-dir=ci-sqlmap-output \
+            || exit 1
+
+      - name: Upload sqlmap output
+        uses: actions/upload-artifact@v4
+        with:
+          name: sqlmap-report
+          path: ci-sqlmap-output
