@@ -72,14 +72,14 @@ jobs:
 
           # Test 5 - RAW REQUEST FILE
           cat > request_trade.txt <<'EOF'
-POST /trade-service/trade/ HTTP/1.1
-Host: localhost:8081
-Content-Type: application/json
-Accept: application/json
-User-Agent: sqlmap
+          POST /trade-service/trade/ HTTP/1.1
+          Host: localhost:8081
+          Content-Type: application/json
+          Accept: application/json
+          User-Agent: sqlmap
 
-{"security":"ADBE","quantity":100,"accountId":22214,"side":"Buy"}
-EOF
+          {"security":"ADBE","quantity":100,"accountId":22214,"side":"Buy"}
+          EOF
 
           sqlmap -r request_trade.txt \
             -p security \
