@@ -79,8 +79,8 @@ jobs:
             --batch --level 3 --risk 2 -v 3 \
             --output-dir=ci-sqlmap-output/trade-post || true
 
-{"security":"ADBE","quantity":100,"accountId":22214,"side":"Buy"}
-EOF
+          {"security":"ADBE","quantity":100,"accountId":22214,"side":"Buy"}
+          EOF
 
           sqlmap -r request_trade.txt \
             -p security \
