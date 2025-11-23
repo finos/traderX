@@ -1,6 +1,4 @@
 name: SQL Injection Scan
-run: docker build -t my-app-image:latest .
-
 
 on:
   pull_request:
@@ -12,21 +10,24 @@ jobs:
   sql_injection_test:
     runs-on: ubuntu-latest
 
-   
-services:
-  app:
-    image: my-app-image:latest
-    ports:
-      - 8081:8081
-    options: >-
-      --health-cmd="curl --fail http://localhost:8081/health || exit 1"
-      --health-interval=5s
-      --health-timeout=3s
-      --health-retries=10
+    # Docker service for your backend app
+    services:
+      app:
+        image: my-app-image:latest
+        ports:
+          - 8081:8081
+        options: >-
+          --health-cmd="curl --fail http://localhost:8081/health || exit 1"
+          --health-interval=5s
+          --health-timeout=3s
+          --health-retries=10
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Build app Docker image
+        run: docker build -t my-app-image:latest .
 
       - name: Install sqlmap
         run: |
@@ -36,17 +37,17 @@ services:
       - name: Run SQL injection scan
         run: |
           # Test 1: integer path parameter
-          python sqlmap.py -u "http://localhost:8081/account/1" \
+          sqlmap -u "http://localhost:8081/account/1" \
             --batch --level 2 --risk 2 -v 3 \
             --output-dir=ci-sqlmap-output/account || true
 
           # Test 2: list endpoint
-          python sqlmap.py -u "http://localhost:8081/account/" \
+          sqlmap -u "http://localhost:8081/account/" \
             --batch --level 2 --risk 2 -v 3 \
             --output-dir=ci-sqlmap-output/account-list || true
 
           # Test 3: POST JSON body injection
-          python sqlmap.py \
+          sqlmap \
             -u "http://localhost:8081/trade/" \
             --method=POST \
             --data '{"security":"ADBE","quantity":100,"accountId":22214,"side":"Buy"}' \
@@ -56,7 +57,7 @@ services:
             --output-dir=ci-sqlmap-output/trade-json || true
 
           # Test 4: path parameter trades by accountId
-          python sqlmap.py -u "http://localhost:8081/position-service/trades/22214" \
+          sqlmap -u "http://localhost:8081/position-service/trades/22214" \
             --batch --level 2 --risk 2 -v 3 \
             --output-dir=ci-sqlmap-output/trades || true
 
@@ -64,7 +65,7 @@ services:
           printf "POST /trade-service/trade/ HTTP/1.1\nHost: localhost:8081\nContent-Type: application/json\nAccept: application/json\nUser-Agent: sqlmap\n\n{\"security\":\"ADBE\",\"quantity\":100,\"accountId\":22214,\"side\":\"Buy\"}" \
             > request_trade.txt
 
-          python sqlmap.py -r request_trade.txt \
+          sqlmap -r request_trade.txt \
             -p security \
             --batch --level 3 --risk 2 -v 3 \
             --output-dir=ci-sqlmap-output/trade-post || true
