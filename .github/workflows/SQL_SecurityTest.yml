@@ -14,7 +14,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Docker & Docker Compose v2 already installed on GitHub Actions
       - name: Verify docker compose availability
         run: docker compose version
 
@@ -47,23 +46,17 @@ jobs:
         run: |
           mkdir -p ci-sqlmap-output
 
-          #############################
-          # Test 1: Account by ID
-          #############################
+          # Test 1
           sqlmap -u "http://localhost:8081/account/1" \
             --batch --level 2 --risk 2 -v 1 \
             --output-dir=ci-sqlmap-output/account || true
 
-          #############################
-          # Test 2: Account list
-          #############################
+          # Test 2
           sqlmap -u "http://localhost:8081/account/" \
             --batch --level 2 --risk 2 -v 1 \
             --output-dir=ci-sqlmap-output/account-list || true
 
-          #############################
-          # Test 3: JSON POST request
-          #############################
+          # Test 3
           sqlmap -u "http://localhost:8081/trade/" \
             --method=POST \
             --data='{"security":"ADBE","quantity":100,"accountId":22214,"side":"Buy"}' \
@@ -72,17 +65,13 @@ jobs:
             --batch --level 3 --risk 2 -v 1 \
             --output-dir=ci-sqlmap-output/trade-json || true
 
-          #############################
-          # Test 4: Trades by accountId
-          #############################
+          # Test 4
           sqlmap -u "http://localhost:8081/position-service/trades/22214" \
             --batch --level 2 --risk 2 -v 1 \
             --output-dir=ci-sqlmap-output/trades || true
 
-          #############################
-          # Test 5: Raw HTTP request test
-          #############################
-          cat > request_trade.txt << 'EOF'
+          # Test 5 - RAW REQUEST FILE
+          cat > request_trade.txt <<'EOF'
 POST /trade-service/trade/ HTTP/1.1
 Host: localhost:8081
 Content-Type: application/json
