@@ -1,4 +1,6 @@
 name: SQL Injection Scan
+run: docker build -t my-app-image:latest .
+
 
 on:
   pull_request:
@@ -10,16 +12,17 @@ jobs:
   sql_injection_test:
     runs-on: ubuntu-latest
 
-    services:
-      app:
-        image: my-app-image:latest
-        ports:
-          - 8081:8081
-        options: >-
-          --health-cmd="curl --fail http://localhost:8081/health || exit 1"
-          --health-interval=5s
-          --health-timeout=3s
-          --health-retries=10
+   
+services:
+  app:
+    image: my-app-image:latest
+    ports:
+      - 8081:8081
+    options: >-
+      --health-cmd="curl --fail http://localhost:8081/health || exit 1"
+      --health-interval=5s
+      --health-timeout=3s
+      --health-retries=10
 
     steps:
       - name: Checkout repository
