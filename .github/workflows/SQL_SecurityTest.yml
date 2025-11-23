@@ -71,12 +71,13 @@ jobs:
             --output-dir=ci-sqlmap-output/trades || true
 
           # Test 5: Raw HTTP request test
-          cat > request_trade.txt << 'EOF'
-POST /trade-service/trade/ HTTP/1.1
-Host: localhost:8081
-Content-Type: application/json
-Accept: application/json
-User-Agent: sqlmap
+          printf "POST /trade-service/trade/ HTTP/1.1\nHost: localhost:8081\nContent-Type: application/json\nAccept: application/json\nUser-Agent: sqlmap\n\n{\"security\":\"ADBE\",\"quantity\":100,\"accountId\":22214,\"side\":\"Buy\"}" \
+            > request_trade.txt
+
+          python sqlmap.py -r request_trade.txt \
+            -p security \
+            --batch --level 3 --risk 2 -v 3 \
+            --output-dir=ci-sqlmap-output/trade-post || true
 
 {"security":"ADBE","quantity":100,"accountId":22214,"side":"Buy"}
 EOF
