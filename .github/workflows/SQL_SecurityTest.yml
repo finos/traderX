@@ -1,76 +1,92 @@
 name: SQL Injection Scan
 
 on:
-  pull_request:
   push:
     branches:
       - "**"
+  pull_request:
 
 jobs:
-  sql_injection_test:
+  sqlmap_test:
     runs-on: ubuntu-latest
-
-    # Docker service for your backend app
-    services:
-      app:
-        image: my-app-image:latest
-        ports:
-          - 8081:8081
-        options: >-
-          --health-cmd="curl --fail http://localhost:8081/health || exit 1"
-          --health-interval=5s
-          --health-timeout=3s
-          --health-retries=10
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build app Docker image
-        run: docker build -t my-app-image:latest .
+      - name: Install Docker Compose
+        run: sudo apt-get update && sudo apt-get install -y docker-compose
+
+      - name: Build Docker Compose images
+        run: docker-compose -f docker-compose.yml build
+
+      - name: Start full TraderX stack
+        run: docker-compose -f docker-compose.yml up -d
+
+      - name: Wait for ingress to be ready
+        run: |
+          echo "Waiting for http://localhost:8081 ..."
+          for i in {1..30}; do
+            if curl -s http://localhost:8081 > /dev/null; then
+              echo "Ingress is up!"
+              exit 0
+            fi
+            echo "Waiting..."
+            sleep 5
+          done
+          echo "Ingress did not become ready in time"
+          exit 1
 
       - name: Install sqlmap
         run: |
           sudo apt update
           sudo apt install -y sqlmap
 
-      - name: Run SQL injection scan
+      - name: Run SQL injection scan suite
         run: |
-          # Test 1: integer path parameter
+          mkdir -p ci-sqlmap-output
+
+          # Test 1: Account by ID
           sqlmap -u "http://localhost:8081/account/1" \
-            --batch --level 2 --risk 2 -v 3 \
+            --batch --level 2 --risk 2 -v 1 \
             --output-dir=ci-sqlmap-output/account || true
 
-          # Test 2: list endpoint
+          # Test 2: Account list
           sqlmap -u "http://localhost:8081/account/" \
-            --batch --level 2 --risk 2 -v 3 \
+            --batch --level 2 --risk 2 -v 1 \
             --output-dir=ci-sqlmap-output/account-list || true
 
-          # Test 3: POST JSON body injection
-          sqlmap \
-            -u "http://localhost:8081/trade/" \
+          # Test 3: Direct POST JSON body test
+          sqlmap -u "http://localhost:8081/trade/" \
             --method=POST \
-            --data '{"security":"ADBE","quantity":100,"accountId":22214,"side":"Buy"}' \
-            --headers $'Content-Type: application/json\nAccept: application/json\nUser-Agent: sqlmap' \
+            --data='{"security":"ADBE","quantity":100,"accountId":22214,"side":"Buy"}' \
+            --headers="Content-Type: application/json" \
             -p security \
-            --batch --level 3 --risk 2 -v 3 \
+            --batch --level 3 --risk 2 -v 1 \
             --output-dir=ci-sqlmap-output/trade-json || true
 
-          # Test 4: path parameter trades by accountId
+          # Test 4: Trades by accountId
           sqlmap -u "http://localhost:8081/position-service/trades/22214" \
-            --batch --level 2 --risk 2 -v 3 \
+            --batch --level 2 --risk 2 -v 1 \
             --output-dir=ci-sqlmap-output/trades || true
 
-          # Test 5: raw HTTP request file test
-          printf "POST /trade-service/trade/ HTTP/1.1\nHost: localhost:8081\nContent-Type: application/json\nAccept: application/json\nUser-Agent: sqlmap\n\n{\"security\":\"ADBE\",\"quantity\":100,\"accountId\":22214,\"side\":\"Buy\"}" \
-            > request_trade.txt
+          # Test 5: Raw HTTP request test
+          cat > request_trade.txt << 'EOF'
+POST /trade-service/trade/ HTTP/1.1
+Host: localhost:8081
+Content-Type: application/json
+Accept: application/json
+User-Agent: sqlmap
+
+{"security":"ADBE","quantity":100,"accountId":22214,"side":"Buy"}
+EOF
 
           sqlmap -r request_trade.txt \
             -p security \
-            --batch --level 3 --risk 2 -v 3 \
+            --batch --level 3 --risk 2 -v 1 \
             --output-dir=ci-sqlmap-output/trade-post || true
 
-      - name: Upload sqlmap output
+      - name: Upload sqlmap results
         uses: actions/upload-artifact@v4
         with:
           name: sqlmap-report
