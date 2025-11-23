@@ -14,10 +14,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Docker Compose
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y docker-compose-plugin
+      # Docker & Docker Compose v2 already installed on GitHub Actions
+      - name: Verify docker compose availability
+        run: docker compose version
 
       - name: Build Docker Compose images
         run: docker compose -f docker-compose.yml build
@@ -28,7 +27,7 @@ jobs:
       - name: Wait for ingress to be ready
         run: |
           echo "Waiting for http://localhost:8081 ..."
-          for i in {1..30}; do
+          for i in {1..40}; do
             if curl -s http://localhost:8081 > /dev/null; then
               echo "Ingress is up!"
               exit 0
@@ -48,44 +47,54 @@ jobs:
         run: |
           mkdir -p ci-sqlmap-output
 
-          echo "=== Test 1: Account by ID ==="
+          #############################
+          # Test 1: Account by ID
+          #############################
           sqlmap -u "http://localhost:8081/account/1" \
-            --batch --level=2 --risk=2 -v 1 \
+            --batch --level 2 --risk 2 -v 1 \
             --output-dir=ci-sqlmap-output/account || true
 
-          echo "=== Test 2: Account list ==="
+          #############################
+          # Test 2: Account list
+          #############################
           sqlmap -u "http://localhost:8081/account/" \
-            --batch --level=2 --risk=2 -v 1 \
+            --batch --level 2 --risk 2 -v 1 \
             --output-dir=ci-sqlmap-output/account-list || true
 
-          echo "=== Test 3: Direct POST JSON ==="
-          sqlmap -u "http://localhost:8081/trade-service/trade/" \
+          #############################
+          # Test 3: JSON POST request
+          #############################
+          sqlmap -u "http://localhost:8081/trade/" \
             --method=POST \
             --data='{"security":"ADBE","quantity":100,"accountId":22214,"side":"Buy"}' \
             --headers="Content-Type: application/json" \
             -p security \
-            --batch --level=3 --risk=2 -v 1 \
+            --batch --level 3 --risk 2 -v 1 \
             --output-dir=ci-sqlmap-output/trade-json || true
 
-          echo "=== Test 4: Position service trades ==="
+          #############################
+          # Test 4: Trades by accountId
+          #############################
           sqlmap -u "http://localhost:8081/position-service/trades/22214" \
-            --batch --level=2 --risk=2 -v 1 \
+            --batch --level 2 --risk 2 -v 1 \
             --output-dir=ci-sqlmap-output/trades || true
 
-          echo "=== Test 5: Raw HTTP request ==="
-          cat <<EOF > request_trade.txt
-          POST /trade-service/trade/ HTTP/1.1
-          Host: localhost:8081
-          Content-Type: application/json
-          Accept: application/json
-          User-Agent: sqlmap
+          #############################
+          # Test 5: Raw HTTP request test
+          #############################
+          cat > request_trade.txt << 'EOF'
+POST /trade-service/trade/ HTTP/1.1
+Host: localhost:8081
+Content-Type: application/json
+Accept: application/json
+User-Agent: sqlmap
 
-          {"security":"ADBE","quantity":100,"accountId":22214,"side":"Buy"}
-          EOF
+{"security":"ADBE","quantity":100,"accountId":22214,"side":"Buy"}
+EOF
 
           sqlmap -r request_trade.txt \
             -p security \
-            --batch --level=3 --risk=2 -v 3 \
+            --batch --level 3 --risk 2 -v 1 \
             --output-dir=ci-sqlmap-output/trade-post || true
 
       - name: Upload sqlmap results
