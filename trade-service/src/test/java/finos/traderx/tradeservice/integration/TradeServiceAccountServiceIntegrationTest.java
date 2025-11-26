@@ -65,18 +65,15 @@ class TradeServiceAccountServiceIntegrationTest {
         // Create a real RestTemplate for integration testing
         restTemplate = new RestTemplate();
         
-        // Create MockRestServiceServer to mock HTTP calls
+        // Create MockRestServiceServer to mock HTTP calls (must be before injection)
         mockServer = MockRestServiceServer.createServer(restTemplate);
-        
-        // Reset mock server state before each test
-        mockServer.reset();
         
         // Inject the RestTemplate into the controller using reflection
         TradeOrderController controller = applicationContext.getBean(TradeOrderController.class);
         Field restTemplateField = TradeOrderController.class.getDeclaredField("restTemplate");
         restTemplateField.setAccessible(true);
         restTemplateField.set(controller, restTemplate);
-
+        
         // Setup test data
         validAccount = new Account(1, "Test Account");
         validSecurity = new Security("MSFT", "Microsoft Corporation");
@@ -84,6 +81,9 @@ class TradeServiceAccountServiceIntegrationTest {
 
     @Test
     void testTradeServiceValidatesAccountWithAccountService_Success() throws Exception {
+        // Reset mock server before setting expectations
+        mockServer.reset();
+        
         // Arrange
         TradeOrder tradeOrder = new TradeOrder("TRADE-001", 1, "MSFT", TradeSide.Buy, 100);
 
@@ -117,6 +117,9 @@ class TradeServiceAccountServiceIntegrationTest {
 
     @Test
     void testTradeServiceValidatesAccountWithAccountService_AccountNotFound() throws Exception {
+        // Reset mock server before setting expectations
+        mockServer.reset();
+        
         // Arrange
         TradeOrder tradeOrder = new TradeOrder("TRADE-002", 999, "MSFT", TradeSide.Buy, 100);
 
@@ -142,6 +145,9 @@ class TradeServiceAccountServiceIntegrationTest {
 
     @Test
     void testTradeServiceValidatesAccountWithAccountService_AccountServiceError() throws Exception {
+        // Reset mock server before setting expectations
+        mockServer.reset();
+        
         // Arrange
         TradeOrder tradeOrder = new TradeOrder("TRADE-003", 1, "MSFT", TradeSide.Buy, 100);
 
@@ -168,6 +174,9 @@ class TradeServiceAccountServiceIntegrationTest {
 
     @Test
     void testTradeServiceAccountValidation_ValidatesAccountBeforeProcessing() throws Exception {
+        // Reset mock server before setting expectations
+        mockServer.reset();
+        
         // Arrange
         TradeOrder tradeOrder = new TradeOrder("TRADE-004", 1, "MSFT", TradeSide.Sell, 50);
 
@@ -202,6 +211,9 @@ class TradeServiceAccountServiceIntegrationTest {
 
     @Test
     void testServiceUnavailable_AccountServiceDown() throws Exception {
+        // Reset mock server before setting expectations
+        mockServer.reset();
+        
         // Arrange
         TradeOrder tradeOrder = new TradeOrder("TRADE-005", 1, "MSFT", TradeSide.Buy, 100);
 
@@ -230,6 +242,9 @@ class TradeServiceAccountServiceIntegrationTest {
 
     @Test
     void testServiceUnavailable_AccountServiceConnectionTimeout() throws Exception {
+        // Reset mock server before setting expectations
+        mockServer.reset();
+        
         // Arrange
         TradeOrder tradeOrder = new TradeOrder("TRADE-006", 1, "MSFT", TradeSide.Buy, 100);
 
