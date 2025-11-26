@@ -39,7 +39,7 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Grant execute permission for gradlew
-        run: chmod +x ${{ matrix.service }}/gradlew
+        run: chmod +x ./gradlew
         working-directory: ${{ matrix.service }}
 
       - name: Run tests
@@ -144,8 +144,8 @@ jobs:
           distribution: 'temurin'
           java-version: 21
         run: |
-          chmod +x ${{ matrix.service }}/gradlew
           cd ${{ matrix.service }}
+          chmod +x ./gradlew
           ./gradlew build --no-daemon
 
       - name: Build Node Service
