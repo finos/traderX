@@ -87,17 +87,17 @@ class TradeServiceAccountServiceIntegrationTest {
         // Arrange
         TradeOrder tradeOrder = new TradeOrder("TRADE-001", 1, "MSFT", TradeSide.Buy, 100);
 
-        // Mock Account Service response - account exists
-        mockServer.expect(requestTo("http://localhost:8081//account/1"))
-                .andRespond(withSuccess()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(objectMapper.writeValueAsString(validAccount)));
-
-        // Mock Reference Data Service response - security exists
+        // Mock Reference Data Service response - security exists (called first by controller)
         mockServer.expect(requestTo("http://localhost:8080//stocks/MSFT"))
                 .andRespond(withSuccess()
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(objectMapper.writeValueAsString(validSecurity)));
+
+        // Mock Account Service response - account exists (called second by controller)
+        mockServer.expect(requestTo("http://localhost:8081//account/1"))
+                .andRespond(withSuccess()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(objectMapper.writeValueAsString(validAccount)));
 
         // Mock publisher to succeed
         doNothing().when(tradePublisher).publish(anyString(), any(TradeOrder.class));
@@ -171,17 +171,17 @@ class TradeServiceAccountServiceIntegrationTest {
         // Arrange
         TradeOrder tradeOrder = new TradeOrder("TRADE-004", 1, "MSFT", TradeSide.Sell, 50);
 
-        // Mock Account Service response - account exists
-        mockServer.expect(requestTo("http://localhost:8081//account/1"))
-                .andRespond(withSuccess()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(objectMapper.writeValueAsString(validAccount)));
-
-        // Mock Reference Data Service response - security exists
+        // Mock Reference Data Service response - security exists (called first by controller)
         mockServer.expect(requestTo("http://localhost:8080//stocks/MSFT"))
                 .andRespond(withSuccess()
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(objectMapper.writeValueAsString(validSecurity)));
+
+        // Mock Account Service response - account exists (called second by controller)
+        mockServer.expect(requestTo("http://localhost:8081//account/1"))
+                .andRespond(withSuccess()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(objectMapper.writeValueAsString(validAccount)));
 
         // Mock publisher to succeed
         doNothing().when(tradePublisher).publish(anyString(), any(TradeOrder.class));
@@ -217,13 +217,12 @@ class TradeServiceAccountServiceIntegrationTest {
                 .andRespond(withStatus(HttpStatus.SERVICE_UNAVAILABLE));
 
         // Act & Assert
-        // When Account Service is unavailable (503), HttpServerErrorException is thrown
-        // The current implementation only catches HttpClientErrorException (4xx),
-        // so 5xx errors propagate and result in 500 Internal Server Error
+        // When Account Service is unavailable (503), HttpServerErrorException is caught
+        // and validateAccount returns false, resulting in ResourceNotFoundException (404)
         mockMvc.perform(post("/trade/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(tradeOrder)))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isNotFound());
 
         // Verify that Account Service was called
         mockServer.verify();
@@ -245,13 +244,12 @@ class TradeServiceAccountServiceIntegrationTest {
                 .andRespond(withStatus(HttpStatus.GATEWAY_TIMEOUT));
 
         // Act & Assert
-        // When Account Service times out (504), HttpServerErrorException is thrown
-        // The current implementation only catches HttpClientErrorException (4xx),
-        // so 5xx errors propagate and result in 500 Internal Server Error
+        // When Account Service times out (504), HttpServerErrorException is caught
+        // and validateAccount returns false, resulting in ResourceNotFoundException (404)
         mockMvc.perform(post("/trade/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(tradeOrder)))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isNotFound());
 
         // Verify that Account Service was called
         mockServer.verify();
