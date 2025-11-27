@@ -18,8 +18,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,10 +32,12 @@ import finos.traderx.tradeservice.model.Security;
 import finos.traderx.tradeservice.model.TradeOrder;
 import finos.traderx.tradeservice.model.TradeSide;
 
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.springframework.http.ResponseEntity;
 
 @WebMvcTest(TradeOrderController.class)
 @TestPropertySource(properties = {
@@ -56,21 +59,15 @@ class TradeServiceAccountServiceIntegrationTest {
     private ObjectMapper objectMapper;
 
     private RestTemplate restTemplate;
-    private MockRestServiceServer mockServer;
     private Account validAccount;
     private Security validSecurity;
 
     @BeforeEach
     void setUp() throws Exception {
-        // Create a real RestTemplate for integration testing
-        restTemplate = new RestTemplate();
-        
-        // Create MockRestServiceServer to mock HTTP calls
-        // This must be done BEFORE injecting into controller
-        mockServer = MockRestServiceServer.createServer(restTemplate);
+        // Create a mocked RestTemplate for integration testing
+        restTemplate = mock(RestTemplate.class);
         
         // Inject the RestTemplate into the controller using reflection
-        // This replaces the controller's default RestTemplate with our mocked one
         injectRestTemplate();
         
         // Setup test data
@@ -90,23 +87,16 @@ class TradeServiceAccountServiceIntegrationTest {
         // Ensure RestTemplate is injected (controller might have been recreated)
         injectRestTemplate();
         
-        // Reset mock server before setting expectations
-        mockServer.reset();
-        
         // Arrange
         TradeOrder tradeOrder = new TradeOrder("TRADE-001", 1, "MSFT", TradeSide.Buy, 100);
 
         // Mock Reference Data Service response - security exists (called first by controller)
-        mockServer.expect(requestTo("http://localhost:8080//stocks/MSFT"))
-                .andRespond(withSuccess()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(objectMapper.writeValueAsString(validSecurity)));
+        when(restTemplate.getForEntity(eq("http://localhost:8080//stocks/MSFT"), eq(Security.class)))
+                .thenReturn(new ResponseEntity<>(validSecurity, HttpStatus.OK));
 
         // Mock Account Service response - account exists (called second by controller)
-        mockServer.expect(requestTo("http://localhost:8081//account/1"))
-                .andRespond(withSuccess()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(objectMapper.writeValueAsString(validAccount)));
+        when(restTemplate.getForEntity(eq("http://localhost:8081//account/1"), eq(Account.class)))
+                .thenReturn(new ResponseEntity<>(validAccount, HttpStatus.OK));
 
         // Mock publisher to succeed
         doNothing().when(tradePublisher).publish(anyString(), any(TradeOrder.class));
@@ -121,7 +111,8 @@ class TradeServiceAccountServiceIntegrationTest {
                 .andExpect(jsonPath("$.accountId").value(1));
 
         // Verify all expected requests were made
-        mockServer.verify();
+        verify(restTemplate).getForEntity(eq("http://localhost:8080//stocks/MSFT"), eq(Security.class));
+        verify(restTemplate).getForEntity(eq("http://localhost:8081//account/1"), eq(Account.class));
     }
 
     @Test
@@ -129,21 +120,16 @@ class TradeServiceAccountServiceIntegrationTest {
         // Ensure RestTemplate is injected
         injectRestTemplate();
         
-        // Reset mock server before setting expectations
-        mockServer.reset();
-        
         // Arrange
         TradeOrder tradeOrder = new TradeOrder("TRADE-002", 999, "MSFT", TradeSide.Buy, 100);
 
         // Mock Reference Data Service response - security exists
-        mockServer.expect(requestTo("http://localhost:8080//stocks/MSFT"))
-                .andRespond(withSuccess()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(objectMapper.writeValueAsString(validSecurity)));
+        when(restTemplate.getForEntity(eq("http://localhost:8080//stocks/MSFT"), eq(Security.class)))
+                .thenReturn(new ResponseEntity<>(validSecurity, HttpStatus.OK));
 
         // Mock Account Service response - account not found (404)
-        mockServer.expect(requestTo("http://localhost:8081//account/999"))
-                .andRespond(withStatus(HttpStatus.NOT_FOUND));
+        when(restTemplate.getForEntity(eq("http://localhost:8081//account/999"), eq(Account.class)))
+                .thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
         // Act & Assert
         mockMvc.perform(post("/trade/")
@@ -152,7 +138,8 @@ class TradeServiceAccountServiceIntegrationTest {
                 .andExpect(status().isNotFound());
 
         // Verify all expected requests were made
-        mockServer.verify();
+        verify(restTemplate).getForEntity(eq("http://localhost:8080//stocks/MSFT"), eq(Security.class));
+        verify(restTemplate).getForEntity(eq("http://localhost:8081//account/999"), eq(Account.class));
     }
 
     @Test
@@ -160,21 +147,16 @@ class TradeServiceAccountServiceIntegrationTest {
         // Ensure RestTemplate is injected
         injectRestTemplate();
         
-        // Reset mock server before setting expectations
-        mockServer.reset();
-        
         // Arrange
         TradeOrder tradeOrder = new TradeOrder("TRADE-003", 1, "MSFT", TradeSide.Buy, 100);
 
         // Mock Reference Data Service response - security exists
-        mockServer.expect(requestTo("http://localhost:8080//stocks/MSFT"))
-                .andRespond(withSuccess()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(objectMapper.writeValueAsString(validSecurity)));
+        when(restTemplate.getForEntity(eq("http://localhost:8080//stocks/MSFT"), eq(Security.class)))
+                .thenReturn(new ResponseEntity<>(validSecurity, HttpStatus.OK));
 
         // Mock Account Service response - internal server error (500)
-        mockServer.expect(requestTo("http://localhost:8081//account/1"))
-                .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR));
+        when(restTemplate.getForEntity(eq("http://localhost:8081//account/1"), eq(Account.class)))
+                .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
 
         // Act & Assert
         // When Account Service returns 500, validation fails and trade is rejected
@@ -184,7 +166,8 @@ class TradeServiceAccountServiceIntegrationTest {
                 .andExpect(status().isNotFound());
 
         // Verify all expected requests were made
-        mockServer.verify();
+        verify(restTemplate).getForEntity(eq("http://localhost:8080//stocks/MSFT"), eq(Security.class));
+        verify(restTemplate).getForEntity(eq("http://localhost:8081//account/1"), eq(Account.class));
     }
 
     @Test
@@ -192,23 +175,16 @@ class TradeServiceAccountServiceIntegrationTest {
         // Ensure RestTemplate is injected
         injectRestTemplate();
         
-        // Reset mock server before setting expectations
-        mockServer.reset();
-        
         // Arrange
         TradeOrder tradeOrder = new TradeOrder("TRADE-004", 1, "MSFT", TradeSide.Sell, 50);
 
         // Mock Reference Data Service response - security exists (called first by controller)
-        mockServer.expect(requestTo("http://localhost:8080//stocks/MSFT"))
-                .andRespond(withSuccess()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(objectMapper.writeValueAsString(validSecurity)));
+        when(restTemplate.getForEntity(eq("http://localhost:8080//stocks/MSFT"), eq(Security.class)))
+                .thenReturn(new ResponseEntity<>(validSecurity, HttpStatus.OK));
 
         // Mock Account Service response - account exists (called second by controller)
-        mockServer.expect(requestTo("http://localhost:8081//account/1"))
-                .andRespond(withSuccess()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(objectMapper.writeValueAsString(validAccount)));
+        when(restTemplate.getForEntity(eq("http://localhost:8081//account/1"), eq(Account.class)))
+                .thenReturn(new ResponseEntity<>(validAccount, HttpStatus.OK));
 
         // Mock publisher to succeed
         doNothing().when(tradePublisher).publish(anyString(), any(TradeOrder.class));
@@ -224,7 +200,8 @@ class TradeServiceAccountServiceIntegrationTest {
                 .andExpect(jsonPath("$.quantity").value(50));
 
         // Verify that Account Service was called with correct URL
-        mockServer.verify();
+        verify(restTemplate).getForEntity(eq("http://localhost:8080//stocks/MSFT"), eq(Security.class));
+        verify(restTemplate).getForEntity(eq("http://localhost:8081//account/1"), eq(Account.class));
     }
 
     @Test
@@ -232,22 +209,17 @@ class TradeServiceAccountServiceIntegrationTest {
         // Ensure RestTemplate is injected
         injectRestTemplate();
         
-        // Reset mock server before setting expectations
-        mockServer.reset();
-        
         // Arrange
         TradeOrder tradeOrder = new TradeOrder("TRADE-005", 1, "MSFT", TradeSide.Buy, 100);
 
         // Mock Reference Data Service response - security exists
-        mockServer.expect(requestTo("http://localhost:8080//stocks/MSFT"))
-                .andRespond(withSuccess()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(objectMapper.writeValueAsString(validSecurity)));
+        when(restTemplate.getForEntity(eq("http://localhost:8080//stocks/MSFT"), eq(Security.class)))
+                .thenReturn(new ResponseEntity<>(validSecurity, HttpStatus.OK));
 
         // Mock Account Service as unavailable (service down - connection refused/timeout)
         // Using SERVICE_UNAVAILABLE (503) to simulate service being down
-        mockServer.expect(requestTo("http://localhost:8081//account/1"))
-                .andRespond(withStatus(HttpStatus.SERVICE_UNAVAILABLE));
+        when(restTemplate.getForEntity(eq("http://localhost:8081//account/1"), eq(Account.class)))
+                .thenThrow(new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE));
 
         // Act & Assert
         // When Account Service is unavailable (503), HttpServerErrorException is caught
@@ -258,7 +230,8 @@ class TradeServiceAccountServiceIntegrationTest {
                 .andExpect(status().isNotFound());
 
         // Verify that Account Service was called
-        mockServer.verify();
+        verify(restTemplate).getForEntity(eq("http://localhost:8080//stocks/MSFT"), eq(Security.class));
+        verify(restTemplate).getForEntity(eq("http://localhost:8081//account/1"), eq(Account.class));
     }
 
     @Test
@@ -266,21 +239,16 @@ class TradeServiceAccountServiceIntegrationTest {
         // Ensure RestTemplate is injected
         injectRestTemplate();
         
-        // Reset mock server before setting expectations
-        mockServer.reset();
-        
         // Arrange
         TradeOrder tradeOrder = new TradeOrder("TRADE-006", 1, "MSFT", TradeSide.Buy, 100);
 
         // Mock Reference Data Service response - security exists
-        mockServer.expect(requestTo("http://localhost:8080//stocks/MSFT"))
-                .andRespond(withSuccess()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(objectMapper.writeValueAsString(validSecurity)));
+        when(restTemplate.getForEntity(eq("http://localhost:8080//stocks/MSFT"), eq(Security.class)))
+                .thenReturn(new ResponseEntity<>(validSecurity, HttpStatus.OK));
 
         // Mock Account Service with gateway timeout (504) to simulate connection issues
-        mockServer.expect(requestTo("http://localhost:8081//account/1"))
-                .andRespond(withStatus(HttpStatus.GATEWAY_TIMEOUT));
+        when(restTemplate.getForEntity(eq("http://localhost:8081//account/1"), eq(Account.class)))
+                .thenThrow(new HttpServerErrorException(HttpStatus.GATEWAY_TIMEOUT));
 
         // Act & Assert
         // When Account Service times out (504), HttpServerErrorException is caught
@@ -291,7 +259,8 @@ class TradeServiceAccountServiceIntegrationTest {
                 .andExpect(status().isNotFound());
 
         // Verify that Account Service was called
-        mockServer.verify();
+        verify(restTemplate).getForEntity(eq("http://localhost:8080//stocks/MSFT"), eq(Security.class));
+        verify(restTemplate).getForEntity(eq("http://localhost:8081//account/1"), eq(Account.class));
     }
 }
 
