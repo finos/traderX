@@ -65,22 +65,31 @@ class TradeServiceAccountServiceIntegrationTest {
         // Create a real RestTemplate for integration testing
         restTemplate = new RestTemplate();
         
-        // Create MockRestServiceServer to mock HTTP calls (must be before injection)
+        // Create MockRestServiceServer to mock HTTP calls
+        // This must be done BEFORE injecting into controller
         mockServer = MockRestServiceServer.createServer(restTemplate);
         
         // Inject the RestTemplate into the controller using reflection
-        TradeOrderController controller = applicationContext.getBean(TradeOrderController.class);
-        Field restTemplateField = TradeOrderController.class.getDeclaredField("restTemplate");
-        restTemplateField.setAccessible(true);
-        restTemplateField.set(controller, restTemplate);
+        // This replaces the controller's default RestTemplate with our mocked one
+        injectRestTemplate();
         
         // Setup test data
         validAccount = new Account(1, "Test Account");
         validSecurity = new Security("MSFT", "Microsoft Corporation");
     }
+    
+    private void injectRestTemplate() throws Exception {
+        TradeOrderController controller = applicationContext.getBean(TradeOrderController.class);
+        Field restTemplateField = TradeOrderController.class.getDeclaredField("restTemplate");
+        restTemplateField.setAccessible(true);
+        restTemplateField.set(controller, restTemplate);
+    }
 
     @Test
     void testTradeServiceValidatesAccountWithAccountService_Success() throws Exception {
+        // Ensure RestTemplate is injected (controller might have been recreated)
+        injectRestTemplate();
+        
         // Reset mock server before setting expectations
         mockServer.reset();
         
@@ -117,6 +126,9 @@ class TradeServiceAccountServiceIntegrationTest {
 
     @Test
     void testTradeServiceValidatesAccountWithAccountService_AccountNotFound() throws Exception {
+        // Ensure RestTemplate is injected
+        injectRestTemplate();
+        
         // Reset mock server before setting expectations
         mockServer.reset();
         
@@ -145,6 +157,9 @@ class TradeServiceAccountServiceIntegrationTest {
 
     @Test
     void testTradeServiceValidatesAccountWithAccountService_AccountServiceError() throws Exception {
+        // Ensure RestTemplate is injected
+        injectRestTemplate();
+        
         // Reset mock server before setting expectations
         mockServer.reset();
         
@@ -174,6 +189,9 @@ class TradeServiceAccountServiceIntegrationTest {
 
     @Test
     void testTradeServiceAccountValidation_ValidatesAccountBeforeProcessing() throws Exception {
+        // Ensure RestTemplate is injected
+        injectRestTemplate();
+        
         // Reset mock server before setting expectations
         mockServer.reset();
         
@@ -211,6 +229,9 @@ class TradeServiceAccountServiceIntegrationTest {
 
     @Test
     void testServiceUnavailable_AccountServiceDown() throws Exception {
+        // Ensure RestTemplate is injected
+        injectRestTemplate();
+        
         // Reset mock server before setting expectations
         mockServer.reset();
         
@@ -242,6 +263,9 @@ class TradeServiceAccountServiceIntegrationTest {
 
     @Test
     void testServiceUnavailable_AccountServiceConnectionTimeout() throws Exception {
+        // Ensure RestTemplate is injected
+        injectRestTemplate();
+        
         // Reset mock server before setting expectations
         mockServer.reset();
         
