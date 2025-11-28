@@ -5,6 +5,12 @@ on:
   push:
     branches:
       - main
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+    branches:
+      - main
 
 env:
   VERSION: 'latest'
@@ -14,6 +20,7 @@ jobs:
   build-ghcr:
     name: Build and push application images to GHCR
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
     permissions:
       contents: read
       packages: write
