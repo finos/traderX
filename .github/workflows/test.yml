@@ -1,0 +1,147 @@
+name: Test
+
+on:
+  push:
+    branches: [ main, 'basic-FunctionalityTesting' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-java-services:
+    name: Test Java Services
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - account-service
+          - position-service
+          - trade-service
+          - trade-processor
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 21
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Verify gradlew exists
+        run: |
+          ls -la ./gradlew || echo "gradlew not found"
+          pwd
+        working-directory: ${{ matrix.service }}
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+        working-directory: ${{ matrix.service }}
+
+      - name: Verify gradlew is executable
+        run: |
+          ls -la ./gradlew
+          ./gradlew --version
+        working-directory: ${{ matrix.service }}
+
+      - name: Run tests
+        run: ./gradlew test --no-daemon
+        working-directory: ${{ matrix.service }}
+
+      - name: Build application
+        run: ./gradlew build --no-daemon
+        working-directory: ${{ matrix.service }}
+
+      - name: Publish Test Results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: |
+            ${{ matrix.service }}/build/test-results/**/*.xml
+          check_name: Test Results (${{ matrix.service }})
+          comment_mode: always
+          report_individual_runs: true
+
+  test-node-services:
+    name: Test Node.js Services
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - reference-data
+          - trade-feed
+          - web-front-end/angular
+          - web-front-end/react
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.service }}/package.json
+
+      - name: Install dependencies
+        run: |
+          if [ -f "${{ matrix.service }}/package-lock.json" ]; then
+            npm ci
+          else
+            npm install
+          fi
+        working-directory: ${{ matrix.service }}
+
+      - name: Run tests
+        run: |
+          if [ "${{ matrix.service }}" == "web-front-end/angular" ]; then
+            npm run test:ci
+          elif [ "${{ matrix.service }}" == "trade-feed" ]; then
+            echo "Skipping tests for trade-feed (no tests configured)"
+          else
+            npm test -- --coverage=false
+          fi
+        working-directory: ${{ matrix.service }}
+        continue-on-error: true
+
+      - name: Build application
+        run: npm run build
+        working-directory: ${{ matrix.service }}
+        continue-on-error: true
+
+  test-dotnet-service:
+    name: Test .NET Service
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+        working-directory: people-service
+
+      - name: Build
+        run: dotnet build --no-restore
+        working-directory: people-service
+
+      - name: Test
+        run: dotnet test --no-build --verbosity normal
+        working-directory: people-service
+        continue-on-error: true
+

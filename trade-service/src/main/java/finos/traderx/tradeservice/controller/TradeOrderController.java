@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import finos.traderx.messaging.PubSubException;
@@ -109,6 +110,11 @@ public class TradeOrderController {
 			else {
 				log.error(ex.getMessage());
 			}
+			return false;
+		}
+		catch (HttpServerErrorException ex) {
+			// Handle 5xx errors from account service
+			log.error("Account service error: " + ex.getMessage());
 			return false;
 		}
 	}

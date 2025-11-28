@@ -1,0 +1,144 @@
+name: SQL Injection Scan
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+
+jobs:
+  sqlmap_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify docker compose availability
+        run: docker compose version
+
+      - name: Build Docker Compose images
+        run: docker compose -f docker-compose.yml build
+
+      - name: Start full TraderX stack
+        run: docker compose -f docker-compose.yml up -d
+
+      - name: Wait for ingress to be ready
+        run: |
+          echo "Waiting for http://localhost:8081 ..."
+          for i in {1..40}; do
+            if curl -s http://localhost:8081 > /dev/null; then
+              echo "Ingress is up!"
+              exit 0
+            fi
+            echo "Waiting..."
+            sleep 5
+          done
+          echo "Ingress did not become ready in time"
+          exit 1
+
+      - name: Install sqlmap
+        run: |
+          sudo apt update
+          sudo apt install -y sqlmap
+
+      - name: Run SQL injection scan suite
+        run: |
+          mkdir -p ci-sqlmap-output
+
+          # Helper to capture exit codes
+          summarize() {
+            TEST_NAME="$1"
+            ENDPOINT="$2"
+            METHOD="$3"
+            PARAM="$4"
+            EXIT="$5"
+            OUTDIR="$6"
+
+            if [ "$EXIT" -eq 0 ]; then
+              RESULT="No injection detected"
+            else
+              RESULT="Potential or confirmed SQL injection detected"
+            fi
+
+            echo "----------------------------------------------------" >> ci-sqlmap-output/sqlmap-summary.txt
+            echo "Test:       $TEST_NAME" >> ci-sqlmap-output/sqlmap-summary.txt
+            echo "Endpoint:   $ENDPOINT" >> ci-sqlmap-output/sqlmap-summary.txt
+            echo "Method:     $METHOD" >> ci-sqlmap-output/sqlmap-summary.txt
+            echo "Parameter:  $PARAM" >> ci-sqlmap-output/sqlmap-summary.txt
+            echo "Exit Code:  $EXIT" >> ci-sqlmap-output/sqlmap-summary.txt
+            echo "Result:     $RESULT" >> ci-sqlmap-output/sqlmap-summary.txt
+            echo "Output Dir: $OUTDIR" >> ci-sqlmap-output/sqlmap-summary.txt
+            echo "" >> ci-sqlmap-output/sqlmap-summary.txt
+          }
+
+          ######################################################
+          # Test 1 - GET /account/1
+          ######################################################
+          OUT1="ci-sqlmap-output/account"
+          sqlmap -u "http://localhost:8081/account/1" \
+            --batch --level 2 --risk 2 -v 1 \
+            --output-dir="$OUT1"
+          EXIT1=$?
+          summarize "Account lookup" "GET /account/1" "GET" "N/A" "$EXIT1" "$OUT1"
+
+          ######################################################
+          # Test 2 - GET /account/
+          ######################################################
+          OUT2="ci-sqlmap-output/account-list"
+          sqlmap -u "http://localhost:8081/account/" \
+            --batch --level 2 --risk 2 -v 1 \
+            --output-dir="$OUT2"
+          EXIT2=$?
+          summarize "Account list" "GET /account/" "GET" "N/A" "$EXIT2" "$OUT2"
+
+          ######################################################
+          # Test 3 - POST /trade/ (JSON)
+          ######################################################
+          OUT3="ci-sqlmap-output/trade-json"
+          sqlmap -u "http://localhost:8081/trade/" \
+            --method=POST \
+            --data='{"security":"ADBE","quantity":100,"accountId":22214,"side":"Buy"}' \
+            --headers="Content-Type: application/json" \
+            -p security \
+            --batch --level 3 --risk 2 -v 1 \
+            --output-dir="$OUT3"
+          EXIT3=$?
+          summarize "Trade JSON POST" "POST /trade/" "POST" "security" "$EXIT3" "$OUT3"
+
+          ######################################################
+          # Test 4 - GET trades by account
+          ######################################################
+          OUT4="ci-sqlmap-output/trades"
+          sqlmap -u "http://localhost:8081/position-service/trades/22214" \
+            --batch --level 2 --risk 2 -v 1 \
+            --output-dir="$OUT4"
+          EXIT4=$?
+          summarize "Trades by accountId" "GET /position-service/trades/22214" "GET" "N/A" "$EXIT4" "$OUT4"
+
+          ######################################################
+          # Test 5 - RAW REQUEST TEST (POST /trade-service/trade/)
+          ######################################################
+          cat > request_trade.txt <<'EOF'
+          POST /trade-service/trade/ HTTP/1.1
+          Host: localhost:8081
+          Content-Type: application/json
+          Accept: application/json
+          User-Agent: sqlmap
+
+          {"security":"ADBE","quantity":100,"accountId":22214,"side":"Buy"}
+          EOF
+
+          OUT5="ci-sqlmap-output/trade-post"
+          sqlmap -r request_trade.txt \
+            -p security \
+            --batch --level 3 --risk 2 -v 1 \
+            --output-dir="$OUT5"
+          EXIT5=$?
+          summarize "Raw POST trade-service" "POST /trade-service/trade/" "POST" "security" "$EXIT5" "$OUT5"
+
+      - name: Upload sqlmap results
+        uses: actions/upload-artifact@v4
+        with:
+          name: sqlmap-report
+          path: ci-sqlmap-output
