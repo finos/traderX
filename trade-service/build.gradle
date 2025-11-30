@@ -7,7 +7,7 @@
 
 plugins {
   id 'java'
-  id 'org.springframework.boot' version '3.5.3'
+  id 'org.springframework.boot' version '3.5.7'
   id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -21,34 +21,24 @@ java {
 configurations.all {
     exclude group: 'org.yaml', module: 'snakeyaml'
 }
-configurations.all {
-    resolutionStrategy.eachDependency { details ->
-        if (details.requested.group == 'org.springframework' && details.requested.name == 'spring-core') {
-            details.useVersion('6.2.11')
-            details.because('CVE-2025-41249')
-        } else if (details.requested.group == 'org.apache.tomcat.embed' && details.requested.name == 'tomcat-embed-core') {
-            details.useVersion('10.1.44')
-            details.because('CVE-2025-48989')
-        }
-    }
-}
 
 dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'com.h2database:h2:2.3.232'
+    implementation 'com.h2database:h2:2.4.240'
 
-    implementation ('org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6')
-
-    // Add compatible logback-classic version
-    implementation ('ch.qos.logback:logback-core:1.5.18') {
-        because 'version brought in by spring boot 3.5.3 affected by CVE-2024-12798'
+    implementation ('org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14') {
+        exclude group: 'org.webjars', module: 'swagger-ui'
     }
-    implementation 'ch.qos.logback:logback-classic:1.5.18' // Ensure compatibility
+    implementation 'org.webjars:swagger-ui:5.30.2'
+
+    // Force logback versions to latest stable
+    implementation 'ch.qos.logback:logback-core:1.5.21'
+    implementation 'ch.qos.logback:logback-classic:1.5.21' // Ensure compatibility
 
     // JSON and Socket.IO dependencies
-    implementation('org.json:json:20240303') {
+    implementation('org.json:json:20250517') {
         because 'previous versions are affected by multiple CVE'
     }
     implementation ('io.socket:socket.io-client:2.1.2') {
@@ -56,7 +46,7 @@ dependencies {
     }
 
     // Override okhttp and okio versions to address vulnerabilities
-    implementation 'com.squareup.okhttp3:okhttp:4.12.0' // Suggested version
+    implementation 'com.squareup.okhttp3:okhttp:5.3.0' // Latest version
 
     // Override commons-lang3 to fix CVE-2025-48924
     implementation 'org.apache.commons:commons-lang3:3.18.0' // Latest version to fix CVE-2025-48924
