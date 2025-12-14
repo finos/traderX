@@ -1,22 +1,35 @@
-# Development build for Angular frontend
-FROM node:22-bookworm-slim
-
-# Install dependencies and build tools for node-gyp
-RUN apt-get update && apt-get install -y \
-    python3 \
-    make \
-    g++ \
-    && rm -rf /var/lib/apt/lists/*
+# Production-optimized Angular with Nginx
+FROM node:22-alpine as builder
 
 WORKDIR /app
 
-# Copy package files and install dependencies
-COPY package*.json ./
-# Install dependencies using npm install since package-lock.json might not exist
-RUN npm install
+# Copy package files and install all dependencies
+COPY package.json ./
+RUN npm install && npm cache clean --force
 
-# Copy all source files including angular.json
+# Copy source files and build for production
 COPY . .
+RUN npm run build
+
+# Production stage with minimal nginx
+FROM nginx:alpine
+
+# Remove default nginx configuration
+RUN rm /etc/nginx/conf.d/default.conf
+
+# Copy built application (npm run build outputs to ./dist/browser/)
+COPY --from=builder /app/dist/browser /usr/share/nginx/html
+
+# Create simple nginx config for SPA
+RUN echo 'server { \
+    listen 18093; \
+    location / { \
+        root /usr/share/nginx/html; \
+        index index.html; \
+        try_files $uri $uri/ /index.html; \
+    } \
+}' > /etc/nginx/conf.d/default.conf
 
 EXPOSE 18093
-CMD ["npm", "run", "start-prod"]
+
+CMD ["nginx", "-g", "daemon off;"]
