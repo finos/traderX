@@ -4,7 +4,8 @@ let id = 0;
 
 @Component({
     selector: 'app-ngx-dropdown',
-    templateUrl: './dropdown.component.html'
+    templateUrl: './dropdown.component.html',
+    standalone: false
 })
 export class DropdownComponent implements OnInit {
     @Input() items: any[];

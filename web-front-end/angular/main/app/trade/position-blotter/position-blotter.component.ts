@@ -7,9 +7,10 @@ import { Observable } from 'rxjs';
 import { TradeFeedService } from 'main/app/service/trade-feed.service';
 
 @Component({
-  selector: 'app-position-blotter',
-  templateUrl: './position-blotter.component.html',
-  styleUrls: ['./position-blotter.component.scss']
+    selector: 'app-position-blotter',
+    templateUrl: './position-blotter.component.html',
+    styleUrls: ['./position-blotter.component.scss'],
+    standalone: false
 })
 export class PositionBlotterComponent implements OnChanges, OnDestroy {
   @Input() account?: Account;
