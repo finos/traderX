@@ -28,14 +28,14 @@ This repository is the FINOS TraderX sample trading application. It is intention
 
 ## Service-level guidance
 - Each service has a `README.md` with run details and prerequisites. Read that before editing.
-- OpenAPI specs live in `*/openapi.yaml` and Swagger UI is typically exposed at `/swagger-ui.html` when running.
+- OpenAPI specs are generated at runtime (Swagger) and saved as `*/openapi.json` when you run `scripts/generate-openapi.sh`. Swagger UI is typically exposed at `/swagger-ui.html` (or service-specific Swagger routes).
 - Java services use Gradle wrapper (`./gradlew`) from their service directory.
 - Node services use their local `package.json` scripts.
 - `web-front-end/` contains both Angular and React implementations; check each subfolder's README.
 
 ## When making changes
 - Prefer small, targeted edits in the service you are touching; do not refactor cross-service behavior unless requested.
-- If behavior or APIs change, update the corresponding `openapi.yaml` and any relevant docs in `docs/`.
+- If behavior or APIs change, refresh the OpenAPI specs via `scripts/generate-openapi.sh` and update any relevant docs in `docs/`.
 - Keep the non-production, demo nature of the project in mind.
 
 ## Keeping diagrams in sync

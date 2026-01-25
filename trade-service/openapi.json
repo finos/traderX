@@ -1,0 +1,85 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "FINOS TraderX Trading Service",
+    "description": "Service for capturing trades from the UI, validating, and sending for processing",
+    "version": "0.1.0"
+  },
+  "servers": [
+    {
+      "url": "",
+      "description": "Empty URL to help proxied documentation work"
+    },
+    {
+      "url": "http://localhost:18092",
+      "description": "Local Dev URL"
+    }
+  ],
+  "paths": {
+    "/trade/": {
+      "post": {
+        "tags": [
+          "trade-order-controller"
+        ],
+        "description": "Submit a new trade order",
+        "operationId": "createTradeOrder",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TradeOrder"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TradeOrder"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TradeOrder": {
+        "type": "object",
+        "description": "the intendeded trade order",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "security": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "accountId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "Buy",
+              "Sell"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

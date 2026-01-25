@@ -1,0 +1,231 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "FINOS TraderX Position Service",
+    "description": "Service for retrieving blotter data, for trades and positions",
+    "version": "0.1.0"
+  },
+  "servers": [
+    {
+      "url": "",
+      "description": "Empty URL to help proxied documentation work"
+    },
+    {
+      "url": "http://localhost:18090",
+      "description": "Local Dev URL"
+    }
+  ],
+  "paths": {
+    "/trades/{accountId}": {
+      "get": {
+        "tags": [
+          "trade-controller"
+        ],
+        "operationId": "getByAccountId",
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Trade"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trades/": {
+      "get": {
+        "tags": [
+          "trade-controller"
+        ],
+        "operationId": "getAllTrades",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Trade"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/positions/{accountId}": {
+      "get": {
+        "tags": [
+          "position-controller"
+        ],
+        "operationId": "getByAccountId_1",
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Position"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/positions/": {
+      "get": {
+        "tags": [
+          "position-controller"
+        ],
+        "operationId": "getAllPositions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Position"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "tags": [
+          "health-controller"
+        ],
+        "operationId": "isReady",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/alive": {
+      "get": {
+        "tags": [
+          "health-controller"
+        ],
+        "operationId": "isAlive",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Trade": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "security": {
+            "type": "string"
+          },
+          "side": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Position": {
+        "type": "object",
+        "properties": {
+          "accountId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "security": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  }
+}

@@ -19,5 +19,5 @@ TraderX is a simple, distributed reference application for exploring trading wor
 
 ## When updating documentation
 - Keep diagrams in `overview.md` and `flows.md` in sync with service behavior.
-- If APIs change, update the relevant `openapi.yaml` and link any new endpoints.
+- If APIs change, refresh the generated OpenAPI specs (`*/openapi.json`) with `scripts/generate-openapi.sh` and link any new endpoints.
 - Prefer small, focused edits that keep the docs approachable for first-time users.

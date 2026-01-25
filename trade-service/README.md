@@ -39,11 +39,11 @@ http://localhost:18092/swagger-ui.html
 
 
 
-## Simple Testing of Position Service`
+## Simple Testing of Trade Service`
 
-You can run a mock of this service by installing @stoplight/prism 
+You can run a mock of this service by installing @stoplight/prism.
 
-This statically uses the example content in the OpenAPI spec to mock the service (you can specify `--dynamic` to let it be more creative)
+The OpenAPI spec is generated at runtime. Refresh `openapi.json` with `scripts/generate-openapi.sh`.
 
 ```bash
 # Only need to do this once for your machine
@@ -52,7 +52,7 @@ sudo npm install -g @stoplight/prism-cli
 
 Run prism to mock your OpenAPI spec as follows (Specify `port` as you see fit)
 ```bash
-prism --cors --port 18092 mock openapi.yaml
+prism --cors --port 18092 mock openapi.json
 ```
 
 You can then try out your requests against the mock service as follows: (or from a browser)
