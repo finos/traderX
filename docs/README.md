@@ -14,7 +14,7 @@ TraderX is a simple, distributed reference application for exploring trading wor
 - `overview.md` contains the architectural diagram and links to system context.
 - `flows.md` contains sequence diagrams for key workflows.
 - `code.md` links to each service root.
-- `home.mdx`, `team.mdx`, and `roadmap.mdx` are Docusaurus site pages.
+- `home.mdx`, `roadmap.mdx`, `running.mdx`, and `project-history.mdx` are Docusaurus site pages.
 - `c4/` contains the original C4 DSL and rendered image.
 
 ## When updating documentation
