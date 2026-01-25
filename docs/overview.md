@@ -10,7 +10,7 @@ You can navigate to the [individual codebases from this page](./code.md).
 
 ## C4 Container Diagrams
 
-> **Note**: Diagram images will be auto-generated from `workspace.dsl` after every PR is merged via GitHub Actions.
+> **Note**: Diagram images are auto-generated from `workspace.dsl` by a GitHub Actions workflow when changes to that file are merged.
 
 These diagrams are auto-generated from `workspace.dsl` via GitHub Actions.
 
