@@ -8,7 +8,7 @@ TraderX is a simple, distributed reference application for exploring trading wor
 - [Overview](overview.md) for architecture and the C4-inspired diagram.
 - [Flows](flows.md) for sequence diagrams of core user journeys.
 - [Code map](code.md) for links to each service.
-- The root [README](../README.md) for run options (manual, Docker, Kubernetes/Tilt).
+- The [Running TraderX](running.md) guide for run options (manual, Docker, Kubernetes/Tilt).
 
 ## What is in this docs folder
 - `overview.md` contains the architectural diagram and links to system context.
