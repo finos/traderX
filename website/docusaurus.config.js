@@ -6,7 +6,8 @@ const copyrightOwner = 'FINOS - The Fintech Open Source Foundation'
 
 // GitHub repo configuration - update these for forks/branches
 const repoOwner = 'finos';
-const repoBranch = 'main';
+// Allow override via environment (e.g., DOCS_BRANCH=feature-branch)
+const repoBranch = process.env.DOCS_BRANCH || 'main';
 const repoUrl = `https://github.com/${repoOwner}/${projectSlug}`;
 
 // Remark plugin to transform relative links to GitHub URLs
@@ -117,8 +118,8 @@ module.exports = {
       {
         docs: {
           path: '../docs',
-          editUrl:
-            `${repoUrl}/edit/${repoBranch}/`,
+          // Build edit links explicitly to include branch + docs prefix
+          editUrl: ({docPath}) => `${repoUrl}/edit/${repoBranch}/docs/${docPath}`,
           sidebarPath: require.resolve('./sidebars.js'),
           remarkPlugins: [
             [transformRelativeLinks, { repoUrl, branch: repoBranch }],
