@@ -45,27 +45,27 @@ workspace "FINOS TraderX Sample Application" "An example distributed system in f
         
         container  tradingSystem "single-service" {
             include refDataService
-            autoLayout
+            autoLayout lr
         }
          
         container  tradingSystem "multiple-services-no-db" {
             include refDataService webFrontend accountService peopleService userDirectory
-            
+            autoLayout lr
         }
         
         container  tradingSystem "multiple-services-db-no-messaging" {
             include refDataService webFrontend accountService peopleService userDirectory database positionService
-            
+            autoLayout lr
         }
         
         container  tradingSystem "multiple-services-no-async" {
             include refDataService webFrontend accountService peopleService userDirectory database positionService messagebus
-            
+            autoLayout lr
         }
         
         container  tradingSystem "full-system" {
             include *
-            
+            autoLayout lr
         }
 
     

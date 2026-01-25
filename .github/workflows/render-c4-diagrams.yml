@@ -1,0 +1,48 @@
+name: Render C4 Diagrams
+
+on:
+  push:
+    paths:
+      - 'docs/c4/workspace.dsl'
+    branches:
+      - main
+  pull_request:
+    paths:
+      - 'docs/c4/workspace.dsl'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Render C4 diagrams with Structurizr CLI
+        run: |
+          # Download Structurizr CLI
+          curl -L https://github.com/structurizr/cli/releases/download/v2024.07.03/structurizr-cli.zip -o structurizr-cli.zip
+          unzip -o structurizr-cli.zip -d structurizr-cli
+          
+          # Export all views to PNG
+          cd docs/c4
+          ../../structurizr-cli/structurizr.sh export -workspace workspace.dsl -format png
+          
+          # List generated files
+          echo "Generated files:"
+          ls -la *.png
+
+      - name: Commit rendered diagrams
+        if: github.event_name == 'push'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add docs/c4/*.png
+          git diff --staged --quiet || git commit -m "chore: auto-render C4 diagrams from workspace.dsl"
+          git push

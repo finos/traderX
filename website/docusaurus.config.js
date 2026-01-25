@@ -4,7 +4,19 @@ const projectName = 'TraderX'
 const projectSlug = 'traderX'
 const copyrightOwner = 'FINOS - The Fintech Open Source Foundation'
 
+// GitHub repo configuration - update these for forks/branches
+const repoOwner = 'finos';
+const repoBranch = 'main';
+const repoUrl = `https://github.com/${repoOwner}/${projectSlug}`;
+
+// Remark plugin to transform relative links to GitHub URLs
+const transformRelativeLinks = require('./src/remark/transformRelativeLinks');
+
 module.exports = {
+  markdown: {
+    mermaid: true,
+  },
+  themes: ['@docusaurus/theme-mermaid'],
   onBrokenLinks: 'ignore',
   title: `${projectName}`,
   tagline: `${projectName}`, 
@@ -15,7 +27,7 @@ module.exports = {
   projectName: `${projectName}`,
   organizationName: 'FINOS',
   customFields: {
-    repoUrl: `https://github.com/finos/${projectSlug}`,
+    repoUrl: repoUrl,
   },
   scripts: ['https://buttons.github.io/buttons.js'],
   stylesheets: ['https://fonts.googleapis.com/css?family=Overpass:400,400i,700'],
@@ -29,7 +41,7 @@ module.exports = {
       items: [
         {to: 'docs/home', label: 'Docs', position: 'right'},
         {to: 'docs/roadmap', label: 'Roadmap', position: 'right'},
-        {to: 'docs/team', label: 'Team', position: 'right'},
+        {to: 'docs/project-history', label: 'History', position: 'right'},
         {
           href: 'https://github.com/finos/',
           label: 'GitHub',
@@ -57,8 +69,8 @@ module.exports = {
               to: 'docs/roadmap',
             },
             {
-              label: 'Team',
-              to: 'docs/team',
+              label: 'Project History',
+              to: 'docs/project-history',
             }
           ]
         },
@@ -106,8 +118,11 @@ module.exports = {
         docs: {
           path: '../docs',
           editUrl:
-            'https://github.com/finos/traderX/edit/main/website/',
-          sidebarPath: require.resolve('./sidebars.js')
+            `${repoUrl}/edit/${repoBranch}/website/`,
+          sidebarPath: require.resolve('./sidebars.js'),
+          remarkPlugins: [
+            [transformRelativeLinks, { repoUrl, branch: repoBranch }],
+          ],
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
