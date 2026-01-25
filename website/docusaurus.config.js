@@ -118,7 +118,7 @@ module.exports = {
         docs: {
           path: '../docs',
           editUrl:
-            `${repoUrl}/edit/${repoBranch}/website/`,
+            `${repoUrl}/edit/${repoBranch}/`,
           sidebarPath: require.resolve('./sidebars.js'),
           remarkPlugins: [
             [transformRelativeLinks, { repoUrl, branch: repoBranch }],

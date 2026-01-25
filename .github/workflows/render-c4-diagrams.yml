@@ -21,22 +21,31 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref || github.ref_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Render C4 diagrams with Structurizr CLI
+      - name: Render C4 diagrams
         run: |
           # Download Structurizr CLI
           curl -L https://github.com/structurizr/cli/releases/download/v2024.07.03/structurizr-cli.zip -o structurizr-cli.zip
           unzip -o structurizr-cli.zip -d structurizr-cli
           
-          # Export all views to PNG
           cd docs/c4
-          ../../structurizr-cli/structurizr.sh export -workspace workspace.dsl -format png
+          
+          # Export to Graphviz DOT format (produces structurizr-{view-key}.dot files)
+          ../../structurizr-cli/structurizr.sh export -workspace workspace.dsl -format dot -output .
+          
+          # Convert DOT to PNG using Graphviz with curved splines
+          for dot_file in structurizr-*.dot; do
+            output_name="${dot_file%.dot}.png"
+            dot -Gsplines=curved -Tpng "$dot_file" -o "$output_name"
+          done
+          
+          # Clean up DOT files (keep only PNGs)
+          rm -f *.dot
           
           # List generated files
           echo "Generated files:"
-          ls -la *.png
+          ls -la structurizr-*.png
 
       - name: Commit rendered diagrams
         if: github.event_name == 'push'

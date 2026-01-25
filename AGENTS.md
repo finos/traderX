@@ -3,7 +3,8 @@
 This repository is the FINOS TraderX sample trading application. It is intentionally simple, non-production, and designed for local experimentation across a distributed set of services.
 
 ## Start here (project context)
-- `README.md` for overall purpose, run modes, and default ports.
+- `README.md` for overall purpose and run modes.
+- `docs/running.md` for default ports, startup sequences, and environment variables.
 - `docs/README.md`, `docs/overview.md`, and `docs/flows.md` for architecture and sequence flows.
 - `docs/c4/workspace.dsl` for the C4 diagram source (use Structurizr Lite to render).
 
@@ -22,8 +23,8 @@ This repository is the FINOS TraderX sample trading application. It is intention
 
 ## Quick run options
 - Docker Compose (full system): from repo root, `docker compose up` (see `README.md`).
-- Kubernetes/Tilt: see `gitops/local/Tiltfile` and `README.md` for `tilt up`.
-- Manual run: see `README.md` for the recommended startup sequence and port env vars.
+- Kubernetes/Tilt: see `gitops/local/Tiltfile` and `docs/running.md` for `tilt up`.
+- Manual run: see `docs/running.md` for the recommended startup sequence and port env vars.
 
 ## Service-level guidance
 - Each service has a `README.md` with run details and prerequisites. Read that before editing.
@@ -59,7 +60,7 @@ The project has two content surfaces that may overlap:
 
 ## Useful files by task
 - Architecture/flows: `docs/overview.md`, `docs/flows.md`, `docs/c4/workspace.dsl`
-- Local run and ports: `README.md`
+- Local run and ports: `docs/running.md`
 - Docker/K8s: `docker-compose.yml`, `gitops/local/Tiltfile`
 - Front-end: `web-front-end/angular/README.md`, `web-front-end/react/README.md`
 - Docs site: `website/README.md`, `docs/`

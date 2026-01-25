@@ -16,7 +16,7 @@ const plugin = (options) => {
       
       // Only transform relative links that go up to repo root (../)
       // and don't point to other markdown files
-      if (url && url.startsWith('../') && !url.endsWith('.md') && !url.endsWith('.mdx')) {
+      if (url && url.startsWith('../') && !url.startsWith('../../') && !url.endsWith('.md') && !url.endsWith('.mdx')) {
         // Extract the path after ../
         const relativePath = url.replace(/^\.\.\//, '');
         
