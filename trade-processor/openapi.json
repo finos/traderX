@@ -1,0 +1,157 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "FINOS TraderX Trading Processor",
+    "description": "Service for processing trades from the Trade Feed, Persisting trades, updating positions, and Publishing updates to the feed",
+    "version": "0.1.0"
+  },
+  "servers": [
+    {
+      "url": "",
+      "description": "Empty URL to help proxied documentation work"
+    },
+    {
+      "url": "http://localhost:18091",
+      "description": "Local Dev URL"
+    }
+  ],
+  "paths": {
+    "/tradeservice/order": {
+      "post": {
+        "tags": [
+          "trade-service-controller"
+        ],
+        "operationId": "processOrder",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TradeOrder"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TradeBookingResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TradeOrder": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "security": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "accountId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "Buy",
+              "Sell"
+            ]
+          }
+        }
+      },
+      "Position": {
+        "type": "object",
+        "properties": {
+          "accountId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "security": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Trade": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "security": {
+            "type": "string"
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "Buy",
+              "Sell"
+            ]
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "New",
+              "Processing",
+              "Settled",
+              "Cancelled"
+            ]
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "TradeBookingResult": {
+        "type": "object",
+        "properties": {
+          "trade": {
+            "$ref": "#/components/schemas/Trade"
+          },
+          "position": {
+            "$ref": "#/components/schemas/Position"
+          }
+        }
+      }
+    }
+  }
+}

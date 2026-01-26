@@ -8,6 +8,10 @@ build/
 # Excluding Local Build folder for company-specific building
 .corp
 
+# Structurizr Lite generated files
+docs/c4/workspace.json
+docs/c4/.structurizr
+
 # Exclude package-lock to avoid company builds overriding standard locations
 package-lock.json
 yarn.lock

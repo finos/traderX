@@ -1,3 +1,8 @@
+---
+id: code
+title: "Service Map"
+sidebar_label: Service Map
+---
 
 You can find the coordinates of the codebase here. Their relationship is explained in more detail in the [system overview](./overview.md)
 
@@ -19,13 +24,13 @@ You can find the coordinates of the codebase here. Their relationship is explain
 
 ### `position-service`
 
-* Python / Flask
+* Java / Spring Boot
 * [Source Code](../position-service)
 
 ### `reference-data`
 
 * NodeJS
-* [Source Code](../refdata-service)
+* [Source Code](../reference-data)
 
 ### `trade-feed`
 

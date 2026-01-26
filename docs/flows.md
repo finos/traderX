@@ -1,7 +1,7 @@
 ---
-title: Sequence Diagrams and Flows
-sidebar_label: Sequence Diagrams
-slug: flows
+id: flows
+title: "Sequence Diagrams and Flows"
+sidebar_label: Sequence Flows
 ---
 
 ## Sequence Diagrams
@@ -121,4 +121,20 @@ sequenceDiagram
     A->>PS: Validate Username
     A->>D: Insert/Update Account-User Mapping
     A->>W: Return success/failure status
+```
+
+## 7: Reference Data Service Bootstrap
+
+The reference data service loads a local CSV of tickers at startup and serves it via REST APIs to the GUI.
+
+```mermaid
+sequenceDiagram
+    participant R as RefDataService
+    participant C as CSV File
+    participant W as WebGUI
+
+    R->>C: Load CSV at startup
+    C->>R: Ticker list
+    W->>R: Request ticker list
+    R->>W: Return ticker list
 ```
