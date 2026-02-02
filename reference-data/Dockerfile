@@ -7,7 +7,7 @@ RUN npm install @nestjs/cli
 COPY . .
 RUN npm run build
 
-FROM alpine:3.21
+FROM alpine:3.23
 RUN apk add --no-cache nodejs
 WORKDIR /usr/src/app
 COPY --from=builder /usr/src/app/dist ./dist
