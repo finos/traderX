@@ -1,0 +1,68 @@
+name: Render C4 Diagrams
+
+on:
+  push:
+    paths:
+      - 'docs/c4/workspace.dsl'
+    branches:
+      - main
+  pull_request:
+    paths:
+      - 'docs/c4/workspace.dsl'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Graphviz
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y graphviz
+
+      - name: Render C4 diagrams
+        run: |
+          # Download Structurizr CLI
+          curl -L https://github.com/structurizr/cli/releases/download/v2024.07.03/structurizr-cli.zip -o structurizr-cli.zip
+          unzip -o structurizr-cli.zip -d structurizr-cli
+          
+          cd docs/c4
+          
+          # Export to Graphviz DOT format (produces structurizr-{view-key}.dot files)
+          ../../structurizr-cli/structurizr.sh export -workspace workspace.dsl -format dot -output .
+          
+          # Convert DOT to PNG using Graphviz with curved splines
+          for dot_file in structurizr-*.dot; do
+            output_name="${dot_file%.dot}.png"
+            dot -Gsplines=curved -Tpng "$dot_file" -o "$output_name"
+          done
+          
+          # Clean up DOT files (keep only PNGs)
+          rm -f *.dot
+          
+          # List generated files
+          echo "Generated files:"
+          ls -la structurizr-*.png
+
+      - name: Commit rendered diagrams
+        if: github.event_name == 'push'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add docs/c4/*.png
+          git diff --staged --quiet || git commit -m "chore: auto-render C4 diagrams from workspace.dsl"
+          git push

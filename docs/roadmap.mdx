@@ -1,9 +1,81 @@
 ---
 id: roadmap
 title: "TraderX Roadmap"
+sidebar_label: Roadmap
 ---
 
-This is the TraderX Roadmap:
-1. ...
-2. ...
-3. ...
+# TraderX Roadmap
+
+## 2026 Goals
+
+### Re-launch as Progressive Repo States
+
+Based on work from the late 2025 hackathon, we plan to restructure TraderX as a series of **repo states** representing different phases of the project. This will allow users to:
+
+- Start from a minimal baseline and progressively add services
+- Jump to specific milestones for focused learning
+- Compare implementation approaches across phases
+
+### Agentic AI Experimentation
+
+Expand support for AI-assisted development workflows:
+
+- **Journey files**: Add markdown guides for common agentic workflows (migrations, refactoring, testing)
+- **AGENTS.md enhancements**: Continue refining guidance for AI coding agents working with the codebase
+- **Sample prompts**: Provide ready-to-use prompts for common tasks
+
+### Agentic Exercises
+
+A collection of hands-on exercises for experimenting with AI coding agents:
+
+| Exercise | Description | Difficulty |
+|----------|-------------|------------|
+| **Generate E2E Test Harness** | Create an end-to-end test framework that exercises the full trade flow across services | ⭐⭐⭐ |
+| **Agentic Testing Guidance** | Generate testing strategy docs and implement automated test generation | ⭐⭐ |
+| **Unit Test Coverage** | Achieve target coverage across all services with AI-generated tests | ⭐⭐ |
+| **AI Code Review Guidance** | Create code review checklists and implement automated review workflows | ⭐⭐ |
+| **Service Migration** | Migrate a service from one tech stack to another (e.g., Java to Kotlin) | ⭐⭐⭐ |
+| **API Documentation** | Auto-generate and validate OpenAPI specs from code | ⭐ |
+| **Performance Profiling** | Identify bottlenecks and suggest optimizations | ⭐⭐ |
+| **Adopt CALM** | Use [CALM](https://github.com/finos/architecture-as-code) to document TraderX architecture and validate implementation matches the spec | ⭐⭐⭐ |
+
+### H2 2026: Launch TraderX Learning Guide & Website
+
+Formally launch the TraderX documentation site and learning guide:
+
+- **Public website**: Deploy the Docusaurus site to a permanent home
+- **Learning paths**: Curated journeys for different skill levels and interests
+- **Interactive tutorials**: Step-by-step guides with runnable examples
+- **Community showcase**: Highlight community contributions and experiments
+
+#### Sample Prompts
+
+```
+# E2E Test Harness
+"Create an end-to-end test that: 1) Creates an account, 2) Submits a trade, 
+3) Verifies the position is updated, 4) Checks the trade appears in the blotter"
+
+# Unit Test Generation  
+"Generate unit tests for the TradeService class targeting 80% coverage. 
+Include edge cases for invalid tickers and insufficient positions."
+
+# Code Review
+"Review the recent changes to trade-processor for: security issues, 
+error handling gaps, and performance concerns. Suggest improvements."
+```
+
+---
+
+## Completed
+
+### 2026 Q1
+- ✅ Added `AGENTS.md` for AI coding agent support
+- ✅ Restructured documentation with Docusaurus improvements
+- ✅ Added Mermaid diagram rendering
+- ✅ Created Build & Run guide
+
+### 2023
+- ✅ Initial release at OSFF 2023
+- ✅ Core services: Account, Position, Trade, Reference Data, People
+- ✅ Angular and React front-ends
+- ✅ Docker Compose and Kubernetes/Tilt support
