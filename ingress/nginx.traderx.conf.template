@@ -1,61 +1,59 @@
-    server {
+server {
         listen 8080;
-        server_name $NGINX_HOST;
+        server_name ${NGINX_HOST};
 
         location /db-web/ {
-            proxy_pass http://database:18084/;
+            proxy_pass ${DATABASE_URL};
         }
         location /reference-data/ {
-            proxy_pass http://reference-data:18085/;
+            proxy_pass ${REFERENCE_DATA_URL};
         }
 
         location /ng-cli-ws {
-            proxy_pass http://web-front-end-angular:18093/ng-cli-ws;
+            proxy_pass ${WEB_FRONTEND_URL}/ng-cli-ws;
             proxy_http_version 1.1;
-            proxy_set_header Upgrade ${DOLLAR}http_upgrade;
+            proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection "upgrade";
         }
         
         location /trade-feed/  {
-            proxy_set_header X-Forwarded-For ${DOLLAR}proxy_add_x_forwarded_for;
-            proxy_set_header Host ${DOLLAR}http_host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header Host $http_host;
 
-            proxy_pass http://trade-feed:18086/;
+            proxy_pass ${TRADE_FEED_URL};
 
             proxy_http_version 1.1;
-            proxy_set_header Upgrade ${DOLLAR}http_upgrade;
+            proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection "upgrade";
-      
         }
 
-    location /socket.io/ {
-            proxy_set_header X-Forwarded-For ${DOLLAR}proxy_add_x_forwarded_for;
-            proxy_set_header Host ${DOLLAR}http_host;
+        location /socket.io/ {
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header Host $http_host;
 
-            proxy_pass http://trade-feed:18086/socket.io/;
+            proxy_pass ${TRADE_FEED_URL}/socket.io/;
 
             proxy_http_version 1.1;
-            proxy_set_header Upgrade ${DOLLAR}http_upgrade;
+            proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection "upgrade";
-      
         }
 
         location /people-service/ {
-            proxy_pass http://people-service:18089/;
+            proxy_pass ${PEOPLE_SERVICE_URL};
         }
         location /account-service/ {
-            proxy_pass http://account-service:18088/;
+            proxy_pass ${ACCOUNT_SERVICE_URL};
         }
         location /position-service/ {
-            proxy_pass http://position-service:18090/;
+            proxy_pass ${POSITION_SERVICE_URL};
         }
         location /trade-service/ {
-            proxy_pass http://trade-service:18092/;
+            proxy_pass ${TRADE_SERVICE_URL};
         }
         location /trade-processor/ {
-            proxy_pass http://trade-processor:18091/;
+            proxy_pass ${TRADE_PROCESSOR_URL};
         }
         location / {
-            proxy_pass http://web-front-end-angular:18093/;
+            proxy_pass ${WEB_FRONTEND_URL};
         }
     }
