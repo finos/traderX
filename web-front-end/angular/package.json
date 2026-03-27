@@ -9,7 +9,9 @@
     "build": "cross-env NG_CLI_ANALYTICS=ci ng build --base-href=. --configuration production --output-path=./dist --aot --output-hashing=all",
     "buildlocal": "cross-env NG_CLI_ANALYTICS=ci ng build --base-href=. --configuration local --output-path=./dist --aot --output-hashing=all",
     "test": "ng test --code-coverage --watch=true",
-    "test:ci": "ng test --code-coverage --watch=false --browsers=ChromeHeadlessNoSandbox"
+    "test:ci": "ng test --code-coverage --watch=false --browsers=ChromeHeadlessNoSandbox",
+    "sbom": "cyclonedx-npm --output-file build/reports/sbom.json --output-format JSON",
+    "sbom:xml": "cyclonedx-npm --output-file build/reports/sbom.xml --output-format XML"
   },
   "private": true,
   "license": "Apache-2.0",
@@ -32,6 +34,7 @@
     "zone.js": "^0.14.10"
   },
   "devDependencies": {
+    "@cyclonedx/cyclonedx-npm": "^1.19.3",
     "@angular-devkit/build-angular": "^18.2.12",
     "@angular/cli": "^18.2.12",
     "@angular/compiler-cli": "^18.2.12",

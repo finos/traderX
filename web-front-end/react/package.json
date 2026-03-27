@@ -22,7 +22,9 @@
     "start": "PORT=${WEB_SERVICE_REACT_PORT:-18094} react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "sbom": "cyclonedx-npm --output-file build/reports/sbom.json --output-format JSON",
+    "sbom:xml": "cyclonedx-npm --output-file build/reports/sbom.xml --output-format XML"
   },
   "eslintConfig": {
     "extends": [
@@ -43,6 +45,7 @@
     ]
   },
   "devDependencies": {
+    "@cyclonedx/cyclonedx-npm": "^1.19.3",
     "@emotion/react": "^11.10.8",
     "@emotion/styled": "^11.10.8",
     "@heswell/salt-lab": "^1.0.0-alpha.2",

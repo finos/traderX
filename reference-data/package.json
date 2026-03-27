@@ -17,7 +17,9 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "sbom": "cyclonedx-npm --output-file build/reports/sbom.json --output-format JSON",
+    "sbom:xml": "cyclonedx-npm --output-file build/reports/sbom.xml --output-format XML"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.12",
@@ -31,6 +33,7 @@
     "rxjs": "^7.8.2"
   },
   "devDependencies": {
+    "@cyclonedx/cyclonedx-npm": "^1.19.3",
     "@nestjs/cli": "^11.0.5",
     "@nestjs/schematics": "^11.0.2",
     "@nestjs/testing": "^11.0.12",
