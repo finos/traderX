@@ -122,7 +122,12 @@ fi
 timestamp_utc="${TRADERSPEC_MANIFEST_GENERATED_AT_UTC:-}"
 if [[ -z "${timestamp_utc}" ]]; then
   if git -C "${REPO_ROOT}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    timestamp_utc="$(git -C "${REPO_ROOT}" show -s --format=%cI HEAD | sed 's/+00:00$/Z/')"
+    commit_epoch="$(git -C "${REPO_ROOT}" show -s --format=%ct HEAD)"
+    if timestamp_utc="$(date -u -r "${commit_epoch}" +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null)"; then
+      :
+    else
+      timestamp_utc="$(date -u -d "@${commit_epoch}" +"%Y-%m-%dT%H:%M:%SZ")"
+    fi
   else
     timestamp_utc="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
   fi
