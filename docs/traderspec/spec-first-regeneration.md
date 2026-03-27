@@ -4,14 +4,14 @@ title: Spec-First Regeneration
 
 # Spec-First Regeneration
 
-This flow generates implementation artifacts from requirements and technical specs, not from source copying.
+This flow generates implementation artifacts from Spec Kit requirements and technical specs, not from source copying.
 
 ## Inputs
 
-- `TraderSpec/foundation/00-traditional-to-cloud-native/specs/05-functional-requirements-detailed.md`
-- `TraderSpec/foundation/00-traditional-to-cloud-native/specs/06-technical-specifications.md`
-- `TraderSpec/foundation/00-traditional-to-cloud-native/specs/07-ui-requirements-detailed.md`
-- `TraderSpec/foundation/00-traditional-to-cloud-native/specs/08-requirements-traceability-matrix.md`
+- `TraderSpec/speckit/system/system-requirements.md`
+- `TraderSpec/speckit/system/user-stories.md`
+- `TraderSpec/speckit/system/acceptance-criteria.md`
+- `TraderSpec/speckit/system/requirements-traceability.csv`
 - `TraderSpec/catalog/component-spec.csv`
 
 ## Commands

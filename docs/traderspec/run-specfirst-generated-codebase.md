@@ -17,7 +17,7 @@ From repo root:
 What this does:
 
 1. validates regeneration readiness
-2. generates from specs with spec-mapped hydration
+2. generates from Spec Kit synthesis outputs
 3. prepares compose layout in generated target
 4. starts stack via generated target compose file
 
@@ -31,7 +31,7 @@ What this does:
 
 ```bash
 ./TraderSpec/pipeline/validate-regeneration-readiness.sh
-./TraderSpec/pipeline/generate-from-spec.sh --hydrate-from-source
+./TraderSpec/pipeline/generate-from-spec.sh
 ./TraderSpec/codebase/scripts/prepare-specfirst-layout.sh
 docker compose -f TraderSpec/codebase/target-generated-specfirst/docker-compose.yml up -d --build
 ```

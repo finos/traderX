@@ -37,8 +37,8 @@ Spec-first generation:
 ./TraderSpec/pipeline/generate-from-spec.sh
 ```
 
-Reference snapshot (optional comparator):
+Generation comparator (optional):
 
 ```bash
-./TraderSpec/pipeline/generate-baseline-from-current.sh
+bash TraderSpec/pipeline/speckit/compare-all-component-generation.sh HEAD --allow-differences
 ```

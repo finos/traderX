@@ -11,7 +11,7 @@ This blog tracks major migration phases, findings, and decisions as we execute `
 | 2026-03-27 | Phase 4 - First Pure-Generated Component | Done | `reference-data` generated from specs and booted in mixed mode. |
 | 2026-03-27 | Phase 5 - Iterative Component Cutover | Done | All base-case components (including Angular UI) validated green in mixed generated mode. |
 | 2026-03-27 | Phase 6 - Source Deletion by Approval | Done | Legacy root component sources removed; pure-generated base startup and web smoke checks validated. |
-| 2026-03-27 | Phase 7 - GitHub Spec Kit Adoption | In Progress | Manifest-driven synthesis, conformance packs, and semantic compare harness are complete; `trade-service` full-synthesis pilot is next. |
+| 2026-03-27 | Phase 7 - GitHub Spec Kit Adoption | Done | Manifest-driven synthesis, conformance packs, semantic compare harness, 7.11 pilot proof, and 7.12 cleanup are complete. |
 
 ## Live TODO Activity Summary
 
@@ -49,8 +49,8 @@ This mirrors `TraderSpec/migration-todo.md` and highlights active execution sign
 | 7.8 | Implement manifest-driven synthesis generators | Done | All baseline component generators now synthesize from manifest + template. |
 | 7.9 | Add conformance packs (story/FR/NFR/contracts) | Done | Added per-component packs and validated all 9 baseline components through conformance gates. |
 | 7.10 | Add semantic generation compare harness | Done | Added per-component and all-component compare runners with semantic diff categorization. |
-| 7.11 | Pilot trade-service synthesis + parity proof | Planned | Re-run focused pilot proof on `trade-service` as the next checkpoint. |
-| 7.12 | Roll synthesis across all baseline components | Planned | Old direct-write generator scripts retired after all components pass. |
+| 7.11 | Pilot trade-service synthesis + parity proof | Done | `trade-service` compare harness returned no output diff and full parity runner passed including trade-service + Angular smoke checks. |
+| 7.12 | Roll synthesis across all baseline components | Done | All-component conformance+compare validation passed and residual hydrate/direct-write bridge usage was retired. |
 
 ## Phase 1 Findings
 
@@ -293,11 +293,24 @@ Replace template-driven direct source writes with a Spec Kit workflow where gene
 - Added semantic comparison harness (`compare-component-generation.sh`, `compare-all-component-generation.sh`) with category-level diff reporting.
 - Fixed compare harness portability on macOS bash 3.x (removed associative-array dependency), and validated compare-all execution.
 - Compare reports currently show `docs-spec` deltas only when comparing against older refs because `SPEC.manifest.json` timestamp format changed; source/runtime/contract files remain aligned.
+- Completed focused 7.11 `trade-service` proof with:
+  - `bash TraderSpec/pipeline/speckit/compare-component-generation.sh trade-service HEAD --allow-differences`
+  - result: no output differences for `trade-service`
+  - `bash TraderSpec/pipeline/speckit/run-full-parity-validation.sh`
+  - result: full pass including `trade-service` smoke checks and Angular UI/branding smoke checks
+- Completed 7.12 all-component proof with:
+  - `bash TraderSpec/pipeline/speckit/run-all-conformance-packs.sh`
+  - result: passed for all 9 generated baseline components
+  - `bash TraderSpec/pipeline/speckit/compare-all-component-generation.sh HEAD --allow-differences`
+  - result: no output differences across all 9 generated baseline components
+- Retired residual hydration bridge usage in specfirst regeneration path:
+  - `pipeline/generate-from-spec.sh` now assembles from synthesized `generated-components/*-specfirst` only
+  - `codebase/scripts/run-specfirst-generated-codebase.sh` and docs no longer use `--hydrate-from-source`
+  - base startup script now auto-falls back to pure-generated mode when legacy root baseline folders are absent
 
 ### Phase 7 Gap Confirmed
 
-- Remaining checkpoint is 7.11: run and record a focused `trade-service` full-synthesis pilot proof as a formal milestone.
-- After 7.11, execute 7.12 retirement cleanup of any residual direct-write generation paths.
+- Phase 7 is complete.
 
 ### Phase 7 Synthesis Cutover Plan
 
@@ -312,5 +325,5 @@ flowchart LR
 
 ## Next Up
 
-- Execute 7.11 focused `trade-service` synthesis pilot and capture proof artifacts.
+- Continue Phase 8 documentation and visual evidence maintenance.
 - Keep migration evidence and Mermaid visuals updated as synthesis milestones land.

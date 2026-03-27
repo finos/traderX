@@ -4,8 +4,8 @@ This is the long-running execution plan for moving TraderX from source-first to 
 
 ## Latest Update
 
-- Current phase: **Phase 7 in progress** (GitHub Spec Kit adoption, part B).
-- Current focus: execute 7.11 pilot full synthesis proof on `trade-service` now that 7.9 and 7.10 are complete.
+- Current phase: **Phase 8 in progress** (migration documentation + visual evidence).
+- Current focus: keep migration evidence/blog/TODO aligned after closing Phase 7 (Spec Kit adoption).
 - Current blocker: none.
 - Planned cutover order for pure generation is now documented in the migration blog (Phase 2 section).
 - Migration blog: `TraderSpec/migration-blog.md`
@@ -21,8 +21,8 @@ This is the long-running execution plan for moving TraderX from source-first to 
 | 4 - First Pure-Generated Component | Done | Generated `reference-data` and booted mixed mode sequence. |
 | 5 - Iterative Component Cutover | Done | All baseline components generated and validated in overlay mode. |
 | 6 - Source Deletion by Approval | Done | Legacy root components removed after sign-off. |
-| 7 - GitHub Spec Kit Adoption | In Progress | Execute 7.11 `trade-service` full-synthesis pilot proof, then close 7.12 cleanup. |
-| 8 - Migration Documentation + Visual Evidence | Pending | Continue blog and Mermaid proof artifacts as execution advances. |
+| 7 - GitHub Spec Kit Adoption | Done | Manifest-driven synthesis + conformance + compare harness + pilot proof + cleanup complete. |
+| 8 - Migration Documentation + Visual Evidence | In Progress | Continue blog and Mermaid proof artifacts as execution advances. |
 | 9 - TraderSpec Docs Consolidation | Pending | Remove legacy-spec noise once Spec Kit path is authoritative. |
 | 10 - Learning Path Evolution | Pending | Apply NFR/FR overlays for post-baseline states. |
 
@@ -70,7 +70,7 @@ Make TraderSpec the source of truth so original root source can be retired safel
 - [x] 6.1 Define sign-off checklist for deletion.
 - [x] 6.2 Remove source only after generated replacement is stable.
 
-- [ ] 7) Adopt GitHub Spec Kit workflow for requirements-first generation.
+- [x] 7) Adopt GitHub Spec Kit workflow for requirements-first generation.
 - [x] 7.1 Define Spec Kit artifact model (epics, features, user stories, acceptance criteria, FR, NFR, technical constraints).
 - [x] 7.2 Add requirement traceability mapping (requirements -> stories -> acceptance tests -> generated code units).
 - [x] 7.3 Update generation pipelines to consume Spec Kit artifacts as primary input (instead of direct file-writing templates only).
@@ -84,8 +84,8 @@ Make TraderSpec the source of truth so original root source can be retired safel
 - [x] 7.8.3 Apply the same manifest-driven synthesis pattern to remaining baseline components (`database`, `reference-data`, `trade-feed`, `people-service`, `web-front-end-angular`).
 - [x] 7.9 Add per-component conformance packs: user-story acceptance tests, FR checks, NFR checks, and contract validation gates.
 - [x] 7.10 Add generation comparison harness for each component (`legacy-dump` vs `speckit-synthesis`) with semantic diff categories.
-- [ ] 7.11 Pilot full synthesis on `trade-service` and prove parity with existing smoke tests and GUI flow.
-- [ ] 7.12 Roll synthesis approach across remaining baseline components and retire old direct-write generator scripts.
+- [x] 7.11 Pilot full synthesis on `trade-service` and prove parity with existing smoke tests and GUI flow.
+- [x] 7.12 Roll synthesis approach across remaining baseline components and retire old direct-write generator scripts.
 
 - [ ] 8) Document the migration journey with visual progress and evidence.
 - [ ] 8.1 Keep Mermaid journey/status graph updated.
@@ -181,3 +181,8 @@ flowchart LR
 - 2026-03-27: Executed `run-all-conformance-packs.sh` and validated all 9 baseline components against story/FR/NFR/acceptance/contract/verification gates.
 - 2026-03-27: Added semantic generation compare harness (`compare-all-component-generation.sh`) and categorized diffs by impact domain (source-code/runtime-config/contracts/build/deployment/seed/branding/docs/other).
 - 2026-03-27: Fixed compare harness portability on macOS bash 3 by removing associative-array usage; compare-all now completes successfully with semantic reporting.
+- 2026-03-27: Completed 7.11 `trade-service` pilot synthesis proof: `compare-component-generation.sh trade-service HEAD --allow-differences` reported no output differences.
+- 2026-03-27: Completed 7.11 runtime parity proof using `pipeline/speckit/run-full-parity-validation.sh`; startup, `trade-service` overlay smoke checks, and Angular UI/branding smoke checks passed.
+- 2026-03-27: Ran full all-component validation for 7.12: `run-all-conformance-packs.sh` passed and `compare-all-component-generation.sh HEAD --allow-differences` reported no output differences across all 9 generated baseline components.
+- 2026-03-27: Retired residual specfirst hydration bridge usage by updating `generate-from-spec.sh` to assemble target output from synthesized generated-components only (no `--hydrate-from-source` mode).
+- 2026-03-27: Updated specfirst run/docs to remove hydrate references and added automatic fallback in base startup script to pure-generated mode when legacy root baseline folders are absent.

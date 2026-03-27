@@ -93,6 +93,42 @@ if (( OVERLAY_REFERENCE_GENERATED == 1 &&
   PURE_GENERATED_BASE=1
 fi
 
+legacy_baseline_available() {
+  local required=(
+    "account-service"
+    "trade-service"
+    "position-service"
+    "trade-processor"
+    "reference-data"
+    "people-service"
+    "trade-feed"
+    "database"
+    "web-front-end/angular"
+  )
+
+  local path
+  for path in "${required[@]}"; do
+    if [[ ! -d "${REPO_ROOT}/${path}" ]]; then
+      return 1
+    fi
+  done
+  return 0
+}
+
+if (( PURE_GENERATED_BASE == 0 )) && ! legacy_baseline_available; then
+  echo "[info] legacy root baseline is not present; switching to pure-generated base layout"
+  PURE_GENERATED_BASE=1
+  OVERLAY_REFERENCE_GENERATED=1
+  OVERLAY_DATABASE_GENERATED=1
+  OVERLAY_PEOPLE_GENERATED=1
+  OVERLAY_ACCOUNT_GENERATED=1
+  OVERLAY_POSITION_GENERATED=1
+  OVERLAY_TRADE_FEED_GENERATED=1
+  OVERLAY_TRADE_PROCESSOR_GENERATED=1
+  OVERLAY_TRADE_SERVICE_GENERATED=1
+  OVERLAY_WEB_ANGULAR_GENERATED=1
+fi
+
 prepare_pure_generated_base_layout() {
   local generated_paths=(
     "${REFERENCE_DATA_SPECFIRST}"

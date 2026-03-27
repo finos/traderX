@@ -5,7 +5,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 TRADERSPEC_ROOT="${REPO_ROOT}/TraderSpec"
 TARGET="${TRADERSPEC_ROOT}/codebase/target-generated-specfirst"
 
-"${TRADERSPEC_ROOT}/pipeline/generate-from-spec.sh" --hydrate-from-source
+"${TRADERSPEC_ROOT}/pipeline/generate-from-spec.sh"
 "${TRADERSPEC_ROOT}/codebase/scripts/prepare-specfirst-layout.sh"
 
 echo "[run] starting spec-first generated codebase from ${TARGET}"
