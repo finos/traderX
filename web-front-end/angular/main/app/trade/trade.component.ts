@@ -10,7 +10,8 @@ import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 @Component({
     selector: 'app-trade',
     templateUrl: './trade.component.html',
-    styleUrls: ['./trade.component.scss']
+    styleUrls: ['./trade.component.scss'],
+    standalone: false
 })
 export class TradeComponent implements OnInit {
     accounts: Account[] = [];

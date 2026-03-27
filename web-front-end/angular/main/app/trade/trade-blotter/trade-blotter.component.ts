@@ -8,7 +8,8 @@ import { TradeFeedService } from 'main/app/service/trade-feed.service';
 
 @Component({
     selector: 'app-trade-blotter',
-    templateUrl: 'trade-blotter.component.html'
+    templateUrl: 'trade-blotter.component.html',
+    standalone: false
 })
 export class TradeBlotterComponent implements OnChanges, OnDestroy {
     trades$: Observable<Trade[]>;

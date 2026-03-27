@@ -5,9 +5,10 @@ import { Account } from 'main/app/model/account.model';
 import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
 
 @Component({
-  selector: 'app-trade-ticket',
-  templateUrl: './trade-ticket.component.html',
-  styleUrls: ['./trade-ticket.component.scss']
+    selector: 'app-trade-ticket',
+    templateUrl: './trade-ticket.component.html',
+    styleUrls: ['./trade-ticket.component.scss'],
+    standalone: false
 })
 export class TradeTicketComponent implements OnInit {
 

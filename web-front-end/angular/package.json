@@ -14,28 +14,28 @@
   "private": true,
   "license": "Apache-2.0",
   "dependencies": {
-    "@angular/animations": "^18.2.12",
-    "@angular/common": "^18.2.12",
-    "@angular/compiler": "^18.2.12",
-    "@angular/core": "^18.2.12",
-    "@angular/forms": "^18.2.12",
-    "@angular/platform-browser": "^18.2.12",
-    "@angular/platform-browser-dynamic": "^18.2.12",
-    "@angular/router": "^18.2.12",
+    "@angular/animations": "^20.3.15",
+    "@angular/common": "^20.3.15",
+    "@angular/compiler": "^20.3.15",
+    "@angular/core": "^20.3.15",
+    "@angular/forms": "^20.3.15",
+    "@angular/platform-browser": "^20.3.15",
+    "@angular/platform-browser-dynamic": "^20.3.15",
+    "@angular/router": "^20.3.15",
     "ag-grid-angular": "^32.2.1",
     "ag-grid-community": "^32.2.1",
     "bootstrap": "^5.3.3",
-    "ngx-bootstrap": "^18.0.2",
+    "ngx-bootstrap": "^20.0.2",
     "rxjs": "^7.8.1",
     "socket.io-client": "^4.8.1",
     "tslib": "^2.7.0",
-    "zone.js": "^0.14.10"
+    "zone.js": "^0.15.1"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^18.2.12",
-    "@angular/cli": "^18.2.12",
-    "@angular/compiler-cli": "^18.2.12",
-    "@angular/language-service": "^18.2.12",
+    "@angular-devkit/build-angular": "^20.3.15",
+    "@angular/cli": "^20.3.15",
+    "@angular/compiler-cli": "^20.3.15",
+    "@angular/language-service": "^20.3.15",
     "@faker-js/faker": "^9.0.3",
     "@types/jasmine": "^5.1.4",
     "@types/node": "^22.9.0",
@@ -51,6 +51,6 @@
     "puppeteer": "^23.8.0",
     "serve-handler": "^6.1.5",
     "ts-node": "^10.9.2",
-    "typescript": "~5.5.4"
+    "typescript": "~5.9.3"
   }
 }

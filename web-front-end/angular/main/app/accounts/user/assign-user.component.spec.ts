@@ -9,7 +9,8 @@ import { map, noop, Observable, Observer, of, switchMap, tap } from 'rxjs';
 
 @Component({
     selector: 'app-assign-user',
-    templateUrl: 'assign-user.component.html'
+    templateUrl: 'assign-user.component.html',
+    standalone: false
 })
 export class AssignUserToAccountComponent implements OnInit {
     @Input() accounts: any = [];
