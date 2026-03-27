@@ -84,6 +84,26 @@ bash TraderSpec/pipeline/speckit/compile-all-component-manifests.sh
 bash TraderSpec/pipeline/speckit/run-full-parity-validation.sh
 ```
 
+## Conformance Packs (Phase 7.9)
+
+```bash
+# Regenerate all per-component conformance pack docs
+bash TraderSpec/pipeline/speckit/sync-conformance-packs.sh
+
+# Validate all conformance packs (stories, FR/NFR mappings, contracts, verification refs)
+bash TraderSpec/pipeline/speckit/run-all-conformance-packs.sh
+```
+
+## Semantic Generation Compare Harness (Phase 7.10)
+
+```bash
+# Compare one component output against a legacy ref
+bash TraderSpec/pipeline/speckit/compare-component-generation.sh trade-service HEAD --allow-differences
+
+# Compare all generated components and print semantic diff categories
+bash TraderSpec/pipeline/speckit/compare-all-component-generation.sh HEAD --allow-differences
+```
+
 ## Mixed-Mode Cutover Command
 
 ```bash

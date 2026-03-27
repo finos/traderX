@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SPECKIT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/speckit"
+TRADERSPEC_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+SPECKIT_ROOT="${TRADERSPEC_ROOT}/speckit"
 SPECKIT_MATRIX="${SPECKIT_ROOT}/system/requirements-traceability.csv"
+SPECKIT_COMPONENT_CSV="${TRADERSPEC_ROOT}/catalog/component-spec.csv"
 
 speckit_assert_global_readiness() {
   local required=(
@@ -31,6 +33,10 @@ speckit_assert_global_readiness() {
       return 1
     fi
   done
+}
+
+speckit_list_generated_components() {
+  awk -F, 'NR > 1 && $3 ~ /generated-components\// { print $1 }' "${SPECKIT_COMPONENT_CSV}"
 }
 
 speckit_assert_component_ready() {

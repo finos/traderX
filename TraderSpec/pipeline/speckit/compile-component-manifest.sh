@@ -2,6 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+REPO_ROOT="$(cd "${ROOT}/.." && pwd)"
 source "${ROOT}/pipeline/speckit/lib.sh"
 
 COMPONENT_ID="${1:-}"
@@ -118,7 +119,14 @@ if [[ "${contract_file}" != "none" ]]; then
   contract_primary="\"$(json_escape "${contract_file}")\""
 fi
 
-timestamp_utc="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+timestamp_utc="${TRADERSPEC_MANIFEST_GENERATED_AT_UTC:-}"
+if [[ -z "${timestamp_utc}" ]]; then
+  if git -C "${REPO_ROOT}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    timestamp_utc="$(git -C "${REPO_ROOT}" show -s --format=%cI HEAD | sed 's/+00:00$/Z/')"
+  else
+    timestamp_utc="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+  fi
+fi
 depends_on_json="$(to_json_array_from_pipe "${depends_on}")"
 required_env_json="$(to_json_array_from_pipe "${required_env}")"
 requirements_json="$(to_json_array_from_lines "${requirements}")"

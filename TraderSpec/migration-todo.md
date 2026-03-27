@@ -5,7 +5,7 @@ This is the long-running execution plan for moving TraderX from source-first to 
 ## Latest Update
 
 - Current phase: **Phase 7 in progress** (GitHub Spec Kit adoption, part B).
-- Current focus: begin conformance-pack stage (7.9) after completing manifest-driven synthesis for all baseline components.
+- Current focus: execute 7.11 pilot full synthesis proof on `trade-service` now that 7.9 and 7.10 are complete.
 - Current blocker: none.
 - Planned cutover order for pure generation is now documented in the migration blog (Phase 2 section).
 - Migration blog: `TraderSpec/migration-blog.md`
@@ -21,7 +21,7 @@ This is the long-running execution plan for moving TraderX from source-first to 
 | 4 - First Pure-Generated Component | Done | Generated `reference-data` and booted mixed mode sequence. |
 | 5 - Iterative Component Cutover | Done | All baseline components generated and validated in overlay mode. |
 | 6 - Source Deletion by Approval | Done | Legacy root components removed after sign-off. |
-| 7 - GitHub Spec Kit Adoption | In Progress | Replace direct file-write generators with requirements-driven synthesis. |
+| 7 - GitHub Spec Kit Adoption | In Progress | Execute 7.11 `trade-service` full-synthesis pilot proof, then close 7.12 cleanup. |
 | 8 - Migration Documentation + Visual Evidence | Pending | Continue blog and Mermaid proof artifacts as execution advances. |
 | 9 - TraderSpec Docs Consolidation | Pending | Remove legacy-spec noise once Spec Kit path is authoritative. |
 | 10 - Learning Path Evolution | Pending | Apply NFR/FR overlays for post-baseline states. |
@@ -82,8 +82,8 @@ Make TraderSpec the source of truth so original root source can be retired safel
 - [x] 7.8.1 Convert `trade-service` to manifest-driven synthesis (template copy + manifest-derived runtime/env/contract wiring).
 - [x] 7.8.2 Convert `account-service`, `position-service`, and `trade-processor` to manifest-driven synthesis.
 - [x] 7.8.3 Apply the same manifest-driven synthesis pattern to remaining baseline components (`database`, `reference-data`, `trade-feed`, `people-service`, `web-front-end-angular`).
-- [ ] 7.9 Add per-component conformance packs: user-story acceptance tests, FR checks, NFR checks, and contract validation gates.
-- [ ] 7.10 Add generation comparison harness for each component (`legacy-dump` vs `speckit-synthesis`) with semantic diff categories.
+- [x] 7.9 Add per-component conformance packs: user-story acceptance tests, FR checks, NFR checks, and contract validation gates.
+- [x] 7.10 Add generation comparison harness for each component (`legacy-dump` vs `speckit-synthesis`) with semantic diff categories.
 - [ ] 7.11 Pilot full synthesis on `trade-service` and prove parity with existing smoke tests and GUI flow.
 - [ ] 7.12 Roll synthesis approach across remaining baseline components and retire old direct-write generator scripts.
 
@@ -177,3 +177,7 @@ flowchart LR
 - 2026-03-27: Converted remaining generator scripts (`database`, `reference-data`, `trade-feed`, `people-service`, `web-front-end-angular`) to manifest-driven synthesis with template roots and manifest artifacts.
 - 2026-03-27: Added additional template roots for non-Spring components: `templates/database-specfirst`, `templates/reference-data-specfirst`, `templates/trade-feed-specfirst`, and `templates/people-service-specfirst` (web Angular template reused from existing `templates/web-front-end/angular`).
 - 2026-03-27: Executed full parity validation (`pipeline/speckit/run-full-parity-validation.sh`) after all generator conversions; startup plus all overlay smoke tests passed.
+- 2026-03-27: Added per-component conformance-pack pipeline (`sync-conformance-packs.sh`, `run-component-conformance-pack.sh`, `run-all-conformance-packs.sh`) and generated docs under `speckit/conformance/**`.
+- 2026-03-27: Executed `run-all-conformance-packs.sh` and validated all 9 baseline components against story/FR/NFR/acceptance/contract/verification gates.
+- 2026-03-27: Added semantic generation compare harness (`compare-all-component-generation.sh`) and categorized diffs by impact domain (source-code/runtime-config/contracts/build/deployment/seed/branding/docs/other).
+- 2026-03-27: Fixed compare harness portability on macOS bash 3 by removing associative-array usage; compare-all now completes successfully with semantic reporting.
