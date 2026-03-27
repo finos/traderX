@@ -1,3 +1,19 @@
+---
+id: learn-adr-002-milestone-state-selection
+title: "ADR-002 Milestone State Selection"
+level: 2
+prereqs:
+  - learn-adr-001-multi-branch-state-management
+outcomes:
+  - "Understand milestone tiers and state prioritization criteria."
+state:
+  id: "02-containerized"
+  diffFromPrev: true
+tags: ["adr", "milestones", "prioritization"]
+estimatedTimeMins: 15
+owner: "@finos/traderx-maintainers"
+---
+
 # ADR-002: Milestone State Selection
 
 ## Status

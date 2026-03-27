@@ -1,3 +1,19 @@
+---
+id: learn-adr-005-documentation-generation
+title: "ADR-005 Documentation Generation and Management"
+level: 5
+prereqs:
+  - learn-adr-004-testing-strategy-across-states
+outcomes:
+  - "Explain metadata-driven documentation generation for evolving states."
+state:
+  id: "05-ai-first"
+  diffFromPrev: true
+tags: ["adr", "documentation", "automation"]
+estimatedTimeMins: 15
+owner: "@finos/traderx-maintainers"
+---
+
 # ADR-005: Documentation Generation and Management
 
 ## Status
@@ -233,7 +249,7 @@ if __name__ == '__main__':
 ```
 
 #### Migration Guide Template
-```markdown
+````markdown
 <!-- templates/migration-guide.md.j2 -->
 # Migration Guide: {{ from_state }} → {{ to_state }}
 
@@ -309,7 +325,7 @@ Verify your migration was successful:
 
 ## Next Steps
 <!-- Possible learning paths from this state -->
-```
+````
 
 ### 3. Interactive Documentation Features
 

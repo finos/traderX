@@ -1,3 +1,19 @@
+---
+id: learn-adr-001-multi-branch-state-management
+title: "ADR-001 Multi-Branch State Management"
+level: 1
+prereqs:
+  - learn-strategy
+outcomes:
+  - "Explain why multi-branch state management was chosen over alternatives."
+state:
+  id: "01-basic-microservices"
+  diffFromPrev: true
+tags: ["adr", "state-management", "git"]
+estimatedTimeMins: 15
+owner: "@finos/traderx-maintainers"
+---
+
 # ADR-001: Multi-Branch State Management
 
 ## Status

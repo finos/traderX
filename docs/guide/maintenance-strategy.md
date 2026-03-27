@@ -1,3 +1,20 @@
+---
+id: learn-maintenance-strategy
+title: "Maintenance Strategy for Multi-State Repository"
+level: 4
+prereqs:
+  - learn-track-definitions
+outcomes:
+  - "Apply maintenance tiers and update policies across multiple states."
+  - "Use automated processes to reduce operational drift."
+state:
+  id: "04-contract-driven"
+  diffFromPrev: true
+tags: ["maintenance", "operations", "quality"]
+estimatedTimeMins: 25
+owner: "@finos/traderx-maintainers"
+---
+
 # Maintenance Strategy for Multi-State Repository
 
 ## Challenge Overview

@@ -1,0 +1,35 @@
+openapi: 3.0.1
+info:
+  title: FINOS TraderX Position Service (Spec-First)
+  version: 0.1.0
+paths:
+  /trades/{accountId}:
+    get:
+      responses:
+        "200":
+          description: OK
+  /trades/:
+    get:
+      responses:
+        "200":
+          description: OK
+  /positions/{accountId}:
+    get:
+      responses:
+        "200":
+          description: OK
+  /positions/:
+    get:
+      responses:
+        "200":
+          description: OK
+  /health/ready:
+    get:
+      responses:
+        "200":
+          description: OK
+  /health/alive:
+    get:
+      responses:
+        "200":
+          description: OK

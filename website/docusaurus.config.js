@@ -19,6 +19,10 @@ module.exports = {
   },
   scripts: ['https://buttons.github.io/buttons.js'],
   stylesheets: ['https://fonts.googleapis.com/css?family=Overpass:400,400i,700'],
+  markdown: {
+    mermaid: true,
+  },
+  themes: ['@docusaurus/theme-mermaid'],
   themeConfig: {
     navbar: {
       title: `TraderX`,
@@ -28,6 +32,9 @@ module.exports = {
       },
       items: [
         {to: 'docs/home', label: 'Docs', position: 'right'},
+        {to: 'docs/traderspec', label: 'TraderSpec', position: 'right'},
+        {to: '/traderspec-specs/', label: 'TraderSpec Specs', position: 'right'},
+        {to: 'docs/learning-paths/index', label: 'Learning Paths', position: 'right'},
         {to: 'docs/roadmap', label: 'Roadmap', position: 'right'},
         {to: 'docs/team', label: 'Team', position: 'right'},
         {
@@ -105,6 +112,7 @@ module.exports = {
       {
         docs: {
           path: '../docs',
+          exclude: ['prompt-ideas/**'],
           editUrl:
             'https://github.com/finos/traderX/edit/main/website/',
           sidebarPath: require.resolve('./sidebars.js')
@@ -114,5 +122,19 @@ module.exports = {
         }
       }
     ]
-  ]
+  ],
+  plugins: [
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'traderspec',
+        path: '../TraderSpec',
+        routeBasePath: 'traderspec-specs',
+        sidebarPath: require.resolve('./traderspec.sidebars.js'),
+        include: ['**/*.md', '**/*.mdx'],
+        exclude: ['codebase/target-generated/**', 'codebase/target-generated-specfirst/**'],
+        editUrl: 'https://github.com/finos/traderX/edit/main/TraderSpec/',
+      },
+    ],
+  ],
 };

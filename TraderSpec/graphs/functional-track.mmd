@@ -1,0 +1,11 @@
+flowchart LR
+  B["Base: Traditional (pre-Docker)"] --> F1["F 01 Common Data Model"]
+  F1 --> F2["F 02 Real-Time Pricing"]
+  F2 --> F3A["F 03 Advanced Orders"]
+  F2 --> F3B["F 03 Portfolio Analytics"]
+  F3A --> F4A["F 04 Angular Modern"]
+  F3A --> F4B["F 04 Micro-Frontends"]
+  F3B --> F4A
+  F3B --> F4B
+  F4A --> F5["F 05 Event-Driven"]
+  F4B --> F5

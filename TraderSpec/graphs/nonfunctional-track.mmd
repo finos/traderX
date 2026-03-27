@@ -1,0 +1,12 @@
+flowchart LR
+  B["Base: Traditional (pre-Docker)"] --> N1["NF 01 Basic Auth"]
+  N1 --> N2A["NF 02 OAuth2"]
+  N1 --> N2B["NF 02 Zero Trust"]
+  N2A --> N3["NF 03 Observability"]
+  N2B --> N3
+  N3 --> N4A["NF 04 Redis Caching"]
+  N3 --> N4B["NF 04 Distributed Caching"]
+  N4A --> N5A["NF 05 Postgres HA"]
+  N4A --> N5B["NF 05 Circuit Breakers"]
+  N4B --> N5A
+  N4B --> N5B

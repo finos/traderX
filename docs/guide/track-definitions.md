@@ -1,3 +1,20 @@
+---
+id: learn-track-definitions
+title: "Learning Track Definitions"
+level: 3
+prereqs:
+  - learn-implementation-roadmap
+outcomes:
+  - "Differentiate DevEx, non-functional, and functional learning tracks."
+  - "Map track progression to state-based implementation milestones."
+state:
+  id: "03-service-mesh"
+  diffFromPrev: true
+tags: ["tracks", "curriculum", "service-mesh"]
+estimatedTimeMins: 30
+owner: "@finos/traderx-maintainers"
+---
+
 # TraderX Learning Track Definitions
 
 ## Overview

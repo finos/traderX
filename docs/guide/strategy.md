@@ -1,3 +1,20 @@
+---
+id: learn-strategy
+title: "TraderX Multi-State Learning Path Strategy"
+level: 0
+prereqs:
+  - learn-guide-index
+outcomes:
+  - "Explain the strategic goals and principles behind the state-based model."
+  - "Describe why TraderX is being organized as a learning platform."
+state:
+  id: "00-monolith"
+  diffFromPrev: false
+tags: ["strategy", "learning-path", "governance"]
+estimatedTimeMins: 20
+owner: "@finos/traderx-maintainers"
+---
+
 # TraderX Multi-State Learning Path Strategy
 
 ## Vision

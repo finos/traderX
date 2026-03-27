@@ -1,0 +1,33 @@
+graph TD
+  Base["base-00-traditional"]
+
+  Base --> D1["devex-01-foundation"]
+  D1 --> D2["devex-02-docker-compose"]
+  D2 --> D3["devex-03-tilt-dev"]
+  D3 --> D4A["devex-04-kubernetes"]
+  D3 --> D4B["devex-04-radius"]
+  D4A --> D5["devex-05-gitops"]
+  D4B --> D5
+
+  Base --> N1["nf-01-basic-auth"]
+  N1 --> N2A["nf-02-oauth2"]
+  N1 --> N2B["nf-02-zero-trust"]
+  N2A --> N3["nf-03-observability"]
+  N2B --> N3
+  N3 --> N4A["nf-04-redis-caching"]
+  N3 --> N4B["nf-04-distributed-caching"]
+  N4A --> N5A["nf-05-postgres-ha"]
+  N4A --> N5B["nf-05-circuit-breakers"]
+  N4B --> N5A
+  N4B --> N5B
+
+  Base --> F1["func-01-common-data-model"]
+  F1 --> F2["func-02-real-time-pricing"]
+  F2 --> F3A["func-03-advanced-orders"]
+  F2 --> F3B["func-03-portfolio-analytics"]
+  F3A --> F4A["func-04-angular-modern"]
+  F3A --> F4B["func-04-micro-frontends"]
+  F3B --> F4A
+  F3B --> F4B
+  F4A --> F5["func-05-event-driven"]
+  F4B --> F5

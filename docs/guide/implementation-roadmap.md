@@ -1,3 +1,20 @@
+---
+id: learn-implementation-roadmap
+title: "Implementation Roadmap"
+level: 2
+prereqs:
+  - learn-learning-path-architecture
+outcomes:
+  - "Understand phased delivery for the learning-path transformation."
+  - "Identify concrete milestones and success criteria for rollout."
+state:
+  id: "02-containerized"
+  diffFromPrev: true
+tags: ["roadmap", "execution", "delivery"]
+estimatedTimeMins: 25
+owner: "@finos/traderx-maintainers"
+---
+
 # Implementation Roadmap
 
 ## Overview

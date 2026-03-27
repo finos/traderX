@@ -1,3 +1,19 @@
+---
+id: learn-adr-003-dependency-management-strategy
+title: "ADR-003 Dependency Management Strategy"
+level: 4
+prereqs:
+  - learn-adr-002-milestone-state-selection
+outcomes:
+  - "Apply tiered dependency policies across learning states."
+state:
+  id: "04-contract-driven"
+  diffFromPrev: true
+tags: ["adr", "dependencies", "security"]
+estimatedTimeMins: 15
+owner: "@finos/traderx-maintainers"
+---
+
 # ADR-003: Dependency Management Strategy
 
 ## Status

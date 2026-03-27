@@ -1,3 +1,19 @@
+---
+id: learn-adr-004-testing-strategy-across-states
+title: "ADR-004 Testing Strategy Across States"
+level: 4
+prereqs:
+  - learn-adr-002-milestone-state-selection
+outcomes:
+  - "Define tiered testing expectations for each state category."
+state:
+  id: "04-contract-driven"
+  diffFromPrev: true
+tags: ["adr", "testing", "quality-gates"]
+estimatedTimeMins: 15
+owner: "@finos/traderx-maintainers"
+---
+
 # ADR-004: Testing Strategy Across States
 
 ## Status

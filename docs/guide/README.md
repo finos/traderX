@@ -1,3 +1,18 @@
+---
+id: learn-guide-index
+title: "Learning Path Guide Index"
+level: 0
+prereqs: []
+outcomes:
+  - "Understand where strategy, architecture, and ADR guides live."
+state:
+  id: "00-monolith"
+  diffFromPrev: false
+tags: ["learning-path", "index", "docs"]
+estimatedTimeMins: 10
+owner: "@finos/traderx-maintainers"
+---
+
 # TraderX Learning Path Strategy
 
 This directory contains the strategy and planning documentation for implementing a multi-state learning path system for the TraderX project.
@@ -5,6 +20,13 @@ This directory contains the strategy and planning documentation for implementing
 ## Overview
 
 TraderX is being transformed into an educational platform that demonstrates multiple evolutionary states of a trading application, each representing different architectural decisions, deployment strategies, and feature sets. Rather than maintaining separate repositories for each variation, we use a multi-branch approach where each state is represented by a specific commit hash in a dedicated branch.
+
+## Learning-Path Runtime Scaffolding
+
+- State folders: `states/00-monolith` through `states/05-ai-first`
+- Prompt pack: `prompts/**`
+- Contracts and architecture specs: `specs/contracts` and `specs/architecture`
+- Learning graph index: `docs/learning-paths/index.md`
 
 ## Documentation Structure
 

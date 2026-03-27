@@ -1,0 +1,9 @@
+{
+  "label": "Learning Guides",
+  "position": 20,
+  "link": {
+    "type": "generated-index",
+    "title": "TraderX Learning Guides",
+    "description": "Strategy, architecture, roadmap, and operating guidance."
+  }
+}

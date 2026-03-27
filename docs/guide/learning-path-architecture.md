@@ -1,3 +1,20 @@
+---
+id: learn-learning-path-architecture
+title: "Learning Path Architecture"
+level: 1
+prereqs:
+  - learn-strategy
+outcomes:
+  - "Understand the intended learning-path architecture and branch/state structure."
+  - "Relate architectural decisions to state management constraints."
+state:
+  id: "01-basic-microservices"
+  diffFromPrev: true
+tags: ["architecture", "states", "repository-design"]
+estimatedTimeMins: 25
+owner: "@finos/traderx-maintainers"
+---
+
 # Learning Path Architecture
 
 ## Technical Implementation Details

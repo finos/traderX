@@ -1,0 +1,66 @@
+<div class="p-4">
+    <div class="mb-3 row">
+        <label class="col-sm-2 col-form-label me-3">Account</label>
+        <div class="col-sm-8">
+            <input readonly disabled class="form-control" id="accountLabel" [value]="account?.displayName" />
+        </div>
+    </div>
+    <div class="mb-3 row">
+        <label class="col-sm-2 col-form-label me-3">Security</label>
+        <div class="col-sm-8">
+            <input
+                id="stock-input"
+                [minLength]="1"
+                [(ngModel)]="selectedCompany"
+                [typeahead]="filteredStocks"
+                typeaheadOptionField="companyName"
+                (typeaheadOnSelect)="onSelect($event)"
+                (blur)="onBlur()"
+                placeholder="Search security"
+                class="form-control"
+            />
+        </div>
+    </div>
+
+    <div class="mb-3 row">
+        <label class="col-sm-2 col-form-label me-3">Side</label>
+        <div class="col-sm-8">
+            <div class="btn-group">
+                <input
+                    type="radio"
+                    class="btn-check"
+                    name="sideButton"
+                    value="Buy"
+                    id="buyButton"
+                    [(ngModel)]="ticket.side"
+                    checked
+                    #buyButton
+                />
+                <label class="btn" [ngClass]="buyButton.checked ? 'btn-info btn-sm' : 'btn-secondary btn-sm'" for="buyButton">Buy</label>
+
+                <input
+                    type="radio"
+                    class="btn-check"
+                    name="sideButton"
+                    value="Sell"
+                    id="sellButton"
+                    [(ngModel)]="ticket.side"
+                    #sellButton
+                />
+                <label class="btn" [ngClass]="sellButton.checked ? 'btn-warning btn-sm' : 'btn-secondary btn-sm'" for="sellButton"
+                    >Sell</label
+                >
+            </div>
+        </div>
+    </div>
+    <div class="mb-3 row">
+        <label class="col-sm-2 col-form-label me-3">Quantity</label>
+        <div class="col-sm-8">
+            <input class="form-control d-inline-block" id="quantityField" type="number" [(ngModel)]="ticket.quantity" />
+        </div>
+    </div>
+    <div class="mb-3 row">
+        <button class="btn btn-sm btn-primary col-sm-3 me-2" id="createButton" (click)="onCreate()">Create</button>
+        <button class="btn btn-sm btn-secondary col-sm-3" id="cancelButton" (click)="onCancel()">Close</button>
+    </div>
+</div>
