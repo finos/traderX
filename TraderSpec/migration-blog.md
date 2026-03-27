@@ -12,6 +12,7 @@ This blog tracks major migration phases, findings, and decisions as we execute `
 | 2026-03-27 | Phase 5 - Iterative Component Cutover | Done | All base-case components (including Angular UI) validated green in mixed generated mode. |
 | 2026-03-27 | Phase 6 - Source Deletion by Approval | Done | Legacy root component sources removed; pure-generated base startup and web smoke checks validated. |
 | 2026-03-27 | Phase 7 - GitHub Spec Kit Adoption | Done | Manifest-driven synthesis, conformance packs, semantic compare harness, 7.11 pilot proof, and 7.12 cleanup are complete. |
+| 2026-03-27 | Phase 8 - Migration Documentation + Visual Evidence | Done | Mermaid visuals and migration evidence were consolidated and synchronized with TODO/blog status. |
 
 ## Live TODO Activity Summary
 
@@ -243,7 +244,7 @@ flowchart LR
   V1 --> S1["phase 6 sign-off complete"]
 ```
 
-## Phase 7: GitHub Spec Kit Adoption (In Progress)
+## Phase 7: GitHub Spec Kit Adoption (Completed)
 
 ### Goal
 
@@ -325,5 +326,26 @@ flowchart LR
 
 ## Next Up
 
-- Continue Phase 8 documentation and visual evidence maintenance.
+- Execute Phase 9 documentation consolidation.
 - Keep migration evidence and Mermaid visuals updated as synthesis milestones land.
+
+## Phase 8: Documentation And Evidence Closure (Completed)
+
+### Evidence Graph
+
+```mermaid
+flowchart LR
+  S1["Spec Kit readiness"] --> S2["Manifest compilation"]
+  S2 --> S3["Component synthesis"]
+  S3 --> S4["Conformance packs (all components)"]
+  S4 --> S5["Compare harness (all components)"]
+  S5 --> S6["Runtime parity validation"]
+  S6 --> S7["TODO + Blog evidence published"]
+```
+
+### Evidence Summary
+
+- `bash TraderSpec/pipeline/speckit/run-all-conformance-packs.sh` passed all 9 generated baseline components.
+- `bash TraderSpec/pipeline/speckit/compare-all-component-generation.sh HEAD --allow-differences` reported no output differences for all 9 generated baseline components.
+- `bash TraderSpec/pipeline/speckit/run-full-parity-validation.sh` passed startup and smoke checks including trade-service and Angular UI/branding.
+- Migration status artifacts were updated in `TraderSpec/migration-todo.md` and `TraderSpec/migration-blog.md` with finalized Phase 7 evidence and closure state.

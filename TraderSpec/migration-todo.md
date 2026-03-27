@@ -4,8 +4,8 @@ This is the long-running execution plan for moving TraderX from source-first to 
 
 ## Latest Update
 
-- Current phase: **Phase 8 in progress** (migration documentation + visual evidence).
-- Current focus: keep migration evidence/blog/TODO aligned after closing Phase 7 (Spec Kit adoption).
+- Current phase: **Phase 8 complete** (migration documentation + visual evidence).
+- Current focus: begin Phase 9 docs consolidation and remove remaining redundancy around TraderSpec guidance.
 - Current blocker: none.
 - Planned cutover order for pure generation is now documented in the migration blog (Phase 2 section).
 - Migration blog: `TraderSpec/migration-blog.md`
@@ -22,8 +22,8 @@ This is the long-running execution plan for moving TraderX from source-first to 
 | 5 - Iterative Component Cutover | Done | All baseline components generated and validated in overlay mode. |
 | 6 - Source Deletion by Approval | Done | Legacy root components removed after sign-off. |
 | 7 - GitHub Spec Kit Adoption | Done | Manifest-driven synthesis + conformance + compare harness + pilot proof + cleanup complete. |
-| 8 - Migration Documentation + Visual Evidence | In Progress | Continue blog and Mermaid proof artifacts as execution advances. |
-| 9 - TraderSpec Docs Consolidation | Pending | Remove legacy-spec noise once Spec Kit path is authoritative. |
+| 8 - Migration Documentation + Visual Evidence | Done | Journey docs and Mermaid proof artifacts updated through Phase 7 closeout. |
+| 9 - TraderSpec Docs Consolidation | In Progress | Remove legacy-spec noise once Spec Kit path is authoritative. |
 | 10 - Learning Path Evolution | Pending | Apply NFR/FR overlays for post-baseline states. |
 
 ## Current Reality Check (Confirmed)
@@ -87,9 +87,9 @@ Make TraderSpec the source of truth so original root source can be retired safel
 - [x] 7.11 Pilot full synthesis on `trade-service` and prove parity with existing smoke tests and GUI flow.
 - [x] 7.12 Roll synthesis approach across remaining baseline components and retire old direct-write generator scripts.
 
-- [ ] 8) Document the migration journey with visual progress and evidence.
-- [ ] 8.1 Keep Mermaid journey/status graph updated.
-- [ ] 8.2 Keep execution log with decisions, blockers, and outcomes.
+- [x] 8) Document the migration journey with visual progress and evidence.
+- [x] 8.1 Keep Mermaid journey/status graph updated.
+- [x] 8.2 Keep execution log with decisions, blockers, and outcomes.
 
 - [ ] 9) Consolidate documentation around TraderSpec after base-case completion.
 - [ ] 9.1 Remove/merge redundant docs.
@@ -108,9 +108,9 @@ flowchart LR
   P3 --> P4["Phase 4: First Pure-Generated Component (Done)"]
   P4 --> P5["Phase 5: Iterative Component Cutover (Done)"]
   P5 --> P6["Phase 6: Source Deletion by Approval (Done)"]
-  P6 --> P7["Phase 7: GitHub Spec Kit Adoption + Synthesis Cutover (Current)"]
-  P7 --> P8["Phase 8: Journey Documentation + Visual Progress (Planned)"]
-  P8 --> P9["Phase 9: TraderSpec Doc Consolidation (Planned)"]
+  P6 --> P7["Phase 7: GitHub Spec Kit Adoption + Synthesis Cutover (Done)"]
+  P7 --> P8["Phase 8: Journey Documentation + Visual Progress (Done)"]
+  P8 --> P9["Phase 9: TraderSpec Doc Consolidation (Current)"]
   P9 --> P10["Phase 10: Learning-Path State Evolution (Planned)"]
 ```
 
@@ -186,3 +186,4 @@ flowchart LR
 - 2026-03-27: Ran full all-component validation for 7.12: `run-all-conformance-packs.sh` passed and `compare-all-component-generation.sh HEAD --allow-differences` reported no output differences across all 9 generated baseline components.
 - 2026-03-27: Retired residual specfirst hydration bridge usage by updating `generate-from-spec.sh` to assemble target output from synthesized generated-components only (no `--hydrate-from-source` mode).
 - 2026-03-27: Updated specfirst run/docs to remove hydrate references and added automatic fallback in base startup script to pure-generated mode when legacy root baseline folders are absent.
+- 2026-03-27: Completed Phase 8 documentation closure: updated migration timeline/status, maintained Mermaid progress visuals, and captured final Phase 7 evidence commands/results in the migration blog.
