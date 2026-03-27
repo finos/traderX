@@ -20,16 +20,9 @@ echo "Database name is ${DATABASE_DBNAME}"
 echo "Running schema setup script"
 echo "---------------------------------------------------------------------------"
 
-java -cp "${DATABASE_H2JAR}" org.h2.tools.RunScript \
-  -url "jdbc:h2:${DATABASE_DATA_DIR}/${DATABASE_DBNAME};DATABASE_TO_UPPER=TRUE;TRACE_LEVEL_SYSTEM_OUT=3" \
-  -user "${DATABASE_DBUSER}" \
-  -password "${DATABASE_DBPASS}" \
-  -script initialSchema.sql
+java -cp "${DATABASE_H2JAR}" org.h2.tools.RunScript   -url "jdbc:h2:${DATABASE_DATA_DIR}/${DATABASE_DBNAME};DATABASE_TO_UPPER=TRUE;TRACE_LEVEL_SYSTEM_OUT=3"   -user "${DATABASE_DBUSER}"   -password "${DATABASE_DBPASS}"   -script initialSchema.sql
 
 echo "Starting Database Server"
 echo "---------------------------------------------------------------------------"
 
-exec java -jar "${DATABASE_H2JAR}" \
-  -pg -pgPort "${DATABASE_PG_PORT}" -pgAllowOthers -baseDir "${DATABASE_DATA_DIR}" \
-  -tcp -tcpPort "${DATABASE_TCP_PORT}" -tcpAllowOthers \
-  -web -webPort "${DATABASE_WEB_PORT}" -webExternalNames "${DATABASE_WEB_HOSTNAMES}" -webAllowOthers
+exec java -jar "${DATABASE_H2JAR}"   -pg -pgPort "${DATABASE_PG_PORT}" -pgAllowOthers -baseDir "${DATABASE_DATA_DIR}"   -tcp -tcpPort "${DATABASE_TCP_PORT}" -tcpAllowOthers   -web -webPort "${DATABASE_WEB_PORT}" -webExternalNames "${DATABASE_WEB_HOSTNAMES}" -webAllowOthers

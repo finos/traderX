@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAtUtc": "2026-03-27T14:34:46Z",
+  "component": {
+    "id": "trade-processor",
+    "kind": "service",
+    "language": "Java",
+    "framework": "Spring Boot",
+    "buildTool": "Gradle",
+    "sourcePath": "TraderSpec/codebase/generated-components/trade-processor-specfirst",
+    "targetPath": "apps/trade-processor",
+    "notes": "Consumes /trades topic, persists trades/positions, and publishes account trade/position updates."
+  },
+  "runtime": {
+    "defaultPort": 18091,
+    "dependsOn": ["database","trade-feed"],
+    "requiredEnv": ["TRADE_PROCESSOR_SERVICE_PORT","DATABASE_TCP_HOST","DATABASE_TCP_PORT","DATABASE_NAME","DATABASE_DBUSER","DATABASE_DBPASS","TRADE_FEED_ADDRESS","TRADE_FEED_HOST","CORS_ALLOWED_ORIGINS"]
+  },
+  "contracts": {
+    "primary": "TraderSpec/speckit/contracts/trade-processor/openapi.yaml"
+  },
+  "traceability": {
+    "requirements": ["SYS-FR-001","SYS-FR-007","SYS-FR-011"],
+    "stories": ["US-004","US-007","US-008"],
+    "acceptanceCriteria": ["AC-001","AC-005","AC-009"],
+    "flows": ["F4","STARTUP"],
+    "verificationRefs": ["TraderSpec/codebase/scripts/start-base-uncontainerized-hydrated.sh","TraderSpec/codebase/scripts/test-trade-processor-overlay.sh"]
+  },
+  "constraints": {
+    "preIngressCorsRequired": false
+  }
+}

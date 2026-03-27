@@ -1,0 +1,9 @@
+{
+  "label": "Contracts",
+  "position": 3,
+  "link": {
+    "type": "generated-index",
+    "title": "Contracts",
+    "description": "Spec Kit contract references used for generation and parity checks."
+  }
+}

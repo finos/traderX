@@ -1,6 +1,6 @@
 # Trade-Processor (Spec-First Generated)
 
-This component is generated from TraderSpec requirements for the baseline, pre-containerized runtime.
+This component is synthesized from the TraderSpec Spec Kit manifest for the baseline pre-containerized runtime.
 
 ## Run
 

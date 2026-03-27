@@ -1,5 +1,7 @@
 #TraderSpec#
 **/.run
+TraderSpec/codebase/target-generated/
+TraderSpec/codebase/target-generated-specfirst/
 
 
 HELP.md

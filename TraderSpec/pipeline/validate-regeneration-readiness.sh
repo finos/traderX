@@ -11,6 +11,10 @@ required_specs=(
   "${ROOT}/foundation/00-traditional-to-cloud-native/specs/07-ui-requirements-detailed.md"
   "${ROOT}/foundation/00-traditional-to-cloud-native/specs/08-requirements-traceability-matrix.md"
   "${ROOT}/foundation/00-traditional-to-cloud-native/specs/09-regeneration-strategy.md"
+  "${ROOT}/speckit/system/system-requirements.md"
+  "${ROOT}/speckit/system/user-stories.md"
+  "${ROOT}/speckit/system/acceptance-criteria.md"
+  "${ROOT}/speckit/system/requirements-traceability.csv"
 )
 
 for f in "${required_specs[@]}"; do
@@ -18,6 +22,7 @@ for f in "${required_specs[@]}"; do
 done
 
 [[ -f "${CSV}" ]] || { echo "[missing-spec] ${CSV}"; exit 1; }
+"${ROOT}/pipeline/speckit/validate-speckit-readiness.sh"
 
 row=0
 services=0
@@ -34,11 +39,6 @@ while IFS=, read -r component_id kind source_path target_path language framework
   [[ -n "${target_path}" ]] || { echo "[fail] empty target_path for ${component_id}"; exit 1; }
   [[ -n "${language}" ]] || { echo "[fail] empty language for ${component_id}"; exit 1; }
   [[ -n "${framework}" ]] || { echo "[fail] empty framework for ${component_id}"; exit 1; }
-
-  if [[ ! -e "${REPO_ROOT}/${source_path}" ]]; then
-    echo "[fail] source path not found for ${component_id}: ${source_path}"
-    exit 1
-  fi
 
   if [[ "${contract_file}" != "none" && ! -f "${REPO_ROOT}/${contract_file}" ]]; then
     echo "[fail] contract file missing for ${component_id}: ${contract_file}"

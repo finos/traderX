@@ -1,12 +1,17 @@
 # TraderSpec
 
-TraderSpec is the spec-driven redesign workspace for TraderX.
+TraderSpec is the requirements-first redesign workspace for TraderX.
 
-It defines how to rebuild a full codebase from explicit specifications while staying tightly aligned to how TraderX works today.
+It defines how to rebuild and evolve the codebase from explicit specifications while staying tightly aligned to TraderX behavior.
 
 ## Project Mission
 
-Bring TraderX into the agentic AI era by making specifications, contracts, and state overlays the primary artifact, so full runnable implementations are generated from spec history instead of maintained manually as hand-authored source trees.
+Move TraderX from legacy spec scaffolding to a GitHub Spec Kit operating model where:
+
+- requirements, user stories, and acceptance criteria are the primary source of truth
+- contracts and traceability are enforced before generation
+- generated code is validated against parity and smoke checks
+- legacy source-first assumptions are phased out
 
 ## Design Rules
 
@@ -14,29 +19,38 @@ Bring TraderX into the agentic AI era by making specifications, contracts, and s
 2. Keep a single baseline functional requirements spec for core trading behavior.
 3. Add non-functional overlays per learning-path step.
 4. Add new functional requirements only on the Functional track.
-5. Generate implementation artifacts from specs, then verify against contracts.
+5. Generate implementation artifacts from Spec Kit requirements, then verify against contracts and parity checks.
+
+## Current Approach (Spec Kit First)
+
+- Active spec source: `TraderSpec/speckit/**`
+- `TraderSpec Specs` docs route is focused on Spec Kit artifacts.
+- Component generators are gated by Spec Kit readiness and traceability checks.
+- Baseline component generation now uses manifest-driven synthesis (compiled manifest + component templates).
+- End-to-end parity validation is required to prove generated output matches expected baseline behavior.
 
 ## Structure
 
 - `foundation/00-traditional-to-cloud-native/` - baseline functional model and current-system capture
+- `speckit/` - GitHub Spec Kit requirements, user stories, acceptance criteria, and traceability
 - `tracks/` - DevEx, Non-Functional, and Functional step specs
 - `prompts/` - agent prompt pack for generation, validation, and migration
 - `catalog/` - machine-readable graph of nodes and transitions
-- `templates/` - GitHub spec-kit style templates
+- `templates/` - reusable code and prompt templates
 - `graphs/` - Mermaid source files
 - `pipeline/` - scripts to verify and orchestrate spec-to-code flow
 - `codebase/` - target area for generated implementation
 
 ## End Goal
 
-`codebase/target-generated/` becomes the full implementation produced from these specs, validated against requirements and contracts.
+`codebase/target-generated/` becomes the full implementation produced from Spec Kit requirements and validated by expressiveness, contract, and runtime parity checks.
 
 ## Baseline vs Parity
 
-- **Baseline** = the requirement model and technical specification set.
-- **Parity snapshot** = copied reference implementation used only for comparison.
+- **Baseline** = the Spec Kit requirement model and technical constraints for the current state.
+- **Parity** = behavioral equivalence checks between generated output and expected runtime flows/contracts.
 
-Use parity to validate behavior, not as generation input.
+Use parity as a validation gate, not as generation input.
 
 ## Migration Program
 
@@ -51,8 +65,23 @@ Track the full multi-phase migration plan in:
 # Validate spec completeness for regeneration
 ./TraderSpec/pipeline/validate-regeneration-readiness.sh
 
+# Validate Spec Kit requirements/user-story traceability
+./TraderSpec/pipeline/speckit/validate-speckit-readiness.sh
+
+# Validate Spec Kit expressiveness and requirement mapping coverage
+./TraderSpec/pipeline/speckit/verify-spec-expressiveness.sh
+
+# Compile normalized generation manifests from Spec Kit artifacts
+bash TraderSpec/pipeline/speckit/compile-all-component-manifests.sh
+
 # Generate spec-first component scaffold (no source copy)
 ./TraderSpec/pipeline/generate-from-spec.sh
+```
+
+## Full Parity Gate
+
+```bash
+bash TraderSpec/pipeline/speckit/run-full-parity-validation.sh
 ```
 
 ## Mixed-Mode Cutover Command

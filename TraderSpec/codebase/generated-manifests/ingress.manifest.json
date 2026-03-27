@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAtUtc": "2026-03-27T14:10:23Z",
+  "component": {
+    "id": "ingress",
+    "kind": "edge",
+    "language": "Nginx",
+    "framework": "Nginx",
+    "buildTool": "Docker build",
+    "sourcePath": "ingress",
+    "targetPath": "apps/ingress",
+    "notes": "Edge routing for browser access."
+  },
+  "runtime": {
+    "defaultPort": 8080,
+    "dependsOn": ["web-front-end-angular","trade-service","account-service","position-service","people-service","trade-feed"],
+    "requiredEnv": ["TRADERX_FQDN"]
+  },
+  "contracts": {
+    "primary": null
+  },
+  "traceability": {
+    "requirements": ["SYS-FR-011"],
+    "stories": ["US-008"],
+    "acceptanceCriteria": ["AC-009"],
+    "flows": ["INGRESS"],
+    "verificationRefs": ["gitops/local/Tiltfile"]
+  },
+  "constraints": {
+    "preIngressCorsRequired": false
+  }
+}

@@ -5,9 +5,12 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO_ROOT="$(cd "${ROOT}/.." && pwd)"
 CSV="${ROOT}/catalog/component-spec.csv"
 TARGET="${ROOT}/codebase/target-generated-specfirst"
+SPECKIT_MATRIX="${ROOT}/speckit/system/requirements-traceability.csv"
+MANIFEST_DIR="${ROOT}/codebase/generated-manifests"
 HYDRATE_FROM_SOURCE="${1:-}"
 
 "${ROOT}/pipeline/validate-regeneration-readiness.sh"
+bash "${ROOT}/pipeline/speckit/compile-all-component-manifests.sh"
 
 rm -rf "${TARGET}"
 mkdir -p "${TARGET}/apps" "${TARGET}/contracts" "${TARGET}/metadata"
@@ -58,6 +61,24 @@ while IFS=, read -r component_id kind source_path target_path language framework
 Notes:
 ${notes}
 EOF
+
+  component_spec="${ROOT}/speckit/components/${component_id}.md"
+  if [[ -f "${component_spec}" ]]; then
+    cp "${component_spec}" "${component_dir}/SPEC.component.md"
+  fi
+
+  component_manifest="${MANIFEST_DIR}/${component_id}.manifest.json"
+  if [[ -f "${component_manifest}" ]]; then
+    cp "${component_manifest}" "${component_dir}/SPEC.manifest.json"
+  fi
+
+  if [[ -f "${SPECKIT_MATRIX}" ]]; then
+    {
+      echo ""
+      echo "SpecKit Traceability:"
+      awk -F, -v component_id="${component_id}" 'NR > 1 && $5 == component_id {printf "- requirement=%s story=%s acceptance=%s flow=%s\n", $1, $2, $3, $4}' "${SPECKIT_MATRIX}"
+    } >> "${component_dir}/SPEC.generated.md"
+  fi
 
   if [[ "${contract_file}" != "none" ]]; then
     mkdir -p "${TARGET}/contracts/${component_id}"

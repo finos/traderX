@@ -11,3 +11,6 @@
 
 Notes:
 "Edge routing for browser access."
+
+SpecKit Traceability:
+- requirement=SYS-FR-011 story=US-008 acceptance=AC-009 flow=INGRESS

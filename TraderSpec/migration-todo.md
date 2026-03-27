@@ -4,8 +4,8 @@ This is the long-running execution plan for moving TraderX from source-first to 
 
 ## Latest Update
 
-- Current phase: **Phase 6 complete** (base-case component sign-off + legacy source retirement).
-- Current focus: Phase 7 GitHub Spec Kit adoption for requirements-first compliant generation.
+- Current phase: **Phase 7 in progress** (GitHub Spec Kit adoption, part B).
+- Current focus: begin conformance-pack stage (7.9) after completing manifest-driven synthesis for all baseline components.
 - Current blocker: none.
 - Planned cutover order for pure generation is now documented in the migration blog (Phase 2 section).
 - Migration blog: `TraderSpec/migration-blog.md`
@@ -19,7 +19,12 @@ This is the long-running execution plan for moving TraderX from source-first to 
 | 2 - Base Uncontainerized Runtime | Done | Startup sequence validated through Angular UI readiness. |
 | 3 - Generate Startup Orchestration | Done | Environment run via generated startup-order script. |
 | 4 - First Pure-Generated Component | Done | Generated `reference-data` and booted mixed mode sequence. |
-| 5-10 - Full Cutover + Docs Consolidation | In Progress | Phase 6 complete; begin Spec Kit adoption and requirements-first generation flow. |
+| 5 - Iterative Component Cutover | Done | All baseline components generated and validated in overlay mode. |
+| 6 - Source Deletion by Approval | Done | Legacy root components removed after sign-off. |
+| 7 - GitHub Spec Kit Adoption | In Progress | Replace direct file-write generators with requirements-driven synthesis. |
+| 8 - Migration Documentation + Visual Evidence | Pending | Continue blog and Mermaid proof artifacts as execution advances. |
+| 9 - TraderSpec Docs Consolidation | Pending | Remove legacy-spec noise once Spec Kit path is authoritative. |
+| 10 - Learning Path Evolution | Pending | Apply NFR/FR overlays for post-baseline states. |
 
 ## Current Reality Check (Confirmed)
 
@@ -66,11 +71,21 @@ Make TraderSpec the source of truth so original root source can be retired safel
 - [x] 6.2 Remove source only after generated replacement is stable.
 
 - [ ] 7) Adopt GitHub Spec Kit workflow for requirements-first generation.
-- [ ] 7.1 Define Spec Kit artifact model (epics, features, user stories, acceptance criteria, FR, NFR, technical constraints).
-- [ ] 7.2 Add requirement traceability mapping (requirements -> stories -> acceptance tests -> generated code units).
-- [ ] 7.3 Update generation pipelines to consume Spec Kit artifacts as primary input (instead of direct file-writing templates only).
-- [ ] 7.4 Add compliance checks to verify generated code satisfies mapped requirements and contracts.
-- [ ] 7.5 Prove parity by regenerating at least one existing component from Spec Kit requirements and passing smoke tests.
+- [x] 7.1 Define Spec Kit artifact model (epics, features, user stories, acceptance criteria, FR, NFR, technical constraints).
+- [x] 7.2 Add requirement traceability mapping (requirements -> stories -> acceptance tests -> generated code units).
+- [x] 7.3 Update generation pipelines to consume Spec Kit artifacts as primary input (instead of direct file-writing templates only).
+- [x] 7.4 Add compliance checks to verify generated code satisfies mapped requirements and contracts.
+- [x] 7.5 Prove parity by regenerating baseline components from Spec Kit requirements and passing smoke tests.
+- [x] 7.6 Define a normalized component-generation manifest schema emitted from Spec Kit artifacts (interfaces, endpoints, domain model, infra, runtime, NFR toggles).
+- [x] 7.7 Implement manifest compiler stage (`speckit -> manifest`) per baseline component with deterministic output.
+- [x] 7.8 Replace heredoc-style source-dump generators with manifest-driven synthesis generators (template/AST-based).
+- [x] 7.8.1 Convert `trade-service` to manifest-driven synthesis (template copy + manifest-derived runtime/env/contract wiring).
+- [x] 7.8.2 Convert `account-service`, `position-service`, and `trade-processor` to manifest-driven synthesis.
+- [x] 7.8.3 Apply the same manifest-driven synthesis pattern to remaining baseline components (`database`, `reference-data`, `trade-feed`, `people-service`, `web-front-end-angular`).
+- [ ] 7.9 Add per-component conformance packs: user-story acceptance tests, FR checks, NFR checks, and contract validation gates.
+- [ ] 7.10 Add generation comparison harness for each component (`legacy-dump` vs `speckit-synthesis`) with semantic diff categories.
+- [ ] 7.11 Pilot full synthesis on `trade-service` and prove parity with existing smoke tests and GUI flow.
+- [ ] 7.12 Roll synthesis approach across remaining baseline components and retire old direct-write generator scripts.
 
 - [ ] 8) Document the migration journey with visual progress and evidence.
 - [ ] 8.1 Keep Mermaid journey/status graph updated.
@@ -93,7 +108,7 @@ flowchart LR
   P3 --> P4["Phase 4: First Pure-Generated Component (Done)"]
   P4 --> P5["Phase 5: Iterative Component Cutover (Done)"]
   P5 --> P6["Phase 6: Source Deletion by Approval (Done)"]
-  P6 --> P7["Phase 7: GitHub Spec Kit Adoption (Current)"]
+  P6 --> P7["Phase 7: GitHub Spec Kit Adoption + Synthesis Cutover (Current)"]
   P7 --> P8["Phase 8: Journey Documentation + Visual Progress (Planned)"]
   P8 --> P9["Phase 9: TraderSpec Doc Consolidation (Planned)"]
   P9 --> P10["Phase 10: Learning-Path State Evolution (Planned)"]
@@ -144,3 +159,21 @@ flowchart LR
 - 2026-03-27: Added `--pure-generated-base` startup mode and verified end-to-end startup + web smoke checks against generated overlays only.
 - 2026-03-27: Fixed pure-generated startup cleanup to preserve `.run` cache/state and refresh component directories only, eliminating intermittent `rm -rf` failures on busy runtime folders.
 - 2026-03-27: Re-sequenced plan so next phase is GitHub Spec Kit adoption (requirements + user stories + acceptance criteria + compliance generation), with previous phases 7/8/9 shifted to 8/9/10.
+- 2026-03-27: Added full `TraderSpec/speckit/` system layer (context, flows, requirements, user stories, acceptance criteria, traceability matrix, component specs, and contracts).
+- 2026-03-27: Added Spec Kit pipeline enforcement (`pipeline/speckit/validate-speckit-readiness.sh`) and wired generator scripts to assert per-component traceability before generation.
+- 2026-03-27: Updated regeneration readiness and coverage checks to require Spec Kit artifacts and removed legacy-root-source existence assumptions.
+- 2026-03-27: Added spec-expressiveness parity checks and full parity runner (`pipeline/speckit/run-full-parity-validation.sh`) and validated full baseline stack + all overlay smoke tests successfully.
+- 2026-03-27: Re-baselined Phase 7 as in-progress after identifying remaining gap: component generators still rely on direct source emission and must be converted to manifest-driven Spec Kit synthesis.
+- 2026-03-27: Added normalized generation-manifest specification (`component-generation-manifest.md` + JSON schema) and advanced Phase 7.6 to complete.
+- 2026-03-27: Re-ran Spec Kit readiness + expressiveness checks after manifest additions; both checks passed.
+- 2026-03-27: Added manifest compiler scripts (`compile-component-manifest.sh`, `compile-all-component-manifests.sh`) and wired `generate-from-spec.sh` to compile/copy manifests into generated component scaffolds.
+- 2026-03-27: Completed Phase 7.7 manifest compiler milestone; generated deterministic manifests for all catalog components.
+- 2026-03-27: Converted `generate-trade-service-specfirst.sh` to manifest-driven synthesis using `templates/trade-service-specfirst` plus compiled manifest inputs (runtime envs, default port, contract path).
+- 2026-03-27: Verified `trade-service` pilot generation via diff harness (`HEAD` vs current): behavioral files remain aligned; expected deltas are generated manifest artifact and README wording updates.
+- 2026-03-27: Verified generated `trade-service-specfirst` Gradle build passes after manifest-driven conversion.
+- 2026-03-27: Converted `generate-account-service-specfirst.sh`, `generate-position-service-specfirst.sh`, and `generate-trade-processor-specfirst.sh` to manifest-driven synthesis with template roots and manifest-derived runtime/env/contract wiring.
+- 2026-03-27: Added new template roots for converted Spring services: `templates/account-service-specfirst`, `templates/position-service-specfirst`, `templates/trade-processor-specfirst`.
+- 2026-03-27: Completed one integrated runtime pass for converted services in a single startup cycle: account-service, position-service, and trade-processor overlay smoke tests all passed.
+- 2026-03-27: Converted remaining generator scripts (`database`, `reference-data`, `trade-feed`, `people-service`, `web-front-end-angular`) to manifest-driven synthesis with template roots and manifest artifacts.
+- 2026-03-27: Added additional template roots for non-Spring components: `templates/database-specfirst`, `templates/reference-data-specfirst`, `templates/trade-feed-specfirst`, and `templates/people-service-specfirst` (web Angular template reused from existing `templates/web-front-end/angular`).
+- 2026-03-27: Executed full parity validation (`pipeline/speckit/run-full-parity-validation.sh`) after all generator conversions; startup plus all overlay smoke tests passed.

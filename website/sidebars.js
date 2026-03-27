@@ -1,6 +1,28 @@
 module.exports = {
   mainSidebar: [
     'home',
+    {
+      type: 'link',
+      label: 'Migration TODO',
+      href: '/traderspec-specs/migration-todo',
+    },
+    {
+      type: 'link',
+      label: 'Migration Blog',
+      href: '/traderspec-specs/migration-blog',
+    },
+    {
+      type: 'category',
+      label: 'Spec Kit',
+      items: [
+        'traderspec/spec-kit-workflow',
+        {
+          type: 'link',
+          label: 'Spec Kit Requirements Catalog',
+          href: '/traderspec-specs/speckit',
+        },
+      ],
+    },
     'learning-paths/index',
     {
       type: 'category',

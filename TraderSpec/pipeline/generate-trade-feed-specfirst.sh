@@ -2,56 +2,79 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "${ROOT}/pipeline/speckit/lib.sh"
+
+COMPONENT_ID="trade-feed"
 TARGET="${ROOT}/codebase/generated-components/trade-feed-specfirst"
-SOURCE_INSPECTOR_HTML="${ROOT}/templates/trade-feed/index.html"
+TEMPLATE_ROOT="${ROOT}/templates/trade-feed-specfirst"
+MANIFEST_PATH="${ROOT}/codebase/generated-manifests/${COMPONENT_ID}.manifest.json"
+
+speckit_assert_global_readiness
+speckit_assert_component_ready "${COMPONENT_ID}"
+bash "${ROOT}/pipeline/speckit/compile-component-manifest.sh" "${COMPONENT_ID}" "${MANIFEST_PATH}"
+
+[[ -d "${TEMPLATE_ROOT}" ]] || {
+  echo "[fail] missing template directory: ${TEMPLATE_ROOT}"
+  exit 1
+}
+
+[[ -f "${MANIFEST_PATH}" ]] || {
+  echo "[fail] manifest was not generated: ${MANIFEST_PATH}"
+  exit 1
+}
+
+jq -e '
+  .schemaVersion == "1.0.0" and
+  .component.id == "trade-feed" and
+  (.runtime.defaultPort | type == "number")
+' "${MANIFEST_PATH}" >/dev/null
+
+manifest_env_by_prefix() {
+  local prefix="$1"
+  jq -r --arg prefix "${prefix}" '.runtime.requiredEnv[] | select(startswith($prefix))' "${MANIFEST_PATH}" | head -n 1
+}
+
+DEFAULT_PORT="$(jq -r '.runtime.defaultPort' "${MANIFEST_PATH}")"
+TRADE_FEED_PORT_ENV="$(manifest_env_by_prefix "TRADE_FEED_PORT")"
+CORS_ALLOWED_ORIGINS_ENV="$(manifest_env_by_prefix "CORS_ALLOWED_ORIGINS")"
+
+for required_var in TRADE_FEED_PORT_ENV CORS_ALLOWED_ORIGINS_ENV; do
+  [[ -n "${!required_var}" ]] || {
+    echo "[fail] manifest missing required runtime env mapping: ${required_var}"
+    exit 1
+  }
+done
 
 rm -rf "${TARGET}"
 mkdir -p "${TARGET}"
+cp -R "${TEMPLATE_ROOT}/." "${TARGET}/"
 
-cat <<'EOF' > "${TARGET}/README.md"
+cat <<EOF > "${TARGET}/README.md"
 # Trade-Feed (Spec-First Generated)
 
-This component is generated from TraderSpec requirements for the baseline, pre-containerized runtime.
+This component is synthesized from the TraderSpec Spec Kit manifest for the baseline pre-containerized runtime.
 
 ## Run
 
-```bash
+\`\`\`bash
 npm install
 npm run start
-```
+\`\`\`
 
 ## Runtime Contract
 
-- Default port: `18086` via `TRADE_FEED_PORT`
-- CORS origins: `CORS_ALLOWED_ORIGINS` (default `*`)
-- Commands: `subscribe`, `unsubscribe`, `unusbscribe` (legacy compatibility), `publish`
+- Default port: \`${DEFAULT_PORT}\` via \`${TRADE_FEED_PORT_ENV}\`
+- CORS origins: \`${CORS_ALLOWED_ORIGINS_ENV}\` (default \`*\`)
+- Commands: \`subscribe\`, \`unsubscribe\`, \`unusbscribe\` (legacy compatibility), \`publish\`
 EOF
 
-cat <<'EOF' > "${TARGET}/package.json"
-{
-  "name": "@traderspec/trade-feed-specfirst",
-  "version": "0.1.0",
-  "private": true,
-  "license": "Apache-2.0",
-  "scripts": {
-    "start": "node index.js"
-  },
-  "dependencies": {
-    "express": "^5.0.1",
-    "socket.io": "^4.8.1",
-    "socket.io-client": "^4.8.1",
-    "winston": "^3.17.0"
-  }
-}
-EOF
-
-cat <<'EOF' > "${TARGET}/index.js"
+cat <<EOF > "${TARGET}/index.js"
 const sockio = require("socket.io");
 const app = require("express")();
 const winston = require("winston");
 const http = require("http").createServer(app);
 
-const configuredOrigins = (process.env.CORS_ALLOWED_ORIGINS || "*")
+const configuredOrigins = (process.env.${CORS_ALLOWED_ORIGINS_ENV} || "*")
   .split(",")
   .map((origin) => origin.trim())
   .filter((origin) => origin.length > 0);
@@ -63,7 +86,7 @@ const io = new sockio.Server(http, {
   }
 });
 
-const port = Number(process.env.TRADE_FEED_PORT || 18086);
+const port = Number(process.env.${TRADE_FEED_PORT_ENV} || ${DEFAULT_PORT});
 
 const log = winston.createLogger({
   transports: [new winston.transports.Console()]
@@ -92,7 +115,7 @@ function joinMessage(user, topic) {
   return {
     topic: topic,
     type: "message",
-    payload: { message: `New Joiner ${user} to topic ${topic}` }
+    payload: { message: \`New Joiner \${user} to topic \${topic}\` }
   };
 }
 
@@ -100,27 +123,27 @@ function leaveMessage(user, topic) {
   return {
     topic: topic,
     type: "message",
-    payload: { message: `${user} has left ${topic}` }
+    payload: { message: \`\${user} has left \${topic}\` }
   };
 }
 
 function broadcast(from, data) {
   const message = wrapMessage(from, data.topic, data.type, data.payload);
-  log.info(`Publish ${data.topic} -> ${JSON.stringify(message)}`);
+  log.info(\`Publish \${data.topic} -> \${JSON.stringify(message)}\`);
   io.sockets.in([data.topic, "/*"]).emit(PUBLISH, message);
 }
 
 function handleUnsubscribe(socket, topic) {
-  log.info(`Unsubscribe ${topic}`);
+  log.info(\`Unsubscribe \${topic}\`);
   broadcast("System", leaveMessage(socket.id, topic));
   socket.leave(topic);
 }
 
 io.on("connection", (socket) => {
-  log.info(`New Connection from ${socket.id}`);
+  log.info(\`New Connection from \${socket.id}\`);
 
   socket.on(SUBSCRIBE, (topic) => {
-    log.info(`Subscribe ${topic}`);
+    log.info(\`Subscribe \${topic}\`);
     socket.join(topic);
     broadcast("System", joinMessage(socket.id, topic));
   });
@@ -129,7 +152,6 @@ io.on("connection", (socket) => {
     handleUnsubscribe(socket, topic);
   });
 
-  // Preserve baseline typo compatibility.
   socket.on(UNSUBSCRIBE_LEGACY, (topic) => {
     handleUnsubscribe(socket, topic);
   });
@@ -140,26 +162,10 @@ io.on("connection", (socket) => {
 });
 
 http.listen(port, () => {
-  log.info(`[ready] trade-feed-specfirst listening on :${port}`);
+  log.info(\`[ready] trade-feed-specfirst listening on :\${port}\`);
 });
 EOF
 
-if [[ -f "${SOURCE_INSPECTOR_HTML}" ]]; then
-  cp "${SOURCE_INSPECTOR_HTML}" "${TARGET}/index.html"
-else
-  cat <<'EOF' > "${TARGET}/index.html"
-<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Trade Feed Inspector</title>
-  </head>
-  <body>
-    <h1>Trade Feed Inspector</h1>
-    <p>Spec-first generated fallback page.</p>
-  </body>
-</html>
-EOF
-fi
+cp "${MANIFEST_PATH}" "${TARGET}/SPEC.manifest.json"
 
-echo "[done] regenerated ${TARGET}"
+echo "[done] regenerated ${TARGET} from ${MANIFEST_PATH}"

@@ -13,6 +13,12 @@ required=(
   "${ROOT}/foundation/00-traditional-to-cloud-native/specs/09-regeneration-strategy.md"
   "${ROOT}/catalog/learning-paths.yaml"
   "${ROOT}/catalog/component-spec.csv"
+  "${ROOT}/speckit/system/system-context.md"
+  "${ROOT}/speckit/system/end-to-end-flows.md"
+  "${ROOT}/speckit/system/system-requirements.md"
+  "${ROOT}/speckit/system/user-stories.md"
+  "${ROOT}/speckit/system/acceptance-criteria.md"
+  "${ROOT}/speckit/system/requirements-traceability.csv"
   "${ROOT}/tracks/devex/path.md"
   "${ROOT}/tracks/nonfunctional/path.md"
   "${ROOT}/tracks/functional/path.md"
@@ -29,5 +35,7 @@ if [[ "${step_specs_count}" -lt 20 ]]; then
 fi
 
 "${ROOT}/pipeline/validate-regeneration-readiness.sh"
+"${ROOT}/pipeline/speckit/validate-speckit-readiness.sh"
+"${ROOT}/pipeline/speckit/verify-spec-expressiveness.sh"
 
 echo "[ok] TraderSpec coverage checks passed (${step_specs_count} step specs)"

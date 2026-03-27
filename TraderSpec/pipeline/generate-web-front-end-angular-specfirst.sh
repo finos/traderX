@@ -2,58 +2,92 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SOURCE="${ROOT}/templates/web-front-end/angular"
-TARGET="${ROOT}/codebase/generated-components/web-front-end-angular-specfirst"
+source "${ROOT}/pipeline/speckit/lib.sh"
 
-if [[ ! -d "${SOURCE}" ]]; then
-  echo "[error] missing source Angular workspace: ${SOURCE}"
+COMPONENT_ID="web-front-end-angular"
+TARGET="${ROOT}/codebase/generated-components/web-front-end-angular-specfirst"
+TEMPLATE_ROOT="${ROOT}/templates/web-front-end/angular"
+MANIFEST_PATH="${ROOT}/codebase/generated-manifests/${COMPONENT_ID}.manifest.json"
+
+speckit_assert_global_readiness
+speckit_assert_component_ready "${COMPONENT_ID}"
+bash "${ROOT}/pipeline/speckit/compile-component-manifest.sh" "${COMPONENT_ID}" "${MANIFEST_PATH}"
+
+[[ -d "${TEMPLATE_ROOT}" ]] || {
+  echo "[fail] missing template directory: ${TEMPLATE_ROOT}"
   exit 1
-fi
+}
+
+[[ -f "${MANIFEST_PATH}" ]] || {
+  echo "[fail] manifest was not generated: ${MANIFEST_PATH}"
+  exit 1
+}
+
+jq -e '
+  .schemaVersion == "1.0.0" and
+  .component.id == "web-front-end-angular" and
+  (.runtime.defaultPort | type == "number")
+' "${MANIFEST_PATH}" >/dev/null
+
+WEB_SERVICE_PORT_ENV="$(jq -r '.runtime.requiredEnv[] | select(startswith("WEB_SERVICE_PORT"))' "${MANIFEST_PATH}" | head -n 1)"
+DEFAULT_PORT="$(jq -r '.runtime.defaultPort' "${MANIFEST_PATH}")"
+
+[[ -n "${WEB_SERVICE_PORT_ENV}" ]] || {
+  echo "[fail] manifest missing required runtime env mapping: WEB_SERVICE_PORT"
+  exit 1
+}
 
 rm -rf "${TARGET}"
-mkdir -p "${TARGET}/main"
-
-cp "${SOURCE}/package.json" "${TARGET}/package.json"
-cp "${SOURCE}/angular.json" "${TARGET}/angular.json"
-cp "${SOURCE}/README.md" "${TARGET}/README.md"
-cp "${SOURCE}/Dockerfile" "${TARGET}/Dockerfile"
-cp "${SOURCE}/Dockerfile.prod" "${TARGET}/Dockerfile.prod"
-cp "${SOURCE}/karma.conf.js" "${TARGET}/karma.conf.js"
-cp "${SOURCE}/prettier.config.js" "${TARGET}/prettier.config.js"
-cp "${SOURCE}/tsconfig.json" "${TARGET}/tsconfig.json"
-cp "${SOURCE}/tsconfig.app.json" "${TARGET}/tsconfig.app.json"
-cp "${SOURCE}/tsconfig.spec.json" "${TARGET}/tsconfig.spec.json"
-
-cp -R "${SOURCE}/main/app" "${TARGET}/main/app"
-cp -R "${SOURCE}/main/assets" "${TARGET}/main/assets"
-cp -R "${SOURCE}/main/environments" "${TARGET}/main/environments"
-cp "${SOURCE}/main/index.html" "${TARGET}/main/index.html"
-cp "${SOURCE}/main/main.ts" "${TARGET}/main/main.ts"
-cp "${SOURCE}/main/polyfills.ts" "${TARGET}/main/polyfills.ts"
-cp "${SOURCE}/main/styles.scss" "${TARGET}/main/styles.scss"
-cp "${SOURCE}/main/test.ts" "${TARGET}/main/test.ts"
-cp "${SOURCE}/main/tslint.json" "${TARGET}/main/tslint.json"
+mkdir -p "${TARGET}"
+cp -R "${TEMPLATE_ROOT}/." "${TARGET}/"
 
 for asset in \
   "main/assets/img/traderx-apple-touch-icon.png" \
   "main/assets/img/traderx-icon.png" \
   "main/assets/img/FINOS_Icon_White.png"; do
   if [[ ! -f "${TARGET}/${asset}" ]]; then
-    echo "[error] missing required branding asset after generation: ${asset}"
+    echo "[fail] missing required branding asset after generation: ${asset}"
     exit 1
   fi
 done
 
-cat <<'EOF' > "${TARGET}/SPEC.generated.md"
+cat <<EOF > "${TARGET}/README.md"
 # Web Front End Angular (Spec-First Generated)
 
-This generated component preserves baseline TraderX branding and logo assets:
+This component is synthesized from the TraderSpec Spec Kit manifest for the baseline pre-containerized runtime.
 
-- `main/assets/img/traderx-apple-touch-icon.png`
-- `main/assets/img/traderx-icon.png`
-- `main/assets/img/FINOS_Icon_White.png`
+## Run
 
-Runtime is still `npm run start` on port `18093` by default.
+\`\`\`bash
+npm install
+npm run start
+\`\`\`
+
+## Runtime Contract
+
+- Default port: \`${DEFAULT_PORT}\` via \`${WEB_SERVICE_PORT_ENV}\`
+- Branding assets preserved:
+  - \`main/assets/img/traderx-apple-touch-icon.png\`
+  - \`main/assets/img/traderx-icon.png\`
+  - \`main/assets/img/FINOS_Icon_White.png\`
 EOF
 
-echo "[done] regenerated ${TARGET}"
+cat <<EOF > "${TARGET}/SPEC.generated.md"
+# Web Front End Angular (Spec-First Generated)
+
+Synthesized from Spec Kit manifest:
+
+- component: \`${COMPONENT_ID}\`
+- defaultPort: \`${DEFAULT_PORT}\`
+- portEnv: \`${WEB_SERVICE_PORT_ENV}\`
+
+Branding assets preserved:
+
+- \`main/assets/img/traderx-apple-touch-icon.png\`
+- \`main/assets/img/traderx-icon.png\`
+- \`main/assets/img/FINOS_Icon_White.png\`
+EOF
+
+cp "${MANIFEST_PATH}" "${TARGET}/SPEC.manifest.json"
+
+echo "[done] regenerated ${TARGET} from ${MANIFEST_PATH}"

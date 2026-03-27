@@ -11,7 +11,7 @@ This blog tracks major migration phases, findings, and decisions as we execute `
 | 2026-03-27 | Phase 4 - First Pure-Generated Component | Done | `reference-data` generated from specs and booted in mixed mode. |
 | 2026-03-27 | Phase 5 - Iterative Component Cutover | Done | All base-case components (including Angular UI) validated green in mixed generated mode. |
 | 2026-03-27 | Phase 6 - Source Deletion by Approval | Done | Legacy root component sources removed; pure-generated base startup and web smoke checks validated. |
-| 2026-03-27 | Phase 7 - GitHub Spec Kit Adoption | Planned (Current Focus) | Move generation inputs to Spec Kit requirements + user stories + acceptance criteria with compliance checks. |
+| 2026-03-27 | Phase 7 - GitHub Spec Kit Adoption | In Progress | Generator synthesis cutover completed across all baseline components; conformance-pack stage is next. |
 
 ## Live TODO Activity Summary
 
@@ -42,7 +42,14 @@ This mirrors `TraderSpec/migration-todo.md` and highlights active execution sign
 | 5.15 | Prepare ninth component spec pack | Done | Added Angular web frontend FR/NFR/technical/verification specs and generation prompt. |
 | 5.16 | Prepare ninth component generated overlay | Done | Generated Angular frontend overlay passed smoke checks and GUI branding/flow validation and was promoted to ready-for-signoff. |
 | 6.1 | Prepare source-retirement sign-off checklist | Done | Approved components are now retired from root source; generated-only base startup validated. |
-| 7.1-7.5 | Adopt GitHub Spec Kit requirements-first generation flow | Planned (Next) | Define Spec Kit artifacts and traceability, update generators, and prove parity from requirements-derived generation. |
+| 7.1-7.4 | Adopt GitHub Spec Kit requirements-first generation flow | Done | Spec artifacts, traceability, readiness gates, and compliance checks are in place. |
+| 7.5 | Prove parity from Spec Kit generation | Done | Full parity validation passed for current generation pipeline behavior. |
+| 7.6 | Define normalized manifest schema from Spec Kit | Done | Added manifest spec and JSON schema as the synthesis contract. |
+| 7.7 | Implement manifest compiler stage (`speckit -> manifest`) | Done | Deterministic manifests now compile for all catalog components. |
+| 7.8 | Implement manifest-driven synthesis generators | Done | All baseline component generators now synthesize from manifest + template. |
+| 7.9 | Add conformance packs (story/FR/NFR/contracts) | Planned | Acceptance and NFR evidence must be executable per component. |
+| 7.10-7.11 | Pilot trade-service synthesis + semantic diff/parity proof | Done | Trade-service pilot and full-system parity validation both passed after full generator conversion. |
+| 7.12 | Roll synthesis across all baseline components | Planned | Old direct-write generator scripts retired after all components pass. |
 
 ## Phase 1 Findings
 
@@ -235,7 +242,7 @@ flowchart LR
   V1 --> S1["phase 6 sign-off complete"]
 ```
 
-## Phase 7: GitHub Spec Kit Adoption (Next)
+## Phase 7: GitHub Spec Kit Adoption (In Progress)
 
 ### Goal
 
@@ -256,8 +263,49 @@ Replace template-driven direct source writes with a Spec Kit workflow where gene
 - Add compliance verification checks proving generated outputs satisfy the mapped requirements.
 - Demonstrate parity on at least one representative component regenerated from Spec Kit inputs.
 
+### Phase 7 Progress Update
+
+- Implemented `TraderSpec/speckit/` with:
+  - system context and flow model sourced from `docs/overview.md`, `docs/flows.md`, and READMEs
+  - baseline system requirements, user stories, acceptance criteria
+  - requirements traceability matrix across baseline components
+  - component-level Spec Kit requirement files
+- Added Spec Kit-owned contract snapshots under `TraderSpec/speckit/contracts/**/openapi.yaml`.
+- Added `pipeline/speckit/validate-speckit-readiness.sh` and shared guard logic in `pipeline/speckit/lib.sh`.
+- Updated all baseline component generators to require Spec Kit global and component readiness before generation.
+- Updated regeneration readiness/coverage checks to validate Spec Kit artifacts and no longer require deleted legacy source trees.
+- Added a normalized manifest specification and schema (`component-generation-manifest.md`, `component-generation-manifest.schema.json`) as the required interface between Spec Kit artifacts and synthesis generators.
+- Added manifest compiler scripts (`compile-component-manifest.sh`, `compile-all-component-manifests.sh`) and wired `generate-from-spec.sh` to attach compiled manifests to generated component scaffolds.
+- Re-ran `validate-speckit-readiness.sh` and `verify-spec-expressiveness.sh` after manifest additions; both remained green.
+- Converted `generate-trade-service-specfirst.sh` to manifest-driven synthesis by copying a static template and injecting runtime/env/contract values from `trade-service.manifest.json`.
+- Added `TraderSpec/templates/trade-service-specfirst` as the static source template for manifest-driven trade-service generation.
+- Ran generator diff harness against `HEAD`; only expected deltas were README wording and new `SPEC.manifest.json` artifact.
+- Verified generated `trade-service-specfirst` compiles successfully with `./gradlew build`.
+- Converted `generate-account-service-specfirst.sh`, `generate-position-service-specfirst.sh`, and `generate-trade-processor-specfirst.sh` to the same manifest-driven synthesis pattern.
+- Added template roots for converted Spring services: `templates/account-service-specfirst`, `templates/position-service-specfirst`, `templates/trade-processor-specfirst`.
+- Completed one integrated startup + smoke pass with converted overlays: account-service, position-service, and trade-processor smoke tests all passed in a single run.
+- Converted remaining generators (`database`, `reference-data`, `trade-feed`, `people-service`, `web-front-end-angular`) to the same manifest-driven synthesis pattern.
+- Added non-Spring template roots used by converted generators: `templates/database-specfirst`, `templates/reference-data-specfirst`, `templates/trade-feed-specfirst`, `templates/people-service-specfirst` (Angular generator continues to use `templates/web-front-end/angular`).
+- Ran full parity validation after the full conversion set; startup and every overlay smoke test passed.
+
+### Phase 7 Gap Confirmed
+
+- Current generator scripts still write source files directly.
+- Spec Kit currently gates and validates generation, but does not yet drive implementation synthesis through a normalized manifest model.
+- Next objective is to make requirements the direct source of generated code shape, not only a preflight checklist.
+
+### Phase 7 Synthesis Cutover Plan
+
+```mermaid
+flowchart LR
+  A["Spec Kit artifacts (stories/FR/NFR/contracts)"] --> B["Manifest compiler (deterministic component model)"]
+  B --> C["Manifest-driven synthesis engine"]
+  C --> D["Generated component source"]
+  D --> E["Conformance pack: AC + FR + NFR + contract checks"]
+  E --> F["Parity and GUI/runtime validation"]
+```
+
 ## Next Up
 
-- Execute Phase 7 Spec Kit adoption and run a parity pilot component.
-- Continue migration evidence and visual journey updates (now Phase 8).
-- Prepare documentation consolidation in Phase 9 while preserving learning-path/state content.
+- Complete Phase 7 manifest-driven synthesis pilot on `trade-service`.
+- Keep migration evidence and Mermaid visuals updated as synthesis milestones land.

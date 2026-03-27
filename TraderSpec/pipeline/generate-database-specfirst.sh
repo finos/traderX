@@ -2,179 +2,107 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "${ROOT}/pipeline/speckit/lib.sh"
+
+COMPONENT_ID="database"
 TARGET="${ROOT}/codebase/generated-components/database-specfirst"
-GRADLE_WRAPPER_TEMPLATE="${ROOT}/templates/gradle-wrapper"
+TEMPLATE_ROOT="${ROOT}/templates/database-specfirst"
+MANIFEST_PATH="${ROOT}/codebase/generated-manifests/${COMPONENT_ID}.manifest.json"
+
+speckit_assert_global_readiness
+speckit_assert_component_ready "${COMPONENT_ID}"
+bash "${ROOT}/pipeline/speckit/compile-component-manifest.sh" "${COMPONENT_ID}" "${MANIFEST_PATH}"
+
+[[ -d "${TEMPLATE_ROOT}" ]] || {
+  echo "[fail] missing template directory: ${TEMPLATE_ROOT}"
+  exit 1
+}
+
+[[ -f "${MANIFEST_PATH}" ]] || {
+  echo "[fail] manifest was not generated: ${MANIFEST_PATH}"
+  exit 1
+}
+
+jq -e '
+  .schemaVersion == "1.0.0" and
+  .component.id == "database" and
+  (.runtime.defaultPort | type == "number")
+' "${MANIFEST_PATH}" >/dev/null
+
+manifest_env_by_prefix() {
+  local prefix="$1"
+  jq -r --arg prefix "${prefix}" '.runtime.requiredEnv[] | select(startswith($prefix))' "${MANIFEST_PATH}" | head -n 1
+}
+
+DEFAULT_TCP_PORT="$(jq -r '.runtime.defaultPort' "${MANIFEST_PATH}")"
+DEFAULT_PG_PORT="$((DEFAULT_TCP_PORT + 1))"
+DEFAULT_WEB_PORT="$((DEFAULT_TCP_PORT + 2))"
+DATABASE_WEB_HOSTNAMES_ENV="$(manifest_env_by_prefix "DATABASE_WEB_HOSTNAMES")"
+[[ -n "${DATABASE_WEB_HOSTNAMES_ENV}" ]] || DATABASE_WEB_HOSTNAMES_ENV="DATABASE_WEB_HOSTNAMES"
 
 rm -rf "${TARGET}"
-mkdir -p "${TARGET}/gradle/wrapper"
+mkdir -p "${TARGET}"
+cp -R "${TEMPLATE_ROOT}/." "${TARGET}/"
 
-cat <<'EOF' > "${TARGET}/README.md"
+cat <<EOF > "${TARGET}/README.md"
 # Database (Spec-First Generated)
 
-This component is generated from TraderSpec database component requirements.
+This component is synthesized from the TraderSpec Spec Kit manifest for the baseline pre-containerized runtime.
 
 ## Run
 
-```bash
+\`\`\`bash
 ./gradlew build
 ./run.sh
-```
+\`\`\`
 
-## Default Ports
+## Runtime Contract
 
-- TCP: `18082`
-- PG: `18083`
-- Web: `18084`
+- Default TCP port: \`${DEFAULT_TCP_PORT}\` via \`DATABASE_TCP_PORT\`
+- Default PG port: \`${DEFAULT_PG_PORT}\` via \`DATABASE_PG_PORT\`
+- Default web console port: \`${DEFAULT_WEB_PORT}\` via \`DATABASE_WEB_PORT\`
+- Web hostname allowlist env: \`${DATABASE_WEB_HOSTNAMES_ENV}\`
 EOF
 
-cat <<'EOF' > "${TARGET}/.gitignore"
-_data/
-build/
-.gradle/
-EOF
-
-cat <<'EOF' > "${TARGET}/settings.gradle"
-dependencyResolutionManagement {
-  repositories {
-    mavenCentral()
-  }
-}
-
-rootProject.name = 'database-specfirst'
-EOF
-
-cat <<'EOF' > "${TARGET}/build.gradle"
-plugins {
-  id 'application'
-}
-
-dependencies {
-  implementation 'com.h2database:h2:2.3.232'
-}
-
-application {
-  mainClass = 'org.h2.tools.Console'
-}
-
-jar {
-  manifest {
-    attributes "Main-Class": "org.h2.tools.Console"
-  }
-
-  from {
-    configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-  }
-}
-EOF
-
-cat <<'EOF' > "${TARGET}/run.sh"
+cat <<EOF > "${TARGET}/run.sh"
 #!/usr/bin/env bash
 set -euo pipefail
 
 set -a
-: "${DATABASE_TCP_PORT:=18082}"
-: "${DATABASE_PG_PORT:=18083}"
-: "${DATABASE_WEB_PORT:=18084}"
-: "${DATABASE_DBUSER:=sa}"
-: "${DATABASE_DBPASS:=sa}"
-: "${DATABASE_H2JAR:=./build/libs/database-specfirst.jar}"
-: "${DATABASE_DATA_DIR:=./_data}"
-: "${DATABASE_DBNAME:=traderx}"
-: "${DATABASE_HOSTNAME:=${HOSTNAME:-localhost}}"
-: "${DATABASE_JDBC_URL:=jdbc:h2:tcp://$DATABASE_HOSTNAME:$DATABASE_TCP_PORT/$DATABASE_DBNAME}"
-: "${DATABASE_WEB_HOSTNAMES:=${DATABASE_HOSTNAME}}"
+: "\${DATABASE_TCP_PORT:=${DEFAULT_TCP_PORT}}"
+: "\${DATABASE_PG_PORT:=${DEFAULT_PG_PORT}}"
+: "\${DATABASE_WEB_PORT:=${DEFAULT_WEB_PORT}}"
+: "\${DATABASE_DBUSER:=sa}"
+: "\${DATABASE_DBPASS:=sa}"
+: "\${DATABASE_H2JAR:=./build/libs/database-specfirst.jar}"
+: "\${DATABASE_DATA_DIR:=./_data}"
+: "\${DATABASE_DBNAME:=traderx}"
+: "\${DATABASE_HOSTNAME:=\${HOSTNAME:-localhost}}"
+: "\${DATABASE_JDBC_URL:=jdbc:h2:tcp://\$DATABASE_HOSTNAME:\$DATABASE_TCP_PORT/\$DATABASE_DBNAME}"
+: "\${DATABASE_WEB_HOSTNAMES:=\${DATABASE_HOSTNAME}}"
 set +a
 
-echo "Data will be located in ${DATABASE_DATA_DIR}"
-echo "Database name is ${DATABASE_DBNAME}"
+echo "Data will be located in \${DATABASE_DATA_DIR}"
+echo "Database name is \${DATABASE_DBNAME}"
 echo "Running schema setup script"
 echo "---------------------------------------------------------------------------"
 
-java -cp "${DATABASE_H2JAR}" org.h2.tools.RunScript \
-  -url "jdbc:h2:${DATABASE_DATA_DIR}/${DATABASE_DBNAME};DATABASE_TO_UPPER=TRUE;TRACE_LEVEL_SYSTEM_OUT=3" \
-  -user "${DATABASE_DBUSER}" \
-  -password "${DATABASE_DBPASS}" \
+java -cp "\${DATABASE_H2JAR}" org.h2.tools.RunScript \
+  -url "jdbc:h2:\${DATABASE_DATA_DIR}/\${DATABASE_DBNAME};DATABASE_TO_UPPER=TRUE;TRACE_LEVEL_SYSTEM_OUT=3" \
+  -user "\${DATABASE_DBUSER}" \
+  -password "\${DATABASE_DBPASS}" \
   -script initialSchema.sql
 
 echo "Starting Database Server"
 echo "---------------------------------------------------------------------------"
 
-exec java -jar "${DATABASE_H2JAR}" \
-  -pg -pgPort "${DATABASE_PG_PORT}" -pgAllowOthers -baseDir "${DATABASE_DATA_DIR}" \
-  -tcp -tcpPort "${DATABASE_TCP_PORT}" -tcpAllowOthers \
-  -web -webPort "${DATABASE_WEB_PORT}" -webExternalNames "${DATABASE_WEB_HOSTNAMES}" -webAllowOthers
+exec java -jar "\${DATABASE_H2JAR}" \
+  -pg -pgPort "\${DATABASE_PG_PORT}" -pgAllowOthers -baseDir "\${DATABASE_DATA_DIR}" \
+  -tcp -tcpPort "\${DATABASE_TCP_PORT}" -tcpAllowOthers \
+  -web -webPort "\${DATABASE_WEB_PORT}" -webExternalNames "\${DATABASE_WEB_HOSTNAMES}" -webAllowOthers
 EOF
 
-cat <<'EOF' > "${TARGET}/initialSchema.sql"
-Drop Table Trades IF EXISTS;
-Drop Table AccountUsers IF EXISTS;
-Drop Table Positions IF EXISTS;
-Drop Table Accounts IF EXISTS;
-Drop Sequence ACCOUNTS_SEQ IF EXISTS;
-
-CREATE TABLE Accounts ( ID INTEGER PRIMARY KEY, DisplayName VARCHAR (50) );
-CREATE TABLE AccountUsers ( AccountID INTEGER NOT NULL, Username VARCHAR(15) NOT NULL, PRIMARY KEY (AccountID,Username));
-ALTER TABLE AccountUsers ADD FOREIGN KEY (AccountID) References Accounts(ID);
-
-CREATE TABLE Positions ( AccountID INTEGER, Security VARCHAR(15), Updated TIMESTAMP, Quantity INTEGER, Primary Key (AccountID, Security) );
-Alter Table Positions ADD FOREIGN KEY (AccountID) References Accounts(ID);
-
-CREATE TABLE Trades (
-  ID Varchar (50) Primary Key,
-  AccountID INTEGER,
-  Created TIMESTAMP,
-  Updated TIMESTAMP,
-  Security VARCHAR (15),
-  Side VARCHAR(10) check (Side in ('Buy','Sell')),
-  Quantity INTEGER check Quantity > 0,
-  State VARCHAR(20) check (State in ('New', 'Processing', 'Settled', 'Cancelled'))
-);
-Alter Table Trades Add Foreign Key (AccountID) references Accounts(ID);
-
-CREATE SEQUENCE ACCOUNTS_SEQ start with 65000 INCREMENT BY 1;
-
-INSERT into Accounts (ID, DisplayName) VALUES (22214, 'Test Account 20');
-INSERT into Accounts (ID, DisplayName) VALUES (11413, 'Private Clients Fund TTXX');
-INSERT into Accounts (ID, DisplayName) VALUES (42422, 'Algo Execution Partners');
-INSERT into Accounts (ID, DisplayName) VALUES (52355, 'Big Corporate Fund');
-INSERT into Accounts (ID, DisplayName) VALUES (62654, 'Hedge Fund TXY1');
-INSERT into Accounts (ID, DisplayName) VALUES (10031, 'Internal Trading Book');
-INSERT into Accounts (ID, DisplayName) VALUES (44044, 'Trading Account 1');
-
-INSERT into AccountUsers (AccountID, Username) VALUES (22214, 'user01');
-INSERT into AccountUsers (AccountID, Username) VALUES (22214, 'user03');
-INSERT into AccountUsers (AccountID, Username) VALUES (22214, 'user09');
-INSERT into AccountUsers (AccountID, Username) VALUES (22214, 'user05');
-INSERT into AccountUsers (AccountID, Username) VALUES (22214, 'user07');
-INSERT into AccountUsers (AccountID, Username) VALUES (62654, 'user09');
-INSERT into AccountUsers (AccountID, Username) VALUES (62654, 'user05');
-INSERT into AccountUsers (AccountID, Username) VALUES (62654, 'user07');
-INSERT into AccountUsers (AccountID, Username) VALUES (62654, 'user01');
-INSERT into AccountUsers (AccountID, Username) VALUES (10031, 'user01');
-INSERT into AccountUsers (AccountID, Username) VALUES (10031, 'user03');
-INSERT into AccountUsers (AccountID, Username) VALUES (10031, 'user09');
-INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user09');
-INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user05');
-INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user07');
-INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user04');
-INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user01');
-INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user06');
-
-INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, State, AccountID) VALUES('TRADE-22214-AABBCC', NOW(), NOW(), 'IBM', 'Sell', 100, 'Settled', 22214);
-INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, State, AccountID) VALUES('TRADE-22214-DDEEFF', NOW(), NOW(), 'MS', 'Buy', 1000, 'Settled', 22214);
-INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, State, AccountID) VALUES('TRADE-22214-GGHHII', NOW(), NOW(), 'C', 'Sell', 2000, 'Settled', 22214);
-
-INSERT into Positions (AccountID, Security, Updated, Quantity) VALUES(22214, 'MS',NOW(), 1000);
-INSERT into Positions (AccountID, Security, Updated, Quantity) VALUES(22214, 'IBM',NOW(), -100);
-INSERT into Positions (AccountID, Security, Updated, Quantity) VALUES(22214, 'C',NOW(), -2000);
-
-INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, State, AccountID) VALUES('TRADE-52355-AABBCC', NOW(), NOW(), 'BAC', 'Sell', 2400, 'Settled', 52355);
-INSERT into Positions (AccountID, Security, Updated, Quantity) VALUES(52355, 'BAC',NOW(), -2400);
-EOF
-
-cp "${GRADLE_WRAPPER_TEMPLATE}/gradlew" "${TARGET}/gradlew"
-cp "${GRADLE_WRAPPER_TEMPLATE}/gradlew.bat" "${TARGET}/gradlew.bat"
-cp -R "${GRADLE_WRAPPER_TEMPLATE}/gradle/wrapper/"* "${TARGET}/gradle/wrapper/"
+cp "${MANIFEST_PATH}" "${TARGET}/SPEC.manifest.json"
 chmod +x "${TARGET}/gradlew" "${TARGET}/run.sh"
 
-echo "[done] regenerated ${TARGET}"
+echo "[done] regenerated ${TARGET} from ${MANIFEST_PATH}"

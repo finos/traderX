@@ -81,7 +81,6 @@ io.on("connection", (socket) => {
     handleUnsubscribe(socket, topic);
   });
 
-  // Preserve baseline typo compatibility.
   socket.on(UNSUBSCRIBE_LEGACY, (topic) => {
     handleUnsubscribe(socket, topic);
   });
