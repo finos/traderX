@@ -13,6 +13,7 @@ Browse it in Docusaurus:
 - `/traderspec-specs/specs/baseline-uncontainerized-parity/system/user-stories`
 - `/traderspec-specs/specs/baseline-uncontainerized-parity/system/acceptance-criteria`
 - `/traderspec-specs/specs/baseline-uncontainerized-parity/system/requirements-traceability`
+- `/traderspec-specs/specify` (constitution + Spec Kit templates)
 
 ## Source Inputs For System Understanding
 

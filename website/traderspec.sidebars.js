@@ -50,5 +50,15 @@ module.exports = {
       label: 'Root Specs Catalog',
       href: '/traderspec-specs/specs',
     },
+    {
+      type: 'link',
+      label: '.specify Catalog',
+      href: '/traderspec-specs/specify',
+    },
+    {
+      type: 'link',
+      label: 'Official Spec Kit Docs',
+      href: 'https://github.github.com/spec-kit/index.html',
+    },
   ],
 };

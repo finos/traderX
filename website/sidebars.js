@@ -15,11 +15,22 @@ module.exports = {
       type: 'category',
       label: 'Spec Kit',
       items: [
+        'traderspec/spec-kit-portal',
         'traderspec/spec-kit-workflow',
         {
           type: 'link',
           label: 'Spec Kit Requirements Catalog',
           href: '/traderspec-specs/specs',
+        },
+        {
+          type: 'link',
+          label: 'Spec Kit .specify',
+          href: '/traderspec-specs/specify',
+        },
+        {
+          type: 'link',
+          label: 'Official Spec Kit Docs',
+          href: 'https://github.github.com/spec-kit/index.html',
         },
       ],
     },

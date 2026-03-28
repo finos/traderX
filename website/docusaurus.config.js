@@ -31,11 +31,11 @@ module.exports = {
         src: 'img/favicon/favicon-traderX.ico',
       },
       items: [
-        {to: 'docs/home', label: 'Docs', position: 'right'},
-        {to: 'docs/traderspec', label: 'TraderSpec Ops', position: 'right'},
-        {to: '/traderspec-specs/specs', label: 'Spec Kit', position: 'right'},
-        {to: 'docs/roadmap', label: 'Roadmap', position: 'right'},
-        {to: 'docs/team', label: 'Team', position: 'right'},
+        {to: '/docs/home', label: 'Docs', position: 'right'},
+        {to: '/docs/traderspec', label: 'TraderSpec Ops', position: 'right'},
+        {to: '/docs/traderspec/spec-kit-portal', label: 'Spec Kit', position: 'right'},
+        {to: '/docs/roadmap', label: 'Roadmap', position: 'right'},
+        {to: '/docs/team', label: 'Team', position: 'right'},
         {
           href: 'https://github.com/finos/',
           label: 'GitHub',
@@ -56,15 +56,15 @@ module.exports = {
           items: [
             {
               label: 'Getting Started',
-              to: 'docs/home',
+              to: '/docs/home',
             },
             {
               label: 'Roadmap',
-              to: 'docs/roadmap',
+              to: '/docs/roadmap',
             },
             {
               label: 'Team',
-              to: 'docs/team',
+              to: '/docs/team',
             }
           ]
         },
@@ -146,8 +146,19 @@ module.exports = {
         path: '../specs',
         routeBasePath: 'traderspec-specs/specs',
         sidebarPath: require.resolve('./traderspec-root-specs.sidebars.js'),
-        include: ['001-baseline-uncontainerized-parity/**/*.md'],
+        include: ['**/*.md'],
         editUrl: 'https://github.com/finos/traderX/edit/main/specs/',
+      },
+    ],
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'traderspec-specify',
+        path: '../.specify',
+        routeBasePath: 'traderspec-specs/specify',
+        sidebarPath: require.resolve('./traderspec-specify.sidebars.js'),
+        include: ['memory/**/*.md'],
+        editUrl: 'https://github.com/finos/traderX/edit/main/.specify/',
       },
     ],
   ],

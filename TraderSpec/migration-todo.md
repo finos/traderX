@@ -127,6 +127,7 @@ flowchart LR
 
 ## Execution Log
 
+- 2026-03-29: Added Spec Kit portal surfacing in Docusaurus: root `specs/**` catalog plugin plus `.specify/memory/**` with template source links, and hardened navbar/top-level routes to absolute paths.
 - 2026-03-29: Fixed Docusaurus MDX double-loader failure by splitting TraderSpec docs into two non-overlapping plugins: `traderspec` (`TraderSpec/`) and `traderspec-root-specs` (`specs/`), then validated `npm --prefix website run build` successfully.
 - 2026-03-29: Consolidated nine `docs/traderspec/run-mixed-*.md` pages into `docs/traderspec/run-generated-overlays.md` and switched docs sidebars to curated TraderSpec navigation.
 - 2026-03-29: Removed stale Spec Kit doc links (`/traderspec-specs/speckit`) in main docs sidebar and migration journey page; canonical docs entrypoint is now `/traderspec-specs/specs/baseline-uncontainerized-parity/README`.
