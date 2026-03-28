@@ -45,7 +45,17 @@ export const Datatable = () => {
 			}
 			if (data.topic === `/accounts/${event.target.value}/positions`) {
 				console.log("INCOMING POSITION DATA: ", data);
-				setPositionRowData((current: PositionData[]) => [...current, data.payload]);
+				setPositionRowData((current: PositionData[]) => {
+					const existingIndex = current.findIndex(
+						(pos: PositionData) => pos.security === data.payload.security
+					);
+					if (existingIndex >= 0) {
+						const updated = [...current];
+						updated[existingIndex] = data.payload;
+						return updated;
+					}
+					return [...current, data.payload];
+				});
 			}
 		});
   }, [selectedId])

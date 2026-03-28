@@ -12,11 +12,17 @@ The people service is used for managing users in the system, and associating the
 
 Default Port is 18089.
 
-TODO: Get this port configurable by env var PEOPLE_SERVICE_PORT
+The port can be configured using the `PEOPLE_SERVICE_PORT` environment variable.
 
 ## Building and Running
 ```bash
 $ cd PeopleService.WebApi
+$ dotnet run
+```
+
+To run on a different port:
+```bash
+$ export PEOPLE_SERVICE_PORT=8080
 $ dotnet run
 ```
 
