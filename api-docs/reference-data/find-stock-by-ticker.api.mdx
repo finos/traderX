@@ -1,0 +1,69 @@
+---
+id: find-stock-by-ticker
+title: "Find stock by ticker"
+description: "Find stock by ticker"
+sidebar_label: "Find stock by ticker"
+hide_title: true
+hide_table_of_contents: true
+api: eJx9U01v2zAM/SsGTxsQJO7Qk28B9oEBRTE03SnoQZGZWo0tqRQd1DD830faRrrA3U6myEfy8ZHuIRoyDTJSgmLfg5cHFMDOnpBgBc7LKxquxCZ8bR1hCQVTiytItsLGQNEDd1GzEpPzzzAMTwpOMfiESeNf8lw/JSZLLrILWnXHwZ6yY2h9KcVt8IyeFWZirJ01Ctu8JMX2y17h8IKWr1jt32nb0ETju3udRshEChGJ3cRmRi14rwDfTBNrdW23v+5guC70/wQhjdlPb9cy/0p68OjeoW3JcSdOdd/mt0sh7gPPMijkOvbd+TJLo1KHLrvMJxurgowMz6gajAsqYDMC06afcMO4v2OYZp74PJIpkXYRbfaARyT0FrOvhk22Qzo7i5JzlmOYut+s83WuMsSQuDHjJuYL+QexK/YXvRjfeBNrI9ckxVqqNTaR3sNEWnKLuYosrJJ+Guv7g0n4m+phUPdri9SJX8yzIWcOOpNcbemS2iLI0dQJFzQuxwWfHuZz+ZxJxw/pzU7Zumph6lZfYp6we/8zhidBVqhijgym4NZajPxX2uKU9de4LO/Ht0dZ+R+/xjDh
+sidebar_class_name: "get api-method"
+info_path: traderspec-specs/api/reference-data/traderspec-reference-data-service
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+import Translate from "@docusaurus/Translate";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Find stock by ticker"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/stocks/{ticker}"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Find stock by ticker
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+>
+  <Translate id="theme.openapi.request.title">Request</Translate>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"ticker","in":"path","required":true,"schema":{"type":"string"}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Stock found","content":{"application/json":{"schema":{"type":"object","required":["ticker","companyName"],"properties":{"ticker":{"type":"string","example":"AAPL"},"companyName":{"type":"string","example":"Apple Inc."}},"title":"Security"}}}},"404":{"description":"Not found"}}}
+>
+
+</StatusCodes>

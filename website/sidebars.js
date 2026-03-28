@@ -17,6 +17,7 @@ module.exports = {
       items: [
         'traderspec/spec-kit-portal',
         'traderspec/spec-kit-workflow',
+        'traderspec/spec-kit-generation-guide',
         {
           type: 'link',
           label: 'Spec Kit Requirements Catalog',
@@ -26,6 +27,11 @@ module.exports = {
           type: 'link',
           label: 'Spec Kit .specify',
           href: '/traderspec-specs/specify',
+        },
+        {
+          type: 'link',
+          label: 'API Explorer',
+          href: '/traderspec-specs/api',
         },
         {
           type: 'link',
@@ -43,6 +49,7 @@ module.exports = {
         'traderspec/spec-migration-journey',
         'traderspec/baseline-vs-parity',
         'traderspec/spec-first-regeneration',
+        'traderspec/api-explorer',
         'traderspec/run-base-uncontainerized-hydrated',
         'traderspec/run-generated-overlays',
         'traderspec/run-specfirst-generated-codebase',

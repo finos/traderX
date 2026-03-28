@@ -5,19 +5,27 @@ info:
 paths:
   /account/:
     get:
+      operationId: listAccounts
+      summary: List all accounts
       responses:
         "200":
           description: OK
     post:
+      operationId: createAccount
+      summary: Create account
       responses:
         "200":
           description: OK
     put:
+      operationId: updateAccount
+      summary: Update account
       responses:
         "200":
           description: OK
   /account/{id}:
     get:
+      operationId: getAccountById
+      summary: Get account by id
       parameters:
         - name: id
           in: path
@@ -31,21 +39,29 @@ paths:
           description: Not found
   /accountuser/:
     get:
+      operationId: listAccountUsers
+      summary: List all account-user mappings
       responses:
         "200":
           description: OK
     post:
+      operationId: createAccountUser
+      summary: Add account-user mapping
       responses:
         "200":
           description: OK
         "404":
           description: Person not found
     put:
+      operationId: updateAccountUser
+      summary: Update account-user mapping
       responses:
         "200":
           description: OK
   /accountuser/{id}:
     get:
+      operationId: getAccountUsersByAccountId
+      summary: Get account-user mappings by account id
       parameters:
         - name: id
           in: path

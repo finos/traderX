@@ -4,37 +4,39 @@ title: GitHub Spec Kit Workflow
 
 # GitHub Spec Kit Workflow
 
-TraderSpec now uses a root-canonical GitHub Spec Kit layout:
+TraderX baseline generation now follows a root-canonical GitHub Spec Kit flow.
 
-Browse it in Docusaurus:
+## Canonical Locations
+
+- `.specify/**` for constitution and templates
+- `specs/001-baseline-uncontainerized-parity/**` for baseline requirements, stories, plan, tasks, and contracts
+- `TraderSpec/pipeline/**` for generation and validation orchestration
+
+Browse in docs:
 
 - `/traderspec-specs/specs/baseline-uncontainerized-parity/README`
 - `/traderspec-specs/specs/baseline-uncontainerized-parity/system/system-requirements`
 - `/traderspec-specs/specs/baseline-uncontainerized-parity/system/user-stories`
 - `/traderspec-specs/specs/baseline-uncontainerized-parity/system/acceptance-criteria`
 - `/traderspec-specs/specs/baseline-uncontainerized-parity/system/requirements-traceability`
-- `/traderspec-specs/specify` (constitution + Spec Kit templates)
+- `/traderspec-specs/api`
+- `/traderspec-specs/specify`
 
-## Source Inputs For System Understanding
-
-The system-level requirements and user stories are grounded in:
+## Input Evidence For Requirements
 
 - `docs/overview.md`
 - `docs/flows.md`
 - `docs/README.md`
 - `README.md`
 
-## Spec Kit Layers
+## Baseline Generation Flow
 
-- `.specify/**`
-- `specs/001-baseline-uncontainerized-parity/spec.md`
-- `specs/001-baseline-uncontainerized-parity/plan.md`
-- `specs/001-baseline-uncontainerized-parity/tasks.md`
-- `specs/001-baseline-uncontainerized-parity/system/**`
-- `specs/001-baseline-uncontainerized-parity/components/*.md`
-- `specs/001-baseline-uncontainerized-parity/contracts/**/openapi.yaml`
+1. Validate Spec Kit readiness and requirement coverage.
+2. Compile component manifests from Spec Kit artifacts.
+3. Synthesize generated components from manifest + templates.
+4. Start generated overlays and run smoke tests/parity checks.
 
-## Validation
+## Validation Commands
 
 ```bash
 ./TraderSpec/pipeline/speckit/validate-speckit-readiness.sh
@@ -44,19 +46,38 @@ bash TraderSpec/pipeline/speckit/compile-all-component-manifests.sh
 ./TraderSpec/pipeline/verify-spec-coverage.sh
 ```
 
-## Generation
+## Generation Commands
 
-Each component generator now asserts Spec Kit readiness and component traceability before writing code.
-Manifest-driven synthesis (compiled manifest + template) is now active for all baseline component generators.
-
-Example:
+Regenerate baseline components:
 
 ```bash
 bash TraderSpec/pipeline/generate-reference-data-specfirst.sh
+bash TraderSpec/pipeline/generate-database-specfirst.sh
+bash TraderSpec/pipeline/generate-people-service-specfirst.sh
+bash TraderSpec/pipeline/generate-account-service-specfirst.sh
+bash TraderSpec/pipeline/generate-position-service-specfirst.sh
+bash TraderSpec/pipeline/generate-trade-feed-specfirst.sh
+bash TraderSpec/pipeline/generate-trade-processor-specfirst.sh
 bash TraderSpec/pipeline/generate-trade-service-specfirst.sh
+bash TraderSpec/pipeline/generate-web-front-end-angular-specfirst.sh
 ```
 
-## Full Parity Validation
+Run generated overlays in base-state order:
+
+```bash
+CORS_ALLOWED_ORIGINS=http://localhost:18093 ./TraderSpec/codebase/scripts/start-base-uncontainerized-hydrated.sh \
+  --overlay-reference-generated \
+  --overlay-database-generated \
+  --overlay-people-generated \
+  --overlay-account-generated \
+  --overlay-position-generated \
+  --overlay-trade-feed-generated \
+  --overlay-trade-processor-generated \
+  --overlay-trade-service-generated \
+  --overlay-web-angular-generated
+```
+
+## Full Parity Gate
 
 Run end-to-end parity validation (generation + startup + all baseline smoke tests):
 
@@ -64,7 +85,15 @@ Run end-to-end parity validation (generation + startup + all baseline smoke test
 bash TraderSpec/pipeline/speckit/run-full-parity-validation.sh
 ```
 
-## Legacy vs Spec Kit Generator Output Diff
+## API Explorer
+
+Generate interactive OpenAPI docs from canonical contracts:
+
+```bash
+npm --prefix website run gen:api-docs
+```
+
+## Compare Generation Output
 
 To compare a single component generated output between a legacy script revision and current Spec Kit-driven generation:
 
@@ -78,4 +107,13 @@ Example:
 bash TraderSpec/pipeline/speckit/compare-component-generation.sh reference-data HEAD
 ```
 
-This runs generation in a temporary worktree at `<legacy-ref>`, runs current generation in your working tree, then diffs the generated directories.
+## Iterating Learning-Path States
+
+After baseline parity is green:
+
+1. add FR/NFR deltas in the next feature pack under `specs/NNN-*`
+2. update contracts if interfaces change
+3. regenerate affected components
+4. rerun conformance + parity gates
+
+This keeps each learning-path state reproducible from requirements instead of from copied source.

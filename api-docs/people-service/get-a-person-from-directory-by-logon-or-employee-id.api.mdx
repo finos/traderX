@@ -1,0 +1,69 @@
+---
+id: get-a-person-from-directory-by-logon-or-employee-id
+title: "Get a person from directory by logon or employee ID"
+description: "Get a person from directory by logon or employee ID"
+sidebar_label: "Get a person from directory by logon or employee ID"
+hide_title: true
+hide_table_of_contents: true
+api: eJylU01r3DAQ/StCZ9NNS057CzSEhVICSelh2YMsz66VypIijZca4//eGctxvKxzSU9iNF/vvZnpZVBRNYAQk9zue+nIkFv5w5+821WykMaR+dpC7MhIuoZGyW0vsQsclzAadyKPa61VpaU/jC0MQzGXum+C9R3A/1Q7FDJCCt4lSBz/7eaGnwqSjiag8Vz2kTh4J46+ddxKe4fgkONUCNZoxXGbl8TB/XVzX76ARsmdXlsToSI9pJ11OBKkn8yokJRn7PgumFVASmLDHQsZao/+V7SSgIfoA0Q0GflbwSvSw6LFmjM3XffMMNbcC2Br7hnqtZO8aJCnMGlLX/x5u6b+zp2VNZVg9SChHONuP5yS8zhNahgxLkMeAIUSYRpn9I2oaB4afexE2YlRQuGjeCMudt9Jc1ri2pME8gTjCBTWZGwewQcLG6o5ceAlPPqR7kTuOaoK4lMALXL0E8Sz0fDlN5R3wVDGmVIztvPXUTSfsFHjHk1b/jnMF7xn/RH+4iZYRcdCvdo8m8xnLzNCyn1nREtWEyD29n2pEtA4h4G/86XxXVcm8UGRPkdlExTyD3QXd07Ta7m55NP9IPrilN8TDmxEkw92fyDMNbCiY+Oceac1BFxkXZ0kV5lH+HD/THvxDzQ8k4Q=
+sidebar_class_name: "get api-method"
+info_path: traderspec-specs/api/people-service/traderspec-peopleservice-webapi
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+import Translate from "@docusaurus/Translate";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get a person from directory by logon or employee ID"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/People/GetPerson"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Get a person from directory by logon or employee ID
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+>
+  <Translate id="theme.openapi.request.title">Request</Translate>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"LogonId","in":"query","schema":{"type":"string","nullable":true}},{"name":"EmployeeId","in":"query","schema":{"type":"string","nullable":true}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Person found","content":{"application/json":{"schema":{"type":"object","required":["logonId","fullName","email","employeeId","department","photoUrl"],"properties":{"logonId":{"type":"string"},"fullName":{"type":"string"},"email":{"type":"string"},"employeeId":{"type":"string"},"department":{"type":"string"},"photoUrl":{"type":"string"}},"title":"Person"}}}},"400":{"description":"Invalid request"},"404":{"description":"Person not found"}}}
+>
+
+</StatusCodes>

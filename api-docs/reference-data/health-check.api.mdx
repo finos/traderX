@@ -1,0 +1,61 @@
+---
+id: health-check
+title: "Health check"
+description: "Health check"
+sidebar_label: "Health check"
+hide_title: true
+hide_table_of_contents: true
+api: eJxlUUFuwjAQ/Eq0ZwRpj7lVatWeCz0hDotZiItjm/UmAkX5e9dJ1BZxij3emZ2Z9MCUYvCJElQ9PJdl/hwoGbZRbPBQwZq4s4YKm4qa0El9gwWY4IW85GmM0VmDeXr1nTKlh2RqajCf5BZJRcL+m4wokenSWqYDVFtIgtIm2C0gcojEYicbM/7HTsLWn5RNV2yiGwXPMAwLECvj9WN0ptCQ0fsA01uhlsxZNRqSOuh+OFE2FFF5FaymbApYfwzj7ll6w3ggXkcyxScdiclrGa8oWMzNKKcjTtOyp2W5LEE9xJCkwbENjw09+rgz+RtV6Cqr6ND6LNKyy2+Txy3MHrWwWtUz0vd7TPTFbhgyfGmJb4rrsUO2uM8JtjtVUqqm0EsPZ9IReDGGYi6gQ9fmzQ//cdj9K+v9baPt/gBw2r5b
+sidebar_class_name: "get api-method"
+info_path: traderspec-specs/api/reference-data/traderspec-reference-data-service
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+import Translate from "@docusaurus/Translate";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Health check"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/health"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Health check
+
+<ParamsDetails
+  parameters={undefined}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Service is healthy","content":{"application/json":{"schema":{"type":"object","required":["status"],"properties":{"status":{"type":"string","example":"ok"}},"title":"Health"}}}}}}
+>
+
+</StatusCodes>

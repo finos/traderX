@@ -4,6 +4,25 @@ TraderSpec is the requirements-first redesign workspace for TraderX.
 
 It defines how to rebuild and evolve the codebase from explicit specifications while staying tightly aligned to TraderX behavior.
 
+## Quick Orientation
+
+If you are new to this repo, use this order:
+
+1. `docs/traderspec/spec-kit-portal.md` for source-of-truth map (`.specify`, `specs`, migration records).
+2. `docs/traderspec/spec-kit-workflow.md` for the baseline generation lifecycle.
+3. `docs/traderspec/spec-kit-generation-guide.md` for the exact operator commands.
+4. `docs/traderspec/run-generated-overlays.md` for local runtime with generated overlays.
+
+Key doc routes in Docusaurus:
+
+- `/docs/traderspec/spec-kit-portal`
+- `/docs/traderspec/spec-kit-workflow`
+- `/docs/traderspec/spec-kit-generation-guide`
+- `/traderspec-specs/specs`
+- `/traderspec-specs/api`
+- `/traderspec-specs/migration-todo`
+- `/traderspec-specs/migration-blog`
+
 ## Project Mission
 
 Move TraderX from legacy spec scaffolding to a GitHub Spec Kit operating model where:
@@ -30,6 +49,23 @@ Move TraderX from legacy spec scaffolding to a GitHub Spec Kit operating model w
 - Baseline component generation now uses manifest-driven synthesis (compiled manifest + component templates).
 - End-to-end parity validation is required to prove generated output matches expected baseline behavior.
 - Pipeline default root feature pack: `specs/001-baseline-uncontainerized-parity` (override with `SPECKIT_FEATURE_ID=<id>` when needed).
+
+## Official Spec Kit Alignment
+
+This repo follows the official GitHub Spec Kit structure and extends it with project-specific generation/parity tooling.
+
+Core Spec Kit alignment:
+
+- `.specify/` scaffold and constitution
+- numbered feature packs (`specs/NNN-*`) with `spec.md`, `plan.md`, `tasks.md`
+- requirement/story/acceptance traceability in each feature pack
+
+TraderX-specific extensions layered on top:
+
+- manifest compilation (`speckit -> generated manifest`)
+- component synthesis generators (`manifest + template -> source`)
+- conformance packs and semantic compare gates
+- runtime parity smoke-test gates
 
 ## Structure
 

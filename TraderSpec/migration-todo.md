@@ -127,6 +127,9 @@ flowchart LR
 
 ## Execution Log
 
+- 2026-03-29: Clarified TraderSpec documentation for Spec Kit-first operations: added an explicit generation user guide, rewrote portal/workflow overview pages, and cleaned TraderSpec sidebars to prioritize active Spec Kit routes.
+- 2026-03-29: Clarified `.specify` publishing approach: constitution is rendered directly in Docusaurus and official template files are linked from the `.specify` sidebar (kept as links because upstream placeholders are not MDX-safe).
+- 2026-03-29: Added Docusaurus OpenAPI Explorer (`/traderspec-specs/api`) using `docusaurus-plugin-openapi-docs` + `docusaurus-theme-openapi-docs`, generated from root canonical contract files under `specs/001-baseline-uncontainerized-parity/contracts/**/openapi.yaml`.
 - 2026-03-29: Added Spec Kit portal surfacing in Docusaurus: root `specs/**` catalog plugin plus `.specify/memory/**` with template source links, and hardened navbar/top-level routes to absolute paths.
 - 2026-03-29: Fixed Docusaurus MDX double-loader failure by splitting TraderSpec docs into two non-overlapping plugins: `traderspec` (`TraderSpec/`) and `traderspec-root-specs` (`specs/`), then validated `npm --prefix website run build` successfully.
 - 2026-03-29: Consolidated nine `docs/traderspec/run-mixed-*.md` pages into `docs/traderspec/run-generated-overlays.md` and switched docs sidebars to curated TraderSpec navigation.

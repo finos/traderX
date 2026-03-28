@@ -4,6 +4,21 @@ const projectName = 'TraderX'
 const projectSlug = 'traderX'
 const copyrightOwner = 'FINOS - The Fintech Open Source Foundation'
 
+function pathBrowserPolyfillPlugin() {
+  return {
+    name: 'path-browser-polyfill',
+    configureWebpack() {
+      return {
+        resolve: {
+          fallback: {
+            path: require.resolve('path-browserify'),
+          },
+        },
+      }
+    },
+  }
+}
+
 module.exports = {
   onBrokenLinks: 'ignore',
   title: `${projectName}`,
@@ -22,7 +37,7 @@ module.exports = {
   markdown: {
     mermaid: true,
   },
-  themes: ['@docusaurus/theme-mermaid'],
+  themes: ['@docusaurus/theme-mermaid', 'docusaurus-theme-openapi-docs'],
   themeConfig: {
     navbar: {
       title: `TraderX`,
@@ -34,6 +49,7 @@ module.exports = {
         {to: '/docs/home', label: 'Docs', position: 'right'},
         {to: '/docs/traderspec', label: 'TraderSpec Ops', position: 'right'},
         {to: '/docs/traderspec/spec-kit-portal', label: 'Spec Kit', position: 'right'},
+        {to: '/traderspec-specs/api', label: 'API Explorer', position: 'right'},
         {to: '/docs/roadmap', label: 'Roadmap', position: 'right'},
         {to: '/docs/team', label: 'Team', position: 'right'},
         {
@@ -161,5 +177,68 @@ module.exports = {
         editUrl: 'https://github.com/finos/traderX/edit/main/.specify/',
       },
     ],
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'traderspec-api',
+        path: '../api-docs',
+        routeBasePath: 'traderspec-specs/api',
+        sidebarPath: require.resolve('./traderspec-api.sidebars.js'),
+        docItemComponent: '@theme/ApiItem',
+        editUrl: 'https://github.com/finos/traderX/edit/main/api-docs/',
+      },
+    ],
+    [
+      'docusaurus-plugin-openapi-docs',
+      {
+        id: 'traderspec-openapi',
+        docsPluginId: 'traderspec-api',
+        config: {
+          'account-service': {
+            specPath: '../specs/001-baseline-uncontainerized-parity/contracts/account-service/openapi.yaml',
+            outputDir: '../api-docs/account-service',
+            sidebarOptions: {
+              groupPathsBy: 'tag',
+            },
+          },
+          'people-service': {
+            specPath: '../specs/001-baseline-uncontainerized-parity/contracts/people-service/openapi.yaml',
+            outputDir: '../api-docs/people-service',
+            sidebarOptions: {
+              groupPathsBy: 'tag',
+            },
+          },
+          'position-service': {
+            specPath: '../specs/001-baseline-uncontainerized-parity/contracts/position-service/openapi.yaml',
+            outputDir: '../api-docs/position-service',
+            sidebarOptions: {
+              groupPathsBy: 'tag',
+            },
+          },
+          'reference-data': {
+            specPath: '../specs/001-baseline-uncontainerized-parity/contracts/reference-data/openapi.yaml',
+            outputDir: '../api-docs/reference-data',
+            sidebarOptions: {
+              groupPathsBy: 'tag',
+            },
+          },
+          'trade-processor': {
+            specPath: '../specs/001-baseline-uncontainerized-parity/contracts/trade-processor/openapi.yaml',
+            outputDir: '../api-docs/trade-processor',
+            sidebarOptions: {
+              groupPathsBy: 'tag',
+            },
+          },
+          'trade-service': {
+            specPath: '../specs/001-baseline-uncontainerized-parity/contracts/trade-service/openapi.yaml',
+            outputDir: '../api-docs/trade-service',
+            sidebarOptions: {
+              groupPathsBy: 'tag',
+            },
+          },
+        },
+      },
+    ],
+    pathBrowserPolyfillPlugin,
   ],
 };

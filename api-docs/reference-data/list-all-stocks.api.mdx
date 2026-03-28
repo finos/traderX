@@ -1,0 +1,61 @@
+---
+id: list-all-stocks
+title: "List all stocks"
+description: "List all stocks"
+sidebar_label: "List all stocks"
+hide_title: true
+hide_table_of_contents: true
+api: eJx9Uk1PwzAM/SuVz9M2OO6GBEJICCEGp2kHLzM0W5oEx52oqv537BbxJUQuSV78nv2e0gNTySkWKrDq4Xy5tG1PxbHP4lOEFawluWMVfBGYgUtRKIpVYc7BO7SqxaFYaQ/F1dSgnaTLpGRkxk55Xqgp3/C0O5AzQabX1jPtYbUB8e5IPHZpMsbuDhuC7Qwyp0wsfhryo+pLqwj7+KI0esMmB4MuLu5vYfgp9D9BzVB1E90cBuWJlxFek2vZS6egrdmvaG41lApDqIplVFSxIamTmoEXMncZpdbL4vPdx+c0mZgaPDLuideZXPVAz8QUHVWXKFitiU/ekXJOxGXqdzZfzpfmK6ciDY6Rx9HbH6P8GPXTu9CbLHJAH02n5WBv05gb+OBq5LU2MKTvd1joicMwGPzaEneK6/GE7HFnJjZbVarJjOilhyN1lqhzlC2DE4Z2/Aq//8uw/ZbX9dWjhvwOWITeyw==
+sidebar_class_name: "get api-method"
+info_path: traderspec-specs/api/reference-data/traderspec-reference-data-service
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+import Translate from "@docusaurus/Translate";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"List all stocks"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/stocks"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+List all stocks
+
+<ParamsDetails
+  parameters={undefined}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Stock list","content":{"application/json":{"schema":{"type":"array","items":{"type":"object","required":["ticker","companyName"],"properties":{"ticker":{"type":"string","example":"AAPL"},"companyName":{"type":"string","example":"Apple Inc."}},"title":"Security"}}}}}}}
+>
+
+</StatusCodes>

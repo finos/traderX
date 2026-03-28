@@ -21,16 +21,27 @@ This flow generates implementation artifacts from Spec Kit requirements and tech
 ./TraderSpec/pipeline/generate-from-spec.sh
 ```
 
-Runnable generated target:
+## Run Generated Target
 
 ```bash
 ./TraderSpec/codebase/scripts/run-specfirst-generated-codebase.sh
 ```
 
-Generated output lands at:
+## Output Locations
 
-- `TraderSpec/codebase/target-generated-specfirst`
+- `TraderSpec/codebase/target-generated-specfirst`:
+  synthesized output assembled by `generate-from-spec.sh` and used by `run-specfirst-generated-codebase.sh`.
+- `TraderSpec/codebase/generated-components/*-specfirst`:
+  per-component generated sources produced by component generators.
+- `TraderSpec/codebase/target-generated`:
+  runtime assembly target used by base startup scripts and overlay switching.
 
-Reference comparator (optional):
+## Comparison (Optional)
 
-- `TraderSpec/codebase/target-generated` (parity snapshot copy)
+```bash
+bash TraderSpec/pipeline/speckit/compare-all-component-generation.sh HEAD --allow-differences
+```
+
+## Recommended Operator Guide
+
+Use `/docs/traderspec/spec-kit-generation-guide` for the full baseline generate/run/validate sequence.

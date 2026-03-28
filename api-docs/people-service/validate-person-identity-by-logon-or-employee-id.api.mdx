@@ -1,0 +1,69 @@
+---
+id: validate-person-identity-by-logon-or-employee-id
+title: "Validate person identity by logon or employee ID"
+description: "Validate person identity by logon or employee ID"
+sidebar_label: "Validate person identity by logon or employee ID"
+hide_title: true
+hide_table_of_contents: true
+api: eJylUsFOwzAM/ZXI54oNtNNuSExoEodJG3CYdkhXb41Ik5C4FVXVf8dex6AILnCKHD8/2++5g6CjrpAwJphvO3AcwBwe/NG7ZQEZGMfha42x5SDtS6w0zDugNgguUTTuyBlXW6tzy38Ua+z77EK1qIL1LeJ/2HYZREzBu4RJ8DfTqTwFpn00gYwX2hXv4J0ySTXamgL6DGY/4ZbulFcReZBEA272K5/zpA6+dkzIyDHkSYg0oQrn3gU6MtSqvFVWJFQ+KjwLoJZ3vBprXfqCa49IHAZNJQeTFfpgcfJBOPQ+CXbwJ4UMiRywibrAuA64V0PJGmNj9nj1jPltMFzRcOkwXXMtuwWfqNJOSM6O/GHq0doXvwjfaBKsZle5UR2t5IaNtjCMx7XfdmIvSx5JIF2X64SP0fa9fA93IVdYmCT2s0wHbRNm8ILt6CrZwVomADm0X9Cjw/ss2EkQzXBe213/xZL7xYZNfgdzTwzJ
+sidebar_class_name: "get api-method"
+info_path: traderspec-specs/api/people-service/traderspec-peopleservice-webapi
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+import Translate from "@docusaurus/Translate";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Validate person identity by logon or employee ID"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/People/ValidatePerson"}
+  context={"endpoint"}
+>
+
+</MethodEndpoint>
+
+
+
+Validate person identity by logon or employee ID
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+>
+  <Translate id="theme.openapi.request.title">Request</Translate>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"name":"LogonId","in":"query","schema":{"type":"string","nullable":true}},{"name":"EmployeeId","in":"query","schema":{"type":"string","nullable":true}}]}
+>
+
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Person is valid"},"400":{"description":"Invalid request"},"404":{"description":"Person not found"}}}
+>
+
+</StatusCodes>

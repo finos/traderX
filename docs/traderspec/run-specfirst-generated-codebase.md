@@ -4,7 +4,7 @@ title: Run Spec-First Generated Codebase
 
 # Run Spec-First Generated Codebase
 
-This runs the **spec-first generated target** (`target-generated-specfirst`) with Angular-only UI scope.
+This runs the **spec-first generated target** (`TraderSpec/codebase/target-generated-specfirst`) with Angular-only UI scope.
 
 ## One Command Run
 
@@ -17,8 +17,8 @@ From repo root:
 What this does:
 
 1. validates regeneration readiness
-2. generates from Spec Kit synthesis outputs
-3. prepares compose layout in generated target
+2. generates component outputs from Spec Kit-driven synthesis
+3. prepares compose layout in `target-generated-specfirst`
 4. starts stack via generated target compose file
 
 ## Stop

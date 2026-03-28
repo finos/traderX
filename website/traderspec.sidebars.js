@@ -2,6 +2,26 @@ module.exports = {
   traderspecSidebar: [
     {
       type: 'doc',
+      id: 'speckit/README',
+      label: 'Spec Kit Mission',
+    },
+    {
+      type: 'link',
+      label: 'Spec Kit Portal (Docs)',
+      href: '/docs/traderspec/spec-kit-portal',
+    },
+    {
+      type: 'link',
+      label: 'Workflow (Docs)',
+      href: '/docs/traderspec/spec-kit-workflow',
+    },
+    {
+      type: 'link',
+      label: 'Generation Guide (Docs)',
+      href: '/docs/traderspec/spec-kit-generation-guide',
+    },
+    {
+      type: 'doc',
       id: 'migration-todo',
       label: 'Migration TODO',
     },
@@ -9,11 +29,6 @@ module.exports = {
       type: 'doc',
       id: 'migration-blog',
       label: 'Migration Blog',
-    },
-    {
-      type: 'doc',
-      id: 'speckit/README',
-      label: 'Spec Kit Mission',
     },
     {
       type: 'link',
@@ -27,8 +42,8 @@ module.exports = {
     },
     {
       type: 'link',
-      label: 'Contracts',
-      href: '/traderspec-specs/speckit/contracts/README',
+      label: 'Contract APIs',
+      href: '/traderspec-specs/api',
     },
     {
       type: 'link',
@@ -36,19 +51,14 @@ module.exports = {
       href: '/traderspec-specs/specs/baseline-uncontainerized-parity/conformance/trade-service',
     },
     {
-      type: 'category',
-      label: 'Legacy Pointers',
-      items: [
-        'speckit/README',
-        'speckit/system/README',
-        'speckit/components/README',
-        'speckit/conformance/README',
-      ],
-    },
-    {
       type: 'link',
       label: 'Root Specs Catalog',
       href: '/traderspec-specs/specs',
+    },
+    {
+      type: 'link',
+      label: 'API Explorer',
+      href: '/traderspec-specs/api',
     },
     {
       type: 'link',

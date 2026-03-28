@@ -4,40 +4,50 @@ title: TraderSpec Overview
 
 # TraderSpec
 
-TraderSpec is a new root workspace at `TraderSpec/` for spec-driven delivery.
+TraderSpec is the spec-driven operating model for TraderX.
 
-It starts from a **pre-Docker traditional baseline** and layers learning-path steps across:
+The baseline state is intentionally **pre-Docker / pre-ingress**. From that state, we regenerate code from requirements and then evolve through learning-path overlays.
+
+## Start Here
+
+1. Read the Spec Kit portal:
+   - `/docs/traderspec/spec-kit-portal`
+2. Read the end-to-end generation workflow:
+   - `/docs/traderspec/spec-kit-workflow`
+3. Follow the operator runbook:
+   - `/docs/traderspec/spec-kit-generation-guide`
+4. Run and verify the generated baseline:
+   - `/docs/traderspec/run-generated-overlays`
+5. Review migration execution status and evidence:
+   - `/traderspec-specs/migration-todo`
+   - `/traderspec-specs/migration-blog`
+
+## Learning Path Model
+
+All tracks start from the same base state:
 
 - DevEx track
 - Non-Functional track
 - Functional track
 
-## Key Design Rule
+## Core Rules
 
 - Baseline functional requirements are defined once.
 - Non-functional tracks add only NFR overlays.
 - Functional track can add new FRs, with compatibility constraints.
 
-## Where to Look
+## Canonical Spec Sources
 
-- `TraderSpec/foundation/00-traditional-to-cloud-native/specs`
-- `TraderSpec/catalog/learning-paths.yaml`
-- `TraderSpec/tracks/*/steps/*/spec.md`
-- `TraderSpec/prompts/**`
-- `TraderSpec/graphs/*.mmd`
+- Root Spec Kit scaffold: `/.specify/**`
+- Root feature packs: `/specs/**`
+- Current baseline feature pack: `specs/001-baseline-uncontainerized-parity`
 
-## Full Spec Browser
+## Docusaurus Entry Points
 
-The site now exposes the actual source specs directly under:
-
-- `/traderspec-specs/` (navbar: **Spec Kit**)
-- canonical root feature pack: `/traderspec-specs/specs/baseline-uncontainerized-parity/README`
-- left sidebar sections: **System Requirements**, **Component Specs**, **Conformance Packs**
-- `docs/traderspec/spec-kit-workflow` for the requirements-first GitHub Spec Kit model
-- `docs/traderspec/spec-kit-portal` for the complete Spec Kit portal map (`specs/**`, `.specify/**`, migration docs)
-- `docs/traderspec/baseline-vs-parity` for baseline vs parity model
-- `docs/traderspec/run-specfirst-generated-codebase` for runnable spec-first flow
-- `docs/traderspec/spec-migration-journey` for the end-to-end migration TODO and progress
-- `docs/traderspec/run-base-uncontainerized-hydrated` for phase-2 base runtime scripts
-- `docs/traderspec/run-generated-overlays` for consolidated overlay progression, commands, and smoke checks
-- `docs/traderspec/component-cutover-matrix` for phase-5 generated vs hydrated cutover tracking
+- Spec catalog: `/traderspec-specs/specs`
+- Baseline pack home: `/traderspec-specs/specs/baseline-uncontainerized-parity/README`
+- `.specify` constitution/templates: `/traderspec-specs/specify`
+- OpenAPI explorer: `/traderspec-specs/api`
+- Workflow guide: `/docs/traderspec/spec-kit-workflow`
+- API explorer guide: `/docs/traderspec/api-explorer`
+- Baseline vs parity semantics: `/docs/traderspec/baseline-vs-parity`

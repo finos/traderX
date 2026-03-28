@@ -4,21 +4,23 @@ title: Spec Kit Portal
 
 # Spec Kit Portal
 
-This is the entrypoint for Spec Kit artifacts in TraderX.
+This is the single map for where Spec Kit artifacts live in TraderX and how they are used for generation.
 
-## What Is Published
+## Published Sources
 
-The documentation portal surfaces three local sources:
+The portal publishes three repository sources:
 
 1. Root feature packs under `specs/**`
-2. Root Spec Kit scaffolding under `.specify/**`
-3. TraderSpec migration and legacy pointer docs under `TraderSpec/**`
+2. Root Spec Kit scaffold under `.specify/**`
+3. Migration execution records under `TraderSpec/**`
 
-## Where To Browse
+## Browse in Docusaurus
 
 - Root specs catalog: `/traderspec-specs/specs`
 - Baseline feature pack: `/traderspec-specs/specs/baseline-uncontainerized-parity`
-- Spec Kit constitution + template source links: `/traderspec-specs/specify`
+- OpenAPI API Explorer: `/traderspec-specs/api`
+- `.specify` constitution and templates: `/traderspec-specs/specify`
+- Generation operator guide: `/docs/traderspec/spec-kit-generation-guide`
 - Migration TODO: `/traderspec-specs/migration-todo`
 - Migration Blog: `/traderspec-specs/migration-blog`
 
@@ -28,21 +30,24 @@ There is currently no official Docusaurus plugin from GitHub Spec Kit.
 
 Official references:
 
-- Spec Kit docs: `https://github.github.com/spec-kit/index.html`
-- Spec Kit quickstart: `https://github.github.com/spec-kit/quickstart.html`
-- Spec Kit repository: `https://github.com/github/spec-kit`
+- Spec Kit docs: [https://github.github.com/spec-kit/index.html](https://github.github.com/spec-kit/index.html)
+- Spec Kit quickstart: [https://github.github.com/spec-kit/quickstart.html](https://github.github.com/spec-kit/quickstart.html)
+- Spec Kit repository: [https://github.com/github/spec-kit](https://github.com/github/spec-kit)
 
-## Conformance Status (Current)
+## How This Repo Maps to Spec Kit
 
-Current implementation is aligned with the core GitHub Spec Kit workflow:
+Core alignment:
 
-- initialized `.specify/` project scaffold
-- root feature pack structure in `specs/NNN-*`
-- `spec.md` + `plan.md` + `tasks.md` driven flow
-- constitution and template usage
-- CI quality gates for root feature-pack integrity and branch/feature resolution
+- `.specify/` initialized and active
+- numbered root feature packs under `specs/NNN-*`
+- `spec.md` -> `plan.md` -> `tasks.md` flow in baseline pack
+- constitution and templates in active use
+- CI/root gates for feature-pack and branch/feature resolution checks
 
-Remaining gap vs strict “upstream-native” usage:
+Repo-specific extensions:
 
-- we include project-specific synthesis/conformance pipelines beyond base Spec Kit defaults
-- slash-command execution UX depends on agent tooling; in this repo we also support Codex skills wrappers
+- manifest-driven synthesis compiler and component generators
+- conformance packs and semantic compare harness
+- parity smoke-test gates for runtime validation
+
+These extensions are intentional and sit on top of, not instead of, the core Spec Kit workflow.
