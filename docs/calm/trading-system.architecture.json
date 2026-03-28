@@ -68,14 +68,14 @@
             }
         },
         {
-            "unique-id": "trading-service",
+            "unique-id": "trading-services",
             "node-type": "service",
-            "name": "Trading Service",
+            "name": "Trading Services",
             "description": "Handles trade submission, validates tickets against reference data service and account service",
             "interfaces": [
                 {
-                    "unique-id": "trading-service-api",
-                    "name": "Trading Service REST API",
+                    "unique-id": "trading-services-api",
+                    "name": "Trading Services REST API",
                     "description": "HTTP API for submitting and validating trade orders",
                     "protocol": "HTTPS",
                     "port": 18092,
@@ -321,12 +321,12 @@
         {
             "unique-id": "messagebus",
             "node-type": "service",
-            "name": "Message Bus",
+            "name": "Trade Feed",
             "description": "Publishes and delivers real-time trade events, position updates, and trade status notifications",
             "interfaces": [
                 {
                     "unique-id": "messagebus-websocket",
-                    "name": "Message Bus WebSocket API",
+                    "name": "Trade Feed WebSocket API",
                     "description": "WebSocket/SocketIO interface for pub-sub messaging of trade and position events",
                     "protocol": "WebSocket",
                     "port": 18086,
@@ -357,9 +357,9 @@
                     }
                 },
                 {
-                    "unique-id": "messagebus-viewer",
-                    "name": "Message Bus Viewer",
-                    "description": "HTML interface for monitoring real-time message flow",
+                    "unique-id": "trade-feed-viewer",
+                    "name": "Trade Feed Viewer",
+                    "description": "HTML interface for monitoring real-time trade feed messages",
                     "protocol": "HTTPS",
                     "port": 18086,
                     "schema": {
@@ -394,7 +394,7 @@
                     "container": "trading-system",
                     "nodes": [
                         "web-gui",
-                        "trading-service",
+                        "trading-services",
                         "account-service",
                         "position-service",
                         "people-service",
@@ -472,7 +472,7 @@
                         "node": "web-gui"
                     },
                     "destination": {
-                        "node": "trading-service"
+                        "node": "trading-services"
                     }
                 }
             },
@@ -499,7 +499,7 @@
             "relationship-type": {
                 "connects": {
                     "source": {
-                        "node": "trading-service"
+                        "node": "trading-services"
                     },
                     "destination": {
                         "node": "reference-data-service"
@@ -514,7 +514,7 @@
             "relationship-type": {
                 "connects": {
                     "source": {
-                        "node": "trading-service"
+                        "node": "trading-services"
                     },
                     "destination": {
                         "node": "account-service"
@@ -604,7 +604,7 @@
             "relationship-type": {
                 "connects": {
                     "source": {
-                        "node": "trading-service"
+                        "node": "trading-services"
                     },
                     "destination": {
                         "node": "messagebus"
