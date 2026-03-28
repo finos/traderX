@@ -56,13 +56,13 @@
             "unique-id": "trader",
             "node-type": "actor",
             "name": "Trader",
-            "description": "External user who submits orders, manages accounts, and monitors positions"
+            "description": "Managing Accounts and Creating Trades"
         },
         {
             "unique-id": "web-gui",
             "node-type": "webclient",
             "name": "Web GUI",
-            "description": "User-facing interface for trading operations, account management, and viewing positions",
+            "description": "Allows employees to manage accounts and book trades.",
             "metadata": {
                 "data-classification": "Private"
             }
@@ -71,7 +71,7 @@
             "unique-id": "trading-services",
             "node-type": "service",
             "name": "Trading Services",
-            "description": "Handles trade submission, validates tickets against reference data service and account service",
+            "description": "Allows employees create and update trades",
             "interfaces": [
                 {
                     "unique-id": "trading-services-api",
@@ -99,7 +99,7 @@
             "unique-id": "account-service",
             "node-type": "service",
             "name": "Account Service",
-            "description": "Manages account lifecycle, user associations, and account queries",
+            "description": "Allows employees to manage accounts",
             "interfaces": [
                 {
                     "unique-id": "account-service-api",
@@ -162,7 +162,7 @@
             "unique-id": "position-service",
             "node-type": "service",
             "name": "Position Service",
-            "description": "Provides position and trade data for blotter initialization",
+            "description": "View all trades and positions for an account",
             "interfaces": [
                 {
                     "unique-id": "position-service-api",
@@ -205,7 +205,7 @@
             "unique-id": "people-service",
             "node-type": "service",
             "name": "People Service",
-            "description": "Manages user search and validation against the user directory",
+            "description": "Provides user details",
             "interfaces": [
                 {
                     "unique-id": "people-service-api",
@@ -243,7 +243,7 @@
             "unique-id": "reference-data-service",
             "node-type": "service",
             "name": "Reference Data Service",
-            "description": "Maintains tradeable securities list, loads from CSV, validates tickers",
+            "description": "Provides REST API to securities reference data",
             "interfaces": [
                 {
                     "unique-id": "reference-data-service-api",
@@ -276,7 +276,7 @@
             "unique-id": "trade-processor",
             "node-type": "service",
             "name": "Trade Processor",
-            "description": "Processes trade events, updates data store, publishes trade and position updates",
+            "description": "Process incoming trade requests, settle, and persist",
             "interfaces": [
                 {
                     "unique-id": "trade-processor-api",
@@ -304,7 +304,7 @@
             "unique-id": "database",
             "node-type": "database",
             "name": "Database",
-            "description": "Central repository for accounts, trades, positions, and account-user mappings",
+            "description": "Stores account, trade, and position state.",
             "metadata": {
                 "data-classification": "Private"
             }
@@ -313,7 +313,7 @@
             "unique-id": "user-directory",
             "node-type": "ldap",
             "name": "User Directory",
-            "description": "Stores user profiles and contact information",
+            "description": "Golden source of User Data",
             "metadata": {
                 "data-classification": "PII"
             }
@@ -322,7 +322,7 @@
             "unique-id": "messagebus",
             "node-type": "service",
             "name": "Trade Feed",
-            "description": "Publishes and delivers real-time trade events, position updates, and trade status notifications",
+            "description": "Message bus for streaming updates to trades and positions",
             "interfaces": [
                 {
                     "unique-id": "messagebus-websocket",
@@ -382,7 +382,7 @@
             "unique-id": "trading-system",
             "node-type": "system",
             "name": "Trading System",
-            "description": "Complete trading system composed of services, data stores, and user interfaces for order management and trade processing"
+            "description": "Allows employees to create accounts, and execute trades and view positions on these accounts."
         }
     ],
     "relationships": [
@@ -408,7 +408,7 @@
         },
         {
             "unique-id": "trader-web-gui",
-            "description": "Trader interacts with web GUI to submit orders, manage accounts, and view positions",
+            "description": "Manage Accounts, Execute Trades, View Trade Status / Positions",
             "relationship-type": {
                 "interacts": {
                     "actor": "trader",
@@ -420,7 +420,7 @@
         },
         {
             "unique-id": "web-gui-account-service",
-            "description": "Web GUI requests account lists, creates/updates accounts, and manages user associations",
+            "description": "Creates/Updates Accounts. Gets list of accounts",
             "relationship-type": {
                 "connects": {
                     "source": {
@@ -435,7 +435,7 @@
         },
         {
             "unique-id": "web-gui-position-service",
-            "description": "Web GUI requests trades and positions for blotter initialization",
+            "description": "Loads positions for account",
             "relationship-type": {
                 "connects": {
                     "source": {
@@ -450,7 +450,7 @@
         },
         {
             "unique-id": "web-gui-reference-data-service",
-            "description": "Web GUI retrieves valid ticker lists for trade submission",
+            "description": "Looks up securities to assist with creating a trade ticket",
             "relationship-type": {
                 "connects": {
                     "source": {
@@ -465,7 +465,7 @@
         },
         {
             "unique-id": "web-gui-trading-service",
-            "description": "Web GUI submits trade requests",
+            "description": "Creates new Trades and Cancel existing trades",
             "relationship-type": {
                 "connects": {
                     "source": {
@@ -480,7 +480,7 @@
         },
         {
             "unique-id": "web-gui-people-service",
-            "description": "Web GUI searches for users to associate with accounts",
+            "description": "Looks up people data based on typeahead from GUI",
             "relationship-type": {
                 "connects": {
                     "source": {
@@ -495,7 +495,7 @@
         },
         {
             "unique-id": "trading-service-reference-data-service",
-            "description": "Trading Service validates tickers during trade submission",
+            "description": "Validates securities when creating trades",
             "relationship-type": {
                 "connects": {
                     "source": {
@@ -510,7 +510,7 @@
         },
         {
             "unique-id": "trading-service-account-service",
-            "description": "Trading Service validates accounts during trade submission",
+            "description": "Validates accounts when creating trades",
             "relationship-type": {
                 "connects": {
                     "source": {
@@ -525,7 +525,7 @@
         },
         {
             "unique-id": "people-service-user-directory",
-            "description": "People Service queries user profiles and contact information",
+            "description": "Looks up people data",
             "relationship-type": {
                 "connects": {
                     "source": {
@@ -540,7 +540,7 @@
         },
         {
             "unique-id": "account-service-database",
-            "description": "Account Service queries and writes account data and account-user mappings",
+            "description": "CRUD operations around accounts.",
             "relationship-type": {
                 "connects": {
                     "source": {
@@ -555,7 +555,7 @@
         },
         {
             "unique-id": "account-service-people-service",
-            "description": "Account Service validates people IDs when creating or modifying accounts",
+            "description": "Validates People IDs when creating/modifying accounts",
             "relationship-type": {
                 "connects": {
                     "source": {
@@ -570,7 +570,7 @@
         },
         {
             "unique-id": "position-service-database",
-            "description": "Position Service queries trades and positions",
+            "description": "Looks up default positions for a given account",
             "relationship-type": {
                 "connects": {
                     "source": {
@@ -585,7 +585,7 @@
         },
         {
             "unique-id": "trade-processor-database",
-            "description": "Trade Processor inserts trades and updates positions",
+            "description": "Looks up current positions when bootstraping state, persist trade state and position state",
             "relationship-type": {
                 "connects": {
                     "source": {
@@ -600,7 +600,7 @@
         },
         {
             "unique-id": "trading-service-messagebus",
-            "description": "Trading Service publishes new trade events after validation",
+            "description": "Publishes updates to trades and positions after persisting in the DB",
             "relationship-type": {
                 "connects": {
                     "source": {
@@ -614,7 +614,7 @@
         },
         {
             "unique-id": "messagebus-trade-processor",
-            "description": "Message Bus delivers new trade events for processing",
+            "description": "Processes incoming trade requests, persist, and publish updates",
             "relationship-type": {
                 "connects": {
                     "source": {
@@ -628,7 +628,7 @@
         },
         {
             "unique-id": "trade-processor-messagebus",
-            "description": "Trade Processor publishes account-specific trade events and position updates",
+            "description": "Processes incoming trade requests, persist, and publish updates",
             "relationship-type": {
                 "connects": {
                     "source": {
@@ -642,7 +642,7 @@
         },
         {
             "unique-id": "messagebus-web-gui",
-            "description": "Message Bus delivers real-time trade and position updates via subscription",
+            "description": "Subscribes to trade/position updates feed for currently viewed account",
             "relationship-type": {
                 "connects": {
                     "source": {

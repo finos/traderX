@@ -37,23 +37,23 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
     trader["Trader"]:::node
     user-directory["User Directory"]:::node
 
-    trader -->|Trader interacts with web GUI to submit orders, manage accounts, and view positions| web-gui
-    web-gui -->|Web GUI requests account lists, creates/updates accounts, and manages user associations| account-service
-    web-gui -->|Web GUI requests trades and positions for blotter initialization| position-service
-    web-gui -->|Web GUI retrieves valid ticker lists for trade submission| reference-data-service
-    web-gui -->|Web GUI submits trade requests| trading-services
-    web-gui -->|Web GUI searches for users to associate with accounts| people-service
-    trading-services -->|Trading Service validates tickers during trade submission| reference-data-service
-    trading-services -->|Trading Service validates accounts during trade submission| account-service
-    people-service -->|People Service queries user profiles and contact information| user-directory
-    account-service -->|Account Service queries and writes account data and account-user mappings| database
-    account-service -->|Account Service validates people IDs when creating or modifying accounts| people-service
-    position-service -->|Position Service queries trades and positions| database
-    trade-processor -->|Trade Processor inserts trades and updates positions| database
-    trading-services -->|Trading Service publishes new trade events after validation| messagebus
-    messagebus -->|Message Bus delivers new trade events for processing| trade-processor
-    trade-processor -->|Trade Processor publishes account-specific trade events and position updates| messagebus
-    messagebus -->|Message Bus delivers real-time trade and position updates via subscription| web-gui
+    trader -->|Manage Accounts, Execute Trades, View Trade Status / Positions| web-gui
+    web-gui -->|Creates/Updates Accounts. Gets list of accounts| account-service
+    web-gui -->|Loads positions for account| position-service
+    web-gui -->|Looks up securities to assist with creating a trade ticket| reference-data-service
+    web-gui -->|Creates new Trades and Cancel existing trades| trading-services
+    web-gui -->|Looks up people data based on typeahead from GUI| people-service
+    trading-services -->|Validates securities when creating trades| reference-data-service
+    trading-services -->|Validates accounts when creating trades| account-service
+    people-service -->|Looks up people data| user-directory
+    account-service -->|CRUD operations around accounts.| database
+    account-service -->|Validates People IDs when creating/modifying accounts| people-service
+    position-service -->|Looks up default positions for a given account| database
+    trade-processor -->|Looks up current positions when bootstraping state, persist trade state and position state| database
+    trading-services -->|Publishes updates to trades and positions after persisting in the DB| messagebus
+    messagebus -->|Processes incoming trade requests, persist, and publish updates| trade-processor
+    trade-processor -->|Processes incoming trade requests, persist, and publish updates| messagebus
+    messagebus -->|Subscribes to trade/position updates feed for currently viewed account| web-gui
 
 
 
@@ -88,9 +88,9 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
         class trading-system boundary
 
 
-    web-gui -->|Web GUI retrieves valid ticker lists for trade submission| reference-data-service
-    web-gui -->|Web GUI submits trade requests| trading-services
-    trading-services -->|Trading Service validates tickers during trade submission| reference-data-service
+    web-gui -->|Looks up securities to assist with creating a trade ticket| reference-data-service
+    web-gui -->|Creates new Trades and Cancel existing trades| trading-services
+    trading-services -->|Validates securities when creating trades| reference-data-service
 
 
     class reference-data-service highlight
@@ -132,20 +132,20 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
     trader["Trader"]:::node
     user-directory["User Directory"]:::node
 
-    trader -->|Trader interacts with web GUI to submit orders, manage accounts, and view positions| web-gui
-    web-gui -->|Web GUI requests account lists, creates/updates accounts, and manages user associations| account-service
-    web-gui -->|Web GUI requests trades and positions for blotter initialization| position-service
-    web-gui -->|Web GUI retrieves valid ticker lists for trade submission| reference-data-service
-    web-gui -->|Web GUI submits trade requests| trading-services
-    web-gui -->|Web GUI searches for users to associate with accounts| people-service
-    trading-services -->|Trading Service validates tickers during trade submission| reference-data-service
-    trading-services -->|Trading Service validates accounts during trade submission| account-service
-    people-service -->|People Service queries user profiles and contact information| user-directory
-    account-service -->|Account Service queries and writes account data and account-user mappings| database
-    account-service -->|Account Service validates people IDs when creating or modifying accounts| people-service
-    position-service -->|Position Service queries trades and positions| database
-    trading-services -->|Trading Service publishes new trade events after validation| messagebus
-    messagebus -->|Message Bus delivers real-time trade and position updates via subscription| web-gui
+    trader -->|Manage Accounts, Execute Trades, View Trade Status / Positions| web-gui
+    web-gui -->|Creates/Updates Accounts. Gets list of accounts| account-service
+    web-gui -->|Loads positions for account| position-service
+    web-gui -->|Looks up securities to assist with creating a trade ticket| reference-data-service
+    web-gui -->|Creates new Trades and Cancel existing trades| trading-services
+    web-gui -->|Looks up people data based on typeahead from GUI| people-service
+    trading-services -->|Validates securities when creating trades| reference-data-service
+    trading-services -->|Validates accounts when creating trades| account-service
+    people-service -->|Looks up people data| user-directory
+    account-service -->|CRUD operations around accounts.| database
+    account-service -->|Validates People IDs when creating/modifying accounts| people-service
+    position-service -->|Looks up default positions for a given account| database
+    trading-services -->|Publishes updates to trades and positions after persisting in the DB| messagebus
+    messagebus -->|Subscribes to trade/position updates feed for currently viewed account| web-gui
 
 
     class reference-data-service highlight
@@ -191,23 +191,23 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
     trader["Trader"]:::node
     user-directory["User Directory"]:::node
 
-    trader -->|Trader interacts with web GUI to submit orders, manage accounts, and view positions| web-gui
-    web-gui -->|Web GUI requests account lists, creates/updates accounts, and manages user associations| account-service
-    web-gui -->|Web GUI requests trades and positions for blotter initialization| position-service
-    web-gui -->|Web GUI retrieves valid ticker lists for trade submission| reference-data-service
-    web-gui -->|Web GUI submits trade requests| trading-services
-    web-gui -->|Web GUI searches for users to associate with accounts| people-service
-    trading-services -->|Trading Service validates tickers during trade submission| reference-data-service
-    trading-services -->|Trading Service validates accounts during trade submission| account-service
-    people-service -->|People Service queries user profiles and contact information| user-directory
-    account-service -->|Account Service queries and writes account data and account-user mappings| database
-    account-service -->|Account Service validates people IDs when creating or modifying accounts| people-service
-    position-service -->|Position Service queries trades and positions| database
-    trade-processor -->|Trade Processor inserts trades and updates positions| database
-    trading-services -->|Trading Service publishes new trade events after validation| messagebus
-    messagebus -->|Message Bus delivers new trade events for processing| trade-processor
-    trade-processor -->|Trade Processor publishes account-specific trade events and position updates| messagebus
-    messagebus -->|Message Bus delivers real-time trade and position updates via subscription| web-gui
+    trader -->|Manage Accounts, Execute Trades, View Trade Status / Positions| web-gui
+    web-gui -->|Creates/Updates Accounts. Gets list of accounts| account-service
+    web-gui -->|Loads positions for account| position-service
+    web-gui -->|Looks up securities to assist with creating a trade ticket| reference-data-service
+    web-gui -->|Creates new Trades and Cancel existing trades| trading-services
+    web-gui -->|Looks up people data based on typeahead from GUI| people-service
+    trading-services -->|Validates securities when creating trades| reference-data-service
+    trading-services -->|Validates accounts when creating trades| account-service
+    people-service -->|Looks up people data| user-directory
+    account-service -->|CRUD operations around accounts.| database
+    account-service -->|Validates People IDs when creating/modifying accounts| people-service
+    position-service -->|Looks up default positions for a given account| database
+    trade-processor -->|Looks up current positions when bootstraping state, persist trade state and position state| database
+    trading-services -->|Publishes updates to trades and positions after persisting in the DB| messagebus
+    messagebus -->|Processes incoming trade requests, persist, and publish updates| trade-processor
+    trade-processor -->|Processes incoming trade requests, persist, and publish updates| messagebus
+    messagebus -->|Subscribes to trade/position updates feed for currently viewed account| web-gui
 
 
     class reference-data-service highlight
@@ -254,23 +254,23 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
     trader["Trader"]:::node
     user-directory["User Directory"]:::node
 
-    trader -->|Trader interacts with web GUI to submit orders, manage accounts, and view positions| web-gui
-    web-gui -->|Web GUI requests account lists, creates/updates accounts, and manages user associations| account-service
-    web-gui -->|Web GUI requests trades and positions for blotter initialization| position-service
-    web-gui -->|Web GUI retrieves valid ticker lists for trade submission| reference-data-service
-    web-gui -->|Web GUI submits trade requests| trading-services
-    web-gui -->|Web GUI searches for users to associate with accounts| people-service
-    trading-services -->|Trading Service validates tickers during trade submission| reference-data-service
-    trading-services -->|Trading Service validates accounts during trade submission| account-service
-    people-service -->|People Service queries user profiles and contact information| user-directory
-    account-service -->|Account Service queries and writes account data and account-user mappings| database
-    account-service -->|Account Service validates people IDs when creating or modifying accounts| people-service
-    position-service -->|Position Service queries trades and positions| database
-    trade-processor -->|Trade Processor inserts trades and updates positions| database
-    trading-services -->|Trading Service publishes new trade events after validation| messagebus
-    messagebus -->|Message Bus delivers new trade events for processing| trade-processor
-    trade-processor -->|Trade Processor publishes account-specific trade events and position updates| messagebus
-    messagebus -->|Message Bus delivers real-time trade and position updates via subscription| web-gui
+    trader -->|Manage Accounts, Execute Trades, View Trade Status / Positions| web-gui
+    web-gui -->|Creates/Updates Accounts. Gets list of accounts| account-service
+    web-gui -->|Loads positions for account| position-service
+    web-gui -->|Looks up securities to assist with creating a trade ticket| reference-data-service
+    web-gui -->|Creates new Trades and Cancel existing trades| trading-services
+    web-gui -->|Looks up people data based on typeahead from GUI| people-service
+    trading-services -->|Validates securities when creating trades| reference-data-service
+    trading-services -->|Validates accounts when creating trades| account-service
+    people-service -->|Looks up people data| user-directory
+    account-service -->|CRUD operations around accounts.| database
+    account-service -->|Validates People IDs when creating/modifying accounts| people-service
+    position-service -->|Looks up default positions for a given account| database
+    trade-processor -->|Looks up current positions when bootstraping state, persist trade state and position state| database
+    trading-services -->|Publishes updates to trades and positions after persisting in the DB| messagebus
+    messagebus -->|Processes incoming trade requests, persist, and publish updates| trade-processor
+    trade-processor -->|Processes incoming trade requests, persist, and publish updates| messagebus
+    messagebus -->|Subscribes to trade/position updates feed for currently viewed account| web-gui
 
 
     class reference-data-service highlight
