@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAtUtc": "2026-03-27T17:39:38+03:00",
+  "generatedAtUtc": "2026-03-27T15:42:20Z",
   "component": {
     "id": "reference-data",
     "kind": "service",
@@ -17,7 +17,7 @@
     "requiredEnv": []
   },
   "contracts": {
-    "primary": "TraderSpec/speckit/contracts/reference-data/openapi.yaml"
+    "primary": "specs/001-baseline-uncontainerized-parity/contracts/reference-data/openapi.yaml"
   },
   "traceability": {
     "requirements": ["SYS-FR-001","SYS-FR-005","SYS-FR-011","SYS-NFR-001"],

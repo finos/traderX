@@ -4,12 +4,12 @@ This is the long-running execution plan for moving TraderX from source-first to 
 
 ## Latest Update
 
-- Current phase: **Phase 8 complete** (migration documentation + visual evidence).
-- Current focus: begin Phase 9 docs consolidation and remove remaining redundancy around TraderSpec guidance.
+- Current phase: **Phase 11 in progress** (root-level GitHub Spec Kit canonical migration).
+- Current focus: add CI/root-spec quality gates and execute controlled retirement of duplicate legacy `TraderSpec/speckit/**` docs.
 - Current blocker: none.
 - Planned cutover order for pure generation is now documented in the migration blog (Phase 2 section).
 - Migration blog: `TraderSpec/migration-blog.md`
-- Last updated: 2026-03-27
+- Last updated: 2026-03-28
 
 ## Phase Snapshot
 
@@ -23,8 +23,9 @@ This is the long-running execution plan for moving TraderX from source-first to 
 | 6 - Source Deletion by Approval | Done | Legacy root components removed after sign-off. |
 | 7 - GitHub Spec Kit Adoption | Done | Manifest-driven synthesis + conformance + compare harness + pilot proof + cleanup complete. |
 | 8 - Migration Documentation + Visual Evidence | Done | Journey docs and Mermaid proof artifacts updated through Phase 7 closeout. |
-| 9 - TraderSpec Docs Consolidation | In Progress | Remove legacy-spec noise once Spec Kit path is authoritative. |
+| 9 - TraderSpec Docs Consolidation | Pending | Deferred until root-level Spec Kit packs are authoritative. |
 | 10 - Learning Path Evolution | Pending | Apply NFR/FR overlays for post-baseline states. |
+| 11 - Root-Level Spec Kit Canonical Migration | In Progress | Root specs now drive readiness/expressiveness/conformance/parity; remaining work is CI hardening and legacy duplicate retirement. |
 
 ## Current Reality Check (Confirmed)
 
@@ -99,6 +100,15 @@ Make TraderSpec the source of truth so original root source can be retired safel
 - [ ] 10.1 Adjust specs per learning-path goals.
 - [ ] 10.2 Adjust generators and show examples per path.
 
+- [ ] 11) Complete root-level GitHub Spec Kit canonical migration.
+- [x] 11.1 Bootstrap official root `.specify/` scaffold and `.agents/skills/speckit-*` skills via `specify init` artifacts.
+- [x] 11.2 Create first canonical root feature pack `specs/001-baseline-uncontainerized-parity` with spec/plan/tasks/research/data-model/quickstart/contracts.
+- [x] 11.3 Migrate remaining `TraderSpec/speckit/system/**` and component requirements into numbered root feature packs.
+- [x] 11.4 Rewire generation and conformance pipelines to consume root `specs/**` artifacts as primary inputs.
+- [ ] 11.5 Add CI quality gates for root Spec Kit artifacts (`.specify`, `specs/NNN-*`) and branch/feature resolution behavior.
+- [ ] 11.6 Decommission duplicate legacy spec docs once parity and traceability prove root artifacts are complete.
+- [x] 11.7 Enforce generation-fidelity policy (plain-English FR + technical NFR + semantic diff gates) for base-case outputs.
+
 ## Progress Graph
 
 ```mermaid
@@ -110,12 +120,23 @@ flowchart LR
   P5 --> P6["Phase 6: Source Deletion by Approval (Done)"]
   P6 --> P7["Phase 7: GitHub Spec Kit Adoption + Synthesis Cutover (Done)"]
   P7 --> P8["Phase 8: Journey Documentation + Visual Progress (Done)"]
-  P8 --> P9["Phase 9: TraderSpec Doc Consolidation (Current)"]
+  P8 --> P11["Phase 11: Root-Level Spec Kit Canonical Migration (Current)"]
+  P11 --> P9["Phase 9: TraderSpec Doc Consolidation (Planned)"]
   P9 --> P10["Phase 10: Learning-Path State Evolution (Planned)"]
 ```
 
 ## Execution Log
 
+- 2026-03-28: Initialized canonical root GitHub Spec Kit scaffold (`.specify/`) and Codex Spec Kit skills (`.agents/skills/speckit-*`) from official `specify init` output.
+- 2026-03-28: Replaced placeholder constitution with TraderX-specific governance in `.specify/memory/constitution.md`.
+- 2026-03-28: Added first root feature pack `specs/001-baseline-uncontainerized-parity` including `spec.md`, `plan.md`, `tasks.md`, `research.md`, `data-model.md`, `quickstart.md`, and contract snapshots.
+- 2026-03-28: Re-baselined migration TODO with Phase 11 for full root-level Spec Kit canonical migration.
+- 2026-03-28: Added baseline fidelity profile and technical NFR/code-closeness constraints to root feature pack so generation targets "very close" baseline implementation shape.
+- 2026-03-28: Migrated legacy `TraderSpec/speckit/system/**` and component requirement docs into `specs/001-baseline-uncontainerized-parity/system/**` and `components/**`.
+- 2026-03-28: Rewired Spec Kit pipeline scripts to prefer root feature-pack artifacts (system/components/contracts/conformance) with compatibility fallback to legacy TraderSpec location.
+- 2026-03-28: Repointed contract references to root spec contracts in component catalog and regenerated manifests; readiness/expressiveness/conformance/coverage checks all passed.
+- 2026-03-28: Ran semantic compare-all harness after root rewiring; only `docs-spec` differences (manifest contract path relocation) were detected, with no `source-code`, `runtime-config`, or `api-contract` differences.
+- 2026-03-28: Ran full parity validation (`pipeline/speckit/run-full-parity-validation.sh`) after root rewiring; startup and all overlay smoke tests passed.
 - 2026-03-27: Created TraderSpec scaffolding, tracks, prompts, catalogs, and docs integration.
 - 2026-03-27: Added Mermaid visual graphs and live spec browser route.
 - 2026-03-27: Added parity and spec-first generation scripts, including readiness checks.

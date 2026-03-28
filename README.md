@@ -23,6 +23,27 @@ messaging systems and are able to showcase a wide range of technical challenges 
 More detailed information about this project can be found in the website which is generated
 from the code under the `docs` directory of this project.
 
+## Spec Kit Workflow (Root-Level)
+
+TraderX is actively migrating to GitHub Spec Kit canonical workflow at repo root.
+
+- Spec Kit scaffold: `.specify/`
+- Spec Kit skills for Codex: `.agents/skills/speckit-*`
+- Canonical feature specs: `specs/NNN-feature-name/`
+- Current baseline feature pack: `specs/001-baseline-uncontainerized-parity/`
+
+When running Spec Kit scripts from a branch that is not named `NNN-feature-name`, set `SPECIFY_FEATURE` explicitly:
+
+```bash
+SPECIFY_FEATURE=001-baseline-uncontainerized-parity bash .specify/scripts/bash/check-prerequisites.sh --json
+```
+
+TraderSpec generation/compliance scripts resolve root feature artifacts via `SPECKIT_FEATURE_ID` (defaults to `001-baseline-uncontainerized-parity`):
+
+```bash
+SPECKIT_FEATURE_ID=001-baseline-uncontainerized-parity bash TraderSpec/pipeline/speckit/validate-speckit-readiness.sh
+```
+
 
 ## Project Demo and Overview Presentation
 

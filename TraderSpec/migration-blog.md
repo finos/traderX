@@ -13,6 +13,7 @@ This blog tracks major migration phases, findings, and decisions as we execute `
 | 2026-03-27 | Phase 6 - Source Deletion by Approval | Done | Legacy root component sources removed; pure-generated base startup and web smoke checks validated. |
 | 2026-03-27 | Phase 7 - GitHub Spec Kit Adoption | Done | Manifest-driven synthesis, conformance packs, semantic compare harness, 7.11 pilot proof, and 7.12 cleanup are complete. |
 | 2026-03-27 | Phase 8 - Migration Documentation + Visual Evidence | Done | Mermaid visuals and migration evidence were consolidated and synchronized with TODO/blog status. |
+| 2026-03-28 | Phase 11 - Root-Level Spec Kit Canonical Migration | In Progress | Official root `.specify` scaffold + Codex Spec Kit skills + first root `specs/001-*` feature pack created. |
 
 ## Live TODO Activity Summary
 
@@ -52,6 +53,71 @@ This mirrors `TraderSpec/migration-todo.md` and highlights active execution sign
 | 7.10 | Add semantic generation compare harness | Done | Added per-component and all-component compare runners with semantic diff categorization. |
 | 7.11 | Pilot trade-service synthesis + parity proof | Done | `trade-service` compare harness returned no output diff and full parity runner passed including trade-service + Angular smoke checks. |
 | 7.12 | Roll synthesis across all baseline components | Done | All-component conformance+compare validation passed and residual hydrate/direct-write bridge usage was retired. |
+| 11.1-11.2 | Bootstrap root Spec Kit and first canonical feature pack | Done | Added root `.specify`, `.agents/skills/speckit-*`, and `specs/001-baseline-uncontainerized-parity` with contracts and execution quickstart. |
+| 11.3-11.4 | Migrate legacy spec artifacts and rewire pipelines to root specs | Done | System/component artifacts were moved into root feature pack and generation/conformance/readiness scripts now use root specs as primary inputs. |
+| 11.5+ | CI + final deprecation cleanup | In Progress | Root canonical path is active; remaining work is CI hardening and legacy doc retirement. |
+| 11.7 | Define generation-fidelity policy for "very close" baseline output | Done | Added explicit technical NFRs + fidelity profile + semantic diff policy and validated compare-all with only docs-spec differences. |
+
+## Phase 11: Root-Level Spec Kit Canonical Migration (In Progress)
+
+### Objective
+
+Complete migration from TraderSpec-local spec artifacts to official GitHub Spec Kit structure at repository root.
+
+### Work Completed
+
+- Added root `.specify/` scaffold and scripts from official Spec Kit initialization flow.
+- Added root `.agents/skills/speckit-*` Codex skills.
+- Added first canonical feature pack:
+  - `specs/001-baseline-uncontainerized-parity/spec.md`
+  - `specs/001-baseline-uncontainerized-parity/plan.md`
+  - `specs/001-baseline-uncontainerized-parity/tasks.md`
+  - supporting research/data model/quickstart/contracts
+- Added fidelity-focused artifacts and requirements:
+  - `specs/001-baseline-uncontainerized-parity/fidelity-profile.md`
+  - explicit stack/ports/env/contracts/code-closeness NFRs in `spec.md`
+  - semantic compare gate usage in `quickstart.md`
+- Migrated legacy baseline system/component artifacts into:
+  - `specs/001-baseline-uncontainerized-parity/system/**`
+  - `specs/001-baseline-uncontainerized-parity/components/**`
+- Rewired pipeline scripts to consume root feature-pack artifacts first:
+  - `validate-speckit-readiness.sh`
+  - `verify-spec-expressiveness.sh`
+  - `sync-conformance-packs.sh`
+  - `run-component-conformance-pack.sh`
+  - `validate-regeneration-readiness.sh`
+  - `verify-spec-coverage.sh`
+  - `generate-from-spec.sh`
+- Validation passed after rewiring:
+  - readiness
+  - expressiveness parity
+  - conformance packs
+  - coverage checks
+- Semantic compare-all validation after rewiring:
+  - blocked categories clear: `source-code`, `runtime-config`, `api-contract`
+  - observed differences: `docs-spec` only (manifest contract path moved from legacy TraderSpec path to root specs path)
+- Full parity validation passed after rewiring:
+  - `bash TraderSpec/pipeline/speckit/run-full-parity-validation.sh`
+  - startup and all overlay smoke tests remained green.
+- Updated migration TODO phase model to track this work as active Phase 11.
+
+### Canonicalization Flow
+
+```mermaid
+flowchart LR
+  A["Legacy TraderSpec spec corpus"] --> B["Root .specify scaffold"]
+  B --> C["Root feature packs specs/NNN-*"]
+  C --> D["Pipeline rewired to root specs"]
+  D --> E["Legacy spec docs retired"]
+
+  classDef done fill:#d9f2d9,stroke:#2d6a2d,color:#123b12;
+  classDef current fill:#fff3cd,stroke:#a17700,color:#4d3b00;
+  classDef planned fill:#e8edf2,stroke:#52606d,color:#1f2933;
+
+  class B,C done;
+  class D current;
+  class A,E planned;
+```
 
 ## Phase 1 Findings
 

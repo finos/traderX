@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAtUtc": "2026-03-27T17:39:38+03:00",
+  "generatedAtUtc": "2026-03-27T15:42:20Z",
   "component": {
     "id": "account-service",
     "kind": "service",
@@ -17,7 +17,7 @@
     "requiredEnv": ["ACCOUNT_SERVICE_PORT","DATABASE_TCP_HOST","PEOPLE_SERVICE_HOST","PEOPLE_SERVICE_URL","CORS_ALLOWED_ORIGINS"]
   },
   "contracts": {
-    "primary": "TraderSpec/speckit/contracts/account-service/openapi.yaml"
+    "primary": "specs/001-baseline-uncontainerized-parity/contracts/account-service/openapi.yaml"
   },
   "traceability": {
     "requirements": ["SYS-FR-001","SYS-FR-002","SYS-FR-006","SYS-FR-008","SYS-FR-009","SYS-FR-011","SYS-NFR-001","SYS-NFR-005"],

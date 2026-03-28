@@ -2,6 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "${ROOT}/pipeline/speckit/lib.sh"
 
 required=(
   "${ROOT}/foundation/00-traditional-to-cloud-native/specs/01-functional-requirements-baseline.md"
@@ -13,12 +14,12 @@ required=(
   "${ROOT}/foundation/00-traditional-to-cloud-native/specs/09-regeneration-strategy.md"
   "${ROOT}/catalog/learning-paths.yaml"
   "${ROOT}/catalog/component-spec.csv"
-  "${ROOT}/speckit/system/system-context.md"
-  "${ROOT}/speckit/system/end-to-end-flows.md"
-  "${ROOT}/speckit/system/system-requirements.md"
-  "${ROOT}/speckit/system/user-stories.md"
-  "${ROOT}/speckit/system/acceptance-criteria.md"
-  "${ROOT}/speckit/system/requirements-traceability.csv"
+  "${SPECKIT_SYSTEM_DIR}/system-context.md"
+  "${SPECKIT_SYSTEM_DIR}/end-to-end-flows.md"
+  "${SPECKIT_SYSTEM_DIR}/system-requirements.md"
+  "${SPECKIT_SYSTEM_DIR}/user-stories.md"
+  "${SPECKIT_SYSTEM_DIR}/acceptance-criteria.md"
+  "${SPECKIT_SYSTEM_DIR}/requirements-traceability.csv"
   "${ROOT}/tracks/devex/path.md"
   "${ROOT}/tracks/nonfunctional/path.md"
   "${ROOT}/tracks/functional/path.md"

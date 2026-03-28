@@ -4,12 +4,13 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 REPO_ROOT="$(cd "${ROOT}/.." && pwd)"
 CSV="${ROOT}/catalog/component-spec.csv"
-MATRIX="${ROOT}/speckit/system/requirements-traceability.csv"
-REQ_DOC="${ROOT}/speckit/system/system-requirements.md"
-STORY_DOC="${ROOT}/speckit/system/user-stories.md"
-AC_DOC="${ROOT}/speckit/system/acceptance-criteria.md"
 
 source "${ROOT}/pipeline/speckit/lib.sh"
+
+MATRIX="${SPECKIT_MATRIX}"
+REQ_DOC="${SPECKIT_SYSTEM_DIR}/system-requirements.md"
+STORY_DOC="${SPECKIT_SYSTEM_DIR}/user-stories.md"
+AC_DOC="${SPECKIT_SYSTEM_DIR}/acceptance-criteria.md"
 
 speckit_assert_global_readiness
 [[ -f "${CSV}" ]] || { echo "[fail] missing component catalog: ${CSV}"; exit 1; }

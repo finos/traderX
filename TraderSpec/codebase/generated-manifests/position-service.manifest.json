@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAtUtc": "2026-03-27T17:39:38+03:00",
+  "generatedAtUtc": "2026-03-27T15:42:20Z",
   "component": {
     "id": "position-service",
     "kind": "service",
@@ -17,7 +17,7 @@
     "requiredEnv": ["POSITION_SERVICE_PORT","DATABASE_TCP_HOST","DATABASE_TCP_PORT","DATABASE_NAME","DATABASE_DBUSER","DATABASE_DBPASS","CORS_ALLOWED_ORIGINS"]
   },
   "contracts": {
-    "primary": "TraderSpec/speckit/contracts/position-service/openapi.yaml"
+    "primary": "specs/001-baseline-uncontainerized-parity/contracts/position-service/openapi.yaml"
   },
   "traceability": {
     "requirements": ["SYS-FR-001","SYS-FR-003","SYS-FR-011"],

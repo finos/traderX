@@ -6,6 +6,7 @@ REPO_ROOT="$(cd "${ROOT}/.." && pwd)"
 CSV="${ROOT}/catalog/component-spec.csv"
 TARGET="${ROOT}/codebase/target-generated-specfirst"
 MANIFEST_DIR="${ROOT}/codebase/generated-manifests"
+source "${ROOT}/pipeline/speckit/lib.sh"
 
 "${ROOT}/pipeline/validate-regeneration-readiness.sh"
 bash "${ROOT}/pipeline/speckit/compile-all-component-manifests.sh"
@@ -53,7 +54,7 @@ while IFS=, read -r component_id kind source_path target_path language framework
   mkdir -p "$(dirname "${component_dir}")"
   cp -R "${src}" "${component_dir}"
 
-  component_spec="${ROOT}/speckit/components/${component_id}.md"
+  component_spec="${SPECKIT_COMPONENTS_DIR}/${component_id}.md"
   if [[ -f "${component_spec}" ]]; then
     cp "${component_spec}" "${component_dir}/SPEC.component.md"
   fi

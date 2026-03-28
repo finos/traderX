@@ -17,7 +17,7 @@ speckit_assert_global_readiness
 speckit_assert_component_ready "${COMPONENT_ID}"
 
 CSV="${ROOT}/catalog/component-spec.csv"
-MATRIX="${ROOT}/speckit/system/requirements-traceability.csv"
+MATRIX="${SPECKIT_MATRIX}"
 OUT_DIR="${ROOT}/codebase/generated-manifests"
 
 json_escape() {

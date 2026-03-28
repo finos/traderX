@@ -4,8 +4,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "${ROOT}/pipeline/speckit/lib.sh"
 
-OUT_DIR="${ROOT}/speckit/conformance"
-MATRIX="${ROOT}/speckit/system/requirements-traceability.csv"
+OUT_DIR="${SPECKIT_CONFORMANCE_DIR}"
+MATRIX="${SPECKIT_MATRIX}"
 
 speckit_assert_global_readiness
 mkdir -p "${OUT_DIR}"

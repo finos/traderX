@@ -3,6 +3,11 @@
 TraderSpec/codebase/target-generated/
 TraderSpec/codebase/target-generated-specfirst/
 
+# Spec Kit agent working data
+.agents/*
+!.agents/skills/
+!.agents/skills/**
+
 
 HELP.md
 .gradle

@@ -42,9 +42,9 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 REPO_ROOT="$(cd "${ROOT}/.." && pwd)"
 source "${ROOT}/pipeline/speckit/lib.sh"
 
-MATRIX="${ROOT}/speckit/system/requirements-traceability.csv"
+MATRIX="${SPECKIT_MATRIX}"
 CSV="${ROOT}/catalog/component-spec.csv"
-PACK_FILE="${ROOT}/speckit/conformance/${COMPONENT_ID}.md"
+PACK_FILE="${SPECKIT_CONFORMANCE_DIR}/${COMPONENT_ID}.md"
 MANIFEST_PATH="${ROOT}/codebase/generated-manifests/${COMPONENT_ID}.manifest.json"
 
 normalize_field() {

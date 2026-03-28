@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO_ROOT="$(cd "${ROOT}/.." && pwd)"
 CSV="${ROOT}/catalog/component-spec.csv"
+source "${ROOT}/pipeline/speckit/lib.sh"
 
 required_specs=(
   "${ROOT}/foundation/00-traditional-to-cloud-native/specs/05-functional-requirements-detailed.md"
@@ -11,10 +12,10 @@ required_specs=(
   "${ROOT}/foundation/00-traditional-to-cloud-native/specs/07-ui-requirements-detailed.md"
   "${ROOT}/foundation/00-traditional-to-cloud-native/specs/08-requirements-traceability-matrix.md"
   "${ROOT}/foundation/00-traditional-to-cloud-native/specs/09-regeneration-strategy.md"
-  "${ROOT}/speckit/system/system-requirements.md"
-  "${ROOT}/speckit/system/user-stories.md"
-  "${ROOT}/speckit/system/acceptance-criteria.md"
-  "${ROOT}/speckit/system/requirements-traceability.csv"
+  "${SPECKIT_SYSTEM_DIR}/system-requirements.md"
+  "${SPECKIT_SYSTEM_DIR}/user-stories.md"
+  "${SPECKIT_SYSTEM_DIR}/acceptance-criteria.md"
+  "${SPECKIT_SYSTEM_DIR}/requirements-traceability.csv"
 )
 
 for f in "${required_specs[@]}"; do

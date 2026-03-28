@@ -23,16 +23,18 @@ Move TraderX from legacy spec scaffolding to a GitHub Spec Kit operating model w
 
 ## Current Approach (Spec Kit First)
 
-- Active spec source: `TraderSpec/speckit/**`
+- Canonical root Spec Kit source is now `/.specify` + `/specs/**`.
+- `TraderSpec/speckit/**` is transitional migration-era material and will be retired as root feature packs fully replace it.
 - `TraderSpec Specs` docs route is focused on Spec Kit artifacts.
 - Component generators are gated by Spec Kit readiness and traceability checks.
 - Baseline component generation now uses manifest-driven synthesis (compiled manifest + component templates).
 - End-to-end parity validation is required to prove generated output matches expected baseline behavior.
+- Pipeline default root feature pack: `specs/001-baseline-uncontainerized-parity` (override with `SPECKIT_FEATURE_ID=<id>` when needed).
 
 ## Structure
 
 - `foundation/00-traditional-to-cloud-native/` - baseline functional model and current-system capture
-- `speckit/` - GitHub Spec Kit requirements, user stories, acceptance criteria, and traceability
+- `speckit/` - transitional Spec Kit-era artifacts pending root feature-pack consolidation
 - `tracks/` - DevEx, Non-Functional, and Functional step specs
 - `prompts/` - agent prompt pack for generation, validation, and migration
 - `catalog/` - machine-readable graph of nodes and transitions

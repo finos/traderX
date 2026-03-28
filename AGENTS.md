@@ -90,3 +90,10 @@ npm run build
 - Preserve earlier levels while evolving Level 4/5.
 - Favor additive changes and clear migration notes.
 - Never commit secrets or sensitive data.
+
+## Active Technologies
+- Java 21 (Spring Boot services), TypeScript/Node.js (Nest + Socket.IO + Angular), C# (.NET 9), SQL (H2) + Spring Boot, Gradle, NestJS, Socket.IO, ASP.NET Core, Angular, H2 (001-baseline-uncontainerized-parity)
+- H2 over TCP/PG/Web ports (001-baseline-uncontainerized-parity)
+
+## Recent Changes
+- 001-baseline-uncontainerized-parity: Added Java 21 (Spring Boot services), TypeScript/Node.js (Nest + Socket.IO + Angular), C# (.NET 9), SQL (H2) + Spring Boot, Gradle, NestJS, Socket.IO, ASP.NET Core, Angular, H2
