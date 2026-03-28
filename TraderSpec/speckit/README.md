@@ -1,20 +1,10 @@
-# TraderSpec Spec Kit
+# TraderSpec Spec Kit (Legacy Pointer)
 
-This directory is the requirements-first source of truth for generated TraderX code.
+This directory is decommissioned as an authoritative spec source.
 
-It captures:
+Canonical Spec Kit artifacts now live at repo root:
 
-- system context and end-to-end flows
-- functional and non-functional requirements
-- user stories and acceptance criteria
-- requirement-to-code traceability across all baseline components
-- normalized generation-manifest contract used by synthesis generators
+- `/.specify`
+- `/specs/001-baseline-uncontainerized-parity/**`
 
-The baseline references come from:
-
-- `docs/overview.md`
-- `docs/flows.md`
-- `docs/README.md`
-- `README.md`
-
-Generation and validation pipelines must treat this Spec Kit content as primary input.
+Legacy subdirectories under `TraderSpec/speckit/**` are retained as pointer-only placeholders to avoid broken links while migration completes.

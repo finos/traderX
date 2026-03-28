@@ -1,0 +1,42 @@
+name: Spec Kit Root Gates
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+
+jobs:
+  spec-kit-root-gates:
+    runs-on: ubuntu-latest
+    env:
+      SPECKIT_FEATURE_ID: 001-baseline-uncontainerized-parity
+      SPECIFY_FEATURE: 001-baseline-uncontainerized-parity
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install shell dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq ripgrep
+
+      - name: Validate root Spec Kit integrity and branch-resolution behavior
+        run: |
+          bash TraderSpec/pipeline/speckit/validate-root-spec-kit-gates.sh
+
+      - name: Validate Spec Kit readiness
+        run: |
+          bash TraderSpec/pipeline/speckit/validate-speckit-readiness.sh
+
+      - name: Validate Spec Kit expressiveness
+        run: |
+          bash TraderSpec/pipeline/speckit/verify-spec-expressiveness.sh
+
+      - name: Validate conformance packs
+        run: |
+          bash TraderSpec/pipeline/speckit/run-all-conformance-packs.sh
+
+      - name: Validate aggregate coverage
+        run: |
+          bash TraderSpec/pipeline/verify-spec-coverage.sh

@@ -1,17 +1,12 @@
-# Spec Kit Contracts
+# Legacy Contracts Pointer
 
-This section tracks the API contract artifacts used by Spec Kit generation and parity validation.
+Canonical contract artifacts are maintained under:
 
-OpenAPI files currently maintained:
+- `specs/001-baseline-uncontainerized-parity/contracts/**/openapi.yaml`
 
-- `TraderSpec/speckit/contracts/reference-data/openapi.yaml`
-- `TraderSpec/speckit/contracts/people-service/openapi.yaml`
-- `TraderSpec/speckit/contracts/account-service/openapi.yaml`
-- `TraderSpec/speckit/contracts/position-service/openapi.yaml`
-- `TraderSpec/speckit/contracts/trade-service/openapi.yaml`
-- `TraderSpec/speckit/contracts/trade-processor/openapi.yaml`
-
-These contract paths are also referenced by:
+Contract references are consumed from the root feature pack by:
 
 - `TraderSpec/catalog/component-spec.csv`
-- `TraderSpec/speckit/system/requirements-traceability.csv`
+- `TraderSpec/pipeline/speckit/*.sh`
+
+This `TraderSpec/speckit/contracts/` directory is pointer-only to avoid broken links during migration.

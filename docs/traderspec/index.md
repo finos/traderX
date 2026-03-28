@@ -30,8 +30,9 @@ It starts from a **pre-Docker traditional baseline** and layers learning-path st
 
 The site now exposes the actual source specs directly under:
 
-- `/traderspec-specs/` (navbar: **TraderSpec Specs**, now focused on `TraderSpec/speckit/**`)
-- left sidebar sections: **System Requirements**, **Component Specs**, **Contracts**
+- `/traderspec-specs/` (navbar: **Spec Kit**)
+- canonical root feature pack: `/traderspec-specs/specs/baseline-uncontainerized-parity/README`
+- left sidebar sections: **System Requirements**, **Component Specs**, **Conformance Packs**
 - `docs/traderspec/spec-kit-workflow` for the requirements-first GitHub Spec Kit model
 - `docs/traderspec/baseline-vs-parity` for baseline vs parity model
 - `docs/traderspec/run-specfirst-generated-codebase` for runnable spec-first flow

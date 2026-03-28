@@ -8,10 +8,10 @@ This flow generates implementation artifacts from Spec Kit requirements and tech
 
 ## Inputs
 
-- `TraderSpec/speckit/system/system-requirements.md`
-- `TraderSpec/speckit/system/user-stories.md`
-- `TraderSpec/speckit/system/acceptance-criteria.md`
-- `TraderSpec/speckit/system/requirements-traceability.csv`
+- `specs/001-baseline-uncontainerized-parity/system/system-requirements.md`
+- `specs/001-baseline-uncontainerized-parity/system/user-stories.md`
+- `specs/001-baseline-uncontainerized-parity/system/acceptance-criteria.md`
+- `specs/001-baseline-uncontainerized-parity/system/requirements-traceability.csv`
 - `TraderSpec/catalog/component-spec.csv`
 
 ## Commands

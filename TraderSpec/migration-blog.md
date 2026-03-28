@@ -14,6 +14,7 @@ This blog tracks major migration phases, findings, and decisions as we execute `
 | 2026-03-27 | Phase 7 - GitHub Spec Kit Adoption | Done | Manifest-driven synthesis, conformance packs, semantic compare harness, 7.11 pilot proof, and 7.12 cleanup are complete. |
 | 2026-03-27 | Phase 8 - Migration Documentation + Visual Evidence | Done | Mermaid visuals and migration evidence were consolidated and synchronized with TODO/blog status. |
 | 2026-03-28 | Phase 11 - Root-Level Spec Kit Canonical Migration | In Progress | Official root `.specify` scaffold + Codex Spec Kit skills + first root `specs/001-*` feature pack created. |
+| 2026-03-29 | Phase 11 - Root-Level Spec Kit Canonical Migration | Done | CI root gates added and legacy `TraderSpec/speckit/**` duplicate docs decommissioned to pointer-only stubs. |
 
 ## Live TODO Activity Summary
 
@@ -55,10 +56,10 @@ This mirrors `TraderSpec/migration-todo.md` and highlights active execution sign
 | 7.12 | Roll synthesis across all baseline components | Done | All-component conformance+compare validation passed and residual hydrate/direct-write bridge usage was retired. |
 | 11.1-11.2 | Bootstrap root Spec Kit and first canonical feature pack | Done | Added root `.specify`, `.agents/skills/speckit-*`, and `specs/001-baseline-uncontainerized-parity` with contracts and execution quickstart. |
 | 11.3-11.4 | Migrate legacy spec artifacts and rewire pipelines to root specs | Done | System/component artifacts were moved into root feature pack and generation/conformance/readiness scripts now use root specs as primary inputs. |
-| 11.5+ | CI + final deprecation cleanup | In Progress | Root canonical path is active; remaining work is CI hardening and legacy doc retirement. |
+| 11.5-11.6 | CI + final deprecation cleanup | Done | Added root Spec Kit CI gates and retired legacy duplicate docs under `TraderSpec/speckit/**` to pointer-only pages. |
 | 11.7 | Define generation-fidelity policy for "very close" baseline output | Done | Added explicit technical NFRs + fidelity profile + semantic diff policy and validated compare-all with only docs-spec differences. |
 
-## Phase 11: Root-Level Spec Kit Canonical Migration (In Progress)
+## Phase 11: Root-Level Spec Kit Canonical Migration (Completed)
 
 ### Objective
 
@@ -99,7 +100,11 @@ Complete migration from TraderSpec-local spec artifacts to official GitHub Spec 
 - Full parity validation passed after rewiring:
   - `bash TraderSpec/pipeline/speckit/run-full-parity-validation.sh`
   - startup and all overlay smoke tests remained green.
-- Updated migration TODO phase model to track this work as active Phase 11.
+- Added root CI quality gates:
+  - `.github/workflows/spec-kit-root-gates.yml`
+  - `TraderSpec/pipeline/speckit/validate-root-spec-kit-gates.sh`
+- Decommissioned duplicate legacy docs under `TraderSpec/speckit/**` and left pointer-only README stubs.
+- Updated TraderSpec docs/plugin/sidebar routing to surface canonical root feature-pack specs in Docusaurus.
 
 ### Canonicalization Flow
 
@@ -114,9 +119,8 @@ flowchart LR
   classDef current fill:#fff3cd,stroke:#a17700,color:#4d3b00;
   classDef planned fill:#e8edf2,stroke:#52606d,color:#1f2933;
 
-  class B,C done;
-  class D current;
-  class A,E planned;
+  class B,C,D,E done;
+  class A planned;
 ```
 
 ## Phase 1 Findings

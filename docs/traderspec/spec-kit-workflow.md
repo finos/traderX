@@ -4,15 +4,15 @@ title: GitHub Spec Kit Workflow
 
 # GitHub Spec Kit Workflow
 
-TraderSpec now includes a requirements-first Spec Kit implementation under `TraderSpec/speckit/`.
+TraderSpec now uses a root-canonical GitHub Spec Kit layout:
 
 Browse it in Docusaurus:
 
-- `/traderspec-specs/speckit` (Spec Kit root)
-- `/traderspec-specs/speckit/system/system-requirements`
-- `/traderspec-specs/speckit/system/user-stories`
-- `/traderspec-specs/speckit/system/acceptance-criteria`
-- `/traderspec-specs/speckit/system/requirements-traceability`
+- `/traderspec-specs/specs/baseline-uncontainerized-parity/README`
+- `/traderspec-specs/specs/baseline-uncontainerized-parity/system/system-requirements`
+- `/traderspec-specs/specs/baseline-uncontainerized-parity/system/user-stories`
+- `/traderspec-specs/specs/baseline-uncontainerized-parity/system/acceptance-criteria`
+- `/traderspec-specs/specs/baseline-uncontainerized-parity/system/requirements-traceability`
 
 ## Source Inputs For System Understanding
 
@@ -25,16 +25,13 @@ The system-level requirements and user stories are grounded in:
 
 ## Spec Kit Layers
 
-- `TraderSpec/speckit/system/system-context.md`
-- `TraderSpec/speckit/system/end-to-end-flows.md`
-- `TraderSpec/speckit/system/system-requirements.md`
-- `TraderSpec/speckit/system/user-stories.md`
-- `TraderSpec/speckit/system/acceptance-criteria.md`
-- `TraderSpec/speckit/system/requirements-traceability.csv`
-- `TraderSpec/speckit/system/component-generation-manifest.md`
-- `TraderSpec/speckit/system/component-generation-manifest.schema.json`
-- `TraderSpec/speckit/components/*.md`
-- `TraderSpec/speckit/contracts/**/openapi.yaml`
+- `.specify/**`
+- `specs/001-baseline-uncontainerized-parity/spec.md`
+- `specs/001-baseline-uncontainerized-parity/plan.md`
+- `specs/001-baseline-uncontainerized-parity/tasks.md`
+- `specs/001-baseline-uncontainerized-parity/system/**`
+- `specs/001-baseline-uncontainerized-parity/components/*.md`
+- `specs/001-baseline-uncontainerized-parity/contracts/**/openapi.yaml`
 
 ## Validation
 
