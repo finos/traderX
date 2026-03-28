@@ -64,7 +64,6 @@
             "name": "Web GUI",
             "description": "Allows employees to manage accounts and book trades.",
             "metadata": {
-                "data-classification": "Private",
                 "technology": "HTML and JavaScript and NodeJS"
             }
         },
@@ -93,7 +92,6 @@
                 }
             ],
             "metadata": {
-                "data-classification": "Private",
                 "technology": "Java and Spring Boot"
             }
         },
@@ -157,7 +155,6 @@
                 }
             ],
             "metadata": {
-                "data-classification": "Private",
                 "technology": "Java and Spring Boot"
             }
         },
@@ -201,7 +198,6 @@
                 }
             ],
             "metadata": {
-                "data-classification": "Private",
                 "technology": "Python and Flask"
             }
         },
@@ -240,7 +236,6 @@
                 }
             ],
             "metadata": {
-                "data-classification": "Private",
                 "technology": ".NET Core"
             }
         },
@@ -274,7 +269,6 @@
                 }
             ],
             "metadata": {
-                "data-classification": "Private",
                 "technology": "NodeJS"
             }
         },
@@ -303,7 +297,6 @@
                 }
             ],
             "metadata": {
-                "data-classification": "Private",
                 "technology": "Java and Spring Boot"
             }
         },
@@ -313,7 +306,6 @@
             "name": "Database",
             "description": "Stores account, trade, and position state.",
             "metadata": {
-                "data-classification": "Private",
                 "technology": "H2 Standalone"
             }
         },
@@ -323,7 +315,7 @@
             "name": "User Directory",
             "description": "Golden source of User Data",
             "metadata": {
-                "data-classification": "PII"
+                "technology": "External"
             }
         },
         {
@@ -383,7 +375,6 @@
                 }
             ],
             "metadata": {
-                "data-classification": "Private",
                 "technology": "SocketIO"
             }
         },

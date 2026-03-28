@@ -123,12 +123,6 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
                 <table class="nested-table">
                         <tbody>
                         <tr>
-                            <td><b>Data Classification</b></td>
-                            <td>
-                                Private
-                                    </td>
-                        </tr>
-                        <tr>
                             <td><b>Technology</b></td>
                             <td>
                                 NodeJS
@@ -224,12 +218,6 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
                 <table class="nested-table">
                         <tbody>
                         <tr>
-                            <td><b>Data Classification</b></td>
-                            <td>
-                                Private
-                                    </td>
-                        </tr>
-                        <tr>
                             <td><b>Technology</b></td>
                             <td>
                                 NodeJS
@@ -265,12 +253,6 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
             <td>
                 <table class="nested-table">
                         <tbody>
-                        <tr>
-                            <td><b>Data Classification</b></td>
-                            <td>
-                                Private
-                                    </td>
-                        </tr>
                         <tr>
                             <td><b>Technology</b></td>
                             <td>
@@ -308,12 +290,6 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
                 <table class="nested-table">
                         <tbody>
                         <tr>
-                            <td><b>Data Classification</b></td>
-                            <td>
-                                Private
-                                    </td>
-                        </tr>
-                        <tr>
                             <td><b>Technology</b></td>
                             <td>
                                 Java and Spring Boot
@@ -349,12 +325,6 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
             <td>
                 <table class="nested-table">
                         <tbody>
-                        <tr>
-                            <td><b>Data Classification</b></td>
-                            <td>
-                                Private
-                                    </td>
-                        </tr>
                         <tr>
                             <td><b>Technology</b></td>
                             <td>
@@ -456,12 +426,6 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
                 <table class="nested-table">
                         <tbody>
                         <tr>
-                            <td><b>Data Classification</b></td>
-                            <td>
-                                Private
-                                    </td>
-                        </tr>
-                        <tr>
                             <td><b>Technology</b></td>
                             <td>
                                 NodeJS
@@ -497,12 +461,6 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
             <td>
                 <table class="nested-table">
                         <tbody>
-                        <tr>
-                            <td><b>Data Classification</b></td>
-                            <td>
-                                Private
-                                    </td>
-                        </tr>
                         <tr>
                             <td><b>Technology</b></td>
                             <td>
@@ -540,12 +498,6 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
                 <table class="nested-table">
                         <tbody>
                         <tr>
-                            <td><b>Data Classification</b></td>
-                            <td>
-                                Private
-                                    </td>
-                        </tr>
-                        <tr>
                             <td><b>Technology</b></td>
                             <td>
                                 Java and Spring Boot
@@ -582,12 +534,6 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
                 <table class="nested-table">
                         <tbody>
                         <tr>
-                            <td><b>Data Classification</b></td>
-                            <td>
-                                Private
-                                    </td>
-                        </tr>
-                        <tr>
                             <td><b>Technology</b></td>
                             <td>
                                 .NET Core
@@ -623,12 +569,6 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
             <td>
                 <table class="nested-table">
                         <tbody>
-                        <tr>
-                            <td><b>Data Classification</b></td>
-                            <td>
-                                Private
-                                    </td>
-                        </tr>
                         <tr>
                             <td><b>Technology</b></td>
                             <td>
@@ -731,12 +671,6 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
                 <table class="nested-table">
                         <tbody>
                         <tr>
-                            <td><b>Data Classification</b></td>
-                            <td>
-                                Private
-                                    </td>
-                        </tr>
-                        <tr>
                             <td><b>Technology</b></td>
                             <td>
                                 NodeJS
@@ -772,12 +706,6 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
             <td>
                 <table class="nested-table">
                         <tbody>
-                        <tr>
-                            <td><b>Data Classification</b></td>
-                            <td>
-                                Private
-                                    </td>
-                        </tr>
                         <tr>
                             <td><b>Technology</b></td>
                             <td>
@@ -815,12 +743,6 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
                 <table class="nested-table">
                         <tbody>
                         <tr>
-                            <td><b>Data Classification</b></td>
-                            <td>
-                                Private
-                                    </td>
-                        </tr>
-                        <tr>
                             <td><b>Technology</b></td>
                             <td>
                                 Java and Spring Boot
@@ -856,12 +778,6 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
             <td>
                 <table class="nested-table">
                         <tbody>
-                        <tr>
-                            <td><b>Data Classification</b></td>
-                            <td>
-                                Private
-                                    </td>
-                        </tr>
                         <tr>
                             <td><b>Technology</b></td>
                             <td>
@@ -899,12 +815,6 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
                 <table class="nested-table">
                         <tbody>
                         <tr>
-                            <td><b>Data Classification</b></td>
-                            <td>
-                                Private
-                                    </td>
-                        </tr>
-                        <tr>
                             <td><b>Technology</b></td>
                             <td>
                                 H2 Standalone
@@ -940,12 +850,6 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
             <td>
                 <table class="nested-table">
                         <tbody>
-                        <tr>
-                            <td><b>Data Classification</b></td>
-                            <td>
-                                Private
-                                    </td>
-                        </tr>
                         <tr>
                             <td><b>Technology</b></td>
                             <td>
