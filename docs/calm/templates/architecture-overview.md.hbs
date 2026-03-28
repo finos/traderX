@@ -1,2 +1,16 @@
 ## Architecture Overview
 {{block-architecture}}
+
+
+## Single Service
+{{block-architecture focus-nodes="reference-data-service "}}
+
+## Multiple Services No Database
+{{block-architecture focus-nodes="reference-data-service, web-gui, account-service, people-service"}}
+
+## Multiple Services With Database
+{{block-architecture focus-nodes="reference-data-service, web-gui, account-service, people-service, database"}}
+
+## Multiple Services With Trade Feed
+{{block-architecture focus-nodes="reference-data-service, web-gui, account-service, people-service, database, messagebus"}}
+
