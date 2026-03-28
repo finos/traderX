@@ -15,6 +15,7 @@ This blog tracks major migration phases, findings, and decisions as we execute `
 | 2026-03-27 | Phase 8 - Migration Documentation + Visual Evidence | Done | Mermaid visuals and migration evidence were consolidated and synchronized with TODO/blog status. |
 | 2026-03-28 | Phase 11 - Root-Level Spec Kit Canonical Migration | In Progress | Official root `.specify` scaffold + Codex Spec Kit skills + first root `specs/001-*` feature pack created. |
 | 2026-03-29 | Phase 11 - Root-Level Spec Kit Canonical Migration | Done | CI root gates added and legacy `TraderSpec/speckit/**` duplicate docs decommissioned to pointer-only stubs. |
+| 2026-03-29 | Phase 9 - TraderSpec Docs Consolidation | Done | Redundant run-mixed docs were merged into one overlay runbook, sidebars were trimmed, and docs build was repaired and validated. |
 
 ## Live TODO Activity Summary
 
@@ -58,6 +59,8 @@ This mirrors `TraderSpec/migration-todo.md` and highlights active execution sign
 | 11.3-11.4 | Migrate legacy spec artifacts and rewire pipelines to root specs | Done | System/component artifacts were moved into root feature pack and generation/conformance/readiness scripts now use root specs as primary inputs. |
 | 11.5-11.6 | CI + final deprecation cleanup | Done | Added root Spec Kit CI gates and retired legacy duplicate docs under `TraderSpec/speckit/**` to pointer-only pages. |
 | 11.7 | Define generation-fidelity policy for "very close" baseline output | Done | Added explicit technical NFRs + fidelity profile + semantic diff policy and validated compare-all with only docs-spec differences. |
+| 9.1 | Remove/merge redundant TraderSpec docs | Done | Consolidated all `run-mixed-*` pages into `run-generated-overlays` and removed duplicate per-component runbook pages. |
+| 9.2 | Keep learning-path and state-progression docs intact | Done | Learning-path docs remain available while TraderSpec docs were consolidated and navigation simplified. |
 
 ## Phase 11: Root-Level Spec Kit Canonical Migration (Completed)
 

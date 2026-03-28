@@ -33,7 +33,7 @@ module.exports = {
       items: [
         {to: 'docs/home', label: 'Docs', position: 'right'},
         {to: 'docs/traderspec', label: 'TraderSpec Ops', position: 'right'},
-        {to: '/traderspec-specs/specs/baseline-uncontainerized-parity/README', label: 'Spec Kit', position: 'right'},
+        {to: '/traderspec-specs/specs', label: 'Spec Kit', position: 'right'},
         {to: 'docs/roadmap', label: 'Roadmap', position: 'right'},
         {to: 'docs/team', label: 'Team', position: 'right'},
         {
@@ -127,17 +127,27 @@ module.exports = {
       '@docusaurus/plugin-content-docs',
       {
         id: 'traderspec',
-        path: '..',
+        path: '../TraderSpec',
         routeBasePath: 'traderspec-specs',
         sidebarPath: require.resolve('./traderspec.sidebars.js'),
         include: [
-          'specs/001-baseline-uncontainerized-parity/**/*.md',
-          'TraderSpec/speckit/**/*.md',
-          'TraderSpec/migration-todo.md',
-          'TraderSpec/migration-blog.md',
+          'speckit/**/*.md',
+          'migration-todo.md',
+          'migration-blog.md',
         ],
-        exclude: ['TraderSpec/codebase/target-generated/**', 'TraderSpec/codebase/target-generated-specfirst/**'],
-        editUrl: 'https://github.com/finos/traderX/edit/main/',
+        exclude: ['codebase/target-generated/**', 'codebase/target-generated-specfirst/**'],
+        editUrl: 'https://github.com/finos/traderX/edit/main/TraderSpec/',
+      },
+    ],
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'traderspec-root-specs',
+        path: '../specs',
+        routeBasePath: 'traderspec-specs/specs',
+        sidebarPath: require.resolve('./traderspec-root-specs.sidebars.js'),
+        include: ['001-baseline-uncontainerized-parity/**/*.md'],
+        editUrl: 'https://github.com/finos/traderX/edit/main/specs/',
       },
     ],
   ],

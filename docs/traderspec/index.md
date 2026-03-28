@@ -38,13 +38,5 @@ The site now exposes the actual source specs directly under:
 - `docs/traderspec/run-specfirst-generated-codebase` for runnable spec-first flow
 - `docs/traderspec/spec-migration-journey` for the end-to-end migration TODO and progress
 - `docs/traderspec/run-base-uncontainerized-hydrated` for phase-2 base runtime scripts
-- `docs/traderspec/run-mixed-reference-generated` for phase-4 mixed mode with generated `reference-data`
-- `docs/traderspec/run-mixed-database-generated` for the next mixed mode with generated `database`
-- `docs/traderspec/run-mixed-people-generated` for mixed mode with generated `people-service` + generated `database` + generated `reference-data`
-- `docs/traderspec/run-mixed-account-generated` for mixed mode with generated `account-service` + generated `people-service` + generated `database` + generated `reference-data`
-- `docs/traderspec/run-mixed-position-generated` for mixed mode with generated `position-service` + previously cut-over generated services
-- `docs/traderspec/run-mixed-trade-feed-generated` for mixed mode with generated `trade-feed` + previously cut-over generated services
-- `docs/traderspec/run-mixed-trade-processor-generated` for mixed mode with generated `trade-processor` + previously cut-over generated services
-- `docs/traderspec/run-mixed-trade-service-generated` for mixed mode with generated `trade-service` + previously cut-over generated services
-- `docs/traderspec/run-mixed-web-angular-generated` for mixed mode with generated Angular web frontend + previously cut-over generated services
+- `docs/traderspec/run-generated-overlays` for consolidated overlay progression, commands, and smoke checks
 - `docs/traderspec/component-cutover-matrix` for phase-5 generated vs hydrated cutover tracking

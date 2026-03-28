@@ -4,8 +4,8 @@ This is the long-running execution plan for moving TraderX from source-first to 
 
 ## Latest Update
 
-- Current phase: **Phase 9 in progress** (TraderSpec docs consolidation after root Spec Kit canonicalization).
-- Current focus: consolidate docs/navigation around canonical root feature packs and trim remaining migration-era redundancy.
+- Current phase: **Phase 9 complete** (TraderSpec docs consolidation after root Spec Kit canonicalization).
+- Current focus: prepare phase-10 learning-path evolution from the now-clean canonical docs and root Spec Kit baseline.
 - Current blocker: none.
 - Planned cutover order for pure generation is now documented in the migration blog (Phase 2 section).
 - Migration blog: `TraderSpec/migration-blog.md`
@@ -23,7 +23,7 @@ This is the long-running execution plan for moving TraderX from source-first to 
 | 6 - Source Deletion by Approval | Done | Legacy root components removed after sign-off. |
 | 7 - GitHub Spec Kit Adoption | Done | Manifest-driven synthesis + conformance + compare harness + pilot proof + cleanup complete. |
 | 8 - Migration Documentation + Visual Evidence | Done | Journey docs and Mermaid proof artifacts updated through Phase 7 closeout. |
-| 9 - TraderSpec Docs Consolidation | In Progress | Root canonical docs are active; now consolidating and pruning migration-era duplication. |
+| 9 - TraderSpec Docs Consolidation | Done | Runbook and navigation are consolidated; Docusaurus build is green after plugin overlap fix. |
 | 10 - Learning Path Evolution | Pending | Apply NFR/FR overlays for post-baseline states. |
 | 11 - Root-Level Spec Kit Canonical Migration | Done | Root specs now drive readiness/expressiveness/conformance/parity with CI gates and legacy pointer-only decommissioning. |
 
@@ -92,9 +92,9 @@ Make TraderSpec the source of truth so original root source can be retired safel
 - [x] 8.1 Keep Mermaid journey/status graph updated.
 - [x] 8.2 Keep execution log with decisions, blockers, and outcomes.
 
-- [ ] 9) Consolidate documentation around TraderSpec after base-case completion.
-- [ ] 9.1 Remove/merge redundant docs.
-- [ ] 9.2 Keep learning paths and state progression docs intact.
+- [x] 9) Consolidate documentation around TraderSpec after base-case completion.
+- [x] 9.1 Remove/merge redundant docs.
+- [x] 9.2 Keep learning paths and state progression docs intact.
 
 - [ ] 10) Continue to learning-path state generation and showcase flows.
 - [ ] 10.1 Adjust specs per learning-path goals.
@@ -121,12 +121,15 @@ flowchart LR
   P6 --> P7["Phase 7: GitHub Spec Kit Adoption + Synthesis Cutover (Done)"]
   P7 --> P8["Phase 8: Journey Documentation + Visual Progress (Done)"]
   P8 --> P11["Phase 11: Root-Level Spec Kit Canonical Migration (Done)"]
-  P11 --> P9["Phase 9: TraderSpec Doc Consolidation (Current)"]
-  P9 --> P10["Phase 10: Learning-Path State Evolution (Planned)"]
+  P11 --> P9["Phase 9: TraderSpec Doc Consolidation (Done)"]
+  P9 --> P10["Phase 10: Learning-Path State Evolution (Current Next)"]
 ```
 
 ## Execution Log
 
+- 2026-03-29: Fixed Docusaurus MDX double-loader failure by splitting TraderSpec docs into two non-overlapping plugins: `traderspec` (`TraderSpec/`) and `traderspec-root-specs` (`specs/`), then validated `npm --prefix website run build` successfully.
+- 2026-03-29: Consolidated nine `docs/traderspec/run-mixed-*.md` pages into `docs/traderspec/run-generated-overlays.md` and switched docs sidebars to curated TraderSpec navigation.
+- 2026-03-29: Removed stale Spec Kit doc links (`/traderspec-specs/speckit`) in main docs sidebar and migration journey page; canonical docs entrypoint is now `/traderspec-specs/specs/baseline-uncontainerized-parity/README`.
 - 2026-03-29: Added CI root-gate script (`pipeline/speckit/validate-root-spec-kit-gates.sh`) and workflow (`.github/workflows/spec-kit-root-gates.yml`) for `.specify` integrity, root feature-pack completeness, and branch/feature resolution behavior.
 - 2026-03-29: Completed legacy duplicate decommission pass for `TraderSpec/speckit/**`; removed redundant system/component/conformance/contract artifacts and kept pointer-only README stubs.
 - 2026-03-29: Rewired TraderSpec docs plugin/sidebar to surface canonical root feature-pack specs and keep legacy `TraderSpec/speckit/**` as explicit pointer pages only.

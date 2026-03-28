@@ -25,7 +25,7 @@ It captures:
 
 Browse the active Spec Kit docs in the TraderSpec specs plugin:
 
-- `/traderspec-specs/speckit`
+- `/traderspec-specs/specs/baseline-uncontainerized-parity/README`
 
 Migration TODO/blog are maintained as repository artifacts:
 
