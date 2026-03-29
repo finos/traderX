@@ -62,6 +62,7 @@ This log captures major milestones in the migration from source-first TraderX to
   - updated state catalog to mark `002` generation mode as implemented
   - published generated code branch snapshot:
     - `codex/generated-state-002-edge-proxy-uncontainerized` (source commit `25c7e16`)
+- Removed remaining tracked `TraderSpec/` legacy folder artifacts after root canonicalization.
 
 ## What Changed Technically
 

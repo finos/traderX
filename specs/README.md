@@ -23,7 +23,7 @@ This repository now uses the GitHub Spec Kit canonical structure at repo root:
 
 ## Transitional Note
 
-Legacy migration artifacts under `TraderSpec/` remain available during cutover, but new requirements work should be authored in numbered root `specs/` feature directories.
+Legacy `TraderSpec/` migration artifacts have been removed after Phase C cleanup. New requirements work is authored in numbered root `specs/` feature directories.
 
 State lineage and generated-branch publish conventions are tracked in:
 

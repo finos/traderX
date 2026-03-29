@@ -65,7 +65,7 @@ Make root SpecKit artifacts (`.specify/` and `specs/`) the source of truth, with
 - [x] C.4 Move `TraderSpec/templates/**` to `templates/**` and rewire references.
 - [x] C.5 Move `TraderSpec/catalog/**` to `catalog/**` and rewire references.
 - [x] C.6 Move migration docs to `migration-docs/*` and remove legacy plugin overlap.
-- [ ] C.7 Remove residual `TraderSpec/` folders that are no longer needed.
+- [x] C.7 Remove residual `TraderSpec/` folders that are no longer needed.
 - [ ] C.8 Re-run full validation set after final cleanup.
 - [ ] C.9 Finalize archive decisions for `prompts/**` and `tools/**` (retain only if still required by active states/automation).
 - [ ] C.10 Complete generated-artifact relocation to `generated/**` and remove remaining legacy `api-docs/**`/`TraderSpec/codebase/**` runtime references.
