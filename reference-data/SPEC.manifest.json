@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAtUtc": "2026-03-29T11:49:38Z",
+  "component": {
+    "id": "reference-data",
+    "kind": "service",
+    "language": "TypeScript",
+    "framework": "NestJS",
+    "buildTool": "npm",
+    "sourcePath": "generated/code/components/reference-data-specfirst",
+    "targetPath": "apps/reference-data",
+    "notes": "Provides /stocks and /stocks/{ticker}."
+  },
+  "runtime": {
+    "defaultPort": 18085,
+    "dependsOn": ["database"],
+    "requiredEnv": []
+  },
+  "contracts": {
+    "primary": "specs/001-baseline-uncontainerized-parity/contracts/reference-data/openapi.yaml"
+  },
+  "traceability": {
+    "requirements": ["SYS-FR-001","SYS-FR-005","SYS-FR-011","SYS-NFR-001"],
+    "stories": ["US-001","US-003","US-007","US-008"],
+    "acceptanceCriteria": ["AC-001","AC-004","AC-008","AC-009"],
+    "flows": ["F1","F3","STARTUP"],
+    "verificationRefs": ["scripts/start-base-uncontainerized-generated.sh","scripts/test-reference-data-overlay.sh"]
+  },
+  "constraints": {
+    "preIngressCorsRequired": true
+  }
+}

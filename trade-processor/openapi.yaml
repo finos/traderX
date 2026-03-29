@@ -1,0 +1,69 @@
+openapi: 3.0.1
+info:
+  title: "Trade Processor - TraderX"
+  version: "1.0"
+paths:
+  /tradeservice/order:
+    post:
+      operationId: processOrder
+      responses:
+        '200':
+          description: Trade booking result
+  /:
+    get:
+      operationId: docsRoot
+      responses:
+        '302':
+          description: Redirect to swagger-ui
+components:
+  schemas:
+    TradeOrder:
+      type: object
+      properties:
+        id:
+          type: string
+        accountId:
+          type: integer
+          format: int32
+        security:
+          type: string
+        side:
+          type: string
+        quantity:
+          type: integer
+          format: int32
+    Position:
+      type: object
+      properties:
+        accountId:
+          type: integer
+          format: int32
+        security:
+          type: string
+        quantity:
+          type: integer
+          format: int32
+    Trade:
+      type: object
+      properties:
+        id:
+          type: string
+        accountId:
+          type: integer
+          format: int32
+        security:
+          type: string
+        side:
+          type: string
+        state:
+          type: string
+        quantity:
+          type: integer
+          format: int32
+    TradeBookingResult:
+      type: object
+      properties:
+        trade:
+          $ref: '#/components/schemas/Trade'
+        position:
+          $ref: '#/components/schemas/Position'

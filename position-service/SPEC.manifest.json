@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAtUtc": "2026-03-29T11:49:38Z",
+  "component": {
+    "id": "position-service",
+    "kind": "service",
+    "language": "Java",
+    "framework": "Spring Boot",
+    "buildTool": "Gradle",
+    "sourcePath": "generated/code/components/position-service-specfirst",
+    "targetPath": "apps/position-service",
+    "notes": "Trades/positions read model APIs."
+  },
+  "runtime": {
+    "defaultPort": 18090,
+    "dependsOn": ["database"],
+    "requiredEnv": ["POSITION_SERVICE_PORT","DATABASE_TCP_HOST","DATABASE_TCP_PORT","DATABASE_NAME","DATABASE_DBUSER","DATABASE_DBPASS","CORS_ALLOWED_ORIGINS"]
+  },
+  "contracts": {
+    "primary": "specs/001-baseline-uncontainerized-parity/contracts/position-service/openapi.yaml"
+  },
+  "traceability": {
+    "requirements": ["SYS-FR-001","SYS-FR-003","SYS-FR-011"],
+    "stories": ["US-002","US-007","US-008"],
+    "acceptanceCriteria": ["AC-001","AC-003","AC-009"],
+    "flows": ["F2","STARTUP"],
+    "verificationRefs": ["scripts/start-base-uncontainerized-generated.sh","scripts/test-position-service-overlay.sh"]
+  },
+  "constraints": {
+    "preIngressCorsRequired": false
+  }
+}
