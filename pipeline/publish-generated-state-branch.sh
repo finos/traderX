@@ -118,6 +118,20 @@ case "${STATE_ID}" in
     }
     "${ROOT}/scripts/start-state-004-kubernetes-generated.sh" --dry-run
     ;;
+  005-radius-kubernetes-platform)
+    bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+    [[ -f "${ROOT}/generated/code/target-generated/radius-kubernetes-platform/radius/app.bicep" ]] || {
+      echo "[fail] missing generated radius app model for state 005"
+      exit 1
+    }
+    ;;
+  006-tilt-kubernetes-dev-loop)
+    bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+    [[ -f "${ROOT}/generated/code/target-generated/tilt-kubernetes-dev-loop/tilt/Tiltfile" ]] || {
+      echo "[fail] missing generated tilt assets for state 006"
+      exit 1
+    }
+    ;;
   *)
     bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
     RUNTIME_START_SCRIPT="${ROOT}/scripts/start-state-${STATE_ID}-generated.sh"
