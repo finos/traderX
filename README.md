@@ -7,8 +7,8 @@ This branch is an auto-published generated-code snapshot for FINOS TraderX.
 - Status: `implemented`
 - Suggested Version Tag: `generated/002-edge-proxy-uncontainerized/v1`
 - Source Branch: `feature/agentic-renovation`
-- Source Commit: `486f97f130817bd3180d1833bff3ff16a608f566`
-- Generated At (UTC): `2026-03-29T12:40:22Z`
+- Source Commit: `b50d3b8830bef17bedc5a6f2fb10dc98aeece650`
+- Generated At (UTC): `2026-03-29T13:05:23Z`
 
 ## State Summary
 
@@ -23,15 +23,22 @@ This branch is an auto-published generated-code snapshot for FINOS TraderX.
 
 ## Runtime Guidance
 
-This generated branch is a code snapshot and does not include the full SpecKit orchestration workspace.
-
-For reproducible startup/verification, use the canonical source branch at commit `486f97f130817bd3180d1833bff3ff16a608f566`:
+Run directly from this generated snapshot branch:
 
 ```bash
-git checkout 486f97f130817bd3180d1833bff3ff16a608f566
-bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized
 ./scripts/start-state-002-edge-proxy-generated.sh
 ```
+
+Browser endpoint (via edge proxy): `http://localhost:18080`
+
+Status / stop:
+
+```bash
+./scripts/status-state-002-edge-proxy-generated.sh
+./scripts/stop-state-002-edge-proxy-generated.sh
+```
+
+Detailed clone-first instructions: [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
 
 ## Canonical Specs And Docs
 
@@ -40,6 +47,6 @@ Canonical source-of-truth is maintained in the SpecKit authoring branch, not in 
 - Feature pack: `specs/002-edge-proxy-uncontainerized`
 - Generation entrypoint: `bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized`
 - Snapshot metadata: [STATE.md](./STATE.md), [state.json](./.traderx-state/state.json)
-- Source commit: https://github.com/finos/traderX/commit/486f97f130817bd3180d1833bff3ff16a608f566
-- Feature pack at source commit: https://github.com/finos/traderX/tree/486f97f130817bd3180d1833bff3ff16a608f566/specs/002-edge-proxy-uncontainerized
-- SpecKit docs at source commit: https://github.com/finos/traderX/tree/486f97f130817bd3180d1833bff3ff16a608f566/docs/spec-kit
+- Source commit: https://github.com/finos/traderX/commit/b50d3b8830bef17bedc5a6f2fb10dc98aeece650
+- Feature pack at source commit: https://github.com/finos/traderX/tree/b50d3b8830bef17bedc5a6f2fb10dc98aeece650/specs/002-edge-proxy-uncontainerized
+- SpecKit docs at source commit: https://github.com/finos/traderX/tree/b50d3b8830bef17bedc5a6f2fb10dc98aeece650/docs/spec-kit

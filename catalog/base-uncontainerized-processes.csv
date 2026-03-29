@@ -1,0 +1,10 @@
+order,process_id,workdir,start_cmd,port,health_hint
+1,database,database,./gradlew build && ./run.sh,18082,tcp://localhost:18082
+2,reference-data,reference-data,[ -d node_modules ] || npm install; npm run start,18085,http://localhost:18085/stocks
+3,trade-feed,trade-feed,[ -d node_modules ] || npm install; npm run start,18086,http://localhost:18086/
+4,people-service,people-service/PeopleService.WebApi,dotnet run,18089,http://localhost:18089/swagger
+5,account-service,account-service,./gradlew bootRun,18088,http://localhost:18088/account/
+6,position-service,position-service,./gradlew bootRun,18090,http://localhost:18090/positions/22214
+7,trade-processor,trade-processor,./gradlew bootRun,18091,http://localhost:18091/health
+8,trade-service,trade-service,./gradlew bootRun,18092,http://localhost:18092/swagger-ui.html
+9,web-front-end-angular,web-front-end/angular,[ -d node_modules ] || npm install; npm run start,18093,http://localhost:18093/
