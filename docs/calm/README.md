@@ -23,6 +23,8 @@ CALM enables:
 - Compliance tracking through controls and metadata
 - Integration with governance tools
 
+As a result of the automated validation of the architecture, it is possible to generate different views of the architecture that are consistent across the views.
+
 **Learn more:** [CALM Documentation](https://calm.finos.org)
 
 ## Viewing the Architecture
