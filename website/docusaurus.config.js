@@ -183,6 +183,7 @@ module.exports = {
         path: '../specs',
         routeBasePath: 'specs',
         sidebarPath: require.resolve('./traderspec-root-specs.sidebars.js'),
+        sidebarItemsGenerator: require('./plugins/specs-sidebar-items-generator'),
         remarkPlugins: [require('./plugins/remark-speckit-reference-links')],
         include: ['**/*.md'],
         editUrl: 'https://github.com/finos/traderX/edit/main/specs/',

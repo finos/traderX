@@ -2,10 +2,13 @@
 
 - Primary smoke script: `scripts/test-state-004-kubernetes-runtime.sh`
 
-Document and implement the minimum end-to-end checks required for this state.
+Minimum checks for this state:
 
-Suggested categories:
-
-- Runtime starts cleanly.
-- Core API/flow health checks.
-- State-specific behavioral checks.
+- Kubernetes deployment availability in namespace `traderx`.
+- Edge health and UI entrypoint through `http://localhost:8080`.
+- Baseline API compatibility through edge-prefixed routes:
+  - reference-data
+  - account-service
+  - people-service
+  - position-service
+  - trade-service (including unknown ticker/account checks).

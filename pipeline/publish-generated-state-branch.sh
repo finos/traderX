@@ -110,6 +110,14 @@ case "${STATE_ID}" in
       exit 1
     }
     ;;
+  004-kubernetes-runtime)
+    bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+    [[ -f "${ROOT}/generated/code/target-generated/kubernetes-runtime/build-plan.json" ]] || {
+      echo "[fail] missing generated kubernetes build-plan for state 004"
+      exit 1
+    }
+    "${ROOT}/scripts/start-state-004-kubernetes-generated.sh" --dry-run
+    ;;
   *)
     bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
     RUNTIME_START_SCRIPT="${ROOT}/scripts/start-state-${STATE_ID}-generated.sh"
@@ -185,6 +193,13 @@ EOF
 - Preserves baseline functional behavior while changing runtime/ops model.
 EOF
       ;;
+    004-kubernetes-runtime)
+      cat <<'EOF'
+- Builds on state `003` by moving runtime from Docker Compose to Kubernetes (Kind baseline).
+- Uses in-cluster NGINX edge-proxy as browser/API/WebSocket entrypoint at `http://localhost:8080`.
+- Preserves baseline functional behavior while changing runtime orchestration and deployment model.
+EOF
+      ;;
     *)
       cat <<'EOF'
 - Generated code snapshot for TraderX state transition.
@@ -245,6 +260,24 @@ Stop:
 
 ```bash
 ./scripts/stop-state-003-containerized-generated.sh
+```
+EOF
+      ;;
+    004-kubernetes-runtime)
+      cat <<'EOF'
+Run directly from this generated snapshot branch:
+
+```bash
+./scripts/start-state-004-kubernetes-generated.sh
+```
+
+UI/edge endpoint: `http://localhost:8080`
+
+Status / stop:
+
+```bash
+./scripts/status-state-004-kubernetes-generated.sh
+./scripts/stop-state-004-kubernetes-generated.sh
 ```
 EOF
       ;;
@@ -371,6 +404,368 @@ EOF
     "${SNAPSHOT_DIR}/scripts/status-state-003-containerized-generated.sh"
 }
 
+install_kubernetes_clone_harness() {
+  mkdir -p "${SNAPSHOT_DIR}/scripts"
+
+  cat > "${SNAPSHOT_DIR}/scripts/start-state-004-kubernetes-generated.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+STATE_DIR="${ROOT}/kubernetes-runtime"
+BUILD_PLAN="${STATE_DIR}/build-plan.json"
+KUSTOMIZE_DIR="${STATE_DIR}/manifests/base"
+KIND_CONFIG="${STATE_DIR}/kind/cluster-config.yaml"
+RUN_DIR="${STATE_DIR}/.run/state-004-kubernetes"
+
+SKIP_BUILD=0
+RECREATE_CLUSTER=0
+K8S_PROVIDER="${K8S_PROVIDER:-kind}"
+MINIKUBE_PROFILE=""
+MINIKUBE_DRIVER="${MINIKUBE_DRIVER:-docker}"
+
+while (( "$#" )); do
+  case "$1" in
+    --skip-build)
+      SKIP_BUILD=1
+      ;;
+    --recreate-cluster)
+      RECREATE_CLUSTER=1
+      ;;
+    --provider)
+      K8S_PROVIDER="${2:-}"
+      shift
+      ;;
+    --minikube-profile)
+      MINIKUBE_PROFILE="${2:-}"
+      shift
+      ;;
+    --minikube-driver)
+      MINIKUBE_DRIVER="${2:-}"
+      shift
+      ;;
+    *)
+      echo "[error] unknown argument: $1"
+      echo "[hint] supported: --skip-build --recreate-cluster --provider <kind|minikube> --minikube-profile <name> --minikube-driver <name>"
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+for cmd in docker kubectl jq; do
+  if ! command -v "${cmd}" >/dev/null 2>&1; then
+    echo "[error] required command not found: ${cmd}"
+    exit 1
+  fi
+done
+
+[[ -f "${BUILD_PLAN}" ]] || { echo "[error] missing ${BUILD_PLAN}"; exit 1; }
+[[ -f "${KIND_CONFIG}" ]] || { echo "[error] missing ${KIND_CONFIG}"; exit 1; }
+[[ -d "${KUSTOMIZE_DIR}" ]] || { echo "[error] missing ${KUSTOMIZE_DIR}"; exit 1; }
+
+cluster_name="$(jq -r '.kindClusterName' "${BUILD_PLAN}")"
+namespace="$(jq -r '.namespace' "${BUILD_PLAN}")"
+host_port="$(jq -r '.hostPort' "${BUILD_PLAN}")"
+edge_service="$(jq -r '.edgeService' "${BUILD_PLAN}")"
+
+if [[ -z "${MINIKUBE_PROFILE}" ]]; then
+  MINIKUBE_PROFILE="${cluster_name}"
+fi
+
+case "${K8S_PROVIDER}" in
+  kind|minikube)
+    ;;
+  *)
+    echo "[error] unsupported provider: ${K8S_PROVIDER}"
+    echo "[hint] supported providers: kind, minikube"
+    exit 1
+    ;;
+esac
+
+mkdir -p "${RUN_DIR}"
+PORT_FORWARD_PID_FILE="${RUN_DIR}/minikube-port-forward.pid"
+PORT_FORWARD_LOG_FILE="${RUN_DIR}/minikube-port-forward.log"
+
+stop_minikube_port_forward() {
+  if [[ -f "${PORT_FORWARD_PID_FILE}" ]]; then
+    pid="$(cat "${PORT_FORWARD_PID_FILE}")"
+    if kill -0 "${pid}" >/dev/null 2>&1; then
+      kill "${pid}" >/dev/null 2>&1 || true
+    fi
+    rm -f "${PORT_FORWARD_PID_FILE}"
+  fi
+}
+
+if [[ "${K8S_PROVIDER}" == "kind" ]]; then
+  if ! command -v kind >/dev/null 2>&1; then
+    echo "[error] required command not found: kind"
+    exit 1
+  fi
+  cluster_exists=0
+  if kind get clusters | grep -Fx "${cluster_name}" >/dev/null 2>&1; then
+    cluster_exists=1
+  fi
+  if (( cluster_exists == 1 && RECREATE_CLUSTER == 1 )); then
+    kind delete cluster --name "${cluster_name}"
+    cluster_exists=0
+  fi
+  if (( cluster_exists == 0 )); then
+    kind create cluster --name "${cluster_name}" --config "${KIND_CONFIG}"
+  fi
+  kubectl config use-context "kind-${cluster_name}" >/dev/null
+else
+  if ! command -v minikube >/dev/null 2>&1; then
+    echo "[error] required command not found: minikube"
+    exit 1
+  fi
+  if (( RECREATE_CLUSTER == 1 )); then
+    minikube delete -p "${MINIKUBE_PROFILE}" >/dev/null 2>&1 || true
+  fi
+  minikube start -p "${MINIKUBE_PROFILE}" --driver "${MINIKUBE_DRIVER}" >/dev/null
+  if ! kubectl config use-context "${MINIKUBE_PROFILE}" >/dev/null 2>&1; then
+    kubectl config use-context "minikube" >/dev/null
+  fi
+fi
+
+if (( SKIP_BUILD == 0 )); then
+  while IFS= read -r item; do
+    name="$(jq -r '.name' <<<"${item}")"
+    image="$(jq -r '.image' <<<"${item}")"
+    context_rel="$(jq -r '.context' <<<"${item}")"
+    dockerfile_rel="$(jq -r '.dockerfile' <<<"${item}")"
+    context_abs="${ROOT}/${context_rel}"
+    dockerfile_abs="${context_abs}/${dockerfile_rel}"
+
+    [[ -d "${context_abs}" ]] || { echo "[error] missing build context ${context_abs}"; exit 1; }
+    [[ -f "${dockerfile_abs}" ]] || { echo "[error] missing dockerfile ${dockerfile_abs}"; exit 1; }
+
+    echo "[build] ${name} -> ${image}"
+    docker build -t "${image}" -f "${dockerfile_abs}" "${context_abs}"
+    if [[ "${K8S_PROVIDER}" == "kind" ]]; then
+      kind load docker-image "${image}" --name "${cluster_name}"
+    else
+      minikube image load "${image}" -p "${MINIKUBE_PROFILE}" >/dev/null
+    fi
+  done < <(jq -c '.images[]' "${BUILD_PLAN}")
+fi
+
+kubectl apply -k "${KUSTOMIZE_DIR}"
+kubectl wait --for=condition=Available deployment --all -n "${namespace}" --timeout=600s
+
+if [[ "${K8S_PROVIDER}" == "minikube" ]]; then
+  stop_minikube_port_forward
+  nohup kubectl -n "${namespace}" port-forward "svc/${edge_service}" "${host_port}:8080" >"${PORT_FORWARD_LOG_FILE}" 2>&1 &
+  echo "$!" > "${PORT_FORWARD_PID_FILE}"
+fi
+
+echo "[done] state 004 kubernetes runtime started"
+echo "[provider] ${K8S_PROVIDER}"
+echo "[ui] http://localhost:${host_port}"
+EOF
+
+  cat > "${SNAPSHOT_DIR}/scripts/stop-state-004-kubernetes-generated.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BUILD_PLAN="${ROOT}/kubernetes-runtime/build-plan.json"
+RUN_DIR="${ROOT}/kubernetes-runtime/.run/state-004-kubernetes"
+DELETE_CLUSTER=0
+K8S_PROVIDER="${K8S_PROVIDER:-kind}"
+MINIKUBE_PROFILE=""
+
+while (( "$#" )); do
+  case "$1" in
+    --delete-cluster)
+      DELETE_CLUSTER=1
+      ;;
+    --provider)
+      K8S_PROVIDER="${2:-}"
+      shift
+      ;;
+    --minikube-profile)
+      MINIKUBE_PROFILE="${2:-}"
+      shift
+      ;;
+    *)
+      echo "[error] unknown argument: $1"
+      echo "[hint] supported: --delete-cluster --provider <kind|minikube> --minikube-profile <name>"
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+for cmd in kubectl jq; do
+  if ! command -v "${cmd}" >/dev/null 2>&1; then
+    echo "[error] required command not found: ${cmd}"
+    exit 1
+  fi
+done
+
+[[ -f "${BUILD_PLAN}" ]] || { echo "[error] missing ${BUILD_PLAN}"; exit 1; }
+
+cluster_name="$(jq -r '.kindClusterName' "${BUILD_PLAN}")"
+namespace="$(jq -r '.namespace' "${BUILD_PLAN}")"
+if [[ -z "${MINIKUBE_PROFILE}" ]]; then
+  MINIKUBE_PROFILE="${cluster_name}"
+fi
+
+PORT_FORWARD_PID_FILE="${RUN_DIR}/minikube-port-forward.pid"
+if [[ -f "${PORT_FORWARD_PID_FILE}" ]]; then
+  pid="$(cat "${PORT_FORWARD_PID_FILE}")"
+  if kill -0 "${pid}" >/dev/null 2>&1; then
+    kill "${pid}" >/dev/null 2>&1 || true
+  fi
+  rm -f "${PORT_FORWARD_PID_FILE}"
+fi
+
+case "${K8S_PROVIDER}" in
+  kind)
+    if ! command -v kind >/dev/null 2>&1; then
+      echo "[error] required command not found: kind"
+      exit 1
+    fi
+    if kind get clusters | grep -Fx "${cluster_name}" >/dev/null 2>&1; then
+      kubectl config use-context "kind-${cluster_name}" >/dev/null 2>&1 || true
+      kubectl delete namespace "${namespace}" --ignore-not-found=true >/dev/null 2>&1 || true
+    fi
+    if (( DELETE_CLUSTER == 1 )); then
+      kind delete cluster --name "${cluster_name}"
+    fi
+    ;;
+  minikube)
+    if ! command -v minikube >/dev/null 2>&1; then
+      echo "[error] required command not found: minikube"
+      exit 1
+    fi
+    if minikube status -p "${MINIKUBE_PROFILE}" >/dev/null 2>&1; then
+      if ! kubectl config use-context "${MINIKUBE_PROFILE}" >/dev/null 2>&1; then
+        kubectl config use-context "minikube" >/dev/null 2>&1 || true
+      fi
+      kubectl delete namespace "${namespace}" --ignore-not-found=true >/dev/null 2>&1 || true
+    fi
+    if (( DELETE_CLUSTER == 1 )); then
+      minikube delete -p "${MINIKUBE_PROFILE}" >/dev/null 2>&1 || true
+    fi
+    ;;
+  *)
+    echo "[error] unsupported provider: ${K8S_PROVIDER}"
+    echo "[hint] supported providers: kind, minikube"
+    exit 1
+    ;;
+esac
+
+echo "[done] state 004 stop sequence complete"
+EOF
+
+  cat > "${SNAPSHOT_DIR}/scripts/status-state-004-kubernetes-generated.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BUILD_PLAN="${ROOT}/kubernetes-runtime/build-plan.json"
+RUN_DIR="${ROOT}/kubernetes-runtime/.run/state-004-kubernetes"
+K8S_PROVIDER="${K8S_PROVIDER:-kind}"
+MINIKUBE_PROFILE=""
+
+while (( "$#" )); do
+  case "$1" in
+    --provider)
+      K8S_PROVIDER="${2:-}"
+      shift
+      ;;
+    --minikube-profile)
+      MINIKUBE_PROFILE="${2:-}"
+      shift
+      ;;
+    *)
+      echo "[error] unknown argument: $1"
+      echo "[hint] supported: --provider <kind|minikube> --minikube-profile <name>"
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+for cmd in kubectl jq curl; do
+  if ! command -v "${cmd}" >/dev/null 2>&1; then
+    echo "[error] required command not found: ${cmd}"
+    exit 1
+  fi
+done
+
+[[ -f "${BUILD_PLAN}" ]] || { echo "[error] missing ${BUILD_PLAN}"; exit 1; }
+
+cluster_name="$(jq -r '.kindClusterName' "${BUILD_PLAN}")"
+namespace="$(jq -r '.namespace' "${BUILD_PLAN}")"
+host_port="$(jq -r '.hostPort' "${BUILD_PLAN}")"
+if [[ -z "${MINIKUBE_PROFILE}" ]]; then
+  MINIKUBE_PROFILE="${cluster_name}"
+fi
+
+case "${K8S_PROVIDER}" in
+  kind)
+    if ! command -v kind >/dev/null 2>&1; then
+      echo "[error] required command not found: kind"
+      exit 1
+    fi
+    if ! kind get clusters | grep -Fx "${cluster_name}" >/dev/null 2>&1; then
+      echo "[info] kind cluster not found: ${cluster_name}"
+      exit 0
+    fi
+    kubectl config use-context "kind-${cluster_name}" >/dev/null
+    echo "[info] provider: kind"
+    ;;
+  minikube)
+    if ! command -v minikube >/dev/null 2>&1; then
+      echo "[error] required command not found: minikube"
+      exit 1
+    fi
+    if ! minikube status -p "${MINIKUBE_PROFILE}" >/dev/null 2>&1; then
+      echo "[info] minikube profile not running: ${MINIKUBE_PROFILE}"
+      exit 0
+    fi
+    if ! kubectl config use-context "${MINIKUBE_PROFILE}" >/dev/null 2>&1; then
+      kubectl config use-context "minikube" >/dev/null
+    fi
+    echo "[info] provider: minikube"
+    ;;
+  *)
+    echo "[error] unsupported provider: ${K8S_PROVIDER}"
+    echo "[hint] supported providers: kind, minikube"
+    exit 1
+    ;;
+esac
+
+echo "[info] cluster/profile: ${cluster_name}"
+kubectl get deployments -n "${namespace}" || true
+kubectl get pods -n "${namespace}" || true
+kubectl get services -n "${namespace}" || true
+
+echo "[status] edge-health $(curl -sS -o /dev/null -w "%{http_code}" "http://localhost:${host_port}/health" 2>/dev/null || true)"
+
+if [[ "${K8S_PROVIDER}" == "minikube" ]]; then
+  pid="-"
+  running="no"
+  pid_file="${RUN_DIR}/minikube-port-forward.pid"
+  if [[ -f "${pid_file}" ]]; then
+    pid="$(cat "${pid_file}")"
+    if kill -0 "${pid}" >/dev/null 2>&1; then
+      running="yes"
+    fi
+  fi
+  echo "[status] minikube-port-forward pid=${pid} running=${running}"
+fi
+EOF
+
+  chmod +x \
+    "${SNAPSHOT_DIR}/scripts/start-state-004-kubernetes-generated.sh" \
+    "${SNAPSHOT_DIR}/scripts/stop-state-004-kubernetes-generated.sh" \
+    "${SNAPSHOT_DIR}/scripts/status-state-004-kubernetes-generated.sh"
+}
+
 write_clone_runbook() {
   case "${STATE_ID}" in
     001-baseline-uncontainerized-parity)
@@ -455,6 +850,36 @@ Status / stop:
 ```bash
 ./scripts/status-state-003-containerized-generated.sh
 ./scripts/stop-state-003-containerized-generated.sh
+```
+EOF
+      ;;
+    004-kubernetes-runtime)
+      cat > "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
+# Run From Clone
+
+Prerequisites:
+- Docker
+- kubectl
+- jq
+- Kind (default) or Minikube
+
+Start:
+
+```bash
+./scripts/start-state-004-kubernetes-generated.sh
+# optional:
+# ./scripts/start-state-004-kubernetes-generated.sh --provider minikube --minikube-profile traderx-state-004
+```
+
+Endpoints:
+- UI / edge: `http://localhost:8080`
+- Edge health: `http://localhost:8080/health`
+
+Status / stop:
+
+```bash
+./scripts/status-state-004-kubernetes-generated.sh
+./scripts/stop-state-004-kubernetes-generated.sh
 ```
 EOF
       ;;
@@ -553,6 +978,9 @@ case "${STATE_ID}" in
     ;;
   003-containerized-compose-runtime)
     install_containerized_clone_harness
+    ;;
+  004-kubernetes-runtime)
+    install_kubernetes_clone_harness
     ;;
 esac
 

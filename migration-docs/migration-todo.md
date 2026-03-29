@@ -5,7 +5,7 @@ This is the active program-of-record TODO for the SpecKit-first TraderX migratio
 ## Current Status
 
 - Current phase: `Phase 10` (learning-path overlays and state releases).
-- Next milestone: release generated snapshot tags for `001`, `002`, and `003`.
+- Next milestone: release generated snapshot tags for `001` through `004`, then implement state hooks for `005` and `006`.
 - Last updated: `2026-03-29`.
 
 ## Mission
@@ -56,6 +56,12 @@ Make root SpecKit artifacts (`.specify/` and `specs/`) the source of truth, with
 - [x] 10.12 Drive state docs + API explorer scope from canonical state catalog.
 - [x] 10.13 Add reusable state-pack scaffold template and automation script.
 - [x] 10.14 Initialize `004-kubernetes-runtime` planned state from scaffold.
+- [x] 10.15 Implement `004-kubernetes-runtime` generation/runtime/test flow (Kind default + optional Minikube + Kubernetes + NGINX edge).
+- [x] 10.16 Scaffold sibling branch states from `004`:
+  - `005-radius-kubernetes-platform`
+  - `006-tilt-kubernetes-dev-loop`
+- [ ] 10.17 Implement state `005` generation/runtime/test flow (Radius path).
+- [ ] 10.18 Implement state `006` generation/runtime/test flow (Tilt path).
 - [x] 11) Complete root-level SpecKit canonical migration.
 - [x] B) Canonicalize repository to SpecKit-first generated baseline.
 - [x] C) Finish root flattening cleanup and docs simplification.
@@ -104,6 +110,21 @@ Phase 10 formalizes multi-state evolution as SpecKit deltas, so developers can m
 - Purpose: move runtime from local process orchestration to Docker/Docker Compose baseline.
 - Delta shape: non-functional platform/runtime change with documented operational requirements.
 - Tag target: `generated/003-containerized-compose-runtime/v1`
+
+4. `004-kubernetes-runtime`
+- Purpose: move runtime from Compose to Kubernetes (Kind baseline), preserving functional parity.
+- Delta shape: non-functional runtime/orchestration transition with generated k8s manifests and Kind config.
+- Tag target: `generated/004-kubernetes-runtime/v1`
+
+5. `005-radius-kubernetes-platform` (planned)
+- Purpose: add Radius platform abstraction on top of state `004`.
+- Delta shape: non-functional platform model transition; functional parity retained.
+- Tag target: `generated/005-radius-kubernetes-platform/v1`
+
+6. `006-tilt-kubernetes-dev-loop` (planned)
+- Purpose: add Tilt local dev-loop automation on top of state `004`.
+- Delta shape: non-functional developer workflow enhancement; functional parity retained.
+- Tag target: `generated/006-tilt-kubernetes-dev-loop/v1`
 
 ## Release Model
 

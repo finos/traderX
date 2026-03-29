@@ -71,9 +71,9 @@ SPECIFY_FEATURE="${FEATURE_ID}" bash "${REPO_ROOT}/.specify/scripts/bash/check-p
 # Validate no-override behavior based on branch naming convention.
 branch_name="$(git -C "${REPO_ROOT}" rev-parse --abbrev-ref HEAD)"
 if [[ "${branch_name}" =~ ^[0-9]{3}- ]] || [[ "${branch_name}" =~ ^[0-9]{8}-[0-9]{6}- ]]; then
-  bash "${REPO_ROOT}/.specify/scripts/bash/check-prerequisites.sh" --json --include-tasks --require-tasks >/dev/null
+  env -u SPECIFY_FEATURE bash "${REPO_ROOT}/.specify/scripts/bash/check-prerequisites.sh" --json --include-tasks --require-tasks >/dev/null
 else
-  if bash "${REPO_ROOT}/.specify/scripts/bash/check-prerequisites.sh" --json --include-tasks --require-tasks >/dev/null 2>&1; then
+  if env -u SPECIFY_FEATURE bash "${REPO_ROOT}/.specify/scripts/bash/check-prerequisites.sh" --json --include-tasks --require-tasks >/dev/null 2>&1; then
     fail "expected check-prerequisites to fail on non-feature branch (${branch_name}) without SPECIFY_FEATURE override"
   fi
 fi

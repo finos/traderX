@@ -1,28 +1,189 @@
 {
-  "title": "Kubernetes Runtime Baseline",
+  "title": "Architecture (State 004 Kubernetes Runtime)",
   "stateId": "004-kubernetes-runtime",
-  "parentState": "003-containerized-compose-runtime",
-  "description": "Update this model with the authoritative architecture for this state.",
+  "description": "State 004 preserves state 003 browser/API routing behavior while running all services on a local Kubernetes cluster.",
+  "inheritsFrom": "003-containerized-compose-runtime",
+  "flowDoc": "../001-baseline-uncontainerized-parity/system/end-to-end-flows.md",
+  "entrypoints": [
+    {
+      "name": "edge-proxy",
+      "url": "http://localhost:8080"
+    },
+    {
+      "name": "edge-health",
+      "url": "http://localhost:8080/health"
+    }
+  ],
   "mermaidDirection": "LR",
   "nodes": [
     {
       "id": "developer",
       "label": "Developer",
       "kind": "actor",
-      "description": "Local developer using this state."
+      "description": "Runs local Kind-based Kubernetes runtime."
     },
     {
-      "id": "runtime",
-      "label": "004-kubernetes-runtime Runtime",
+      "id": "cluster",
+      "label": "Kind Kubernetes Cluster",
       "kind": "boundary",
-      "description": "Target runtime for this state."
+      "description": "Local cluster namespace and workloads."
+    },
+    {
+      "id": "edge",
+      "label": "NGINX Edge Proxy",
+      "kind": "gateway",
+      "description": "Single browser entrypoint for UI/API/WebSocket routes."
+    },
+    {
+      "id": "web",
+      "label": "Web Front End Angular",
+      "kind": "frontend",
+      "description": "Angular frontend served behind edge proxy."
+    },
+    {
+      "id": "account",
+      "label": "Account Service",
+      "kind": "service",
+      "description": "Account and account-user APIs."
+    },
+    {
+      "id": "position",
+      "label": "Position Service",
+      "kind": "service",
+      "description": "Positions and trades query API."
+    },
+    {
+      "id": "tradeService",
+      "label": "Trade Service",
+      "kind": "service",
+      "description": "Trade order submission and validation."
+    },
+    {
+      "id": "referenceData",
+      "label": "Reference Data",
+      "kind": "service",
+      "description": "Ticker metadata lookup."
+    },
+    {
+      "id": "people",
+      "label": "People Service",
+      "kind": "service",
+      "description": "Person lookup and matching APIs."
+    },
+    {
+      "id": "tradeFeed",
+      "label": "Trade Feed",
+      "kind": "messaging",
+      "description": "Socket.IO event bus for trade flows."
+    },
+    {
+      "id": "tradeProcessor",
+      "label": "Trade Processor",
+      "kind": "service",
+      "description": "Consumes trade events and persists settled state."
+    },
+    {
+      "id": "database",
+      "label": "Database",
+      "kind": "database",
+      "description": "H2 persistence service."
     }
   ],
   "edges": [
     {
       "from": "developer",
-      "to": "runtime",
-      "label": "Runs state"
+      "to": "cluster",
+      "label": "Starts runtime"
+    },
+    {
+      "from": "developer",
+      "to": "edge",
+      "label": "Browser access :8080"
+    },
+    {
+      "from": "edge",
+      "to": "web",
+      "label": "/"
+    },
+    {
+      "from": "edge",
+      "to": "account",
+      "label": "/account-service"
+    },
+    {
+      "from": "edge",
+      "to": "position",
+      "label": "/position-service"
+    },
+    {
+      "from": "edge",
+      "to": "tradeService",
+      "label": "/trade-service"
+    },
+    {
+      "from": "edge",
+      "to": "referenceData",
+      "label": "/reference-data"
+    },
+    {
+      "from": "edge",
+      "to": "people",
+      "label": "/people-service"
+    },
+    {
+      "from": "edge",
+      "to": "tradeFeed",
+      "label": "/trade-feed and /socket.io"
+    },
+    {
+      "from": "edge",
+      "to": "tradeProcessor",
+      "label": "/trade-processor"
+    },
+    {
+      "from": "tradeService",
+      "to": "account",
+      "label": "Validate account"
+    },
+    {
+      "from": "tradeService",
+      "to": "referenceData",
+      "label": "Validate ticker"
+    },
+    {
+      "from": "tradeService",
+      "to": "tradeFeed",
+      "label": "Publish trades/new"
+    },
+    {
+      "from": "tradeProcessor",
+      "to": "tradeFeed",
+      "label": "Consume and publish updates"
+    },
+    {
+      "from": "tradeProcessor",
+      "to": "database",
+      "label": "Persist trade/position state"
+    },
+    {
+      "from": "account",
+      "to": "database",
+      "label": "Account persistence"
+    },
+    {
+      "from": "position",
+      "to": "database",
+      "label": "Query trades/positions"
+    },
+    {
+      "from": "account",
+      "to": "people",
+      "label": "Validate person for account-user mapping"
     }
+  ],
+  "notes": [
+    "Functional behavior remains intentionally equivalent to state 003.",
+    "Primary delta is runtime/operations model (Compose to Kubernetes).",
+    "Edge proxy remains NGINX-based to keep route semantics stable."
   ]
 }

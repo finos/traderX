@@ -1,4 +1,4 @@
-# Component Spec: edge-proxy
+# Spec Kit Component: edge-proxy
 
 ## Role
 

@@ -1,4 +1,4 @@
-# Component Spec: container-runtime-packaging
+# Spec Kit Component: container-runtime-packaging
 
 ## Role
 

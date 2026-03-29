@@ -42,6 +42,16 @@ EOF
 [summary] runtime-entrypoint=./scripts/start-state-003-containerized-generated.sh
 EOF
     ;;
+  004-kubernetes-runtime)
+    bash "${ROOT}/pipeline/generate-state-004-kubernetes-runtime.sh"
+    cat <<'EOF'
+[summary] state=004-kubernetes-runtime
+[summary] impacted-components=database,reference-data,trade-feed,people-service,account-service,position-service,trade-processor,trade-service,web-front-end-angular,edge-proxy
+[summary] impacted-assets=kubernetes-manifests,kind-cluster-config,image-build-plan
+[summary] generated-path=generated/code/target-generated/kubernetes-runtime
+[summary] runtime-entrypoint=./scripts/start-state-004-kubernetes-generated.sh
+EOF
+    ;;
   *)
     HOOK="${ROOT}/pipeline/generate-state-${STATE_ID}.sh"
     if [[ -x "${HOOK}" ]]; then

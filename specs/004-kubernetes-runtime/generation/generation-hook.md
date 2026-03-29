@@ -3,10 +3,18 @@
 - Hook script: `pipeline/generate-state-004-kubernetes-runtime.sh`
 - Feature pack: `specs/004-kubernetes-runtime`
 
-This state is expected to implement generation in the hook script above.
+This state generates Kubernetes runtime assets from:
 
-Minimum hook responsibilities:
+- `system/kubernetes-runtime.spec.json`
+- `system/nginx-edge.conf`
 
-1. Generate or transform code artifacts for this state.
-2. Keep compatibility with state lineage contracts unless explicitly changed.
-3. Produce deterministic output suitable for branch publishing.
+Hook responsibilities:
+
+1. Reuse generated state `003` assets as component source/build contexts.
+2. Generate deterministic Kubernetes manifests into:
+   - `generated/code/target-generated/kubernetes-runtime/manifests/base`
+3. Generate Kind cluster config into:
+   - `generated/code/target-generated/kubernetes-runtime/kind/cluster-config.yaml`
+4. Generate image build/load plan into:
+   - `generated/code/target-generated/kubernetes-runtime/build-plan.json`
+5. Regenerate architecture docs from `system/architecture.model.json`.

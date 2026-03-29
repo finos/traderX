@@ -2,16 +2,21 @@
 
 Parent state: `003-containerized-compose-runtime`
 
-Document any API/event/schema changes for this state.
+State `004` introduces no API payload/schema deltas. Contract compatibility is preserved while runtime moves to Kubernetes.
 
 ## OpenAPI Changes
 
-- No changes yet.
+- No endpoint, request schema, or response schema changes are introduced.
+- Existing service path prefixes remain unchanged behind the edge proxy.
 
 ## Event Contract Changes
 
-- No changes yet.
+- Trade-feed websocket/event semantics are unchanged.
+- Trade processing publish/subscribe contract remains compatible with state `003`.
 
 ## Compatibility Notes
 
-- Define backward-compatibility and migration expectations.
+- Client-side behavior is intentionally compatible with state `003`.
+- Operational migration changes:
+  - Service discovery changes from Compose DNS to Kubernetes service DNS.
+  - Runtime lifecycle changes from `docker compose up` to `kubectl apply` on generated manifests.

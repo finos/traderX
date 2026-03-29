@@ -61,20 +61,58 @@
     {
       "id": "004-kubernetes-runtime",
       "title": "Kubernetes Runtime Baseline",
-      "status": "planned",
+      "status": "implemented",
       "track": "devex",
       "featurePack": "specs/004-kubernetes-runtime",
       "previous": [
         "003-containerized-compose-runtime"
       ],
       "generation": {
-        "mode": "planned",
+        "mode": "implemented",
         "entrypoint": "bash pipeline/generate-state.sh 004-kubernetes-runtime",
-        "runtime": "TBD"
+        "runtime": "./scripts/start-state-004-kubernetes-generated.sh"
       },
       "publish": {
         "branch": "codex/generated-state-004-kubernetes-runtime",
         "tag": "generated/004-kubernetes-runtime/v1"
+      }
+    },
+    {
+      "id": "005-radius-kubernetes-platform",
+      "title": "Radius Platform on Kubernetes",
+      "status": "planned",
+      "track": "devex",
+      "featurePack": "specs/005-radius-kubernetes-platform",
+      "previous": [
+        "004-kubernetes-runtime"
+      ],
+      "generation": {
+        "mode": "planned",
+        "entrypoint": "bash pipeline/generate-state.sh 005-radius-kubernetes-platform",
+        "runtime": "TBD"
+      },
+      "publish": {
+        "branch": "codex/generated-state-005-radius-kubernetes-platform",
+        "tag": "generated/005-radius-kubernetes-platform/v1"
+      }
+    },
+    {
+      "id": "006-tilt-kubernetes-dev-loop",
+      "title": "Tilt Local Dev on Kubernetes",
+      "status": "planned",
+      "track": "devex",
+      "featurePack": "specs/006-tilt-kubernetes-dev-loop",
+      "previous": [
+        "004-kubernetes-runtime"
+      ],
+      "generation": {
+        "mode": "planned",
+        "entrypoint": "bash pipeline/generate-state.sh 006-tilt-kubernetes-dev-loop",
+        "runtime": "TBD"
+      },
+      "publish": {
+        "branch": "codex/generated-state-006-tilt-kubernetes-dev-loop",
+        "tag": "generated/006-tilt-kubernetes-dev-loop/v1"
       }
     }
   ]

@@ -7,7 +7,7 @@ This log captures major milestones in the migration from source-first TraderX to
 - Baseline generation and runtime are operational from root `specs/**` + `.specify/**`.
 - Generated uncontainerized runtime scripts are canonical.
 - Legacy root infra (compose/ingress/gitops/radius) has been retired from the active baseline.
-- Phase C cleanup is closed; current focus is Phase 10 state release/tag execution.
+- Phase C cleanup is closed; Phase 10 now includes implemented state `004` and planned sibling states `005`/`006`.
 
 ## Timeline
 
@@ -103,6 +103,26 @@ This log captures major milestones in the migration from source-first TraderX to
   - new template pack under `templates/state-pack-template/**`
   - new scaffolder `pipeline/scaffold-state-pack.sh`
   - initialized first planned post-003 state: `specs/004-kubernetes-runtime`
+- Implemented state `004-kubernetes-runtime`:
+  - added concrete Kubernetes runtime spec inputs:
+    - `specs/004-kubernetes-runtime/system/kubernetes-runtime.spec.json`
+    - `specs/004-kubernetes-runtime/system/nginx-edge.conf`
+  - implemented generation hook:
+    - `pipeline/generate-state-004-kubernetes-runtime.sh`
+  - implemented runtime/test scripts:
+    - `scripts/start-state-004-kubernetes-generated.sh`
+    - `scripts/stop-state-004-kubernetes-generated.sh`
+    - `scripts/status-state-004-kubernetes-generated.sh`
+    - `scripts/test-state-004-kubernetes-runtime.sh`
+  - marked state `004` as implemented in `catalog/state-catalog.json`
+  - added generated-branch clone harness support for state `004` in `pipeline/publish-generated-state-branch.sh`
+  - added dual local provider runtime support for `004` scripts:
+    - default `kind`
+    - optional `minikube` via `--provider minikube`
+- Scaffolded next sibling learning-path states from `004`:
+  - `005-radius-kubernetes-platform`
+  - `006-tilt-kubernetes-dev-loop`
+  - both explicitly modeled as independent branches on top of `004` (no Radius+Tilt coupling).
 
 ## What Changed Technically
 

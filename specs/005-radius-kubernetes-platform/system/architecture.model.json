@@ -1,0 +1,83 @@
+{
+  "title": "Architecture (State 005 Radius Platform on Kubernetes)",
+  "stateId": "005-radius-kubernetes-platform",
+  "description": "State 005 preserves state 004 Kubernetes runtime while adding Radius application/resource abstractions.",
+  "inheritsFrom": "004-kubernetes-runtime",
+  "flowDoc": "../001-baseline-uncontainerized-parity/system/end-to-end-flows.md",
+  "entrypoints": [
+    {
+      "name": "edge-proxy",
+      "url": "http://localhost:8080"
+    }
+  ],
+  "mermaidDirection": "LR",
+  "nodes": [
+    {
+      "id": "developer",
+      "label": "Developer",
+      "kind": "actor",
+      "description": "Operates platform/application definitions through Radius."
+    },
+    {
+      "id": "radius",
+      "label": "Radius Control Plane",
+      "kind": "platform",
+      "description": "Application-centric platform abstraction layer."
+    },
+    {
+      "id": "appModel",
+      "label": "Radius App Model",
+      "kind": "component",
+      "description": "Declarative app/resource definitions for TraderX."
+    },
+    {
+      "id": "cluster",
+      "label": "Kubernetes Cluster",
+      "kind": "boundary",
+      "description": "Underlying runtime substrate inherited from state 004."
+    },
+    {
+      "id": "edge",
+      "label": "NGINX Edge Proxy",
+      "kind": "gateway",
+      "description": "Single browser/API entrypoint."
+    },
+    {
+      "id": "workloads",
+      "label": "TraderX Workloads",
+      "kind": "service",
+      "description": "Core services remain functionally equivalent to state 004."
+    }
+  ],
+  "edges": [
+    {
+      "from": "developer",
+      "to": "radius",
+      "label": "Manages app model"
+    },
+    {
+      "from": "radius",
+      "to": "appModel",
+      "label": "Resolves resources"
+    },
+    {
+      "from": "appModel",
+      "to": "cluster",
+      "label": "Deploys workloads"
+    },
+    {
+      "from": "cluster",
+      "to": "edge",
+      "label": "Runs ingress"
+    },
+    {
+      "from": "edge",
+      "to": "workloads",
+      "label": "Routes UI/API/WebSocket traffic"
+    }
+  ],
+  "notes": [
+    "State 005 is a sibling branch of state 006; both inherit from state 004.",
+    "Primary delta is platform/deployment abstraction, not functional API behavior."
+  ]
+}
