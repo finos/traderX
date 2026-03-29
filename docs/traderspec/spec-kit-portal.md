@@ -22,6 +22,7 @@ The portal publishes three repository sources:
 - Project ADRs (MADR): `/docs/adr`
 - `.specify` constitution and templates: `/specify/memory/constitution`
 - Generation operator guide: `/docs/traderspec/spec-kit-generation-guide`
+- Generated-state branch model: `/docs/traderspec/generated-state-branches`
 - Legacy doc inventory: `/docs/traderspec/legacy-doc-inventory`
 - Migration TODO: `/migration/migration-todo`
 - Migration Blog: `/migration/migration-blog`

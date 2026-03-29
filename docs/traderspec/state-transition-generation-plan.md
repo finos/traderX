@@ -32,6 +32,7 @@ This plan defines how TraderX will evolve from the current baseline into additio
 - `system/requirements-traceability.md` updated for new mappings.
 - `components/*.md` for impacted components only.
 - contract updates under `contracts/**` only where interfaces change.
+- `catalog/state-catalog.json` update for lineage + publish metadata.
 
 ## Developer Workflow For A New State
 
@@ -41,6 +42,23 @@ This plan defines how TraderX will evolve from the current baseline into additio
 4. Run state verifier and conformance pack.
 5. Inspect generated diff summary.
 6. Promote state only when all checks pass.
+
+## Generated Snapshot Distribution
+
+Canonical authoring stays in `specs/**` + `.specify/**`. Runnable code snapshots are published to `codex/generated-state-*` branches.
+
+Publish command:
+
+```bash
+bash pipeline/publish-generated-state-branch.sh <state-id> --push
+```
+
+Every generated snapshot branch includes:
+
+- `STATE.md`
+- `.traderx-state/state.json`
+
+This makes each snapshot self-describing (current state + lineage + source commit).
 
 ## Transition Visualization
 

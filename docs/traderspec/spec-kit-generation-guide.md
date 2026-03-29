@@ -17,6 +17,7 @@ This guide explains how to regenerate TraderX from requirements, then iterate in
 - Spec scaffold and constitution: `/.specify/**`
 - Baseline feature pack: `specs/001-baseline-uncontainerized-parity/**`
 - Contracts: `specs/001-baseline-uncontainerized-parity/contracts/**/openapi.yaml`
+- State lineage + publish model: `catalog/state-catalog.json`
 
 ## Generate Baseline Components
 
@@ -54,3 +55,18 @@ bash pipeline/speckit/run-full-parity-validation.sh
 4. Regenerate only impacted components, then rerun conformance/parity gates.
 
 This keeps progression reversible and auditable across DevEx, NFR, and functional tracks.
+
+## Publish Code-Only Snapshot Branches
+
+For consumers who want runnable code without the full spec authoring workspace, publish a generated-state branch:
+
+```bash
+bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --push
+```
+
+Published snapshot branches include:
+
+- `STATE.md`
+- `.traderx-state/state.json`
+
+These capture the current state id and lineage so users know exactly what state they are running and what came before it.

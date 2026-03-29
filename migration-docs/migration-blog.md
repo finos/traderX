@@ -48,6 +48,10 @@ This log captures major milestones in the migration from source-first TraderX to
   - rewired generation/runtime scripts and Docusaurus API docs pipeline to the new generated paths
   - removed legacy tracked `api-docs/README.md` from source control
   - marked `prompts/**` and `tools/**` as explicit archive candidates in migration inventory/TODO
+- Added generated-state publish model for Phase 10:
+  - introduced canonical `catalog/state-catalog.json` for state lineage + branch/tag hints
+  - added `pipeline/publish-generated-state-branch.sh` to emit code-only branches with state metadata
+  - documented generated-state branch workflow and provenance files (`STATE.md`, `.traderx-state/state.json`)
 
 ## What Changed Technically
 

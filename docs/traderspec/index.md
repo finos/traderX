@@ -23,14 +23,16 @@ From this state, we generate code from specs and move forward by adding controll
    - `/docs/traderspec/spec-kit-generation-guide`
 3. Understand validation and parity gates:
    - `/docs/traderspec/spec-kit-workflow`
-4. Browse core artifacts:
+4. Understand generated-code branch publishing:
+   - `/docs/traderspec/generated-state-branches`
+5. Browse core artifacts:
    - `/specs`
    - `/foundation`
    - `/specify`
-5. Review current migration status:
+6. Review current migration status:
    - `/migration/migration-todo`
    - `/migration/migration-blog`
-6. Plan future-state transitions:
+7. Plan future-state transitions:
    - `/docs/traderspec/spec-kit-learning-path-strategy`
    - `/docs/learning-paths`
 

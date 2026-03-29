@@ -1,0 +1,57 @@
+{
+  "version": "1.0.0",
+  "states": [
+    {
+      "id": "001-baseline-uncontainerized-parity",
+      "title": "Simple App - Base Uncontainerized App",
+      "status": "released",
+      "featurePack": "specs/001-baseline-uncontainerized-parity",
+      "previous": [],
+      "generation": {
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-from-spec.sh",
+        "runtime": "CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh"
+      },
+      "publish": {
+        "branch": "codex/generated-state-001-baseline-uncontainerized-parity",
+        "tag": "generated/001-baseline-uncontainerized-parity/v1"
+      }
+    },
+    {
+      "id": "002-edge-proxy-uncontainerized",
+      "title": "Edge Proxy Uncontainerized",
+      "status": "draft",
+      "featurePack": "specs/002-edge-proxy-uncontainerized",
+      "previous": [
+        "001-baseline-uncontainerized-parity"
+      ],
+      "generation": {
+        "mode": "planned",
+        "entrypoint": null,
+        "runtime": null
+      },
+      "publish": {
+        "branch": "codex/generated-state-002-edge-proxy-uncontainerized",
+        "tag": "generated/002-edge-proxy-uncontainerized/v1"
+      }
+    },
+    {
+      "id": "003-containerized-compose-runtime",
+      "title": "Containerized Compose Runtime",
+      "status": "draft",
+      "featurePack": "specs/003-containerized-compose-runtime",
+      "previous": [
+        "002-edge-proxy-uncontainerized"
+      ],
+      "generation": {
+        "mode": "planned",
+        "entrypoint": null,
+        "runtime": null
+      },
+      "publish": {
+        "branch": "codex/generated-state-003-containerized-compose-runtime",
+        "tag": "generated/003-containerized-compose-runtime/v1"
+      }
+    }
+  ]
+}

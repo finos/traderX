@@ -9,6 +9,7 @@ module.exports = {
         'traderspec/why-speckit',
         'traderspec/spec-kit-generation-guide',
         'traderspec/spec-kit-workflow',
+        'traderspec/generated-state-branches',
         'traderspec/run-generated-overlays',
         'traderspec/baseline-vs-parity',
       ],
