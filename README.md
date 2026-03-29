@@ -7,8 +7,8 @@ This branch is an auto-published generated-code snapshot for FINOS TraderX.
 - Status: `implemented`
 - Suggested Version Tag: `generated/003-containerized-compose-runtime/v1`
 - Source Branch: `feature/agentic-renovation`
-- Source Commit: `486f97f130817bd3180d1833bff3ff16a608f566`
-- Generated At (UTC): `2026-03-29T12:39:59Z`
+- Source Commit: `b50d3b8830bef17bedc5a6f2fb10dc98aeece650`
+- Generated At (UTC): `2026-03-29T13:05:01Z`
 
 ## State Summary
 
@@ -26,7 +26,7 @@ This branch is an auto-published generated-code snapshot for FINOS TraderX.
 Run directly from this generated snapshot branch:
 
 ```bash
-docker compose -f containerized-compose/docker-compose.yml up -d --build
+./scripts/start-state-003-containerized-generated.sh
 ```
 
 UI/ingress endpoint: `http://localhost:8080`
@@ -34,8 +34,10 @@ UI/ingress endpoint: `http://localhost:8080`
 Stop:
 
 ```bash
-docker compose -f containerized-compose/docker-compose.yml down --remove-orphans
+./scripts/stop-state-003-containerized-generated.sh
 ```
+
+Detailed clone-first instructions: [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
 
 ## Canonical Specs And Docs
 
@@ -44,6 +46,6 @@ Canonical source-of-truth is maintained in the SpecKit authoring branch, not in 
 - Feature pack: `specs/003-containerized-compose-runtime`
 - Generation entrypoint: `bash pipeline/generate-state.sh 003-containerized-compose-runtime`
 - Snapshot metadata: [STATE.md](./STATE.md), [state.json](./.traderx-state/state.json)
-- Source commit: https://github.com/finos/traderX/commit/486f97f130817bd3180d1833bff3ff16a608f566
-- Feature pack at source commit: https://github.com/finos/traderX/tree/486f97f130817bd3180d1833bff3ff16a608f566/specs/003-containerized-compose-runtime
-- SpecKit docs at source commit: https://github.com/finos/traderX/tree/486f97f130817bd3180d1833bff3ff16a608f566/docs/spec-kit
+- Source commit: https://github.com/finos/traderX/commit/b50d3b8830bef17bedc5a6f2fb10dc98aeece650
+- Feature pack at source commit: https://github.com/finos/traderX/tree/b50d3b8830bef17bedc5a6f2fb10dc98aeece650/specs/003-containerized-compose-runtime
+- SpecKit docs at source commit: https://github.com/finos/traderX/tree/b50d3b8830bef17bedc5a6f2fb10dc98aeece650/docs/spec-kit
