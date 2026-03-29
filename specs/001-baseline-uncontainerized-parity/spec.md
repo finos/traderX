@@ -1,4 +1,4 @@
-# Feature Specification: Baseline Uncontainerized Parity
+# Feature Specification: Simple App - Base Uncontainerized App
 
 **Feature Branch**: `001-baseline-uncontainerized-parity`  
 **Created**: 2026-03-28  

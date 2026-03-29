@@ -11,13 +11,13 @@ It is used for phase 7.10 to classify output differences and keep synthesis migr
 
 ```bash
 # Compare one component
-bash TraderSpec/pipeline/speckit/compare-component-generation.sh trade-service HEAD
+bash pipeline/speckit/compare-component-generation.sh trade-service HEAD
 
 # Compare one component and allow differences (reports semantic categories)
-bash TraderSpec/pipeline/speckit/compare-component-generation.sh trade-service HEAD --allow-differences
+bash pipeline/speckit/compare-component-generation.sh trade-service HEAD --allow-differences
 
 # Compare all generated components
-bash TraderSpec/pipeline/speckit/compare-all-component-generation.sh HEAD --allow-differences
+bash pipeline/speckit/compare-all-component-generation.sh HEAD --allow-differences
 ```
 
 ## Semantic Categories

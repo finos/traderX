@@ -21,38 +21,29 @@ This guide explains how to regenerate TraderX from requirements, then iterate in
 ## Generate Baseline Components
 
 ```bash
-bash TraderSpec/pipeline/generate-reference-data-specfirst.sh
-bash TraderSpec/pipeline/generate-database-specfirst.sh
-bash TraderSpec/pipeline/generate-people-service-specfirst.sh
-bash TraderSpec/pipeline/generate-account-service-specfirst.sh
-bash TraderSpec/pipeline/generate-position-service-specfirst.sh
-bash TraderSpec/pipeline/generate-trade-feed-specfirst.sh
-bash TraderSpec/pipeline/generate-trade-processor-specfirst.sh
-bash TraderSpec/pipeline/generate-trade-service-specfirst.sh
-bash TraderSpec/pipeline/generate-web-front-end-angular-specfirst.sh
+bash pipeline/generate-reference-data-specfirst.sh
+bash pipeline/generate-database-specfirst.sh
+bash pipeline/generate-people-service-specfirst.sh
+bash pipeline/generate-account-service-specfirst.sh
+bash pipeline/generate-position-service-specfirst.sh
+bash pipeline/generate-trade-feed-specfirst.sh
+bash pipeline/generate-trade-processor-specfirst.sh
+bash pipeline/generate-trade-service-specfirst.sh
+bash pipeline/generate-web-front-end-angular-specfirst.sh
 ```
 
 ## Run the Generated Baseline
 
 ```bash
-CORS_ALLOWED_ORIGINS=http://localhost:18093 ./TraderSpec/codebase/scripts/start-base-uncontainerized-hydrated.sh \
-  --overlay-reference-generated \
-  --overlay-database-generated \
-  --overlay-people-generated \
-  --overlay-account-generated \
-  --overlay-position-generated \
-  --overlay-trade-feed-generated \
-  --overlay-trade-processor-generated \
-  --overlay-trade-service-generated \
-  --overlay-web-angular-generated
+CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh
 ```
 
 ## Validate Requirements-to-Behavior Fidelity
 
 ```bash
-./TraderSpec/pipeline/speckit/validate-speckit-readiness.sh
-./TraderSpec/pipeline/speckit/verify-spec-expressiveness.sh
-bash TraderSpec/pipeline/speckit/run-full-parity-validation.sh
+./pipeline/speckit/validate-speckit-readiness.sh
+./pipeline/speckit/verify-spec-expressiveness.sh
+bash pipeline/speckit/run-full-parity-validation.sh
 ```
 
 ## Move to the Next Learning-Path State

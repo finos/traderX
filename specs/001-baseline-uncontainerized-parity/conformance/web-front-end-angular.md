@@ -25,5 +25,5 @@ This pack defines requirement and verification gates for `web-front-end-angular`
 - none
 
 ## Verification References
-- `TraderSpec/codebase/scripts/start-base-uncontainerized-hydrated.sh`
-- `TraderSpec/codebase/scripts/test-web-angular-overlay.sh`
+- `scripts/start-base-uncontainerized-generated.sh`
+- `scripts/test-web-angular-overlay.sh`

@@ -12,34 +12,32 @@ This flow generates implementation artifacts from Spec Kit requirements and tech
 - `specs/001-baseline-uncontainerized-parity/system/user-stories.md`
 - `specs/001-baseline-uncontainerized-parity/system/acceptance-criteria.md`
 - `specs/001-baseline-uncontainerized-parity/system/requirements-traceability.csv`
-- `TraderSpec/catalog/component-spec.csv`
+- `catalog/component-spec.csv`
 
 ## Commands
 
 ```bash
-./TraderSpec/pipeline/validate-regeneration-readiness.sh
-./TraderSpec/pipeline/generate-from-spec.sh
+./pipeline/validate-regeneration-readiness.sh
+./pipeline/generate-from-spec.sh
 ```
 
 ## Run Generated Target
 
 ```bash
-./TraderSpec/codebase/scripts/run-specfirst-generated-codebase.sh
+./scripts/start-base-uncontainerized-generated.sh
 ```
 
 ## Output Locations
 
-- `TraderSpec/codebase/target-generated-specfirst`:
-  synthesized output assembled by `generate-from-spec.sh` and used by `run-specfirst-generated-codebase.sh`.
 - `TraderSpec/codebase/generated-components/*-specfirst`:
   per-component generated sources produced by component generators.
 - `TraderSpec/codebase/target-generated`:
-  runtime assembly target used by base startup scripts and overlay switching.
+  runtime assembly target created on demand by generated startup scripts.
 
 ## Comparison (Optional)
 
 ```bash
-bash TraderSpec/pipeline/speckit/compare-all-component-generation.sh HEAD --allow-differences
+bash pipeline/speckit/compare-all-component-generation.sh HEAD --allow-differences
 ```
 
 ## Recommended Operator Guide

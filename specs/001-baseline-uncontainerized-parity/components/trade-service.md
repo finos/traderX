@@ -22,4 +22,4 @@
 
 ## Verification
 
-- `TraderSpec/codebase/scripts/test-trade-service-overlay.sh`
+- `scripts/test-trade-service-overlay.sh`

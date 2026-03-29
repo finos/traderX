@@ -1,9 +1,0 @@
-{
-  "label": "Spec Kit",
-  "position": 1,
-  "link": {
-    "type": "generated-index",
-    "title": "Spec Kit",
-    "description": "Requirements-first Spec Kit artifacts for TraderSpec generation."
-  }
-}

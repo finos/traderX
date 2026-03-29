@@ -31,5 +31,5 @@ This pack defines requirement and verification gates for `people-service`.
 - `specs/001-baseline-uncontainerized-parity/contracts/people-service/openapi.yaml`
 
 ## Verification References
-- `TraderSpec/codebase/scripts/start-base-uncontainerized-hydrated.sh`
-- `TraderSpec/codebase/scripts/test-people-service-overlay.sh`
+- `scripts/start-base-uncontainerized-generated.sh`
+- `scripts/test-people-service-overlay.sh`

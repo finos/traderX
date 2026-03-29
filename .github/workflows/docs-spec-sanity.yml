@@ -1,0 +1,47 @@
+name: Docs and Spec Sanity
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "**"
+
+jobs:
+  docs-spec-sanity:
+    runs-on: ubuntu-latest
+    env:
+      SPECKIT_FEATURE_ID: 001-baseline-uncontainerized-parity
+      SPECIFY_FEATURE: 001-baseline-uncontainerized-parity
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install shell dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq ripgrep
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - name: Install website dependencies
+        run: npm --prefix website ci
+
+      - name: Validate root Spec Kit gates
+        run: bash pipeline/speckit/validate-root-spec-kit-gates.sh
+
+      - name: Validate Spec Kit readiness
+        run: bash pipeline/speckit/validate-speckit-readiness.sh
+
+      - name: Validate Spec Kit expressiveness
+        run: bash pipeline/speckit/verify-spec-expressiveness.sh
+
+      - name: Validate aggregate coverage
+        run: bash pipeline/verify-spec-coverage.sh
+
+      - name: Build docs (includes on-demand API docs generation)
+        run: npm --prefix website run build

@@ -2,13 +2,13 @@
 
 ## Objectives
 
-- Capture local containerized execution as the bridge to platform concerns.
-- Keep Docker-first workflows discoverable.
+- Preserve containerization as a learning-path milestone specification.
+- Keep baseline runtime independent from container infrastructure during SpecKit-first migration.
 
 ## Run
 
 ```bash
-docker compose up -d
+./scripts/start-base-uncontainerized-generated.sh
 ```
 
 ## Verify
@@ -20,9 +20,9 @@ docker compose up -d
 ## Teardown
 
 ```bash
-docker compose down
+./scripts/stop-base-uncontainerized-generated.sh
 ```
 
 ## What Changed vs Previous Level
 
-- Adds container/orchestration orientation on top of service decomposition.
+- Keeps container/orchestration progression as documented path artifacts while canonical runtime remains uncontainerized generated baseline.

@@ -6,7 +6,7 @@ title: Spec Layering Model
 
 ## Baseline First
 
-Baseline files under `TraderSpec/foundation/00-traditional-to-cloud-native/specs` capture:
+Baseline files under `specs/001-baseline-uncontainerized-parity` capture:
 
 - current system moving parts
 - baseline functional requirements
@@ -32,5 +32,5 @@ For every step, generation and validation use:
 
 1. baseline FR
 2. baseline NFR
-3. step spec overlay
+3. step spec overlay (new `specs/NNN-*` feature packs)
 4. contract references

@@ -43,8 +43,8 @@ This pack defines requirement and verification gates for `account-service`.
 - `specs/001-baseline-uncontainerized-parity/contracts/account-service/openapi.yaml`
 
 ## Verification References
-- `TraderSpec/codebase/scripts/start-base-uncontainerized-hydrated.sh`
-- `TraderSpec/codebase/scripts/test-account-service-overlay.sh`
-- `TraderSpec/codebase/scripts/test-people-service-overlay.sh`
-- `TraderSpec/codebase/scripts/test-trade-service-overlay.sh`
-- `TraderSpec/pipeline/speckit/validate-speckit-readiness.sh`
+- `pipeline/speckit/validate-speckit-readiness.sh`
+- `scripts/start-base-uncontainerized-generated.sh`
+- `scripts/test-account-service-overlay.sh`
+- `scripts/test-people-service-overlay.sh`
+- `scripts/test-trade-service-overlay.sh`

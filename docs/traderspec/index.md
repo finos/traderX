@@ -1,53 +1,58 @@
 ---
-title: TraderSpec Overview
+title: SpecKit Getting Started
 ---
 
-# TraderSpec
+# SpecKit Getting Started
 
-TraderSpec is the spec-driven operating model for TraderX.
+This project is built so a contributor can regenerate the baseline system from requirements and then evolve future states through SpecKit feature packs.
 
-The baseline state is intentionally **pre-Docker / pre-ingress**. From that state, we regenerate code from requirements and then evolve through learning-path overlays.
+The baseline state is intentionally **pre-Docker / pre-ingress**:
 
-## Start Here
+- nine local processes
+- fixed startup order
+- fixed default ports
+- explicit cross-origin CORS behavior
 
-1. Read the Spec Kit portal:
+From this state, we generate code from specs and move forward by adding controlled FR/NFR deltas.
+
+## New Contributor Path
+
+1. Read the source-of-truth map:
    - `/docs/traderspec/spec-kit-portal`
-2. Read the end-to-end generation workflow:
-   - `/docs/traderspec/spec-kit-workflow`
-3. Follow the operator runbook:
+2. Run the baseline from specs:
    - `/docs/traderspec/spec-kit-generation-guide`
-4. Run and verify the generated baseline:
-   - `/docs/traderspec/run-generated-overlays`
-5. Review migration execution status and evidence:
-   - `/traderspec-specs/migration-todo`
-   - `/traderspec-specs/migration-blog`
+3. Understand validation and parity gates:
+   - `/docs/traderspec/spec-kit-workflow`
+4. Browse core artifacts:
+   - `/specs`
+   - `/foundation`
+   - `/specify`
+5. Review current migration status:
+   - `/migration/migration-todo`
+   - `/migration/migration-blog`
+6. Plan future-state transitions:
+   - `/docs/traderspec/spec-kit-learning-path-strategy`
+   - `/docs/learning-paths`
 
-## Learning Path Model
+## What Is Canonical
 
-All tracks start from the same base state:
+- SpecKit scaffold and governance: `/.specify/**`
+- Baseline feature pack: `/specs/001-baseline-uncontainerized-parity/**`
+- Foundation requirements corpus: `/foundation/00-traditional-to-cloud-native/**`
+- Learning-path definitions: `/tracks/**`
+- Generation/runtime orchestration: `/pipeline/**` and `/scripts/**`
 
-- DevEx track
-- Non-Functional track
-- Functional track
+## Why This Structure Works
 
-## Core Rules
+- Requirements and stories are explicit and reviewable.
+- Code generation is reproducible and test-gated.
+- State transitions are auditable through numbered feature packs.
+- Learning paths stay consistent with the same baseline contracts and behaviors.
 
-- Baseline functional requirements are defined once.
-- Non-functional tracks add only NFR overlays.
-- Functional track can add new FRs, with compatibility constraints.
+## Learning Path Rule Set
 
-## Canonical Spec Sources
+- DevEx and non-functional paths should primarily layer NFR and operational constraints.
+- Functional paths may introduce FR deltas, but must preserve baseline compatibility unless explicitly versioned.
+- Every transition should include traceability updates and conformance checks before promotion.
 
-- Root Spec Kit scaffold: `/.specify/**`
-- Root feature packs: `/specs/**`
-- Current baseline feature pack: `specs/001-baseline-uncontainerized-parity`
-
-## Docusaurus Entry Points
-
-- Spec catalog: `/traderspec-specs/specs`
-- Baseline pack home: `/traderspec-specs/specs/baseline-uncontainerized-parity/README`
-- `.specify` constitution/templates: `/traderspec-specs/specify`
-- OpenAPI explorer: `/traderspec-specs/api`
-- Workflow guide: `/docs/traderspec/spec-kit-workflow`
-- API explorer guide: `/docs/traderspec/api-explorer`
-- Baseline vs parity semantics: `/docs/traderspec/baseline-vs-parity`
+Use `/docs/traderspec/spec-kit-learning-path-strategy` for the concrete transition template.

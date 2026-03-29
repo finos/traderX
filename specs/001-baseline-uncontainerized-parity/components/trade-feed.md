@@ -18,4 +18,4 @@
 
 ## Verification
 
-- `TraderSpec/codebase/scripts/test-trade-feed-overlay.sh`
+- `scripts/test-trade-feed-overlay.sh`

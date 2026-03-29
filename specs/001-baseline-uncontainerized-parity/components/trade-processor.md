@@ -21,4 +21,4 @@
 
 ## Verification
 
-- `TraderSpec/codebase/scripts/test-trade-processor-overlay.sh`
+- `scripts/test-trade-processor-overlay.sh`

@@ -25,6 +25,6 @@ This pack defines requirement and verification gates for `trade-feed`.
 - none
 
 ## Verification References
-- `TraderSpec/codebase/scripts/start-base-uncontainerized-hydrated.sh`
-- `TraderSpec/codebase/scripts/stop-base-uncontainerized-hydrated.sh`
-- `TraderSpec/codebase/scripts/test-trade-feed-overlay.sh`
+- `scripts/start-base-uncontainerized-generated.sh`
+- `scripts/stop-base-uncontainerized-generated.sh`
+- `scripts/test-trade-feed-overlay.sh`

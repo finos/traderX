@@ -16,13 +16,14 @@ The portal publishes three repository sources:
 
 ## Browse in Docusaurus
 
-- Root specs catalog: `/traderspec-specs/specs`
-- Baseline feature pack: `/traderspec-specs/specs/baseline-uncontainerized-parity`
-- OpenAPI API Explorer: `/traderspec-specs/api`
-- `.specify` constitution and templates: `/traderspec-specs/specify`
+- Root specs catalog: `/specs`
+- Baseline feature pack: `/specs/baseline-uncontainerized-parity`
+- OpenAPI API Explorer: `/api`
+- `.specify` constitution and templates: `/specify`
 - Generation operator guide: `/docs/traderspec/spec-kit-generation-guide`
-- Migration TODO: `/traderspec-specs/migration-todo`
-- Migration Blog: `/traderspec-specs/migration-blog`
+- Legacy doc inventory: `/docs/traderspec/legacy-doc-inventory`
+- Migration TODO: `/migration/migration-todo`
+- Migration Blog: `/migration/migration-blog`
 
 ## Official GitHub Spec Kit
 

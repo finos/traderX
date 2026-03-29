@@ -4,30 +4,19 @@ title: Spec Migration Journey
 
 # Spec Migration Journey
 
-The program-of-record artifacts are surfaced in TraderSpec specs docs as:
+This page is now a compatibility pointer.
 
-- `/traderspec-specs/migration-todo`
-- `/traderspec-specs/migration-blog`
+Use the canonical migration artifact:
 
-Backed by repository files:
+- `/migration/migration-blog`
 
-- `TraderSpec/migration-todo.md`
-- `TraderSpec/migration-blog.md` (phase summaries + findings + visuals)
+Use the active TODO/task register:
 
-It captures:
+- `/migration/migration-todo`
 
-- confirmed current status (scaffold + hydration bridge)
-- phase-by-phase migration checklist
-- Mermaid progress graph
-- execution log
+Repository files:
 
-## Quick Link
+- `migration-docs/migration-blog.md`
+- `migration-docs/migration-todo.md`
 
-Browse the active Spec Kit docs in the TraderSpec specs plugin:
-
-- `/traderspec-specs/specs/baseline-uncontainerized-parity/README`
-
-Migration TODO/blog are maintained as repository artifacts:
-
-- `TraderSpec/migration-todo.md`
-- `TraderSpec/migration-blog.md`
+The previous split view caused confusion about post-Phase-8 status; migration tracking is now consolidated in the canonical blog above.

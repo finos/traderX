@@ -8,22 +8,22 @@ TraderX now publishes interactive API reference docs in Docusaurus from the cano
 
 ## Browse
 
-- Explorer landing page: `/traderspec-specs/api`
+- Explorer landing page: `/api`
 - Source contracts: `specs/001-baseline-uncontainerized-parity/contracts/**/openapi.yaml`
 
 ## Regenerate API Docs
 
-From repository root:
+API docs are generated on demand when running docs start/build:
+
+```bash
+npm --prefix website run start
+npm --prefix website run build
+```
+
+Manual explicit regeneration is also available:
 
 ```bash
 npm --prefix website run gen:api-docs
-```
-
-Then build/serve:
-
-```bash
-npm --prefix website run build
-npm --prefix website run serve
 ```
 
 ## Plugin Stack

@@ -29,7 +29,7 @@ Generation must preserve:
 Use semantic compare harness:
 
 ```bash
-bash TraderSpec/pipeline/speckit/compare-all-component-generation.sh HEAD --allow-differences
+bash pipeline/speckit/compare-all-component-generation.sh HEAD --allow-differences
 ```
 
 Expected result policy:

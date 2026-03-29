@@ -31,5 +31,5 @@ This pack defines requirement and verification gates for `reference-data`.
 - `specs/001-baseline-uncontainerized-parity/contracts/reference-data/openapi.yaml`
 
 ## Verification References
-- `TraderSpec/codebase/scripts/start-base-uncontainerized-hydrated.sh`
-- `TraderSpec/codebase/scripts/test-reference-data-overlay.sh`
+- `scripts/start-base-uncontainerized-generated.sh`
+- `scripts/test-reference-data-overlay.sh`

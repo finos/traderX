@@ -23,20 +23,20 @@ jobs:
 
       - name: Validate root Spec Kit integrity and branch-resolution behavior
         run: |
-          bash TraderSpec/pipeline/speckit/validate-root-spec-kit-gates.sh
+          bash pipeline/speckit/validate-root-spec-kit-gates.sh
 
       - name: Validate Spec Kit readiness
         run: |
-          bash TraderSpec/pipeline/speckit/validate-speckit-readiness.sh
+          bash pipeline/speckit/validate-speckit-readiness.sh
 
       - name: Validate Spec Kit expressiveness
         run: |
-          bash TraderSpec/pipeline/speckit/verify-spec-expressiveness.sh
+          bash pipeline/speckit/verify-spec-expressiveness.sh
 
       - name: Validate conformance packs
         run: |
-          bash TraderSpec/pipeline/speckit/run-all-conformance-packs.sh
+          bash pipeline/speckit/run-all-conformance-packs.sh
 
       - name: Validate aggregate coverage
         run: |
-          bash TraderSpec/pipeline/verify-spec-coverage.sh
+          bash pipeline/verify-spec-coverage.sh

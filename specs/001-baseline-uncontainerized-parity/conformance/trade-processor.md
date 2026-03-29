@@ -28,5 +28,5 @@ This pack defines requirement and verification gates for `trade-processor`.
 - `specs/001-baseline-uncontainerized-parity/contracts/trade-processor/openapi.yaml`
 
 ## Verification References
-- `TraderSpec/codebase/scripts/start-base-uncontainerized-hydrated.sh`
-- `TraderSpec/codebase/scripts/test-trade-processor-overlay.sh`
+- `scripts/start-base-uncontainerized-generated.sh`
+- `scripts/test-trade-processor-overlay.sh`

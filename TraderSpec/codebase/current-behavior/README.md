@@ -1,33 +1,11 @@
 # Current Behavior Reference
 
-This folder documents how the existing repository maps to generated targets.
+This folder is a legacy migration note for how prior source-first behavior was mapped to generated targets.
 
-## Source Modules (Root Repository)
+Root source modules were removed during generated baseline cutover. Runtime now assembles from generated component outputs only.
 
-- `/account-service`
-- `/trade-service`
-- `/position-service`
-- `/trade-processor`
-- `/reference-data`
-- `/people-service`
-- `/trade-feed`
-- `/database`
-- `/web-front-end`
+Use canonical runtime scripts:
 
-## Purpose
-
-Use this reference when validating generated code in `../target-generated` against baseline behavior.
-
-## Run From TraderSpec
-
-From repository root:
-
-```bash
-./TraderSpec/codebase/scripts/run-current-codebase.sh
-```
-
-Stop:
-
-```bash
-./TraderSpec/codebase/scripts/stop-current-codebase.sh
-```
+- `scripts/start-base-uncontainerized-generated.sh`
+- `scripts/status-base-uncontainerized-generated.sh`
+- `scripts/stop-base-uncontainerized-generated.sh`

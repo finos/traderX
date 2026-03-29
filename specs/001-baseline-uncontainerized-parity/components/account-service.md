@@ -25,4 +25,4 @@
 
 ## Verification
 
-- `TraderSpec/codebase/scripts/test-account-service-overlay.sh`
+- `scripts/test-account-service-overlay.sh`

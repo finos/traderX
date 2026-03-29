@@ -1,8 +1,0 @@
-{
-  "label": "Conformance Packs",
-  "position": 40,
-  "link": {
-    "type": "generated-index",
-    "description": "Per-component conformance packs and gates derived from Spec Kit traceability."
-  }
-}

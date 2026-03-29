@@ -1,11 +1,11 @@
-# Research: Baseline Uncontainerized Parity
+# Research: Simple App - Base Uncontainerized App
 
 ## Inputs Reviewed
 
 - `README.md` (manual local run order and port model)
 - `docs/flows.md` (functional sequence flows F1-F6)
 - `docs/overview.md` (component topology reference)
-- Existing generated runtime scripts under `TraderSpec/codebase/scripts/`
+- Existing generated runtime scripts under `scripts/`
 - Canonical baseline contracts under `specs/001-baseline-uncontainerized-parity/contracts/**`
 
 ## Key Decisions

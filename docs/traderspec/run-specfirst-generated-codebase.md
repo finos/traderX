@@ -1,37 +1,15 @@
 ---
-title: Run Spec-First Generated Codebase
+title: Legacy Spec-First Compose Route (Archived)
 ---
 
-# Run Spec-First Generated Codebase
+# Legacy Spec-First Compose Route (Archived)
 
-This runs the **spec-first generated target** (`TraderSpec/codebase/target-generated-specfirst`) with Angular-only UI scope.
+The old `target-generated-specfirst` compose route is removed.
 
-## One Command Run
+Canonical runtime is now:
 
-From repo root:
+- `./scripts/start-base-uncontainerized-generated.sh`
+- `./scripts/status-base-uncontainerized-generated.sh`
+- `./scripts/stop-base-uncontainerized-generated.sh`
 
-```bash
-./TraderSpec/codebase/scripts/run-specfirst-generated-codebase.sh
-```
-
-What this does:
-
-1. validates regeneration readiness
-2. generates component outputs from Spec Kit-driven synthesis
-3. prepares compose layout in `target-generated-specfirst`
-4. starts stack via generated target compose file
-
-## Stop
-
-```bash
-./TraderSpec/codebase/scripts/stop-specfirst-generated-codebase.sh
-```
-
-## Manual Step-by-Step
-
-```bash
-./TraderSpec/pipeline/validate-regeneration-readiness.sh
-./TraderSpec/pipeline/generate-from-spec.sh
-./TraderSpec/codebase/scripts/prepare-specfirst-layout.sh
-docker compose -f TraderSpec/codebase/target-generated-specfirst/docker-compose.yml up -d --build
-```
+See `/docs/traderspec/run-generated-overlays` for the complete runbook.

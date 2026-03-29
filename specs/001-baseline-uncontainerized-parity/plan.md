@@ -1,4 +1,4 @@
-# Implementation Plan: Baseline Uncontainerized Parity
+# Implementation Plan: Simple App - Base Uncontainerized App
 
 **Branch**: `001-baseline-uncontainerized-parity` | **Date**: 2026-03-28 | **Spec**: `/specs/001-baseline-uncontainerized-parity/spec.md`  
 **Input**: Feature specification from `/specs/001-baseline-uncontainerized-parity/spec.md`
@@ -23,7 +23,7 @@ For TraderX baseline parity, generation uses this chain:
 **Language/Version**: Java 21 (Spring Boot services), TypeScript/Node.js (Nest + Socket.IO + Angular), C# (.NET 9), SQL (H2)  
 **Primary Dependencies**: Spring Boot, Gradle, NestJS, Socket.IO, ASP.NET Core, Angular, H2  
 **Storage**: H2 over TCP/PG/Web ports  
-**Testing**: Existing overlay smoke scripts in `TraderSpec/codebase/scripts/*.sh`  
+**Testing**: Existing overlay smoke scripts in `scripts/*.sh`  
 **Target Platform**: Local developer workstation (macOS/Linux), pre-containerized process runtime  
 **Project Type**: Distributed multi-service web application  
 **Performance Goals**: Functional parity and deterministic startup/health behavior over raw throughput  

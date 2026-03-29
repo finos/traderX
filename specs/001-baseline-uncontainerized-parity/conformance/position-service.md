@@ -28,5 +28,5 @@ This pack defines requirement and verification gates for `position-service`.
 - `specs/001-baseline-uncontainerized-parity/contracts/position-service/openapi.yaml`
 
 ## Verification References
-- `TraderSpec/codebase/scripts/start-base-uncontainerized-hydrated.sh`
-- `TraderSpec/codebase/scripts/test-position-service-overlay.sh`
+- `scripts/start-base-uncontainerized-generated.sh`
+- `scripts/test-position-service-overlay.sh`

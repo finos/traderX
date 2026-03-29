@@ -1,9 +1,0 @@
-{
-  "label": "System",
-  "position": 1,
-  "link": {
-    "type": "generated-index",
-    "title": "System Requirements",
-    "description": "End-to-end flows, requirements, stories, acceptance criteria, and traceability."
-  }
-}

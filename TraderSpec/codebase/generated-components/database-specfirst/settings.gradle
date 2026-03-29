@@ -1,7 +1,0 @@
-dependencyResolutionManagement {
-  repositories {
-    mavenCentral()
-  }
-}
-
-rootProject.name = 'database-specfirst'

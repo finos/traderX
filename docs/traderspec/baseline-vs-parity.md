@@ -18,7 +18,7 @@ Generation should consume these specs.
 
 ## Parity
 
-Parity is a copied reference snapshot of the existing implementation.
+Parity is behavioral equivalence verification against approved baseline contracts and flows.
 
 Use it for:
 
@@ -26,19 +26,19 @@ Use it for:
 - drift detection
 - confidence checks while migrating to generated implementation
 
-Do not use parity copy as the long-term generation input.
+Do not use source-copy hydration as generation input.
 
 ## Current Pipeline
 
 Spec-first generation:
 
 ```bash
-./TraderSpec/pipeline/validate-regeneration-readiness.sh
-./TraderSpec/pipeline/generate-from-spec.sh
+./pipeline/validate-regeneration-readiness.sh
+./pipeline/generate-from-spec.sh
 ```
 
 Generation comparator (optional):
 
 ```bash
-bash TraderSpec/pipeline/speckit/compare-all-component-generation.sh HEAD --allow-differences
+bash pipeline/speckit/compare-all-component-generation.sh HEAD --allow-differences
 ```

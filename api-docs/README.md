@@ -1,9 +1,12 @@
 ---
-title: API Explorer
+id: index
+title: API Docs
 ---
 
-# API Explorer
+This folder is generated on demand by:
 
-API reference pages in this section are generated from OpenAPI contracts in:
+```bash
+npm --prefix website run gen:api-docs
+```
 
-- `specs/001-baseline-uncontainerized-parity/contracts/**/openapi.yaml`
+Generated service pages are intentionally not source-controlled.

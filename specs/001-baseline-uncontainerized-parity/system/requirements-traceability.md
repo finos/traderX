@@ -11,5 +11,5 @@ It maps:
 
 This matrix is enforced by:
 
-- `TraderSpec/pipeline/speckit/validate-speckit-readiness.sh`
-- `TraderSpec/pipeline/speckit/verify-spec-expressiveness.sh`
+- `pipeline/speckit/validate-speckit-readiness.sh`
+- `pipeline/speckit/verify-spec-expressiveness.sh`

@@ -16,7 +16,7 @@ It enables:
 
 Manifest values are compiled from:
 
-- `TraderSpec/catalog/component-spec.csv`
+- `catalog/component-spec.csv`
 - `specs/001-baseline-uncontainerized-parity/system/requirements-traceability.csv`
 - `specs/001-baseline-uncontainerized-parity/components/<component-id>.md`
 - `specs/001-baseline-uncontainerized-parity/contracts/**/openapi.yaml` (when defined)

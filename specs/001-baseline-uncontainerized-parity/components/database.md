@@ -19,4 +19,4 @@
 
 ## Verification
 
-- `TraderSpec/codebase/scripts/test-database-overlay.sh`
+- `scripts/test-database-overlay.sh`

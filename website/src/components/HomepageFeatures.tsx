@@ -152,11 +152,11 @@ that was presented at the <a href="https://events.linuxfoundation.org/archive/20
 							),
 						},
                         {
-							title: 'Ingress Controller',
+							title: 'Edge Routing (Learning Path)',
 							description: (
 								<>
-									Nginx-based ingress controller for routing traffic to the various services when run in a containerized environment.
-                                    There is also a similar proxy inside the web-front-end which does this in a lightweight way for local development.
+									Container ingress/proxy concerns are modeled as future DevEx learning-path states.
+                                    The current baseline intentionally runs pre-containerized services on explicit local ports.
 								</>
 							),
 						},

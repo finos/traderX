@@ -20,4 +20,4 @@
 
 ## Verification
 
-- `TraderSpec/codebase/scripts/test-position-service-overlay.sh`
+- `scripts/test-position-service-overlay.sh`

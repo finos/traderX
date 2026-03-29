@@ -46,12 +46,15 @@ module.exports = {
         src: 'img/favicon/favicon-traderX.ico',
       },
       items: [
-        {to: '/docs/home', label: 'Docs', position: 'right'},
-        {to: '/docs/traderspec', label: 'TraderSpec Ops', position: 'right'},
-        {to: '/docs/traderspec/spec-kit-portal', label: 'Spec Kit', position: 'right'},
-        {to: '/traderspec-specs/api', label: 'API Explorer', position: 'right'},
-        {to: '/docs/roadmap', label: 'Roadmap', position: 'right'},
-        {to: '/docs/team', label: 'Team', position: 'right'},
+        {to: '/docs/home', label: 'Overview', position: 'right'},
+        {to: '/docs/traderspec', label: 'Getting Started', position: 'right'},
+        {to: '/docs/learning-paths', label: 'Learning Paths', position: 'right'},
+        {to: '/foundation', label: 'Foundation', position: 'right'},
+        {to: '/specs', label: 'Specs', position: 'right'},
+        {to: '/specify', label: 'Constitution', position: 'right'},
+        {to: '/api', label: 'API Explorer', position: 'right'},
+        {to: '/migration/migration-todo', label: 'Migration TODO', position: 'right'},
+        {to: '/migration/migration-blog', label: 'Migration Blog', position: 'right'},
         {
           href: 'https://github.com/finos/',
           label: 'GitHub',
@@ -71,16 +74,32 @@ module.exports = {
           title: 'Docs',
           items: [
             {
-              label: 'Getting Started',
+              label: 'Home',
               to: '/docs/home',
             },
             {
-              label: 'Roadmap',
-              to: '/docs/roadmap',
+              label: 'Getting Started',
+              to: '/docs/traderspec',
             },
             {
-              label: 'Team',
-              to: '/docs/team',
+              label: 'Learning Paths',
+              to: '/docs/learning-paths',
+            },
+            {
+              label: 'Specs',
+              to: '/specs',
+            },
+            {
+              label: 'Foundation',
+              to: '/foundation',
+            },
+            {
+              label: 'API Explorer',
+              to: '/api',
+            },
+            {
+              label: 'Migration TODO',
+              to: '/migration/migration-todo',
             }
           ]
         },
@@ -127,7 +146,7 @@ module.exports = {
       {
         docs: {
           path: '../docs',
-          exclude: ['prompt-ideas/**'],
+          exclude: ['prompt-ideas/**', 'migration/**', 'migration/**/*', '**/migration/**'],
           editUrl:
             'https://github.com/finos/traderX/edit/main/website/',
           sidebarPath: require.resolve('./sidebars.js')
@@ -142,17 +161,12 @@ module.exports = {
     [
       '@docusaurus/plugin-content-docs',
       {
-        id: 'traderspec',
-        path: '../TraderSpec',
-        routeBasePath: 'traderspec-specs',
-        sidebarPath: require.resolve('./traderspec.sidebars.js'),
-        include: [
-          'speckit/**/*.md',
-          'migration-todo.md',
-          'migration-blog.md',
-        ],
-        exclude: ['codebase/target-generated/**', 'codebase/target-generated-specfirst/**'],
-        editUrl: 'https://github.com/finos/traderX/edit/main/TraderSpec/',
+        id: 'migration',
+        path: '../migration-docs',
+        routeBasePath: 'migration',
+        sidebarPath: require.resolve('./migration.sidebars.js'),
+        include: ['**/*.md'],
+        editUrl: 'https://github.com/finos/traderX/edit/main/migration-docs/',
       },
     ],
     [
@@ -160,8 +174,9 @@ module.exports = {
       {
         id: 'traderspec-root-specs',
         path: '../specs',
-        routeBasePath: 'traderspec-specs/specs',
+        routeBasePath: 'specs',
         sidebarPath: require.resolve('./traderspec-root-specs.sidebars.js'),
+        remarkPlugins: [require('./plugins/remark-speckit-reference-links')],
         include: ['**/*.md'],
         editUrl: 'https://github.com/finos/traderX/edit/main/specs/',
       },
@@ -169,9 +184,20 @@ module.exports = {
     [
       '@docusaurus/plugin-content-docs',
       {
+        id: 'foundation',
+        path: '../foundation',
+        routeBasePath: 'foundation',
+        sidebarPath: require.resolve('./foundation.sidebars.js'),
+        include: ['**/*.md'],
+        editUrl: 'https://github.com/finos/traderX/edit/main/foundation/',
+      },
+    ],
+    [
+      '@docusaurus/plugin-content-docs',
+      {
         id: 'traderspec-specify',
         path: '../.specify',
-        routeBasePath: 'traderspec-specs/specify',
+        routeBasePath: 'specify',
         sidebarPath: require.resolve('./traderspec-specify.sidebars.js'),
         include: ['memory/**/*.md'],
         editUrl: 'https://github.com/finos/traderX/edit/main/.specify/',
@@ -182,7 +208,7 @@ module.exports = {
       {
         id: 'traderspec-api',
         path: '../api-docs',
-        routeBasePath: 'traderspec-specs/api',
+        routeBasePath: 'api',
         sidebarPath: require.resolve('./traderspec-api.sidebars.js'),
         docItemComponent: '@theme/ApiItem',
         editUrl: 'https://github.com/finos/traderX/edit/main/api-docs/',

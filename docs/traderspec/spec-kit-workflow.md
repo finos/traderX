@@ -10,17 +10,17 @@ TraderX baseline generation now follows a root-canonical GitHub Spec Kit flow.
 
 - `.specify/**` for constitution and templates
 - `specs/001-baseline-uncontainerized-parity/**` for baseline requirements, stories, plan, tasks, and contracts
-- `TraderSpec/pipeline/**` for generation and validation orchestration
+- `pipeline/**` for generation and validation orchestration
 
 Browse in docs:
 
-- `/traderspec-specs/specs/baseline-uncontainerized-parity/README`
-- `/traderspec-specs/specs/baseline-uncontainerized-parity/system/system-requirements`
-- `/traderspec-specs/specs/baseline-uncontainerized-parity/system/user-stories`
-- `/traderspec-specs/specs/baseline-uncontainerized-parity/system/acceptance-criteria`
-- `/traderspec-specs/specs/baseline-uncontainerized-parity/system/requirements-traceability`
-- `/traderspec-specs/api`
-- `/traderspec-specs/specify`
+- `/specs/baseline-uncontainerized-parity/README`
+- `/specs/baseline-uncontainerized-parity/system/system-requirements`
+- `/specs/baseline-uncontainerized-parity/system/user-stories`
+- `/specs/baseline-uncontainerized-parity/system/acceptance-criteria`
+- `/specs/baseline-uncontainerized-parity/system/requirements-traceability`
+- `/api`
+- `/specify`
 
 ## Input Evidence For Requirements
 
@@ -39,11 +39,11 @@ Browse in docs:
 ## Validation Commands
 
 ```bash
-./TraderSpec/pipeline/speckit/validate-speckit-readiness.sh
-./TraderSpec/pipeline/speckit/verify-spec-expressiveness.sh
-bash TraderSpec/pipeline/speckit/compile-all-component-manifests.sh
-./TraderSpec/pipeline/validate-regeneration-readiness.sh
-./TraderSpec/pipeline/verify-spec-coverage.sh
+./pipeline/speckit/validate-speckit-readiness.sh
+./pipeline/speckit/verify-spec-expressiveness.sh
+bash pipeline/speckit/compile-all-component-manifests.sh
+./pipeline/validate-regeneration-readiness.sh
+./pipeline/verify-spec-coverage.sh
 ```
 
 ## Generation Commands
@@ -51,30 +51,21 @@ bash TraderSpec/pipeline/speckit/compile-all-component-manifests.sh
 Regenerate baseline components:
 
 ```bash
-bash TraderSpec/pipeline/generate-reference-data-specfirst.sh
-bash TraderSpec/pipeline/generate-database-specfirst.sh
-bash TraderSpec/pipeline/generate-people-service-specfirst.sh
-bash TraderSpec/pipeline/generate-account-service-specfirst.sh
-bash TraderSpec/pipeline/generate-position-service-specfirst.sh
-bash TraderSpec/pipeline/generate-trade-feed-specfirst.sh
-bash TraderSpec/pipeline/generate-trade-processor-specfirst.sh
-bash TraderSpec/pipeline/generate-trade-service-specfirst.sh
-bash TraderSpec/pipeline/generate-web-front-end-angular-specfirst.sh
+bash pipeline/generate-reference-data-specfirst.sh
+bash pipeline/generate-database-specfirst.sh
+bash pipeline/generate-people-service-specfirst.sh
+bash pipeline/generate-account-service-specfirst.sh
+bash pipeline/generate-position-service-specfirst.sh
+bash pipeline/generate-trade-feed-specfirst.sh
+bash pipeline/generate-trade-processor-specfirst.sh
+bash pipeline/generate-trade-service-specfirst.sh
+bash pipeline/generate-web-front-end-angular-specfirst.sh
 ```
 
-Run generated overlays in base-state order:
+Run generated baseline stack:
 
 ```bash
-CORS_ALLOWED_ORIGINS=http://localhost:18093 ./TraderSpec/codebase/scripts/start-base-uncontainerized-hydrated.sh \
-  --overlay-reference-generated \
-  --overlay-database-generated \
-  --overlay-people-generated \
-  --overlay-account-generated \
-  --overlay-position-generated \
-  --overlay-trade-feed-generated \
-  --overlay-trade-processor-generated \
-  --overlay-trade-service-generated \
-  --overlay-web-angular-generated
+CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh
 ```
 
 ## Full Parity Gate
@@ -82,12 +73,14 @@ CORS_ALLOWED_ORIGINS=http://localhost:18093 ./TraderSpec/codebase/scripts/start-
 Run end-to-end parity validation (generation + startup + all baseline smoke tests):
 
 ```bash
-bash TraderSpec/pipeline/speckit/run-full-parity-validation.sh
+bash pipeline/speckit/run-full-parity-validation.sh
 ```
 
 ## API Explorer
 
-Generate interactive OpenAPI docs from canonical contracts:
+`npm --prefix website run start` and `npm --prefix website run build` now generate OpenAPI docs on demand.
+
+To regenerate explicitly:
 
 ```bash
 npm --prefix website run gen:api-docs
@@ -98,13 +91,13 @@ npm --prefix website run gen:api-docs
 To compare a single component generated output between a legacy script revision and current Spec Kit-driven generation:
 
 ```bash
-bash TraderSpec/pipeline/speckit/compare-component-generation.sh <component-id> <legacy-ref>
+bash pipeline/speckit/compare-component-generation.sh <component-id> <legacy-ref>
 ```
 
 Example:
 
 ```bash
-bash TraderSpec/pipeline/speckit/compare-component-generation.sh reference-data HEAD
+bash pipeline/speckit/compare-component-generation.sh reference-data HEAD
 ```
 
 ## Iterating Learning-Path States

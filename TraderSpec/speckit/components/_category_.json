@@ -1,9 +1,0 @@
-{
-  "label": "Components",
-  "position": 2,
-  "link": {
-    "type": "generated-index",
-    "title": "Component Specs",
-    "description": "Per-component Spec Kit requirement coverage and verification mapping."
-  }
-}

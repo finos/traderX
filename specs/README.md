@@ -7,7 +7,7 @@ This repository now uses the GitHub Spec Kit canonical structure at repo root:
 
 ## Active Feature Packs
 
-- `001-baseline-uncontainerized-parity` - baseline runtime and behavioral parity requirements for current TraderX generated stack.
+- `001-baseline-uncontainerized-parity` - Simple App - Base Uncontainerized App requirements for the current TraderX generated stack.
   - includes `fidelity-profile.md` for technical NFR/code-closeness targets.
   - includes `system/**`, `components/**`, and `conformance/**` artifacts used by generation/compliance scripts.
 

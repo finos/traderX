@@ -1,4 +1,4 @@
-# Data Model: Baseline Uncontainerized Parity
+# Data Model: Simple App - Base Uncontainerized App
 
 ## Domain Entities
 

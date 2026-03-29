@@ -1,9 +1,9 @@
 ---
 
-description: "Tasks for root-level Spec Kit baseline parity adoption"
+description: "Tasks for root-level Spec Kit simple app baseline adoption"
 ---
 
-# Tasks: Baseline Uncontainerized Parity
+# Tasks: Simple App - Base Uncontainerized App
 
 **Input**: Design documents from `/specs/001-baseline-uncontainerized-parity/`  
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/
@@ -50,7 +50,7 @@ description: "Tasks for root-level Spec Kit baseline parity adoption"
 ## Phase 7: Polish & Cross-Cutting
 
 - [x] T018 Update root `README.md` with canonical Spec Kit workflow references.
-- [x] T019 Update `TraderSpec/migration-todo.md` and `TraderSpec/migration-blog.md` with root compliance phase status.
+- [x] T019 Update migration status artifacts (`docs/migration/migration-todo.md` and `docs/migration/migration-blog.md`) with root compliance phase status.
 - [ ] T020 Document branch naming strategy for Spec Kit scripts in non-`NNN-*` branches (`SPECIFY_FEATURE` fallback).
 - [ ] T021 Define retirement checklist for duplicate legacy spec docs once root feature packs are complete.
 - [x] T022 Add semantic compare gate execution to root quickstart and migration evidence flow.

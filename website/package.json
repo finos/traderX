@@ -4,11 +4,11 @@
     "deploy": "docusaurus deploy",
     "serve": "docusaurus serve",
     "clear": "docusaurus clear",
-    "start": "docusaurus start",
+    "start": "npm run gen:api-docs && docusaurus start",
     "swizzle": "docusaurus swizzle",
-    "build": "docusaurus build",
+    "build": "npm run gen:api-docs && docusaurus build",
     "publish-gh-pages": "docusaurus deploy",
-    "gen:api-docs": "docusaurus gen-api-docs account-service --plugin-id traderspec-openapi && docusaurus gen-api-docs people-service --plugin-id traderspec-openapi && docusaurus gen-api-docs position-service --plugin-id traderspec-openapi && docusaurus gen-api-docs reference-data --plugin-id traderspec-openapi && docusaurus gen-api-docs trade-processor --plugin-id traderspec-openapi && docusaurus gen-api-docs trade-service --plugin-id traderspec-openapi"
+    "gen:api-docs": "mkdir -p ../api-docs && rm -rf ../api-docs/account-service ../api-docs/people-service ../api-docs/position-service ../api-docs/reference-data ../api-docs/trade-processor ../api-docs/trade-service && docusaurus gen-api-docs account-service && docusaurus gen-api-docs people-service && docusaurus gen-api-docs position-service && docusaurus gen-api-docs reference-data && docusaurus gen-api-docs trade-processor && docusaurus gen-api-docs trade-service"
   },
   "dependencies": {
     "@docusaurus/core": "^3.2.0",

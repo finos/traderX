@@ -1,6 +1,6 @@
-# 001 Baseline Uncontainerized Parity
+# 001 Simple App - Base Uncontainerized App
 
-This is the canonical root Spec Kit feature pack for TraderX baseline parity.
+This is the canonical root Spec Kit feature pack for the TraderX simple base app in uncontainerized mode.
 
 ## Primary Artifacts
 
@@ -16,7 +16,7 @@ This is the canonical root Spec Kit feature pack for TraderX baseline parity.
 ## Validation
 
 ```bash
-bash TraderSpec/pipeline/speckit/validate-speckit-readiness.sh
-bash TraderSpec/pipeline/speckit/verify-spec-expressiveness.sh
-bash TraderSpec/pipeline/speckit/run-all-conformance-packs.sh
+bash pipeline/speckit/validate-speckit-readiness.sh
+bash pipeline/speckit/verify-spec-expressiveness.sh
+bash pipeline/speckit/run-all-conformance-packs.sh
 ```

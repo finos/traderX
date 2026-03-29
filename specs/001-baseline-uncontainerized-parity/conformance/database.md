@@ -25,6 +25,6 @@ This pack defines requirement and verification gates for `database`.
 - none
 
 ## Verification References
-- `TraderSpec/catalog/base-uncontainerized-processes.csv`
-- `TraderSpec/codebase/scripts/start-base-uncontainerized-hydrated.sh`
-- `TraderSpec/codebase/scripts/test-database-overlay.sh`
+- `catalog/base-uncontainerized-processes.csv`
+- `scripts/start-base-uncontainerized-generated.sh`
+- `scripts/test-database-overlay.sh`

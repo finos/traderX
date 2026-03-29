@@ -30,7 +30,7 @@ This pack defines requirement and verification gates for `trade-service`.
 - `specs/001-baseline-uncontainerized-parity/contracts/trade-service/openapi.yaml`
 
 ## Verification References
-- `TraderSpec/codebase/scripts/start-base-uncontainerized-hydrated.sh`
-- `TraderSpec/codebase/scripts/status-base-uncontainerized-hydrated.sh`
-- `TraderSpec/codebase/scripts/test-trade-service-overlay.sh`
-- `TraderSpec/pipeline/validate-regeneration-readiness.sh`
+- `pipeline/validate-regeneration-readiness.sh`
+- `scripts/start-base-uncontainerized-generated.sh`
+- `scripts/status-base-uncontainerized-generated.sh`
+- `scripts/test-trade-service-overlay.sh`

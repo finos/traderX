@@ -21,4 +21,4 @@
 
 ## Verification
 
-- `TraderSpec/codebase/scripts/test-reference-data-overlay.sh`
+- `scripts/test-reference-data-overlay.sh`

@@ -22,4 +22,4 @@
 
 ## Verification
 
-- `TraderSpec/codebase/scripts/test-web-angular-overlay.sh`
+- `scripts/test-web-angular-overlay.sh`

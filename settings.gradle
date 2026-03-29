@@ -1,8 +1,0 @@
-dependencyResolutionManagement {
-    repositories {
-        // Use Maven Central for resolving dependencies.
-        mavenCentral()
-    }
-}
-
-include 'account-service','position-service','trade-processor','trade-service','database'

@@ -1,34 +1,15 @@
 ---
-title: Run Current Codebase From TraderSpec
+title: Legacy Runtime Routes (Archived)
 ---
 
-# Run Current Codebase From TraderSpec
+# Legacy Runtime Routes (Archived)
 
-## Exact Current Stack (Recommended)
+The following routes were removed in Phase B canonicalization:
 
-This uses the repository's canonical `docker-compose.yml` via TraderSpec wrappers.
+- root docker-compose runtime
+- parity snapshot runtime wrappers
+- source-hydration startup path
 
-```bash
-./TraderSpec/codebase/scripts/run-current-codebase.sh
-```
+Use the canonical generated baseline runtime:
 
-Stop:
-
-```bash
-./TraderSpec/codebase/scripts/stop-current-codebase.sh
-```
-
-## TraderSpec Parity Snapshot Mode
-
-This runs from `TraderSpec/codebase/target-generated` after parity copy.
-
-```bash
-./TraderSpec/pipeline/generate-baseline-from-current.sh
-./TraderSpec/codebase/scripts/run-parity-snapshot.sh
-```
-
-Stop:
-
-```bash
-./TraderSpec/codebase/scripts/stop-parity-snapshot.sh
-```
+`/docs/traderspec/run-generated-overlays`
