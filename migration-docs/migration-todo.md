@@ -44,12 +44,13 @@ Make root SpecKit artifacts (`.specify/` and `specs/`) the source of truth, with
 - [ ] 10.2 Add SpecKit delta template for state changes (FR/NFR/contracts/components).
 - [x] 10.3 Implement state-aware generation entrypoint and impact summary output.
 - [ ] 10.4 Add state-specific verification gates and runbooks.
-- [ ] 10.5 Publish first post-baseline state generated fully from specs.
+- [x] 10.5 Publish first post-baseline state generated fully from specs.
 - [x] 10.6 Define generated-state branch/tag convention (spec-source vs code-snapshot).
 - [x] 10.6a Publish baseline generated-state branch snapshot (`codex/generated-state-001-baseline-uncontainerized-parity`).
 - [ ] 10.7 Publish generated-code snapshot tag for `001-baseline-uncontainerized-parity`.
 - [x] 10.8 Finalize `002-edge-proxy-uncontainerized` spec pack (NFR-first state delta).
 - [ ] 10.9 Generate/validate/release `002` state from specs and tag generated snapshot.
+- [x] 10.9a Publish generated-state branch snapshot for `002` (`codex/generated-state-002-edge-proxy-uncontainerized`).
 - [ ] 10.10 Finalize `003-containerized-compose-runtime` spec pack.
 - [ ] 10.11 Generate/validate/release `003` state from specs and tag generated snapshot.
 - [x] 11) Complete root-level SpecKit canonical migration.
