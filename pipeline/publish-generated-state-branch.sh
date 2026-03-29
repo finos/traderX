@@ -201,7 +201,12 @@ path_in_keep_list() {
 
 prune_snapshot_for_state() {
   local keep_paths=()
-  mapfile -t keep_paths < <(snapshot_keep_paths_for_state | sed '/^$/d' | sort -u)
+  local keep_path
+  while IFS= read -r keep_path; do
+    [[ -n "${keep_path}" ]] || continue
+    keep_paths+=("${keep_path}")
+  done < <(snapshot_keep_paths_for_state | sed '/^$/d' | sort -u)
+
   if [[ "${#keep_paths[@]}" -eq 0 ]]; then
     echo "[fail] no keep-paths resolved for state ${STATE_ID}"
     exit 1
