@@ -1,0 +1,38 @@
+<div class="trade-container p-5">
+    <div class="trade-ops mb-4">
+        <div class="trade-filter me-3">
+            <app-ngx-dropdown
+                name="account"
+                [items]="accounts"
+                itemKey="displayName"
+                [selectedItem]="accountModel"
+                placeholder="Select Account"
+                (selectedItemChange)="onAccountChange($event)"
+            >
+            </app-ngx-dropdown>
+        </div>
+        <div class="trade-ticket mb-4">
+            <button type="button" id="createTicketBtn" class="btn btn-sm btn-primary mb-2" (click)="openTicket(ticketComponent)">
+                Create Trade Ticket
+            </button>
+            <ng-template #ticketComponent>
+                <app-trade-ticket [stocks]="stocks" [account]="accountModel" (create)="createTradeTicket($event)" (cancel)="closeTicket()">
+                </app-trade-ticket>
+            </ng-template>
+            <alert
+                *ngIf="createTicketResponse"
+                [type]="createTicketResponse.success ? 'success' : 'danger'"
+                [dismissible]="true"
+                [dismissOnTimeout]="2000"
+                (onClosed)="onCloseAlert()"
+            >
+                {{ createTicketResponse | json }}</alert
+            >
+        </div>
+    </div>
+
+    <div class="trade-blotter">
+        <app-trade-blotter [account]="accountModel" class="trade-blotter-items me-2"> </app-trade-blotter>
+        <app-position-blotter [account]="accountModel" class="position-blotter-items"> </app-position-blotter>
+    </div>
+</div>

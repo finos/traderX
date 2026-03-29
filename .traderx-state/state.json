@@ -1,0 +1,13 @@
+{
+  "stateId": "001-baseline-uncontainerized-parity",
+  "stateTitle": "Simple App - Base Uncontainerized App",
+  "stateStatus": "released",
+  "featurePack": "specs/001-baseline-uncontainerized-parity",
+  "previousStates": [],
+  "nextStates": ["002-edge-proxy-uncontainerized"],
+  "sourceBranch": "feature/agentic-renovation",
+  "sourceCommit": "6b97250a65e46d1983aa8d0af74d8525280da5b2",
+  "generatedAtUtc": "2026-03-29T11:22:37Z",
+  "generationEntryPoint": "bash pipeline/generate-from-spec.sh",
+  "publishTagHint": "generated/001-baseline-uncontainerized-parity/v1"
+}

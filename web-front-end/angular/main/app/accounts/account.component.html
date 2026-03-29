@@ -1,0 +1,22 @@
+<div class="p-5 pt-3">
+    <div class="d-flex flex-column">
+        <app-edit-account (update)="onUpdate($event)" [account]="accountToBeUpdate"></app-edit-account>
+        <div class="mt-4">
+            <h6> Account List </h6>
+            <ag-grid-angular #agGrid style="width: 800px; height: 300px;" id="accountgrid" class="ag-theme-alpine"
+                [columnDefs]="columnDefs" rowSelection='single' [components]="frameworkComponents"
+                [rowData]="accounts$ | async" (selectionChanged)="onSelectionChanged()"
+                (gridReady)="onGridReady($event)"></ag-grid-angular>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <app-assign-user class="mt-2" (update)="onUpdate($event)" [account]="selectedAccount" [accounts]="accounts$ | async"></app-assign-user>
+        <div class="mt-4">
+            <h6>Users List {{selectedAccount ? '(' + selectedAccount.displayName + ')' : ''}}</h6>
+            <ag-grid-angular #agGrid style="width: 800px; height: 300px;" id="usergrid" class="ag-theme-alpine"
+                [columnDefs]="columnDefsUser" [components]="frameworkComponents" [rowData]="users$ | async">
+            </ag-grid-angular>
+        </div>
+    </div>
+</div>
