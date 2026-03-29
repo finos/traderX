@@ -32,6 +32,11 @@ if ! docker compose version >/dev/null 2>&1; then
   exit 1
 fi
 
+if [[ -z "${DOCKER_BUILDKIT:-}" ]]; then
+  export DOCKER_BUILDKIT=1
+  echo "[info] DOCKER_BUILDKIT not set; defaulting to 1 for Docker cache mounts"
+fi
+
 bash "${REPO_ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
 
 [[ -f "${COMPOSE_FILE}" ]] || {

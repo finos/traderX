@@ -29,7 +29,7 @@ while IFS= read -r req_id; do
     echo "[fail] requirement ${req_id} is not mapped in traceability matrix"
     exit 1
   fi
-done < <(rg -o 'SYS-(FR|NFR)-[0-9]{3}' "${REQ_DOC}" | sort -u)
+done < <(speckit_extract_pattern 'SYS-(FR|NFR)-[0-9]{3}' "${REQ_DOC}" | sort -u)
 
 while IFS= read -r story_id; do
   [[ -n "${story_id}" ]] || continue
@@ -37,7 +37,7 @@ while IFS= read -r story_id; do
     echo "[fail] story ${story_id} is not mapped in traceability matrix"
     exit 1
   fi
-done < <(rg -o 'US-[0-9]{3}' "${STORY_DOC}" | sort -u)
+done < <(speckit_extract_pattern 'US-[0-9]{3}' "${STORY_DOC}" | sort -u)
 
 while IFS= read -r acceptance_id; do
   [[ -n "${acceptance_id}" ]] || continue
@@ -45,7 +45,7 @@ while IFS= read -r acceptance_id; do
     echo "[fail] acceptance criteria ${acceptance_id} is not mapped in traceability matrix"
     exit 1
   fi
-done < <(rg -o 'AC-[0-9]{3}' "${AC_DOC}" | sort -u)
+done < <(speckit_extract_pattern 'AC-[0-9]{3}' "${AC_DOC}" | sort -u)
 
 row=0
 components=0

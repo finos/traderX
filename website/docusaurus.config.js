@@ -51,7 +51,6 @@ module.exports = {
         {to: '/specs', label: 'Specs', position: 'right'},
         {to: '/docs/spec-kit/state-docs', label: 'State Docs', position: 'right'},
         {to: '/docs/adr', label: 'ADRs', position: 'right'},
-        {to: '/specify/memory/constitution', label: 'Constitution', position: 'right'},
         {to: '/docs/learning-paths', label: 'Learning Paths', position: 'right'},
         {to: '/api', label: 'API Explorer (001)', position: 'right'},
         {type: 'search', position: 'right'},

@@ -99,8 +99,8 @@ stories="$(normalize_lines "$(awk -F, -v component_id="${COMPONENT_ID}" 'NR > 1 
 acceptance="$(normalize_lines "$(awk -F, -v component_id="${COMPONENT_ID}" 'NR > 1 && $5 == component_id { print $3 }' "${MATRIX}" | sort -u)")"
 verification_refs="$(normalize_lines "$(awk -F, -v component_id="${COMPONENT_ID}" 'NR > 1 && $5 == component_id { print $7 }' "${MATRIX}" | sort -u)")"
 
-fr_requirements="$(printf "%s\n" "${requirements}" | rg '^SYS-FR-' || true)"
-nfr_requirements="$(printf "%s\n" "${requirements}" | rg '^SYS-NFR-' || true)"
+fr_requirements="$(printf "%s\n" "${requirements}" | speckit_filter_stdin_regex '^SYS-FR-')"
+nfr_requirements="$(printf "%s\n" "${requirements}" | speckit_filter_stdin_regex '^SYS-NFR-')"
 
 fr_count="$(count_lines "${fr_requirements}")"
 nfr_count="$(count_lines "${nfr_requirements}")"
@@ -125,7 +125,7 @@ fi
 for id_group in "${requirements}" "${stories}" "${acceptance}"; do
   while IFS= read -r id; do
     [[ -n "${id}" ]] || continue
-    if ! rg -Fq -- "${id}" "${PACK_FILE}"; then
+    if ! speckit_file_contains_literal "${id}" "${PACK_FILE}"; then
       echo "[fail] conformance pack ${PACK_FILE} does not reference mapped id ${id}"
       exit 1
     fi

@@ -2,7 +2,7 @@
 
 **Feature Branch**: `005-radius-kubernetes-platform`  
 **Created**: 2026-03-29  
-**Status**: Planned  
+**Status**: Implemented  
 **Input**: Transition delta from `004-kubernetes-runtime`
 
 ## User Stories

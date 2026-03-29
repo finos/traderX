@@ -80,16 +80,16 @@
     {
       "id": "005-radius-kubernetes-platform",
       "title": "Radius Platform on Kubernetes",
-      "status": "planned",
+      "status": "implemented",
       "track": "devex",
       "featurePack": "specs/005-radius-kubernetes-platform",
       "previous": [
         "004-kubernetes-runtime"
       ],
       "generation": {
-        "mode": "planned",
+        "mode": "implemented",
         "entrypoint": "bash pipeline/generate-state.sh 005-radius-kubernetes-platform",
-        "runtime": "TBD"
+        "runtime": "./scripts/start-state-005-radius-kubernetes-platform-generated.sh"
       },
       "publish": {
         "branch": "codex/generated-state-005-radius-kubernetes-platform",

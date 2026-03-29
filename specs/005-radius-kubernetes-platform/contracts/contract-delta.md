@@ -14,4 +14,5 @@ Document any API/event/schema changes for this state.
 
 ## Compatibility Notes
 
-- Define backward-compatibility and migration expectations.
+- OpenAPI and event contracts are unchanged from state `004-kubernetes-runtime`.
+- State `005` introduces platform deployment abstractions (Radius artifacts) only.

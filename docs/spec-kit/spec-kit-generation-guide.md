@@ -58,7 +58,8 @@ Current state-aware generation entrypoints:
 - `bash pipeline/generate-state.sh 001-baseline-uncontainerized-parity`
 - `bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized`
 - `bash pipeline/generate-state.sh 003-containerized-compose-runtime`
-- `bash pipeline/generate-state.sh 004-kubernetes-runtime` (planned; hook stub currently fails until implemented)
+- `bash pipeline/generate-state.sh 004-kubernetes-runtime`
+- `bash pipeline/generate-state.sh 005-radius-kubernetes-platform`
 
 Architecture docs are generated from state-local models under `specs/*/system/architecture.model.json`:
 
@@ -72,6 +73,20 @@ Containerized runtime (state `003`) commands:
 - `./scripts/test-state-003-containerized.sh`
 - `./scripts/stop-state-003-containerized-generated.sh`
 - ingress endpoint: `http://localhost:8080`
+
+Kubernetes runtime (state `004`) commands:
+
+- `./scripts/start-state-004-kubernetes-generated.sh --provider kind`
+- `./scripts/status-state-004-kubernetes-generated.sh --provider kind`
+- `./scripts/test-state-004-kubernetes-runtime.sh http://localhost:8080 traderx kind traderx-state-004`
+- `./scripts/stop-state-004-kubernetes-generated.sh --provider kind`
+
+Radius platform state (state `005`) commands:
+
+- `./scripts/start-state-005-radius-kubernetes-platform-generated.sh --provider kind`
+- `./scripts/status-state-005-radius-kubernetes-platform-generated.sh --provider kind`
+- `./scripts/test-state-005-radius-kubernetes-platform.sh http://localhost:8080 traderx kind traderx-state-004`
+- `./scripts/stop-state-005-radius-kubernetes-platform-generated.sh --provider kind`
 
 ## Publish Code-Only Snapshot Branches
 

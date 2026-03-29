@@ -33,8 +33,8 @@ while IFS= read -r component_id; do
   contracts="$(awk -F, -v component_id="${component_id}" 'NR > 1 && $5 == component_id && $6 != "none" { print $6 }' "${MATRIX}" | sort -u)"
   verification_refs="$(awk -F, -v component_id="${component_id}" 'NR > 1 && $5 == component_id { print $7 }' "${MATRIX}" | sort -u)"
 
-  fr_requirements="$(printf "%s\n" "${requirements}" | rg '^SYS-FR-' || true)"
-  nfr_requirements="$(printf "%s\n" "${requirements}" | rg '^SYS-NFR-' || true)"
+  fr_requirements="$(printf "%s\n" "${requirements}" | speckit_filter_stdin_regex '^SYS-FR-')"
+  nfr_requirements="$(printf "%s\n" "${requirements}" | speckit_filter_stdin_regex '^SYS-NFR-')"
 
   out_file="${OUT_DIR}/${component_id}.md"
 

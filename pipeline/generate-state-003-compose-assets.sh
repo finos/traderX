@@ -30,10 +30,12 @@ write_spring_boot_dockerfile() {
   local service_dir="$1"
   local port="$2"
   cat <<EOF > "${service_dir}/Dockerfile.compose"
+# syntax=docker/dockerfile:1.7
 FROM eclipse-temurin:21-jdk AS build
 WORKDIR /app
 COPY . .
-RUN chmod +x gradlew && ./gradlew --no-daemon clean bootJar \\
+RUN --mount=type=cache,target=/root/.gradle,sharing=locked \\
+    chmod +x gradlew && ./gradlew --no-daemon clean bootJar \\
  && jar_path="\$(ls -1 build/libs/*.jar | grep -v -- '-plain\\.jar$' | head -n 1)" \\
  && cp "\${jar_path}" build/libs/app.jar
 
@@ -46,29 +48,43 @@ EOF
 }
 
 cat <<'EOF' > "${TARGET}/database/Dockerfile.compose"
+# syntax=docker/dockerfile:1.7
 FROM eclipse-temurin:21-jdk
 WORKDIR /app
 COPY . .
-RUN chmod +x gradlew run.sh && ./gradlew --no-daemon clean build
+RUN --mount=type=cache,target=/root/.gradle,sharing=locked \
+    chmod +x gradlew run.sh && ./gradlew --no-daemon clean build
 EXPOSE 18082 18083 18084
 ENTRYPOINT ["./run.sh"]
 EOF
 
 cat <<'EOF' > "${TARGET}/reference-data/Dockerfile.compose"
+# syntax=docker/dockerfile:1.7
 FROM node:20-alpine
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN --mount=type=cache,target=/root/.npm,sharing=locked \
+    if [ -f package-lock.json ]; then \
+      npm ci --no-audit --prefer-offline; \
+    else \
+      npm install --no-audit --prefer-offline; \
+    fi
 COPY . .
 EXPOSE 18085
 CMD ["npm", "run", "start"]
 EOF
 
 cat <<'EOF' > "${TARGET}/trade-feed/Dockerfile.compose"
+# syntax=docker/dockerfile:1.7
 FROM node:20-alpine
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN --mount=type=cache,target=/root/.npm,sharing=locked \
+    if [ -f package-lock.json ]; then \
+      npm ci --no-audit --prefer-offline; \
+    else \
+      npm install --no-audit --prefer-offline; \
+    fi
 COPY . .
 EXPOSE 18086
 CMD ["npm", "run", "start"]
@@ -95,10 +111,16 @@ write_spring_boot_dockerfile "${TARGET}/trade-processor" "18091"
 write_spring_boot_dockerfile "${TARGET}/trade-service" "18092"
 
 cat <<'EOF' > "${TARGET}/web-front-end/angular/Dockerfile.compose"
+# syntax=docker/dockerfile:1.7
 FROM node:20-alpine
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN --mount=type=cache,target=/root/.npm,sharing=locked \
+    if [ -f package-lock.json ]; then \
+      npm ci --no-audit --prefer-offline; \
+    else \
+      npm install --no-audit --prefer-offline; \
+    fi
 COPY . .
 EXPOSE 18093
 ENV WEB_SERVICE_PORT=18093

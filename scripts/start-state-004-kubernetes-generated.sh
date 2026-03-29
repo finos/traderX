@@ -124,7 +124,15 @@ if (( DRY_RUN == 1 )); then
       fi
     done < <(jq -c '.images[]' "${BUILD_PLAN}")
   else
-    echo "[dry-run] skipping image build/load (--skip-build)"
+    echo "[dry-run] skipping docker build (--skip-build); will load existing local images into cluster"
+    while IFS= read -r item; do
+      image="$(jq -r '.image' <<<"${item}")"
+      if [[ "${K8S_PROVIDER}" == "kind" ]]; then
+        echo "[dry-run] kind load docker-image ${image} --name ${cluster_name}"
+      else
+        echo "[dry-run] minikube image load ${image} -p ${MINIKUBE_PROFILE}"
+      fi
+    done < <(jq -c '.images[]' "${BUILD_PLAN}")
   fi
   if [[ "${K8S_PROVIDER}" == "kind" ]]; then
     echo "[dry-run] kubectl config use-context kind-${cluster_name}"
@@ -144,14 +152,33 @@ for cmd in docker kubectl; do
   fi
 done
 
+if [[ -z "${DOCKER_BUILDKIT:-}" ]]; then
+  export DOCKER_BUILDKIT=1
+  echo "[info] DOCKER_BUILDKIT not set; defaulting to 1 for Docker cache mounts"
+fi
+
 if [[ "${K8S_PROVIDER}" == "kind" ]]; then
   if ! command -v kind >/dev/null 2>&1; then
     echo "[error] required command not found: kind"
     exit 1
   fi
+
   cluster_exists=0
   if kind get clusters | grep -Fx "${cluster_name}" >/dev/null 2>&1; then
     cluster_exists=1
+  fi
+
+  cluster_running=0
+  if (( cluster_exists == 1 )); then
+    if docker ps --format '{{.Names}}' | grep -Fx "${cluster_name}-control-plane" >/dev/null 2>&1; then
+      cluster_running=1
+    fi
+  fi
+
+  if (( cluster_exists == 1 && cluster_running == 0 )); then
+    echo "[info] kind cluster entry exists but control-plane is not running; recreating ${cluster_name}"
+    kind delete cluster --name "${cluster_name}" >/dev/null 2>&1 || true
+    cluster_exists=0
   fi
 
   if (( cluster_exists == 1 && RECREATE_CLUSTER == 1 )); then
@@ -197,36 +224,48 @@ else
   fi
 fi
 
-if (( SKIP_BUILD == 0 )); then
-  while IFS= read -r item; do
-    name="$(jq -r '.name' <<<"${item}")"
-    image="$(jq -r '.image' <<<"${item}")"
-    context_rel="$(jq -r '.context' <<<"${item}")"
-    dockerfile_rel="$(jq -r '.dockerfile' <<<"${item}")"
-    context_abs="${REPO_ROOT}/generated/code/target-generated/${context_rel}"
-    dockerfile_abs="${context_abs}/${dockerfile_rel}"
+while IFS= read -r item; do
+  name="$(jq -r '.name' <<<"${item}")"
+  image="$(jq -r '.image' <<<"${item}")"
+  context_rel="$(jq -r '.context' <<<"${item}")"
+  dockerfile_rel="$(jq -r '.dockerfile' <<<"${item}")"
+  context_abs="${REPO_ROOT}/generated/code/target-generated/${context_rel}"
+  dockerfile_abs="${context_abs}/${dockerfile_rel}"
 
-    [[ -d "${context_abs}" ]] || {
-      echo "[error] build context not found for ${name}: ${context_abs}"
-      exit 1
-    }
-    [[ -f "${dockerfile_abs}" ]] || {
-      echo "[error] dockerfile not found for ${name}: ${dockerfile_abs}"
-      exit 1
-    }
+  [[ -d "${context_abs}" ]] || {
+    echo "[error] build context not found for ${name}: ${context_abs}"
+    exit 1
+  }
+  [[ -f "${dockerfile_abs}" ]] || {
+    echo "[error] dockerfile not found for ${name}: ${dockerfile_abs}"
+    exit 1
+  }
 
+  if (( SKIP_BUILD == 0 )); then
     echo "[build] ${name} -> ${image}"
     docker build -t "${image}" -f "${dockerfile_abs}" "${context_abs}"
-    if [[ "${K8S_PROVIDER}" == "kind" ]]; then
-      echo "[load] ${image} into kind/${cluster_name}"
-      kind load docker-image "${image}" --name "${cluster_name}"
-    else
-      echo "[load] ${image} into minikube/${MINIKUBE_PROFILE}"
-      minikube image load "${image}" -p "${MINIKUBE_PROFILE}" >/dev/null
-    fi
-  done < <(jq -c '.images[]' "${BUILD_PLAN}")
+  else
+    docker image inspect "${image}" >/dev/null 2>&1 || {
+      echo "[error] --skip-build was set, but local image is missing: ${image}"
+      echo "[hint] rerun without --skip-build to build images first."
+      exit 1
+    }
+    echo "[reuse] using local image ${image} (--skip-build)"
+  fi
+
+  if [[ "${K8S_PROVIDER}" == "kind" ]]; then
+    echo "[load] ${image} into kind/${cluster_name}"
+    kind load docker-image "${image}" --name "${cluster_name}"
+  else
+    echo "[load] ${image} into minikube/${MINIKUBE_PROFILE}"
+    minikube image load "${image}" -p "${MINIKUBE_PROFILE}" >/dev/null
+  fi
+done < <(jq -c '.images[]' "${BUILD_PLAN}")
+
+if (( SKIP_BUILD == 1 )); then
+  echo "[info] skipped docker build and loaded existing local images (--skip-build)"
 else
-  echo "[info] skipping image build/load (--skip-build)"
+  echo "[info] built and loaded images"
 fi
 
 echo "[apply] kubernetes manifests"

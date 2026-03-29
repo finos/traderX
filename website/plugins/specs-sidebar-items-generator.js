@@ -14,9 +14,16 @@ function labelFor(item) {
   return ''
 }
 
+function normalizeLabel(label) {
+  return (label || '')
+    .toLowerCase()
+    .replace(/^[^a-z0-9]+/i, '')
+    .trim()
+}
+
 function priorityFor(item) {
   if (item?.type === 'category') {
-    const label = (item.label || '').toLowerCase()
+    const label = normalizeLabel(item.label || '')
     if (label === 'components') {
       return 0
     }
@@ -51,15 +58,23 @@ function transformItem(item, depth = 0) {
   }
 
   const label = item.label || ''
-  const normalized = label.toLowerCase()
+  const normalized = normalizeLabel(label)
   let decoratedLabel = label
+
+  const categoryDecorations = {
+    components: '🧩 Components',
+    system: '💻 System',
+    contracts: '📜 Contracts',
+    conformance: '✅ Conformance',
+    generation: '⚙️ Generation',
+    requirements: '🧾 Requirements',
+    tests: '🧪 Tests',
+  }
 
   if (depth === 0 && isStatePackLabel(label)) {
     decoratedLabel = `📦 ${label}`
-  } else if (normalized === 'components') {
-    decoratedLabel = '🧩 Components'
-  } else if (normalized === 'system') {
-    decoratedLabel = '💻 System'
+  } else if (categoryDecorations[normalized]) {
+    decoratedLabel = categoryDecorations[normalized]
   }
 
   const children = Array.isArray(item.items)

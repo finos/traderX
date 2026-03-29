@@ -1,6 +1,6 @@
 # Feature Pack 005: Radius Platform on Kubernetes
 
-Status: Planned
+Status: Implemented
 Track: `devex`
 Previous state: `004-kubernetes-runtime`
 
@@ -24,3 +24,10 @@ Core artifacts:
 - `system/runtime-topology.md`
 - `generation/generation-hook.md`
 - `tests/smoke/README.md`
+
+Runtime entrypoints:
+
+- `./scripts/start-state-005-radius-kubernetes-platform-generated.sh`
+- `./scripts/status-state-005-radius-kubernetes-platform-generated.sh`
+- `./scripts/test-state-005-radius-kubernetes-platform.sh`
+- `./scripts/stop-state-005-radius-kubernetes-platform-generated.sh`
