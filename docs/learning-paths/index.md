@@ -60,7 +60,7 @@ This page maps the current state progression and points to canonical SpecKit art
 - Spec-first full rebuild: `docs/spec-kit/index` -> `docs/spec-kit/spec-kit-learning-path-strategy` -> `docs/spec-kit/visual-learning-graphs`
 - Future enhancement: a dedicated state/learning-path navigator will be added later as a separate capability.
 
-## Active Project ADRs (MADR)
+## Active Project ADRs
 
 - [ADR-001 Adopt GitHub Spec Kit](/docs/adr/001-adopt-github-speckit)
 - [ADR-002 Generated State Branching Strategy](/docs/adr/002-generated-state-branching-strategy)

@@ -1,9 +1,9 @@
 ---
-title: Project ADRs (MADR)
+title: Project ADRs
 slug: /adr
 ---
 
-# Project ADRs (MADR)
+# Project ADRs
 
 This is the active ADR set for TraderX SpecKit governance.
 

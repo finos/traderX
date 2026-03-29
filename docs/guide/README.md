@@ -47,7 +47,7 @@ TraderX is being transformed into an educational platform that demonstrates mult
 Legacy guide ADR pages are retired from the active docs portal and search index.
 Use the canonical MADR ADR set in `docs/adr/**`:
 
-- **[Project ADRs (MADR)](/docs/adr)**
+- **[Project ADRs](/docs/adr)**
 
 ## Quick Start
 
