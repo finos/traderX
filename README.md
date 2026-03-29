@@ -7,8 +7,8 @@ This branch is an auto-published generated-code snapshot for FINOS TraderX.
 - Status: `implemented`
 - Suggested Version Tag: `generated/003-containerized-compose-runtime/v1`
 - Source Branch: `feature/agentic-renovation`
-- Source Commit: `b50d3b8830bef17bedc5a6f2fb10dc98aeece650`
-- Generated At (UTC): `2026-03-29T13:05:01Z`
+- Source Commit: `12f250c81ff983450ff706f451641567df971bd2`
+- Generated At (UTC): `2026-03-29T13:54:16Z`
 
 ## State Summary
 
@@ -46,6 +46,6 @@ Canonical source-of-truth is maintained in the SpecKit authoring branch, not in 
 - Feature pack: `specs/003-containerized-compose-runtime`
 - Generation entrypoint: `bash pipeline/generate-state.sh 003-containerized-compose-runtime`
 - Snapshot metadata: [STATE.md](./STATE.md), [state.json](./.traderx-state/state.json)
-- Source commit: https://github.com/finos/traderX/commit/b50d3b8830bef17bedc5a6f2fb10dc98aeece650
-- Feature pack at source commit: https://github.com/finos/traderX/tree/b50d3b8830bef17bedc5a6f2fb10dc98aeece650/specs/003-containerized-compose-runtime
-- SpecKit docs at source commit: https://github.com/finos/traderX/tree/b50d3b8830bef17bedc5a6f2fb10dc98aeece650/docs/spec-kit
+- Source commit: https://github.com/finos/traderX/commit/12f250c81ff983450ff706f451641567df971bd2
+- Feature pack at source commit: https://github.com/finos/traderX/tree/12f250c81ff983450ff706f451641567df971bd2/specs/003-containerized-compose-runtime
+- SpecKit docs at source commit: https://github.com/finos/traderX/tree/12f250c81ff983450ff706f451641567df971bd2/docs/spec-kit

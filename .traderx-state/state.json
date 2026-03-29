@@ -6,8 +6,8 @@
   "previousStates": ["002-edge-proxy-uncontainerized"],
   "nextStates": [],
   "sourceBranch": "feature/agentic-renovation",
-  "sourceCommit": "b50d3b8830bef17bedc5a6f2fb10dc98aeece650",
-  "generatedAtUtc": "2026-03-29T13:05:01Z",
+  "sourceCommit": "12f250c81ff983450ff706f451641567df971bd2",
+  "generatedAtUtc": "2026-03-29T13:54:16Z",
   "generationEntryPoint": "bash pipeline/generate-state.sh 003-containerized-compose-runtime",
   "publishTagHint": "generated/003-containerized-compose-runtime/v1"
 }
