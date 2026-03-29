@@ -720,61 +720,56 @@
             "description": "User submits a trade order with validation against reference data service and account service",
             "transitions": [
                 {
-                    "relationship-unique-id": "trader-web-gui",
-                    "sequence-number": 1,
-                    "description": "Trader interacts with Web GUI to submit trade ticket"
-                },
-                {
                     "relationship-unique-id": "web-gui-reference-data-service",
-                    "sequence-number": 2,
+                    "sequence-number": 1,
                     "description": "Web GUI retrieves list of valid tickers from Reference Data Service",
                     "direction": "source-to-destination"
                 },
                 {
                     "relationship-unique-id": "web-gui-reference-data-service",
-                    "sequence-number": 3,
+                    "sequence-number": 2,
                     "description": "Reference Data Service returns ticker list to Web GUI",
                     "direction": "destination-to-source"
                 },
                 {
                     "relationship-unique-id": "web-gui-trading-service",
-                    "sequence-number": 4,
+                    "sequence-number": 3,
                     "description": "User submits trade request with account, ticker, side, and quantity",
                     "direction": "source-to-destination"
                 },
                 {
                     "relationship-unique-id": "trading-service-reference-data-service",
-                    "sequence-number": 5,
+                    "sequence-number": 4,
                     "description": "Trading Service validates ticker with Reference Data Service",
                     "direction": "source-to-destination"
                 },
                 {
                     "relationship-unique-id": "trading-service-reference-data-service",
-                    "sequence-number": 6,
+                    "sequence-number": 5,
                     "description": "Reference Data Service returns validation result to Trading Service",
                     "direction": "destination-to-source"
                 },
                 {
                     "relationship-unique-id": "trading-service-account-service",
-                    "sequence-number": 7,
+                    "sequence-number": 6,
                     "description": "Trading Service validates account with Account Service",
                     "direction": "source-to-destination"
                 },
                 {
                     "relationship-unique-id": "trading-service-account-service",
-                    "sequence-number": 8,
+                    "sequence-number": 7,
                     "description": "Account Service returns validation result to Trading Service",
                     "direction": "destination-to-source"
                 },
                 {
                     "relationship-unique-id": "trading-service-messagebus",
-                    "sequence-number": 9,
+                    "sequence-number": 8,
                     "description": "Trading Service publishes new trade event to Message Bus",
                     "direction": "source-to-destination"
                 },
                 {
                     "relationship-unique-id": "web-gui-trading-service",
-                    "sequence-number": 10,
+                    "sequence-number": 9,
                     "description": "Trading Service returns completion response to Web GUI",
                     "direction": "destination-to-source"
                 }
