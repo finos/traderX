@@ -7,7 +7,7 @@ This log captures major milestones in the migration from source-first TraderX to
 - Baseline generation and runtime are operational from root `specs/**` + `.specify/**`.
 - Generated uncontainerized runtime scripts are canonical.
 - Legacy root infra (compose/ingress/gitops/radius) has been retired from the active baseline.
-- Current focus is finishing Phase C cleanup and then moving into Phase 10 learning-path transitions.
+- Phase C cleanup is closed; current focus is Phase 10 state release/tag execution.
 
 ## Timeline
 
@@ -69,6 +69,18 @@ This log captures major milestones in the migration from source-first TraderX to
   - added state generation support (`pipeline/generate-state-003-compose-assets.sh`, `pipeline/generate-state.sh`)
   - added runtime scripts (`start/stop/status-state-003-containerized-generated.sh`, `test-state-003-containerized.sh`)
   - updated state catalog + generated-state publish flow for `003`
+- Closed remaining Phase C checklist items:
+  - removed stale `TraderSpec/codebase/*` solution references from `traderX.sln`
+  - marked C.8/C.9/C.10 completed in migration TODO with final archive decision (`prompts/**` + `tools/**` retained)
+  - revalidated root SpecKit gates/readiness and docs production build
+- Added clone-first runtime docs/harness into generated-state branches:
+  - each generated branch now includes `RUN_FROM_CLONE.md`
+  - `001` and `002` include runnable `scripts/*` + lightweight compatibility layout under `generated/code/{components,target-generated}`
+  - `003` includes dedicated compose start/stop/status scripts directly in snapshot branch
+- Republished generated-state branches with clone-ready docs/scripts from source commit `b50d3b8`:
+  - `codex/generated-state-001-baseline-uncontainerized-parity` -> `af998f9`
+  - `codex/generated-state-002-edge-proxy-uncontainerized` -> `6711ff4`
+  - `codex/generated-state-003-containerized-compose-runtime` -> `aebc84a`
 
 ## What Changed Technically
 
@@ -121,8 +133,8 @@ The migration repeatedly validated with:
 
 ## Next
 
-- Close remaining Phase C residual cleanup.
-- Start Phase 10 learning-path overlays and state transition demonstrations from the canonical baseline.
+- Execute Phase 10 release tags on the refreshed generated-state branches.
+- Start learning-path overlays and state transition demonstrations from the canonical baseline.
 - Use the new state-transition planning model documented in:
   - `docs/spec-kit/state-transition-generation-plan.md`
   - `docs/spec-kit/why-speckit.md`
