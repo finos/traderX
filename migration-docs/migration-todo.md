@@ -4,8 +4,8 @@ This is the active program-of-record TODO for the SpecKit-first TraderX migratio
 
 ## Current Status
 
-- Current phase: `Phase C` (root flattening and docs simplification).
-- Next milestone: close Phase C and execute Phase 10 state releases (`001` -> `002` -> `003`).
+- Current phase: `Phase 10` (learning-path overlays and state releases).
+- Next milestone: release generated snapshot tags for `001`, `002`, and `003`.
 - Last updated: `2026-03-29`.
 
 ## Mission
@@ -26,7 +26,7 @@ Make root SpecKit artifacts (`.specify/` and `specs/`) the source of truth, with
 - `Phase 10` Learning-path evolution: pending.
 - `Phase 11` Root-level SpecKit canonical migration: complete.
 - `Phase B` Repo canonicalization to SpecKit-first baseline: complete.
-- `Phase C` Root flattening + docs simplification: in progress.
+- `Phase C` Root flattening + docs simplification: complete.
 
 ## Program TODO
 
@@ -55,7 +55,7 @@ Make root SpecKit artifacts (`.specify/` and `specs/`) the source of truth, with
 - [ ] 10.11 Generate/validate/release `003` state from specs and tag generated snapshot.
 - [x] 11) Complete root-level SpecKit canonical migration.
 - [x] B) Canonicalize repository to SpecKit-first generated baseline.
-- [ ] C) Finish root flattening cleanup and docs simplification.
+- [x] C) Finish root flattening cleanup and docs simplification.
 
 ## Active Phase C Checklist
 
@@ -66,9 +66,9 @@ Make root SpecKit artifacts (`.specify/` and `specs/`) the source of truth, with
 - [x] C.5 Move `TraderSpec/catalog/**` to `catalog/**` and rewire references.
 - [x] C.6 Move migration docs to `migration-docs/*` and remove legacy plugin overlap.
 - [x] C.7 Remove residual `TraderSpec/` folders that are no longer needed.
-- [ ] C.8 Re-run full validation set after final cleanup.
-- [ ] C.9 Finalize archive decisions for `prompts/**` and `tools/**` (retain only if still required by active states/automation).
-- [ ] C.10 Complete generated-artifact relocation to `generated/**` and remove remaining legacy `api-docs/**`/`TraderSpec/codebase/**` runtime references.
+- [x] C.8 Re-run full validation set after final cleanup.
+- [x] C.9 Finalize archive decisions for `prompts/**` and `tools/**` (decision: retain both; required by active `states/**` verification and docs tooling).
+- [x] C.10 Complete generated-artifact relocation to `generated/**` and remove remaining legacy `api-docs/**`/`TraderSpec/codebase/**` runtime references.
 
 ## Validation Gates for Phase C Exit
 

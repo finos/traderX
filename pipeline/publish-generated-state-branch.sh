@@ -190,12 +190,48 @@ EOF
 
 runtime_guidance_markdown() {
   case "${STATE_ID}" in
+    001-baseline-uncontainerized-parity)
+      cat <<'EOF'
+Run directly from this generated snapshot branch:
+
+```bash
+./scripts/start-base-uncontainerized-generated.sh
+```
+
+UI endpoint: `http://localhost:18093`
+
+Status / stop:
+
+```bash
+./scripts/status-base-uncontainerized-generated.sh
+./scripts/stop-base-uncontainerized-generated.sh
+```
+EOF
+      ;;
+    002-edge-proxy-uncontainerized)
+      cat <<'EOF'
+Run directly from this generated snapshot branch:
+
+```bash
+./scripts/start-state-002-edge-proxy-generated.sh
+```
+
+Browser endpoint (via edge proxy): `http://localhost:18080`
+
+Status / stop:
+
+```bash
+./scripts/status-state-002-edge-proxy-generated.sh
+./scripts/stop-state-002-edge-proxy-generated.sh
+```
+EOF
+      ;;
     003-containerized-compose-runtime)
       cat <<'EOF'
 Run directly from this generated snapshot branch:
 
 ```bash
-docker compose -f containerized-compose/docker-compose.yml up -d --build
+./scripts/start-state-003-containerized-generated.sh
 ```
 
 UI/ingress endpoint: `http://localhost:8080`
@@ -203,21 +239,225 @@ UI/ingress endpoint: `http://localhost:8080`
 Stop:
 
 ```bash
-docker compose -f containerized-compose/docker-compose.yml down --remove-orphans
+./scripts/stop-state-003-containerized-generated.sh
 ```
 EOF
       ;;
     *)
-      cat <<EOF
-This generated branch is a code snapshot and does not include the full SpecKit orchestration workspace.
+      cat <<'EOF'
+See `RUN_FROM_CLONE.md` for clone-first runtime instructions.
+EOF
+      ;;
+  esac
+}
 
-For reproducible startup/verification, use the canonical source branch at commit \`${SOURCE_COMMIT}\`:
+require_snapshot_component_dir() {
+  local component_rel="$1"
+  if [[ ! -d "${SNAPSHOT_DIR}/${component_rel}" ]]; then
+    echo "[fail] expected component directory missing in snapshot: ${component_rel}"
+    exit 1
+  fi
+}
 
-\`\`\`bash
-git checkout ${SOURCE_COMMIT}
-bash pipeline/generate-state.sh ${STATE_ID}
-${GENERATION_RUNTIME}
-\`\`\`
+link_snapshot_component() {
+  local component_name="$1"
+  local component_rel="$2"
+  require_snapshot_component_dir "${component_rel}"
+  ln -sfn "../../../${component_rel}" "${SNAPSHOT_DIR}/generated/code/components/${component_name}-specfirst"
+}
+
+install_uncontainerized_clone_harness() {
+  mkdir -p \
+    "${SNAPSHOT_DIR}/scripts" \
+    "${SNAPSHOT_DIR}/catalog" \
+    "${SNAPSHOT_DIR}/generated/code/components" \
+    "${SNAPSHOT_DIR}/generated/code/target-generated"
+
+  cp "${ROOT}/scripts/start-base-uncontainerized-generated.sh" "${SNAPSHOT_DIR}/scripts/"
+  cp "${ROOT}/scripts/stop-base-uncontainerized-generated.sh" "${SNAPSHOT_DIR}/scripts/"
+  cp "${ROOT}/scripts/status-base-uncontainerized-generated.sh" "${SNAPSHOT_DIR}/scripts/"
+  cp "${ROOT}/catalog/base-uncontainerized-processes.csv" "${SNAPSHOT_DIR}/catalog/"
+
+  link_snapshot_component "reference-data" "reference-data"
+  link_snapshot_component "database" "database"
+  link_snapshot_component "people-service" "people-service"
+  link_snapshot_component "account-service" "account-service"
+  link_snapshot_component "position-service" "position-service"
+  link_snapshot_component "trade-feed" "trade-feed"
+  link_snapshot_component "trade-processor" "trade-processor"
+  link_snapshot_component "trade-service" "trade-service"
+  link_snapshot_component "web-front-end-angular" "web-front-end/angular"
+
+  if [[ "${STATE_ID}" == "002-edge-proxy-uncontainerized" ]]; then
+    cp "${ROOT}/scripts/start-state-002-edge-proxy-generated.sh" "${SNAPSHOT_DIR}/scripts/"
+    cp "${ROOT}/scripts/stop-state-002-edge-proxy-generated.sh" "${SNAPSHOT_DIR}/scripts/"
+    cp "${ROOT}/scripts/status-state-002-edge-proxy-generated.sh" "${SNAPSHOT_DIR}/scripts/"
+    link_snapshot_component "edge-proxy" "edge-proxy"
+  fi
+}
+
+install_containerized_clone_harness() {
+  mkdir -p "${SNAPSHOT_DIR}/scripts"
+
+  cat > "${SNAPSHOT_DIR}/scripts/start-state-003-containerized-generated.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-003}"
+COMPOSE_FILE="${ROOT}/containerized-compose/docker-compose.yml"
+
+if ! command -v docker >/dev/null 2>&1; then
+  echo "[error] docker command not found"
+  exit 1
+fi
+
+if ! docker compose version >/dev/null 2>&1; then
+  echo "[error] docker compose plugin is required"
+  exit 1
+fi
+
+if [[ ! -f "${COMPOSE_FILE}" ]]; then
+  echo "[error] compose file not found: ${COMPOSE_FILE}"
+  exit 1
+fi
+
+docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" up -d --build
+echo "[done] state 003 containerized compose runtime started"
+echo "[ui] http://localhost:8080"
+EOF
+
+  cat > "${SNAPSHOT_DIR}/scripts/stop-state-003-containerized-generated.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-003}"
+COMPOSE_FILE="${ROOT}/containerized-compose/docker-compose.yml"
+
+if [[ ! -f "${COMPOSE_FILE}" ]]; then
+  echo "[error] compose file not found: ${COMPOSE_FILE}"
+  exit 1
+fi
+
+docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" down --remove-orphans
+echo "[done] state 003 containerized compose runtime stopped"
+EOF
+
+  cat > "${SNAPSHOT_DIR}/scripts/status-state-003-containerized-generated.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-003}"
+COMPOSE_FILE="${ROOT}/containerized-compose/docker-compose.yml"
+
+if [[ ! -f "${COMPOSE_FILE}" ]]; then
+  echo "[error] compose file not found: ${COMPOSE_FILE}"
+  exit 1
+fi
+
+docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" ps
+EOF
+
+  chmod +x \
+    "${SNAPSHOT_DIR}/scripts/start-state-003-containerized-generated.sh" \
+    "${SNAPSHOT_DIR}/scripts/stop-state-003-containerized-generated.sh" \
+    "${SNAPSHOT_DIR}/scripts/status-state-003-containerized-generated.sh"
+}
+
+write_clone_runbook() {
+  case "${STATE_ID}" in
+    001-baseline-uncontainerized-parity)
+      cat > "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
+# Run From Clone
+
+Prerequisites:
+- Java 21+
+- Node.js + npm
+- .NET runtime 9.x (`Microsoft.NETCore.App` and `Microsoft.AspNetCore.App`)
+- `nc`, `curl`, `lsof`
+- Outbound network access for Gradle/Maven/npm downloads
+
+Start:
+
+```bash
+CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh
+```
+
+Endpoints:
+- UI: `http://localhost:18093`
+- Reference data: `http://localhost:18085/stocks`
+- Trade service swagger: `http://localhost:18092/swagger-ui.html`
+
+Status / stop:
+
+```bash
+./scripts/status-base-uncontainerized-generated.sh
+./scripts/stop-base-uncontainerized-generated.sh
+```
+EOF
+      ;;
+    002-edge-proxy-uncontainerized)
+      cat > "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
+# Run From Clone
+
+Prerequisites:
+- Java 21+
+- Node.js + npm
+- .NET runtime 9.x (`Microsoft.NETCore.App` and `Microsoft.AspNetCore.App`)
+- `nc`, `curl`, `lsof`
+- Outbound network access for Gradle/Maven/npm downloads
+
+Start:
+
+```bash
+CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-state-002-edge-proxy-generated.sh
+```
+
+Endpoints:
+- Browser entrypoint (edge proxy): `http://localhost:18080`
+- Angular direct dev server: `http://localhost:18093`
+- Edge proxy health: `http://localhost:18080/health`
+
+Status / stop:
+
+```bash
+./scripts/status-state-002-edge-proxy-generated.sh
+./scripts/stop-state-002-edge-proxy-generated.sh
+```
+EOF
+      ;;
+    003-containerized-compose-runtime)
+      cat > "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
+# Run From Clone
+
+Prerequisites:
+- Docker Desktop (or Docker Engine + Compose plugin)
+
+Start:
+
+```bash
+./scripts/start-state-003-containerized-generated.sh
+```
+
+Endpoints:
+- UI / ingress: `http://localhost:8080`
+- Ingress health: `http://localhost:8080/health`
+
+Status / stop:
+
+```bash
+./scripts/status-state-003-containerized-generated.sh
+./scripts/stop-state-003-containerized-generated.sh
+```
+EOF
+      ;;
+    *)
+      cat > "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
+# Run From Clone
+
+No state-specific clone runtime instructions were generated for this snapshot.
 EOF
       ;;
   esac
@@ -283,6 +523,8 @@ $(state_summary_markdown)
 
 $(runtime_guidance_markdown)
 
+Detailed clone-first instructions: [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
+
 ## Canonical Specs And Docs
 
 Canonical source-of-truth is maintained in the SpecKit authoring branch, not in this code snapshot branch.
@@ -299,6 +541,17 @@ if [[ -n "${REPO_WEB_BASE}" ]]; then
 - SpecKit docs at source commit: ${REPO_WEB_BASE}/tree/${SOURCE_COMMIT}/docs/spec-kit
 EOF
 fi
+
+case "${STATE_ID}" in
+  001-baseline-uncontainerized-parity|002-edge-proxy-uncontainerized)
+    install_uncontainerized_clone_harness
+    ;;
+  003-containerized-compose-runtime)
+    install_containerized_clone_harness
+    ;;
+esac
+
+write_clone_runbook
 
 if git -C "${ROOT}" show-ref --verify --quiet "refs/heads/${BRANCH_NAME}"; then
   git -C "${ROOT}" worktree add "${WORKTREE_DIR}" "${BRANCH_NAME}" >/dev/null
