@@ -14,18 +14,22 @@ TraderX baseline generation now follows a root-canonical GitHub Spec Kit flow.
 
 Browse in docs:
 
-- `/specs/baseline-uncontainerized-parity/README`
+- `/specs/baseline-uncontainerized-parity`
 - `/specs/baseline-uncontainerized-parity/system/system-requirements`
 - `/specs/baseline-uncontainerized-parity/system/user-stories`
 - `/specs/baseline-uncontainerized-parity/system/acceptance-criteria`
 - `/specs/baseline-uncontainerized-parity/system/requirements-traceability`
+- `/specs/baseline-uncontainerized-parity/system/end-to-end-flows`
+- `/specs/baseline-uncontainerized-parity/system/architecture`
+- `/docs/spec-kit/state-docs`
 - `/api`
 - `/specify`
 
 ## Input Evidence For Requirements
 
-- `docs/overview.md`
-- `docs/flows.md`
+- `specs/001-baseline-uncontainerized-parity/system/architecture.model.json`
+- `specs/001-baseline-uncontainerized-parity/system/end-to-end-flows.md`
+- `specs/001-baseline-uncontainerized-parity/system/system-requirements.md`
 - `docs/README.md`
 - `README.md`
 
@@ -55,6 +59,8 @@ bash pipeline/generate-state.sh 001-baseline-uncontainerized-parity
 bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized
 bash pipeline/generate-state.sh 003-containerized-compose-runtime
 ```
+
+These commands also regenerate state architecture docs from `specs/*/system/architecture.model.json`.
 
 Generated outputs:
 

@@ -1,6 +1,11 @@
 # Non-Functional Step Prompts
 
-Use `TraderSpec/prompts/generation/01-generate-step-from-spec.md` with these step specs:
+Legacy prompt-pack references were retired. Use SpecKit workflow docs for step execution:
+
+- `docs/spec-kit/spec-kit-learning-path-strategy.md`
+- `docs/spec-kit/state-transition-generation-plan.md`
+
+Track step specs:
 
 - `nf-01-basic-auth` -> `tracks/nonfunctional/steps/01-basic-auth/spec.md`
 - `nf-02-oauth2` -> `tracks/nonfunctional/steps/02-oauth2/spec.md`
@@ -11,6 +16,4 @@ Use `TraderSpec/prompts/generation/01-generate-step-from-spec.md` with these ste
 - `nf-05-postgres-ha` -> `tracks/nonfunctional/steps/05-postgres-ha/spec.md`
 - `nf-05-circuit-breakers` -> `tracks/nonfunctional/steps/05-circuit-breakers/spec.md`
 
-Validation prompt for each step:
-
-- `TraderSpec/prompts/validation/01-validate-step-contracts.md`
+Validation is governed by canonical SpecKit/conformance gates in `pipeline/speckit/**`.

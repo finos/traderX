@@ -54,6 +54,11 @@ Current state-aware generation entrypoints:
 - `bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized`
 - `bash pipeline/generate-state.sh 003-containerized-compose-runtime`
 
+Architecture docs are generated from state-local models under `specs/*/system/architecture.model.json`:
+
+- `bash pipeline/generate-state-architecture-doc.sh 001-baseline-uncontainerized-parity`
+- `bash pipeline/generate-all-architecture-docs.sh`
+
 Containerized runtime (state `003`) commands:
 
 - `./scripts/start-state-003-containerized-generated.sh`

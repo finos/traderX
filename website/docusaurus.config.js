@@ -49,10 +49,11 @@ module.exports = {
         {to: '/docs/home', label: 'Overview', position: 'right'},
         {to: '/docs/spec-kit', label: 'Getting Started', position: 'right'},
         {to: '/specs', label: 'Specs', position: 'right'},
+        {to: '/docs/spec-kit/state-docs', label: 'State Docs', position: 'right'},
         {to: '/docs/adr', label: 'ADRs', position: 'right'},
         {to: '/specify/memory/constitution', label: 'Constitution', position: 'right'},
         {to: '/docs/learning-paths', label: 'Learning Paths', position: 'right'},
-        {to: '/api', label: 'API Explorer', position: 'right'},
+        {to: '/api', label: 'API Explorer (001)', position: 'right'},
         {type: 'search', position: 'right'},
         {
           href: 'https://github.com/finos/',
@@ -93,7 +94,7 @@ module.exports = {
               to: '/foundation',
             },
             {
-              label: 'API Explorer',
+              label: 'API Explorer (001)',
               to: '/api',
             },
             {

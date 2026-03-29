@@ -18,6 +18,7 @@ The portal publishes three repository sources:
 
 - Root specs catalog: `/specs`
 - Baseline feature pack: `/specs/baseline-uncontainerized-parity`
+- State docs map (flows + architecture): `/docs/spec-kit/state-docs`
 - OpenAPI API Explorer: `/api`
 - Project ADRs (MADR): `/docs/adr`
 - `.specify` constitution and templates: `/specify/memory/constitution`

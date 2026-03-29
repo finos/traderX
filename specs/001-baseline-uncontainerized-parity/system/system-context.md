@@ -4,8 +4,8 @@ TraderX is a distributed sample trading platform composed of REST services, a pu
 
 Authoritative context sources:
 
-- `docs/overview.md` (C4 view and component topology)
-- `docs/flows.md` (runtime sequence flows)
+- `system/architecture.md` (state-specific architecture model)
+- `system/end-to-end-flows.md` (runtime sequence flows)
 - `README.md` and `docs/README.md` (component runtime expectations)
 
 ## Baseline Runtime Shape

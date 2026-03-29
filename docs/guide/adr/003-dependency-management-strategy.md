@@ -158,7 +158,7 @@ updates:
 
 common_files=(
   "database/initialSchema.sql"
-  "docs/c4/c4-diagram.dsl"
+  "specs/001-baseline-uncontainerized-parity/system/architecture.model.json"
   "gradle/wrapper/gradle-wrapper.properties"
   # Add more common files
 )

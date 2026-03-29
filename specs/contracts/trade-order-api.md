@@ -56,4 +56,4 @@ Response:
 Changes to request/response fields require:
 
 - contract update in this file
-- Level 4 contract test update under `states/04-contract-driven/contract-tests`
+- corresponding state spec/task/conformance updates under `specs/NNN-*/**`

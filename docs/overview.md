@@ -1,7 +1,8 @@
-Below is a C4 diagram explaining the various componentry of the Sample Application.  The DSL for this diagram, as rendered, is [included](./c4/c4-diagram.dsl) in this repository.
+State-specific architecture and flow documentation now lives under root SpecKit feature packs.
 
 Generated runnable code snapshots are published as state branches documented in [Generated State Branches](./spec-kit/generated-state-branches.md).
 
-![C4 Diagram](./c4/c4-diagram.png)
-
-See Also: [Sequence Diagrams and Flows](./flows.md)
+- Baseline architecture: [State 001 Architecture](/specs/baseline-uncontainerized-parity/system/architecture)
+- Baseline flows: [State 001 End-to-End Flows](/specs/baseline-uncontainerized-parity/system/end-to-end-flows)
+- Edge-proxy architecture: [State 002 Architecture](/specs/edge-proxy-uncontainerized/system/architecture)
+- Containerized architecture: [State 003 Architecture](/specs/containerized-compose-runtime/system/architecture)

@@ -30,10 +30,12 @@ flowchart LR
   S003["003 Compose Runtime"] --> D["DevEx Track"]
   S003 --> N["Non-Functional Track"]
   S003 --> F["Functional Track"]
+  S003 --> A["Architecture Track"]
 
   D --> D1["DevEx: Kubernetes / GitOps / Platform Ops"]
   N --> N1["NFR: Auth / Observability / Resilience / Data"]
   F --> F1["FR: Domain + UI feature expansion"]
+  A --> A1["Architecture: CALM model adoption + generation"]
 ```
 
 Use `catalog/state-catalog.json` as the canonical state lineage record, and publish code snapshots with:

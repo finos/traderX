@@ -8,7 +8,8 @@
     "swizzle": "docusaurus swizzle",
     "build": "npm run gen:api-docs && docusaurus build",
     "publish-gh-pages": "docusaurus deploy",
-    "gen:api-docs": "mkdir -p ../generated/api-docs && rm -rf ../generated/api-docs/account-service ../generated/api-docs/people-service ../generated/api-docs/position-service ../generated/api-docs/reference-data ../generated/api-docs/trade-processor ../generated/api-docs/trade-service && docusaurus gen-api-docs account-service && docusaurus gen-api-docs people-service && docusaurus gen-api-docs position-service && docusaurus gen-api-docs reference-data && docusaurus gen-api-docs trade-processor && docusaurus gen-api-docs trade-service"
+    "gen:api-docs": "mkdir -p ../generated/api-docs && rm -rf ../generated/api-docs/account-service ../generated/api-docs/people-service ../generated/api-docs/position-service ../generated/api-docs/reference-data ../generated/api-docs/trade-processor ../generated/api-docs/trade-service && docusaurus gen-api-docs account-service && docusaurus gen-api-docs people-service && docusaurus gen-api-docs position-service && docusaurus gen-api-docs reference-data && docusaurus gen-api-docs trade-processor && docusaurus gen-api-docs trade-service && npm run gen:api-index",
+    "gen:api-index": "node ./scripts/generate-api-index.mjs"
   },
   "dependencies": {
     "@docusaurus/core": "^3.2.0",

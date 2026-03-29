@@ -129,4 +129,4 @@ As an operations user, I need to create/update accounts and assign users validat
 - Baseline scope is pre-containerized local-process runtime.
 - Angular frontend is the active UI baseline.
 - Local toolchains are available (`node`, `npm`, `java`, `gradle`, `dotnet`).
-- Current component behavior in `docs/flows.md`, `docs/overview.md`, and root `README.md` is the intended baseline target.
+- Current component behavior in `system/end-to-end-flows.md`, `system/architecture.md`, and root `README.md` is the intended baseline target.

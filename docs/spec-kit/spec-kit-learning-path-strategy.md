@@ -18,6 +18,16 @@ Current published baseline progression:
 - `002-edge-proxy-uncontainerized`
 - `003-containerized-compose-runtime`
 
+## Candidate Next Architecture Step
+
+One planned learning-path candidate is adopting CALM as architecture modeling input:
+
+- CALM reference: [https://calm.finos.org](https://calm.finos.org)
+- Expected transition shape:
+  - add CALM architecture artifacts per state,
+  - map CALM model deltas to state requirements,
+  - regenerate state architecture docs and implementation with traceability.
+
 ## Required Artifacts Per Transition
 
 - `spec.md`: user stories, acceptance criteria, and explicit in-scope change.

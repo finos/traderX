@@ -37,7 +37,7 @@ This log captures major milestones in the migration from source-first TraderX to
   - removed obsolete infra and folders
   - made generated runtime scripts canonical
   - archived legacy workflows
-  - validated runtime, conformance, parity, docs, and state verifiers
+  - validated runtime, conformance, parity, and docs
 - Began and advanced Phase C:
   - moved operational folders to root (`pipeline/`, `scripts/`, `templates/`, `catalog/`)
   - moved `foundation/` and `tracks/` to root
@@ -71,7 +71,7 @@ This log captures major milestones in the migration from source-first TraderX to
   - updated state catalog + generated-state publish flow for `003`
 - Closed remaining Phase C checklist items:
   - removed stale `TraderSpec/codebase/*` solution references from `traderX.sln`
-  - marked C.8/C.9/C.10 completed in migration TODO with final archive decision (`prompts/**` + `tools/**` retained)
+  - marked C.8/C.9/C.10 completed in migration TODO with archive decision captured
   - revalidated root SpecKit gates/readiness and docs production build
 - Added clone-first runtime docs/harness into generated-state branches:
   - each generated branch now includes `RUN_FROM_CLONE.md`
@@ -81,6 +81,16 @@ This log captures major milestones in the migration from source-first TraderX to
   - `codex/generated-state-001-baseline-uncontainerized-parity` -> `af998f9`
   - `codex/generated-state-002-edge-proxy-uncontainerized` -> `6711ff4`
   - `codex/generated-state-003-containerized-compose-runtime` -> `aebc84a`
+- Moved flow and architecture source-of-truth into state packs under `specs/**`:
+  - migrated sequence-flow source to `specs/001-baseline-uncontainerized-parity/system/end-to-end-flows.md`
+  - introduced generated architecture docs from state-local models:
+    - `specs/*/system/architecture.model.json` -> `specs/*/system/architecture.md`
+    - generation scripts: `pipeline/generate-state-architecture-doc.sh` and `pipeline/generate-all-architecture-docs.sh`
+  - wired `pipeline/generate-state.sh` to regenerate architecture docs per state
+  - removed legacy `docs/flows.md` and `docs/c4/*` artifacts
+- Removed legacy learning-path scaffolding folders:
+  - deleted `states/**` and `prompts/**` from active repository surface
+  - retained learning-path progression in canonical spec/docs artifacts (`specs/**`, `docs/spec-kit/**`, `docs/learning-paths/**`)
 
 ## What Changed Technically
 
@@ -128,7 +138,6 @@ The migration repeatedly validated with:
 - readiness/expressiveness/coverage checks
 - per-component conformance packs
 - full parity runtime validation
-- all learning-state verifier scripts
 - Docusaurus docs build with on-demand API docs generation
 
 ## Next

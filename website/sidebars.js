@@ -9,6 +9,7 @@ module.exports = {
         'spec-kit/why-speckit',
         'spec-kit/spec-kit-generation-guide',
         'spec-kit/spec-kit-workflow',
+        'spec-kit/state-docs',
         'spec-kit/generated-state-branches',
         'spec-kit/run-generated-overlays',
         'spec-kit/baseline-vs-parity',
@@ -23,6 +24,21 @@ module.exports = {
           type: 'link',
           label: 'Spec Catalog',
           href: '/specs',
+        },
+        {
+          type: 'link',
+          label: 'State 001',
+          href: '/specs/baseline-uncontainerized-parity',
+        },
+        {
+          type: 'link',
+          label: 'State 002',
+          href: '/specs/edge-proxy-uncontainerized',
+        },
+        {
+          type: 'link',
+          label: 'State 003',
+          href: '/specs/containerized-compose-runtime',
         },
         {
           type: 'link',

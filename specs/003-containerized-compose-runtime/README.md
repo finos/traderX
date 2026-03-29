@@ -10,3 +10,9 @@ Primary intent:
 - use NGINX as the containerized ingress layer for browser/API/WebSocket entry,
 - preserve approved functional behavior,
 - document runtime NFR changes explicitly in spec artifacts.
+
+Implemented architecture artifacts:
+
+- `system/architecture.model.json` + generated `system/architecture.md`
+- `system/runtime-topology.md`
+- `system/docker-compose.spec.yaml`

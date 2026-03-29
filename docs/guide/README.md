@@ -29,8 +29,8 @@ TraderX is being transformed into an educational platform that demonstrates mult
 
 ## Learning-Path Runtime Scaffolding
 
-- State folders: `states/00-monolith` through `states/05-ai-first`
-- Prompt pack: `prompts/**`
+- State folder scaffolding has been retired from the active repo.
+- Prompt pack scaffolding has been retired from the active repo.
 - Contracts and architecture specs: `specs/contracts` and `specs/architecture`
 - Learning graph index: `docs/learning-paths/index.md`
 

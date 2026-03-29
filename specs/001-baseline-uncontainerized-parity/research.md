@@ -3,8 +3,8 @@
 ## Inputs Reviewed
 
 - `README.md` (manual local run order and port model)
-- `docs/flows.md` (functional sequence flows F1-F6)
-- `docs/overview.md` (component topology reference)
+- `system/end-to-end-flows.md` (functional sequence flows F1-F6)
+- `system/architecture.md` (state-specific architecture model)
 - Existing generated runtime scripts under `scripts/`
 - Canonical baseline contracts under `specs/001-baseline-uncontainerized-parity/contracts/**`
 

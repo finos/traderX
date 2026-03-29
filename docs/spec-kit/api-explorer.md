@@ -6,9 +6,11 @@ title: API Explorer
 
 TraderX now publishes interactive API reference docs in Docusaurus from the canonical OpenAPI contracts.
 
+The explorer is intentionally state-scoped. Today it represents the baseline contracts in `001-baseline-uncontainerized-parity`.
+
 ## Browse
 
-- Explorer landing page: `/api`
+- Explorer landing page: `/api` (state `001` scope)
 - Source contracts: `specs/001-baseline-uncontainerized-parity/contracts/**/openapi.yaml`
 
 ## Regenerate API Docs

@@ -13,7 +13,7 @@ Evolve delivery and developer workflow from traditional setup to cloud-native op
 
 `base-00-traditional -> 01-foundation -> 02-docker-compose -> 03-tilt-dev -> (04-kubernetes | 04-radius) -> 05-gitops`
 
-## Prompt Entry
+## Execution Entry
 
-- `TraderSpec/prompts/generation/01-generate-step-from-spec.md`
-- `TraderSpec/prompts/validation/01-validate-step-contracts.md`
+- `docs/spec-kit/spec-kit-learning-path-strategy.md`
+- `docs/spec-kit/state-transition-generation-plan.md`

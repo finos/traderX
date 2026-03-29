@@ -1,6 +1,11 @@
 # DevEx Step Prompts
 
-Use `TraderSpec/prompts/generation/01-generate-step-from-spec.md` with these step specs:
+Legacy prompt-pack references were retired. Use SpecKit workflow docs for step execution:
+
+- `docs/spec-kit/spec-kit-learning-path-strategy.md`
+- `docs/spec-kit/state-transition-generation-plan.md`
+
+Track step specs:
 
 - `devex-01-foundation` -> `tracks/devex/steps/01-foundation/spec.md`
 - `devex-02-docker-compose` -> `tracks/devex/steps/02-docker-compose/spec.md`
@@ -9,6 +14,4 @@ Use `TraderSpec/prompts/generation/01-generate-step-from-spec.md` with these ste
 - `devex-04-radius` -> `tracks/devex/steps/04-radius/spec.md`
 - `devex-05-gitops` -> `tracks/devex/steps/05-gitops/spec.md`
 
-Validation prompt for each step:
-
-- `TraderSpec/prompts/validation/01-validate-step-contracts.md`
+Validation is governed by canonical SpecKit/conformance gates in `pipeline/speckit/**`.

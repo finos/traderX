@@ -14,6 +14,7 @@ Primary intent:
 Implemented artifacts:
 
 - `system/edge-routing.json`
+- `system/architecture.model.json` + generated `system/architecture.md`
 - `system/runtime-topology.md`
 - `components/edge-proxy.md`
 - `pipeline/generate-state.sh` (state `002` entrypoint)

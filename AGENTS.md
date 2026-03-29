@@ -1,25 +1,19 @@
 # AGENTS.md
 
-This repository follows a learning-path-first, multi-state architecture. Agents should use this file as the primary operating contract.
+This repository follows a SpecKit-first, multi-state architecture. Agents should use this file as the primary operating contract.
 
 ## Core Model
 
 - Learning guides live in `docs/guide/**/*.md` and must include normalized front-matter.
-- Runnable implementation states live in `states/<id>/`.
-- Contracts and architecture specs live in `specs/contracts` and `specs/architecture`.
-- Agent prompts live in `prompts/**`.
+- State definitions and contracts live in root `specs/NNN-*` feature packs.
+- Contracts and architecture docs are generated from state-local spec artifacts.
 - Learning graph index lives at `docs/learning-paths/index.md`.
 
-## Levels and State IDs
+## Active State IDs
 
-- Level 0: `00-monolith`
-- Level 1: `01-basic-microservices`
-- Level 2: `02-containerized`
-- Level 3: `03-service-mesh`
-- Level 4: `04-contract-driven`
-- Level 5: `05-ai-first`
-
-Level 3 includes a Solo demo landing zone: `states/03-service-mesh/solo-demo`.
+- `001-baseline-uncontainerized-parity`
+- `002-edge-proxy-uncontainerized`
+- `003-containerized-compose-runtime`
 
 ## Guide Front-Matter Contract
 
@@ -35,7 +29,7 @@ prereqs:
 outcomes:
   - "A concrete testable outcome"
 state:
-  id: "00-monolith|01-basic-microservices|02-containerized|03-service-mesh|04-contract-driven|05-ai-first"
+  id: "001-baseline-uncontainerized-parity|002-edge-proxy-uncontainerized|003-containerized-compose-runtime"
   diffFromPrev: true
 tags: ["learning-path","traderx"]
 estimatedTimeMins: 20
@@ -48,34 +42,25 @@ Validation script: `tools/validate-frontmatter.sh`
 
 ## Required Contents Per State
 
-Each state should include:
+Each state feature pack should include:
 
-- `README.md` with Objectives, Run, Verify, Teardown, and What changed vs previous level
-- `scripts/verify.sh` (or `.ps1`) exiting non-zero on failure
+- `spec.md` with FR/NFR and scenarios
+- `plan.md` and `tasks.md` for execution
+- `system/**` with requirements, flows, architecture model, and generated architecture docs
+- `README.md` with state intent and scope
 
-Level 3 additionally requires:
+## Prompt Pack Status
 
-- `states/03-service-mesh/solo-demo/manifests`
-- `states/03-service-mesh/solo-demo/scripts`
-- `states/03-service-mesh/solo-demo/observability`
-
-## Prompt Pack
-
-- `prompts/session/00_session-kickoff.md`
-- `prompts/navigation/learning-path-navigator.md`
-- `prompts/generation/state-from-contract.md`
-- `prompts/explanation/diff-between-states.md`
-- `prompts/validation/mesh-sanity-check.md`
-- `prompts/contrib/new-learning-path.md`
-- `prompts/explanation/release-notes-and-pr-plan.md` (optional)
-
-Agents should prefer these prompts over ad-hoc improvisation.
+Legacy `prompts/**` scaffolding has been retired from the active repository surface.
+Use the canonical SpecKit artifacts and docs under `docs/spec-kit/**` instead.
 
 ## Quality Gates
 
 ```bash
 tools/validate-frontmatter.sh
-find states -maxdepth 3 -type f -name "verify.sh" -print -exec {} \;
+bash pipeline/speckit/validate-root-spec-kit-gates.sh
+bash pipeline/speckit/validate-speckit-readiness.sh
+bash pipeline/verify-spec-coverage.sh
 ```
 
 If docs dependencies are installed:

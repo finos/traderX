@@ -67,7 +67,7 @@ Make root SpecKit artifacts (`.specify/` and `specs/`) the source of truth, with
 - [x] C.6 Move migration docs to `migration-docs/*` and remove legacy plugin overlap.
 - [x] C.7 Remove residual `TraderSpec/` folders that are no longer needed.
 - [x] C.8 Re-run full validation set after final cleanup.
-- [x] C.9 Finalize archive decisions for `prompts/**` and `tools/**` (decision: retain both; required by active `states/**` verification and docs tooling).
+- [x] C.9 Finalize archive decisions for `prompts/**` and `tools/**` (decision updated: `prompts/**` removed as legacy; `tools/**` retained for active docs checks).
 - [x] C.10 Complete generated-artifact relocation to `generated/**` and remove remaining legacy `api-docs/**`/`TraderSpec/codebase/**` runtime references.
 
 ## Validation Gates for Phase C Exit
@@ -80,9 +80,6 @@ Run all of these from repo root:
 - `bash pipeline/verify-spec-coverage.sh`
 - `bash pipeline/speckit/run-all-conformance-packs.sh`
 - `bash pipeline/speckit/run-full-parity-validation.sh`
-- `bash states/00-monolith/scripts/verify.sh`
-- `bash states/01-basic-microservices/scripts/verify.sh`
-- `bash states/02-containerized/scripts/verify.sh`
 - `npm --prefix website run build`
 
 ## Phase 10 Preview
