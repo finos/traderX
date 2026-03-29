@@ -33,7 +33,7 @@ Since all facets of an architecture are contained in a single source file that c
 Open [`trading-system.architecture.json`](trading-system.architecture.json) in your editor to explore nodes, interfaces, relationships, and flows.  
 
 **Option 2: VSCode CALM Tool Extension**
-CALM project provides a VSCode extension to view a CALM architecture and its components in the VSCode IDE.  This is useful for real-time feedback when modifying the architecture.  See this [web page for installation and usage](https://calm.finos.org/tutorials/beginner/04-vscode-extension) of the extension.
+CALM project provides a VSCode extension to view a CALM architecture and its components in the VSCode IDE.  This is more human friendly and useful for real-time feedback when modifying the architecture.  See this [web page for installation and usage](https://calm.finos.org/tutorials/beginner/04-vscode-extension) of the extension.
 
 ![VSCode CALM Tool](./images/calm-vscode-tool-box.png)
 
