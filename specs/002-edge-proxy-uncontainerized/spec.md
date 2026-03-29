@@ -2,7 +2,7 @@
 
 **Feature Branch**: `002-edge-proxy-uncontainerized`  
 **Created**: 2026-03-29  
-**Status**: Draft  
+**Status**: Implemented (pending release tag)  
 **Input**: Transition delta from `001-baseline-uncontainerized-parity`
 
 ## User Stories
@@ -29,3 +29,9 @@
 - SC-201: UI works end-to-end through the edge endpoint for baseline flows.
 - SC-202: No contract drift relative to approved contracts unless explicitly updated in this pack.
 - SC-203: Generated snapshot is tagged and linked to validation evidence.
+
+## Generation + Runtime Entry Points
+
+- generation: `bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized`
+- runtime: `./scripts/start-state-002-edge-proxy-generated.sh`
+- smoke test: `./scripts/test-state-002-edge-proxy.sh`

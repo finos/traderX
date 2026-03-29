@@ -21,15 +21,7 @@ The baseline implementation is generated and validated from requirements, storie
 Generate baseline components:
 
 ```bash
-bash pipeline/generate-reference-data-specfirst.sh
-bash pipeline/generate-database-specfirst.sh
-bash pipeline/generate-people-service-specfirst.sh
-bash pipeline/generate-account-service-specfirst.sh
-bash pipeline/generate-position-service-specfirst.sh
-bash pipeline/generate-trade-feed-specfirst.sh
-bash pipeline/generate-trade-processor-specfirst.sh
-bash pipeline/generate-trade-service-specfirst.sh
-bash pipeline/generate-web-front-end-angular-specfirst.sh
+bash pipeline/generate-state.sh 001-baseline-uncontainerized-parity
 ```
 
 Start/stop/status:

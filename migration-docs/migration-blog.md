@@ -54,6 +54,12 @@ This log captures major milestones in the migration from source-first TraderX to
   - documented generated-state branch workflow and provenance files (`STATE.md`, `.traderx-state/state.json`)
   - published first baseline code-only branch snapshot:
     - `codex/generated-state-001-baseline-uncontainerized-parity` (source commit `6b97250`)
+- Implemented state `002-edge-proxy-uncontainerized` generation path:
+  - added `pipeline/generate-state.sh` with state-aware generation entrypoints and impact summary
+  - added spec-driven edge routing input (`specs/002-edge-proxy-uncontainerized/system/edge-routing.json`)
+  - added generated edge-proxy component (`templates/edge-proxy-specfirst`, `pipeline/generate-edge-proxy-specfirst.sh`)
+  - added state runtime scripts (`start/stop/status-state-002-edge-proxy-generated.sh`) and smoke test script
+  - updated state catalog to mark `002` generation mode as implemented
 
 ## What Changed Technically
 

@@ -20,15 +20,15 @@
     {
       "id": "002-edge-proxy-uncontainerized",
       "title": "Edge Proxy Uncontainerized",
-      "status": "draft",
+      "status": "implemented",
       "featurePack": "specs/002-edge-proxy-uncontainerized",
       "previous": [
         "001-baseline-uncontainerized-parity"
       ],
       "generation": {
-        "mode": "planned",
-        "entrypoint": null,
-        "runtime": null
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized",
+        "runtime": "./scripts/start-state-002-edge-proxy-generated.sh"
       },
       "publish": {
         "branch": "codex/generated-state-002-edge-proxy-uncontainerized",

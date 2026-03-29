@@ -51,6 +51,18 @@ Default branch target for baseline:
 
 - `codex/generated-state-001-baseline-uncontainerized-parity`
 
+State `002-edge-proxy-uncontainerized` now uses:
+
+- generation: `bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized`
+- runtime: `./scripts/start-state-002-edge-proxy-generated.sh`
+- publish branch: `codex/generated-state-002-edge-proxy-uncontainerized`
+
+Publish branch snapshot:
+
+```bash
+bash pipeline/publish-generated-state-branch.sh 002-edge-proxy-uncontainerized --push
+```
+
 ## How To Add A New State
 
 1. Create the feature pack under `specs/NNN-...`.

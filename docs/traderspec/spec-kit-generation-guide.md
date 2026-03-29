@@ -22,15 +22,7 @@ This guide explains how to regenerate TraderX from requirements, then iterate in
 ## Generate Baseline Components
 
 ```bash
-bash pipeline/generate-reference-data-specfirst.sh
-bash pipeline/generate-database-specfirst.sh
-bash pipeline/generate-people-service-specfirst.sh
-bash pipeline/generate-account-service-specfirst.sh
-bash pipeline/generate-position-service-specfirst.sh
-bash pipeline/generate-trade-feed-specfirst.sh
-bash pipeline/generate-trade-processor-specfirst.sh
-bash pipeline/generate-trade-service-specfirst.sh
-bash pipeline/generate-web-front-end-angular-specfirst.sh
+bash pipeline/generate-state.sh 001-baseline-uncontainerized-parity
 ```
 
 ## Run the Generated Baseline
@@ -55,6 +47,11 @@ bash pipeline/speckit/run-full-parity-validation.sh
 4. Regenerate only impacted components, then rerun conformance/parity gates.
 
 This keeps progression reversible and auditable across DevEx, NFR, and functional tracks.
+
+Current state-aware generation entrypoints:
+
+- `bash pipeline/generate-state.sh 001-baseline-uncontainerized-parity`
+- `bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized`
 
 ## Publish Code-Only Snapshot Branches
 

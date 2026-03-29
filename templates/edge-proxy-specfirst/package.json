@@ -1,0 +1,14 @@
+{
+  "name": "traderx-edge-proxy-specfirst",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Spec-first generated edge proxy for TraderX state 002",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "http-proxy-middleware": "^3.0.3"
+  }
+}

@@ -19,3 +19,11 @@
 - Component conformance packs for impacted components.
 - End-to-end smoke checks for F1-F6 through edge routing.
 - Full parity validation against intended state constraints.
+
+## Implemented Generation Surface
+
+- `bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized`
+- `bash pipeline/generate-edge-proxy-specfirst.sh`
+- `bash pipeline/apply-state-002-web-overlay.sh`
+- `./scripts/start-state-002-edge-proxy-generated.sh`
+- `./scripts/test-state-002-edge-proxy.sh`

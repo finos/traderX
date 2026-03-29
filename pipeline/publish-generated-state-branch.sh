@@ -67,6 +67,7 @@ GEN_MODE="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | .gene
 STATE_TITLE="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | .title' "${CATALOG}")"
 DEFAULT_BRANCH="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | .publish.branch' "${CATALOG}")"
 TAG_HINT="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | .publish.tag' "${CATALOG}")"
+GENERATION_ENTRYPOINT="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | .generation.entrypoint' "${CATALOG}")"
 
 BRANCH_NAME="${BRANCH_OVERRIDE:-${DEFAULT_BRANCH}}"
 if [[ "${BRANCH_NAME}" != codex/* ]]; then
@@ -94,11 +95,15 @@ fi
 echo "[info] generating state ${STATE_ID} (${STATE_TITLE})"
 case "${STATE_ID}" in
   001-baseline-uncontainerized-parity)
-    bash "${ROOT}/pipeline/generate-from-spec.sh"
+    bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
     "${ROOT}/scripts/start-base-uncontainerized-generated.sh" --dry-run
     ;;
+  002-edge-proxy-uncontainerized)
+    bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+    "${ROOT}/scripts/start-state-002-edge-proxy-generated.sh" --dry-run
+    ;;
   *)
-    echo "[fail] no generation flow implemented yet for ${STATE_ID}"
+    echo "[fail] no generated snapshot flow implemented yet for ${STATE_ID}"
     exit 1
     ;;
 esac
@@ -142,7 +147,7 @@ cat > "${SNAPSHOT_DIR}/.traderx-state/state.json" <<EOF
   "sourceBranch": "${SOURCE_BRANCH}",
   "sourceCommit": "${SOURCE_COMMIT}",
   "generatedAtUtc": "${GENERATED_AT_UTC}",
-  "generationEntryPoint": "bash pipeline/generate-from-spec.sh",
+  "generationEntryPoint": "${GENERATION_ENTRYPOINT}",
   "publishTagHint": "${TAG_HINT}"
 }
 EOF
