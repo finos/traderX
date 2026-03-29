@@ -1,5 +1,5 @@
 ---
-architecture: trading-system.architecture.json
+architecture: ../trading-system.architecture.json
 ---
 ## Architecture Overview
 ```mermaid
@@ -34,6 +34,7 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
         end
         class trading-system boundary
 
+    reference-data-csv["CSV File"]:::node
     trader["Trader"]:::node
     user-directory["User Directory"]:::node
 
@@ -46,6 +47,7 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
     trading-services -->|Validates securities when creating trades| reference-data-service
     trading-services -->|Validates accounts when creating trades| account-service
     people-service -->|Looks up people data| user-directory
+    reference-data-service -->|Loads ticker symbols from CSV file at startup| reference-data-csv
     account-service -->|CRUD operations around accounts.| database
     account-service -->|Validates People IDs when creating/modifying accounts| people-service
     position-service -->|Looks up default positions for a given account| database
@@ -53,7 +55,7 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
     trading-services -->|Publishes updates to trades and positions after persisting in the DB| messagebus
     messagebus -->|Processes incoming trade requests, persist, and publish updates| trade-processor
     trade-processor -->|Processes incoming trade requests, persist, and publish updates| messagebus
-    messagebus -->|Subscribes to trade/position updates feed for currently viewed account| web-gui
+    web-gui -->|Subscribes to trade/position updates feed for currently viewed account| messagebus
 
 
 
@@ -88,10 +90,12 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
         end
         class trading-system boundary
 
+    reference-data-csv["CSV File"]:::node
 
     web-gui -->|Looks up securities to assist with creating a trade ticket| reference-data-service
     web-gui -->|Creates new Trades and Cancel existing trades| trading-services
     trading-services -->|Validates securities when creating trades| reference-data-service
+    reference-data-service -->|Loads ticker symbols from CSV file at startup| reference-data-csv
 
 
     class reference-data-service highlight
@@ -167,6 +171,7 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
         end
         class trading-system boundary
 
+    reference-data-csv["CSV File"]:::node
     trader["Trader"]:::node
     user-directory["User Directory"]:::node
 
@@ -179,11 +184,12 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
     trading-services -->|Validates securities when creating trades| reference-data-service
     trading-services -->|Validates accounts when creating trades| account-service
     people-service -->|Looks up people data| user-directory
+    reference-data-service -->|Loads ticker symbols from CSV file at startup| reference-data-csv
     account-service -->|CRUD operations around accounts.| database
     account-service -->|Validates People IDs when creating/modifying accounts| people-service
     position-service -->|Looks up default positions for a given account| database
     trading-services -->|Publishes updates to trades and positions after persisting in the DB| messagebus
-    messagebus -->|Subscribes to trade/position updates feed for currently viewed account| web-gui
+    web-gui -->|Subscribes to trade/position updates feed for currently viewed account| messagebus
 
 
     class reference-data-service highlight
@@ -371,6 +377,7 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
         end
         class trading-system boundary
 
+    reference-data-csv["CSV File"]:::node
     trader["Trader"]:::node
     user-directory["User Directory"]:::node
 
@@ -383,6 +390,7 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
     trading-services -->|Validates securities when creating trades| reference-data-service
     trading-services -->|Validates accounts when creating trades| account-service
     people-service -->|Looks up people data| user-directory
+    reference-data-service -->|Loads ticker symbols from CSV file at startup| reference-data-csv
     account-service -->|CRUD operations around accounts.| database
     account-service -->|Validates People IDs when creating/modifying accounts| people-service
     position-service -->|Looks up default positions for a given account| database
@@ -390,7 +398,7 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
     trading-services -->|Publishes updates to trades and positions after persisting in the DB| messagebus
     messagebus -->|Processes incoming trade requests, persist, and publish updates| trade-processor
     trade-processor -->|Processes incoming trade requests, persist, and publish updates| messagebus
-    messagebus -->|Subscribes to trade/position updates feed for currently viewed account| web-gui
+    web-gui -->|Subscribes to trade/position updates feed for currently viewed account| messagebus
 
 
     class reference-data-service highlight
@@ -615,6 +623,7 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
         end
         class trading-system boundary
 
+    reference-data-csv["CSV File"]:::node
     trader["Trader"]:::node
     user-directory["User Directory"]:::node
 
@@ -627,6 +636,7 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
     trading-services -->|Validates securities when creating trades| reference-data-service
     trading-services -->|Validates accounts when creating trades| account-service
     people-service -->|Looks up people data| user-directory
+    reference-data-service -->|Loads ticker symbols from CSV file at startup| reference-data-csv
     account-service -->|CRUD operations around accounts.| database
     account-service -->|Validates People IDs when creating/modifying accounts| people-service
     position-service -->|Looks up default positions for a given account| database
@@ -634,7 +644,7 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
     trading-services -->|Publishes updates to trades and positions after persisting in the DB| messagebus
     messagebus -->|Processes incoming trade requests, persist, and publish updates| trade-processor
     trade-processor -->|Processes incoming trade requests, persist, and publish updates| messagebus
-    messagebus -->|Subscribes to trade/position updates feed for currently viewed account| web-gui
+    web-gui -->|Subscribes to trade/position updates feed for currently viewed account| messagebus
 
 
     class reference-data-service highlight
