@@ -52,6 +52,14 @@ Current state-aware generation entrypoints:
 
 - `bash pipeline/generate-state.sh 001-baseline-uncontainerized-parity`
 - `bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized`
+- `bash pipeline/generate-state.sh 003-containerized-compose-runtime`
+
+Containerized runtime (state `003`) commands:
+
+- `./scripts/start-state-003-containerized-generated.sh`
+- `./scripts/status-state-003-containerized-generated.sh`
+- `./scripts/test-state-003-containerized.sh`
+- `./scripts/stop-state-003-containerized-generated.sh`
 
 ## Publish Code-Only Snapshot Branches
 
@@ -59,6 +67,12 @@ For consumers who want runnable code without the full spec authoring workspace, 
 
 ```bash
 bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --push
+```
+
+And for state `003`:
+
+```bash
+bash pipeline/publish-generated-state-branch.sh 003-containerized-compose-runtime --push
 ```
 
 Published snapshot branches include:

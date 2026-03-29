@@ -63,6 +63,11 @@ This log captures major milestones in the migration from source-first TraderX to
   - published generated code branch snapshot:
     - `codex/generated-state-002-edge-proxy-uncontainerized` (source commit `25c7e16`)
 - Removed remaining tracked `TraderSpec/` legacy folder artifacts after root canonicalization.
+- Implemented state `003-containerized-compose-runtime` generation and runtime scaffolding:
+  - added compose/runtime spec artifacts under `specs/003-containerized-compose-runtime/system/**`
+  - added state generation support (`pipeline/generate-state-003-compose-assets.sh`, `pipeline/generate-state.sh`)
+  - added runtime scripts (`start/stop/status-state-003-containerized-generated.sh`, `test-state-003-containerized.sh`)
+  - updated state catalog + generated-state publish flow for `003`
 
 ## What Changed Technically
 

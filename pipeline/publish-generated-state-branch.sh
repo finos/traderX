@@ -102,6 +102,13 @@ case "${STATE_ID}" in
     bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
     "${ROOT}/scripts/start-state-002-edge-proxy-generated.sh" --dry-run
     ;;
+  003-containerized-compose-runtime)
+    bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+    [[ -f "${ROOT}/generated/code/target-generated/containerized-compose/docker-compose.yml" ]] || {
+      echo "[fail] missing generated compose file for state 003"
+      exit 1
+    }
+    ;;
   *)
     echo "[fail] no generated snapshot flow implemented yet for ${STATE_ID}"
     exit 1

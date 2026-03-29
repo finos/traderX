@@ -51,7 +51,7 @@ Make root SpecKit artifacts (`.specify/` and `specs/`) the source of truth, with
 - [x] 10.8 Finalize `002-edge-proxy-uncontainerized` spec pack (NFR-first state delta).
 - [ ] 10.9 Generate/validate/release `002` state from specs and tag generated snapshot.
 - [x] 10.9a Publish generated-state branch snapshot for `002` (`codex/generated-state-002-edge-proxy-uncontainerized`).
-- [ ] 10.10 Finalize `003-containerized-compose-runtime` spec pack.
+- [x] 10.10 Finalize `003-containerized-compose-runtime` spec pack.
 - [ ] 10.11 Generate/validate/release `003` state from specs and tag generated snapshot.
 - [x] 11) Complete root-level SpecKit canonical migration.
 - [x] B) Canonicalize repository to SpecKit-first generated baseline.

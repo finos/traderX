@@ -63,6 +63,18 @@ Publish branch snapshot:
 bash pipeline/publish-generated-state-branch.sh 002-edge-proxy-uncontainerized --push
 ```
 
+State `003-containerized-compose-runtime` now uses:
+
+- generation: `bash pipeline/generate-state.sh 003-containerized-compose-runtime`
+- runtime: `./scripts/start-state-003-containerized-generated.sh`
+- publish branch: `codex/generated-state-003-containerized-compose-runtime`
+
+Publish branch snapshot:
+
+```bash
+bash pipeline/publish-generated-state-branch.sh 003-containerized-compose-runtime --push
+```
+
 ## How To Add A New State
 
 1. Create the feature pack under `specs/NNN-...`.

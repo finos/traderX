@@ -53,6 +53,7 @@ Regenerate baseline components:
 ```bash
 bash pipeline/generate-state.sh 001-baseline-uncontainerized-parity
 bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized
+bash pipeline/generate-state.sh 003-containerized-compose-runtime
 ```
 
 Generated outputs:
@@ -65,6 +66,15 @@ Run generated baseline stack:
 
 ```bash
 CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh
+```
+
+Run generated containerized stack (state `003`):
+
+```bash
+./scripts/start-state-003-containerized-generated.sh
+./scripts/status-state-003-containerized-generated.sh
+./scripts/test-state-003-containerized.sh
+./scripts/stop-state-003-containerized-generated.sh
 ```
 
 ## Full Parity Gate

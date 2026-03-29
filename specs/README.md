@@ -17,7 +17,7 @@ This repository now uses the GitHub Spec Kit canonical structure at repo root:
   - introduces an edge routing/proxy boundary for browser traffic.
   - expected to be primarily NFR/topology deltas.
 
-- `003-containerized-compose-runtime` (draft)
+- `003-containerized-compose-runtime` (implemented; pending release tag)
   - introduces Docker/Docker Compose runtime packaging for the baseline stack.
   - expected to be primarily runtime/operations NFR deltas.
 

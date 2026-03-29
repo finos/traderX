@@ -70,3 +70,30 @@ Stop:
 ```bash
 ./scripts/stop-state-002-edge-proxy-generated.sh
 ```
+
+## State 003 (Containerized Compose) Runtime
+
+Generate and start:
+
+```bash
+bash pipeline/generate-state.sh 003-containerized-compose-runtime
+./scripts/start-state-003-containerized-generated.sh
+```
+
+Status:
+
+```bash
+./scripts/status-state-003-containerized-generated.sh
+```
+
+Smoke test:
+
+```bash
+./scripts/test-state-003-containerized.sh
+```
+
+Stop:
+
+```bash
+./scripts/stop-state-003-containerized-generated.sh
+```

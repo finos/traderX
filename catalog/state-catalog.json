@@ -38,15 +38,15 @@
     {
       "id": "003-containerized-compose-runtime",
       "title": "Containerized Compose Runtime",
-      "status": "draft",
+      "status": "implemented",
       "featurePack": "specs/003-containerized-compose-runtime",
       "previous": [
         "002-edge-proxy-uncontainerized"
       ],
       "generation": {
-        "mode": "planned",
-        "entrypoint": null,
-        "runtime": null
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-state.sh 003-containerized-compose-runtime",
+        "runtime": "./scripts/start-state-003-containerized-generated.sh"
       },
       "publish": {
         "branch": "codex/generated-state-003-containerized-compose-runtime",
