@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAtUtc": "2026-03-29T12:13:12Z",
+  "component": {
+    "id": "people-service",
+    "kind": "service",
+    "language": "C#",
+    "framework": "ASP.NET Core",
+    "buildTool": "dotnet",
+    "sourcePath": "generated/code/components/people-service-specfirst",
+    "targetPath": "apps/people-service",
+    "notes": "Directory lookups and person validation."
+  },
+  "runtime": {
+    "defaultPort": 18089,
+    "dependsOn": [],
+    "requiredEnv": ["PEOPLE_SERVICE_PORT","CORS_ALLOWED_ORIGINS"]
+  },
+  "contracts": {
+    "primary": "specs/001-baseline-uncontainerized-parity/contracts/people-service/openapi.yaml"
+  },
+  "traceability": {
+    "requirements": ["SYS-FR-001","SYS-FR-009","SYS-FR-011","SYS-NFR-001"],
+    "stories": ["US-001","US-006","US-007","US-008"],
+    "acceptanceCriteria": ["AC-001","AC-007","AC-008","AC-009"],
+    "flows": ["F1","F6","STARTUP"],
+    "verificationRefs": ["scripts/start-base-uncontainerized-generated.sh","scripts/test-people-service-overlay.sh"]
+  },
+  "constraints": {
+    "preIngressCorsRequired": true
+  }
+}

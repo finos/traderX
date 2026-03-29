@@ -1,0 +1,6 @@
+FROM eclipse-temurin:21-jdk
+WORKDIR /app
+COPY . .
+RUN chmod +x gradlew run.sh && ./gradlew --no-daemon clean build
+EXPOSE 18082 18083 18084
+ENTRYPOINT ["./run.sh"]

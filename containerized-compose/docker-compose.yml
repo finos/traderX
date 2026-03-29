@@ -1,0 +1,156 @@
+name: traderx-state-003
+
+services:
+  database:
+    build:
+      context: ../database
+      dockerfile: Dockerfile.compose
+    environment:
+      DATABASE_TCP_PORT: "18082"
+      DATABASE_PG_PORT: "18083"
+      DATABASE_WEB_PORT: "18084"
+      DATABASE_WEB_HOSTNAMES: "localhost,database"
+    ports:
+      - "18082:18082"
+      - "18083:18083"
+      - "18084:18084"
+
+  reference-data:
+    build:
+      context: ../reference-data
+      dockerfile: Dockerfile.compose
+    environment:
+      REFERENCE_DATA_SERVICE_PORT: "18085"
+      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+    ports:
+      - "18085:18085"
+    depends_on:
+      - database
+
+  trade-feed:
+    build:
+      context: ../trade-feed
+      dockerfile: Dockerfile.compose
+    environment:
+      TRADE_FEED_PORT: "18086"
+      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+    ports:
+      - "18086:18086"
+
+  people-service:
+    build:
+      context: ../people-service
+      dockerfile: Dockerfile.compose
+    environment:
+      PEOPLE_SERVICE_PORT: "18089"
+      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+    ports:
+      - "18089:18089"
+
+  account-service:
+    build:
+      context: ../account-service
+      dockerfile: Dockerfile.compose
+    environment:
+      ACCOUNT_SERVICE_PORT: "18088"
+      DATABASE_TCP_HOST: "database"
+      DATABASE_TCP_PORT: "18082"
+      PEOPLE_SERVICE_HOST: "people-service"
+      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+    ports:
+      - "18088:18088"
+    depends_on:
+      - database
+      - people-service
+
+  position-service:
+    build:
+      context: ../position-service
+      dockerfile: Dockerfile.compose
+    environment:
+      POSITION_SERVICE_PORT: "18090"
+      DATABASE_TCP_HOST: "database"
+      DATABASE_TCP_PORT: "18082"
+      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+    ports:
+      - "18090:18090"
+    depends_on:
+      - database
+
+  trade-processor:
+    build:
+      context: ../trade-processor
+      dockerfile: Dockerfile.compose
+    environment:
+      TRADE_PROCESSOR_SERVICE_PORT: "18091"
+      DATABASE_TCP_HOST: "database"
+      DATABASE_TCP_PORT: "18082"
+      TRADE_FEED_HOST: "trade-feed"
+      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+    ports:
+      - "18091:18091"
+    depends_on:
+      - database
+      - trade-feed
+
+  trade-service:
+    build:
+      context: ../trade-service
+      dockerfile: Dockerfile.compose
+    environment:
+      TRADING_SERVICE_PORT: "18092"
+      ACCOUNT_SERVICE_HOST: "account-service"
+      REFERENCE_DATA_HOST: "reference-data"
+      PEOPLE_SERVICE_HOST: "people-service"
+      TRADE_FEED_HOST: "trade-feed"
+      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+    ports:
+      - "18092:18092"
+    depends_on:
+      - account-service
+      - reference-data
+      - people-service
+      - trade-feed
+      - trade-processor
+
+  web-front-end-angular:
+    build:
+      context: ../web-front-end/angular
+      dockerfile: Dockerfile.compose
+    environment:
+      WEB_SERVICE_PORT: "18093"
+    ports:
+      - "18093:18093"
+    depends_on:
+      - account-service
+      - reference-data
+      - trade-service
+      - position-service
+      - people-service
+      - trade-feed
+
+  ingress:
+    build:
+      context: ../ingress
+      dockerfile: Dockerfile.compose
+    environment:
+      NGINX_HOST: "localhost"
+      DATABASE_URL: "http://database:18084/"
+      REFERENCE_DATA_URL: "http://reference-data:18085/"
+      TRADE_FEED_URL: "http://trade-feed:18086/"
+      PEOPLE_SERVICE_URL: "http://people-service:18089/"
+      ACCOUNT_SERVICE_URL: "http://account-service:18088/"
+      POSITION_SERVICE_URL: "http://position-service:18090/"
+      TRADE_PROCESSOR_URL: "http://trade-processor:18091/"
+      TRADE_SERVICE_URL: "http://trade-service:18092/"
+      WEB_FRONTEND_URL: "http://web-front-end-angular:18093/"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - web-front-end-angular
+      - account-service
+      - reference-data
+      - trade-service
+      - position-service
+      - people-service
+      - trade-feed

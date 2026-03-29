@@ -1,0 +1,13 @@
+{
+  "stateId": "003-containerized-compose-runtime",
+  "stateTitle": "Containerized Compose Runtime (NGINX Ingress)",
+  "stateStatus": "implemented",
+  "featurePack": "specs/003-containerized-compose-runtime",
+  "previousStates": ["002-edge-proxy-uncontainerized"],
+  "nextStates": [],
+  "sourceBranch": "feature/agentic-renovation",
+  "sourceCommit": "5f4c794a305c6cbbdcac8f7ff2364966b055e048",
+  "generatedAtUtc": "2026-03-29T12:14:08Z",
+  "generationEntryPoint": "bash pipeline/generate-state.sh 003-containerized-compose-runtime",
+  "publishTagHint": "generated/003-containerized-compose-runtime/v1"
+}

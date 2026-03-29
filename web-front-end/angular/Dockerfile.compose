@@ -1,0 +1,8 @@
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 18093
+ENV WEB_SERVICE_PORT=18093
+CMD ["npm", "run", "start"]
