@@ -3,12 +3,18 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 STATE_ID="${1:-}"
+TARGET_ROOT="${ROOT}/generated/code/target-generated"
 
 if [[ -z "${STATE_ID}" ]]; then
   echo "usage: bash pipeline/generate-state.sh <state-id>"
   echo "example: bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized"
   exit 1
 fi
+
+# Always regenerate from a clean target so each state output is deterministic
+# and does not carry unrelated artifacts from prior state runs.
+rm -rf "${TARGET_ROOT}"
+mkdir -p "${TARGET_ROOT}"
 
 case "${STATE_ID}" in
   001-baseline-uncontainerized-parity)

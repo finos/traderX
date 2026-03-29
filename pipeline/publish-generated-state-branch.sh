@@ -149,6 +149,83 @@ trap cleanup EXIT
 cp -R "${SNAPSHOT_ROOT}/." "${SNAPSHOT_DIR}/"
 rm -rf "${SNAPSHOT_DIR}/.run"
 
+CORE_COMPONENT_DIRS=(
+  "account-service"
+  "database"
+  "people-service"
+  "position-service"
+  "reference-data"
+  "trade-feed"
+  "trade-processor"
+  "trade-service"
+  "web-front-end"
+)
+
+snapshot_keep_paths_for_state() {
+  case "${STATE_ID}" in
+    001-baseline-uncontainerized-parity)
+      printf '%s\n' "${CORE_COMPONENT_DIRS[@]}"
+      ;;
+    002-edge-proxy-uncontainerized)
+      printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "edge-proxy"
+      ;;
+    003-containerized-compose-runtime)
+      printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "containerized-compose" "ingress"
+      ;;
+    004-kubernetes-runtime)
+      printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "kubernetes-runtime"
+      ;;
+    005-radius-kubernetes-platform)
+      printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "kubernetes-runtime" "radius-kubernetes-platform"
+      ;;
+    006-tilt-kubernetes-dev-loop)
+      printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "kubernetes-runtime" "tilt-kubernetes-dev-loop"
+      ;;
+    *)
+      find "${SNAPSHOT_DIR}" -mindepth 1 -maxdepth 1 -exec basename {} \;
+      ;;
+  esac
+}
+
+path_in_keep_list() {
+  local needle="$1"
+  shift || true
+  local item
+  for item in "$@"; do
+    if [[ "${needle}" == "${item}" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+prune_snapshot_for_state() {
+  local keep_paths=()
+  mapfile -t keep_paths < <(snapshot_keep_paths_for_state | sed '/^$/d' | sort -u)
+  if [[ "${#keep_paths[@]}" -eq 0 ]]; then
+    echo "[fail] no keep-paths resolved for state ${STATE_ID}"
+    exit 1
+  fi
+
+  local required
+  for required in "${keep_paths[@]}"; do
+    if [[ ! -e "${SNAPSHOT_DIR}/${required}" ]]; then
+      echo "[fail] expected state artifact missing after generation: ${required}"
+      exit 1
+    fi
+  done
+
+  local entry base
+  while IFS= read -r entry; do
+    base="$(basename "${entry}")"
+    if ! path_in_keep_list "${base}" "${keep_paths[@]}"; then
+      rm -rf "${entry}"
+    fi
+  done < <(find "${SNAPSHOT_DIR}" -mindepth 1 -maxdepth 1 -print)
+}
+
+prune_snapshot_for_state
+
 SOURCE_COMMIT="$(git -C "${ROOT}" rev-parse HEAD)"
 SOURCE_BRANCH="$(git -C "${ROOT}" branch --show-current)"
 GENERATED_AT_UTC="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
@@ -300,17 +377,21 @@ EOF
 Run directly from this generated snapshot branch:
 
 ```bash
-./scripts/start-state-005-radius-kubernetes-platform-generated.sh --provider kind
+./scripts/start-state-004-kubernetes-generated.sh --provider kind
 ```
 
 UI/edge endpoint: `http://localhost:8080`
 
-Status / test / stop:
+Radius artifact pack:
+
+- `radius-kubernetes-platform/radius/app.bicep`
+- `radius-kubernetes-platform/radius/bicepconfig.json`
+
+Status / stop:
 
 ```bash
-./scripts/status-state-005-radius-kubernetes-platform-generated.sh --provider kind
-./scripts/test-state-005-radius-kubernetes-platform.sh http://localhost:8080 traderx kind traderx-state-004
-./scripts/stop-state-005-radius-kubernetes-platform-generated.sh --provider kind
+./scripts/status-state-004-kubernetes-generated.sh --provider kind
+./scripts/stop-state-004-kubernetes-generated.sh --provider kind
 ```
 EOF
       ;;
@@ -319,18 +400,22 @@ EOF
 Run directly from this generated snapshot branch:
 
 ```bash
-./scripts/start-state-006-tilt-kubernetes-dev-loop-generated.sh --provider kind
+./scripts/start-state-004-kubernetes-generated.sh --provider kind
 ```
 
 UI/edge endpoint: `http://localhost:8080`
 Tilt UI: `http://localhost:10350`
 
-Status / test / stop:
+Tilt artifact pack:
+
+- `tilt-kubernetes-dev-loop/tilt/Tiltfile`
+- `tilt-kubernetes-dev-loop/tilt/tilt-settings.json`
+
+Status / stop:
 
 ```bash
-./scripts/status-state-006-tilt-kubernetes-dev-loop-generated.sh --provider kind
-./scripts/test-state-006-tilt-kubernetes-dev-loop.sh http://localhost:8080 traderx kind traderx-state-004
-./scripts/stop-state-006-tilt-kubernetes-dev-loop-generated.sh --provider kind
+./scripts/status-state-004-kubernetes-generated.sh --provider kind
+./scripts/stop-state-004-kubernetes-generated.sh --provider kind
 ```
 EOF
       ;;
@@ -936,6 +1021,64 @@ Status / stop:
 ```
 EOF
       ;;
+    005-radius-kubernetes-platform)
+      cat > "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
+# Run From Clone
+
+Prerequisites:
+- Docker
+- kubectl
+- jq
+- Kind (default) or Minikube
+
+Start baseline runtime (inherited from state 004):
+
+```bash
+./scripts/start-state-004-kubernetes-generated.sh
+```
+
+State 005 artifact pack:
+- `radius-kubernetes-platform/radius/app.bicep`
+- `radius-kubernetes-platform/radius/bicepconfig.json`
+- `radius-kubernetes-platform/radius/.rad/rad.yaml`
+
+Optional Radius flow:
+
+```bash
+cd radius-kubernetes-platform/radius
+rad run app.bicep
+```
+EOF
+      ;;
+    006-tilt-kubernetes-dev-loop)
+      cat > "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
+# Run From Clone
+
+Prerequisites:
+- Docker
+- kubectl
+- jq
+- Kind (default) or Minikube
+- Tilt (optional, for interactive dev loop)
+
+Start baseline runtime (inherited from state 004):
+
+```bash
+./scripts/start-state-004-kubernetes-generated.sh
+```
+
+State 006 artifact pack:
+- `tilt-kubernetes-dev-loop/tilt/Tiltfile`
+- `tilt-kubernetes-dev-loop/tilt/tilt-settings.json`
+
+Optional Tilt flow:
+
+```bash
+cd tilt-kubernetes-dev-loop/tilt
+tilt up
+```
+EOF
+      ;;
     *)
       cat > "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
 # Run From Clone
@@ -1032,7 +1175,7 @@ case "${STATE_ID}" in
   003-containerized-compose-runtime)
     install_containerized_clone_harness
     ;;
-  004-kubernetes-runtime)
+  004-kubernetes-runtime|005-radius-kubernetes-platform|006-tilt-kubernetes-dev-loop)
     install_kubernetes_clone_harness
     ;;
 esac
