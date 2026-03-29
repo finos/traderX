@@ -14,7 +14,7 @@ This folder contains the CALM (Common Architecture Language Model) architecture 
 
 ## What is CALM?
 
-CALM (Common Architecture Language Model) is a sibling project of TraderX within the FINOS family of open source projects. It provides a JSON-based declarative language for describing system architectures in regulated environments.
+CALM (Common Architecture Language Model) is a sibling project of TraderX within the FINOS family of open source projects. It provides a JSON-based declarative language for describing system architectures.
 
 CALM enables:
 
@@ -33,24 +33,39 @@ Open [`trading-system.architecture.json`](trading-system.architecture.json) in y
 **Option 2: Read generated documentation**  
 The `docs/` folder contains human-readable Markdown documentation generated from the CALM model.
 
+## Generating CALM Architecture Documents
 
-## Architecture Model Structure
+The documentation in the `docs/` subfolder is generated from the CALM architecture model using Handlebars templates and the CALM CLI.
 
-The TraderX CALM model includes:
+### Prerequisites
 
-- **Nodes** - Services, databases, and UI components
-- **Interfaces** - APIs, WebSocket feeds, and database connections
-- **Relationships** - How components interact and depend on each other
-- **Flows** - Business processes like trade creation and position updates
-- **Metadata** - Deployment information, technology stack, and documentation links
+Install the CALM CLI globally:
 
+```shell
+npm install -g @finos/calm-cli
+```
 
-## Integration with TraderX Documentation
+### Generate Architecture Overview
 
-The CALM model complements TraderX's existing documentation:
+Generate the system architecture overview with diagrams and node tables:
 
-- **C4 diagrams** in `docs/c4/` show visual architecture
-- **Mermaid diagrams** in `docs/flows.md` show sequence flows
-- **CALM model** provides machine-readable, compliance-ready architecture definition
+```shell
+calm template \
+  -a trading-system.architecture.json \
+  --template templates/architecture-overview.md.hbs \
+  -o docs/trading-system-overview.md
+```
 
-Keep the CALM model synchronized with code and diagram changes.
+### Generate Flow Documentation
+
+Generate business flow sequence diagrams and descriptions:
+
+```shell
+calm template \
+  -a trading-system.architecture.json \
+  --template templates/flows-overview.md.hbs \
+  -o docs/flow-overview.md
+```
+
+**Note:** The templates use Handlebars syntax with CALM-specific helpers like `{{block-architecture}}`, `{{table}}`, and `{{flow-sequence}}` to generate Mermaid diagrams and HTML tables from the architecture model.
+
