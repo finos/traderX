@@ -7,8 +7,8 @@
 - Previous States: `[]`
 - Next States: `["002-edge-proxy-uncontainerized"]`
 - Source Branch: `feature/agentic-renovation`
-- Source Commit: `486f97f130817bd3180d1833bff3ff16a608f566`
-- Generated At (UTC): `2026-03-29T12:40:47Z`
+- Source Commit: `b50d3b8830bef17bedc5a6f2fb10dc98aeece650`
+- Generated At (UTC): `2026-03-29T13:04:41Z`
 - Suggested Tag: `generated/001-baseline-uncontainerized-parity/v1`
 
 Machine-readable metadata: `.traderx-state/state.json`
