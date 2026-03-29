@@ -19,6 +19,7 @@ This repository now uses the GitHub Spec Kit canonical structure at repo root:
 
 - `003-containerized-compose-runtime` (implemented; pending release tag)
   - introduces Docker/Docker Compose runtime packaging for the baseline stack.
+  - uses NGINX for containerized ingress in this state.
   - expected to be primarily runtime/operations NFR deltas.
 
 ## Transitional Note

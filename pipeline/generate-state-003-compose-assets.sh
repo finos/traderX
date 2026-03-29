@@ -4,9 +4,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TARGET="${ROOT}/generated/code/target-generated"
 SPEC_COMPOSE_PATH="${ROOT}/specs/003-containerized-compose-runtime/system/docker-compose.spec.yaml"
-SPEC_EDGE_ROUTES_PATH="${ROOT}/specs/003-containerized-compose-runtime/system/edge-routing.json"
-EDGE_COMPONENT_DIR="${ROOT}/generated/code/components/edge-proxy-specfirst"
-EDGE_TARGET_DIR="${TARGET}/edge-proxy"
+SPEC_INGRESS_TEMPLATE_PATH="${ROOT}/specs/003-containerized-compose-runtime/system/ingress-nginx.conf.template"
+INGRESS_TARGET_DIR="${TARGET}/ingress"
 COMPOSE_DIR="${TARGET}/containerized-compose"
 
 [[ -f "${SPEC_COMPOSE_PATH}" ]] || {
@@ -14,23 +13,18 @@ COMPOSE_DIR="${TARGET}/containerized-compose"
   exit 1
 }
 
-[[ -f "${SPEC_EDGE_ROUTES_PATH}" ]] || {
-  echo "[fail] missing edge routing spec: ${SPEC_EDGE_ROUTES_PATH}"
-  exit 1
-}
-
-[[ -d "${EDGE_COMPONENT_DIR}" ]] || {
-  echo "[fail] missing generated edge-proxy component: ${EDGE_COMPONENT_DIR}"
+[[ -f "${SPEC_INGRESS_TEMPLATE_PATH}" ]] || {
+  echo "[fail] missing nginx ingress template spec: ${SPEC_INGRESS_TEMPLATE_PATH}"
   exit 1
 }
 
 # Ensure target-generated is aligned with the latest generated components.
 "${ROOT}/scripts/start-base-uncontainerized-generated.sh" --dry-run >/dev/null
 
-# Add edge-proxy component into target-generated for containerized state assets.
-rm -rf "${EDGE_TARGET_DIR}"
-cp -R "${EDGE_COMPONENT_DIR}" "${EDGE_TARGET_DIR}"
-cp "${SPEC_EDGE_ROUTES_PATH}" "${EDGE_TARGET_DIR}/config/routes.json"
+# Add ingress component for containerized state assets.
+rm -rf "${INGRESS_TARGET_DIR}"
+mkdir -p "${INGRESS_TARGET_DIR}"
+cp "${SPEC_INGRESS_TEMPLATE_PATH}" "${INGRESS_TARGET_DIR}/nginx.traderx.conf.template"
 
 write_spring_boot_dockerfile() {
   local service_dir="$1"
@@ -111,15 +105,41 @@ ENV WEB_SERVICE_PORT=18093
 CMD ["npm", "run", "start"]
 EOF
 
-cat <<'EOF' > "${TARGET}/edge-proxy/Dockerfile.compose"
-FROM node:20-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-EXPOSE 18080
-ENV EDGE_PROXY_PORT=18080
-CMD ["npm", "run", "start"]
+cat <<'EOF' > "${TARGET}/ingress/Dockerfile.compose"
+FROM nginx:alpine-slim
+EXPOSE 8080
+
+ARG NGINX_HOST="localhost"
+ENV NGINX_HOST=${NGINX_HOST}
+
+ARG DATABASE_URL="http://database:18084/"
+ENV DATABASE_URL=${DATABASE_URL}
+
+ARG TRADE_PROCESSOR_URL="http://trade-processor:18091/"
+ENV TRADE_PROCESSOR_URL=${TRADE_PROCESSOR_URL}
+
+ARG ACCOUNT_SERVICE_URL="http://account-service:18088/"
+ENV ACCOUNT_SERVICE_URL=${ACCOUNT_SERVICE_URL}
+
+ARG PEOPLE_SERVICE_URL="http://people-service:18089/"
+ENV PEOPLE_SERVICE_URL=${PEOPLE_SERVICE_URL}
+
+ARG POSITION_SERVICE_URL="http://position-service:18090/"
+ENV POSITION_SERVICE_URL=${POSITION_SERVICE_URL}
+
+ARG REFERENCE_DATA_URL="http://reference-data:18085/"
+ENV REFERENCE_DATA_URL=${REFERENCE_DATA_URL}
+
+ARG TRADE_FEED_URL="http://trade-feed:18086/"
+ENV TRADE_FEED_URL=${TRADE_FEED_URL}
+
+ARG WEB_FRONTEND_URL="http://web-front-end-angular:18093/"
+ENV WEB_FRONTEND_URL=${WEB_FRONTEND_URL}
+
+ARG TRADE_SERVICE_URL="http://trade-service:18092/"
+ENV TRADE_SERVICE_URL=${TRADE_SERVICE_URL}
+
+COPY nginx.traderx.conf.template /etc/nginx/templates/default.conf.template
 EOF
 
 mkdir -p "${COMPOSE_DIR}"
@@ -131,13 +151,17 @@ cat <<EOF > "${COMPOSE_DIR}/README.md"
 Generated from:
 
 - \`specs/003-containerized-compose-runtime/system/docker-compose.spec.yaml\`
-- \`specs/003-containerized-compose-runtime/system/edge-routing.json\`
+- \`specs/003-containerized-compose-runtime/system/ingress-nginx.conf.template\`
 
 Run:
 
 \`\`\`bash
 docker compose -f docker-compose.yml up -d --build
 \`\`\`
+
+Ingress UI:
+
+- \`http://localhost:8080\`
 EOF
 
 echo "[done] generated state 003 compose assets at ${COMPOSE_DIR}"

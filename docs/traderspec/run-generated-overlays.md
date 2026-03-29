@@ -80,6 +80,8 @@ bash pipeline/generate-state.sh 003-containerized-compose-runtime
 ./scripts/start-state-003-containerized-generated.sh
 ```
 
+Ingress/UI endpoint: `http://localhost:8080`
+
 Status:
 
 ```bash

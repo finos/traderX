@@ -65,6 +65,7 @@ This log captures major milestones in the migration from source-first TraderX to
 - Removed remaining tracked `TraderSpec/` legacy folder artifacts after root canonicalization.
 - Implemented state `003-containerized-compose-runtime` generation and runtime scaffolding:
   - added compose/runtime spec artifacts under `specs/003-containerized-compose-runtime/system/**`
+  - aligned container ingress to NGINX (close to prior `main` branch compose topology)
   - added state generation support (`pipeline/generate-state-003-compose-assets.sh`, `pipeline/generate-state.sh`)
   - added runtime scripts (`start/stop/status-state-003-containerized-generated.sh`, `test-state-003-containerized.sh`)
   - updated state catalog + generated-state publish flow for `003`

@@ -60,6 +60,7 @@ Containerized runtime (state `003`) commands:
 - `./scripts/status-state-003-containerized-generated.sh`
 - `./scripts/test-state-003-containerized.sh`
 - `./scripts/stop-state-003-containerized-generated.sh`
+- ingress endpoint: `http://localhost:8080`
 
 ## Publish Code-Only Snapshot Branches
 

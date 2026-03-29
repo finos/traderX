@@ -4,15 +4,15 @@ State `003-containerized-compose-runtime` retains state `002` routing behavior w
 
 ## Entry Points
 
-- Edge/UI: `http://localhost:18080`
+- Ingress/UI: `http://localhost:8080`
 - Angular direct (debug): `http://localhost:18093`
 - Service/debug ports preserved (`18082`-`18092`) for troubleshooting.
 
 ## Service Discovery Model
 
 - Inter-service traffic uses Docker Compose service DNS names.
-- Browser traffic enters only through edge proxy (`edge-proxy` service).
-- Edge routing config is sourced from `system/edge-routing.json`.
+- Browser traffic enters through NGINX ingress (`ingress` service).
+- Ingress routing config is sourced from `system/ingress-nginx.conf.template`.
 
 ## Startup Model
 
@@ -22,4 +22,4 @@ State `003-containerized-compose-runtime` retains state `002` routing behavior w
 ## Source-of-Truth Artifacts
 
 - `system/docker-compose.spec.yaml`
-- `system/edge-routing.json`
+- `system/ingress-nginx.conf.template`

@@ -21,7 +21,7 @@ services:
       dockerfile: Dockerfile.compose
     environment:
       REFERENCE_DATA_SERVICE_PORT: "18085"
-      CORS_ALLOWED_ORIGINS: "http://localhost:18080"
+      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
     ports:
       - "18085:18085"
     depends_on:
@@ -33,7 +33,7 @@ services:
       dockerfile: Dockerfile.compose
     environment:
       TRADE_FEED_PORT: "18086"
-      CORS_ALLOWED_ORIGINS: "http://localhost:18080"
+      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
     ports:
       - "18086:18086"
 
@@ -43,7 +43,7 @@ services:
       dockerfile: Dockerfile.compose
     environment:
       PEOPLE_SERVICE_PORT: "18089"
-      CORS_ALLOWED_ORIGINS: "http://localhost:18080"
+      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
     ports:
       - "18089:18089"
 
@@ -56,7 +56,7 @@ services:
       DATABASE_TCP_HOST: "database"
       DATABASE_TCP_PORT: "18082"
       PEOPLE_SERVICE_HOST: "people-service"
-      CORS_ALLOWED_ORIGINS: "http://localhost:18080"
+      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
     ports:
       - "18088:18088"
     depends_on:
@@ -71,7 +71,7 @@ services:
       POSITION_SERVICE_PORT: "18090"
       DATABASE_TCP_HOST: "database"
       DATABASE_TCP_PORT: "18082"
-      CORS_ALLOWED_ORIGINS: "http://localhost:18080"
+      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
     ports:
       - "18090:18090"
     depends_on:
@@ -86,7 +86,7 @@ services:
       DATABASE_TCP_HOST: "database"
       DATABASE_TCP_PORT: "18082"
       TRADE_FEED_HOST: "trade-feed"
-      CORS_ALLOWED_ORIGINS: "http://localhost:18080"
+      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
     ports:
       - "18091:18091"
     depends_on:
@@ -103,7 +103,7 @@ services:
       REFERENCE_DATA_HOST: "reference-data"
       PEOPLE_SERVICE_HOST: "people-service"
       TRADE_FEED_HOST: "trade-feed"
-      CORS_ALLOWED_ORIGINS: "http://localhost:18080"
+      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
     ports:
       - "18092:18092"
     depends_on:
@@ -129,14 +129,23 @@ services:
       - people-service
       - trade-feed
 
-  edge-proxy:
+  ingress:
     build:
-      context: ../edge-proxy
+      context: ../ingress
       dockerfile: Dockerfile.compose
     environment:
-      EDGE_PROXY_PORT: "18080"
+      NGINX_HOST: "localhost"
+      DATABASE_URL: "http://database:18084/"
+      REFERENCE_DATA_URL: "http://reference-data:18085/"
+      TRADE_FEED_URL: "http://trade-feed:18086/"
+      PEOPLE_SERVICE_URL: "http://people-service:18089/"
+      ACCOUNT_SERVICE_URL: "http://account-service:18088/"
+      POSITION_SERVICE_URL: "http://position-service:18090/"
+      TRADE_PROCESSOR_URL: "http://trade-processor:18091/"
+      TRADE_SERVICE_URL: "http://trade-service:18092/"
+      WEB_FRONTEND_URL: "http://web-front-end-angular:18093/"
     ports:
-      - "18080:18080"
+      - "8080:8080"
     depends_on:
       - web-front-end-angular
       - account-service

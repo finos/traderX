@@ -9,6 +9,7 @@
 
 - As a developer, I want one command to start the full stack in containers.
 - As a developer, I want deterministic inter-service networking in container runtime.
+- As a platform engineer, I want an industry-standard ingress implementation in this state.
 - As a maintainer, I want containerized state generation to remain spec-first and reproducible.
 
 ## Functional Requirements
@@ -22,6 +23,7 @@
 - NFR-302: Container startup SHALL honor dependency ordering and health readiness checks.
 - NFR-303: Container networking and service discovery SHALL be deterministic and documented.
 - NFR-304: Generated containerized artifacts SHALL be produced from specs and validated before release tagging.
+- NFR-305: Browser ingress in this state SHALL use NGINX reverse-proxy configuration generated from spec artifacts.
 
 ## Success Criteria
 

@@ -28,8 +28,8 @@ printf "\n%-24s %-8s %s\n" "endpoint" "http" "url"
 printf "%-24s %-8s %s\n" "------------------------" "--------" "---"
 
 for target in \
-  "edge-health|http://localhost:18080/health" \
-  "edge-ui|http://localhost:18080/" \
+  "ingress-health|http://localhost:8080/health" \
+  "ingress-ui|http://localhost:8080/" \
   "angular-ui|http://localhost:18093/" \
   "reference-data|http://localhost:18085/stocks" \
   "account-service|http://localhost:18088/account/22214" \

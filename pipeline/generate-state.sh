@@ -34,8 +34,8 @@ EOF
     bash "${ROOT}/pipeline/generate-state-003-compose-assets.sh"
     cat <<'EOF'
 [summary] state=003-containerized-compose-runtime
-[summary] impacted-components=database,reference-data,trade-feed,people-service,account-service,position-service,trade-processor,trade-service,web-front-end-angular,edge-proxy
-[summary] impacted-assets=containerized-compose,dockerfile.compose
+[summary] impacted-components=database,reference-data,trade-feed,people-service,account-service,position-service,trade-processor,trade-service,web-front-end-angular,ingress
+[summary] impacted-assets=containerized-compose,dockerfile.compose,ingress-nginx-template
 [summary] runtime-entrypoint=./scripts/start-state-003-containerized-generated.sh
 EOF
     ;;

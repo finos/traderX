@@ -37,7 +37,7 @@
     },
     {
       "id": "003-containerized-compose-runtime",
-      "title": "Containerized Compose Runtime",
+      "title": "Containerized Compose Runtime (NGINX Ingress)",
       "status": "implemented",
       "featurePack": "specs/003-containerized-compose-runtime",
       "previous": [

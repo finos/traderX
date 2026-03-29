@@ -77,6 +77,8 @@ Run generated containerized stack (state `003`):
 ./scripts/stop-state-003-containerized-generated.sh
 ```
 
+Ingress endpoint: `http://localhost:8080`
+
 ## Full Parity Gate
 
 Run end-to-end parity validation (generation + startup + all baseline smoke tests):

@@ -66,7 +66,7 @@ bash pipeline/publish-generated-state-branch.sh 002-edge-proxy-uncontainerized -
 State `003-containerized-compose-runtime` now uses:
 
 - generation: `bash pipeline/generate-state.sh 003-containerized-compose-runtime`
-- runtime: `./scripts/start-state-003-containerized-generated.sh`
+- runtime: `./scripts/start-state-003-containerized-generated.sh` (NGINX ingress on `http://localhost:8080`)
 - publish branch: `codex/generated-state-003-containerized-compose-runtime`
 
 Publish branch snapshot:

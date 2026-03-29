@@ -68,8 +68,8 @@ wait_for_http "reference-data" "http://localhost:18085/stocks" || exit 1
 wait_for_http "account-service" "http://localhost:18088/account/22214" || exit 1
 wait_for_http "position-service" "http://localhost:18090/positions/22214" || exit 1
 wait_for_http "trade-service" "http://localhost:18092/swagger-ui.html" || exit 1
-wait_for_http "edge-proxy" "http://localhost:18080/health" || exit 1
-wait_for_http "edge-ui" "http://localhost:18080" || exit 1
+wait_for_http "ingress" "http://localhost:8080/health" || exit 1
+wait_for_http "ingress-ui" "http://localhost:8080" || exit 1
 
 echo "[done] state 003 containerized compose runtime started"
-echo "[ui] http://localhost:18080"
+echo "[ui] http://localhost:8080"

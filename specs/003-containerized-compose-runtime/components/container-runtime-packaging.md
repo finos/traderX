@@ -15,14 +15,14 @@ Define container build/run packaging for the full TraderX baseline component set
 - `trade-processor`
 - `trade-service`
 - `web-front-end-angular`
-- `edge-proxy`
+- `ingress` (NGINX)
 
 ## Requirements
 
 - Every component must have a generated `Dockerfile.compose`.
 - Compose wiring must come from `system/docker-compose.spec.yaml`.
-- Edge routes must be sourced from `system/edge-routing.json`.
-- Runtime must preserve baseline flow compatibility through edge entrypoint.
+- NGINX ingress routes must be sourced from `system/ingress-nginx.conf.template`.
+- Runtime must preserve baseline flow compatibility through ingress entrypoint.
 
 ## Generation Surface
 
