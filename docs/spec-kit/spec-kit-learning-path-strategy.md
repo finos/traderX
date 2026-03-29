@@ -12,6 +12,12 @@ Each learning-path transition is modeled as a separate spec feature branch:
 4. Layer non-functional requirements for platform, security, operability, and performance goals.
 5. Generate and validate code for that transition against the previous accepted state.
 
+Current published baseline progression:
+
+- `001-baseline-uncontainerized-parity`
+- `002-edge-proxy-uncontainerized`
+- `003-containerized-compose-runtime`
+
 ## Required Artifacts Per Transition
 
 - `spec.md`: user stories, acceptance criteria, and explicit in-scope change.
@@ -27,5 +33,15 @@ Each learning-path transition is modeled as a separate spec feature branch:
 3. Run conformance pack and parity checks.
 4. Run state verification scripts for the target learning-path state.
 5. Promote the transition only after docs and runtime checks pass.
+
+## Publish Code Snapshots Per State
+
+After a state passes validation, publish a generated-code snapshot branch:
+
+```bash
+bash pipeline/publish-generated-state-branch.sh <state-id> --push
+```
+
+State lineage and branch conventions are tracked in `catalog/state-catalog.json`.
 
 This keeps each learning step reproducible, reviewable, and reversible while preserving a clean baseline lineage.

@@ -60,16 +60,16 @@ bash pipeline/speckit/run-full-parity-validation.sh
 
 ## Documentation
 
-- TraderSpec overview: `docs/traderspec/index.md`
+- SpecKit overview: `docs/spec-kit/index.md`
 - Learning paths: `docs/learning-paths/index.md`
-- SpecKit portal: `docs/traderspec/spec-kit-portal.md`
-- Workflow: `docs/traderspec/spec-kit-workflow.md`
-- Runbook: `docs/traderspec/spec-kit-generation-guide.md`
-- Legacy doc inventory: `docs/traderspec/legacy-doc-inventory.md`
+- SpecKit portal: `docs/spec-kit/spec-kit-portal.md`
+- Workflow: `docs/spec-kit/spec-kit-workflow.md`
+- Runbook: `docs/spec-kit/spec-kit-generation-guide.md`
+- Archived legacy docs: `docs/archive/spec-kit-legacy/`
 
 Live routes (Docusaurus):
 
-- `/docs/traderspec`
+- `/docs/spec-kit`
 - `/docs/learning-paths`
 - `/foundation`
 - `/specs`

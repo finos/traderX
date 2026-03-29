@@ -124,8 +124,8 @@ The migration repeatedly validated with:
 - Close remaining Phase C residual cleanup.
 - Start Phase 10 learning-path overlays and state transition demonstrations from the canonical baseline.
 - Use the new state-transition planning model documented in:
-  - `docs/traderspec/state-transition-generation-plan.md`
-  - `docs/traderspec/why-speckit.md`
+  - `docs/spec-kit/state-transition-generation-plan.md`
+  - `docs/spec-kit/why-speckit.md`
 
 ## Upcoming Phase-10 Sequence (Locked Next Path)
 

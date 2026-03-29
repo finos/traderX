@@ -296,7 +296,7 @@ if [[ -n "${REPO_WEB_BASE}" ]]; then
   cat >> "${SNAPSHOT_DIR}/README.md" <<EOF
 - Source commit: ${REPO_WEB_BASE}/commit/${SOURCE_COMMIT}
 - Feature pack at source commit: ${REPO_WEB_BASE}/tree/${SOURCE_COMMIT}/${FEATURE_PACK}
-- TraderSpec docs at source commit: ${REPO_WEB_BASE}/tree/${SOURCE_COMMIT}/docs/traderspec
+- SpecKit docs at source commit: ${REPO_WEB_BASE}/tree/${SOURCE_COMMIT}/docs/spec-kit
 EOF
 fi
 

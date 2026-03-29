@@ -47,7 +47,7 @@ module.exports = {
       },
       items: [
         {to: '/docs/home', label: 'Overview', position: 'right'},
-        {to: '/docs/traderspec', label: 'Getting Started', position: 'right'},
+        {to: '/docs/spec-kit', label: 'Getting Started', position: 'right'},
         {to: '/specs', label: 'Specs', position: 'right'},
         {to: '/docs/adr', label: 'ADRs', position: 'right'},
         {to: '/specify/memory/constitution', label: 'Constitution', position: 'right'},
@@ -78,7 +78,7 @@ module.exports = {
             },
             {
               label: 'Getting Started',
-              to: '/docs/traderspec',
+              to: '/docs/spec-kit',
             },
             {
               label: 'Learning Paths',

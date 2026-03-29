@@ -21,9 +21,9 @@ The portal publishes three repository sources:
 - OpenAPI API Explorer: `/api`
 - Project ADRs (MADR): `/docs/adr`
 - `.specify` constitution and templates: `/specify/memory/constitution`
-- Generation operator guide: `/docs/traderspec/spec-kit-generation-guide`
-- Generated-state branch model: `/docs/traderspec/generated-state-branches`
-- Legacy doc inventory: `/docs/traderspec/legacy-doc-inventory`
+- Generation operator guide: `/docs/spec-kit/spec-kit-generation-guide`
+- Generated-state branch model: `/docs/spec-kit/generated-state-branches`
+- Learning-path visuals: `/docs/spec-kit/visual-learning-graphs`
 - Migration TODO: `/migration/migration-todo`
 - Migration Blog: `/migration/migration-blog`
 

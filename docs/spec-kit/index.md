@@ -18,13 +18,13 @@ From this state, we generate code from specs and move forward by adding controll
 ## New Contributor Path
 
 1. Read the source-of-truth map:
-   - `/docs/traderspec/spec-kit-portal`
+   - `/docs/spec-kit/spec-kit-portal`
 2. Run the baseline from specs:
-   - `/docs/traderspec/spec-kit-generation-guide`
+   - `/docs/spec-kit/spec-kit-generation-guide`
 3. Understand validation and parity gates:
-   - `/docs/traderspec/spec-kit-workflow`
+   - `/docs/spec-kit/spec-kit-workflow`
 4. Understand generated-code branch publishing:
-   - `/docs/traderspec/generated-state-branches`
+   - `/docs/spec-kit/generated-state-branches`
 5. Browse core artifacts:
    - `/specs`
    - `/foundation`
@@ -33,7 +33,7 @@ From this state, we generate code from specs and move forward by adding controll
    - `/migration/migration-todo`
    - `/migration/migration-blog`
 7. Plan future-state transitions:
-   - `/docs/traderspec/spec-kit-learning-path-strategy`
+   - `/docs/spec-kit/spec-kit-learning-path-strategy`
    - `/docs/learning-paths`
 
 ## What Is Canonical
@@ -57,4 +57,4 @@ From this state, we generate code from specs and move forward by adding controll
 - Functional paths may introduce FR deltas, but must preserve baseline compatibility unless explicitly versioned.
 - Every transition should include traceability updates and conformance checks before promotion.
 
-Use `/docs/traderspec/spec-kit-learning-path-strategy` for the concrete transition template.
+Use `/docs/spec-kit/spec-kit-learning-path-strategy` for the concrete transition template.

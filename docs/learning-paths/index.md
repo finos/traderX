@@ -53,7 +53,7 @@ This page maps guides to implementation states and provides a quick start order.
 - Mesh-focused: Level 2 -> Level 3 (`states/03-service-mesh/solo-demo`)
 - Contract-focused: Level 2 -> Level 4
 - Agent-focused: Level 4 -> Level 5
-- Spec-first full rebuild: `docs/traderspec/index` -> `docs/traderspec/spec-layering` -> `docs/traderspec/visual-learning-graphs`
+- Spec-first full rebuild: `docs/spec-kit/index` -> `docs/spec-kit/spec-kit-learning-path-strategy` -> `docs/spec-kit/visual-learning-graphs`
 
 ## Active Project ADRs (MADR)
 
