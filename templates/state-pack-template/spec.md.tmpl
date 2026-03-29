@@ -1,0 +1,29 @@
+# Feature Specification: __STATE_TITLE__
+
+**Feature Branch**: `__STATE_ID__`  
+**Created**: __TODAY__  
+**Status**: Planned  
+**Input**: Transition delta from `__PREVIOUS_STATE__`
+
+## User Stories
+
+- As a developer, I want this state transition to be generated from explicit requirements.
+- As a maintainer, I want runtime and topology changes to be traceable from spec to code.
+- As a platform engineer, I want non-functional deltas documented separately from functional deltas.
+
+## Functional Requirements
+
+- FR-__STATE_NUMBER__01: Functional deltas are defined in `requirements/functional-delta.md`.
+- FR-__STATE_NUMBER__02: Existing baseline flows remain compatible unless explicitly changed by this pack.
+
+## Non-Functional Requirements
+
+- NFR-__STATE_NUMBER__01: Non-functional deltas are defined in `requirements/nonfunctional-delta.md`.
+- NFR-__STATE_NUMBER__02: Runtime and topology constraints are captured in `system/runtime-topology.md`.
+- NFR-__STATE_NUMBER__03: Architecture updates are encoded in `system/architecture.model.json`.
+
+## Success Criteria
+
+- SC-__STATE_NUMBER__01: Generation hook exists and is runnable (`__GEN_HOOK__`).
+- SC-__STATE_NUMBER__02: State smoke test path is defined (`__SMOKE_SCRIPT__`).
+- SC-__STATE_NUMBER__03: Generated snapshot branch and tag strategy are defined in state catalog.

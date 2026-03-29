@@ -91,6 +91,18 @@ This log captures major milestones in the migration from source-first TraderX to
 - Removed legacy learning-path scaffolding folders:
   - deleted `states/**` and `prompts/**` from active repository surface
   - retained learning-path progression in canonical spec/docs artifacts (`specs/**`, `docs/spec-kit/**`, `docs/learning-paths/**`)
+- Republished generated-state code branches from current source commit `12f250c`:
+  - `codex/generated-state-001-baseline-uncontainerized-parity` -> `5a20b27`
+  - `codex/generated-state-002-edge-proxy-uncontainerized` -> `8456306`
+  - `codex/generated-state-003-containerized-compose-runtime` -> `2046fa3`
+- Made state docs and API explorer scope catalog-driven:
+  - added `pipeline/generate-state-docs-from-catalog.mjs`
+  - `docs/spec-kit/state-docs.md` is now generated from `catalog/state-catalog.json`
+  - `/api` landing now derives active state scope from `catalog/state-catalog.json`
+- Added reusable state scaffold workflow for future learning-path transitions:
+  - new template pack under `templates/state-pack-template/**`
+  - new scaffolder `pipeline/scaffold-state-pack.sh`
+  - initialized first planned post-003 state: `specs/004-kubernetes-runtime`
 
 ## What Changed Technically
 

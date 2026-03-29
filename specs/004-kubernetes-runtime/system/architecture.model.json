@@ -1,0 +1,28 @@
+{
+  "title": "Kubernetes Runtime Baseline",
+  "stateId": "004-kubernetes-runtime",
+  "parentState": "003-containerized-compose-runtime",
+  "description": "Update this model with the authoritative architecture for this state.",
+  "mermaidDirection": "LR",
+  "nodes": [
+    {
+      "id": "developer",
+      "label": "Developer",
+      "kind": "actor",
+      "description": "Local developer using this state."
+    },
+    {
+      "id": "runtime",
+      "label": "004-kubernetes-runtime Runtime",
+      "kind": "boundary",
+      "description": "Target runtime for this state."
+    }
+  ],
+  "edges": [
+    {
+      "from": "developer",
+      "to": "runtime",
+      "label": "Runs state"
+    }
+  ]
+}

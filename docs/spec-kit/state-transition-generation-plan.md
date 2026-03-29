@@ -80,10 +80,12 @@ flowchart LR
 flowchart LR
   A["001 Baseline Uncontainerized"] --> B["002 Edge Proxy Uncontainerized"]
   B --> C["003 Containerized Compose Runtime"]
+  C --> D["004 Kubernetes Runtime (Planned)"]
 
   A --> TA["Tag generated/001-baseline-uncontainerized-parity/v1"]
   B --> TB["Tag generated/002-edge-proxy-uncontainerized/v1"]
   C --> TC["Tag generated/003-containerized-compose-runtime/v1"]
+  D --> TD["Tag generated/004-kubernetes-runtime/v1 (Planned)"]
 ```
 
 ### Official Data of Record for Each State
@@ -97,7 +99,7 @@ For each state release, the canonical record must include:
 ## Phase-10 Execution Backlog
 
 - define canonical naming for state packs (`00N-state-name`),
-- add state-delta template for FR/NFR/change-impact capture,
+- add state-delta template for FR/NFR/change-impact capture (implemented: `templates/state-pack-template` + `pipeline/scaffold-state-pack.sh`),
 - add per-state component impact matrix output,
 - add state-aware generation entrypoint,
 - add state-aware verification scripts and docs runbooks.

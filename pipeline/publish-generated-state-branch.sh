@@ -111,8 +111,13 @@ case "${STATE_ID}" in
     }
     ;;
   *)
-    echo "[fail] no generated snapshot flow implemented yet for ${STATE_ID}"
-    exit 1
+    bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+    RUNTIME_START_SCRIPT="${ROOT}/scripts/start-state-${STATE_ID}-generated.sh"
+    if [[ -x "${RUNTIME_START_SCRIPT}" ]]; then
+      "${RUNTIME_START_SCRIPT}" --dry-run || true
+    else
+      echo "[info] no state-specific start script found at ${RUNTIME_START_SCRIPT}; skipping runtime dry-run"
+    fi
     ;;
 esac
 

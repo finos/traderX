@@ -15,6 +15,12 @@ The baseline state is intentionally **pre-Docker / pre-ingress**:
 
 From this state, we generate code from specs and move forward by adding controlled FR/NFR deltas.
 
+Create a new planned state pack from template:
+
+```bash
+bash pipeline/scaffold-state-pack.sh <NNN-state-name> --title "<Title>" --previous <prior-state-id> --track <devex|nonfunctional|functional>
+```
+
 ## New Contributor Path
 
 1. Read the source-of-truth map:

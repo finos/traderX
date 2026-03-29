@@ -43,7 +43,15 @@ EOF
 EOF
     ;;
   *)
-    echo "[fail] unsupported state-id: ${STATE_ID}"
-    exit 1
+    HOOK="${ROOT}/pipeline/generate-state-${STATE_ID}.sh"
+    if [[ -x "${HOOK}" ]]; then
+      bash "${HOOK}"
+    else
+      echo "[fail] unsupported state-id: ${STATE_ID}"
+      echo "[hint] add a state hook at ${HOOK} or implement explicit case logic."
+      exit 1
+    fi
     ;;
 esac
+
+bash "${ROOT}/pipeline/generate-state-docs-from-catalog.sh"

@@ -14,4 +14,6 @@ while IFS= read -r state_id; do
   bash "${ROOT}/pipeline/generate-state-architecture-doc.sh" "${state_id}"
 done < <(jq -r '.states[].id' "${CATALOG}")
 
+node "${ROOT}/pipeline/generate-state-docs-from-catalog.mjs"
+
 echo "[done] generated architecture docs for all catalog states"

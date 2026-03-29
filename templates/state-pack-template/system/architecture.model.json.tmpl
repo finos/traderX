@@ -1,0 +1,28 @@
+{
+  "title": "__STATE_TITLE__",
+  "stateId": "__STATE_ID__",
+  "parentState": "__PREVIOUS_STATE__",
+  "description": "Update this model with the authoritative architecture for this state.",
+  "mermaidDirection": "LR",
+  "nodes": [
+    {
+      "id": "developer",
+      "label": "Developer",
+      "kind": "actor",
+      "description": "Local developer using this state."
+    },
+    {
+      "id": "runtime",
+      "label": "__STATE_ID__ Runtime",
+      "kind": "boundary",
+      "description": "Target runtime for this state."
+    }
+  ],
+  "edges": [
+    {
+      "from": "developer",
+      "to": "runtime",
+      "label": "Runs state"
+    }
+  ]
+}

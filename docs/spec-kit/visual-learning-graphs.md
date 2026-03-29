@@ -12,7 +12,8 @@ This is the canonical state progression model for TraderX.
 flowchart LR
   S001["001: Base Uncontainerized App"] --> S002["002: Edge Proxy Uncontainerized"]
   S002 --> S003["003: Containerized Compose Runtime (NGINX Ingress)"]
-  S003 --> P004["004+: Planned Learning-Path States"]
+  S003 --> S004["004: Kubernetes Runtime (Planned)"]
+  S004 --> P005["005+: Planned Learning-Path States"]
 ```
 
 ## State To Artifact Mapping
@@ -22,8 +23,9 @@ flowchart LR
 | `001-baseline-uncontainerized-parity` | `specs/001-baseline-uncontainerized-parity` | `codex/generated-state-001-baseline-uncontainerized-parity` |
 | `002-edge-proxy-uncontainerized` | `specs/002-edge-proxy-uncontainerized` | `codex/generated-state-002-edge-proxy-uncontainerized` |
 | `003-containerized-compose-runtime` | `specs/003-containerized-compose-runtime` | `codex/generated-state-003-containerized-compose-runtime` |
+| `004-kubernetes-runtime` | `specs/004-kubernetes-runtime` | `codex/generated-state-004-kubernetes-runtime` |
 
-## Learning-Path Families (Planned Beyond `003`)
+## Learning-Path Families (Planned Beyond `004`)
 
 ```mermaid
 flowchart LR

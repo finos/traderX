@@ -41,7 +41,12 @@ bash pipeline/speckit/run-full-parity-validation.sh
 
 ## Move to the Next Learning-Path State
 
-1. Create the next numbered feature pack `specs/NNN-<state-name>/`.
+1. Scaffold the next numbered feature pack:
+
+```bash
+bash pipeline/scaffold-state-pack.sh <NNN-state-name> --title "<Title>" --previous <prior-state-id> --track <devex|nonfunctional|functional>
+```
+
 2. Carry forward baseline requirements and add only the intended deltas.
 3. Update contracts and component requirements for affected services.
 4. Regenerate only impacted components, then rerun conformance/parity gates.
@@ -53,6 +58,7 @@ Current state-aware generation entrypoints:
 - `bash pipeline/generate-state.sh 001-baseline-uncontainerized-parity`
 - `bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized`
 - `bash pipeline/generate-state.sh 003-containerized-compose-runtime`
+- `bash pipeline/generate-state.sh 004-kubernetes-runtime` (planned; hook stub currently fails until implemented)
 
 Architecture docs are generated from state-local models under `specs/*/system/architecture.model.json`:
 

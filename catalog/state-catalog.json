@@ -1,5 +1,10 @@
 {
   "version": "1.0.0",
+  "docs": {
+    "apiExplorer": {
+      "activeStateId": "001-baseline-uncontainerized-parity"
+    }
+  },
   "states": [
     {
       "id": "001-baseline-uncontainerized-parity",
@@ -51,6 +56,25 @@
       "publish": {
         "branch": "codex/generated-state-003-containerized-compose-runtime",
         "tag": "generated/003-containerized-compose-runtime/v1"
+      }
+    },
+    {
+      "id": "004-kubernetes-runtime",
+      "title": "Kubernetes Runtime Baseline",
+      "status": "planned",
+      "track": "devex",
+      "featurePack": "specs/004-kubernetes-runtime",
+      "previous": [
+        "003-containerized-compose-runtime"
+      ],
+      "generation": {
+        "mode": "planned",
+        "entrypoint": "bash pipeline/generate-state.sh 004-kubernetes-runtime",
+        "runtime": "TBD"
+      },
+      "publish": {
+        "branch": "codex/generated-state-004-kubernetes-runtime",
+        "tag": "generated/004-kubernetes-runtime/v1"
       }
     }
   ]

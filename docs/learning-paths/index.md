@@ -17,7 +17,8 @@ This page maps the current state progression and points to canonical SpecKit art
 | 1 | `001-baseline-uncontainerized-parity` | `/specs/baseline-uncontainerized-parity` | `codex/generated-state-001-baseline-uncontainerized-parity` |
 | 2 | `002-edge-proxy-uncontainerized` | `/specs/edge-proxy-uncontainerized` | `codex/generated-state-002-edge-proxy-uncontainerized` |
 | 3 | `003-containerized-compose-runtime` | `/specs/containerized-compose-runtime` | `codex/generated-state-003-containerized-compose-runtime` |
-| 4+ | planned learning-path states | future `specs/NNN-*` packs | future generated snapshots |
+| 4 | `004-kubernetes-runtime` (planned) | `/specs/kubernetes-runtime` | `codex/generated-state-004-kubernetes-runtime` |
+| 5+ | planned learning-path states | future `specs/NNN-*` packs | future generated snapshots |
 
 ## Current Navigation
 

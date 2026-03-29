@@ -61,6 +61,13 @@ bash pipeline/generate-state.sh 003-containerized-compose-runtime
 ```
 
 These commands also regenerate state architecture docs from `specs/*/system/architecture.model.json`.
+State docs (`/docs/spec-kit/state-docs`) are generated from `catalog/state-catalog.json`.
+
+Scaffold a new planned state pack:
+
+```bash
+bash pipeline/scaffold-state-pack.sh <NNN-state-name> --title "<Title>" --previous <prior-state-id> --track <devex|nonfunctional|functional>
+```
 
 Generated outputs:
 

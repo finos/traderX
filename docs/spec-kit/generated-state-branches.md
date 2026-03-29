@@ -75,11 +75,22 @@ Publish branch snapshot:
 bash pipeline/publish-generated-state-branch.sh 003-containerized-compose-runtime --push
 ```
 
+Current published generated branches:
+
+- `codex/generated-state-001-baseline-uncontainerized-parity`
+- `codex/generated-state-002-edge-proxy-uncontainerized`
+- `codex/generated-state-003-containerized-compose-runtime`
+
 ## How To Add A New State
 
-1. Create the feature pack under `specs/NNN-...`.
+1. Scaffold the feature pack:
+
+```bash
+bash pipeline/scaffold-state-pack.sh <NNN-state-name> --title "<Title>" --previous <prior-state-id> --track <devex|nonfunctional|functional>
+```
+
 2. Add/update requirements, plan, tasks, contracts, and traceability for the new state.
-3. Add a state entry in `catalog/state-catalog.json` with:
+3. Confirm state entry in `catalog/state-catalog.json` with:
    - `previous` lineage
    - publish branch/tag conventions
    - `generation.mode=planned` until implemented

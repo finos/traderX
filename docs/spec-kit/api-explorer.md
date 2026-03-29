@@ -10,7 +10,7 @@ The explorer is intentionally state-scoped. Today it represents the baseline con
 
 ## Browse
 
-- Explorer landing page: `/api` (state `001` scope)
+- Explorer landing page: `/api` (state scope from `catalog/state-catalog.json`)
 - Source contracts: `specs/001-baseline-uncontainerized-parity/contracts/**/openapi.yaml`
 
 ## Regenerate API Docs
@@ -29,6 +29,11 @@ npm --prefix website run gen:api-docs
 ```
 
 Generated API docs are written to `generated/api-docs/**` and treated as ephemeral output.
+
+The `/api` landing page is generated from:
+
+- `catalog/state-catalog.json` (active state scope)
+- `generated/api-docs/**` (service docs output)
 
 ## Plugin Stack
 
