@@ -46,6 +46,7 @@ Make root SpecKit artifacts (`.specify/` and `specs/`) the source of truth, with
 - [ ] 10.4 Add state-specific verification gates and runbooks.
 - [ ] 10.5 Publish first post-baseline state generated fully from specs.
 - [x] 10.6 Define generated-state branch/tag convention (spec-source vs code-snapshot).
+- [x] 10.6a Publish baseline generated-state branch snapshot (`codex/generated-state-001-baseline-uncontainerized-parity`).
 - [ ] 10.7 Publish generated-code snapshot tag for `001-baseline-uncontainerized-parity`.
 - [ ] 10.8 Finalize `002-edge-proxy-uncontainerized` spec pack (NFR-first state delta).
 - [ ] 10.9 Generate/validate/release `002` state from specs and tag generated snapshot.
