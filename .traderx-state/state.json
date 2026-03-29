@@ -6,8 +6,8 @@
   "previousStates": [],
   "nextStates": ["002-edge-proxy-uncontainerized"],
   "sourceBranch": "feature/agentic-renovation",
-  "sourceCommit": "6b97250a65e46d1983aa8d0af74d8525280da5b2",
-  "generatedAtUtc": "2026-03-29T11:22:37Z",
+  "sourceCommit": "7d6bc07efdfae09f19840f89a0270bfd0911467e",
+  "generatedAtUtc": "2026-03-29T12:21:56Z",
   "generationEntryPoint": "bash pipeline/generate-from-spec.sh",
   "publishTagHint": "generated/001-baseline-uncontainerized-parity/v1"
 }
