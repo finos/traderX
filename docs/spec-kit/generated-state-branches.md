@@ -4,7 +4,7 @@ title: Generated State Branches
 
 # Generated State Branches
 
-TraderX keeps the canonical source of truth in `specs/**` + `.specify/**`, and publishes code-only snapshots in dedicated `codex/generated-state-*` branches.
+TraderX keeps the canonical source of truth in `specs/**` + `.specify/**`, and publishes code-only snapshots in dedicated `code/generated-state-*` branches.
 
 ## Canonical State Definitions
 
@@ -49,13 +49,13 @@ bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-par
 
 Default branch target for baseline:
 
-- `codex/generated-state-001-baseline-uncontainerized-parity`
+- `code/generated-state-001-baseline-uncontainerized-parity`
 
 State `002-edge-proxy-uncontainerized` now uses:
 
 - generation: `bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized`
 - runtime: `./scripts/start-state-002-edge-proxy-generated.sh`
-- publish branch: `codex/generated-state-002-edge-proxy-uncontainerized`
+- publish branch: `code/generated-state-002-edge-proxy-uncontainerized`
 
 Publish branch snapshot:
 
@@ -67,7 +67,7 @@ State `003-containerized-compose-runtime` now uses:
 
 - generation: `bash pipeline/generate-state.sh 003-containerized-compose-runtime`
 - runtime: `./scripts/start-state-003-containerized-generated.sh` (NGINX ingress on `http://localhost:8080`)
-- publish branch: `codex/generated-state-003-containerized-compose-runtime`
+- publish branch: `code/generated-state-003-containerized-compose-runtime`
 
 Publish branch snapshot:
 
@@ -77,9 +77,9 @@ bash pipeline/publish-generated-state-branch.sh 003-containerized-compose-runtim
 
 Current published generated branches:
 
-- `codex/generated-state-001-baseline-uncontainerized-parity`
-- `codex/generated-state-002-edge-proxy-uncontainerized`
-- `codex/generated-state-003-containerized-compose-runtime`
+- `code/generated-state-001-baseline-uncontainerized-parity`
+- `code/generated-state-002-edge-proxy-uncontainerized`
+- `code/generated-state-003-containerized-compose-runtime`
 
 ## How To Add A New State
 

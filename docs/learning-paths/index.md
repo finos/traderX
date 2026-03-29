@@ -14,12 +14,12 @@ This page maps the current state progression and points to canonical SpecKit art
 
 | Level | State ID | Spec Pack | Generated Code Snapshot |
 |---|---|---|---|
-| 1 | `001-baseline-uncontainerized-parity` | `/specs/baseline-uncontainerized-parity` | `codex/generated-state-001-baseline-uncontainerized-parity` |
-| 2 | `002-edge-proxy-uncontainerized` | `/specs/edge-proxy-uncontainerized` | `codex/generated-state-002-edge-proxy-uncontainerized` |
-| 3 | `003-containerized-compose-runtime` | `/specs/containerized-compose-runtime` | `codex/generated-state-003-containerized-compose-runtime` |
-| 4 | `004-kubernetes-runtime` | `/specs/kubernetes-runtime` | `codex/generated-state-004-kubernetes-runtime` |
-| 5 | `005-radius-kubernetes-platform` | `/specs/radius-kubernetes-platform` | `codex/generated-state-005-radius-kubernetes-platform` |
-| 6 | `006-tilt-kubernetes-dev-loop` | `/specs/tilt-kubernetes-dev-loop` | `codex/generated-state-006-tilt-kubernetes-dev-loop` |
+| 1 | `001-baseline-uncontainerized-parity` | `/specs/baseline-uncontainerized-parity` | `code/generated-state-001-baseline-uncontainerized-parity` |
+| 2 | `002-edge-proxy-uncontainerized` | `/specs/edge-proxy-uncontainerized` | `code/generated-state-002-edge-proxy-uncontainerized` |
+| 3 | `003-containerized-compose-runtime` | `/specs/containerized-compose-runtime` | `code/generated-state-003-containerized-compose-runtime` |
+| 4 | `004-kubernetes-runtime` | `/specs/kubernetes-runtime` | `code/generated-state-004-kubernetes-runtime` |
+| 5 | `005-radius-kubernetes-platform` | `/specs/radius-kubernetes-platform` | `code/generated-state-005-radius-kubernetes-platform` |
+| 6 | `006-tilt-kubernetes-dev-loop` | `/specs/tilt-kubernetes-dev-loop` | `code/generated-state-006-tilt-kubernetes-dev-loop` |
 | 7+ | planned learning-path states | future `specs/NNN-*` packs | future generated snapshots |
 
 ## Current Navigation

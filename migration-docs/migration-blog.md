@@ -53,7 +53,7 @@ This log captures major milestones in the migration from source-first TraderX to
   - added `pipeline/publish-generated-state-branch.sh` to emit code-only branches with state metadata
   - documented generated-state branch workflow and provenance files (`STATE.md`, `.traderx-state/state.json`)
   - published first baseline code-only branch snapshot:
-    - `codex/generated-state-001-baseline-uncontainerized-parity` (source commit `6b97250`)
+    - `code/generated-state-001-baseline-uncontainerized-parity` (source commit `6b97250`)
 - Implemented state `002-edge-proxy-uncontainerized` generation path:
   - added `pipeline/generate-state.sh` with state-aware generation entrypoints and impact summary
   - added spec-driven edge routing input (`specs/002-edge-proxy-uncontainerized/system/edge-routing.json`)
@@ -61,7 +61,7 @@ This log captures major milestones in the migration from source-first TraderX to
   - added state runtime scripts (`start/stop/status-state-002-edge-proxy-generated.sh`) and smoke test script
   - updated state catalog to mark `002` generation mode as implemented
   - published generated code branch snapshot:
-    - `codex/generated-state-002-edge-proxy-uncontainerized` (source commit `25c7e16`)
+    - `code/generated-state-002-edge-proxy-uncontainerized` (source commit `25c7e16`)
 - Removed remaining tracked `TraderSpec/` legacy folder artifacts after root canonicalization.
 - Implemented state `003-containerized-compose-runtime` generation and runtime scaffolding:
   - added compose/runtime spec artifacts under `specs/003-containerized-compose-runtime/system/**`
@@ -78,9 +78,9 @@ This log captures major milestones in the migration from source-first TraderX to
   - `001` and `002` include runnable `scripts/*` + lightweight compatibility layout under `generated/code/{components,target-generated}`
   - `003` includes dedicated compose start/stop/status scripts directly in snapshot branch
 - Republished generated-state branches with clone-ready docs/scripts from source commit `b50d3b8`:
-  - `codex/generated-state-001-baseline-uncontainerized-parity` -> `af998f9`
-  - `codex/generated-state-002-edge-proxy-uncontainerized` -> `6711ff4`
-  - `codex/generated-state-003-containerized-compose-runtime` -> `aebc84a`
+  - `code/generated-state-001-baseline-uncontainerized-parity` -> `af998f9`
+  - `code/generated-state-002-edge-proxy-uncontainerized` -> `6711ff4`
+  - `code/generated-state-003-containerized-compose-runtime` -> `aebc84a`
 - Moved flow and architecture source-of-truth into state packs under `specs/**`:
   - migrated sequence-flow source to `specs/001-baseline-uncontainerized-parity/system/end-to-end-flows.md`
   - introduced generated architecture docs from state-local models:
@@ -92,9 +92,9 @@ This log captures major milestones in the migration from source-first TraderX to
   - deleted `states/**` and `prompts/**` from active repository surface
   - retained learning-path progression in canonical spec/docs artifacts (`specs/**`, `docs/spec-kit/**`, `docs/learning-paths/**`)
 - Republished generated-state code branches from current source commit `12f250c`:
-  - `codex/generated-state-001-baseline-uncontainerized-parity` -> `5a20b27`
-  - `codex/generated-state-002-edge-proxy-uncontainerized` -> `8456306`
-  - `codex/generated-state-003-containerized-compose-runtime` -> `2046fa3`
+  - `code/generated-state-001-baseline-uncontainerized-parity` -> `5a20b27`
+  - `code/generated-state-002-edge-proxy-uncontainerized` -> `8456306`
+  - `code/generated-state-003-containerized-compose-runtime` -> `2046fa3`
 - Made state docs and API explorer scope catalog-driven:
   - added `pipeline/generate-state-docs-from-catalog.mjs`
   - `docs/spec-kit/state-docs.md` is now generated from `catalog/state-catalog.json`

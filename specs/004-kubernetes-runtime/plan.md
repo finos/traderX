@@ -26,4 +26,4 @@
 - Generation hook produces Kubernetes manifests and build plan artifacts deterministically.
 - Start/status/stop scripts operate against local Kind runtime.
 - Smoke tests pass for this state.
-- State can be published to `codex/generated-state-004-kubernetes-runtime`.
+- State can be published to `code/generated-state-004-kubernetes-runtime`.

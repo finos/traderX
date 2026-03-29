@@ -19,4 +19,4 @@
 - Spec and tasks are complete and reviewed.
 - Generation hook produces expected artifacts.
 - Smoke tests pass for this state.
-- State can be published to `codex/generated-state-005-radius-kubernetes-platform`.
+- State can be published to `code/generated-state-005-radius-kubernetes-platform`.

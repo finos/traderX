@@ -11,7 +11,7 @@ usage: bash pipeline/publish-generated-state-branch.sh <state-id> [--branch <bra
 Examples:
   bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity
   bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --push
-  bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --branch codex/generated-state-001-baseline-uncontainerized-parity
+  bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --branch code/generated-state-001-baseline-uncontainerized-parity
 EOF
 }
 
@@ -71,8 +71,8 @@ GENERATION_ENTRYPOINT="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id ==
 GENERATION_RUNTIME="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | (.generation.runtime // "")' "${CATALOG}")"
 
 BRANCH_NAME="${BRANCH_OVERRIDE:-${DEFAULT_BRANCH}}"
-if [[ "${BRANCH_NAME}" != codex/* ]]; then
-  echo "[fail] generated-state branch must use codex/* prefix: ${BRANCH_NAME}"
+if [[ "${BRANCH_NAME}" != code/generated-state-* ]]; then
+  echo "[fail] generated-state branch must use code/generated-state-* prefix: ${BRANCH_NAME}"
   exit 1
 fi
 

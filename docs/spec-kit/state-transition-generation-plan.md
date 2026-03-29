@@ -45,7 +45,7 @@ This plan defines how TraderX will evolve from the current baseline into additio
 
 ## Generated Snapshot Distribution
 
-Canonical authoring stays in `specs/**` + `.specify/**`. Runnable code snapshots are published to `codex/generated-state-*` branches.
+Canonical authoring stays in `specs/**` + `.specify/**`. Runnable code snapshots are published to `code/generated-state-*` branches.
 
 Publish command:
 

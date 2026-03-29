@@ -18,7 +18,7 @@
         "runtime": "CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh"
       },
       "publish": {
-        "branch": "codex/generated-state-001-baseline-uncontainerized-parity",
+        "branch": "code/generated-state-001-baseline-uncontainerized-parity",
         "tag": "generated/001-baseline-uncontainerized-parity/v1"
       }
     },
@@ -36,7 +36,7 @@
         "runtime": "./scripts/start-state-002-edge-proxy-generated.sh"
       },
       "publish": {
-        "branch": "codex/generated-state-002-edge-proxy-uncontainerized",
+        "branch": "code/generated-state-002-edge-proxy-uncontainerized",
         "tag": "generated/002-edge-proxy-uncontainerized/v1"
       }
     },
@@ -54,7 +54,7 @@
         "runtime": "./scripts/start-state-003-containerized-generated.sh"
       },
       "publish": {
-        "branch": "codex/generated-state-003-containerized-compose-runtime",
+        "branch": "code/generated-state-003-containerized-compose-runtime",
         "tag": "generated/003-containerized-compose-runtime/v1"
       }
     },
@@ -73,7 +73,7 @@
         "runtime": "./scripts/start-state-004-kubernetes-generated.sh"
       },
       "publish": {
-        "branch": "codex/generated-state-004-kubernetes-runtime",
+        "branch": "code/generated-state-004-kubernetes-runtime",
         "tag": "generated/004-kubernetes-runtime/v1"
       }
     },
@@ -92,7 +92,7 @@
         "runtime": "./scripts/start-state-005-radius-kubernetes-platform-generated.sh"
       },
       "publish": {
-        "branch": "codex/generated-state-005-radius-kubernetes-platform",
+        "branch": "code/generated-state-005-radius-kubernetes-platform",
         "tag": "generated/005-radius-kubernetes-platform/v1"
       }
     },
@@ -111,7 +111,7 @@
         "runtime": "./scripts/start-state-006-tilt-kubernetes-dev-loop-generated.sh"
       },
       "publish": {
-        "branch": "codex/generated-state-006-tilt-kubernetes-dev-loop",
+        "branch": "code/generated-state-006-tilt-kubernetes-dev-loop",
         "tag": "generated/006-tilt-kubernetes-dev-loop/v1"
       }
     }
