@@ -1,7 +1,12 @@
 ## Architecture Overview
-{{block-architecture}}
 
-{{table services}}
+{{#if metadata}}
+{{#each metadata}}
+- **{{@key}}:** {{.}}
+{{/each}}
+{{/if}}
+
+{{block-architecture}}
 
 ## Single Service
 {{block-architecture focus-nodes="reference-data-service "}}

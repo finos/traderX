@@ -2,51 +2,11 @@
     "$schema": "https://calm.finos.org/release/1.2/meta/calm.json",
     "unique-id": "trading-system",
     "name": "Trading System",
-    "description": "An event-driven trading system architecture supporting order submission, account management, position tracking, and real-time trade processing",
-    "controls": {
-        "encryption-in-transit": {
-            "description": "All data transmitted between system components must be encrypted using TLS 1.3 or higher with modern cipher suites, validated certificates, and mutual TLS recommended for service-to-service communication",
-            "requirements": [
-                {
-                    "requirement-url": "https://example.com/security/encryption-in-transit.json",
-                    "config": {
-                        "protocol": "TLS",
-                        "minimumVersion": "1.3",
-                        "cipherSuites": [
-                            "TLS_AES_256_GCM_SHA384",
-                            "TLS_CHACHA20_POLY1305_SHA256",
-                            "TLS_AES_128_GCM_SHA256"
-                        ],
-                        "certificateValidation": "required",
-                        "mutualTLS": "recommended"
-                    }
-                }
-            ]
-        },
-        "encryption-at-rest": {
-            "description": "All stored data must be encrypted at rest using AES-256 equivalent encryption with hardware-backed or managed key systems, regular key rotation every 90 days, applying to databases, file systems, object storage, and backups",
-            "requirements": [
-                {
-                    "requirement-url": "https://example.com/security/encryption-at-rest.json",
-                    "config": {
-                        "encryptionAlgorithm": "AES-256",
-                        "keyManagement": "hardware-backed",
-                        "keyRotationPeriodDays": 90,
-                        "appliesTo": [
-                            "databases",
-                            "file-systems",
-                            "object-storage",
-                            "backups"
-                        ]
-                    }
-                }
-            ]
-        }
-    },
+    "description": "An event-driven trading system that allows employees to create accounts, execute trades, and view positions on these accounts.",
     "metadata": [
         {
             "name": "Trading System",
-            "description": "An event-driven trading system architecture supporting order submission, account management, position tracking, and real-time trade processing.",
+            "description": "An event-driven trading system that allows employees to create accounts, execute trades, and view positions on these accounts.",
             "version": "0.1.0",
             "created-by": "Trading System Team - Copilot"
         }

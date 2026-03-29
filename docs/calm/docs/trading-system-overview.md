@@ -2,6 +2,12 @@
 architecture: ../trading-system.architecture.json
 ---
 ## Architecture Overview
+
+- **name:** Trading System
+- **description:** An event-driven trading system that allows employees to create accounts, execute trades, and view positions on these accounts.
+- **version:** 0.1.0
+- **created-by:** Trading System Team - Copilot
+
 ```mermaid
 ---
 config:
@@ -60,8 +66,6 @@ classDef highlight fill:#fdf7ec,stroke:#f0c060,stroke-width:1px,color:#000000;
 
 
 ```
-
-
 
 ## Single Service
 ```mermaid

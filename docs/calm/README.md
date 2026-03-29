@@ -23,17 +23,23 @@ CALM enables:
 - Compliance tracking through controls and metadata
 - Integration with governance tools
 
-As a result of the automated validation of the architecture, it is possible to generate different views of the architecture that are consistent across the views.
+Since all facets of an architecture are contained in a single source file that can be validated, it is possible to generate different views of the architecture that are consistent.
 
 **Learn more:** [CALM Documentation](https://calm.finos.org)
 
 ## Viewing the Architecture
 
 **Option 1: Read the JSON directly**  
-Open [`trading-system.architecture.json`](trading-system.architecture.json) in your editor to explore nodes, interfaces, relationships, and flows.
+Open [`trading-system.architecture.json`](trading-system.architecture.json) in your editor to explore nodes, interfaces, relationships, and flows.  
 
-**Option 2: Read generated documentation**  
-The `docs/` folder contains human-readable Markdown documentation generated from the CALM model.
+**Option 2: VSCode CALM Tool Extension**
+CALM project provides a VSCode extension to view a CALM architecture and its components in the VSCode IDE.  This is useful for real-time feedback when modifying the architecture.  See this [web page for installation and usage](https://calm.finos.org/tutorials/beginner/04-vscode-extension) of the extension.
+
+![VSCode CALM Tool](./images/calm-vscode-tool-box.png)
+
+**Option 3: Read generated documentation**  
+The `docs/` folder contains human-readable Markdown documentation generated from the CALM model.  See next section for generating the markdown files.
+
 
 ## Generating CALM Architecture Documents
 
@@ -52,7 +58,7 @@ npm install -g @finos/calm-cli
 Generate the system architecture overview with diagrams and node tables:
 
 ```shell
-calm template \
+calm docify \
   -a trading-system.architecture.json \
   --template templates/architecture-overview.md.hbs \
   -o docs/trading-system-overview.md
@@ -63,7 +69,7 @@ calm template \
 Generate business flow sequence diagrams and descriptions:
 
 ```shell
-calm template \
+calm docify \
   -a trading-system.architecture.json \
   --template templates/flows-overview.md.hbs \
   -o docs/flow-overview.md
