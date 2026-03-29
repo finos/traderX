@@ -65,7 +65,7 @@ bash pipeline/speckit/run-full-parity-validation.sh
 - SpecKit portal: `docs/spec-kit/spec-kit-portal.md`
 - Workflow: `docs/spec-kit/spec-kit-workflow.md`
 - Runbook: `docs/spec-kit/spec-kit-generation-guide.md`
-- Archived legacy docs: `docs/archive/spec-kit-legacy/`
+- Legacy migration-era docs were retired from active tree; recover via git history if needed.
 
 Live routes (Docusaurus):
 
