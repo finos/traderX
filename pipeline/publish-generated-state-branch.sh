@@ -200,6 +200,20 @@ EOF
 - Preserves baseline functional behavior while changing runtime orchestration and deployment model.
 EOF
       ;;
+    005-radius-kubernetes-platform)
+      cat <<'EOF'
+- Builds on state `004` and preserves Kubernetes runtime behavior.
+- Adds Radius application/resource model artifacts as platform abstraction overlays.
+- Preserves baseline functional behavior and API contracts.
+EOF
+      ;;
+    006-tilt-kubernetes-dev-loop)
+      cat <<'EOF'
+- Builds on state `004` and preserves Kubernetes runtime behavior.
+- Adds Tilt local developer-loop artifacts (`Tiltfile`, Tilt settings, workflow docs).
+- Preserves baseline functional behavior and API contracts.
+EOF
+      ;;
     *)
       cat <<'EOF'
 - Generated code snapshot for TraderX state transition.
@@ -278,6 +292,45 @@ Status / stop:
 ```bash
 ./scripts/status-state-004-kubernetes-generated.sh
 ./scripts/stop-state-004-kubernetes-generated.sh
+```
+EOF
+      ;;
+    005-radius-kubernetes-platform)
+      cat <<'EOF'
+Run directly from this generated snapshot branch:
+
+```bash
+./scripts/start-state-005-radius-kubernetes-platform-generated.sh --provider kind
+```
+
+UI/edge endpoint: `http://localhost:8080`
+
+Status / test / stop:
+
+```bash
+./scripts/status-state-005-radius-kubernetes-platform-generated.sh --provider kind
+./scripts/test-state-005-radius-kubernetes-platform.sh http://localhost:8080 traderx kind traderx-state-004
+./scripts/stop-state-005-radius-kubernetes-platform-generated.sh --provider kind
+```
+EOF
+      ;;
+    006-tilt-kubernetes-dev-loop)
+      cat <<'EOF'
+Run directly from this generated snapshot branch:
+
+```bash
+./scripts/start-state-006-tilt-kubernetes-dev-loop-generated.sh --provider kind
+```
+
+UI/edge endpoint: `http://localhost:8080`
+Tilt UI: `http://localhost:10350`
+
+Status / test / stop:
+
+```bash
+./scripts/status-state-006-tilt-kubernetes-dev-loop-generated.sh --provider kind
+./scripts/test-state-006-tilt-kubernetes-dev-loop.sh http://localhost:8080 traderx kind traderx-state-004
+./scripts/stop-state-006-tilt-kubernetes-dev-loop-generated.sh --provider kind
 ```
 EOF
       ;;

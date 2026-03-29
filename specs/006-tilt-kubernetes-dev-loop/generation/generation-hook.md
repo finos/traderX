@@ -10,3 +10,10 @@ Minimum hook responsibilities:
 1. Generate or transform code artifacts for this state.
 2. Keep compatibility with state lineage contracts unless explicitly changed.
 3. Produce deterministic output suitable for branch publishing.
+
+Current generated outputs:
+
+- `generated/code/target-generated/tilt-kubernetes-dev-loop/tilt/Tiltfile`
+- `generated/code/target-generated/tilt-kubernetes-dev-loop/tilt/tilt-settings.json`
+- `generated/code/target-generated/tilt-kubernetes-dev-loop/manifests/base/*`
+- `generated/code/target-generated/tilt-kubernetes-dev-loop/README.md`

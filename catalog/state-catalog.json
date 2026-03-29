@@ -99,16 +99,16 @@
     {
       "id": "006-tilt-kubernetes-dev-loop",
       "title": "Tilt Local Dev on Kubernetes",
-      "status": "planned",
+      "status": "implemented",
       "track": "devex",
       "featurePack": "specs/006-tilt-kubernetes-dev-loop",
       "previous": [
         "004-kubernetes-runtime"
       ],
       "generation": {
-        "mode": "planned",
+        "mode": "implemented",
         "entrypoint": "bash pipeline/generate-state.sh 006-tilt-kubernetes-dev-loop",
-        "runtime": "TBD"
+        "runtime": "./scripts/start-state-006-tilt-kubernetes-dev-loop-generated.sh"
       },
       "publish": {
         "branch": "codex/generated-state-006-tilt-kubernetes-dev-loop",

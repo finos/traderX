@@ -58,6 +58,7 @@ bash pipeline/scaffold-state-pack.sh <NNN-state-name> --title "<Title>" --previo
 - Code generation is reproducible and test-gated.
 - State transitions are auditable through numbered feature packs.
 - Learning paths stay consistent with the same baseline contracts and behaviors.
+- Parallel or conflicting state options can coexist with low maintenance overhead because specs are canonical and code is generated.
 
 ## Learning Path Rule Set
 

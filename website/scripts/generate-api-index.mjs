@@ -8,6 +8,7 @@ const __dirname = path.dirname(__filename)
 const root = path.resolve(__dirname, '..', '..')
 const catalogPath = path.join(root, 'catalog', 'state-catalog.json')
 const apiDocsDir = path.join(root, 'generated', 'api-docs')
+const componentsDir = path.join(root, 'specs', '001-baseline-uncontainerized-parity', 'components')
 const outFile = path.join(apiDocsDir, 'index.mdx')
 
 if (!fs.existsSync(catalogPath)) {
@@ -31,6 +32,20 @@ const toTitle = (serviceDir) =>
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ')
 
+const extractSectionLines = (content, sectionHeading) => {
+  const section = new RegExp(`## ${sectionHeading}\\n\\n([\\s\\S]*?)(?:\\n## |$)`).exec(content)
+  if (!section) {
+    return []
+  }
+
+  return section[1]
+    .trim()
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith('- '))
+    .map((line) => line.replace(/^- /, '').trim())
+}
+
 const activeStateId = process.env.TRADERX_API_STATE_ID ??
   catalog.docs?.apiExplorer?.activeStateId ??
   states[0].id
@@ -47,6 +62,10 @@ const serviceLinks = serviceDirs.map((serviceDir) => {
   const files = fs.readdirSync(servicePath)
   const infoFile = files.find((file) => file.endsWith('.info.mdx'))
   const apiFile = files.find((file) => file.endsWith('.api.mdx'))
+  const componentPath = path.join(componentsDir, `${serviceDir}.md`)
+  const responsibilities = fs.existsSync(componentPath)
+    ? extractSectionLines(fs.readFileSync(componentPath, 'utf8'), 'Responsibilities')
+    : []
 
   const routeSlug = infoFile
     ? infoFile.replace(/\.info\.mdx$/, '')
@@ -57,6 +76,8 @@ const serviceLinks = serviceDirs.map((serviceDir) => {
   return {
     label: toTitle(serviceDir),
     route: `/api/${serviceDir}/${routeSlug}`,
+    componentRoute: `/specs/001-baseline-uncontainerized-parity/components/${serviceDir}`,
+    responsibilities,
   }
 })
 
@@ -68,7 +89,20 @@ const contractsRoot = `${activeState.featurePack}/contracts/**/openapi.yaml`
 
 const servicesBlock = serviceLinks.length === 0
   ? '- No generated API docs found. Run `npm --prefix website run gen:api-docs`.'
-  : serviceLinks.map((item) => `- [${item.label}](${item.route})`).join('\n')
+  : serviceLinks
+      .map((item) => {
+        const purposeLines = item.responsibilities.length === 0
+          ? '- Purpose: See linked component spec.'
+          : item.responsibilities.map((line) => `- ${line}`)
+        return [
+          `### [${item.label}](${item.route})`,
+          '',
+          ...purposeLines,
+          '',
+          `Spec source: [\`${item.label} component spec\`](${item.componentRoute})`,
+        ].join('\n')
+      })
+      .join('\n\n')
 
 const content = `---
 title: API Explorer

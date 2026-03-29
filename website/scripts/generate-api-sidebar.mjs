@@ -35,17 +35,10 @@ const serviceItems = serviceDirs.map((serviceDir) => {
   const infoFile = files.find((f) => f.endsWith('.info.mdx'))
   const operationFiles = files.filter((f) => f.endsWith('.api.mdx'))
 
-  const items = []
-  if (operationFiles.length > 0) {
-    items.push({
-      type: 'category',
-      label: 'Operations',
-      items: operationFiles.map((filename) => ({
-        type: 'doc',
-        id: toDocId(serviceDir, filename, '.api.mdx'),
-      })),
-    })
-  }
+  const items = operationFiles.map((filename) => ({
+    type: 'doc',
+    id: toDocId(serviceDir, filename, '.api.mdx'),
+  }))
 
   const category = {
     type: 'category',

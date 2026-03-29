@@ -2,6 +2,8 @@
 
 This page defines how TraderX learning paths evolve from the same baseline using GitHub SpecKit artifacts in `specs/` and `.specify/`.
 
+The model supports both parallel tracks and intentionally conflicting architectural choices, while preserving explicit lineage between states.
+
 ## Transition Model
 
 Each learning-path transition is modeled as a separate spec feature branch:

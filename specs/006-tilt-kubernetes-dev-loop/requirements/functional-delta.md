@@ -6,16 +6,16 @@ Document only functional behavior changes introduced by this state.
 
 ## Added
 
-- TBD
+- None.
 
 ## Changed
 
-- TBD
+- None.
 
 ## Removed
 
-- TBD
+- None.
 
 ## Flow Impact
 
-- List impacted flows and acceptance criteria IDs.
+- No functional flow deltas. Baseline flows `F1`-`F6` and startup behavior remain compatible with state `004`.

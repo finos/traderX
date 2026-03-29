@@ -13,42 +13,36 @@ module.exports = {
           "label": "Account Service",
           "items": [
             {
-              "type": "category",
-              "label": "Operations",
-              "items": [
-                {
-                  "type": "doc",
-                  "id": "account-service/create-account-user"
-                },
-                {
-                  "type": "doc",
-                  "id": "account-service/create-account"
-                },
-                {
-                  "type": "doc",
-                  "id": "account-service/get-account-by-id"
-                },
-                {
-                  "type": "doc",
-                  "id": "account-service/get-account-users-by-account-id"
-                },
-                {
-                  "type": "doc",
-                  "id": "account-service/list-account-users"
-                },
-                {
-                  "type": "doc",
-                  "id": "account-service/list-accounts"
-                },
-                {
-                  "type": "doc",
-                  "id": "account-service/update-account-user"
-                },
-                {
-                  "type": "doc",
-                  "id": "account-service/update-account"
-                }
-              ]
+              "type": "doc",
+              "id": "account-service/create-account-user"
+            },
+            {
+              "type": "doc",
+              "id": "account-service/create-account"
+            },
+            {
+              "type": "doc",
+              "id": "account-service/get-account-by-id"
+            },
+            {
+              "type": "doc",
+              "id": "account-service/get-account-users-by-account-id"
+            },
+            {
+              "type": "doc",
+              "id": "account-service/list-account-users"
+            },
+            {
+              "type": "doc",
+              "id": "account-service/list-accounts"
+            },
+            {
+              "type": "doc",
+              "id": "account-service/update-account-user"
+            },
+            {
+              "type": "doc",
+              "id": "account-service/update-account"
             }
           ],
           "link": {
@@ -61,22 +55,16 @@ module.exports = {
           "label": "People Service",
           "items": [
             {
-              "type": "category",
-              "label": "Operations",
-              "items": [
-                {
-                  "type": "doc",
-                  "id": "people-service/get-a-person-from-directory-by-logon-or-employee-id"
-                },
-                {
-                  "type": "doc",
-                  "id": "people-service/get-people-where-logon-id-or-full-name-contains-search-text"
-                },
-                {
-                  "type": "doc",
-                  "id": "people-service/validate-person-identity-by-logon-or-employee-id"
-                }
-              ]
+              "type": "doc",
+              "id": "people-service/get-a-person-from-directory-by-logon-or-employee-id"
+            },
+            {
+              "type": "doc",
+              "id": "people-service/get-people-where-logon-id-or-full-name-contains-search-text"
+            },
+            {
+              "type": "doc",
+              "id": "people-service/validate-person-identity-by-logon-or-employee-id"
             }
           ],
           "link": {
@@ -89,34 +77,28 @@ module.exports = {
           "label": "Position Service",
           "items": [
             {
-              "type": "category",
-              "label": "Operations",
-              "items": [
-                {
-                  "type": "doc",
-                  "id": "position-service/get-all-positions"
-                },
-                {
-                  "type": "doc",
-                  "id": "position-service/get-all-trades"
-                },
-                {
-                  "type": "doc",
-                  "id": "position-service/get-positions-by-account-id"
-                },
-                {
-                  "type": "doc",
-                  "id": "position-service/get-trades-by-account-id"
-                },
-                {
-                  "type": "doc",
-                  "id": "position-service/health-alive"
-                },
-                {
-                  "type": "doc",
-                  "id": "position-service/health-ready"
-                }
-              ]
+              "type": "doc",
+              "id": "position-service/get-all-positions"
+            },
+            {
+              "type": "doc",
+              "id": "position-service/get-all-trades"
+            },
+            {
+              "type": "doc",
+              "id": "position-service/get-positions-by-account-id"
+            },
+            {
+              "type": "doc",
+              "id": "position-service/get-trades-by-account-id"
+            },
+            {
+              "type": "doc",
+              "id": "position-service/health-alive"
+            },
+            {
+              "type": "doc",
+              "id": "position-service/health-ready"
             }
           ],
           "link": {
@@ -129,22 +111,16 @@ module.exports = {
           "label": "Reference Data",
           "items": [
             {
-              "type": "category",
-              "label": "Operations",
-              "items": [
-                {
-                  "type": "doc",
-                  "id": "reference-data/find-stock-by-ticker"
-                },
-                {
-                  "type": "doc",
-                  "id": "reference-data/health-check"
-                },
-                {
-                  "type": "doc",
-                  "id": "reference-data/list-all-stocks"
-                }
-              ]
+              "type": "doc",
+              "id": "reference-data/find-stock-by-ticker"
+            },
+            {
+              "type": "doc",
+              "id": "reference-data/health-check"
+            },
+            {
+              "type": "doc",
+              "id": "reference-data/list-all-stocks"
             }
           ],
           "link": {
@@ -157,18 +133,12 @@ module.exports = {
           "label": "Trade Processor",
           "items": [
             {
-              "type": "category",
-              "label": "Operations",
-              "items": [
-                {
-                  "type": "doc",
-                  "id": "trade-processor/docs-root"
-                },
-                {
-                  "type": "doc",
-                  "id": "trade-processor/process-order"
-                }
-              ]
+              "type": "doc",
+              "id": "trade-processor/docs-root"
+            },
+            {
+              "type": "doc",
+              "id": "trade-processor/process-order"
             }
           ],
           "link": {
@@ -181,14 +151,8 @@ module.exports = {
           "label": "Trade Service",
           "items": [
             {
-              "type": "category",
-              "label": "Operations",
-              "items": [
-                {
-                  "type": "doc",
-                  "id": "trade-service/create-trade-order"
-                }
-              ]
+              "type": "doc",
+              "id": "trade-service/create-trade-order"
             }
           ],
           "link": {

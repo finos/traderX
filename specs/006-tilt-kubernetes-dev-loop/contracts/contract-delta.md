@@ -14,4 +14,5 @@ Document any API/event/schema changes for this state.
 
 ## Compatibility Notes
 
-- Define backward-compatibility and migration expectations.
+- OpenAPI and event contracts are unchanged from state `004-kubernetes-runtime`.
+- State `006` introduces local developer orchestration artifacts (Tilt) only.

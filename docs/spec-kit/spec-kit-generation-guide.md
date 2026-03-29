@@ -60,6 +60,7 @@ Current state-aware generation entrypoints:
 - `bash pipeline/generate-state.sh 003-containerized-compose-runtime`
 - `bash pipeline/generate-state.sh 004-kubernetes-runtime`
 - `bash pipeline/generate-state.sh 005-radius-kubernetes-platform`
+- `bash pipeline/generate-state.sh 006-tilt-kubernetes-dev-loop`
 
 Architecture docs are generated from state-local models under `specs/*/system/architecture.model.json`:
 
@@ -87,6 +88,13 @@ Radius platform state (state `005`) commands:
 - `./scripts/status-state-005-radius-kubernetes-platform-generated.sh --provider kind`
 - `./scripts/test-state-005-radius-kubernetes-platform.sh http://localhost:8080 traderx kind traderx-state-004`
 - `./scripts/stop-state-005-radius-kubernetes-platform-generated.sh --provider kind`
+
+Tilt local dev-loop state (state `006`) commands:
+
+- `./scripts/start-state-006-tilt-kubernetes-dev-loop-generated.sh --provider kind`
+- `./scripts/status-state-006-tilt-kubernetes-dev-loop-generated.sh --provider kind`
+- `./scripts/test-state-006-tilt-kubernetes-dev-loop.sh http://localhost:8080 traderx kind traderx-state-004`
+- `./scripts/stop-state-006-tilt-kubernetes-dev-loop-generated.sh --provider kind`
 
 ## Publish Code-Only Snapshot Branches
 

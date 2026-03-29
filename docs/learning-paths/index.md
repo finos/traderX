@@ -19,7 +19,8 @@ This page maps the current state progression and points to canonical SpecKit art
 | 3 | `003-containerized-compose-runtime` | `/specs/containerized-compose-runtime` | `codex/generated-state-003-containerized-compose-runtime` |
 | 4 | `004-kubernetes-runtime` | `/specs/kubernetes-runtime` | `codex/generated-state-004-kubernetes-runtime` |
 | 5 | `005-radius-kubernetes-platform` | `/specs/radius-kubernetes-platform` | `codex/generated-state-005-radius-kubernetes-platform` |
-| 6+ | planned learning-path states | future `specs/NNN-*` packs | future generated snapshots |
+| 6 | `006-tilt-kubernetes-dev-loop` | `/specs/tilt-kubernetes-dev-loop` | `codex/generated-state-006-tilt-kubernetes-dev-loop` |
+| 7+ | planned learning-path states | future `specs/NNN-*` packs | future generated snapshots |
 
 ## Current Navigation
 

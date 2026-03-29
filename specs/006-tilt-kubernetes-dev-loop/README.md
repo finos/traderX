@@ -1,6 +1,6 @@
 # Feature Pack 006: Tilt Local Dev on Kubernetes
 
-Status: Planned
+Status: Implemented
 Track: `devex`
 Previous state: `004-kubernetes-runtime`
 
@@ -24,3 +24,10 @@ Core artifacts:
 - `system/runtime-topology.md`
 - `generation/generation-hook.md`
 - `tests/smoke/README.md`
+
+Runtime entrypoints:
+
+- `./scripts/start-state-006-tilt-kubernetes-dev-loop-generated.sh`
+- `./scripts/status-state-006-tilt-kubernetes-dev-loop-generated.sh`
+- `./scripts/test-state-006-tilt-kubernetes-dev-loop.sh`
+- `./scripts/stop-state-006-tilt-kubernetes-dev-loop-generated.sh`

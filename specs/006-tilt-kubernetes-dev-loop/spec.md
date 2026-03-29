@@ -2,7 +2,7 @@
 
 **Feature Branch**: `006-tilt-kubernetes-dev-loop`  
 **Created**: 2026-03-29  
-**Status**: Planned  
+**Status**: Implemented  
 **Input**: Transition delta from `004-kubernetes-runtime`
 
 ## User Stories

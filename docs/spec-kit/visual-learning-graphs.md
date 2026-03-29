@@ -14,7 +14,7 @@ flowchart LR
   S002 --> S003["003: Containerized Compose Runtime (NGINX Ingress)"]
   S003 --> S004["004: Kubernetes Runtime"]
   S004 --> S005["005: Radius Platform on Kubernetes"]
-  S004 --> S006["006: Tilt Local Dev on Kubernetes (Planned)"]
+  S004 --> S006["006: Tilt Local Dev on Kubernetes"]
 
   click S001 href "/specs/baseline-uncontainerized-parity" "Open State 001 Spec Pack"
   click S002 href "/specs/edge-proxy-uncontainerized" "Open State 002 Spec Pack"
