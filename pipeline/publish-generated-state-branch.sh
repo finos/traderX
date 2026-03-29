@@ -68,6 +68,7 @@ STATE_TITLE="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | .t
 DEFAULT_BRANCH="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | .publish.branch' "${CATALOG}")"
 TAG_HINT="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | .publish.tag' "${CATALOG}")"
 GENERATION_ENTRYPOINT="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | .generation.entrypoint' "${CATALOG}")"
+GENERATION_RUNTIME="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | (.generation.runtime // "")' "${CATALOG}")"
 
 BRANCH_NAME="${BRANCH_OVERRIDE:-${DEFAULT_BRANCH}}"
 if [[ "${BRANCH_NAME}" != codex/* ]]; then
@@ -141,6 +142,86 @@ GENERATED_AT_UTC="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 
 PREVIOUS_STATES_JSON="$(jq -c --arg id "${STATE_ID}" '.states[] | select(.id == $id) | (.previous // [])' "${CATALOG}")"
 NEXT_STATES_JSON="$(jq -c --arg id "${STATE_ID}" '.states | [ .[] | select((.previous // []) | index($id)) | .id ]' "${CATALOG}")"
+PREVIOUS_STATES_TEXT="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | (.previous // []) | if length == 0 then "none" else join(", ") end' "${CATALOG}")"
+NEXT_STATES_TEXT="$(jq -r --arg id "${STATE_ID}" '.states | [ .[] | select((.previous // []) | index($id)) | .id ] | if length == 0 then "none" else join(", ") end' "${CATALOG}")"
+
+ORIGIN_URL="$(git -C "${ROOT}" remote get-url origin)"
+REPO_WEB_BASE=""
+case "${ORIGIN_URL}" in
+  https://github.com/*)
+    REPO_WEB_BASE="${ORIGIN_URL%.git}"
+    ;;
+  git@github.com:*)
+    REPO_WEB_BASE="https://github.com/${ORIGIN_URL#git@github.com:}"
+    REPO_WEB_BASE="${REPO_WEB_BASE%.git}"
+    ;;
+esac
+
+state_summary_markdown() {
+  case "${STATE_ID}" in
+    001-baseline-uncontainerized-parity)
+      cat <<'EOF'
+- Base case for TraderX generated code.
+- Runtime model: uncontainerized local processes in deterministic startup order.
+- Browser directly calls multiple service ports (cross-origin CORS behavior is part of this state).
+EOF
+      ;;
+    002-edge-proxy-uncontainerized)
+      cat <<'EOF'
+- Builds on state `001` while keeping uncontainerized process runtime.
+- Adds `edge-proxy` as a single browser-facing origin for UI + API + WebSocket traffic.
+- Preserves baseline functional behavior with topology-focused NFR deltas.
+EOF
+      ;;
+    003-containerized-compose-runtime)
+      cat <<'EOF'
+- Builds on state `002` by moving runtime to Docker Compose.
+- Uses NGINX ingress (`ingress` service) as the browser/API/WebSocket entrypoint.
+- Preserves baseline functional behavior while changing runtime/ops model.
+EOF
+      ;;
+    *)
+      cat <<'EOF'
+- Generated code snapshot for TraderX state transition.
+EOF
+      ;;
+  esac
+}
+
+runtime_guidance_markdown() {
+  case "${STATE_ID}" in
+    003-containerized-compose-runtime)
+      cat <<'EOF'
+Run directly from this generated snapshot branch:
+
+```bash
+docker compose -f containerized-compose/docker-compose.yml up -d --build
+```
+
+UI/ingress endpoint: `http://localhost:8080`
+
+Stop:
+
+```bash
+docker compose -f containerized-compose/docker-compose.yml down --remove-orphans
+```
+EOF
+      ;;
+    *)
+      cat <<EOF
+This generated branch is a code snapshot and does not include the full SpecKit orchestration workspace.
+
+For reproducible startup/verification, use the canonical source branch at commit \`${SOURCE_COMMIT}\`:
+
+\`\`\`bash
+git checkout ${SOURCE_COMMIT}
+bash pipeline/generate-state.sh ${STATE_ID}
+${GENERATION_RUNTIME}
+\`\`\`
+EOF
+      ;;
+  esac
+}
 
 mkdir -p "${SNAPSHOT_DIR}/.traderx-state"
 cat > "${SNAPSHOT_DIR}/.traderx-state/state.json" <<EOF
@@ -175,6 +256,49 @@ cat > "${SNAPSHOT_DIR}/STATE.md" <<EOF
 
 Machine-readable metadata: \`.traderx-state/state.json\`
 EOF
+
+cat > "${SNAPSHOT_DIR}/README.md" <<EOF
+# TraderX Generated Code Snapshot
+
+This branch is an auto-published generated-code snapshot for FINOS TraderX.
+
+- State ID: \`${STATE_ID}\`
+- State Title: \`${STATE_TITLE}\`
+- Status: \`${STATE_STATUS}\`
+- Suggested Version Tag: \`${TAG_HINT}\`
+- Source Branch: \`${SOURCE_BRANCH}\`
+- Source Commit: \`${SOURCE_COMMIT}\`
+- Generated At (UTC): \`${GENERATED_AT_UTC}\`
+
+## State Summary
+
+$(state_summary_markdown)
+
+## State Lineage
+
+- Previous states: \`${PREVIOUS_STATES_TEXT}\`
+- Next states: \`${NEXT_STATES_TEXT}\`
+
+## Runtime Guidance
+
+$(runtime_guidance_markdown)
+
+## Canonical Specs And Docs
+
+Canonical source-of-truth is maintained in the SpecKit authoring branch, not in this code snapshot branch.
+
+- Feature pack: \`${FEATURE_PACK}\`
+- Generation entrypoint: \`${GENERATION_ENTRYPOINT}\`
+- Snapshot metadata: [STATE.md](./STATE.md), [state.json](./.traderx-state/state.json)
+EOF
+
+if [[ -n "${REPO_WEB_BASE}" ]]; then
+  cat >> "${SNAPSHOT_DIR}/README.md" <<EOF
+- Source commit: ${REPO_WEB_BASE}/commit/${SOURCE_COMMIT}
+- Feature pack at source commit: ${REPO_WEB_BASE}/tree/${SOURCE_COMMIT}/${FEATURE_PACK}
+- TraderSpec docs at source commit: ${REPO_WEB_BASE}/tree/${SOURCE_COMMIT}/docs/traderspec
+EOF
+fi
 
 if git -C "${ROOT}" show-ref --verify --quiet "refs/heads/${BRANCH_NAME}"; then
   git -C "${ROOT}" worktree add "${WORKTREE_DIR}" "${BRANCH_NAME}" >/dev/null
