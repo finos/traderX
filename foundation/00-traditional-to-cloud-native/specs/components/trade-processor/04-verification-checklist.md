@@ -2,7 +2,7 @@
 
 ## Startup Verification
 
-- [ ] Generated component exists in `codebase/generated-components/trade-processor-specfirst`.
+- [ ] Generated component exists in `generated/code/components/trade-processor-specfirst`.
 - [ ] `./gradlew build` completes.
 - [ ] Service starts and listens on port `18091`.
 

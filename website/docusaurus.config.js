@@ -48,13 +48,12 @@ module.exports = {
       items: [
         {to: '/docs/home', label: 'Overview', position: 'right'},
         {to: '/docs/traderspec', label: 'Getting Started', position: 'right'},
-        {to: '/docs/learning-paths', label: 'Learning Paths', position: 'right'},
-        {to: '/foundation', label: 'Foundation', position: 'right'},
         {to: '/specs', label: 'Specs', position: 'right'},
-        {to: '/specify', label: 'Constitution', position: 'right'},
+        {to: '/docs/adr', label: 'ADRs', position: 'right'},
+        {to: '/specify/memory/constitution', label: 'Constitution', position: 'right'},
+        {to: '/docs/learning-paths', label: 'Learning Paths', position: 'right'},
         {to: '/api', label: 'API Explorer', position: 'right'},
-        {to: '/migration/migration-todo', label: 'Migration TODO', position: 'right'},
-        {to: '/migration/migration-blog', label: 'Migration Blog', position: 'right'},
+        {type: 'search', position: 'right'},
         {
           href: 'https://github.com/finos/',
           label: 'GitHub',
@@ -146,7 +145,7 @@ module.exports = {
       {
         docs: {
           path: '../docs',
-          exclude: ['prompt-ideas/**', 'migration/**', 'migration/**/*', '**/migration/**'],
+          exclude: ['prompt-ideas/**', 'migration/**', 'migration/**/*', '**/migration/**', 'guide/adr/**', 'guide/adr/**/*'],
           editUrl:
             'https://github.com/finos/traderX/edit/main/website/',
           sidebarPath: require.resolve('./sidebars.js')
@@ -158,6 +157,13 @@ module.exports = {
     ]
   ],
   plugins: [
+    [
+      require.resolve('docusaurus-lunr-search'),
+      {
+        languages: ['en'],
+        excludeRoutes: ['/docs/guide/**', 'docs/guide/**'],
+      },
+    ],
     [
       '@docusaurus/plugin-content-docs',
       {
@@ -207,11 +213,11 @@ module.exports = {
       '@docusaurus/plugin-content-docs',
       {
         id: 'traderspec-api',
-        path: '../api-docs',
+        path: '../generated/api-docs',
         routeBasePath: 'api',
         sidebarPath: require.resolve('./traderspec-api.sidebars.js'),
         docItemComponent: '@theme/ApiItem',
-        editUrl: 'https://github.com/finos/traderX/edit/main/api-docs/',
+        editUrl: 'https://github.com/finos/traderX/edit/main/specs/001-baseline-uncontainerized-parity/contracts/',
       },
     ],
     [
@@ -222,42 +228,42 @@ module.exports = {
         config: {
           'account-service': {
             specPath: '../specs/001-baseline-uncontainerized-parity/contracts/account-service/openapi.yaml',
-            outputDir: '../api-docs/account-service',
+            outputDir: '../generated/api-docs/account-service',
             sidebarOptions: {
               groupPathsBy: 'tag',
             },
           },
           'people-service': {
             specPath: '../specs/001-baseline-uncontainerized-parity/contracts/people-service/openapi.yaml',
-            outputDir: '../api-docs/people-service',
+            outputDir: '../generated/api-docs/people-service',
             sidebarOptions: {
               groupPathsBy: 'tag',
             },
           },
           'position-service': {
             specPath: '../specs/001-baseline-uncontainerized-parity/contracts/position-service/openapi.yaml',
-            outputDir: '../api-docs/position-service',
+            outputDir: '../generated/api-docs/position-service',
             sidebarOptions: {
               groupPathsBy: 'tag',
             },
           },
           'reference-data': {
             specPath: '../specs/001-baseline-uncontainerized-parity/contracts/reference-data/openapi.yaml',
-            outputDir: '../api-docs/reference-data',
+            outputDir: '../generated/api-docs/reference-data',
             sidebarOptions: {
               groupPathsBy: 'tag',
             },
           },
           'trade-processor': {
             specPath: '../specs/001-baseline-uncontainerized-parity/contracts/trade-processor/openapi.yaml',
-            outputDir: '../api-docs/trade-processor',
+            outputDir: '../generated/api-docs/trade-processor',
             sidebarOptions: {
               groupPathsBy: 'tag',
             },
           },
           'trade-service': {
             specPath: '../specs/001-baseline-uncontainerized-parity/contracts/trade-service/openapi.yaml',
-            outputDir: '../api-docs/trade-service',
+            outputDir: '../generated/api-docs/trade-service',
             sidebarOptions: {
               groupPathsBy: 'tag',
             },

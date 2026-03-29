@@ -32,4 +32,4 @@ This inventory anchors redesign work to current TraderX behavior.
 
 ## Redesign Constraint
 
-Any generated codebase in `TraderSpec/codebase/target-generated` must preserve these core workflows unless a spec intentionally changes them.
+Any generated codebase in `generated/code/target-generated` must preserve these core workflows unless a spec intentionally changes them.

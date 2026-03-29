@@ -16,6 +16,10 @@ owner: "@finos/traderx-maintainers"
 
 # ADR-004: Testing Strategy Across States
 
+> [!WARNING]
+> Deprecated ADR: legacy pre-SpecKit guidance.
+> Current repository ADRs are in `docs/adr/**` using MADR format.
+
 ## Status
 Proposed
 

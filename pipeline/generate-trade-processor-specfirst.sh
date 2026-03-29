@@ -6,9 +6,9 @@ REPO_ROOT="${ROOT}"
 source "${ROOT}/pipeline/speckit/lib.sh"
 
 COMPONENT_ID="trade-processor"
-TARGET="${ROOT}/TraderSpec/codebase/generated-components/trade-processor-specfirst"
+TARGET="${ROOT}/generated/code/components/trade-processor-specfirst"
 TEMPLATE_ROOT="${ROOT}/templates/trade-processor-specfirst"
-MANIFEST_PATH="${ROOT}/TraderSpec/codebase/generated-manifests/${COMPONENT_ID}.manifest.json"
+MANIFEST_PATH="${ROOT}/generated/manifests/${COMPONENT_ID}.manifest.json"
 
 speckit_assert_global_readiness
 speckit_assert_component_ready "${COMPONENT_ID}"

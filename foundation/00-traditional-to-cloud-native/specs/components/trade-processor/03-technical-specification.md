@@ -48,7 +48,7 @@
 
 ## Source Layout Target (Generated)
 
-- Target path: `TraderSpec/codebase/generated-components/trade-processor-specfirst`
+- Target path: `generated/code/components/trade-processor-specfirst`
 - Required generated artifacts:
   - Spring Boot application source (processing logic + messaging integration)
   - Gradle build files and wrapper

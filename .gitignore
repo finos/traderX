@@ -1,11 +1,12 @@
 #TraderSpec#
 **/.run
+generated/**
+!generated/
+!generated/README.md
 TraderSpec/codebase/generated-components/
 TraderSpec/codebase/generated-manifests/
 TraderSpec/codebase/target-generated/
 TraderSpec/codebase/target-generated-specfirst/
-api-docs/*
-!api-docs/README.md
 
 # Spec Kit agent working data
 .agents/*

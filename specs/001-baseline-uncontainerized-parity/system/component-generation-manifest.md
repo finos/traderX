@@ -25,7 +25,7 @@ Manifest values are compiled from:
 
 Compiled manifests are written to:
 
-- `TraderSpec/codebase/generated-manifests/<component-id>.manifest.json`
+- `generated/manifests/<component-id>.manifest.json`
 
 ## Required Fields
 

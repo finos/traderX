@@ -2,7 +2,7 @@
 
 ## Startup Verification
 
-- [ ] Generated component exists in `codebase/generated-components/people-service-specfirst`.
+- [ ] Generated component exists in `generated/code/components/people-service-specfirst`.
 - [ ] `dotnet build` completes for `PeopleService.WebApi`.
 - [ ] Service starts and listens on port `18089`.
 

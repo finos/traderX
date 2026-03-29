@@ -17,6 +17,10 @@ owner: "@finos/traderx-maintainers"
 
 # TraderX Multi-State Learning Path Strategy
 
+> [!WARNING]
+> Deprecated: pre-SpecKit guide content retained for reference only.
+> Canonical process now lives in root Spec Kit artifacts and active TraderSpec docs.
+
 ## Vision
 
 Transform TraderX from a single reference application into a comprehensive learning platform that demonstrates the evolution of a distributed trading system through multiple architectural states, deployment strategies, and feature enhancements.

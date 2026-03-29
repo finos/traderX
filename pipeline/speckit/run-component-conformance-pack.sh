@@ -45,7 +45,7 @@ source "${ROOT}/pipeline/speckit/lib.sh"
 MATRIX="${SPECKIT_MATRIX}"
 CSV="${ROOT}/catalog/component-spec.csv"
 PACK_FILE="${SPECKIT_CONFORMANCE_DIR}/${COMPONENT_ID}.md"
-MANIFEST_PATH="${ROOT}/TraderSpec/codebase/generated-manifests/${COMPONENT_ID}.manifest.json"
+MANIFEST_PATH="${ROOT}/generated/manifests/${COMPONENT_ID}.manifest.json"
 
 normalize_field() {
   local value="$1"

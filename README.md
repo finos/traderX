@@ -13,7 +13,7 @@ The baseline implementation is generated and validated from requirements, storie
 - `pipeline/` + `scripts/` - generation, runtime, conformance, and parity orchestration
 - `templates/` + `catalog/` - synthesis inputs and component/process catalogs
 - `foundation/` + `tracks/` - baseline foundation corpus and learning-path definitions
-- `TraderSpec/codebase/` - generated runtime artifact workspace (ephemeral outputs)
+- `generated/` - generated runtime/code/docs artifacts workspace (ephemeral outputs)
 - `docs/` + `website/` - documentation portal and API explorer
 
 ## Quickstart (Generated Baseline Runtime)

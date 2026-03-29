@@ -39,7 +39,7 @@
 
 ## Source Layout Target (Generated)
 
-- Target path: `TraderSpec/codebase/generated-components/people-service-specfirst`
+- Target path: `generated/code/components/people-service-specfirst`
 - Required generated artifacts:
   - runnable ASP.NET Core Web API project
   - baseline endpoint contract compatibility for `GetPerson`, `GetMatchingPeople`, `ValidatePerson`

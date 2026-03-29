@@ -21,9 +21,21 @@ These docs are intentionally hidden from active navigation while TraderSpec conv
 
 | Path Prefix | Why Hidden | Planned Action |
 |---|---|---|
-| `docs/guide/**` | Pre-canonicalization learning architecture docs with legacy container/branch assumptions | Re-scope after Phase 10 learning-path execution |
+| `docs/guide/**` | Deprecated pre-SpecKit learning architecture and ADR set | Keep read-only for inspiration; do not use as canonical governance |
 | `docs/roadmap.mdx` | Not part of active SpecKit operator workflow | Reintroduce once roadmap is rewritten around feature packs |
 | `docs/team.mdx` | Not part of active SpecKit operator workflow | Reintroduce when docs IA is finalized |
+
+## Archive Candidates (Non-Canonical)
+
+| Path Prefix | Why Candidate | Planned Action |
+|---|---|---|
+| `prompts/**` | Pre-SpecKit prompt pack; not canonical for root SpecKit workflow | Keep temporarily for state/automation compatibility checks, then archive or remove |
+| `tools/**` | Legacy utility scripts with limited active gate usage | Keep only scripts still required by active workflows; archive the rest |
+
+## Active ADR Source
+
+- `docs/adr/**` is the canonical ADR location.
+- ADRs in `docs/guide/adr/**` are legacy and deprecated.
 
 ## Active Canonical Documentation
 

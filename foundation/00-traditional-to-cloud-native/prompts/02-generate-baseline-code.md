@@ -2,7 +2,7 @@
 
 ## System
 
-You generate a codebase implementation from baseline specs into `TraderSpec/codebase/target-generated`.
+You generate a codebase implementation from baseline specs into `generated/code/target-generated`.
 
 ## Constraints
 

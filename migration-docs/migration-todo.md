@@ -5,7 +5,7 @@ This is the active program-of-record TODO for the SpecKit-first TraderX migratio
 ## Current Status
 
 - Current phase: `Phase C` (root flattening and docs simplification).
-- Next milestone: complete Phase C closeout checks, then proceed to Phase 10 learning-path evolution.
+- Next milestone: close Phase C and execute Phase 10 state releases (`001` -> `002` -> `003`).
 - Last updated: `2026-03-29`.
 
 ## Mission
@@ -45,6 +45,12 @@ Make root SpecKit artifacts (`.specify/` and `specs/`) the source of truth, with
 - [ ] 10.3 Implement state-aware generation entrypoint and impact summary output.
 - [ ] 10.4 Add state-specific verification gates and runbooks.
 - [ ] 10.5 Publish first post-baseline state generated fully from specs.
+- [ ] 10.6 Define generated-state branch/tag convention (spec-source vs code-snapshot).
+- [ ] 10.7 Publish generated-code snapshot tag for `001-baseline-uncontainerized-parity`.
+- [ ] 10.8 Finalize `002-edge-proxy-uncontainerized` spec pack (NFR-first state delta).
+- [ ] 10.9 Generate/validate/release `002` state from specs and tag generated snapshot.
+- [ ] 10.10 Finalize `003-containerized-compose-runtime` spec pack.
+- [ ] 10.11 Generate/validate/release `003` state from specs and tag generated snapshot.
 - [x] 11) Complete root-level SpecKit canonical migration.
 - [x] B) Canonicalize repository to SpecKit-first generated baseline.
 - [ ] C) Finish root flattening cleanup and docs simplification.
@@ -59,6 +65,8 @@ Make root SpecKit artifacts (`.specify/` and `specs/`) the source of truth, with
 - [x] C.6 Move migration docs to `migration-docs/*` and remove legacy plugin overlap.
 - [ ] C.7 Remove residual `TraderSpec/` folders that are no longer needed.
 - [ ] C.8 Re-run full validation set after final cleanup.
+- [ ] C.9 Finalize archive decisions for `prompts/**` and `tools/**` (retain only if still required by active states/automation).
+- [ ] C.10 Complete generated-artifact relocation to `generated/**` and remove remaining legacy `api-docs/**`/`TraderSpec/codebase/**` runtime references.
 
 ## Validation Gates for Phase C Exit
 
@@ -78,6 +86,31 @@ Run all of these from repo root:
 ## Phase 10 Preview
 
 Phase 10 formalizes multi-state evolution as SpecKit deltas, so developers can move between states by changing requirements first and then regenerating only impacted components.
+
+## Phase 10 State Sequence (Program of Record)
+
+1. `001-baseline-uncontainerized-parity`
+- Purpose: stable baseline reference and first generated-code snapshot.
+- Tag target: `generated/001-baseline-uncontainerized-parity/v1`
+
+2. `002-edge-proxy-uncontainerized`
+- Purpose: introduce edge routing/proxy boundary to remove direct browser-to-many-service cross-origin calls.
+- Delta shape: primarily non-functional (network topology, routing, CORS simplification), minimal functional changes.
+- Tag target: `generated/002-edge-proxy-uncontainerized/v1`
+
+3. `003-containerized-compose-runtime`
+- Purpose: move runtime from local process orchestration to Docker/Docker Compose baseline.
+- Delta shape: non-functional platform/runtime change with documented operational requirements.
+- Tag target: `generated/003-containerized-compose-runtime/v1`
+
+## Release Model
+
+- `main` remains spec-source canonical (`.specify/**` + `specs/**` + generation pipeline).
+- Generated runnable snapshots are published as tags on generated-code commits.
+- Every generated-state tag must include:
+  - source feature pack id,
+  - generation command set used,
+  - validation evidence references (conformance, smoke, docs build).
 
 ## Progress Graph
 

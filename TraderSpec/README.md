@@ -1,6 +1,6 @@
 # TraderSpec
 
-`TraderSpec/` now primarily hosts the generated runtime workspace for the SpecKit-first baseline.
+`TraderSpec/` is now a legacy transition folder slated for removal after Phase C cleanup.
 
 Operational orchestration is root-canonical:
 
@@ -74,10 +74,10 @@ bash pipeline/speckit/run-full-parity-validation.sh
 
 These paths are ephemeral and intentionally not source-controlled:
 
-- `TraderSpec/codebase/generated-components/`
-- `TraderSpec/codebase/generated-manifests/`
-- `TraderSpec/codebase/target-generated/`
-- `api-docs/`
+- `generated/code/components/`
+- `generated/manifests/`
+- `generated/code/target-generated/`
+- `generated/api-docs/`
 
 Recreate them by running generation commands; do not commit them.
 

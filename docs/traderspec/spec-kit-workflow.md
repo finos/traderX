@@ -62,6 +62,12 @@ bash pipeline/generate-trade-service-specfirst.sh
 bash pipeline/generate-web-front-end-angular-specfirst.sh
 ```
 
+Generated outputs:
+
+- `generated/code/components/*-specfirst`
+- `generated/manifests/*.manifest.json`
+- `generated/code/target-generated/**` (assembled at startup)
+
 Run generated baseline stack:
 
 ```bash

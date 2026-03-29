@@ -184,39 +184,39 @@ cd "${REPO_ROOT}"
 case "${COMPONENT_ID}" in
   reference-data)
     GENERATOR_SCRIPT_CANDIDATES=("pipeline/generate-reference-data-specfirst.sh" "TraderSpec/pipeline/generate-reference-data-specfirst.sh")
-    GENERATED_DIR="TraderSpec/codebase/generated-components/reference-data-specfirst"
+    GENERATED_DIR="generated/code/components/reference-data-specfirst"
     ;;
   database)
     GENERATOR_SCRIPT_CANDIDATES=("pipeline/generate-database-specfirst.sh" "TraderSpec/pipeline/generate-database-specfirst.sh")
-    GENERATED_DIR="TraderSpec/codebase/generated-components/database-specfirst"
+    GENERATED_DIR="generated/code/components/database-specfirst"
     ;;
   people-service)
     GENERATOR_SCRIPT_CANDIDATES=("pipeline/generate-people-service-specfirst.sh" "TraderSpec/pipeline/generate-people-service-specfirst.sh")
-    GENERATED_DIR="TraderSpec/codebase/generated-components/people-service-specfirst"
+    GENERATED_DIR="generated/code/components/people-service-specfirst"
     ;;
   account-service)
     GENERATOR_SCRIPT_CANDIDATES=("pipeline/generate-account-service-specfirst.sh" "TraderSpec/pipeline/generate-account-service-specfirst.sh")
-    GENERATED_DIR="TraderSpec/codebase/generated-components/account-service-specfirst"
+    GENERATED_DIR="generated/code/components/account-service-specfirst"
     ;;
   position-service)
     GENERATOR_SCRIPT_CANDIDATES=("pipeline/generate-position-service-specfirst.sh" "TraderSpec/pipeline/generate-position-service-specfirst.sh")
-    GENERATED_DIR="TraderSpec/codebase/generated-components/position-service-specfirst"
+    GENERATED_DIR="generated/code/components/position-service-specfirst"
     ;;
   trade-feed)
     GENERATOR_SCRIPT_CANDIDATES=("pipeline/generate-trade-feed-specfirst.sh" "TraderSpec/pipeline/generate-trade-feed-specfirst.sh")
-    GENERATED_DIR="TraderSpec/codebase/generated-components/trade-feed-specfirst"
+    GENERATED_DIR="generated/code/components/trade-feed-specfirst"
     ;;
   trade-processor)
     GENERATOR_SCRIPT_CANDIDATES=("pipeline/generate-trade-processor-specfirst.sh" "TraderSpec/pipeline/generate-trade-processor-specfirst.sh")
-    GENERATED_DIR="TraderSpec/codebase/generated-components/trade-processor-specfirst"
+    GENERATED_DIR="generated/code/components/trade-processor-specfirst"
     ;;
   trade-service)
     GENERATOR_SCRIPT_CANDIDATES=("pipeline/generate-trade-service-specfirst.sh" "TraderSpec/pipeline/generate-trade-service-specfirst.sh")
-    GENERATED_DIR="TraderSpec/codebase/generated-components/trade-service-specfirst"
+    GENERATED_DIR="generated/code/components/trade-service-specfirst"
     ;;
   web-front-end-angular)
     GENERATOR_SCRIPT_CANDIDATES=("pipeline/generate-web-front-end-angular-specfirst.sh" "TraderSpec/pipeline/generate-web-front-end-angular-specfirst.sh")
-    GENERATED_DIR="TraderSpec/codebase/generated-components/web-front-end-angular-specfirst"
+    GENERATED_DIR="generated/code/components/web-front-end-angular-specfirst"
     ;;
   *)
     echo "[fail] unsupported component-id: ${COMPONENT_ID}"

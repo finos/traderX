@@ -2,20 +2,20 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TRADERSPEC_ROOT="${REPO_ROOT}/TraderSpec"
-TARGET="${TRADERSPEC_ROOT}/codebase/target-generated"
+GENERATED_ROOT="${REPO_ROOT}/generated"
+TARGET="${GENERATED_ROOT}/code/target-generated"
 SPEC="${REPO_ROOT}/catalog/base-uncontainerized-processes.csv"
 RUN_DIR="${TARGET}/.run/base-uncontainerized"
 TOOL_CACHE_DIR="${RUN_DIR}/tool-cache"
-REFERENCE_DATA_SPECFIRST="${TRADERSPEC_ROOT}/codebase/generated-components/reference-data-specfirst"
-DATABASE_SPECFIRST="${TRADERSPEC_ROOT}/codebase/generated-components/database-specfirst"
-PEOPLE_SERVICE_SPECFIRST="${TRADERSPEC_ROOT}/codebase/generated-components/people-service-specfirst"
-ACCOUNT_SERVICE_SPECFIRST="${TRADERSPEC_ROOT}/codebase/generated-components/account-service-specfirst"
-POSITION_SERVICE_SPECFIRST="${TRADERSPEC_ROOT}/codebase/generated-components/position-service-specfirst"
-TRADE_FEED_SPECFIRST="${TRADERSPEC_ROOT}/codebase/generated-components/trade-feed-specfirst"
-TRADE_PROCESSOR_SPECFIRST="${TRADERSPEC_ROOT}/codebase/generated-components/trade-processor-specfirst"
-TRADE_SERVICE_SPECFIRST="${TRADERSPEC_ROOT}/codebase/generated-components/trade-service-specfirst"
-WEB_FRONT_END_ANGULAR_SPECFIRST="${TRADERSPEC_ROOT}/codebase/generated-components/web-front-end-angular-specfirst"
+REFERENCE_DATA_SPECFIRST="${GENERATED_ROOT}/code/components/reference-data-specfirst"
+DATABASE_SPECFIRST="${GENERATED_ROOT}/code/components/database-specfirst"
+PEOPLE_SERVICE_SPECFIRST="${GENERATED_ROOT}/code/components/people-service-specfirst"
+ACCOUNT_SERVICE_SPECFIRST="${GENERATED_ROOT}/code/components/account-service-specfirst"
+POSITION_SERVICE_SPECFIRST="${GENERATED_ROOT}/code/components/position-service-specfirst"
+TRADE_FEED_SPECFIRST="${GENERATED_ROOT}/code/components/trade-feed-specfirst"
+TRADE_PROCESSOR_SPECFIRST="${GENERATED_ROOT}/code/components/trade-processor-specfirst"
+TRADE_SERVICE_SPECFIRST="${GENERATED_ROOT}/code/components/trade-service-specfirst"
+WEB_FRONT_END_ANGULAR_SPECFIRST="${GENERATED_ROOT}/code/components/web-front-end-angular-specfirst"
 
 DRY_RUN=0
 while (( "$#" )); do
@@ -90,7 +90,7 @@ mkdir -p \
   "${TOOL_CACHE_DIR}/dotnet-home" \
   "${TOOL_CACHE_DIR}/nuget"
 
-# Keep tool caches inside TraderSpec runtime state so startup works in restricted environments.
+# Keep tool caches inside generated runtime state so startup works in restricted environments.
 export GRADLE_USER_HOME="${GRADLE_USER_HOME:-${TOOL_CACHE_DIR}/gradle}"
 export npm_config_cache="${npm_config_cache:-${TOOL_CACHE_DIR}/npm}"
 export DOTNET_CLI_HOME="${DOTNET_CLI_HOME:-${TOOL_CACHE_DIR}/dotnet-home}"

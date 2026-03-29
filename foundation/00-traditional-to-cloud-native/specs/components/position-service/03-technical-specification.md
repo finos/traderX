@@ -42,7 +42,7 @@
 
 ## Source Layout Target (Generated)
 
-- Target path: `TraderSpec/codebase/generated-components/position-service-specfirst`
+- Target path: `generated/code/components/position-service-specfirst`
 - Required generated artifacts:
   - Spring Boot service with trades/positions/health controllers
   - repository layer compatible with baseline schema

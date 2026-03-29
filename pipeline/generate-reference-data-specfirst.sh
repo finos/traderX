@@ -6,9 +6,9 @@ REPO_ROOT="${ROOT}"
 source "${ROOT}/pipeline/speckit/lib.sh"
 
 COMPONENT_ID="reference-data"
-TARGET="${ROOT}/TraderSpec/codebase/generated-components/reference-data-specfirst"
+TARGET="${ROOT}/generated/code/components/reference-data-specfirst"
 TEMPLATE_ROOT="${ROOT}/templates/reference-data-specfirst"
-MANIFEST_PATH="${ROOT}/TraderSpec/codebase/generated-manifests/${COMPONENT_ID}.manifest.json"
+MANIFEST_PATH="${ROOT}/generated/manifests/${COMPONENT_ID}.manifest.json"
 
 speckit_assert_global_readiness
 speckit_assert_component_ready "${COMPONENT_ID}"

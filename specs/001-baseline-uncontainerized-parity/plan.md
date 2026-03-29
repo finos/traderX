@@ -62,23 +62,26 @@ specs/001-baseline-uncontainerized-parity/
 ### Source Code (repository root)
 
 ```text
-TraderSpec/
-├── codebase/
-│   ├── generated-components/
-│   └── scripts/
-├── pipeline/
-│   └── speckit/
-└── migration-*.md
-
+pipeline/
+scripts/
+templates/
+catalog/
+generated/               # ephemeral output workspace (gitignored)
+  ├── code/components/
+  ├── code/target-generated/
+  ├── manifests/
+  └── api-docs/
 .specify/
-.agents/skills/
 specs/
+foundation/
+tracks/
+migration-docs/
 ```
 
-**Structure Decision**: Keep current generated runtime under `TraderSpec/` during transition, but make root `.specify` and root `specs/NNN-*` the canonical requirements workflow.
+**Structure Decision**: Root `.specify/` + `specs/NNN-*` are canonical, with generated runtime/code/docs outputs emitted under root `generated/`.
 
 ## Complexity Tracking
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |-----------|------------|-------------------------------------|
-| Temporary dual structure (`specs/` + `TraderSpec/speckit/`) | Avoid runtime disruption during migration | Big-bang move risks losing working generation/test pipeline continuity |
+| Temporary coexistence of legacy `TraderSpec/**` notes with root-canonical workflow | Preserve migration history and traceability during cleanup | Immediate hard-delete would remove useful migration evidence before Phase C closure |

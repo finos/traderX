@@ -17,6 +17,10 @@ owner: "@finos/traderx-maintainers"
 
 # Implementation Roadmap
 
+> [!WARNING]
+> Deprecated: pre-SpecKit guide content retained for reference only.
+> Canonical process now lives in root Spec Kit artifacts and active TraderSpec docs.
+
 ## Overview
 
 This roadmap outlines the step-by-step implementation of the TraderX multi-state learning platform. The implementation is divided into phases, each with specific deliverables, timelines, and success criteria.

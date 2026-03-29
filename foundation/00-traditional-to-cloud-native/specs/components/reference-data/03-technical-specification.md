@@ -42,7 +42,7 @@
 
 ## Source Layout Target (Generated)
 
-- Target path: `TraderSpec/codebase/generated-components/reference-data-specfirst`
+- Target path: `generated/code/components/reference-data-specfirst`
 - Required artifacts:
   - NestJS app bootstrap
   - controller/service for stocks endpoints

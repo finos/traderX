@@ -8,7 +8,7 @@
     "swizzle": "docusaurus swizzle",
     "build": "npm run gen:api-docs && docusaurus build",
     "publish-gh-pages": "docusaurus deploy",
-    "gen:api-docs": "mkdir -p ../api-docs && rm -rf ../api-docs/account-service ../api-docs/people-service ../api-docs/position-service ../api-docs/reference-data ../api-docs/trade-processor ../api-docs/trade-service && docusaurus gen-api-docs account-service && docusaurus gen-api-docs people-service && docusaurus gen-api-docs position-service && docusaurus gen-api-docs reference-data && docusaurus gen-api-docs trade-processor && docusaurus gen-api-docs trade-service"
+    "gen:api-docs": "mkdir -p ../generated/api-docs && rm -rf ../generated/api-docs/account-service ../generated/api-docs/people-service ../generated/api-docs/position-service ../generated/api-docs/reference-data ../generated/api-docs/trade-processor ../generated/api-docs/trade-service && docusaurus gen-api-docs account-service && docusaurus gen-api-docs people-service && docusaurus gen-api-docs position-service && docusaurus gen-api-docs reference-data && docusaurus gen-api-docs trade-processor && docusaurus gen-api-docs trade-service"
   },
   "dependencies": {
     "@docusaurus/core": "^3.2.0",
@@ -17,8 +17,10 @@
     "ajv": "^8.12.0",
     "classnames": "^2.5.1",
     "clsx": "^2.0.0",
+    "docusaurus-lunr-search": "^3.6.0",
     "docusaurus-plugin-openapi-docs": "^4.7.1",
     "docusaurus-theme-openapi-docs": "^4.7.1",
+    "lunr": "^2.3.9",
     "path-browserify": "^1.0.1",
     "prism-react-renderer": "^2.3.0",
     "react": "^18.0.0",

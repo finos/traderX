@@ -11,7 +11,7 @@ Deliver a full codebase generated from TraderSpec requirements, while preserving
 ## Delivery Sequence
 
 1. Lock baseline requirements and moving-parts inventory.
-2. Bootstrap `TraderSpec/codebase/target-generated`.
+2. Bootstrap `generated/code/target-generated`.
 3. Generate baseline implementation from foundation specs.
 4. Apply chosen path steps in order.
 5. Validate contracts and behavior parity after each step.

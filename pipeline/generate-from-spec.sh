@@ -4,8 +4,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO_ROOT="${ROOT}"
 CSV="${ROOT}/catalog/component-spec.csv"
-MANIFEST_DIR="${ROOT}/TraderSpec/codebase/generated-manifests"
-COMPONENTS_DIR="${ROOT}/TraderSpec/codebase/generated-components"
+MANIFEST_DIR="${ROOT}/generated/manifests"
+COMPONENTS_DIR="${ROOT}/generated/code/components"
 
 "${ROOT}/pipeline/validate-regeneration-readiness.sh"
 bash "${ROOT}/pipeline/speckit/compile-all-component-manifests.sh"

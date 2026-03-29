@@ -2,7 +2,7 @@
 
 ## Startup Verification
 
-- [ ] Generated component exists in `codebase/generated-components/web-front-end-angular-specfirst`.
+- [ ] Generated component exists in `generated/code/components/web-front-end-angular-specfirst`.
 - [ ] `npm install` completes.
 - [ ] UI starts and listens on port `18093`.
 

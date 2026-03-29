@@ -29,9 +29,9 @@ This flow generates implementation artifacts from Spec Kit requirements and tech
 
 ## Output Locations
 
-- `TraderSpec/codebase/generated-components/*-specfirst`:
+- `generated/code/components/*-specfirst`:
   per-component generated sources produced by component generators.
-- `TraderSpec/codebase/target-generated`:
+- `generated/code/target-generated`:
   runtime assembly target created on demand by generated startup scripts.
 
 ## Comparison (Optional)

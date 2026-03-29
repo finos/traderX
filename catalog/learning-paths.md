@@ -38,4 +38,4 @@ This is the human-browsable catalog view of `learning-paths.yaml`.
 
 ## Source of Truth
 
-- `TraderSpec/catalog/learning-paths.yaml`
+- `catalog/learning-paths.yaml`

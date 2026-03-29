@@ -2,7 +2,7 @@
 
 ## Startup Verification
 
-- [ ] Generated component exists in `codebase/generated-components/trade-feed-specfirst`.
+- [ ] Generated component exists in `generated/code/components/trade-feed-specfirst`.
 - [ ] `npm install` completes.
 - [ ] Service starts and listens on port `18086`.
 

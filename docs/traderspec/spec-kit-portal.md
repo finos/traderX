@@ -12,14 +12,15 @@ The portal publishes three repository sources:
 
 1. Root feature packs under `specs/**`
 2. Root Spec Kit scaffold under `.specify/**`
-3. Migration execution records under `TraderSpec/**`
+3. Migration execution records under `migration-docs/**` (with ephemeral outputs in `generated/**`)
 
 ## Browse in Docusaurus
 
 - Root specs catalog: `/specs`
 - Baseline feature pack: `/specs/baseline-uncontainerized-parity`
 - OpenAPI API Explorer: `/api`
-- `.specify` constitution and templates: `/specify`
+- Project ADRs (MADR): `/docs/adr`
+- `.specify` constitution and templates: `/specify/memory/constitution`
 - Generation operator guide: `/docs/traderspec/spec-kit-generation-guide`
 - Legacy doc inventory: `/docs/traderspec/legacy-doc-inventory`
 - Migration TODO: `/migration/migration-todo`

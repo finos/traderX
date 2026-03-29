@@ -1,9 +1,9 @@
 {
-  "label": "Learning Guides",
+  "label": "Learning Guides (Deprecated)",
   "position": 20,
   "link": {
     "type": "generated-index",
-    "title": "TraderX Learning Guides",
-    "description": "Strategy, architecture, roadmap, and operating guidance."
+    "title": "Deprecated TraderX Learning Guides",
+    "description": "This section predates the SpecKit-first baseline and is retained only for historical reference."
   }
 }

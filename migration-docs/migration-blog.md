@@ -43,6 +43,11 @@ This log captures major milestones in the migration from source-first TraderX to
   - moved `foundation/` and `tracks/` to root
   - rewired scripts and validations for new locations
   - simplified docs routing and navigation
+- Advanced Phase C generated-artifact cleanup:
+  - relocated ephemeral outputs to `generated/**` (`generated/code`, `generated/manifests`, `generated/api-docs`)
+  - rewired generation/runtime scripts and Docusaurus API docs pipeline to the new generated paths
+  - removed legacy tracked `api-docs/README.md` from source control
+  - marked `prompts/**` and `tools/**` as explicit archive candidates in migration inventory/TODO
 
 ## What Changed Technically
 
@@ -100,3 +105,17 @@ The migration repeatedly validated with:
 - Use the new state-transition planning model documented in:
   - `docs/traderspec/state-transition-generation-plan.md`
   - `docs/traderspec/why-speckit.md`
+
+## Upcoming Phase-10 Sequence (Locked Next Path)
+
+The next execution path is now explicitly staged:
+
+1. publish a generated-code snapshot tag for `001-baseline-uncontainerized-parity`,
+2. implement and release `002-edge-proxy-uncontainerized` from spec deltas,
+3. implement and release `003-containerized-compose-runtime` from spec deltas.
+
+Each release will be recorded with:
+
+- source spec pack id,
+- generated snapshot tag,
+- validation evidence bundle (conformance + runtime smoke + docs build).

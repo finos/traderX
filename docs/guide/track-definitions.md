@@ -17,6 +17,10 @@ owner: "@finos/traderx-maintainers"
 
 # TraderX Learning Track Definitions
 
+> [!WARNING]
+> Deprecated: pre-SpecKit guide content retained for reference only.
+> Canonical process now lives in root Spec Kit artifacts and active TraderSpec docs.
+
 ## Overview
 
 The TraderX learning paths are organized into three primary tracks, each focusing on different aspects of application evolution. These tracks reflect the real-world concerns that development teams face when evolving distributed systems.

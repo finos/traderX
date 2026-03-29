@@ -16,6 +16,10 @@ owner: "@finos/traderx-maintainers"
 
 # ADR-001: Multi-Branch State Management
 
+> [!WARNING]
+> Deprecated ADR: legacy pre-SpecKit guidance.
+> Current repository ADRs are in `docs/adr/**` using MADR format.
+
 ## Status
 Proposed
 

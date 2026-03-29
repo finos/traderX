@@ -16,4 +16,4 @@ This is the browsable view of `component-spec.csv`.
 
 ## Source of Truth
 
-- `TraderSpec/catalog/component-spec.csv`
+- `catalog/component-spec.csv`

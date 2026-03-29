@@ -6,9 +6,9 @@ REPO_ROOT="${ROOT}"
 source "${ROOT}/pipeline/speckit/lib.sh"
 
 COMPONENT_ID="people-service"
-TARGET="${ROOT}/TraderSpec/codebase/generated-components/people-service-specfirst"
+TARGET="${ROOT}/generated/code/components/people-service-specfirst"
 TEMPLATE_ROOT="${ROOT}/templates/people-service-specfirst"
-MANIFEST_PATH="${ROOT}/TraderSpec/codebase/generated-manifests/${COMPONENT_ID}.manifest.json"
+MANIFEST_PATH="${ROOT}/generated/manifests/${COMPONENT_ID}.manifest.json"
 
 speckit_assert_global_readiness
 speckit_assert_component_ready "${COMPONENT_ID}"

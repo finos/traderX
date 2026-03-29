@@ -17,6 +17,10 @@ owner: "@finos/traderx-maintainers"
 
 # Learning Path Architecture
 
+> [!WARNING]
+> Deprecated: pre-SpecKit guide content retained for reference only.
+> Canonical process now lives in root Spec Kit artifacts and active TraderSpec docs.
+
 ## Technical Implementation Details
 
 ### Repository Structure

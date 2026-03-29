@@ -1,6 +1,7 @@
 ---
 id: learn-guide-index
 title: "Learning Path Guide Index"
+description: "Deprecated guide set kept for historical reference only."
 level: 0
 prereqs: []
 outcomes:
@@ -14,6 +15,11 @@ owner: "@finos/traderx-maintainers"
 ---
 
 # TraderX Learning Path Strategy
+
+> [!WARNING]
+> Deprecated: this entire `docs/guide/**` section predates the SpecKit-first repository baseline.
+> It is kept as historical reference only and is not the canonical workflow.
+> Use the TraderSpec Spec Kit docs and root Spec Kit artifacts instead.
 
 This directory contains the strategy and planning documentation for implementing a multi-state learning path system for the TraderX project.
 
@@ -38,11 +44,10 @@ TraderX is being transformed into an educational platform that demonstrates mult
 
 ## Architecture Decision Records (ADRs)
 
-- **[ADR-001: Multi-Branch State Management](./adr/001-multi-branch-state-management.md)**
-- **[ADR-002: Milestone State Selection](./adr/002-milestone-state-selection.md)**
-- **[ADR-003: Dependency Management Strategy](./adr/003-dependency-management-strategy.md)**
-- **[ADR-004: Testing Strategy Across States](./adr/004-testing-strategy-across-states.md)**
-- **[ADR-005: Documentation Generation](./adr/005-documentation-generation.md)**
+Legacy guide ADR pages are retired from the active docs portal and search index.
+Use the canonical MADR ADR set in `docs/adr/**`:
+
+- **[Project ADRs (MADR)](/docs/adr)**
 
 ## Quick Start
 

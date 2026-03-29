@@ -18,7 +18,7 @@ speckit_assert_component_ready "${COMPONENT_ID}"
 
 CSV="${ROOT}/catalog/component-spec.csv"
 MATRIX="${SPECKIT_MATRIX}"
-OUT_DIR="${ROOT}/TraderSpec/codebase/generated-manifests"
+OUT_DIR="${ROOT}/generated/manifests"
 
 json_escape() {
   local raw="$1"

@@ -37,7 +37,7 @@ fi
 
 echo "[check] publish TradeOrder through trade-feed and verify account topic updates"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DEFAULT_SOCKET_IO_CLIENT_PATH="${REPO_ROOT}/TraderSpec/codebase/target-generated/trade-feed/node_modules/socket.io-client"
+DEFAULT_SOCKET_IO_CLIENT_PATH="${REPO_ROOT}/generated/code/target-generated/trade-feed/node_modules/socket.io-client"
 
 TRADE_FEED_URL="${TRADE_FEED_URL}" \
 ACCOUNT_ID="${ACCOUNT_ID}" \

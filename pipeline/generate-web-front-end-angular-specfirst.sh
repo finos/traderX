@@ -5,9 +5,9 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${ROOT}/pipeline/speckit/lib.sh"
 
 COMPONENT_ID="web-front-end-angular"
-TARGET="${ROOT}/TraderSpec/codebase/generated-components/web-front-end-angular-specfirst"
+TARGET="${ROOT}/generated/code/components/web-front-end-angular-specfirst"
 TEMPLATE_ROOT="${ROOT}/templates/web-front-end/angular"
-MANIFEST_PATH="${ROOT}/TraderSpec/codebase/generated-manifests/${COMPONENT_ID}.manifest.json"
+MANIFEST_PATH="${ROOT}/generated/manifests/${COMPONENT_ID}.manifest.json"
 
 speckit_assert_global_readiness
 speckit_assert_component_ready "${COMPONENT_ID}"

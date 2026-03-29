@@ -56,6 +56,26 @@ flowchart LR
   S4 --> G4["Generate State 004"]
 ```
 
+## Programmed Next Three States
+
+```mermaid
+flowchart LR
+  A["001 Baseline Uncontainerized"] --> B["002 Edge Proxy Uncontainerized"]
+  B --> C["003 Containerized Compose Runtime"]
+
+  A --> TA["Tag generated/001-baseline-uncontainerized-parity/v1"]
+  B --> TB["Tag generated/002-edge-proxy-uncontainerized/v1"]
+  C --> TC["Tag generated/003-containerized-compose-runtime/v1"]
+```
+
+### Official Data of Record for Each State
+
+For each state release, the canonical record must include:
+
+1. numbered feature pack under `specs/NNN-*` (`spec.md`, `plan.md`, `tasks.md`);
+2. updated traceability and affected contracts/components;
+3. generated-code snapshot tag + validation evidence references in migration artifacts.
+
 ## Phase-10 Execution Backlog
 
 - define canonical naming for state packs (`00N-state-name`),

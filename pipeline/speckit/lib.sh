@@ -64,7 +64,7 @@ speckit_assert_global_readiness() {
 }
 
 speckit_list_generated_components() {
-  awk -F, 'NR > 1 && $3 ~ /generated-components\// { print $1 }' "${SPECKIT_COMPONENT_CSV}"
+  awk -F, 'NR > 1 && $3 ~ /generated\/code\/components\// { print $1 }' "${SPECKIT_COMPONENT_CSV}"
 }
 
 speckit_assert_component_ready() {

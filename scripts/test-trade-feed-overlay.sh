@@ -7,7 +7,7 @@ echo "[check] trade-feed root endpoint"
 curl -sS -i "${BASE_URL}/" | sed -n '1,20p'
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DEFAULT_SOCKET_IO_CLIENT_PATH="${REPO_ROOT}/TraderSpec/codebase/target-generated/trade-feed/node_modules/socket.io-client"
+DEFAULT_SOCKET_IO_CLIENT_PATH="${REPO_ROOT}/generated/code/target-generated/trade-feed/node_modules/socket.io-client"
 
 echo "[check] publish/subscribe compatibility including legacy unsubscribe command"
 BASE_URL="${BASE_URL}" SOCKET_IO_CLIENT_PATH="${SOCKET_IO_CLIENT_PATH:-${DEFAULT_SOCKET_IO_CLIENT_PATH}}" node <<'NODE'

@@ -62,4 +62,4 @@ Because services and UI run on separate localhost ports in this state, service H
 
 ## Scope Note
 
-This base state runs from generated component outputs assembled into `TraderSpec/codebase/target-generated`.
+This base state runs from generated component outputs assembled into `generated/code/target-generated`.

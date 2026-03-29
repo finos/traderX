@@ -26,6 +26,8 @@ Manual explicit regeneration is also available:
 npm --prefix website run gen:api-docs
 ```
 
+Generated API docs are written to `generated/api-docs/**` and treated as ephemeral output.
+
 ## Plugin Stack
 
 - `docusaurus-plugin-openapi-docs`

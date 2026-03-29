@@ -5,9 +5,9 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${ROOT}/pipeline/speckit/lib.sh"
 
 COMPONENT_ID="trade-feed"
-TARGET="${ROOT}/TraderSpec/codebase/generated-components/trade-feed-specfirst"
+TARGET="${ROOT}/generated/code/components/trade-feed-specfirst"
 TEMPLATE_ROOT="${ROOT}/templates/trade-feed-specfirst"
-MANIFEST_PATH="${ROOT}/TraderSpec/codebase/generated-manifests/${COMPONENT_ID}.manifest.json"
+MANIFEST_PATH="${ROOT}/generated/manifests/${COMPONENT_ID}.manifest.json"
 
 speckit_assert_global_readiness
 speckit_assert_component_ready "${COMPONENT_ID}"

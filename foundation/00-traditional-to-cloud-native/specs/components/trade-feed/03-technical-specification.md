@@ -44,7 +44,7 @@
 
 ## Source Layout Target (Generated)
 
-- Target path: `TraderSpec/codebase/generated-components/trade-feed-specfirst`
+- Target path: `generated/code/components/trade-feed-specfirst`
 - Required generated artifacts:
   - `index.js` broker implementation
   - runtime package manifest with start command

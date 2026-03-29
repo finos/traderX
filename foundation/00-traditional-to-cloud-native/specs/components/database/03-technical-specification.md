@@ -33,7 +33,7 @@
 
 ## Source Layout Target (Generated)
 
-- Target path: `TraderSpec/codebase/generated-components/database-specfirst`
+- Target path: `generated/code/components/database-specfirst`
 - Required artifacts:
   - startup script equivalent behavior to current `run.sh`
   - schema/init SQL file with baseline table/seed expectations

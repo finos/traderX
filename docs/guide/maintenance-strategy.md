@@ -17,6 +17,10 @@ owner: "@finos/traderx-maintainers"
 
 # Maintenance Strategy for Multi-State Repository
 
+> [!WARNING]
+> Deprecated: pre-SpecKit guide content retained for reference only.
+> Canonical process now lives in root Spec Kit artifacts and active TraderSpec docs.
+
 ## Challenge Overview
 
 Managing multiple states of the same application presents unique maintenance challenges:

@@ -6,9 +6,9 @@ REPO_ROOT="${ROOT}"
 source "${ROOT}/pipeline/speckit/lib.sh"
 
 COMPONENT_ID="account-service"
-TARGET="${ROOT}/TraderSpec/codebase/generated-components/account-service-specfirst"
+TARGET="${ROOT}/generated/code/components/account-service-specfirst"
 TEMPLATE_ROOT="${ROOT}/templates/account-service-specfirst"
-MANIFEST_PATH="${ROOT}/TraderSpec/codebase/generated-manifests/${COMPONENT_ID}.manifest.json"
+MANIFEST_PATH="${ROOT}/generated/manifests/${COMPONENT_ID}.manifest.json"
 
 speckit_assert_global_readiness
 speckit_assert_component_ready "${COMPONENT_ID}"

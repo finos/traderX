@@ -50,7 +50,7 @@
 
 ## Source Layout Target (Generated)
 
-- Target path: `TraderSpec/codebase/generated-components/web-front-end-angular-specfirst`
+- Target path: `generated/code/components/web-front-end-angular-specfirst`
 - Required generated artifacts:
   - Angular app source with route/component/service wiring for the baseline trade flow
   - npm manifests and run scripts

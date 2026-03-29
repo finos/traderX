@@ -45,7 +45,7 @@
 
 ## Source Layout Target (Generated)
 
-- Target path: `TraderSpec/codebase/generated-components/trade-service-specfirst`
+- Target path: `generated/code/components/trade-service-specfirst`
 - Required generated artifacts:
   - Spring Boot source for controller, validation, and trade-feed publisher integration
   - Gradle build files and wrapper

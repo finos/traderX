@@ -2,7 +2,7 @@
 
 ## Startup Verification
 
-- [ ] Generated component exists in `codebase/generated-components/account-service-specfirst`.
+- [ ] Generated component exists in `generated/code/components/account-service-specfirst`.
 - [ ] `./gradlew build` completes.
 - [ ] Service starts and listens on port `18088`.
 

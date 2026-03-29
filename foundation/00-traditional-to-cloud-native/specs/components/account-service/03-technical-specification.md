@@ -43,7 +43,7 @@
 
 ## Source Layout Target (Generated)
 
-- Target path: `TraderSpec/codebase/generated-components/account-service-specfirst`
+- Target path: `generated/code/components/account-service-specfirst`
 - Required generated artifacts:
   - Spring Boot service with account and account-user controllers
   - data-access layer compatible with baseline H2 schema
