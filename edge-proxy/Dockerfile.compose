@@ -1,8 +1,0 @@
-FROM node:20-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-EXPOSE 18080
-ENV EDGE_PROXY_PORT=18080
-CMD ["npm", "run", "start"]

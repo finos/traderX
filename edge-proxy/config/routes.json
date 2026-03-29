@@ -1,35 +1,35 @@
 {
   "defaultPort": 18080,
-  "webTarget": "http://web-front-end-angular:18093",
+  "webTarget": "http://localhost:18093",
   "apiRoutes": [
     {
       "prefix": "/account-service",
-      "target": "http://account-service:18088",
+      "target": "http://localhost:18088",
       "rewritePrefix": ""
     },
     {
       "prefix": "/reference-data",
-      "target": "http://reference-data:18085",
+      "target": "http://localhost:18085",
       "rewritePrefix": ""
     },
     {
       "prefix": "/trade-service",
-      "target": "http://trade-service:18092",
+      "target": "http://localhost:18092",
       "rewritePrefix": ""
     },
     {
       "prefix": "/position-service",
-      "target": "http://position-service:18090",
+      "target": "http://localhost:18090",
       "rewritePrefix": ""
     },
     {
       "prefix": "/people-service",
-      "target": "http://people-service:18089",
+      "target": "http://localhost:18089",
       "rewritePrefix": ""
     },
     {
       "prefix": "/socket.io",
-      "target": "http://trade-feed:18086",
+      "target": "http://localhost:18086",
       "rewritePrefix": "/socket.io",
       "ws": true
     }
