@@ -15,6 +15,6 @@ It contains Java, NodeJS, Python, .NET components that communicate over REST API
 messaging systems and are able to showcase a wide range of technical challenges to solve.
 
 You can view more details here:
-* [Code](code.md)
+* [Generated State Branches](spec-kit/generated-state-branches.md)
 * [Overview](overview.md)
 * [Flows](flows.md)
