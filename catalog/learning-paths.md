@@ -4,7 +4,7 @@ This is the human-browsable catalog view of `learning-paths.yaml`.
 
 ## Baseline
 
-- `base-00-traditional`: Traditional to cloud-native baseline (pre-Docker)
+- `base-001-baseline-uncontainerized-parity`: State 001 baseline uncontainerized parity
 
 ## DevEx Steps
 

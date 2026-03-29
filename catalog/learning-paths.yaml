@@ -1,20 +1,20 @@
 version: 1
 baseline:
-  id: base-00-traditional
-  label: "Traditional to Cloud-Native Baseline (pre-Docker)"
+  id: base-001-baseline-uncontainerized-parity
+  label: "State 001 Baseline Uncontainerized Parity"
   specs:
-    - foundation/00-traditional-to-cloud-native/specs/00-system-context.md
-    - foundation/00-traditional-to-cloud-native/specs/01-functional-requirements-baseline.md
-    - foundation/00-traditional-to-cloud-native/specs/02-nfr-baseline.md
-    - foundation/00-traditional-to-cloud-native/specs/03-current-system-moving-parts.md
-    - foundation/00-traditional-to-cloud-native/specs/04-interface-contracts-baseline.md
+    - specs/001-baseline-uncontainerized-parity/system/system-context.md
+    - specs/001-baseline-uncontainerized-parity/system/system-requirements.md
+    - specs/001-baseline-uncontainerized-parity/system/end-to-end-flows.md
+    - specs/001-baseline-uncontainerized-parity/system/architecture.md
+    - specs/001-baseline-uncontainerized-parity/system/requirements-traceability.csv
 
 tracks:
   devex:
     rule: "No new functional requirements. Apply NFR and operability overlays."
     steps:
       - id: devex-01-foundation
-        from: base-00-traditional
+        from: base-001-baseline-uncontainerized-parity
         spec: tracks/devex/steps/01-foundation/spec.md
       - id: devex-02-docker-compose
         from: devex-01-foundation
@@ -36,7 +36,7 @@ tracks:
     rule: "No new functional requirements. Add security, observability, reliability overlays."
     steps:
       - id: nf-01-basic-auth
-        from: base-00-traditional
+        from: base-001-baseline-uncontainerized-parity
         spec: tracks/nonfunctional/steps/01-basic-auth/spec.md
       - id: nf-02-oauth2
         from: nf-01-basic-auth
@@ -64,7 +64,7 @@ tracks:
     rule: "May introduce additive functional requirements with compatibility guarantees."
     steps:
       - id: func-01-common-data-model
-        from: base-00-traditional
+        from: base-001-baseline-uncontainerized-parity
         spec: tracks/functional/steps/01-common-data-model/spec.md
       - id: func-02-real-time-pricing
         from: func-01-common-data-model

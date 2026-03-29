@@ -12,7 +12,7 @@ The portal publishes three repository sources:
 
 1. Root feature packs under `specs/**`
 2. Root Spec Kit scaffold under `.specify/**`
-3. Migration execution records under `migration-docs/**` (with ephemeral outputs in `generated/**`)
+3. Generated runtime/doc artifacts under `generated/**` (ephemeral outputs)
 
 ## Browse in Docusaurus
 
@@ -25,8 +25,6 @@ The portal publishes three repository sources:
 - Generation operator guide: `/docs/spec-kit/spec-kit-generation-guide`
 - Generated-state branch model: `/docs/spec-kit/generated-state-branches`
 - Learning-path visuals: `/docs/spec-kit/visual-learning-graphs`
-- Migration TODO: `/migration/migration-todo`
-- Migration Blog: `/migration/migration-blog`
 
 ## Official GitHub Spec Kit
 

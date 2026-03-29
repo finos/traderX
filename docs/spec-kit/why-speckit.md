@@ -6,6 +6,11 @@ TraderX was reworked around SpecKit to make multi-state learning paths practical
 
 The primary goal is to support multiple parallel and sometimes conflicting state progressions (for example, different platform, DevOps, or messaging choices) while still giving developers clear, runnable jump-off points.
 
+Browse the state landscape directly:
+
+- [Visual Learning Paths](/docs/spec-kit/visual-learning-graphs)
+- [Spec Catalog](/specs)
+
 ## Problem With The Old Code-First Model
 
 When code was the main maintained artifact, each new state incarnation increased maintenance overhead and drift risk.
@@ -45,3 +50,12 @@ In short: we preserve specs; the code follows.
 3. Regenerate code using `pipeline/generate-state.sh <state-id>` (or component generators where needed).
 4. Run with state runtime scripts under `scripts/`.
 5. Validate with SpecKit/conformance gates under `pipeline/speckit/**`.
+
+### Where Is All The Code?
+
+All TraderX state code lives in this same repository. The canonical source is specs in `main`, and runnable code snapshots are published as generated-state branches and tags.
+
+- [Generated State Branches Guide](/docs/spec-kit/generated-state-branches)
+- [Generated-State Branches on GitHub](https://github.com/finos/traderX/branches/all?query=code%2Fgenerated-state-)
+- [Generated-State Tags on GitHub](https://github.com/finos/traderX/tags?query=generated%2F)
+- [State Catalog (`catalog/state-catalog.json`)](https://github.com/finos/traderX/blob/main/catalog/state-catalog.json)

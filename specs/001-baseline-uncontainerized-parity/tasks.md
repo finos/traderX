@@ -50,7 +50,7 @@ description: "Tasks for root-level Spec Kit simple app baseline adoption"
 ## Phase 7: Polish & Cross-Cutting
 
 - [x] T018 Update root `README.md` with canonical Spec Kit workflow references.
-- [x] T019 Update migration status artifacts (`docs/migration/migration-todo.md` and `docs/migration/migration-blog.md`) with root compliance phase status.
+- [x] T019 Consolidate migration status into active Spec Kit docs and retire standalone migration pages.
 - [ ] T020 Document branch naming strategy for Spec Kit scripts in non-`NNN-*` branches (`SPECIFY_FEATURE` fallback).
 - [ ] T021 Define retirement checklist for duplicate legacy spec docs once root feature packs are complete.
 - [x] T022 Add semantic compare gate execution to root quickstart and migration evidence flow.

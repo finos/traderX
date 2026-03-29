@@ -12,7 +12,7 @@ The baseline implementation is generated and validated from requirements, storie
 - `specs/001-baseline-uncontainerized-parity/` - baseline feature pack
 - `pipeline/` + `scripts/` - generation, runtime, conformance, and parity orchestration
 - `templates/` + `catalog/` - synthesis inputs and component/process catalogs
-- `foundation/` + `tracks/` - baseline foundation corpus and learning-path definitions
+- `tracks/` - learning-path definitions
 - `generated/` - generated runtime/code/docs artifacts workspace (ephemeral outputs)
 - `docs/` + `website/` - documentation portal and API explorer
 
@@ -71,12 +71,9 @@ Live routes (Docusaurus):
 
 - `/docs/spec-kit`
 - `/docs/learning-paths`
-- `/foundation`
 - `/specs`
 - `/specify`
 - `/api`
-- `/migration/migration-todo`
-- `/migration/migration-blog`
 
 ## Contributing
 

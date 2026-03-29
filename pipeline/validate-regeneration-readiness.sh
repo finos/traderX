@@ -7,15 +7,13 @@ CSV="${ROOT}/catalog/component-spec.csv"
 source "${ROOT}/pipeline/speckit/lib.sh"
 
 required_specs=(
-  "${ROOT}/foundation/00-traditional-to-cloud-native/specs/05-functional-requirements-detailed.md"
-  "${ROOT}/foundation/00-traditional-to-cloud-native/specs/06-technical-specifications.md"
-  "${ROOT}/foundation/00-traditional-to-cloud-native/specs/07-ui-requirements-detailed.md"
-  "${ROOT}/foundation/00-traditional-to-cloud-native/specs/08-requirements-traceability-matrix.md"
-  "${ROOT}/foundation/00-traditional-to-cloud-native/specs/09-regeneration-strategy.md"
+  "${SPECKIT_SYSTEM_DIR}/system-context.md"
+  "${SPECKIT_SYSTEM_DIR}/end-to-end-flows.md"
   "${SPECKIT_SYSTEM_DIR}/system-requirements.md"
   "${SPECKIT_SYSTEM_DIR}/user-stories.md"
   "${SPECKIT_SYSTEM_DIR}/acceptance-criteria.md"
   "${SPECKIT_SYSTEM_DIR}/requirements-traceability.csv"
+  "${SPECKIT_SYSTEM_DIR}/component-generation-manifest.md"
 )
 
 for f in "${required_specs[@]}"; do

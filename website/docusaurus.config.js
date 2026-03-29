@@ -89,16 +89,8 @@ module.exports = {
               to: '/specs',
             },
             {
-              label: 'Foundation',
-              to: '/foundation',
-            },
-            {
               label: 'API Explorer (001)',
               to: '/api',
-            },
-            {
-              label: 'Migration TODO',
-              to: '/migration/migration-todo',
             }
           ]
         },
@@ -167,17 +159,6 @@ module.exports = {
     [
       '@docusaurus/plugin-content-docs',
       {
-        id: 'migration',
-        path: '../migration-docs',
-        routeBasePath: 'migration',
-        sidebarPath: require.resolve('./migration.sidebars.js'),
-        include: ['**/*.md'],
-        editUrl: 'https://github.com/finos/traderX/edit/main/migration-docs/',
-      },
-    ],
-    [
-      '@docusaurus/plugin-content-docs',
-      {
         id: 'traderspec-root-specs',
         path: '../specs',
         routeBasePath: 'specs',
@@ -186,17 +167,6 @@ module.exports = {
         remarkPlugins: [require('./plugins/remark-speckit-reference-links')],
         include: ['**/*.md'],
         editUrl: 'https://github.com/finos/traderX/edit/main/specs/',
-      },
-    ],
-    [
-      '@docusaurus/plugin-content-docs',
-      {
-        id: 'foundation',
-        path: '../foundation',
-        routeBasePath: 'foundation',
-        sidebarPath: require.resolve('./foundation.sidebars.js'),
-        include: ['**/*.md'],
-        editUrl: 'https://github.com/finos/traderX/edit/main/foundation/',
       },
     ],
     [

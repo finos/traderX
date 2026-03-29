@@ -35,20 +35,30 @@ bash pipeline/scaffold-state-pack.sh <NNN-state-name> --title "<Title>" --previo
    - `/docs/spec-kit/state-docs`
 6. Browse core artifacts:
    - `/specs`
-   - `/foundation`
    - `/specify`
-7. Review current migration status:
-   - `/migration/migration-todo`
-   - `/migration/migration-blog`
-8. Plan future-state transitions:
+7. Plan future-state transitions:
    - `/docs/spec-kit/spec-kit-learning-path-strategy`
    - `/docs/learning-paths`
+
+## Where Is The Generated Code?
+
+All state code is available in this repository as generated-state branches/tags, while `main` keeps the spec-first source of truth.
+
+- Branch pattern: `code/generated-state-*`
+- Tag pattern: `generated/<state-id>/vN`
+- Publish mapping source: `catalog/state-catalog.json`
+
+Browse directly:
+
+- [Generated-State Branches on GitHub](https://github.com/finos/traderX/branches/all?query=code%2Fgenerated-state-)
+- [Generated-State Tags on GitHub](https://github.com/finos/traderX/tags?query=generated%2F)
+- [State Catalog (`catalog/state-catalog.json`)](https://github.com/finos/traderX/blob/main/catalog/state-catalog.json)
+- [Generated State Branches Guide](/docs/spec-kit/generated-state-branches)
 
 ## What Is Canonical
 
 - SpecKit scaffold and governance: `/.specify/**`
 - Baseline feature pack: `/specs/001-baseline-uncontainerized-parity/**`
-- Foundation requirements corpus: `/foundation/00-traditional-to-cloud-native/**`
 - Learning-path definitions: `/tracks/**`
 - Generation/runtime orchestration: `/pipeline/**` and `/scripts/**`
 

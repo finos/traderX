@@ -27,28 +27,8 @@ module.exports = {
         },
         {
           type: 'link',
-          label: 'State 001',
-          href: '/specs/baseline-uncontainerized-parity',
-        },
-        {
-          type: 'link',
-          label: 'State 002',
-          href: '/specs/edge-proxy-uncontainerized',
-        },
-        {
-          type: 'link',
-          label: 'State 003',
-          href: '/specs/containerized-compose-runtime',
-        },
-        {
-          type: 'link',
           label: 'Constitution',
           href: '/specify/memory/constitution',
-        },
-        {
-          type: 'link',
-          label: 'Foundation Corpus',
-          href: '/foundation',
         },
         {
           type: 'link',
@@ -65,22 +45,6 @@ module.exports = {
         'spec-kit/visual-learning-graphs',
         'spec-kit/spec-kit-learning-path-strategy',
         'spec-kit/state-transition-generation-plan',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Migration Program',
-      items: [
-        {
-          type: 'link',
-          label: 'Migration TODO',
-          href: '/migration/migration-todo',
-        },
-        {
-          type: 'link',
-          label: 'Migration Blog',
-          href: '/migration/migration-blog',
-        },
       ],
     },
     {
