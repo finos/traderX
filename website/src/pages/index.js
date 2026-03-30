@@ -36,6 +36,14 @@ function Home() {
                 'button button--outline button--secondary button--lg',
                 styles.getStarted
               )}
+              to={'docs/blog'}>
+              Blog
+            </Link>
+            <Link
+              className={classnames(
+                'button button--outline button--secondary button--lg',
+                styles.getStarted
+              )}
               to={'https://demo.traderx.finos.org'}>
               Live Demo
             </Link>

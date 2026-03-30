@@ -3,6 +3,23 @@ module.exports = {
     'home',
     {
       type: 'category',
+      label: 'Blog',
+      items: [
+        {
+          type: 'doc',
+          id: 'blog/index',
+          label: 'Blog Home',
+        },
+        'blog/2026-03-29-traderx-speckit-migration',
+        'blog/2024-09-platform-paths-kubernetes-radius',
+        'blog/2024-03-docs-portal-and-project-storytelling',
+        'blog/2023-11-osff-nyc-keynote-and-go-live',
+        'blog/2023-09-open-source-hardening-and-governance',
+        'blog/2023-05-from-hackathon-to-open-source-baseline',
+      ],
+    },
+    {
+      type: 'category',
       label: 'Start Here',
       items: [
         'spec-kit/index',

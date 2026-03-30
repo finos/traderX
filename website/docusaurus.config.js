@@ -77,6 +77,10 @@ module.exports = {
               to: '/docs/home',
             },
             {
+              label: 'Blog',
+              to: '/docs/blog',
+            },
+            {
               label: 'Getting Started',
               to: '/docs/spec-kit',
             },
