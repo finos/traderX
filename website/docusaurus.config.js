@@ -3,6 +3,8 @@
 const projectName = 'TraderX'
 const projectSlug = 'traderX'
 const copyrightOwner = 'FINOS - The Fintech Open Source Foundation'
+const docsUrl = process.env.DOCUSAURUS_URL || 'https://finos.org'
+const docsBaseUrl = process.env.DOCUSAURUS_BASE_URL || '/'
 
 function pathBrowserPolyfillPlugin() {
   return {
@@ -23,8 +25,8 @@ module.exports = {
   onBrokenLinks: 'ignore',
   title: `${projectName}`,
   tagline: `${projectName}`, 
-  url: 'https://finos.org',
-  baseUrl: '/',
+  url: docsUrl,
+  baseUrl: docsBaseUrl,
   trailingSlash: false,
   favicon: 'img/favicon/favicon-traderX.ico',
   projectName: `${projectName}`,
@@ -39,6 +41,14 @@ module.exports = {
   },
   themes: ['@docusaurus/theme-mermaid', 'docusaurus-theme-openapi-docs'],
   themeConfig: {
+    announcementBar: {
+      id: 'agentic-renovation-disclaimer',
+      backgroundColor: '#0b3a5e',
+      textColor: '#ffffff',
+      isCloseable: false,
+      content:
+        '🚧 This site is from the <a href="https://github.com/finos/traderX/tree/feature/agentic-renovation" target="_blank" rel="noopener noreferrer"><strong>TraderX Renovation Branch</strong></a> exploring Spec-Driven Development. For the official TraderX site, visit <a href="https://traderx.finos.org" target="_blank" rel="noopener noreferrer"><strong>traderx.finos.org</strong></a>.',
+    },
     navbar: {
       title: `TraderX`,
       logo: {
