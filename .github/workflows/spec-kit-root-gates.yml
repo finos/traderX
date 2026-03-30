@@ -14,7 +14,7 @@ jobs:
       SPECIFY_FEATURE: 001-baseline-uncontainerized-parity
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install shell dependencies
         run: |
