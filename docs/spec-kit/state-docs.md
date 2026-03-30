@@ -1,5 +1,6 @@
 ---
 title: State Docs
+hide_table_of_contents: true
 ---
 
 # State Docs
@@ -12,12 +13,12 @@ For progression context, see [Visual Learning Paths](/docs/spec-kit/visual-learn
 
 | State | Status | Spec Pack | Architecture | Flows / Topology | Generated Code Branch |
 | --- | --- | --- | --- | --- | --- |
-| `001-baseline-uncontainerized-parity` | released | [/specs/baseline-uncontainerized-parity](/specs/baseline-uncontainerized-parity) | [/specs/baseline-uncontainerized-parity/system/architecture](/specs/baseline-uncontainerized-parity/system/architecture) | [/specs/baseline-uncontainerized-parity/system/end-to-end-flows](/specs/baseline-uncontainerized-parity/system/end-to-end-flows) | `code/generated-state-001-baseline-uncontainerized-parity` |
-| `002-edge-proxy-uncontainerized` | implemented | [/specs/edge-proxy-uncontainerized](/specs/edge-proxy-uncontainerized) | [/specs/edge-proxy-uncontainerized/system/architecture](/specs/edge-proxy-uncontainerized/system/architecture) | [/specs/edge-proxy-uncontainerized/system/runtime-topology](/specs/edge-proxy-uncontainerized/system/runtime-topology) | `code/generated-state-002-edge-proxy-uncontainerized` |
-| `003-containerized-compose-runtime` | implemented | [/specs/containerized-compose-runtime](/specs/containerized-compose-runtime) | [/specs/containerized-compose-runtime/system/architecture](/specs/containerized-compose-runtime/system/architecture) | [/specs/containerized-compose-runtime/system/runtime-topology](/specs/containerized-compose-runtime/system/runtime-topology) | `code/generated-state-003-containerized-compose-runtime` |
-| `004-kubernetes-runtime` | implemented | [/specs/kubernetes-runtime](/specs/kubernetes-runtime) | [/specs/kubernetes-runtime/system/architecture](/specs/kubernetes-runtime/system/architecture) | [/specs/kubernetes-runtime/system/runtime-topology](/specs/kubernetes-runtime/system/runtime-topology) | `code/generated-state-004-kubernetes-runtime` |
-| `005-radius-kubernetes-platform` | implemented | [/specs/radius-kubernetes-platform](/specs/radius-kubernetes-platform) | [/specs/radius-kubernetes-platform/system/architecture](/specs/radius-kubernetes-platform/system/architecture) | [/specs/radius-kubernetes-platform/system/runtime-topology](/specs/radius-kubernetes-platform/system/runtime-topology) | `code/generated-state-005-radius-kubernetes-platform` |
-| `006-tilt-kubernetes-dev-loop` | implemented | [/specs/tilt-kubernetes-dev-loop](/specs/tilt-kubernetes-dev-loop) | [/specs/tilt-kubernetes-dev-loop/system/architecture](/specs/tilt-kubernetes-dev-loop/system/architecture) | [/specs/tilt-kubernetes-dev-loop/system/runtime-topology](/specs/tilt-kubernetes-dev-loop/system/runtime-topology) | `code/generated-state-006-tilt-kubernetes-dev-loop` |
+| `001-baseline-uncontainerized-parity` | released | [link](/specs/baseline-uncontainerized-parity) | [link](/specs/baseline-uncontainerized-parity/system/architecture) | [link](/specs/baseline-uncontainerized-parity/system/end-to-end-flows) | [code/generated-state-001-baseline-uncontainerized-parity](https://github.com/finos/traderX/tree/code/generated-state-001-baseline-uncontainerized-parity) |
+| `002-edge-proxy-uncontainerized` | implemented | [link](/specs/edge-proxy-uncontainerized) | [link](/specs/edge-proxy-uncontainerized/system/architecture) | [link](/specs/edge-proxy-uncontainerized/system/runtime-topology) | [code/generated-state-002-edge-proxy-uncontainerized](https://github.com/finos/traderX/tree/code/generated-state-002-edge-proxy-uncontainerized) |
+| `003-containerized-compose-runtime` | implemented | [link](/specs/containerized-compose-runtime) | [link](/specs/containerized-compose-runtime/system/architecture) | [link](/specs/containerized-compose-runtime/system/runtime-topology) | [code/generated-state-003-containerized-compose-runtime](https://github.com/finos/traderX/tree/code/generated-state-003-containerized-compose-runtime) |
+| `004-kubernetes-runtime` | implemented | [link](/specs/kubernetes-runtime) | [link](/specs/kubernetes-runtime/system/architecture) | [link](/specs/kubernetes-runtime/system/runtime-topology) | [code/generated-state-004-kubernetes-runtime](https://github.com/finos/traderX/tree/code/generated-state-004-kubernetes-runtime) |
+| `005-radius-kubernetes-platform` | implemented | [link](/specs/radius-kubernetes-platform) | [link](/specs/radius-kubernetes-platform/system/architecture) | [link](/specs/radius-kubernetes-platform/system/runtime-topology) | [code/generated-state-005-radius-kubernetes-platform](https://github.com/finos/traderX/tree/code/generated-state-005-radius-kubernetes-platform) |
+| `006-tilt-kubernetes-dev-loop` | implemented | [link](/specs/tilt-kubernetes-dev-loop) | [link](/specs/tilt-kubernetes-dev-loop/system/architecture) | [link](/specs/tilt-kubernetes-dev-loop/system/runtime-topology) | [code/generated-state-006-tilt-kubernetes-dev-loop](https://github.com/finos/traderX/tree/code/generated-state-006-tilt-kubernetes-dev-loop) |
 
 ## API Explorer by State
 
