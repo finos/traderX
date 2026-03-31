@@ -1,13 +1,13 @@
 {
-  "stateId": "004-kubernetes-runtime",
-  "stateTitle": "Kubernetes Runtime Baseline",
+  "stateId": "005-radius-kubernetes-platform",
+  "stateTitle": "Radius Platform on Kubernetes",
   "stateStatus": "implemented",
-  "featurePack": "specs/004-kubernetes-runtime",
-  "previousStates": ["003-containerized-compose-runtime"],
-  "nextStates": ["005-radius-kubernetes-platform","006-tilt-kubernetes-dev-loop"],
+  "featurePack": "specs/005-radius-kubernetes-platform",
+  "previousStates": ["004-kubernetes-runtime"],
+  "nextStates": [],
   "sourceBranch": "feature/agentic-renovation",
   "sourceCommit": "68d19a554c7480a615b19c024eb0a88228c6b9ad",
-  "generatedAtUtc": "2026-03-31T13:08:11Z",
-  "generationEntryPoint": "bash pipeline/generate-state.sh 004-kubernetes-runtime",
-  "publishTagHint": "generated/004-kubernetes-runtime/v1"
+  "generatedAtUtc": "2026-03-31T13:09:17Z",
+  "generationEntryPoint": "bash pipeline/generate-state.sh 005-radius-kubernetes-platform",
+  "publishTagHint": "generated/005-radius-kubernetes-platform/v1"
 }

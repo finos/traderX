@@ -6,21 +6,20 @@ Prerequisites:
 - jq
 - Kind (default) or Minikube
 
-Start:
+Start baseline runtime (inherited from state 004):
 
 ```bash
 ./scripts/start-state-004-kubernetes-generated.sh
-# optional:
-# ./scripts/start-state-004-kubernetes-generated.sh --provider minikube --minikube-profile traderx-state-004
 ```
 
-Endpoints:
-- UI / edge: `http://localhost:8080`
-- Edge health: `http://localhost:8080/health`
+State 005 artifact pack:
+- `radius-kubernetes-platform/radius/app.bicep`
+- `radius-kubernetes-platform/radius/bicepconfig.json`
+- `radius-kubernetes-platform/radius/.rad/rad.yaml`
 
-Status / stop:
+Optional Radius flow:
 
 ```bash
-./scripts/status-state-004-kubernetes-generated.sh
-./scripts/stop-state-004-kubernetes-generated.sh
+cd radius-kubernetes-platform/radius
+rad run app.bicep
 ```

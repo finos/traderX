@@ -1,18 +1,12 @@
 # Component List
 
-State: `004-kubernetes-runtime`
+State: `005-radius-kubernetes-platform`
 
 | ID | Label | Kind | Description |
 | --- | --- | --- | --- |
-| `developer` | Developer | actor | Runs local Kind-based Kubernetes runtime. |
-| `cluster` | Kind Kubernetes Cluster | boundary | Local cluster namespace and workloads. |
-| `edge` | NGINX Edge Proxy | gateway | Single browser entrypoint for UI/API/WebSocket routes. |
-| `web` | Web Front End Angular | frontend | Angular frontend served behind edge proxy. |
-| `account` | Account Service | service | Account and account-user APIs. |
-| `position` | Position Service | service | Positions and trades query API. |
-| `tradeService` | Trade Service | service | Trade order submission and validation. |
-| `referenceData` | Reference Data | service | Ticker metadata lookup. |
-| `people` | People Service | service | Person lookup and matching APIs. |
-| `tradeFeed` | Trade Feed | messaging | Socket.IO event bus for trade flows. |
-| `tradeProcessor` | Trade Processor | service | Consumes trade events and persists settled state. |
-| `database` | Database | database | H2 persistence service. |
+| `developer` | Developer | actor | Operates platform/application definitions through Radius. |
+| `radius` | Radius Control Plane | platform | Application-centric platform abstraction layer. |
+| `appModel` | Radius App Model | component | Declarative app/resource definitions for TraderX. |
+| `cluster` | Kubernetes Cluster | boundary | Underlying runtime substrate inherited from state 004. |
+| `edge` | NGINX Edge Proxy | gateway | Single browser/API entrypoint. |
+| `workloads` | TraderX Workloads | service | Core services remain functionally equivalent to state 004. |
