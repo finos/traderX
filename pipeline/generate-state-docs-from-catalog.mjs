@@ -24,6 +24,7 @@ if (states.length === 0) {
 
 const stripNumericPrefix = (stateId) => stateId.replace(/^[0-9]{3}-/, '')
 const specRouteFor = (stateId) => `/specs/${stripNumericPrefix(stateId)}`
+const learningRouteFor = (stateId) => `/docs/learning/state-${stateId}`
 const repoWebBase = 'https://github.com/finos/traderX'
 
 const topologyRouteFor = (state) => {
@@ -48,11 +49,12 @@ const rows = states.map((state) => {
   const specRoute = specRouteFor(state.id)
   const architectureRoute = `${specRoute}/system/architecture`
   const topologyRoute = topologyRouteFor(state)
+  const learningRoute = learningRouteFor(state.id)
   const branchName = state.publish?.branch ?? 'n/a'
   const branchLink = branchName !== 'n/a' ? `${repoWebBase}/tree/${branchName}` : ''
   const branchCell = branchName !== 'n/a' ? `[${branchName}](${branchLink})` : '`n/a`'
 
-  return `| \`${state.id}\` | ${state.status} | [link](${specRoute}) | [link](${architectureRoute}) | [link](${topologyRoute}) | ${branchCell} |`
+  return `| \`${state.id}\` | ${state.status} | [link](${learningRoute}) | [link](${specRoute}) | [link](${architectureRoute}) | [link](${topologyRoute}) | ${branchCell} |`
 })
 
 const body = `---
@@ -68,8 +70,8 @@ For progression context, see [Visual Learning Paths](/docs/spec-kit/visual-learn
 
 ## State Catalog
 
-| State | Status | Spec Pack | Architecture | Flows / Topology | Generated Code Branch |
-| --- | --- | --- | --- | --- | --- |
+| State | Status | Learning Guide | Spec Pack | Architecture | Flows / Topology | Generated Code Branch |
+| --- | --- | --- | --- | --- | --- | --- |
 ${rows.join('\n')}
 
 ## API Explorer by State

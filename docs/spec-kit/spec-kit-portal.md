@@ -19,6 +19,7 @@ The portal publishes three repository sources:
 - Root specs catalog: `/specs`
 - Baseline feature pack: `/specs/baseline-uncontainerized-parity`
 - State docs map (flows + architecture): `/docs/spec-kit/state-docs`
+- Learning guides for generated code states: `/docs/learning`
 - OpenAPI API Explorer: `/api`
 - Project ADRs: `/docs/adr`
 - `.specify` constitution and templates: `/specify/memory/constitution`
@@ -51,5 +52,6 @@ Repo-specific extensions:
 - manifest-driven synthesis compiler and component generators
 - conformance packs and semantic compare harness
 - parity smoke-test gates for runtime validation
+- optional `learn` community extension for richer learning-material authoring workflows
 
 These extensions are intentional and sit on top of, not instead of, the core Spec Kit workflow.

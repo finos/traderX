@@ -3,6 +3,7 @@
 generated/**
 !generated/
 !generated/README.md
+/traderX.sln
 TraderSpec/codebase/generated-components/
 TraderSpec/codebase/generated-manifests/
 TraderSpec/codebase/target-generated/

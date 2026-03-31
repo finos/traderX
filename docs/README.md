@@ -16,6 +16,7 @@ messaging systems and are able to showcase a wide range of technical challenges 
 
 You can view more details here:
 * [Generated State Branches](spec-kit/generated-state-branches.md)
+* [Learning Guides](learning/index.md)
 * [Overview](overview.md)
 * [State 001 Architecture](/specs/baseline-uncontainerized-parity/system/architecture)
 * [State 001 Flows](/specs/baseline-uncontainerized-parity/system/end-to-end-flows)

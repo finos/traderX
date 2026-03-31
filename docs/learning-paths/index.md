@@ -10,17 +10,18 @@ This page maps the current state progression and points to canonical SpecKit art
 
 | Level | State ID | Spec Pack | Generated Code Snapshot |
 |---|---|---|---|
-| 1 | [`001-baseline-uncontainerized-parity`](/specs/baseline-uncontainerized-parity) | [`/specs/baseline-uncontainerized-parity`](/specs/baseline-uncontainerized-parity) | `code/generated-state-001-baseline-uncontainerized-parity` |
-| 2 | [`002-edge-proxy-uncontainerized`](/specs/edge-proxy-uncontainerized) | [`/specs/edge-proxy-uncontainerized`](/specs/edge-proxy-uncontainerized) | `code/generated-state-002-edge-proxy-uncontainerized` |
-| 3 | [`003-containerized-compose-runtime`](/specs/containerized-compose-runtime) | [`/specs/containerized-compose-runtime`](/specs/containerized-compose-runtime) | `code/generated-state-003-containerized-compose-runtime` |
-| 4 | [`004-kubernetes-runtime`](/specs/kubernetes-runtime) | [`/specs/kubernetes-runtime`](/specs/kubernetes-runtime) | `code/generated-state-004-kubernetes-runtime` |
-| 5 | [`005-radius-kubernetes-platform`](/specs/radius-kubernetes-platform) | [`/specs/radius-kubernetes-platform`](/specs/radius-kubernetes-platform) | `code/generated-state-005-radius-kubernetes-platform` |
-| 6 | [`006-tilt-kubernetes-dev-loop`](/specs/tilt-kubernetes-dev-loop) | [`/specs/tilt-kubernetes-dev-loop`](/specs/tilt-kubernetes-dev-loop) | `code/generated-state-006-tilt-kubernetes-dev-loop` |
+| 1 | [`001-baseline-uncontainerized-parity`](/specs/baseline-uncontainerized-parity) | [`/specs/baseline-uncontainerized-parity`](/specs/baseline-uncontainerized-parity) | [code/generated-state-001-baseline-uncontainerized-parity](https://github.com/finos/traderX/tree/code/generated-state-001-baseline-uncontainerized-parity) |
+| 2 | [`002-edge-proxy-uncontainerized`](/specs/edge-proxy-uncontainerized) | [`/specs/edge-proxy-uncontainerized`](/specs/edge-proxy-uncontainerized) | [code/generated-state-002-edge-proxy-uncontainerized](https://github.com/finos/traderX/tree/code/generated-state-002-edge-proxy-uncontainerized) |
+| 3 | [`003-containerized-compose-runtime`](/specs/containerized-compose-runtime) | [`/specs/containerized-compose-runtime`](/specs/containerized-compose-runtime) | [code/generated-state-003-containerized-compose-runtime](https://github.com/finos/traderX/tree/code/generated-state-003-containerized-compose-runtime) |
+| 4 | [`004-kubernetes-runtime`](/specs/kubernetes-runtime) | [`/specs/kubernetes-runtime`](/specs/kubernetes-runtime) | [code/generated-state-004-kubernetes-runtime](https://github.com/finos/traderX/tree/code/generated-state-004-kubernetes-runtime) |
+| 5 | [`005-radius-kubernetes-platform`](/specs/radius-kubernetes-platform) | [`/specs/radius-kubernetes-platform`](/specs/radius-kubernetes-platform) | [code/generated-state-005-radius-kubernetes-platform](https://github.com/finos/traderX/tree/code/generated-state-005-radius-kubernetes-platform) |
+| 6 | [`006-tilt-kubernetes-dev-loop`](/specs/tilt-kubernetes-dev-loop) | [`/specs/tilt-kubernetes-dev-loop`](/specs/tilt-kubernetes-dev-loop) | [code/generated-state-006-tilt-kubernetes-dev-loop](https://github.com/finos/traderX/tree/code/generated-state-006-tilt-kubernetes-dev-loop) |
 | 7+ | planned learning-path states | future `specs/NNN-*` packs | future generated snapshots |
 
 ## Current Navigation
 
 - State docs map: `/docs/spec-kit/state-docs`
+- Learning guides: `/docs/learning`
 - Visual graph: `/docs/spec-kit/visual-learning-graphs`
 - Transition planning: `/docs/spec-kit/spec-kit-learning-path-strategy`
 - State generation plan: `/docs/spec-kit/state-transition-generation-plan`

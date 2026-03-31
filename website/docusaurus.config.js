@@ -61,7 +61,7 @@ module.exports = {
         {to: '/specs', label: 'Specs', position: 'right'},
         {to: '/docs/spec-kit/state-docs', label: 'State Docs', position: 'right'},
         {to: '/docs/adr', label: 'ADRs', position: 'right'},
-        {to: '/docs/learning-paths', label: 'Learning Paths', position: 'right'},
+        {to: '/docs/learning', label: 'Learning', position: 'right'},
         {to: '/api', label: 'API Explorer (001)', position: 'right'},
         {type: 'search', position: 'right'},
         {
@@ -97,6 +97,10 @@ module.exports = {
             {
               label: 'Learning Paths',
               to: '/docs/learning-paths',
+            },
+            {
+              label: 'Learning Guides',
+              to: '/docs/learning',
             },
             {
               label: 'Specs',

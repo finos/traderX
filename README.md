@@ -15,6 +15,7 @@ The baseline implementation is generated and validated from requirements, storie
 - `tracks/` - learning-path definitions
 - `generated/` - generated runtime/code/docs artifacts workspace (ephemeral outputs)
 - `docs/` + `website/` - documentation portal and API explorer
+- `docs/learning/**` - developer-focused per-state learning guides for generated code snapshots
 
 ## Quickstart (Generated Baseline Runtime)
 
@@ -61,11 +62,25 @@ bash pipeline/speckit/run-full-parity-validation.sh
 ## Documentation
 
 - SpecKit overview: `docs/spec-kit/index.md`
+- Learning guides: `docs/learning/index.md`
 - Learning paths: `docs/learning-paths/index.md`
 - SpecKit portal: `docs/spec-kit/spec-kit-portal.md`
 - Workflow: `docs/spec-kit/spec-kit-workflow.md`
 - Runbook: `docs/spec-kit/spec-kit-generation-guide.md`
 - Legacy migration-era docs were retired from active tree; recover via git history if needed.
+
+## Learning Doc Enrichment Plugin
+
+This repo uses the GitHub SpecKit ecosystem with optional community extension support for richer learning material workflows.
+
+- Community extension used for learning-focused authoring experiments: `learn`
+- Install command:
+
+```bash
+specify extension add learn --from https://github.com/imviancagrace/spec-kit-learn/archive/refs/tags/v1.1.0.zip
+```
+
+- Canonical committed learning docs stay under `docs/learning/**` and state feature packs under `specs/**`.
 
 Live routes (Docusaurus):
 

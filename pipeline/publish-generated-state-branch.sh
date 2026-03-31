@@ -446,6 +446,59 @@ EOF
   esac
 }
 
+learning_focus_markdown() {
+  case "${STATE_ID}" in
+    001-baseline-uncontainerized-parity)
+      cat <<'EOF'
+- Understand baseline service boundaries and call patterns.
+- Understand startup sequencing and fixed port coupling.
+- Understand why CORS is an explicit NFR in this state.
+EOF
+      ;;
+    002-edge-proxy-uncontainerized)
+      cat <<'EOF'
+- Understand browser traffic consolidation through the edge proxy.
+- Understand how path routing and websocket proxying preserve baseline behavior.
+- Compare cross-origin behavior vs state 001.
+EOF
+      ;;
+    003-containerized-compose-runtime)
+      cat <<'EOF'
+- Understand runtime transition from host processes to containers.
+- Understand NGINX ingress behavior under Compose.
+- Trace container wiring back to unchanged functional requirements.
+EOF
+      ;;
+    004-kubernetes-runtime)
+      cat <<'EOF'
+- Understand Kubernetes deployment/service decomposition.
+- Understand image build plan and runtime orchestration scripts.
+- Compare local Kind/Minikube execution model to state 003.
+EOF
+      ;;
+    005-radius-kubernetes-platform)
+      cat <<'EOF'
+- Understand Radius artifacts as a platform-model overlay on Kubernetes.
+- Understand what remains baseline runtime vs what is platform abstraction.
+- Evaluate portability goals and platform-level NFR impact.
+EOF
+      ;;
+    006-tilt-kubernetes-dev-loop)
+      cat <<'EOF'
+- Understand developer-loop acceleration using Tilt.
+- Understand what parts are runtime-stable vs dev-loop specific.
+- Evaluate inner-loop productivity deltas while preserving contracts.
+EOF
+      ;;
+    *)
+      cat <<'EOF'
+- Review state metadata and runtime instructions.
+- Trace state intent back to canonical SpecKit artifacts.
+EOF
+      ;;
+  esac
+}
+
 require_snapshot_component_dir() {
   local component_rel="$1"
   if [[ ! -d "${SNAPSHOT_DIR}/${component_rel}" ]]; then
@@ -1108,6 +1161,42 @@ EOF
   esac
 }
 
+write_learning_guide() {
+  local docs_learning_path="docs/learning/state-${STATE_ID}.md"
+  local docs_learning_route="/docs/learning/state-${STATE_ID}"
+  local docs_state_docs_route="/docs/spec-kit/state-docs"
+
+  cat > "${SNAPSHOT_DIR}/LEARNING.md" <<EOF
+# Learning Guide For ${STATE_ID}
+
+This snapshot is code-first output. Canonical intent remains in SpecKit artifacts.
+
+## Learning Focus
+
+$(learning_focus_markdown)
+
+## Read In This Snapshot
+
+- [README.md](./README.md)
+- [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
+- [STATE.md](./STATE.md)
+
+## Canonical Spec Sources
+
+- Feature pack: \`${FEATURE_PACK}\`
+- State docs map route: \`${docs_state_docs_route}\`
+- Learning guide route: \`${docs_learning_route}\`
+- Learning guide markdown path in source branch: \`${docs_learning_path}\`
+EOF
+
+  if [[ -n "${REPO_WEB_BASE}" ]]; then
+    cat >> "${SNAPSHOT_DIR}/LEARNING.md" <<EOF
+- Source branch feature pack (exact commit): ${REPO_WEB_BASE}/tree/${SOURCE_COMMIT}/${FEATURE_PACK}
+- Source branch learning guide (exact commit): ${REPO_WEB_BASE}/blob/${SOURCE_COMMIT}/${docs_learning_path}
+EOF
+  fi
+}
+
 mkdir -p "${SNAPSHOT_DIR}/.traderx-state"
 cat > "${SNAPSHOT_DIR}/.traderx-state/state.json" <<EOF
 {
@@ -1176,6 +1265,7 @@ Canonical source-of-truth is maintained in the SpecKit authoring branch, not in 
 
 - Feature pack: \`${FEATURE_PACK}\`
 - Generation entrypoint: \`${GENERATION_ENTRYPOINT}\`
+- Developer learning guide for this snapshot: [LEARNING.md](./LEARNING.md)
 - Snapshot metadata: [STATE.md](./STATE.md), [state.json](./.traderx-state/state.json)
 EOF
 
@@ -1200,6 +1290,7 @@ case "${STATE_ID}" in
 esac
 
 write_clone_runbook
+write_learning_guide
 
 if git -C "${ROOT}" show-ref --verify --quiet "refs/heads/${BRANCH_NAME}"; then
   git -C "${ROOT}" worktree add "${WORKTREE_DIR}" "${BRANCH_NAME}" >/dev/null

@@ -114,5 +114,6 @@ Published snapshot branches include:
 
 - `STATE.md`
 - `.traderx-state/state.json`
+- `LEARNING.md`
 
 These capture the current state id and lineage so users know exactly what state they are running and what came before it.

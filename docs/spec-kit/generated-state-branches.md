@@ -31,6 +31,7 @@ Generated branches include metadata files so consumers can always see provenance
 
 - `STATE.md`
 - `.traderx-state/state.json`
+- `LEARNING.md`
 
 These files record:
 
@@ -38,6 +39,11 @@ These files record:
 - prior states and known next states
 - source branch/commit used to generate snapshot
 - generation timestamp
+- state-oriented learning links back to canonical docs/specs
+
+Canonical portal learning guides live at:
+
+- `/docs/learning`
 
 ## Publish The Baseline Generated Branch
 

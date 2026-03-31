@@ -1,0 +1,8 @@
+{
+  "label": "Learning Guides",
+  "position": 4,
+  "link": {
+    "type": "doc",
+    "id": "learning/index"
+  }
+}

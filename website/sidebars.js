@@ -58,6 +58,13 @@ module.exports = {
       type: 'category',
       label: 'Learning Paths',
       items: [
+        'learning/index',
+        'learning/state-001-baseline-uncontainerized-parity',
+        'learning/state-002-edge-proxy-uncontainerized',
+        'learning/state-003-containerized-compose-runtime',
+        'learning/state-004-kubernetes-runtime',
+        'learning/state-005-radius-kubernetes-platform',
+        'learning/state-006-tilt-kubernetes-dev-loop',
         'learning-paths/index',
         'spec-kit/visual-learning-graphs',
         'spec-kit/spec-kit-learning-path-strategy',

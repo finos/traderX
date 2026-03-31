@@ -22,6 +22,7 @@ Browse in docs:
 - `/specs/baseline-uncontainerized-parity/system/end-to-end-flows`
 - `/specs/baseline-uncontainerized-parity/system/architecture`
 - `/docs/spec-kit/state-docs`
+- `/docs/learning`
 - `/api`
 - `/specify`
 
