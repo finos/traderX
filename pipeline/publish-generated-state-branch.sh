@@ -204,7 +204,6 @@ ensure_generated_root_branch() {
   git -C "${root_worktree}" rm -rf . >/dev/null 2>&1 || true
   git -C "${root_worktree}" clean -fdx >/dev/null 2>&1 || true
   git -C "${root_worktree}" commit --allow-empty -m "root: generated-state ancestry anchor" >/dev/null
-  git -C "${ROOT}" branch -f "${root_branch}" "$(git -C "${root_worktree}" rev-parse HEAD)" >/dev/null
   git -C "${ROOT}" worktree remove --force "${root_worktree}" >/dev/null 2>&1 || true
   echo "[ok] created generated root branch ${root_branch}"
 }
