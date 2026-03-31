@@ -1,40 +1,38 @@
 ---
-title: "State 001: Base Uncontainerized"
+title: "State 001: Simple App - Base Uncontainerized App"
 ---
 
 # State 001 Learning Guide
 
-## Purpose
+## Position In Learning Graph
 
-This is the intentionally simple baseline: local processes, fixed ports, explicit cross-origin calls.
+- Previous state(s): none
+- Next state(s): [002-edge-proxy-uncontainerized](/docs/learning/state-002-edge-proxy-uncontainerized)
 
-## Run
+## Rendered Code
+
+- Generated branch: [code/generated-state-001-baseline-uncontainerized-parity](https://github.com/finos/traderX/tree/code/generated-state-001-baseline-uncontainerized-parity)
+- Authoring branch (spec source): [feature/agentic-renovation](https://github.com/finos/traderX/tree/feature/agentic-renovation)
+
+## Code Comparison With Previous State
+
+- No previous-state compare link for this state.
+
+## Plain-English Code Delta
+
+- **Code focus:** Establishes the full baseline service set and Angular UI in a local multi-process runtime.
+- **Runtime behavior:** Uses explicit host ports and direct cross-origin service calls.
+- **Learning takeaway:** This is the reference implementation all later state diffs are measured against.
+
+## Run This State
 
 ```bash
 CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh
 ```
 
-UI: `http://localhost:18093`
-
-## Code Areas To Read
-
-- `account-service/`, `trade-service/`, `position-service/`
-- `people-service/` (.NET)
-- `reference-data/`, `trade-feed/` (Node/Nest)
-- `database/` (H2 process bootstrap)
-- `web-front-end/angular/`
-
 ## Canonical Spec Links
 
 - State spec pack: [/specs/baseline-uncontainerized-parity](/specs/baseline-uncontainerized-parity)
 - Architecture: [/specs/baseline-uncontainerized-parity/system/architecture](/specs/baseline-uncontainerized-parity/system/architecture)
-- End-to-end flows: [/specs/baseline-uncontainerized-parity/system/end-to-end-flows](/specs/baseline-uncontainerized-parity/system/end-to-end-flows)
+- Flows / topology: [/specs/baseline-uncontainerized-parity/system/end-to-end-flows](/specs/baseline-uncontainerized-parity/system/end-to-end-flows)
 
-## Generated Code Snapshot
-
-- [code/generated-state-001-baseline-uncontainerized-parity](https://github.com/finos/traderX/tree/code/generated-state-001-baseline-uncontainerized-parity)
-
-## Lineage
-
-- Previous: none
-- Next: `002-edge-proxy-uncontainerized`

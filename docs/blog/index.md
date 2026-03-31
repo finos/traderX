@@ -9,6 +9,7 @@ This blog captures the broader TraderX story over time: how the project started,
 
 ## Articles
 
+- [March 31, 2026: State 007 - Swapping Socket.IO for NATS](/docs/blog/2026-03-31-state-007-nats-architecture-track)
 - [March 29, 2026: TraderX + GitHub SpecKit Migration (Technical Retrospective)](/docs/blog/2026-03-29-traderx-speckit-migration)
 - [September 2024: Platform Paths on Kubernetes and Radius](/docs/blog/2024-09-platform-paths-kubernetes-radius)
 - [March 2024: Docusaurus Portal and Project Storytelling](/docs/blog/2024-03-docs-portal-and-project-storytelling)

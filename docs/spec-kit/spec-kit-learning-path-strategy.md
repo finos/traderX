@@ -20,6 +20,11 @@ Current published baseline progression:
 - `002-edge-proxy-uncontainerized`
 - `003-containerized-compose-runtime`
 
+Current branch tracks from `003`:
+
+- DevEx track: `004-kubernetes-runtime` -> (`005-radius-kubernetes-platform` | `006-tilt-kubernetes-dev-loop`)
+- Architecture track: `007-messaging-nats-replacement` (planned implementation)
+
 ## Candidate Next Architecture Step
 
 One planned learning-path candidate is adopting CALM as architecture modeling input:

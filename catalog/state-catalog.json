@@ -114,6 +114,26 @@
         "branch": "code/generated-state-006-tilt-kubernetes-dev-loop",
         "tag": "generated/006-tilt-kubernetes-dev-loop/v1"
       }
+    },
+    {
+      "id": "007-messaging-nats-replacement",
+      "title": "Messaging Layer Replacement with NATS",
+      "status": "implemented",
+      "track": "architecture",
+      "featurePack": "specs/007-messaging-nats-replacement",
+      "decisionRecord": "docs/adr/005-state-007-use-nats-for-messaging-replacement.md",
+      "previous": [
+        "003-containerized-compose-runtime"
+      ],
+      "generation": {
+        "mode": "scripted",
+        "entrypoint": "bash pipeline/generate-state.sh 007-messaging-nats-replacement",
+        "runtime": "./scripts/start-state-007-messaging-nats-replacement-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-007-messaging-nats-replacement",
+        "tag": "generated/007-messaging-nats-replacement/v1"
+      }
     }
   ]
 }

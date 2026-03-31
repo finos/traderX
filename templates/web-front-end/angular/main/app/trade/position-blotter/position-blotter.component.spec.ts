@@ -50,4 +50,39 @@ describe('PositionBlotterComponent', () => {
     expect(firstRow.children[1].innerText).toEqual(component.positions[0].quantity.toString());
   });
 
+  it('should upsert an existing position row for matching security', () => {
+    const applyTransaction = jasmine.createSpy('applyTransaction');
+    const getRowNode = jasmine.createSpy('getRowNode').and.returnValue({
+      data: {
+        security: 'IBM',
+        quantity: 10
+      }
+    });
+    component.gridApi = {
+      getRowNode,
+      applyTransaction
+    } as any;
+
+    component.update({
+      security: 'IBM',
+      quantity: 35,
+      updated: '2026-03-31T00:00:00.000Z'
+    });
+
+    expect(getRowNode).toHaveBeenCalledWith('Position-IBM');
+    expect(applyTransaction).toHaveBeenCalledWith({
+      update: [jasmine.objectContaining({ security: 'IBM', quantity: 35 })]
+    });
+  });
+
+  it('should keep getRowId callback usable when invoked without component context', () => {
+    const detached = component.getRowId;
+    const rowId = detached({
+      data: {
+        security: 'IBM'
+      }
+    } as any);
+    expect(rowId).toBe('Position-IBM');
+  });
+
 });

@@ -9,3 +9,5 @@
 - `AC-007` Given account-user mapping input, when username is validated by people-service, then mapping persists; unknown usernames are rejected.
 - `AC-008` Given browser-origin requests in pre-ingress mode, when UI calls service APIs, then CORS headers allow required requests.
 - `AC-009` Given generated components are rebuilt from Spec Kit inputs, when smoke tests run, then they pass without hydrating deleted legacy component trees.
+- `AC-010` Given a websocket client subscribed to account trade and position topics, when a valid trade is submitted via trade-service, then both incremental updates are received without page refresh.
+- `AC-011` Given an existing position row for a security is already rendered, when a realtime websocket update arrives for that same security, then the existing row is updated in place and no duplicate row is added.

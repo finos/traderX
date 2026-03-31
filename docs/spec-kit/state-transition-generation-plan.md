@@ -81,11 +81,13 @@ flowchart LR
   A["001 Baseline Uncontainerized"] --> B["002 Edge Proxy Uncontainerized"]
   B --> C["003 Containerized Compose Runtime"]
   C --> D["004 Kubernetes Runtime (Planned)"]
+  C --> E["007 Messaging NATS Replacement (Planned)"]
 
   A --> TA["Tag generated/001-baseline-uncontainerized-parity/v1"]
   B --> TB["Tag generated/002-edge-proxy-uncontainerized/v1"]
   C --> TC["Tag generated/003-containerized-compose-runtime/v1"]
   D --> TD["Tag generated/004-kubernetes-runtime/v1 (Planned)"]
+  E --> TE["Tag generated/007-messaging-nats-replacement/v1 (Planned)"]
 ```
 
 ### Official Data of Record for Each State

@@ -11,3 +11,4 @@ This is the active ADR set for TraderX SpecKit governance.
 - [ADR-002 Generated State Branching Strategy](/docs/adr/002-generated-state-branching-strategy)
 - [ADR-003 Intentional Legacy-Shaped Baseline](/docs/adr/003-baseline-intentionally-simplistic-legacy-shaped)
 - [ADR-004 Lightweight Baseline Infrastructure and Replaceability](/docs/adr/004-prefer-lightweight-default-infra-and-swappable-components)
+- [ADR-005 Use NATS for State 007 Messaging Replacement](/docs/adr/005-state-007-use-nats-for-messaging-replacement)

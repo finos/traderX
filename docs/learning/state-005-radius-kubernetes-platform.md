@@ -1,37 +1,36 @@
 ---
-title: "State 005: Radius on Kubernetes"
+title: "State 005: Radius Platform on Kubernetes"
 ---
 
 # State 005 Learning Guide
 
-## Purpose
+## Position In Learning Graph
 
-Adds Radius platform modeling artifacts on top of the Kubernetes runtime baseline.
+- Previous state(s): [004-kubernetes-runtime](/docs/learning/state-004-kubernetes-runtime)
+- Next state(s): none
 
-## Run
+## Rendered Code
+
+- Generated branch: [code/generated-state-005-radius-kubernetes-platform](https://github.com/finos/traderX/tree/code/generated-state-005-radius-kubernetes-platform)
+- Authoring branch (spec source): [feature/agentic-renovation](https://github.com/finos/traderX/tree/feature/agentic-renovation)
+
+## Code Comparison With Previous State
+
+- Compare against `004-kubernetes-runtime`: [code/generated-state-004-kubernetes-runtime...code/generated-state-005-radius-kubernetes-platform](https://github.com/finos/traderX/compare/code%2Fgenerated-state-004-kubernetes-runtime...code%2Fgenerated-state-005-radius-kubernetes-platform)
+
+## Plain-English Code Delta
+
+- **Flow Impact:** No functional flow deltas. Baseline flows `F1`-`F6` and startup behavior remain compatible with state `004`.
+
+## Run This State
 
 ```bash
-./scripts/start-state-005-radius-kubernetes-platform-generated.sh --provider kind
+./scripts/start-state-005-radius-kubernetes-platform-generated.sh
 ```
-
-Runtime entrypoint remains: `http://localhost:8080`
-
-## What Changed From 004
-
-- Added Radius resource model and app definition artifacts.
-- Kept Kubernetes runtime behavior and baseline functional contracts.
 
 ## Canonical Spec Links
 
 - State spec pack: [/specs/radius-kubernetes-platform](/specs/radius-kubernetes-platform)
 - Architecture: [/specs/radius-kubernetes-platform/system/architecture](/specs/radius-kubernetes-platform/system/architecture)
-- Runtime topology: [/specs/radius-kubernetes-platform/system/runtime-topology](/specs/radius-kubernetes-platform/system/runtime-topology)
+- Flows / topology: [/specs/radius-kubernetes-platform/system/runtime-topology](/specs/radius-kubernetes-platform/system/runtime-topology)
 
-## Generated Code Snapshot
-
-- [code/generated-state-005-radius-kubernetes-platform](https://github.com/finos/traderX/tree/code/generated-state-005-radius-kubernetes-platform)
-
-## Lineage
-
-- Previous: `004-kubernetes-runtime`
-- Next: planned

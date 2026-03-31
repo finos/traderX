@@ -80,6 +80,7 @@ echo "[check] baseline service smoke suite in containerized runtime"
 "${REPO_ROOT}/scripts/test-trade-feed-overlay.sh" "http://localhost:18086"
 "${REPO_ROOT}/scripts/test-trade-processor-overlay.sh" "${ORIGIN}" "http://localhost:18091" "http://localhost:18090" "http://localhost:18086"
 "${REPO_ROOT}/scripts/test-trade-service-overlay.sh" "${ORIGIN}" "http://localhost:18092" "http://localhost:18090"
+"${REPO_ROOT}/scripts/test-realtime-account-stream-overlay.sh" "http://localhost:18092" "http://localhost:18086" "22214"
 "${REPO_ROOT}/scripts/test-web-angular-overlay.sh" "${INGRESS_URL}"
 
 echo "[done] state 003 containerized compose smoke tests passed"

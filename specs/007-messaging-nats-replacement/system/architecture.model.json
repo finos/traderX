@@ -1,0 +1,178 @@
+{
+  "stateId": "007-messaging-nats-replacement",
+  "title": "Architecture (State 007 Messaging NATS Replacement)",
+  "description": "State 007 replaces Socket.IO trade-feed messaging with NATS while preserving state 003 containerized runtime and ingress entry model.",
+  "inheritsFrom": "003-containerized-compose-runtime",
+  "flowDoc": "../001-baseline-uncontainerized-parity/system/end-to-end-flows.md",
+  "mermaidDirection": "LR",
+  "entrypoints": [
+    {
+      "name": "ingress",
+      "url": "http://localhost:8080"
+    },
+    {
+      "name": "nats-ws",
+      "url": "ws://localhost:8080/nats-ws"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "trader",
+      "label": "Trader Browser",
+      "kind": "actor",
+      "description": "Uses Angular UI and receives live updates."
+    },
+    {
+      "id": "ingress",
+      "label": "NGINX Ingress",
+      "kind": "gateway",
+      "description": "Routes REST and websocket traffic."
+    },
+    {
+      "id": "web",
+      "label": "Web Front End Angular",
+      "kind": "frontend",
+      "description": "Uses nats.ws for account-scoped streams."
+    },
+    {
+      "id": "nats",
+      "label": "NATS Broker",
+      "kind": "messaging",
+      "description": "Core pub/sub broker for backend and browser streaming."
+    },
+    {
+      "id": "tradeService",
+      "label": "Trade Service",
+      "kind": "service",
+      "description": "Publishes new trade events."
+    },
+    {
+      "id": "tradeProcessor",
+      "label": "Trade Processor",
+      "kind": "service",
+      "description": "Consumes and publishes processed/account updates."
+    },
+    {
+      "id": "account",
+      "label": "Account Service",
+      "kind": "service",
+      "description": "Account and account-user operations."
+    },
+    {
+      "id": "position",
+      "label": "Position Service",
+      "kind": "service",
+      "description": "Trades/positions query endpoints."
+    },
+    {
+      "id": "referenceData",
+      "label": "Reference Data",
+      "kind": "service",
+      "description": "Ticker lookup/list."
+    },
+    {
+      "id": "people",
+      "label": "People Service",
+      "kind": "service",
+      "description": "Identity lookup and validation."
+    },
+    {
+      "id": "database",
+      "label": "Database",
+      "kind": "database",
+      "description": "Persistent account/trade/position state."
+    }
+  ],
+  "edges": [
+    {
+      "from": "trader",
+      "to": "ingress",
+      "label": "Single browser entrypoint"
+    },
+    {
+      "from": "ingress",
+      "to": "web",
+      "label": "/"
+    },
+    {
+      "from": "ingress",
+      "to": "account",
+      "label": "/account-service"
+    },
+    {
+      "from": "ingress",
+      "to": "position",
+      "label": "/position-service"
+    },
+    {
+      "from": "ingress",
+      "to": "tradeService",
+      "label": "/trade-service"
+    },
+    {
+      "from": "ingress",
+      "to": "referenceData",
+      "label": "/reference-data"
+    },
+    {
+      "from": "ingress",
+      "to": "people",
+      "label": "/people-service"
+    },
+    {
+      "from": "ingress",
+      "to": "nats",
+      "label": "/nats-ws (WS upgrade)"
+    },
+    {
+      "from": "tradeService",
+      "to": "account",
+      "label": "Validate account"
+    },
+    {
+      "from": "tradeService",
+      "to": "referenceData",
+      "label": "Validate ticker"
+    },
+    {
+      "from": "tradeService",
+      "to": "nats",
+      "label": "Publish trades.new"
+    },
+    {
+      "from": "tradeProcessor",
+      "to": "nats",
+      "label": "Consume trades.new, publish account updates"
+    },
+    {
+      "from": "web",
+      "to": "nats",
+      "label": "Subscribe account-scoped streams"
+    },
+    {
+      "from": "tradeProcessor",
+      "to": "database",
+      "label": "Persist trade/position state"
+    },
+    {
+      "from": "account",
+      "to": "database",
+      "label": "Account persistence"
+    },
+    {
+      "from": "position",
+      "to": "database",
+      "label": "Query trades/positions"
+    },
+    {
+      "from": "account",
+      "to": "people",
+      "label": "Validate person"
+    }
+  ],
+  "notes": [
+    "State 007 is an architecture-track branch from state 003.",
+    "Messaging transport changes to NATS; business behavior remains baseline-compatible.",
+    "JetStream durability is intentionally deferred to a future state."
+  ]
+}

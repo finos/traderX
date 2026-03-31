@@ -49,6 +49,8 @@ As a trader, I need valid trade submissions to be accepted and then processed in
 
 1. **Given** a valid account+ticker trade ticket, **When** it is submitted to trade-service, **Then** it is validated and published to trade-feed.
 2. **Given** a new trade event, **When** trade-processor consumes it, **Then** trade records/positions are persisted and account topic updates are published.
+3. **Given** a websocket client subscribed to account trade and position topics, **When** a valid trade is submitted through trade-service, **Then** the client receives incremental trade and position updates without page refresh.
+4. **Given** an existing position row for a security is already shown in the UI, **When** a websocket position update arrives for that same security, **Then** the existing row is updated in place instead of adding a duplicate row.
 
 ---
 
@@ -72,6 +74,7 @@ As an operations user, I need to create/update accounts and assign users validat
 - Unknown person must return `404` and block account-user mapping persistence.
 - Missing CORS headers in pre-ingress mode must be treated as a baseline non-functional failure.
 - Service not ready in startup sequence must stop later dependents and emit clear diagnostics.
+- Realtime position updates must not create duplicate UI rows for the same `(account, security)` key.
 
 ## Requirements *(mandatory)*
 
@@ -90,6 +93,8 @@ As an operations user, I need to create/update accounts and assign users validat
 - **FR-011**: All generated baseline services MUST preserve current approved API contracts under this feature's `contracts/` folder.
 - **FR-012**: Startup/status/overlay smoke scripts MUST be runnable from repository automation.
 - **FR-013**: Generated implementation MUST run without copying code from deleted legacy root component directories.
+- **FR-014**: Submitting a valid trade through trade-service MUST emit realtime account-scoped trade and position topic updates consumable by websocket clients.
+- **FR-015**: The UI position blotter MUST upsert realtime position updates by security key, updating existing rows in place rather than appending duplicates.
 
 ### Non-Functional Requirements
 
@@ -123,6 +128,8 @@ As an operations user, I need to create/update accounts and assign users validat
 - **SC-006**: Contract artifacts in `specs/001-baseline-uncontainerized-parity/contracts/**` stay synchronized with generated component OpenAPI files.
 - **SC-007**: Semantic compare harness reports zero differences in `source-code`, `runtime-config`, and `api-contract` categories for baseline components.
 - **SC-008**: Baseline component technical profile (`fidelity-profile.md`) and generated manifests remain aligned.
+- **SC-009**: An automated websocket functional test can subscribe to account trade/position topics, submit a trade, and observe both updates without page reload.
+- **SC-010**: Realtime position updates for an already-rendered security update the existing UI row in place with no duplicate row created.
 
 ## Assumptions
 

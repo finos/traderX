@@ -39,4 +39,7 @@ for asset in \
   fi
 done
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+"${SCRIPT_DIR}/test-position-blotter-upsert-contract.sh"
+
 echo "[done] web-front-end-angular overlay smoke tests passed"

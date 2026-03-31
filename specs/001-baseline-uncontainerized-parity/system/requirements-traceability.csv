@@ -16,6 +16,10 @@ SYS-FR-006,US-003,AC-004,F3,trade-service,specs/001-baseline-uncontainerized-par
 SYS-FR-006,US-003,AC-004,F3,account-service,specs/001-baseline-uncontainerized-parity/contracts/account-service/openapi.yaml,scripts/test-trade-service-overlay.sh
 SYS-FR-007,US-004,AC-005,F4,trade-processor,specs/001-baseline-uncontainerized-parity/contracts/trade-processor/openapi.yaml,scripts/test-trade-processor-overlay.sh
 SYS-FR-007,US-004,AC-005,F4,database,none,scripts/test-database-overlay.sh
+SYS-FR-012,US-004,AC-010,F4,trade-service,specs/001-baseline-uncontainerized-parity/contracts/trade-service/openapi.yaml,scripts/test-realtime-account-stream-overlay.sh
+SYS-FR-012,US-004,AC-010,F4,trade-feed,none,scripts/test-realtime-account-stream-overlay.sh
+SYS-FR-012,US-004,AC-010,F4,position-service,specs/001-baseline-uncontainerized-parity/contracts/position-service/openapi.yaml,scripts/test-realtime-account-stream-overlay.sh
+SYS-FR-013,US-004,AC-011,F4,web-front-end-angular,none,scripts/test-position-blotter-upsert-contract.sh
 SYS-FR-008,US-005,AC-006,F5,account-service,specs/001-baseline-uncontainerized-parity/contracts/account-service/openapi.yaml,scripts/test-account-service-overlay.sh
 SYS-FR-009,US-006,AC-007,F6,people-service,specs/001-baseline-uncontainerized-parity/contracts/people-service/openapi.yaml,scripts/test-people-service-overlay.sh
 SYS-FR-009,US-006,AC-007,F6,account-service,specs/001-baseline-uncontainerized-parity/contracts/account-service/openapi.yaml,scripts/test-people-service-overlay.sh

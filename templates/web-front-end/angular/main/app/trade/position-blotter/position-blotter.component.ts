@@ -33,7 +33,9 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
   ];
 
   constructor(private tradeService: PositionService,
-    private tradeFeed: TradeFeedService) { }
+    private tradeFeed: TradeFeedService) {
+    this.getRowId = this.getRowId.bind(this);
+  }
 
   ngOnChanges(change: SimpleChanges) {
     if (change.account?.currentValue && change.account.currentValue !== change.account.previousValue) {
@@ -71,18 +73,27 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
   }
 
   update(data: any) {
-    const row = this.gridApi.getRowNode(data.security);
+    if (!this.gridApi) {
+      this.pendingPosition.push(data);
+      return;
+    }
+    const security = data?.security;
+    if (!security) {
+      return;
+    }
+
+    const row = this.gridApi.getRowNode(this.toRowId(security));
     let positionData;
     if (row) {
       positionData = {
-        update: [Object.assign(row.data, { quantity: data.quantity })]
+        update: [Object.assign(row.data, { quantity: data.quantity, updated: data.updated })]
       };
     } else {
       positionData = {
         add: [{
-          accountid: data.accountid,
+          accountid: data.accountid ?? data.accountId,
           quantity: data.quantity,
-          security: data.security,
+          security,
           updated: data.updated
         }],
         addIndex: 0
@@ -97,7 +108,11 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
   }
 
   getRowId(params: GetRowIdParams<any>):string {
-    return `Position-${params.data.security}`;
+    return this.toRowId(params.data.security);
+  }
+
+  private toRowId(security: string): string {
+    return `Position-${security}`;
   }
 
   ngOnDestroy() {

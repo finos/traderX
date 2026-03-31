@@ -13,6 +13,8 @@
 - `SYS-FR-009` The account-service SHALL validate users with people-service before persisting account-user mappings.
 - `SYS-FR-010` The system SHALL provide health/readiness endpoints used by startup and smoke checks.
 - `SYS-FR-011` The generated codebase SHALL preserve current baseline API/event contracts required for UI and service interoperability.
+- `SYS-FR-012` Submitting a valid trade through trade-service SHALL produce realtime account-scoped trade and position websocket updates consumable without page refresh.
+- `SYS-FR-013` The UI position blotter SHALL upsert realtime position updates by security key so existing rows are updated in place and duplicates are not created.
 
 ## Non-Functional Requirements
 

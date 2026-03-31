@@ -1,0 +1,21 @@
+# Compose snippet for state 007 (conceptual delta)
+services:
+  nats-broker:
+    image: nats:2.10-alpine
+    command:
+      - "--http_port=8222"
+      - "--ws"
+      - "--ws_port=8081"
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8222/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+# Existing service deltas (conceptual):
+# - remove trade-feed service
+# - trade-service and trade-processor depend on nats-broker health

@@ -221,6 +221,11 @@ start_process() {
     fi
   fi
 
+  if ((DRY_RUN == 1)); then
+    echo "[dry-run] ${process}: cd ${workdir} && ${cmd}"
+    return 0
+  fi
+
   if nc -z localhost "${port}" >/dev/null 2>&1; then
     echo "[error] port :${port} already in use before starting ${process}"
     local pids
@@ -231,11 +236,6 @@ start_process() {
     echo "[hint] run stop script, then retry:"
     echo "       ./scripts/stop-base-uncontainerized-generated.sh"
     exit 1
-  fi
-
-  if ((DRY_RUN == 1)); then
-    echo "[dry-run] ${process}: cd ${workdir} && ${cmd}"
-    return 0
   fi
 
   echo "[start] ${process}"
