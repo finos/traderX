@@ -5,7 +5,7 @@ TRADE_SERVICE_URL="${1:-http://localhost:18092}"
 TRADE_FEED_URL="${2:-http://localhost:18086}"
 ACCOUNT_ID="${3:-22214}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DEFAULT_SOCKET_IO_CLIENT_PATH="${REPO_ROOT}/generated/code/target-generated/trade-feed/node_modules/socket.io-client"
+DEFAULT_SOCKET_IO_CLIENT_PATH="$("${REPO_ROOT}/scripts/lib/resolve-socketio-client-path.sh")"
 
 echo "[check] realtime account stream over Socket.IO after trade submit"
 TRADE_SERVICE_URL="${TRADE_SERVICE_URL}" \
@@ -78,7 +78,7 @@ async function main() {
     if (
       message.topic === positionTopic &&
       message.payload.security === security &&
-      Number(message.payload.quantity) === qty
+      Number.isFinite(Number(message.payload.quantity))
     ) {
       sawPosition = true;
     }

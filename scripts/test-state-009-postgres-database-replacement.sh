@@ -3,9 +3,9 @@ set -euo pipefail
 
 INGRESS_URL="${1:-http://localhost:8080}"
 ORIGIN="${2:-http://localhost:8080}"
-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-003}"
+COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-009}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-COMPOSE_FILE="${REPO_ROOT}/generated/code/target-generated/containerized-compose/docker-compose.yml"
+COMPOSE_FILE="${REPO_ROOT}/generated/code/target-generated/postgres-database-replacement/docker-compose.yml"
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "[error] docker command not found"
@@ -14,7 +14,7 @@ fi
 
 if [[ ! -f "${COMPOSE_FILE}" ]]; then
   echo "[error] compose file not found: ${COMPOSE_FILE}"
-  echo "[hint] run: bash pipeline/generate-state.sh 003-containerized-compose-runtime"
+  echo "[hint] run: bash pipeline/generate-state.sh 009-postgres-database-replacement"
   exit 1
 fi
 
@@ -23,6 +23,21 @@ docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" ps
 running_services="$(docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" ps --status running --services | wc -l | tr -d ' ')"
 if [[ "${running_services}" -lt 10 ]]; then
   echo "[error] expected 10+ running services, got ${running_services}"
+  exit 1
+fi
+
+echo "[check] postgres port 18083"
+nc -z localhost 18083
+
+echo "[check] postgres readiness"
+docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" exec -T database \
+  pg_isready -U traderx -d traderx
+
+echo "[check] postgres baseline data loaded"
+accounts_count="$(docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" exec -T database \
+  psql -U traderx -d traderx -tAc "select count(*) from accounts;" | tr -d '[:space:]')"
+if [[ -z "${accounts_count}" || "${accounts_count}" -lt 7 ]]; then
+  echo "[error] expected baseline accounts in postgres, got count=${accounts_count:-0}"
   exit 1
 fi
 
@@ -67,21 +82,20 @@ printf '%s\n' "${socket_headers}" | grep -q "HTTP/1.1 200" || {
 }
 
 echo "[check] ingress trade-service unknown ticker validation"
-status_code="$(curl -sS -o /tmp/traderx-state-003-trade.out -w "%{http_code}" \
+status_code="$(curl -sS -o /tmp/traderx-state-009-trade.out -w "%{http_code}" \
   -H "Content-Type: application/json" \
   -d '{"security":"NOTREAL","quantity":1,"accountId":22214,"side":"Buy"}' \
   "${INGRESS_URL}/trade-service/trade")"
-cat /tmp/traderx-state-003-trade.out
+cat /tmp/traderx-state-009-trade.out
 echo
-rm -f /tmp/traderx-state-003-trade.out
+rm -f /tmp/traderx-state-009-trade.out
 if [[ "${status_code}" != "404" ]]; then
   echo "[error] expected 404 for unknown ticker through ingress, got ${status_code}"
   exit 1
 fi
 
-echo "[check] baseline service smoke suite in containerized runtime"
+echo "[check] baseline service smoke suite in postgres runtime"
 "${REPO_ROOT}/scripts/test-reference-data-overlay.sh" "${ORIGIN}" "http://localhost:18085"
-"${REPO_ROOT}/scripts/test-database-overlay.sh" "18082" "18083" "http://localhost:18084/" "http://localhost:18088/account/22214"
 "${REPO_ROOT}/scripts/test-people-service-overlay.sh" "${ORIGIN}" "http://localhost:18089" "http://localhost:18088/accountuser/"
 "${REPO_ROOT}/scripts/test-account-service-overlay.sh" "${ORIGIN}" "http://localhost:18088"
 "${REPO_ROOT}/scripts/test-position-service-overlay.sh" "${ORIGIN}" "http://localhost:18090"
@@ -91,4 +105,4 @@ echo "[check] baseline service smoke suite in containerized runtime"
 "${REPO_ROOT}/scripts/test-realtime-account-stream-overlay.sh" "http://localhost:18092" "${INGRESS_URL}" "22214"
 "${REPO_ROOT}/scripts/test-web-angular-overlay.sh" "${INGRESS_URL}"
 
-echo "[done] state 003 containerized compose smoke tests passed"
+echo "[done] state 009 postgres-database runtime smoke tests passed"

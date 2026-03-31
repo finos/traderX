@@ -1,0 +1,173 @@
+{
+  "title": "Architecture (State 009 PostgreSQL Database Replacement)",
+  "stateId": "009-postgres-database-replacement",
+  "inheritsFrom": "003-containerized-compose-runtime",
+  "flowDoc": "../001-baseline-uncontainerized-parity/system/end-to-end-flows.md",
+  "description": "State 009 replaces H2 database runtime with PostgreSQL while preserving state 003 containerized ingress topology and baseline flows.",
+  "mermaidDirection": "LR",
+  "entrypoints": [
+    {
+      "name": "ingress",
+      "url": "http://localhost:8080"
+    },
+    {
+      "name": "postgres",
+      "url": "postgres://localhost:18083/traderx"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "trader",
+      "label": "Trader Browser",
+      "kind": "actor",
+      "description": "Uses Angular UI via ingress."
+    },
+    {
+      "id": "ingress",
+      "label": "NGINX Ingress",
+      "kind": "gateway",
+      "description": "Single browser entrypoint for UI + API + websocket."
+    },
+    {
+      "id": "web",
+      "label": "Web Front End Angular",
+      "kind": "frontend",
+      "description": "TraderX UI."
+    },
+    {
+      "id": "referenceData",
+      "label": "Reference Data",
+      "kind": "service",
+      "description": "Ticker lookup/list."
+    },
+    {
+      "id": "tradeFeed",
+      "label": "Trade Feed",
+      "kind": "messaging",
+      "description": "Socket.IO pub/sub layer (unchanged from state 003)."
+    },
+    {
+      "id": "people",
+      "label": "People Service",
+      "kind": "service",
+      "description": "Identity lookup and validation."
+    },
+    {
+      "id": "account",
+      "label": "Account Service",
+      "kind": "service",
+      "description": "Account and account-user operations using PostgreSQL."
+    },
+    {
+      "id": "position",
+      "label": "Position Service",
+      "kind": "service",
+      "description": "Trades/positions query operations using PostgreSQL."
+    },
+    {
+      "id": "tradeProcessor",
+      "label": "Trade Processor",
+      "kind": "service",
+      "description": "Trade processing and persistence using PostgreSQL."
+    },
+    {
+      "id": "tradeService",
+      "label": "Trade Service",
+      "kind": "service",
+      "description": "Trade submission and validation."
+    },
+    {
+      "id": "database",
+      "label": "PostgreSQL Database",
+      "kind": "database",
+      "description": "Persistent account/trade/position state."
+    }
+  ],
+  "edges": [
+    {
+      "from": "trader",
+      "to": "ingress",
+      "label": "Single browser entrypoint"
+    },
+    {
+      "from": "ingress",
+      "to": "web",
+      "label": "/"
+    },
+    {
+      "from": "ingress",
+      "to": "account",
+      "label": "/account-service"
+    },
+    {
+      "from": "ingress",
+      "to": "position",
+      "label": "/position-service"
+    },
+    {
+      "from": "ingress",
+      "to": "tradeService",
+      "label": "/trade-service"
+    },
+    {
+      "from": "ingress",
+      "to": "referenceData",
+      "label": "/reference-data"
+    },
+    {
+      "from": "ingress",
+      "to": "people",
+      "label": "/people-service"
+    },
+    {
+      "from": "ingress",
+      "to": "tradeFeed",
+      "label": "/trade-feed (WS)"
+    },
+    {
+      "from": "tradeService",
+      "to": "account",
+      "label": "Validate account"
+    },
+    {
+      "from": "tradeService",
+      "to": "referenceData",
+      "label": "Validate ticker"
+    },
+    {
+      "from": "tradeService",
+      "to": "tradeFeed",
+      "label": "Publish trade event"
+    },
+    {
+      "from": "tradeProcessor",
+      "to": "tradeFeed",
+      "label": "Consume/publish account updates"
+    },
+    {
+      "from": "account",
+      "to": "people",
+      "label": "Validate person"
+    },
+    {
+      "from": "account",
+      "to": "database",
+      "label": "Read/write account data"
+    },
+    {
+      "from": "position",
+      "to": "database",
+      "label": "Read positions/trades"
+    },
+    {
+      "from": "tradeProcessor",
+      "to": "database",
+      "label": "Persist processed trades/positions"
+    }
+  ],
+  "notes": [
+    "State 009 is an architecture-track branch from state 003.",
+    "Only database engine/runtime is replaced; functional API and messaging contracts remain stable.",
+    "H2 web console is removed from runtime expectations in this state."
+  ]
+}

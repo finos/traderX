@@ -2,22 +2,9 @@ module.exports = {
   mainSidebar: [
     'home',
     {
-      type: 'category',
-      label: 'Blog',
-      items: [
-        {
-          type: 'doc',
-          id: 'blog/index',
-          label: 'Blog Home',
-        },
-        'blog/2026-03-31-state-007-nats-architecture-track',
-        'blog/2026-03-29-traderx-speckit-migration',
-        'blog/2024-09-platform-paths-kubernetes-radius',
-        'blog/2024-03-docs-portal-and-project-storytelling',
-        'blog/2023-11-osff-nyc-keynote-and-go-live',
-        'blog/2023-09-open-source-hardening-and-governance',
-        'blog/2023-05-from-hackathon-to-open-source-baseline',
-      ],
+      type: 'doc',
+      id: 'blog/index',
+      label: 'Engineering Blog',
     },
     {
       type: 'category',
@@ -67,6 +54,7 @@ module.exports = {
         'learning/state-005-radius-kubernetes-platform',
         'learning/state-006-tilt-kubernetes-dev-loop',
         'learning/state-007-messaging-nats-replacement',
+        'learning/state-009-postgres-database-replacement',
         'learning-paths/index',
         'spec-kit/visual-learning-graphs',
         'spec-kit/spec-kit-learning-path-strategy',

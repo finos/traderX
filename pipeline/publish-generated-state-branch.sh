@@ -350,6 +350,20 @@ EOF
 - Preserves baseline functional behavior and API contracts.
 EOF
       ;;
+    007-messaging-nats-replacement)
+      cat <<'EOF'
+- Builds on state `003` and preserves containerized ingress runtime behavior.
+- Replaces Socket.IO trade-feed with NATS broker for backend and browser streaming.
+- Preserves baseline user-visible behavior while changing messaging transport.
+EOF
+      ;;
+    009-postgres-database-replacement)
+      cat <<'EOF'
+- Builds on state `003` and preserves containerized ingress runtime behavior.
+- Replaces H2 runtime database with PostgreSQL container + deterministic init SQL.
+- Preserves baseline REST/event contracts and user-visible behavior.
+EOF
+      ;;
     *)
       cat <<'EOF'
 - Generated code snapshot for TraderX state transition.
@@ -478,6 +492,44 @@ Status / stop:
 ```
 EOF
       ;;
+    007-messaging-nats-replacement)
+      cat <<'EOF'
+Run directly from this generated snapshot branch:
+
+```bash
+./scripts/start-state-007-messaging-nats-replacement-generated.sh
+```
+
+UI/ingress endpoint: `http://localhost:8080`
+NATS monitor endpoint: `http://localhost:8222/varz`
+
+Status / stop:
+
+```bash
+./scripts/status-state-007-messaging-nats-replacement-generated.sh
+./scripts/stop-state-007-messaging-nats-replacement-generated.sh
+```
+EOF
+      ;;
+    009-postgres-database-replacement)
+      cat <<'EOF'
+Run directly from this generated snapshot branch:
+
+```bash
+./scripts/start-state-009-postgres-database-replacement-generated.sh
+```
+
+UI/ingress endpoint: `http://localhost:8080`
+PostgreSQL endpoint: `localhost:18083`
+
+Status / stop:
+
+```bash
+./scripts/status-state-009-postgres-database-replacement-generated.sh
+./scripts/stop-state-009-postgres-database-replacement-generated.sh
+```
+EOF
+      ;;
     *)
       cat <<'EOF'
 See `RUN_FROM_CLONE.md` for clone-first runtime instructions.
@@ -528,6 +580,20 @@ EOF
 - Understand developer-loop acceleration using Tilt.
 - Understand what parts are runtime-stable vs dev-loop specific.
 - Evaluate inner-loop productivity deltas while preserving contracts.
+EOF
+      ;;
+    007-messaging-nats-replacement)
+      cat <<'EOF'
+- Understand focused messaging-layer replacement on top of stable runtime.
+- Compare NATS subject topology to prior Socket.IO channel patterns.
+- Validate realtime behavior parity while changing transport internals.
+EOF
+      ;;
+    009-postgres-database-replacement)
+      cat <<'EOF'
+- Understand focused database-engine replacement on top of stable runtime.
+- Compare datasource and schema-init changes required for PostgreSQL migration.
+- Validate flow compatibility after persistence-layer substitution.
 EOF
       ;;
     *)
@@ -652,6 +718,22 @@ EOF
     "${SNAPSHOT_DIR}/scripts/start-state-003-containerized-generated.sh" \
     "${SNAPSHOT_DIR}/scripts/stop-state-003-containerized-generated.sh" \
     "${SNAPSHOT_DIR}/scripts/status-state-003-containerized-generated.sh"
+}
+
+install_state_compose_clone_harness() {
+  local state_id="$1"
+  mkdir -p "${SNAPSHOT_DIR}/scripts"
+
+  local script_name
+  for script_name in \
+    "start-state-${state_id}-generated.sh" \
+    "stop-state-${state_id}-generated.sh" \
+    "status-state-${state_id}-generated.sh" \
+    "test-state-${state_id}.sh"; do
+    if [[ -f "${ROOT}/scripts/${script_name}" ]]; then
+      cp "${ROOT}/scripts/${script_name}" "${SNAPSHOT_DIR}/scripts/"
+    fi
+  done
 }
 
 install_kubernetes_clone_harness() {
@@ -1191,6 +1273,58 @@ tilt up
 ```
 EOF
       ;;
+    007-messaging-nats-replacement)
+      cat > "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
+# Run From Clone
+
+Prerequisites:
+- Docker Desktop (or Docker Engine + Compose plugin)
+
+Start:
+
+```bash
+./scripts/start-state-007-messaging-nats-replacement-generated.sh
+```
+
+Endpoints:
+- UI / ingress: `http://localhost:8080`
+- Ingress health: `http://localhost:8080/health`
+- NATS monitor: `http://localhost:8222/varz`
+
+Status / stop:
+
+```bash
+./scripts/status-state-007-messaging-nats-replacement-generated.sh
+./scripts/stop-state-007-messaging-nats-replacement-generated.sh
+```
+EOF
+      ;;
+    009-postgres-database-replacement)
+      cat > "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
+# Run From Clone
+
+Prerequisites:
+- Docker Desktop (or Docker Engine + Compose plugin)
+
+Start:
+
+```bash
+./scripts/start-state-009-postgres-database-replacement-generated.sh
+```
+
+Endpoints:
+- UI / ingress: `http://localhost:8080`
+- Ingress health: `http://localhost:8080/health`
+- PostgreSQL: `localhost:18083`
+
+Status / stop:
+
+```bash
+./scripts/status-state-009-postgres-database-replacement-generated.sh
+./scripts/stop-state-009-postgres-database-replacement-generated.sh
+```
+EOF
+      ;;
     *)
       cat > "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
 # Run From Clone
@@ -1511,6 +1645,12 @@ case "${STATE_ID}" in
     ;;
   003-containerized-compose-runtime)
     install_containerized_clone_harness
+    ;;
+  007-messaging-nats-replacement)
+    install_state_compose_clone_harness "${STATE_ID}"
+    ;;
+  009-postgres-database-replacement)
+    install_state_compose_clone_harness "${STATE_ID}"
     ;;
   004-kubernetes-runtime|005-radius-kubernetes-platform|006-tilt-kubernetes-dev-loop)
     install_kubernetes_clone_harness

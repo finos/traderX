@@ -14,6 +14,7 @@ flowchart LR
   S002 --> S003["003: Containerized Compose Runtime (NGINX Ingress)"]
   S003 --> S004["004: Kubernetes Runtime (DevEx)"]
   S003 --> S007["007: Messaging NATS Replacement (Architecture)"]
+  S003 --> S009["009: PostgreSQL Replacement (Architecture)"]
   S004 --> S005["005: Radius Platform on Kubernetes"]
   S004 --> S006["006: Tilt Local Dev on Kubernetes"]
   S007 -.-> S008["008: Kubernetes + NATS (Planned)"]
@@ -25,6 +26,7 @@ flowchart LR
   click S005 href "/specs/radius-kubernetes-platform" "Open State 005 Spec Pack"
   click S006 href "/specs/tilt-kubernetes-dev-loop" "Open State 006 Spec Pack"
   click S007 href "/specs/messaging-nats-replacement" "Open State 007 Spec Pack"
+  click S009 href "/specs/postgres-database-replacement" "Open State 009 Spec Pack"
 ```
 
 ## State To Artifact Mapping
@@ -37,7 +39,8 @@ flowchart LR
 | [`004-kubernetes-runtime`](/specs/kubernetes-runtime) | [`specs/004-kubernetes-runtime`](/specs/kubernetes-runtime) | [`system/architecture`](/specs/kubernetes-runtime/system/architecture) | [`system/runtime-topology`](/specs/kubernetes-runtime/system/runtime-topology) | `code/generated-state-004-kubernetes-runtime` |
 | [`005-radius-kubernetes-platform`](/specs/radius-kubernetes-platform) | [`specs/005-radius-kubernetes-platform`](/specs/radius-kubernetes-platform) | [`system/architecture`](/specs/radius-kubernetes-platform/system/architecture) | [`system/runtime-topology`](/specs/radius-kubernetes-platform/system/runtime-topology) | `code/generated-state-005-radius-kubernetes-platform` |
 | [`006-tilt-kubernetes-dev-loop`](/specs/tilt-kubernetes-dev-loop) | [`specs/006-tilt-kubernetes-dev-loop`](/specs/tilt-kubernetes-dev-loop) | [`system/architecture`](/specs/tilt-kubernetes-dev-loop/system/architecture) | [`system/runtime-topology`](/specs/tilt-kubernetes-dev-loop/system/runtime-topology) | `code/generated-state-006-tilt-kubernetes-dev-loop` |
-| [`007-messaging-nats-replacement`](/specs/messaging-nats-replacement) | [`specs/007-messaging-nats-replacement`](/specs/messaging-nats-replacement) | [`system/architecture`](/specs/messaging-nats-replacement/system/architecture) | [`system/runtime-topology`](/specs/messaging-nats-replacement/system/runtime-topology) | `code/generated-state-007-messaging-nats-replacement` (planned) |
+| [`007-messaging-nats-replacement`](/specs/messaging-nats-replacement) | [`specs/007-messaging-nats-replacement`](/specs/messaging-nats-replacement) | [`system/architecture`](/specs/messaging-nats-replacement/system/architecture) | [`system/runtime-topology`](/specs/messaging-nats-replacement/system/runtime-topology) | `code/generated-state-007-messaging-nats-replacement` |
+| [`009-postgres-database-replacement`](/specs/postgres-database-replacement) | [`specs/009-postgres-database-replacement`](/specs/postgres-database-replacement) | [`system/architecture`](/specs/postgres-database-replacement/system/architecture) | [`system/runtime-topology`](/specs/postgres-database-replacement/system/runtime-topology) | `code/generated-state-009-postgres-database-replacement` |
 
 ## Swimlane View
 
@@ -52,6 +55,7 @@ flowchart LR
   D4 --> D6["006 DevEx: Tilt"]
 
   S003 --> A7["007 Architecture: NATS Messaging"]
+  S003 --> A9["009 Architecture: PostgreSQL Database"]
   A7 -.-> A8["008 Architecture: Kubernetes + NATS (planned)"]
 
   S003 -.-> N1["Non-Functional lane (planned)"]

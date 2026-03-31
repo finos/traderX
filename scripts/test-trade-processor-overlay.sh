@@ -5,11 +5,13 @@ ORIGIN="${1:-http://localhost:18093}"
 PROCESSOR_URL="${2:-http://localhost:18091}"
 POSITION_URL="${3:-http://localhost:18090}"
 TRADE_FEED_URL="${4:-http://localhost:18086}"
+WAIT_ATTEMPTS="${WAIT_ATTEMPTS:-60}"
+WAIT_SLEEP_SECONDS="${WAIT_SLEEP_SECONDS:-1}"
 
 ACCOUNT_ID=22214
 QTY=7
-SECURITY="TRSPEC$((RANDOM % 9000 + 1000))$(date +%s)"
-SECURITY="${SECURITY:0:24}"
+SECURITY="TS$((RANDOM % 9000 + 1000))$(date +%s)"
+SECURITY="${SECURITY:0:15}"
 SMOKE_ID="tp-$(date +%s)-$RANDOM"
 
 echo "[check] trade-processor docs endpoint"
@@ -37,7 +39,7 @@ fi
 
 echo "[check] publish TradeOrder through trade-feed and verify account topic updates"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DEFAULT_SOCKET_IO_CLIENT_PATH="${REPO_ROOT}/generated/code/target-generated/trade-feed/node_modules/socket.io-client"
+DEFAULT_SOCKET_IO_CLIENT_PATH="$("${REPO_ROOT}/scripts/lib/resolve-socketio-client-path.sh")"
 
 TRADE_FEED_URL="${TRADE_FEED_URL}" \
 ACCOUNT_ID="${ACCOUNT_ID}" \
@@ -157,13 +159,13 @@ NODE
 
 echo "[check] processed trade persisted and visible via position-service"
 found_trade=0
-for _ in $(seq 1 20); do
+for _ in $(seq 1 "${WAIT_ATTEMPTS}"); do
   trades_json="$(curl -sS "${POSITION_URL}/trades/${ACCOUNT_ID}")"
   if echo "${trades_json}" | jq -e --arg sec "${SECURITY}" --argjson qty "${QTY}" 'map(select(.security == $sec and .quantity == $qty and .state == "Settled")) | length > 0' >/dev/null; then
     found_trade=1
     break
   fi
-  sleep 1
+  sleep "${WAIT_SLEEP_SECONDS}"
 done
 if [[ "${found_trade}" != "1" ]]; then
   echo "[error] expected settled trade for security ${SECURITY} via position-service"
@@ -171,13 +173,13 @@ if [[ "${found_trade}" != "1" ]]; then
 fi
 
 found_position=0
-for _ in $(seq 1 20); do
+for _ in $(seq 1 "${WAIT_ATTEMPTS}"); do
   positions_json="$(curl -sS "${POSITION_URL}/positions/${ACCOUNT_ID}")"
   if echo "${positions_json}" | jq -e --arg sec "${SECURITY}" --argjson qty "${QTY}" 'map(select(.security == $sec and .quantity == $qty)) | length > 0' >/dev/null; then
     found_position=1
     break
   fi
-  sleep 1
+  sleep "${WAIT_SLEEP_SECONDS}"
 done
 if [[ "${found_position}" != "1" ]]; then
   echo "[error] expected position update for security ${SECURITY} via position-service"

@@ -134,6 +134,26 @@
         "branch": "code/generated-state-007-messaging-nats-replacement",
         "tag": "generated/007-messaging-nats-replacement/v1"
       }
+    },
+    {
+      "id": "009-postgres-database-replacement",
+      "title": "PostgreSQL Database Replacement",
+      "status": "implemented",
+      "track": "architecture",
+      "featurePack": "specs/009-postgres-database-replacement",
+      "decisionRecord": "docs/adr/006-state-009-use-postgres-for-database-replacement.md",
+      "previous": [
+        "003-containerized-compose-runtime"
+      ],
+      "generation": {
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-state.sh 009-postgres-database-replacement",
+        "runtime": "./scripts/start-state-009-postgres-database-replacement-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-009-postgres-database-replacement",
+        "tag": "generated/009-postgres-database-replacement/v1"
+      }
     }
   ]
 }

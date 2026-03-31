@@ -12,3 +12,4 @@ This is the active ADR set for TraderX SpecKit governance.
 - [ADR-003 Intentional Legacy-Shaped Baseline](/docs/adr/003-baseline-intentionally-simplistic-legacy-shaped)
 - [ADR-004 Lightweight Baseline Infrastructure and Replaceability](/docs/adr/004-prefer-lightweight-default-infra-and-swappable-components)
 - [ADR-005 Use NATS for State 007 Messaging Replacement](/docs/adr/005-state-007-use-nats-for-messaging-replacement)
+- [ADR-006 Use PostgreSQL for State 009 Database Replacement](/docs/adr/006-state-009-use-postgres-for-database-replacement)
