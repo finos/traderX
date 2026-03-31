@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CATALOG="${ROOT}/catalog/state-catalog.json"
+GENERATED_ROOT_BRANCH="${GENERATED_ROOT_BRANCH:-code/generated-state-root}"
 
 usage() {
   cat <<'EOF'
@@ -59,6 +60,23 @@ fi
 if ! jq -e --arg id "${STATE_ID}" '.states[] | select(.id == $id)' "${CATALOG}" >/dev/null; then
   echo "[fail] state not found in catalog: ${STATE_ID}"
   exit 1
+fi
+
+PREVIOUS_STATE_COUNT="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | ((.previous // []) | length)' "${CATALOG}")"
+if [[ "${PREVIOUS_STATE_COUNT}" -gt 1 ]]; then
+  echo "[fail] state ${STATE_ID} has multiple previous states; publisher currently supports one parent branch"
+  echo "[hint] add merge-aware publish behavior before enabling multi-parent state lineage"
+  exit 1
+fi
+
+PRIMARY_PREVIOUS_STATE_ID="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | ((.previous // [])[0] // "")' "${CATALOG}")"
+PRIMARY_PREVIOUS_BRANCH=""
+if [[ -n "${PRIMARY_PREVIOUS_STATE_ID}" ]]; then
+  PRIMARY_PREVIOUS_BRANCH="$(jq -r --arg id "${PRIMARY_PREVIOUS_STATE_ID}" '.states[] | select(.id == $id) | (.publish.branch // "")' "${CATALOG}")"
+  if [[ -z "${PRIMARY_PREVIOUS_BRANCH}" ]]; then
+    echo "[fail] previous state ${PRIMARY_PREVIOUS_STATE_ID} does not define publish.branch"
+    exit 1
+  fi
 fi
 
 FEATURE_PACK="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | .featurePack' "${CATALOG}")"
@@ -159,6 +177,52 @@ cleanup() {
   rm -rf "${TMP_DIR}"
 }
 trap cleanup EXIT
+
+ensure_local_branch_ref() {
+  local branch="$1"
+  if git -C "${ROOT}" show-ref --verify --quiet "refs/heads/${branch}"; then
+    return 0
+  fi
+
+  if git -C "${ROOT}" ls-remote --exit-code --heads origin "${branch}" >/dev/null 2>&1; then
+    git -C "${ROOT}" fetch origin "${branch}:${branch}" >/dev/null
+    return 0
+  fi
+
+  return 1
+}
+
+ensure_generated_root_branch() {
+  local root_branch="$1"
+  if ensure_local_branch_ref "${root_branch}"; then
+    return 0
+  fi
+
+  local root_worktree="${TMP_DIR}/root-worktree"
+  git -C "${ROOT}" worktree add --detach "${root_worktree}" HEAD >/dev/null
+  git -C "${root_worktree}" checkout --orphan "${root_branch}" >/dev/null
+  git -C "${root_worktree}" rm -rf . >/dev/null 2>&1 || true
+  git -C "${root_worktree}" clean -fdx >/dev/null 2>&1 || true
+  git -C "${root_worktree}" commit --allow-empty -m "root: generated-state ancestry anchor" >/dev/null
+  git -C "${ROOT}" branch -f "${root_branch}" "$(git -C "${root_worktree}" rev-parse HEAD)" >/dev/null
+  git -C "${ROOT}" worktree remove --force "${root_worktree}" >/dev/null 2>&1 || true
+  echo "[ok] created generated root branch ${root_branch}"
+}
+
+ensure_generated_root_branch "${GENERATED_ROOT_BRANCH}"
+
+BASE_BRANCH="${GENERATED_ROOT_BRANCH}"
+if [[ -n "${PRIMARY_PREVIOUS_BRANCH}" ]]; then
+  BASE_BRANCH="${PRIMARY_PREVIOUS_BRANCH}"
+fi
+
+if ! ensure_local_branch_ref "${BASE_BRANCH}"; then
+  echo "[fail] base branch ${BASE_BRANCH} not found locally or on origin"
+  if [[ -n "${PRIMARY_PREVIOUS_STATE_ID}" ]]; then
+    echo "[hint] publish parent state first: ${PRIMARY_PREVIOUS_STATE_ID}"
+  fi
+  exit 1
+fi
 
 cp -R "${SNAPSHOT_ROOT}/." "${SNAPSHOT_DIR}/"
 rm -rf "${SNAPSHOT_DIR}/.run"
@@ -1662,11 +1726,18 @@ write_snapshot_learning_docs
 write_learning_guide
 write_snapshot_gitignore
 
+BRANCH_EXISTS=0
 if git -C "${ROOT}" show-ref --verify --quiet "refs/heads/${BRANCH_NAME}"; then
+  BRANCH_EXISTS=1
   git -C "${ROOT}" worktree add "${WORKTREE_DIR}" "${BRANCH_NAME}" >/dev/null
 else
-  git -C "${ROOT}" worktree add --detach "${WORKTREE_DIR}" HEAD >/dev/null
-  git -C "${WORKTREE_DIR}" checkout --orphan "${BRANCH_NAME}" >/dev/null
+  git -C "${ROOT}" worktree add -b "${BRANCH_NAME}" "${WORKTREE_DIR}" "${BASE_BRANCH}" >/dev/null
+fi
+
+PREVIOUS_BRANCH_TIP=""
+if (( BRANCH_EXISTS == 1 )); then
+  PREVIOUS_BRANCH_TIP="$(git -C "${WORKTREE_DIR}" rev-parse HEAD)"
+  git -C "${WORKTREE_DIR}" reset --hard "${BASE_BRANCH}" >/dev/null
 fi
 
 git -C "${WORKTREE_DIR}" rm -rf . >/dev/null 2>&1 || true
@@ -1675,13 +1746,23 @@ cp -R "${SNAPSHOT_DIR}/." "${WORKTREE_DIR}/"
 git -C "${WORKTREE_DIR}" add -A
 
 if git -C "${WORKTREE_DIR}" diff --cached --quiet; then
-  echo "[info] no changes to commit on ${BRANCH_NAME}"
+  if (( BRANCH_EXISTS == 1 )); then
+    git -C "${WORKTREE_DIR}" reset --hard "${PREVIOUS_BRANCH_TIP}" >/dev/null
+    echo "[info] no snapshot changes for ${BRANCH_NAME}; preserved prior tip"
+  else
+    echo "[info] no snapshot changes to commit on ${BRANCH_NAME}"
+  fi
 else
-  git -C "${WORKTREE_DIR}" commit -m "snapshot: ${STATE_ID} generated from ${SOURCE_COMMIT}" >/dev/null
+  git -C "${WORKTREE_DIR}" commit \
+    -m "snapshot: ${STATE_ID} generated from ${SOURCE_COMMIT}" \
+    -m "lineage-base: ${BASE_BRANCH}" >/dev/null
   echo "[ok] committed generated snapshot on branch ${BRANCH_NAME}"
 fi
 
 if (( PUSH == 1 )); then
+  if [[ "${BASE_BRANCH}" == "${GENERATED_ROOT_BRANCH}" ]]; then
+    git -C "${ROOT}" push --force-with-lease origin "${GENERATED_ROOT_BRANCH}"
+  fi
   git -C "${WORKTREE_DIR}" push --force-with-lease origin "${BRANCH_NAME}"
   echo "[ok] pushed ${BRANCH_NAME}"
 fi
