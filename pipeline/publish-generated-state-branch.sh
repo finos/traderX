@@ -1205,7 +1205,7 @@ State: \`${STATE_ID}\`
 
 | ID | Label | Kind | Description |
 | --- | --- | --- | --- |
-$(jq -r '.nodes[] | "| `"'"'"'\(.id)`'"'"'" | \(.label) | \(.kind // "component") | \((.description // "n/a") | gsub("\\|"; "\\\\|")) |"' "${model_path}")
+$(jq -r '.nodes[] | "| `\(.id)` | \(.label) | \(.kind // "component") | \((.description // "n/a") | gsub("\\|"; "\\\\|")) |"' "${model_path}")
 EOF
 
   cat > "${learning_root}/component-diagram.md" <<EOF
@@ -1244,7 +1244,7 @@ $(jq -r '.description' "${model_path}")
 
 ## Entrypoints
 
-$(jq -r '(.entrypoints // [])[] | "- `"'"'"'\(.name)`'"'"'" -> `\(.url)`"' "${model_path}")
+$(jq -r '(.entrypoints // [])[] | "- `\(.name)` -> `\(.url)`"' "${model_path}")
 
 ## Notes
 
