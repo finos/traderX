@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trade-feed
+  namespace: traderx
+  labels:
+    app: trade-feed
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trade-feed
+  template:
+    metadata:
+      labels:
+        app: trade-feed
+    spec:
+      containers:
+        - name: trade-feed
+          image: traderx/trade-feed:state004
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 18086
+              protocol: TCP
+          env:
+            - name: TRADE_FEED_PORT
+              value: "18086"
+            - name: CORS_ALLOWED_ORIGINS
+              value: "http://localhost:8080"

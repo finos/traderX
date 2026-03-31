@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: account-service
+  namespace: traderx
+  labels:
+    app: account-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: account-service
+  template:
+    metadata:
+      labels:
+        app: account-service
+    spec:
+      containers:
+        - name: account-service
+          image: traderx/account-service:state004
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 18088
+              protocol: TCP
+          env:
+            - name: ACCOUNT_SERVICE_PORT
+              value: "18088"
+            - name: DATABASE_TCP_HOST
+              value: "database"
+            - name: DATABASE_TCP_PORT
+              value: "18082"
+            - name: PEOPLE_SERVICE_HOST
+              value: "people-service"
+            - name: CORS_ALLOWED_ORIGINS
+              value: "http://localhost:8080"

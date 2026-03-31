@@ -1,35 +1,65 @@
 # System Design
 
-State: `003-containerized-compose-runtime`
+State: `004-kubernetes-runtime`
 
 ## Design Intent
 
-State 003 preserves state 002 routing semantics while moving runtime to Docker Compose and NGINX ingress.
+State 004 preserves state 003 browser/API routing behavior while running all services on a local Kubernetes cluster.
 
 ## Runtime Topology / Flow (Spec Extract)
 
-# Runtime Topology (State 003)
+# Runtime Topology: 004-kubernetes-runtime
 
-State `003-containerized-compose-runtime` retains state `002` routing behavior while moving runtime orchestration to Docker Compose.
+Parent state: `003-containerized-compose-runtime`
 
-## Entry Points
+State `004` preserves state `003` route semantics while moving runtime orchestration to Kubernetes.
 
-- Ingress/UI: `http://localhost:8080`
-- Angular direct (debug): `http://localhost:18093`
-- Service/debug ports preserved (`18082`-`18092`) for troubleshooting.
+## Entrypoints
 
-## Service Discovery Model
+- Browser/UI/API entrypoint: `http://localhost:8080`
+- Edge health: `http://localhost:8080/health`
+- Edge service model: Kubernetes `NodePort` service (`30080`) mapped via Kind extra port mapping.
 
-- Inter-service traffic uses Docker Compose service DNS names.
-- Browser traffic enters through NGINX ingress (`ingress` service).
-- Ingress routing config is sourced from `system/ingress-nginx.conf.template`.
+## Components
 
-## Startup Model
+- Namespace: `traderx`
+- Edge:
+  - `edge-proxy` deployment (NGINX)
+  - `edge-proxy` service (`NodePort`)
+  - `edge-proxy-config` ConfigMap generated from `system/nginx-edge.conf`
+- Core services (Deployments + Services):
+  - `database`
+  - `reference-data`
+  - `trade-feed`
+  - `people-service`
+  - `account-service`
+  - `position-service`
+  - `trade-processor`
+  - `trade-service`
+  - `web-front-end-angular`
 
-- Compose `depends_on` defines startup ordering.
-- Runtime script waits for readiness endpoints (`/health`, `/stocks`, `/account/{id}`, `/`) before declaring ready.
+## Networking
 
-## Source-of-Truth Artifacts
+- Browser traffic enters through `edge-proxy` only.
+- Edge routes preserve existing prefixes:
+  - `/reference-data/*`
+  - `/account-service/*`
+  - `/position-service/*`
+  - `/people-service/*`
+  - `/trade-service/*`
+  - `/trade-processor/*`
+  - `/trade-feed/*`
+  - `/socket.io/*`
+  - `/db-web/*`
+  - `/` (web app)
+- Inter-service traffic uses Kubernetes service DNS names.
 
-- `system/docker-compose.spec.yaml`
-- `system/ingress-nginx.conf.template`
+## Startup / Health Order
+
+- Generation first produces all components + Kubernetes manifests.
+- Runtime start sequence:
+  1. Ensure target local cluster exists (Kind default; optional Minikube profile).
+  2. Build/load service images into the target local cluster runtime.
+  3. Apply generated manifests.
+  4. Wait for deployment availability.
+  5. Probe edge health and UI routes.

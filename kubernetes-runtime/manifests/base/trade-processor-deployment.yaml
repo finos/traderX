@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trade-processor
+  namespace: traderx
+  labels:
+    app: trade-processor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trade-processor
+  template:
+    metadata:
+      labels:
+        app: trade-processor
+    spec:
+      containers:
+        - name: trade-processor
+          image: traderx/trade-processor:state004
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 18091
+              protocol: TCP
+          env:
+            - name: TRADE_PROCESSOR_SERVICE_PORT
+              value: "18091"
+            - name: DATABASE_TCP_HOST
+              value: "database"
+            - name: DATABASE_TCP_PORT
+              value: "18082"
+            - name: TRADE_FEED_HOST
+              value: "trade-feed"
+            - name: CORS_ALLOWED_ORIGINS
+              value: "http://localhost:8080"

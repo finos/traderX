@@ -1,0 +1,313 @@
+{
+  "runtime": {
+    "namespace": "traderx",
+    "kind": {
+      "clusterName": "traderx-state-004",
+      "hostPort": 8080,
+      "nodePort": 30080
+    },
+    "edge": {
+      "serviceName": "edge-proxy",
+      "image": "nginx:1.27-alpine",
+      "containerPort": 8080
+    }
+  },
+  "components": [
+    {
+      "name": "database",
+      "image": "traderx/database:state004",
+      "replicas": 1,
+      "build": {
+        "context": "database",
+        "dockerfile": "Dockerfile.compose"
+      },
+      "ports": [
+        {
+          "name": "tcp",
+          "containerPort": 18082,
+          "servicePort": 18082
+        },
+        {
+          "name": "pg",
+          "containerPort": 18083,
+          "servicePort": 18083
+        },
+        {
+          "name": "web",
+          "containerPort": 18084,
+          "servicePort": 18084
+        }
+      ],
+      "env": [
+        {
+          "name": "DATABASE_TCP_PORT",
+          "value": "18082"
+        },
+        {
+          "name": "DATABASE_PG_PORT",
+          "value": "18083"
+        },
+        {
+          "name": "DATABASE_WEB_PORT",
+          "value": "18084"
+        },
+        {
+          "name": "DATABASE_WEB_HOSTNAMES",
+          "value": "localhost,database,edge-proxy"
+        }
+      ]
+    },
+    {
+      "name": "reference-data",
+      "image": "traderx/reference-data:state004",
+      "replicas": 1,
+      "build": {
+        "context": "reference-data",
+        "dockerfile": "Dockerfile.compose"
+      },
+      "ports": [
+        {
+          "name": "http",
+          "containerPort": 18085,
+          "servicePort": 18085
+        }
+      ],
+      "env": [
+        {
+          "name": "REFERENCE_DATA_SERVICE_PORT",
+          "value": "18085"
+        },
+        {
+          "name": "CORS_ALLOWED_ORIGINS",
+          "value": "http://localhost:8080"
+        }
+      ]
+    },
+    {
+      "name": "trade-feed",
+      "image": "traderx/trade-feed:state004",
+      "replicas": 1,
+      "build": {
+        "context": "trade-feed",
+        "dockerfile": "Dockerfile.compose"
+      },
+      "ports": [
+        {
+          "name": "http",
+          "containerPort": 18086,
+          "servicePort": 18086
+        }
+      ],
+      "env": [
+        {
+          "name": "TRADE_FEED_PORT",
+          "value": "18086"
+        },
+        {
+          "name": "CORS_ALLOWED_ORIGINS",
+          "value": "http://localhost:8080"
+        }
+      ]
+    },
+    {
+      "name": "people-service",
+      "image": "traderx/people-service:state004",
+      "replicas": 1,
+      "build": {
+        "context": "people-service",
+        "dockerfile": "Dockerfile.compose"
+      },
+      "ports": [
+        {
+          "name": "http",
+          "containerPort": 18089,
+          "servicePort": 18089
+        }
+      ],
+      "env": [
+        {
+          "name": "PEOPLE_SERVICE_PORT",
+          "value": "18089"
+        },
+        {
+          "name": "CORS_ALLOWED_ORIGINS",
+          "value": "http://localhost:8080"
+        }
+      ]
+    },
+    {
+      "name": "account-service",
+      "image": "traderx/account-service:state004",
+      "replicas": 1,
+      "build": {
+        "context": "account-service",
+        "dockerfile": "Dockerfile.compose"
+      },
+      "ports": [
+        {
+          "name": "http",
+          "containerPort": 18088,
+          "servicePort": 18088
+        }
+      ],
+      "env": [
+        {
+          "name": "ACCOUNT_SERVICE_PORT",
+          "value": "18088"
+        },
+        {
+          "name": "DATABASE_TCP_HOST",
+          "value": "database"
+        },
+        {
+          "name": "DATABASE_TCP_PORT",
+          "value": "18082"
+        },
+        {
+          "name": "PEOPLE_SERVICE_HOST",
+          "value": "people-service"
+        },
+        {
+          "name": "CORS_ALLOWED_ORIGINS",
+          "value": "http://localhost:8080"
+        }
+      ]
+    },
+    {
+      "name": "position-service",
+      "image": "traderx/position-service:state004",
+      "replicas": 1,
+      "build": {
+        "context": "position-service",
+        "dockerfile": "Dockerfile.compose"
+      },
+      "ports": [
+        {
+          "name": "http",
+          "containerPort": 18090,
+          "servicePort": 18090
+        }
+      ],
+      "env": [
+        {
+          "name": "POSITION_SERVICE_PORT",
+          "value": "18090"
+        },
+        {
+          "name": "DATABASE_TCP_HOST",
+          "value": "database"
+        },
+        {
+          "name": "DATABASE_TCP_PORT",
+          "value": "18082"
+        },
+        {
+          "name": "CORS_ALLOWED_ORIGINS",
+          "value": "http://localhost:8080"
+        }
+      ]
+    },
+    {
+      "name": "trade-processor",
+      "image": "traderx/trade-processor:state004",
+      "replicas": 1,
+      "build": {
+        "context": "trade-processor",
+        "dockerfile": "Dockerfile.compose"
+      },
+      "ports": [
+        {
+          "name": "http",
+          "containerPort": 18091,
+          "servicePort": 18091
+        }
+      ],
+      "env": [
+        {
+          "name": "TRADE_PROCESSOR_SERVICE_PORT",
+          "value": "18091"
+        },
+        {
+          "name": "DATABASE_TCP_HOST",
+          "value": "database"
+        },
+        {
+          "name": "DATABASE_TCP_PORT",
+          "value": "18082"
+        },
+        {
+          "name": "TRADE_FEED_HOST",
+          "value": "trade-feed"
+        },
+        {
+          "name": "CORS_ALLOWED_ORIGINS",
+          "value": "http://localhost:8080"
+        }
+      ]
+    },
+    {
+      "name": "trade-service",
+      "image": "traderx/trade-service:state004",
+      "replicas": 1,
+      "build": {
+        "context": "trade-service",
+        "dockerfile": "Dockerfile.compose"
+      },
+      "ports": [
+        {
+          "name": "http",
+          "containerPort": 18092,
+          "servicePort": 18092
+        }
+      ],
+      "env": [
+        {
+          "name": "TRADING_SERVICE_PORT",
+          "value": "18092"
+        },
+        {
+          "name": "ACCOUNT_SERVICE_HOST",
+          "value": "account-service"
+        },
+        {
+          "name": "REFERENCE_DATA_HOST",
+          "value": "reference-data"
+        },
+        {
+          "name": "PEOPLE_SERVICE_HOST",
+          "value": "people-service"
+        },
+        {
+          "name": "TRADE_FEED_HOST",
+          "value": "trade-feed"
+        },
+        {
+          "name": "CORS_ALLOWED_ORIGINS",
+          "value": "http://localhost:8080"
+        }
+      ]
+    },
+    {
+      "name": "web-front-end-angular",
+      "image": "traderx/web-front-end-angular:state004",
+      "replicas": 1,
+      "build": {
+        "context": "web-front-end/angular",
+        "dockerfile": "Dockerfile.compose"
+      },
+      "ports": [
+        {
+          "name": "http",
+          "containerPort": 18093,
+          "servicePort": 18093
+        }
+      ],
+      "env": [
+        {
+          "name": "WEB_SERVICE_PORT",
+          "value": "18093"
+        }
+      ]
+    }
+  ]
+}

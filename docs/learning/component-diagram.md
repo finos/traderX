@@ -1,11 +1,12 @@
 # Component Diagram
 
-State: `003-containerized-compose-runtime`
+State: `004-kubernetes-runtime`
 
 ```mermaid
 flowchart LR
-  trader["Trader Browser"]
-  ingress["NGINX Ingress"]
+  developer["Developer"]
+  cluster["Kind Kubernetes Cluster"]
+  edge["NGINX Edge Proxy"]
   web["Web Front End Angular"]
   account["Account Service"]
   position["Position Service"]
@@ -16,14 +17,16 @@ flowchart LR
   tradeProcessor["Trade Processor"]
   database["Database"]
 
-  trader -->|Single browser entrypoint| ingress
-  ingress -->|/| web
-  ingress -->|/account-service| account
-  ingress -->|/position-service| position
-  ingress -->|/trade-service| tradeService
-  ingress -->|/reference-data| referenceData
-  ingress -->|/people-service| people
-  ingress -->|/trade-feed and /socket.io| tradeFeed
+  developer -->|Starts runtime| cluster
+  developer -->|Browser access :8080| edge
+  edge -->|/| web
+  edge -->|/account-service| account
+  edge -->|/position-service| position
+  edge -->|/trade-service| tradeService
+  edge -->|/reference-data| referenceData
+  edge -->|/people-service| people
+  edge -->|/trade-feed and /socket.io| tradeFeed
+  edge -->|/trade-processor| tradeProcessor
   tradeService -->|Validate account| account
   tradeService -->|Validate ticker| referenceData
   tradeService -->|Publish trades/new| tradeFeed

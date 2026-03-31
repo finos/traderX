@@ -1,0 +1,76 @@
+{
+  "stateId": "004-kubernetes-runtime",
+  "namespace": "traderx",
+  "kindClusterName": "traderx-state-004",
+  "hostPort": 8080,
+  "nodePort": 30080,
+  "edgeService": "edge-proxy",
+  "images": [
+    {
+      "name": "database",
+      "image": "traderx/database:state004",
+      "context": "database",
+      "dockerfile": "Dockerfile.compose"
+    },
+    {
+      "name": "reference-data",
+      "image": "traderx/reference-data:state004",
+      "context": "reference-data",
+      "dockerfile": "Dockerfile.compose"
+    },
+    {
+      "name": "trade-feed",
+      "image": "traderx/trade-feed:state004",
+      "context": "trade-feed",
+      "dockerfile": "Dockerfile.compose"
+    },
+    {
+      "name": "people-service",
+      "image": "traderx/people-service:state004",
+      "context": "people-service",
+      "dockerfile": "Dockerfile.compose"
+    },
+    {
+      "name": "account-service",
+      "image": "traderx/account-service:state004",
+      "context": "account-service",
+      "dockerfile": "Dockerfile.compose"
+    },
+    {
+      "name": "position-service",
+      "image": "traderx/position-service:state004",
+      "context": "position-service",
+      "dockerfile": "Dockerfile.compose"
+    },
+    {
+      "name": "trade-processor",
+      "image": "traderx/trade-processor:state004",
+      "context": "trade-processor",
+      "dockerfile": "Dockerfile.compose"
+    },
+    {
+      "name": "trade-service",
+      "image": "traderx/trade-service:state004",
+      "context": "trade-service",
+      "dockerfile": "Dockerfile.compose"
+    },
+    {
+      "name": "web-front-end-angular",
+      "image": "traderx/web-front-end-angular:state004",
+      "context": "web-front-end/angular",
+      "dockerfile": "Dockerfile.compose"
+    }
+  ],
+  "deployments": [
+    "database",
+    "reference-data",
+    "trade-feed",
+    "people-service",
+    "account-service",
+    "position-service",
+    "trade-processor",
+    "trade-service",
+    "web-front-end-angular",
+    "edge-proxy"
+  ]
+}
