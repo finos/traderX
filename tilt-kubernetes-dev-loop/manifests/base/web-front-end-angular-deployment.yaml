@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-front-end-angular
+  namespace: traderx
+  labels:
+    app: web-front-end-angular
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-front-end-angular
+  template:
+    metadata:
+      labels:
+        app: web-front-end-angular
+    spec:
+      containers:
+        - name: web-front-end-angular
+          image: traderx/web-front-end-angular:state004
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 18093
+              protocol: TCP
+          env:
+            - name: WEB_SERVICE_PORT
+              value: "18093"

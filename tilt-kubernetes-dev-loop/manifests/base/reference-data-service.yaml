@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: reference-data
+  namespace: traderx
+  labels:
+    app: reference-data
+spec:
+  type: ClusterIP
+  selector:
+    app: reference-data
+  ports:
+    - name: http
+      protocol: TCP
+      port: 18085
+      targetPort: 18085

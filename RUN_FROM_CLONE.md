@@ -5,22 +5,21 @@ Prerequisites:
 - kubectl
 - jq
 - Kind (default) or Minikube
+- Tilt (optional, for interactive dev loop)
 
-Start:
+Start baseline runtime (inherited from state 004):
 
 ```bash
 ./scripts/start-state-004-kubernetes-generated.sh
-# optional:
-# ./scripts/start-state-004-kubernetes-generated.sh --provider minikube --minikube-profile traderx-state-004
 ```
 
-Endpoints:
-- UI / edge: `http://localhost:8080`
-- Edge health: `http://localhost:8080/health`
+State 006 artifact pack:
+- `tilt-kubernetes-dev-loop/tilt/Tiltfile`
+- `tilt-kubernetes-dev-loop/tilt/tilt-settings.json`
 
-Status / stop:
+Optional Tilt flow:
 
 ```bash
-./scripts/status-state-004-kubernetes-generated.sh
-./scripts/stop-state-004-kubernetes-generated.sh
+cd tilt-kubernetes-dev-loop/tilt
+tilt up
 ```

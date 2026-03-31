@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reference-data
+  namespace: traderx
+  labels:
+    app: reference-data
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reference-data
+  template:
+    metadata:
+      labels:
+        app: reference-data
+    spec:
+      containers:
+        - name: reference-data
+          image: traderx/reference-data:state004
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 18085
+              protocol: TCP
+          env:
+            - name: REFERENCE_DATA_SERVICE_PORT
+              value: "18085"
+            - name: CORS_ALLOWED_ORIGINS
+              value: "http://localhost:8080"

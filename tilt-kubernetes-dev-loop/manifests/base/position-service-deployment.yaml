@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: position-service
+  namespace: traderx
+  labels:
+    app: position-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: position-service
+  template:
+    metadata:
+      labels:
+        app: position-service
+    spec:
+      containers:
+        - name: position-service
+          image: traderx/position-service:state004
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 18090
+              protocol: TCP
+          env:
+            - name: POSITION_SERVICE_PORT
+              value: "18090"
+            - name: DATABASE_TCP_HOST
+              value: "database"
+            - name: DATABASE_TCP_PORT
+              value: "18082"
+            - name: CORS_ALLOWED_ORIGINS
+              value: "http://localhost:8080"

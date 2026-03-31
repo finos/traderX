@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trade-service
+  namespace: traderx
+  labels:
+    app: trade-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trade-service
+  template:
+    metadata:
+      labels:
+        app: trade-service
+    spec:
+      containers:
+        - name: trade-service
+          image: traderx/trade-service:state004
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 18092
+              protocol: TCP
+          env:
+            - name: TRADING_SERVICE_PORT
+              value: "18092"
+            - name: ACCOUNT_SERVICE_HOST
+              value: "account-service"
+            - name: REFERENCE_DATA_HOST
+              value: "reference-data"
+            - name: PEOPLE_SERVICE_HOST
+              value: "people-service"
+            - name: TRADE_FEED_HOST
+              value: "trade-feed"
+            - name: CORS_ALLOWED_ORIGINS
+              value: "http://localhost:8080"

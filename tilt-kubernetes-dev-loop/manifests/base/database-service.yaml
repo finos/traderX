@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: database
+  namespace: traderx
+  labels:
+    app: database
+spec:
+  type: ClusterIP
+  selector:
+    app: database
+  ports:
+    - name: tcp
+      protocol: TCP
+      port: 18082
+      targetPort: 18082
+    - name: pg
+      protocol: TCP
+      port: 18083
+      targetPort: 18083
+    - name: web
+      protocol: TCP
+      port: 18084
+      targetPort: 18084

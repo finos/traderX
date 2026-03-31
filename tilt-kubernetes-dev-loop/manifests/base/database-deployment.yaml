@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database
+  namespace: traderx
+  labels:
+    app: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: database
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      containers:
+        - name: database
+          image: traderx/database:state004
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: tcp
+              containerPort: 18082
+              protocol: TCP
+            - name: pg
+              containerPort: 18083
+              protocol: TCP
+            - name: web
+              containerPort: 18084
+              protocol: TCP
+          env:
+            - name: DATABASE_TCP_PORT
+              value: "18082"
+            - name: DATABASE_PG_PORT
+              value: "18083"
+            - name: DATABASE_WEB_PORT
+              value: "18084"
+            - name: DATABASE_WEB_HOSTNAMES
+              value: "localhost,database,edge-proxy"

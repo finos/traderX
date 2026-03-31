@@ -1,0 +1,12 @@
+{
+  "stateId": "006-tilt-kubernetes-dev-loop",
+  "inheritsFrom": "004-kubernetes-runtime",
+  "primaryEntrypoints": [
+    "http://localhost:8080",
+    "http://localhost:10350"
+  ],
+  "notes": [
+    "Run start-state-006 first to ensure baseline Kubernetes runtime is available.",
+    "Then run tilt up from this directory."
+  ]
+}

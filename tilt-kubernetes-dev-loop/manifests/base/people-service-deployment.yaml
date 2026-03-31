@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: people-service
+  namespace: traderx
+  labels:
+    app: people-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: people-service
+  template:
+    metadata:
+      labels:
+        app: people-service
+    spec:
+      containers:
+        - name: people-service
+          image: traderx/people-service:state004
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 18089
+              protocol: TCP
+          env:
+            - name: PEOPLE_SERVICE_PORT
+              value: "18089"
+            - name: CORS_ALLOWED_ORIGINS
+              value: "http://localhost:8080"
