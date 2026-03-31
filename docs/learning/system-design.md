@@ -1,35 +1,47 @@
 # System Design
 
-State: `003-containerized-compose-runtime`
+State: `009-postgres-database-replacement`
 
 ## Design Intent
 
-State 003 preserves state 002 routing semantics while moving runtime to Docker Compose and NGINX ingress.
+State 009 replaces H2 database runtime with PostgreSQL while preserving state 003 containerized ingress topology and baseline flows.
 
 ## Runtime Topology / Flow (Spec Extract)
 
-# Runtime Topology (State 003)
+# Runtime Topology: 009-postgres-database-replacement
 
-State `003-containerized-compose-runtime` retains state `002` routing behavior while moving runtime orchestration to Docker Compose.
+Parent state: `003-containerized-compose-runtime`
 
-## Entry Points
+State `009` preserves the compose + ingress topology from state `003` and replaces only the database runtime implementation.
 
-- Ingress/UI: `http://localhost:8080`
-- Angular direct (debug): `http://localhost:18093`
-- Service/debug ports preserved (`18082`-`18092`) for troubleshooting.
+## Entrypoints
 
-## Service Discovery Model
+- Browser/UI via NGINX ingress: `http://localhost:8080`
+- Reference-data direct (diagnostic): `http://localhost:18085`
+- PostgreSQL TCP (diagnostic/local tooling): `localhost:18083 -> container:5432`
 
-- Inter-service traffic uses Docker Compose service DNS names.
-- Browser traffic enters through NGINX ingress (`ingress` service).
-- Ingress routing config is sourced from `system/ingress-nginx.conf.template`.
+## Components
 
-## Startup Model
+- `database` -> PostgreSQL container (`postgres:16-alpine`)
+- `reference-data` -> unchanged from state `003`
+- `trade-feed` -> unchanged from state `003`
+- `people-service` -> unchanged from state `003`
+- `account-service` -> datasource updated for PostgreSQL
+- `position-service` -> datasource updated for PostgreSQL
+- `trade-processor` -> datasource + JPA dialect updated for PostgreSQL
+- `trade-service` -> unchanged from state `003`
+- `web-front-end-angular` -> unchanged from state `003`
+- `ingress` -> unchanged from state `003` (database route retained for topology compatibility but no H2 console)
 
-- Compose `depends_on` defines startup ordering.
-- Runtime script waits for readiness endpoints (`/health`, `/stocks`, `/account/{id}`, `/`) before declaring ready.
+## Networking
 
-## Source-of-Truth Artifacts
+- Container-to-container DB connectivity uses `database:5432`.
+- Host-to-container DB diagnostics use `localhost:18083`.
+- Service cross-calls and ingress path routing are unchanged from state `003`.
 
-- `system/docker-compose.spec.yaml`
-- `system/ingress-nginx.conf.template`
+## Startup / Health Order
+
+1. `database` starts and passes `pg_isready` health check.
+2. DB-dependent services (`account-service`, `position-service`, `trade-processor`) start.
+3. Remaining services and `ingress` start.
+4. Smoke checks verify baseline API/UI and realtime behaviors remain intact.

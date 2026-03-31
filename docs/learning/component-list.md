@@ -1,17 +1,17 @@
 # Component List
 
-State: `003-containerized-compose-runtime`
+State: `009-postgres-database-replacement`
 
 | ID | Label | Kind | Description |
 | --- | --- | --- | --- |
-| `trader` | Trader Browser | actor | User traffic enters through ingress. |
-| `ingress` | NGINX Ingress | gateway | Compose ingress for UI/API/WebSocket routes. |
-| `web` | Web Front End Angular | frontend | Containerized Angular service. |
-| `account` | Account Service | service | Containerized Spring service. |
-| `position` | Position Service | service | Containerized Spring service. |
-| `tradeService` | Trade Service | service | Containerized Spring service. |
-| `referenceData` | Reference Data | service | Containerized Node service. |
-| `people` | People Service | service | Containerized .NET service. |
-| `tradeFeed` | Trade Feed | messaging | Containerized Socket.IO bus. |
-| `tradeProcessor` | Trade Processor | service | Containerized Spring service. |
-| `database` | Database | database | Containerized H2 persistence service. |
+| `trader` | Trader Browser | actor | Uses Angular UI via ingress. |
+| `ingress` | NGINX Ingress | gateway | Single browser entrypoint for UI + API + websocket. |
+| `web` | Web Front End Angular | frontend | TraderX UI. |
+| `referenceData` | Reference Data | service | Ticker lookup/list. |
+| `tradeFeed` | Trade Feed | messaging | Socket.IO pub/sub layer (unchanged from state 003). |
+| `people` | People Service | service | Identity lookup and validation. |
+| `account` | Account Service | service | Account and account-user operations using PostgreSQL. |
+| `position` | Position Service | service | Trades/positions query operations using PostgreSQL. |
+| `tradeProcessor` | Trade Processor | service | Trade processing and persistence using PostgreSQL. |
+| `tradeService` | Trade Service | service | Trade submission and validation. |
+| `database` | PostgreSQL Database | database | Persistent account/trade/position state. |

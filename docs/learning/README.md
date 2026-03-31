@@ -1,6 +1,6 @@
 # Learning Docs
 
-These docs are generated for the published code snapshot for state `003-containerized-compose-runtime`.
+These docs are generated for the published code snapshot for state `009-postgres-database-replacement`.
 
 - [Component List](./component-list.md)
 - [System Design](./system-design.md)
@@ -11,6 +11,6 @@ These docs are generated for the published code snapshot for state `003-containe
 
 Canonical source remains SpecKit artifacts in the main authoring branch:
 
-- Feature pack: `specs/003-containerized-compose-runtime`
-- Source feature pack at commit: https://github.com/finos/traderX/tree/68d19a554c7480a615b19c024eb0a88228c6b9ad/specs/003-containerized-compose-runtime
-- Source architecture model at commit: https://github.com/finos/traderX/blob/68d19a554c7480a615b19c024eb0a88228c6b9ad/specs/003-containerized-compose-runtime/system/architecture.model.json
+- Feature pack: `specs/009-postgres-database-replacement`
+- Source feature pack at commit: https://github.com/finos/traderX/tree/68d19a554c7480a615b19c024eb0a88228c6b9ad/specs/009-postgres-database-replacement
+- Source architecture model at commit: https://github.com/finos/traderX/blob/68d19a554c7480a615b19c024eb0a88228c6b9ad/specs/009-postgres-database-replacement/system/architecture.model.json

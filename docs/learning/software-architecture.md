@@ -1,21 +1,22 @@
 # Software Architecture
 
-State: `003-containerized-compose-runtime`
-Title: `Architecture (State 003 Containerized Compose Runtime)`
+State: `009-postgres-database-replacement`
+Title: `Architecture (State 009 PostgreSQL Database Replacement)`
 
 ## Architecture Summary
 
-State 003 preserves state 002 routing semantics while moving runtime to Docker Compose and NGINX ingress.
+State 009 replaces H2 database runtime with PostgreSQL while preserving state 003 containerized ingress topology and baseline flows.
 
 ## Entrypoints
 
 - `ingress` -> `http://localhost:8080`
-- `angular-debug` -> `http://localhost:18093`
+- `postgres` -> `postgres://localhost:18083/traderx`
 
 ## Notes
 
-- State 003 preserves approved baseline functional behavior while changing runtime/ops model.
-- Inter-service network resolution uses Docker Compose service DNS names.
+- State 009 is an architecture-track branch from state 003.
+- Only database engine/runtime is replaced; functional API and messaging contracts remain stable.
+- H2 web console is removed from runtime expectations in this state.
 
 ## Diagram
 
@@ -23,18 +24,18 @@ See [Component Diagram](./component-diagram.md).
 
 ## Detailed Architecture (Spec Extract)
 
-# Architecture (State 003 Containerized Compose Runtime)
+# Architecture (State 009 PostgreSQL Database Replacement)
 
-State 003 preserves state 002 routing semantics while moving runtime to Docker Compose and NGINX ingress.
+State 009 replaces H2 database runtime with PostgreSQL while preserving state 003 containerized ingress topology and baseline flows.
 
-- Inherits architectural baseline from: `002-edge-proxy-uncontainerized`
+- Inherits architectural baseline from: `003-containerized-compose-runtime`
 - Generated from: `system/architecture.model.json`
 - Canonical flows: `../001-baseline-uncontainerized-parity/system/end-to-end-flows.md`
 
 ## Entry Points
 
 - `ingress`: `http://localhost:8080`
-- `angular-debug`: `http://localhost:18093`
+- `postgres`: `postgres://localhost:18083/traderx`
 
 ## Architecture Diagram
 
@@ -43,14 +44,14 @@ flowchart LR
   trader["Trader Browser"]
   ingress["NGINX Ingress"]
   web["Web Front End Angular"]
+  referenceData["Reference Data"]
+  tradeFeed["Trade Feed"]
+  people["People Service"]
   account["Account Service"]
   position["Position Service"]
-  tradeService["Trade Service"]
-  referenceData["Reference Data"]
-  people["People Service"]
-  tradeFeed["Trade Feed"]
   tradeProcessor["Trade Processor"]
-  database["Database"]
+  tradeService["Trade Service"]
+  database["PostgreSQL Database"]
   trader -->|"Single browser entrypoint"| ingress
   ingress -->|"/"| web
   ingress -->|"/account-service"| account
@@ -58,35 +59,36 @@ flowchart LR
   ingress -->|"/trade-service"| tradeService
   ingress -->|"/reference-data"| referenceData
   ingress -->|"/people-service"| people
-  ingress -->|"/trade-feed and /socket.io"| tradeFeed
+  ingress -->|"/trade-feed (WS)"| tradeFeed
   tradeService -->|"Validate account"| account
   tradeService -->|"Validate ticker"| referenceData
-  tradeService -->|"Publish trades/new"| tradeFeed
-  tradeProcessor -->|"Consume and publish updates"| tradeFeed
-  tradeProcessor -->|"Persist trade/position state"| database
-  account -->|"Account persistence"| database
-  position -->|"Query trades/positions"| database
-  account -->|"Validate person for account-user mapping"| people
+  tradeService -->|"Publish trade event"| tradeFeed
+  tradeProcessor -->|"Consume/publish account updates"| tradeFeed
+  account -->|"Validate person"| people
+  account -->|"Read/write account data"| database
+  position -->|"Read positions/trades"| database
+  tradeProcessor -->|"Persist processed trades/positions"| database
 ```
 
 ## Node Catalog
 
 | Node | Kind | Label | Notes |
 | --- | --- | --- | --- |
-| `trader` | actor | Trader Browser | User traffic enters through ingress. |
-| `ingress` | gateway | NGINX Ingress | Compose ingress for UI/API/WebSocket routes. |
-| `web` | frontend | Web Front End Angular | Containerized Angular service. |
-| `account` | service | Account Service | Containerized Spring service. |
-| `position` | service | Position Service | Containerized Spring service. |
-| `tradeService` | service | Trade Service | Containerized Spring service. |
-| `referenceData` | service | Reference Data | Containerized Node service. |
-| `people` | service | People Service | Containerized .NET service. |
-| `tradeFeed` | messaging | Trade Feed | Containerized Socket.IO bus. |
-| `tradeProcessor` | service | Trade Processor | Containerized Spring service. |
-| `database` | database | Database | Containerized H2 persistence service. |
+| `trader` | actor | Trader Browser | Uses Angular UI via ingress. |
+| `ingress` | gateway | NGINX Ingress | Single browser entrypoint for UI + API + websocket. |
+| `web` | frontend | Web Front End Angular | TraderX UI. |
+| `referenceData` | service | Reference Data | Ticker lookup/list. |
+| `tradeFeed` | messaging | Trade Feed | Socket.IO pub/sub layer (unchanged from state 003). |
+| `people` | service | People Service | Identity lookup and validation. |
+| `account` | service | Account Service | Account and account-user operations using PostgreSQL. |
+| `position` | service | Position Service | Trades/positions query operations using PostgreSQL. |
+| `tradeProcessor` | service | Trade Processor | Trade processing and persistence using PostgreSQL. |
+| `tradeService` | service | Trade Service | Trade submission and validation. |
+| `database` | database | PostgreSQL Database | Persistent account/trade/position state. |
 
 ## State Notes
 
-- State 003 preserves approved baseline functional behavior while changing runtime/ops model.
-- Inter-service network resolution uses Docker Compose service DNS names.
+- State 009 is an architecture-track branch from state 003.
+- Only database engine/runtime is replaced; functional API and messaging contracts remain stable.
+- H2 web console is removed from runtime expectations in this state.
 
