@@ -1,4 +1,4 @@
-name: traderx-state-003
+name: traderx-state-007
 
 services:
   database:
@@ -27,15 +27,15 @@ services:
     depends_on:
       - database
 
-  trade-feed:
-    build:
-      context: ../trade-feed
-      dockerfile: Dockerfile.compose
-    environment:
-      TRADE_FEED_PORT: "18086"
-      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+  nats-broker:
+    image: nats:2.10-alpine
+    command: ["-c", "/etc/nats/nats.conf"]
+    volumes:
+      - ./nats/nats.conf:/etc/nats/nats.conf:ro
     ports:
-      - "18086:18086"
+      - "4222:4222"
+      - "8222:8222"
+      - "8081:8081"
 
   people-service:
     build:
@@ -85,13 +85,13 @@ services:
       TRADE_PROCESSOR_SERVICE_PORT: "18091"
       DATABASE_TCP_HOST: "database"
       DATABASE_TCP_PORT: "18082"
-      TRADE_FEED_HOST: "trade-feed"
+      NATS_BROKER_HOST: "nats-broker"
       CORS_ALLOWED_ORIGINS: "http://localhost:8080"
     ports:
       - "18091:18091"
     depends_on:
       - database
-      - trade-feed
+      - nats-broker
 
   trade-service:
     build:
@@ -102,7 +102,7 @@ services:
       ACCOUNT_SERVICE_HOST: "account-service"
       REFERENCE_DATA_HOST: "reference-data"
       PEOPLE_SERVICE_HOST: "people-service"
-      TRADE_FEED_HOST: "trade-feed"
+      NATS_BROKER_HOST: "nats-broker"
       CORS_ALLOWED_ORIGINS: "http://localhost:8080"
     ports:
       - "18092:18092"
@@ -110,7 +110,7 @@ services:
       - account-service
       - reference-data
       - people-service
-      - trade-feed
+      - nats-broker
       - trade-processor
 
   web-front-end-angular:
@@ -127,7 +127,7 @@ services:
       - trade-service
       - position-service
       - people-service
-      - trade-feed
+      - nats-broker
 
   ingress:
     build:
@@ -137,7 +137,6 @@ services:
       NGINX_HOST: "localhost"
       DATABASE_URL: "http://database:18084/"
       REFERENCE_DATA_URL: "http://reference-data:18085/"
-      TRADE_FEED_URL: "http://trade-feed:18086/"
       PEOPLE_SERVICE_URL: "http://people-service:18089/"
       ACCOUNT_SERVICE_URL: "http://account-service:18088/"
       POSITION_SERVICE_URL: "http://position-service:18090/"
@@ -153,4 +152,4 @@ services:
       - trade-service
       - position-service
       - people-service
-      - trade-feed
+      - nats-broker

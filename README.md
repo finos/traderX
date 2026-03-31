@@ -2,62 +2,58 @@
 
 This branch is an auto-published generated-code snapshot for FINOS TraderX.
 
-- State ID: `003-containerized-compose-runtime`
-- State Title: `Containerized Compose Runtime (NGINX Ingress)`
+- State ID: `007-messaging-nats-replacement`
+- State Title: `Messaging Layer Replacement with NATS`
 - Status: `implemented`
-- Suggested Version Tag: `generated/003-containerized-compose-runtime/v1`
+- Suggested Version Tag: `generated/007-messaging-nats-replacement/v1`
 - Source Branch: `feature/agentic-renovation`
 - Source Commit: `68d19a554c7480a615b19c024eb0a88228c6b9ad`
-- Generated At (UTC): `2026-03-31T13:06:14Z`
+- Generated At (UTC): `2026-03-31T13:12:23Z`
 
 ## State Summary
 
-- Builds on state `002` by moving runtime to Docker Compose.
-- Uses NGINX ingress (`ingress` service) as the browser/API/WebSocket entrypoint.
-- Preserves baseline functional behavior while changing runtime/ops model.
+- Builds on state `003` and preserves containerized ingress runtime behavior.
+- Replaces Socket.IO trade-feed with NATS broker for backend and browser streaming.
+- Preserves baseline user-visible behavior while changing messaging transport.
 
 ## State Lineage
 
 ```mermaid
 flowchart LR
-  S_CUR["003-containerized-compose-runtime (current)"]
+  S_CUR["007-messaging-nats-replacement (current)"]
   style S_CUR fill:#2e7d32,stroke:#1b5e20,color:#ffffff,stroke-width:2px
-  S_PREV_002_edge_proxy_uncontainerized["002-edge-proxy-uncontainerized"] --> S_CUR
-  click S_PREV_002_edge_proxy_uncontainerized href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-002-edge-proxy-uncontainerized" "Open branch"
-  S_CUR --> S_NEXT_004_kubernetes_runtime["004-kubernetes-runtime"]
-  click S_NEXT_004_kubernetes_runtime href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-004-kubernetes-runtime" "Open branch"
-  S_CUR --> S_NEXT_007_messaging_nats_replacement["007-messaging-nats-replacement"]
-  click S_NEXT_007_messaging_nats_replacement href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-007-messaging-nats-replacement" "Open branch"
-  S_CUR --> S_NEXT_009_postgres_database_replacement["009-postgres-database-replacement"]
-  click S_NEXT_009_postgres_database_replacement href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-009-postgres-database-replacement" "Open branch"
-  click S_CUR href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-003-containerized-compose-runtime" "Open current branch"
+  S_PREV_003_containerized_compose_runtime["003-containerized-compose-runtime"] --> S_CUR
+  click S_PREV_003_containerized_compose_runtime href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-003-containerized-compose-runtime" "Open branch"
+  S_CUR --> S_NEXT_010_pricing_awareness_market_data["010-pricing-awareness-market-data"]
+  click S_NEXT_010_pricing_awareness_market_data href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-010-pricing-awareness-market-data" "Open branch"
+  click S_CUR href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-007-messaging-nats-replacement" "Open current branch"
 ```
 
 | Direction | State | Branch | Compare |
 | --- | --- | --- | --- |
-| Previous | `002-edge-proxy-uncontainerized` | [code/generated-state-002-edge-proxy-uncontainerized](https://github.com/finos/traderX/tree/code%2Fgenerated-state-002-edge-proxy-uncontainerized) | 🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-002-edge-proxy-uncontainerized...code%2Fgenerated-state-003-containerized-compose-runtime) |
-| Next | `004-kubernetes-runtime` | [code/generated-state-004-kubernetes-runtime](https://github.com/finos/traderX/tree/code%2Fgenerated-state-004-kubernetes-runtime) | 🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-003-containerized-compose-runtime...code%2Fgenerated-state-004-kubernetes-runtime) |
-| Next | `007-messaging-nats-replacement` | [code/generated-state-007-messaging-nats-replacement](https://github.com/finos/traderX/tree/code%2Fgenerated-state-007-messaging-nats-replacement) | 🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-003-containerized-compose-runtime...code%2Fgenerated-state-007-messaging-nats-replacement) |
-| Next | `009-postgres-database-replacement` | [code/generated-state-009-postgres-database-replacement](https://github.com/finos/traderX/tree/code%2Fgenerated-state-009-postgres-database-replacement) | 🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-003-containerized-compose-runtime...code%2Fgenerated-state-009-postgres-database-replacement) |
+| Previous | `003-containerized-compose-runtime` | [code/generated-state-003-containerized-compose-runtime](https://github.com/finos/traderX/tree/code%2Fgenerated-state-003-containerized-compose-runtime) | 🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-003-containerized-compose-runtime...code%2Fgenerated-state-007-messaging-nats-replacement) |
+| Next | `010-pricing-awareness-market-data` | [code/generated-state-010-pricing-awareness-market-data](https://github.com/finos/traderX/tree/code%2Fgenerated-state-010-pricing-awareness-market-data) | 🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-007-messaging-nats-replacement...code%2Fgenerated-state-010-pricing-awareness-market-data) |
 
 State sets:
-- Previous states: `002-edge-proxy-uncontainerized`
-- Next states: `004-kubernetes-runtime, 007-messaging-nats-replacement, 009-postgres-database-replacement`
+- Previous states: `003-containerized-compose-runtime`
+- Next states: `010-pricing-awareness-market-data`
 
 ## Runtime Guidance
 
 Run directly from this generated snapshot branch:
 
 ```bash
-./scripts/start-state-003-containerized-generated.sh
+./scripts/start-state-007-messaging-nats-replacement-generated.sh
 ```
 
 UI/ingress endpoint: `http://localhost:8080`
+NATS monitor endpoint: `http://localhost:8222/varz`
 
-Stop:
+Status / stop:
 
 ```bash
-./scripts/stop-state-003-containerized-generated.sh
+./scripts/status-state-007-messaging-nats-replacement-generated.sh
+./scripts/stop-state-007-messaging-nats-replacement-generated.sh
 ```
 
 Detailed clone-first instructions: [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
@@ -75,10 +71,10 @@ Detailed clone-first instructions: [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
 
 Canonical source-of-truth is maintained in the SpecKit authoring branch, not in this code snapshot branch.
 
-- Feature pack: `specs/003-containerized-compose-runtime`
-- Generation entrypoint: `bash pipeline/generate-state.sh 003-containerized-compose-runtime`
+- Feature pack: `specs/007-messaging-nats-replacement`
+- Generation entrypoint: `bash pipeline/generate-state.sh 007-messaging-nats-replacement`
 - Developer learning guide for this snapshot: [LEARNING.md](./LEARNING.md)
 - Snapshot metadata: [STATE.md](./STATE.md), [state.json](./.traderx-state/state.json)
 - Source commit: https://github.com/finos/traderX/commit/68d19a554c7480a615b19c024eb0a88228c6b9ad
-- Feature pack at source commit: https://github.com/finos/traderX/tree/68d19a554c7480a615b19c024eb0a88228c6b9ad/specs/003-containerized-compose-runtime
+- Feature pack at source commit: https://github.com/finos/traderX/tree/68d19a554c7480a615b19c024eb0a88228c6b9ad/specs/007-messaging-nats-replacement
 - SpecKit docs at source commit: https://github.com/finos/traderX/tree/68d19a554c7480a615b19c024eb0a88228c6b9ad/docs/spec-kit

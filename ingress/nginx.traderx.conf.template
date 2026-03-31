@@ -16,28 +16,18 @@ server {
     }
 
     location /ng-cli-ws {
-        proxy_pass ${WEB_FRONTEND_URL}ng-cli-ws;
+        proxy_pass ${WEB_FRONTEND_URL}/ng-cli-ws;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
     }
 
-    location /trade-feed/ {
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header Host $http_host;
-        proxy_pass ${TRADE_FEED_URL};
+    location /nats-ws {
+        proxy_pass http://nats-broker:8081;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
-    }
-
-    location /socket.io/ {
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header Host $http_host;
-        proxy_pass ${TRADE_FEED_URL}socket.io/;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
     }
 
     location /people-service/ {
@@ -62,5 +52,8 @@ server {
 
     location / {
         proxy_pass ${WEB_FRONTEND_URL};
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
     }
 }

@@ -1,19 +1,19 @@
 # Component Diagram
 
-State: `003-containerized-compose-runtime`
+State: `007-messaging-nats-replacement`
 
 ```mermaid
 flowchart LR
   trader["Trader Browser"]
   ingress["NGINX Ingress"]
   web["Web Front End Angular"]
+  nats["NATS Broker"]
+  tradeService["Trade Service"]
+  tradeProcessor["Trade Processor"]
   account["Account Service"]
   position["Position Service"]
-  tradeService["Trade Service"]
   referenceData["Reference Data"]
   people["People Service"]
-  tradeFeed["Trade Feed"]
-  tradeProcessor["Trade Processor"]
   database["Database"]
 
   trader -->|Single browser entrypoint| ingress
@@ -23,13 +23,14 @@ flowchart LR
   ingress -->|/trade-service| tradeService
   ingress -->|/reference-data| referenceData
   ingress -->|/people-service| people
-  ingress -->|/trade-feed and /socket.io| tradeFeed
+  ingress -->|/nats-ws (WS upgrade)| nats
   tradeService -->|Validate account| account
   tradeService -->|Validate ticker| referenceData
-  tradeService -->|Publish trades/new| tradeFeed
-  tradeProcessor -->|Consume and publish updates| tradeFeed
+  tradeService -->|Publish trades.new| nats
+  tradeProcessor -->|Consume trades.new, publish account updates| nats
+  web -->|Subscribe account-scoped streams| nats
   tradeProcessor -->|Persist trade/position state| database
   account -->|Account persistence| database
   position -->|Query trades/positions| database
-  account -->|Validate person for account-user mapping| people
+  account -->|Validate person| people
 ```

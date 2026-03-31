@@ -1,7 +1,7 @@
 package finos.traderx.tradeservice;
 
 import finos.traderx.messaging.Publisher;
-import finos.traderx.messaging.socketio.SocketIOJSONPublisher;
+import finos.traderx.messaging.nats.NatsJSONPublisher;
 import finos.traderx.tradeservice.model.TradeOrder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -9,14 +9,15 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class PubSubConfig {
-  @Value("${trade.feed.address}")
-  private String tradeFeedAddress;
+  @Value("${nats.address}")
+  private String natsAddress;
 
   @Bean
   public Publisher<TradeOrder> tradePublisher() {
-    SocketIOJSONPublisher<TradeOrder> publisher = new SocketIOJSONPublisher<>() {};
+    NatsJSONPublisher<TradeOrder> publisher = new NatsJSONPublisher<>();
     publisher.setTopic("/trades");
-    publisher.setSocketAddress(tradeFeedAddress);
+    publisher.setServerAddress(natsAddress);
+    publisher.setSender("trade-service");
     return publisher;
   }
 }

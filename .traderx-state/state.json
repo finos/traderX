@@ -1,13 +1,13 @@
 {
-  "stateId": "003-containerized-compose-runtime",
-  "stateTitle": "Containerized Compose Runtime (NGINX Ingress)",
+  "stateId": "007-messaging-nats-replacement",
+  "stateTitle": "Messaging Layer Replacement with NATS",
   "stateStatus": "implemented",
-  "featurePack": "specs/003-containerized-compose-runtime",
-  "previousStates": ["002-edge-proxy-uncontainerized"],
-  "nextStates": ["004-kubernetes-runtime","007-messaging-nats-replacement","009-postgres-database-replacement"],
+  "featurePack": "specs/007-messaging-nats-replacement",
+  "previousStates": ["003-containerized-compose-runtime"],
+  "nextStates": ["010-pricing-awareness-market-data"],
   "sourceBranch": "feature/agentic-renovation",
   "sourceCommit": "68d19a554c7480a615b19c024eb0a88228c6b9ad",
-  "generatedAtUtc": "2026-03-31T13:06:14Z",
-  "generationEntryPoint": "bash pipeline/generate-state.sh 003-containerized-compose-runtime",
-  "publishTagHint": "generated/003-containerized-compose-runtime/v1"
+  "generatedAtUtc": "2026-03-31T13:12:23Z",
+  "generationEntryPoint": "bash pipeline/generate-state.sh 007-messaging-nats-replacement",
+  "publishTagHint": "generated/007-messaging-nats-replacement/v1"
 }

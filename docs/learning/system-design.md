@@ -1,35 +1,44 @@
 # System Design
 
-State: `003-containerized-compose-runtime`
+State: `007-messaging-nats-replacement`
 
 ## Design Intent
 
-State 003 preserves state 002 routing semantics while moving runtime to Docker Compose and NGINX ingress.
+State 007 replaces Socket.IO trade-feed messaging with NATS while preserving state 003 containerized runtime and ingress entry model.
 
 ## Runtime Topology / Flow (Spec Extract)
 
-# Runtime Topology (State 003)
+# Runtime Topology: 007 Messaging NATS Replacement
 
-State `003-containerized-compose-runtime` retains state `002` routing behavior while moving runtime orchestration to Docker Compose.
+Parent state: `003-containerized-compose-runtime`
 
-## Entry Points
+## Entrypoints
 
-- Ingress/UI: `http://localhost:8080`
-- Angular direct (debug): `http://localhost:18093`
-- Service/debug ports preserved (`18082`-`18092`) for troubleshooting.
+- Browser/UI ingress: `http://localhost:8080`
+- NATS client port (internal compose network): `4222`
+- NATS monitoring (optional local): `8222`
+- NATS websocket ingress path (proxied): `/nats-ws`
 
-## Service Discovery Model
+## Components
 
-- Inter-service traffic uses Docker Compose service DNS names.
-- Browser traffic enters through NGINX ingress (`ingress` service).
-- Ingress routing config is sourced from `system/ingress-nginx.conf.template`.
+- `nats-broker` replaces messaging role previously handled by `trade-feed`.
+- `trade-service` publishes `trades.new`.
+- `trade-processor` consumes `trades.new` and publishes account-scoped trade/position updates.
+- `web-front-end-angular` subscribes to account-scoped update subjects through `nats.ws`.
 
-## Startup Model
+## Networking
 
-- Compose `depends_on` defines startup ordering.
-- Runtime script waits for readiness endpoints (`/health`, `/stocks`, `/account/{id}`, `/`) before declaring ready.
+- Service-to-service messaging uses NATS TCP over compose network.
+- Browser real-time stream uses WebSocket upgrade through ingress path `/nats-ws`.
+- Existing REST routing through ingress remains unchanged.
 
-## Source-of-Truth Artifacts
+## Startup / Health Order
 
-- `system/docker-compose.spec.yaml`
-- `system/ingress-nginx.conf.template`
+- `nats-broker` must be healthy before trade-service/trade-processor startup.
+- Frontend may start before broker, but stream subscriptions must retry until broker and websocket path are available.
+
+## Source-of-Truth Files
+
+- `system/messaging-subject-map.md`
+- `system/docker-compose.nats.snippet.yaml`
+- `system/ingress-nginx.nats-ws.snippet.conf`

@@ -1,6 +1,6 @@
 # Generated Docs
 
-This folder provides generated learning-oriented documentation for state `003-containerized-compose-runtime`.
+This folder provides generated learning-oriented documentation for state `007-messaging-nats-replacement`.
 
 - [Learning Index](./learning/README.md)
 - [Component List](./learning/component-list.md)

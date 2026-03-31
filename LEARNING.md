@@ -1,12 +1,12 @@
-# Learning Guide For 003-containerized-compose-runtime
+# Learning Guide For 007-messaging-nats-replacement
 
 This snapshot is code-first output. Canonical intent remains in SpecKit artifacts.
 
 ## Learning Focus
 
-- Understand runtime transition from host processes to containers.
-- Understand NGINX ingress behavior under Compose.
-- Trace container wiring back to unchanged functional requirements.
+- Understand focused messaging-layer replacement on top of stable runtime.
+- Compare NATS subject topology to prior Socket.IO channel patterns.
+- Validate realtime behavior parity while changing transport internals.
 
 ## Read In This Snapshot
 
@@ -18,9 +18,9 @@ This snapshot is code-first output. Canonical intent remains in SpecKit artifact
 
 ## Canonical Spec Sources
 
-- Feature pack: `specs/003-containerized-compose-runtime`
+- Feature pack: `specs/007-messaging-nats-replacement`
 - State docs map route: `/docs/spec-kit/state-docs`
-- Learning guide route: `/docs/learning/state-003-containerized-compose-runtime`
-- Learning guide markdown path in source branch: `docs/learning/state-003-containerized-compose-runtime.md`
-- Source branch feature pack (exact commit): https://github.com/finos/traderX/tree/68d19a554c7480a615b19c024eb0a88228c6b9ad/specs/003-containerized-compose-runtime
-- Source branch learning guide (exact commit): https://github.com/finos/traderX/blob/68d19a554c7480a615b19c024eb0a88228c6b9ad/docs/learning/state-003-containerized-compose-runtime.md
+- Learning guide route: `/docs/learning/state-007-messaging-nats-replacement`
+- Learning guide markdown path in source branch: `docs/learning/state-007-messaging-nats-replacement.md`
+- Source branch feature pack (exact commit): https://github.com/finos/traderX/tree/68d19a554c7480a615b19c024eb0a88228c6b9ad/specs/007-messaging-nats-replacement
+- Source branch learning guide (exact commit): https://github.com/finos/traderX/blob/68d19a554c7480a615b19c024eb0a88228c6b9ad/docs/learning/state-007-messaging-nats-replacement.md

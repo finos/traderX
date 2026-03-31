@@ -1,12 +1,12 @@
 package finos.traderx.tradeprocessor;
 
 import finos.traderx.messaging.Envelope;
-import finos.traderx.messaging.socketio.SocketIOJSONSubscriber;
+import finos.traderx.messaging.nats.NatsJSONSubscriber;
 import finos.traderx.tradeprocessor.model.TradeOrder;
 import finos.traderx.tradeprocessor.service.TradeService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class TradeFeedHandler extends SocketIOJSONSubscriber<TradeOrder> {
+public class TradeFeedHandler extends NatsJSONSubscriber<TradeOrder> {
   static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TradeFeedHandler.class);
 
   public TradeFeedHandler() {

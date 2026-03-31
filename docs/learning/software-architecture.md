@@ -1,21 +1,22 @@
 # Software Architecture
 
-State: `003-containerized-compose-runtime`
-Title: `Architecture (State 003 Containerized Compose Runtime)`
+State: `007-messaging-nats-replacement`
+Title: `Architecture (State 007 Messaging NATS Replacement)`
 
 ## Architecture Summary
 
-State 003 preserves state 002 routing semantics while moving runtime to Docker Compose and NGINX ingress.
+State 007 replaces Socket.IO trade-feed messaging with NATS while preserving state 003 containerized runtime and ingress entry model.
 
 ## Entrypoints
 
 - `ingress` -> `http://localhost:8080`
-- `angular-debug` -> `http://localhost:18093`
+- `nats-ws` -> `ws://localhost:8080/nats-ws`
 
 ## Notes
 
-- State 003 preserves approved baseline functional behavior while changing runtime/ops model.
-- Inter-service network resolution uses Docker Compose service DNS names.
+- State 007 is an architecture-track branch from state 003.
+- Messaging transport changes to NATS; business behavior remains baseline-compatible.
+- JetStream durability is intentionally deferred to a future state.
 
 ## Diagram
 
@@ -23,18 +24,18 @@ See [Component Diagram](./component-diagram.md).
 
 ## Detailed Architecture (Spec Extract)
 
-# Architecture (State 003 Containerized Compose Runtime)
+# Architecture (State 007 Messaging NATS Replacement)
 
-State 003 preserves state 002 routing semantics while moving runtime to Docker Compose and NGINX ingress.
+State 007 replaces Socket.IO trade-feed messaging with NATS while preserving state 003 containerized runtime and ingress entry model.
 
-- Inherits architectural baseline from: `002-edge-proxy-uncontainerized`
+- Inherits architectural baseline from: `003-containerized-compose-runtime`
 - Generated from: `system/architecture.model.json`
 - Canonical flows: `../001-baseline-uncontainerized-parity/system/end-to-end-flows.md`
 
 ## Entry Points
 
 - `ingress`: `http://localhost:8080`
-- `angular-debug`: `http://localhost:18093`
+- `nats-ws`: `ws://localhost:8080/nats-ws`
 
 ## Architecture Diagram
 
@@ -43,13 +44,13 @@ flowchart LR
   trader["Trader Browser"]
   ingress["NGINX Ingress"]
   web["Web Front End Angular"]
+  nats["NATS Broker"]
+  tradeService["Trade Service"]
+  tradeProcessor["Trade Processor"]
   account["Account Service"]
   position["Position Service"]
-  tradeService["Trade Service"]
   referenceData["Reference Data"]
   people["People Service"]
-  tradeFeed["Trade Feed"]
-  tradeProcessor["Trade Processor"]
   database["Database"]
   trader -->|"Single browser entrypoint"| ingress
   ingress -->|"/"| web
@@ -58,35 +59,37 @@ flowchart LR
   ingress -->|"/trade-service"| tradeService
   ingress -->|"/reference-data"| referenceData
   ingress -->|"/people-service"| people
-  ingress -->|"/trade-feed and /socket.io"| tradeFeed
+  ingress -->|"/nats-ws (WS upgrade)"| nats
   tradeService -->|"Validate account"| account
   tradeService -->|"Validate ticker"| referenceData
-  tradeService -->|"Publish trades/new"| tradeFeed
-  tradeProcessor -->|"Consume and publish updates"| tradeFeed
+  tradeService -->|"Publish trades.new"| nats
+  tradeProcessor -->|"Consume trades.new, publish account updates"| nats
+  web -->|"Subscribe account-scoped streams"| nats
   tradeProcessor -->|"Persist trade/position state"| database
   account -->|"Account persistence"| database
   position -->|"Query trades/positions"| database
-  account -->|"Validate person for account-user mapping"| people
+  account -->|"Validate person"| people
 ```
 
 ## Node Catalog
 
 | Node | Kind | Label | Notes |
 | --- | --- | --- | --- |
-| `trader` | actor | Trader Browser | User traffic enters through ingress. |
-| `ingress` | gateway | NGINX Ingress | Compose ingress for UI/API/WebSocket routes. |
-| `web` | frontend | Web Front End Angular | Containerized Angular service. |
-| `account` | service | Account Service | Containerized Spring service. |
-| `position` | service | Position Service | Containerized Spring service. |
-| `tradeService` | service | Trade Service | Containerized Spring service. |
-| `referenceData` | service | Reference Data | Containerized Node service. |
-| `people` | service | People Service | Containerized .NET service. |
-| `tradeFeed` | messaging | Trade Feed | Containerized Socket.IO bus. |
-| `tradeProcessor` | service | Trade Processor | Containerized Spring service. |
-| `database` | database | Database | Containerized H2 persistence service. |
+| `trader` | actor | Trader Browser | Uses Angular UI and receives live updates. |
+| `ingress` | gateway | NGINX Ingress | Routes REST and websocket traffic. |
+| `web` | frontend | Web Front End Angular | Uses nats.ws for account-scoped streams. |
+| `nats` | messaging | NATS Broker | Core pub/sub broker for backend and browser streaming. |
+| `tradeService` | service | Trade Service | Publishes new trade events. |
+| `tradeProcessor` | service | Trade Processor | Consumes and publishes processed/account updates. |
+| `account` | service | Account Service | Account and account-user operations. |
+| `position` | service | Position Service | Trades/positions query endpoints. |
+| `referenceData` | service | Reference Data | Ticker lookup/list. |
+| `people` | service | People Service | Identity lookup and validation. |
+| `database` | database | Database | Persistent account/trade/position state. |
 
 ## State Notes
 
-- State 003 preserves approved baseline functional behavior while changing runtime/ops model.
-- Inter-service network resolution uses Docker Compose service DNS names.
+- State 007 is an architecture-track branch from state 003.
+- Messaging transport changes to NATS; business behavior remains baseline-compatible.
+- JetStream durability is intentionally deferred to a future state.
 
