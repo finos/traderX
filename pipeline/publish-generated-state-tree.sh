@@ -102,7 +102,10 @@ while [[ "${#remaining[@]}" -gt 0 && "${progress}" -eq 1 ]]; do
     fi
   done
 
-  remaining=("${next_round[@]}")
+  remaining=()
+  if [[ "${#next_round[@]}" -gt 0 ]]; then
+    remaining=("${next_round[@]}")
+  fi
 done
 
 if [[ "${#remaining[@]}" -gt 0 ]]; then
