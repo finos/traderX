@@ -46,7 +46,11 @@ if [[ -n "$(git -C "${ROOT}" status --porcelain)" ]]; then
   exit 1
 fi
 
-readarray -t remaining < <(jq -r '.states[] | select(.generation.mode == "implemented") | .id' "${CATALOG}")
+remaining=()
+while IFS= read -r state_id; do
+  [[ -n "${state_id}" ]] || continue
+  remaining+=("${state_id}")
+done < <(jq -r '.states[] | select(.generation.mode == "implemented") | .id' "${CATALOG}")
 if [[ "${#remaining[@]}" -eq 0 ]]; then
   echo "[fail] no implemented states found in catalog"
   exit 1
