@@ -9,6 +9,21 @@ This section is the developer-focused learning layer for generated TraderX code 
 Canonical requirements, contracts, and architecture remain in `specs/**`.  
 These guides explain how to read each generated code snapshot, compare it to previous states, and understand the code delta in plain English.
 
+## Visual Learning Path
+
+```mermaid
+flowchart LR
+  S001["001"] --> S002["002"]
+  S002 --> S003["003"]
+  S003 --> S004["004"]
+  S004 --> S005["005"]
+  S004 --> S006["006"]
+  S003 --> S007["007"]
+  S003 --> S009["009"]
+```
+
+For the full graph, swimlanes, and artifact mapping, see [Visual Learning Paths](/docs/spec-kit/visual-learning-graphs).
+
 ## State Guide Catalog
 
 | State | Learning Guide | Spec Pack | Generated Code Branch | Previous State(s) | Compare To Previous | ADR |
