@@ -8,6 +8,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 
 @Entity
@@ -37,6 +39,9 @@ public class Trade implements Serializable {
 
   @Column(name = "QUANTITY")
   private Integer quantity;
+
+  @Column(name = "PRICE", precision = 18, scale = 3)
+  private BigDecimal price;
 
   @Column(name = "UPDATED")
   private Date updated;
@@ -90,6 +95,14 @@ public class Trade implements Serializable {
 
   public void setQuantity(Integer quantity) {
     this.quantity = quantity;
+  }
+
+  public BigDecimal getPrice() {
+    return price;
+  }
+
+  public void setPrice(BigDecimal price) {
+    this.price = price == null ? null : price.setScale(3, RoundingMode.HALF_UP);
   }
 
   public Date getUpdated() {

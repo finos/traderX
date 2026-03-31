@@ -1,0 +1,6 @@
+{
+  "componentId": "price-publisher",
+  "stateId": "010-pricing-awareness-market-data",
+  "type": "service",
+  "description": "Synthetic price publisher with optional yfinance bootstrap and NATS topic publication."
+}

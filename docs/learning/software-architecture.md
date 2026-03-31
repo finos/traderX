@@ -1,22 +1,23 @@
 # Software Architecture
 
-State: `007-messaging-nats-replacement`
-Title: `Architecture (State 007 Messaging NATS Replacement)`
+State: `010-pricing-awareness-market-data`
+Title: `Architecture (State 010 Pricing Awareness and Market Data)`
 
 ## Architecture Summary
 
-State 007 replaces Socket.IO trade-feed messaging with NATS while preserving state 003 containerized runtime and ingress entry model.
+State 010 builds on NATS-based runtime from 007 and adds synthetic market pricing, trade execution price stamping, position cost basis aggregation, and frontend valuation.
 
 ## Entrypoints
 
 - `ingress` -> `http://localhost:8080`
 - `nats-ws` -> `ws://localhost:8080/nats-ws`
+- `price-publisher` -> `http://localhost:18100/prices`
 
 ## Notes
 
-- State 007 is an architecture-track branch from state 003.
-- Messaging transport changes to NATS; business behavior remains baseline-compatible.
-- JetStream durability is intentionally deferred to a future state.
+- Markets are treated as always open in this simulation.
+- yfinance bootstrap is optional startup-only and falls back to snapshot data.
+- Advanced pricing/risk engines are intentionally out of scope for this state.
 
 ## Diagram
 
@@ -24,11 +25,11 @@ See [Component Diagram](./component-diagram.md).
 
 ## Detailed Architecture (Spec Extract)
 
-# Architecture (State 007 Messaging NATS Replacement)
+# Architecture (State 010 Pricing Awareness and Market Data)
 
-State 007 replaces Socket.IO trade-feed messaging with NATS while preserving state 003 containerized runtime and ingress entry model.
+State 010 builds on NATS-based runtime from 007 and adds synthetic market pricing, trade execution price stamping, position cost basis aggregation, and frontend valuation.
 
-- Inherits architectural baseline from: `003-containerized-compose-runtime`
+- Inherits architectural baseline from: `007-messaging-nats-replacement`
 - Generated from: `system/architecture.model.json`
 - Canonical flows: `../001-baseline-uncontainerized-parity/system/end-to-end-flows.md`
 
@@ -36,6 +37,7 @@ State 007 replaces Socket.IO trade-feed messaging with NATS while preserving sta
 
 - `ingress`: `http://localhost:8080`
 - `nats-ws`: `ws://localhost:8080/nats-ws`
+- `price-publisher`: `http://localhost:18100/prices`
 
 ## Architecture Diagram
 
@@ -45,6 +47,7 @@ flowchart LR
   ingress["NGINX Ingress"]
   web["Web Front End Angular"]
   nats["NATS Broker"]
+  pricePublisher["Price Publisher"]
   tradeService["Trade Service"]
   tradeProcessor["Trade Processor"]
   account["Account Service"]
@@ -54,20 +57,17 @@ flowchart LR
   database["Database"]
   trader -->|"Single browser entrypoint"| ingress
   ingress -->|"/"| web
-  ingress -->|"/account-service"| account
-  ingress -->|"/position-service"| position
-  ingress -->|"/trade-service"| tradeService
-  ingress -->|"/reference-data"| referenceData
-  ingress -->|"/people-service"| people
+  ingress -->|"/price-publisher"| pricePublisher
   ingress -->|"/nats-ws (WS upgrade)"| nats
-  tradeService -->|"Validate account"| account
   tradeService -->|"Validate ticker"| referenceData
-  tradeService -->|"Publish trades.new"| nats
-  tradeProcessor -->|"Consume trades.new, publish account updates"| nats
-  web -->|"Subscribe account-scoped streams"| nats
-  tradeProcessor -->|"Persist trade/position state"| database
-  account -->|"Account persistence"| database
-  position -->|"Query trades/positions"| database
+  tradeService -->|"Validate account"| account
+  tradeService -->|"Fetch execution price"| pricePublisher
+  tradeService -->|"Publish /trades"| nats
+  tradeProcessor -->|"Consume /trades, publish account updates"| nats
+  pricePublisher -->|"Publish pricing.<TICKER>"| nats
+  web -->|"Subscribe account + pricing topics"| nats
+  tradeProcessor -->|"Persist trades + positions"| database
+  position -->|"Query trades + positions"| database
   account -->|"Validate person"| people
 ```
 
@@ -75,12 +75,13 @@ flowchart LR
 
 | Node | Kind | Label | Notes |
 | --- | --- | --- | --- |
-| `trader` | actor | Trader Browser | Uses Angular UI and receives live updates. |
+| `trader` | actor | Trader Browser | Uses Angular UI and receives realtime trade, position, and pricing updates. |
 | `ingress` | gateway | NGINX Ingress | Routes REST and websocket traffic. |
-| `web` | frontend | Web Front End Angular | Uses nats.ws for account-scoped streams. |
-| `nats` | messaging | NATS Broker | Core pub/sub broker for backend and browser streaming. |
-| `tradeService` | service | Trade Service | Publishes new trade events. |
-| `tradeProcessor` | service | Trade Processor | Consumes and publishes processed/account updates. |
+| `web` | frontend | Web Front End Angular | Subscribes to account and pricing streams via nats.ws. |
+| `nats` | messaging | NATS Broker | Pub/sub broker for backend and browser streaming. |
+| `pricePublisher` | service | Price Publisher | Publishes `pricing.<TICKER>` and exposes REST quote endpoint. |
+| `tradeService` | service | Trade Service | Validates account/ticker and stamps execution price before publishing orders. |
+| `tradeProcessor` | service | Trade Processor | Processes trades, persists price/cost basis, emits account updates. |
 | `account` | service | Account Service | Account and account-user operations. |
 | `position` | service | Position Service | Trades/positions query endpoints. |
 | `referenceData` | service | Reference Data | Ticker lookup/list. |
@@ -89,7 +90,7 @@ flowchart LR
 
 ## State Notes
 
-- State 007 is an architecture-track branch from state 003.
-- Messaging transport changes to NATS; business behavior remains baseline-compatible.
-- JetStream durability is intentionally deferred to a future state.
+- Markets are treated as always open in this simulation.
+- yfinance bootstrap is optional startup-only and falls back to snapshot data.
+- Advanced pricing/risk engines are intentionally out of scope for this state.
 

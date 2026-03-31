@@ -22,15 +22,24 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
     isPending = true;
     socketUnSubscribeFns: Function[] = [];
     columnDefs: ColDef[] = [];
-
     private readonly baseColumns: ColDef[] = [
         {
             headerName: 'SECURITY',
             field: 'security'
         },
         {
+            headerName: 'PRICE',
+            field: 'price',
+            headerClass: 'ag-right-aligned-header',
+            cellClass: 'ag-right-aligned-cell',
+            valueFormatter: ({ value }) => this.formatCurrency(value)
+        },
+        {
             headerName: 'QUANTITY',
-            field: 'quantity'
+            field: 'quantity',
+            headerClass: 'ag-right-aligned-header',
+            cellClass: 'ag-right-aligned-cell',
+            valueFormatter: ({ value }) => this.formatInteger(value)
         },
         {
             headerName: 'SIDE',
@@ -40,6 +49,11 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
             headerName: 'STATE',
             field: 'state',
             enableCellChangeFlash: true
+        },
+        {
+            headerName: 'EXECUTED',
+            field: 'created',
+            valueFormatter: ({ value }) => this.toRelativeTime(value)
         }
     ];
 
@@ -65,6 +79,9 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
     }
 
     getRowId(params: GetRowIdParams<any>):string {
+        if (!params?.data?.id) {
+            return 'Trade-unknown';
+        }
         return  `Trade-${params.data.id}`;
     }
 
@@ -88,16 +105,24 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
         let tradeData;
         if (row) {
             tradeData = {
-                update: [Object.assign(row.data, { state: tradeWithDisplay.state, accountDisplayName: tradeWithDisplay.accountDisplayName })]
+                update: [Object.assign(row.data, {
+                    state: tradeWithDisplay.state,
+                    price: tradeWithDisplay.price,
+                    updated: tradeWithDisplay.updated,
+                    created: tradeWithDisplay.created,
+                    accountDisplayName: tradeWithDisplay.accountDisplayName
+                })]
             };
         } else {
             tradeData = {
                 add: [{
                     accountid: tradeWithDisplay.accountid,
+                    accountId: tradeWithDisplay.accountId,
                     accountDisplayName: tradeWithDisplay.accountDisplayName,
                     created: tradeWithDisplay.created,
                     id: tradeWithDisplay.id,
                     quantity: tradeWithDisplay.quantity,
+                    price: tradeWithDisplay.price,
                     security: tradeWithDisplay.security,
                     side: tradeWithDisplay.side,
                     state: tradeWithDisplay.state,
@@ -168,9 +193,9 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
     }
 
     private withAccountDisplay(data: Trade): Trade & { accountDisplayName: string } {
-        const accountId = Number((data as any).accountid ?? 0);
+        const accountId = Number((data as any).accountId ?? (data as any).accountid ?? 0);
         const accountDisplayName = this.accountNameById[accountId] ?? `#${accountId}`;
-        return Object.assign({}, data, { accountid: accountId, accountDisplayName });
+        return Object.assign({}, data, { accountId, accountid: accountId, accountDisplayName });
     }
 
     private configureColumns() {
@@ -190,7 +215,60 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
         this.gridApi.sizeColumnsToFit();
     }
 
-    private toRowId(id: string | number | undefined): string {
-        return `Trade-${id ?? 'unknown'}`;
+    private toRowId(id: string): string {
+        return `Trade-${id}`;
+    }
+
+    private toRelativeTime(value: Date | string | undefined): string {
+        if (!value) {
+            return '-';
+        }
+        const timestamp = new Date(value);
+        if (Number.isNaN(timestamp.getTime())) {
+            return '-';
+        }
+        const now = new Date();
+        if (now.toDateString() !== timestamp.toDateString()) {
+            return timestamp.toLocaleString();
+        }
+        const elapsedMs = now.getTime() - timestamp.getTime();
+        const elapsedMins = Math.max(0, Math.floor(elapsedMs / 60000));
+        if (elapsedMins < 1) {
+            return 'just now';
+        }
+        if (elapsedMins < 60) {
+            return `${elapsedMins} min ago`;
+        }
+        const hours = Math.floor(elapsedMins / 60);
+        return `${hours} hr ago`;
+    }
+
+    private formatCurrency(value: any): string {
+        if (value == null || value === '') {
+            return '-';
+        }
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric)) {
+            return '-';
+        }
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 3,
+            maximumFractionDigits: 3
+        }).format(numeric);
+    }
+
+    private formatInteger(value: any): string {
+        if (value == null || value === '') {
+            return '-';
+        }
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric)) {
+            return '-';
+        }
+        return new Intl.NumberFormat('en-US', {
+            maximumFractionDigits: 0
+        }).format(numeric);
     }
 }

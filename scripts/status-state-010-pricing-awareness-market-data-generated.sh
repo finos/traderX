@@ -2,8 +2,8 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-007}"
-COMPOSE_FILE="${REPO_ROOT}/generated/code/target-generated/messaging-nats-replacement/docker-compose.yml"
+COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-010}"
+COMPOSE_FILE="${REPO_ROOT}/generated/code/target-generated/pricing-awareness-market-data/docker-compose.yml"
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "[error] docker command not found"
@@ -12,7 +12,7 @@ fi
 
 if [[ ! -f "${COMPOSE_FILE}" ]]; then
   echo "[info] compose file not found: ${COMPOSE_FILE}"
-  echo "[hint] run: bash pipeline/generate-state.sh 007-messaging-nats-replacement"
+  echo "[hint] run: bash pipeline/generate-state.sh 010-pricing-awareness-market-data"
   exit 0
 fi
 
@@ -32,6 +32,7 @@ for target in \
   "ingress-ui|http://localhost:8080/" \
   "angular-ui|http://localhost:18093/" \
   "reference-data|http://localhost:18085/stocks" \
+  "price-publisher|http://localhost:18100/health" \
   "account-service|http://localhost:18088/account/22214" \
   "position-service|http://localhost:18090/health/alive" \
   "trade-service|http://localhost:18092/swagger-ui.html" \

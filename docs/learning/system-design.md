@@ -1,16 +1,16 @@
 # System Design
 
-State: `007-messaging-nats-replacement`
+State: `010-pricing-awareness-market-data`
 
 ## Design Intent
 
-State 007 replaces Socket.IO trade-feed messaging with NATS while preserving state 003 containerized runtime and ingress entry model.
+State 010 builds on NATS-based runtime from 007 and adds synthetic market pricing, trade execution price stamping, position cost basis aggregation, and frontend valuation.
 
 ## Runtime Topology / Flow (Spec Extract)
 
-# Runtime Topology: 007 Messaging NATS Replacement
+# Runtime Topology: 010 Pricing Awareness and Market Data
 
-Parent state: `003-containerized-compose-runtime`
+Parent state: `007-messaging-nats-replacement`
 
 ## Entrypoints
 
@@ -18,24 +18,26 @@ Parent state: `003-containerized-compose-runtime`
 - NATS client port (internal compose network): `4222`
 - NATS monitoring (optional local): `8222`
 - NATS websocket ingress path (proxied): `/nats-ws`
+- Price publisher REST: `http://localhost:18100`
 
 ## Components
 
-- `nats-broker` replaces messaging role previously handled by `trade-feed`.
-- `trade-service` publishes `trades.new`.
-- `trade-processor` consumes `trades.new` and publishes account-scoped trade/position updates.
-- `web-front-end-angular` subscribes to account-scoped update subjects through `nats.ws`.
+- `nats-broker` remains core messaging bus from state `007`.
+- `price-publisher` publishes `pricing.<TICKER>` market ticks.
+- `trade-service` enriches orders with execution `price` via `price-publisher`.
+- `trade-processor` persists `trade.price` and `position.averageCostBasis`.
+- `web-front-end-angular` subscribes to account updates and `pricing.*`.
 
 ## Networking
 
 - Service-to-service messaging uses NATS TCP over compose network.
 - Browser real-time stream uses WebSocket upgrade through ingress path `/nats-ws`.
-- Existing REST routing through ingress remains unchanged.
+- Price publisher is available via ingress path `/price-publisher/` and direct local port `18100`.
 
 ## Startup / Health Order
 
-- `nats-broker` must be healthy before trade-service/trade-processor startup.
-- Frontend may start before broker, but stream subscriptions must retry until broker and websocket path are available.
+- `nats-broker` and `price-publisher` must be healthy before trade-service startup.
+- Frontend may start before broker/price streams, but subscriptions must retry until available.
 
 ## Source-of-Truth Files
 

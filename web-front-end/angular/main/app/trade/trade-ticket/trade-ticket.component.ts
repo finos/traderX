@@ -1,15 +1,16 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
-import { TradeTicket } from 'main/app/model/trade.model';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
+import { PriceTick, TradeTicket } from 'main/app/model/trade.model';
 import { Stock } from 'main/app/model/symbol.model';
 import { Account } from 'main/app/model/account.model';
 import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
+import { TradeFeedService } from 'main/app/service/trade-feed.service';
 
 @Component({
   selector: 'app-trade-ticket',
   templateUrl: './trade-ticket.component.html',
   styleUrls: ['./trade-ticket.component.scss']
 })
-export class TradeTicketComponent implements OnInit {
+export class TradeTicketComponent implements OnInit, OnDestroy {
 
   @Input() stocks: Stock[];
   @Input() account: Account | undefined;
@@ -20,6 +21,12 @@ export class TradeTicketComponent implements OnInit {
   selectedCompany?: string = undefined;
   ticket: TradeTicket;
   filteredStocks: Array<Stock & { matchLabel: string }> = [];
+  selectedPrice: number | null = null;
+  selectedPriceAsOf: string | null = null;
+  private selectedPriceTicker: string | null = null;
+  private priceStreamUnsubscribeFn?: Function;
+
+  constructor(private tradeFeed: TradeFeedService) {}
 
   ngOnInit() {
     this.ticket = {
@@ -35,17 +42,26 @@ export class TradeTicketComponent implements OnInit {
     }));
   }
 
+  ngOnDestroy() {
+    this.priceStreamUnsubscribeFn?.();
+  }
 
   onSelect(e: TypeaheadMatch): void {
     console.log('Selected value: ', e.value);
     const selectedStock = e.item as Stock & { matchLabel?: string };
     this.ticket.security = selectedStock.ticker;
     this.selectedCompany = selectedStock.matchLabel || this.toMatchLabel(selectedStock);
+    this.subscribeToTickerPrice(selectedStock.ticker);
   }
 
   onBlur(): void {
     if (this.selectedCompany) return;
     this.ticket.security = '';
+    this.selectedPrice = null;
+    this.selectedPriceAsOf = null;
+    this.selectedPriceTicker = null;
+    this.priceStreamUnsubscribeFn?.();
+    this.priceStreamUnsubscribeFn = undefined;
   }
 
   onCreate() {
@@ -59,6 +75,52 @@ export class TradeTicketComponent implements OnInit {
 
   onCancel() {
     this.cancel.emit();
+  }
+
+  formatLivePrice(): string {
+    if (this.selectedPrice == null) {
+      return 'Streaming...';
+    }
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 3,
+      maximumFractionDigits: 3
+    }).format(this.selectedPrice);
+  }
+
+  formatAsOf(): string {
+    if (!this.selectedPriceAsOf) {
+      return '';
+    }
+    const ts = new Date(this.selectedPriceAsOf);
+    if (Number.isNaN(ts.getTime())) {
+      return '';
+    }
+    return ts.toLocaleTimeString();
+  }
+
+  private subscribeToTickerPrice(ticker: string): void {
+    if (!ticker) {
+      return;
+    }
+
+    if (this.selectedPriceTicker === ticker && this.priceStreamUnsubscribeFn) {
+      return;
+    }
+
+    this.priceStreamUnsubscribeFn?.();
+    this.selectedPrice = null;
+    this.selectedPriceAsOf = null;
+    this.selectedPriceTicker = ticker;
+
+    this.priceStreamUnsubscribeFn = this.tradeFeed.subscribe(`pricing.${ticker}`, (tick: PriceTick) => {
+      if (!tick || tick.ticker !== ticker) {
+        return;
+      }
+      this.selectedPrice = Number(tick.price);
+      this.selectedPriceAsOf = tick.asOf ?? null;
+    });
   }
 
   private toMatchLabel(stock: Stock): string {

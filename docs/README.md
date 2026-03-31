@@ -1,6 +1,6 @@
 # Generated Docs
 
-This folder provides generated learning-oriented documentation for state `007-messaging-nats-replacement`.
+This folder provides generated learning-oriented documentation for state `010-pricing-awareness-market-data`.
 
 - [Learning Index](./learning/README.md)
 - [Component List](./learning/component-list.md)

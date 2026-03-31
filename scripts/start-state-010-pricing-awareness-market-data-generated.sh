@@ -2,9 +2,9 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-STATE_ID="007-messaging-nats-replacement"
-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-007}"
-COMPOSE_DIR="${REPO_ROOT}/generated/code/target-generated/messaging-nats-replacement"
+STATE_ID="010-pricing-awareness-market-data"
+COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-010}"
+COMPOSE_DIR="${REPO_ROOT}/generated/code/target-generated/pricing-awareness-market-data"
 COMPOSE_FILE="${COMPOSE_DIR}/docker-compose.yml"
 DRY_RUN=0
 
@@ -46,7 +46,7 @@ bash "${REPO_ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
 
 if (( DRY_RUN == 1 )); then
   echo "[dry-run] docker compose -f ${COMPOSE_FILE} --project-name ${COMPOSE_PROJECT_NAME} up -d --build"
-  echo "[done] dry run complete for state 007"
+echo "[done] dry run complete for state 010"
   exit 0
 fi
 
@@ -71,11 +71,12 @@ wait_for_http() {
 wait_for_http "database-web" "http://localhost:18084" || exit 1
 wait_for_http "reference-data" "http://localhost:18085/stocks" || exit 1
 wait_for_http "nats-monitor" "http://localhost:8222/varz" || exit 1
+wait_for_http "price-publisher" "http://localhost:18100/health" || exit 1
 wait_for_http "account-service" "http://localhost:18088/account/22214" || exit 1
 wait_for_http "position-service" "http://localhost:18090/health/alive" || exit 1
 wait_for_http "trade-service" "http://localhost:18092/swagger-ui.html" || exit 1
 wait_for_http "ingress" "http://localhost:8080/health" || exit 1
 wait_for_http "ingress-ui" "http://localhost:8080" || exit 1
 
-echo "[done] state 007 messaging-nats runtime started"
+echo "[done] state 010 pricing-awareness runtime started"
 echo "[ui] http://localhost:8080"

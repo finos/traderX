@@ -1,6 +1,6 @@
 # Component Diagram
 
-State: `007-messaging-nats-replacement`
+State: `010-pricing-awareness-market-data`
 
 ```mermaid
 flowchart LR
@@ -8,6 +8,7 @@ flowchart LR
   ingress["NGINX Ingress"]
   web["Web Front End Angular"]
   nats["NATS Broker"]
+  pricePublisher["Price Publisher"]
   tradeService["Trade Service"]
   tradeProcessor["Trade Processor"]
   account["Account Service"]
@@ -18,19 +19,16 @@ flowchart LR
 
   trader -->|Single browser entrypoint| ingress
   ingress -->|/| web
-  ingress -->|/account-service| account
-  ingress -->|/position-service| position
-  ingress -->|/trade-service| tradeService
-  ingress -->|/reference-data| referenceData
-  ingress -->|/people-service| people
+  ingress -->|/price-publisher| pricePublisher
   ingress -->|/nats-ws (WS upgrade)| nats
-  tradeService -->|Validate account| account
   tradeService -->|Validate ticker| referenceData
-  tradeService -->|Publish trades.new| nats
-  tradeProcessor -->|Consume trades.new, publish account updates| nats
-  web -->|Subscribe account-scoped streams| nats
-  tradeProcessor -->|Persist trade/position state| database
-  account -->|Account persistence| database
-  position -->|Query trades/positions| database
+  tradeService -->|Validate account| account
+  tradeService -->|Fetch execution price| pricePublisher
+  tradeService -->|Publish /trades| nats
+  tradeProcessor -->|Consume /trades, publish account updates| nats
+  pricePublisher -->|Publish pricing.<TICKER>| nats
+  web -->|Subscribe account + pricing topics| nats
+  tradeProcessor -->|Persist trades + positions| database
+  position -->|Query trades + positions| database
   account -->|Validate person| people
 ```

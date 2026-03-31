@@ -27,6 +27,19 @@
     </div>
 
     <div class="mb-3 row">
+        <label class="col-sm-2 col-form-label me-3">Live Price</label>
+        <div class="col-sm-8 d-flex align-items-center">
+            <ng-container *ngIf="ticket.security; else noSecuritySelected">
+                <span class="fw-semibold">{{ formatLivePrice() }}</span>
+                <small *ngIf="selectedPriceAsOf" class="text-muted ms-2">as of {{ formatAsOf() }}</small>
+            </ng-container>
+            <ng-template #noSecuritySelected>
+                <span class="text-muted">Select a security</span>
+            </ng-template>
+        </div>
+    </div>
+
+    <div class="mb-3 row">
         <label class="col-sm-2 col-form-label me-3">Side</label>
         <div class="col-sm-8">
             <div class="btn-group">

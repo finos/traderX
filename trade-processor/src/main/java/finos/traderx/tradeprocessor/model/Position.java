@@ -7,6 +7,8 @@ import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 
 @Entity
@@ -27,6 +29,9 @@ public class Position implements Serializable {
 
   @Column(name = "QUANTITY")
   private Integer quantity;
+
+  @Column(name = "AVERAGECOSTBASIS", precision = 18, scale = 3)
+  private BigDecimal averageCostBasis;
 
   @Column(name = "UPDATED")
   private Date updated;
@@ -53,6 +58,14 @@ public class Position implements Serializable {
 
   public void setQuantity(Integer quantity) {
     this.quantity = quantity;
+  }
+
+  public BigDecimal getAverageCostBasis() {
+    return averageCostBasis;
+  }
+
+  public void setAverageCostBasis(BigDecimal averageCostBasis) {
+    this.averageCostBasis = averageCostBasis == null ? null : averageCostBasis.setScale(3, RoundingMode.HALF_UP);
   }
 
   public Date getUpdated() {

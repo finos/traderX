@@ -3,9 +3,9 @@ set -euo pipefail
 
 INGRESS_URL="${1:-http://localhost:8080}"
 ORIGIN="${2:-http://localhost:8080}"
-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-007}"
+COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-010}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-COMPOSE_FILE="${REPO_ROOT}/generated/code/target-generated/messaging-nats-replacement/docker-compose.yml"
+COMPOSE_FILE="${REPO_ROOT}/generated/code/target-generated/pricing-awareness-market-data/docker-compose.yml"
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "[error] docker command not found"
@@ -14,22 +14,34 @@ fi
 
 if [[ ! -f "${COMPOSE_FILE}" ]]; then
   echo "[error] compose file not found: ${COMPOSE_FILE}"
-  echo "[hint] run: bash pipeline/generate-state.sh 007-messaging-nats-replacement"
+  echo "[hint] run: bash pipeline/generate-state.sh 010-pricing-awareness-market-data"
   exit 1
 fi
 
 echo "[check] compose services running"
 docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" ps
 running_services="$(docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" ps --status running --services | wc -l | tr -d ' ')"
-if [[ "${running_services}" -lt 10 ]]; then
-  echo "[error] expected 10+ running services, got ${running_services}"
+if [[ "${running_services}" -lt 11 ]]; then
+  echo "[error] expected 11+ running services, got ${running_services}"
   exit 1
 fi
 
 if docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" ps --services | grep -q '^trade-feed$'; then
-  echo "[error] state 007 runtime must not contain trade-feed service"
+  echo "[error] state 010 runtime must not contain trade-feed service"
   exit 1
 fi
+
+echo "[check] price-publisher quote endpoint"
+price_headers="$(curl -sS -i "http://localhost:18100/prices/IBM" | sed -n '1,30p')"
+echo "${price_headers}"
+printf '%s\n' "${price_headers}" | grep -q "HTTP/1.1 200" || {
+  echo "[error] expected 200 from price-publisher /prices/IBM"
+  exit 1
+}
+curl -sS "http://localhost:18100/prices/IBM" | jq -e '.ticker == "IBM" and (.price|type=="number")' >/dev/null || {
+  echo "[error] price-publisher quote payload missing expected fields"
+  exit 1
+}
 
 echo "[check] nginx ingress health endpoint"
 health_headers="$(curl -sS -i "${INGRESS_URL}/health" | sed -n '1,20p')"
@@ -74,7 +86,7 @@ printf '%s\n' "${ws_headers}" | grep -Eq "HTTP/1\\.[01] 101|HTTP/2 101" || {
   exit 1
 }
 
-echo "[check] account realtime stream over NATS websocket after trade submit"
+echo "[check] account + pricing realtime streams over NATS websocket after trade submit"
 INGRESS_URL="${INGRESS_URL}" TRADE_SERVICE_URL="http://localhost:18092" ACCOUNT_ID="22214" node <<'NODE'
 const ingressUrl = process.env.INGRESS_URL || 'http://localhost:8080';
 const tradeServiceUrl = process.env.TRADE_SERVICE_URL || 'http://localhost:18092';
@@ -84,6 +96,7 @@ const tradeTopic = `/accounts/${accountId}/trades`;
 const positionTopic = `/accounts/${accountId}/positions`;
 const qty = 7000 + Math.floor(Math.random() * 500);
 const security = 'IBM';
+const priceTopic = `pricing.${security}`;
 const timeoutMs = 20000;
 
 if (typeof WebSocket !== 'function') {
@@ -95,10 +108,12 @@ let buffer = '';
 let pending = null;
 let sawTrade = false;
 let sawPosition = false;
+let sawPrice = false;
 let submitted = false;
 const sidByTopic = new Map([
   [tradeTopic, 1],
   [positionTopic, 2],
+  [priceTopic, 3],
 ]);
 
 function fail(message) {
@@ -107,8 +122,8 @@ function fail(message) {
 }
 
 function maybeDone() {
-  if (sawTrade && sawPosition) {
-    console.log('[info] account trade/position realtime updates received via NATS websocket');
+  if (sawTrade && sawPosition && sawPrice) {
+    console.log('[info] account trade/position + pricing realtime updates received via NATS websocket');
     process.exit(0);
   }
 }
@@ -138,6 +153,12 @@ function parseFrame(text, ws) {
             payload.security === security &&
             Number.isFinite(Number(payload.quantity))) {
           sawPosition = true;
+        }
+        if (pending.subject === priceTopic &&
+            payload &&
+            payload.ticker === security &&
+            Number.isFinite(Number(payload.price))) {
+          sawPrice = true;
         }
         maybeDone();
       } catch (err) {
@@ -197,10 +218,14 @@ async function submitTrade() {
     const body = await response.text();
     fail(`expected 200 from trade submit, got ${response.status}; body=${body}`);
   }
+  const body = await response.json();
+  if (!Number.isFinite(Number(body.price))) {
+    fail(`expected execution price in trade submission response, got: ${JSON.stringify(body)}`);
+  }
 }
 
 const timer = setTimeout(() => {
-  fail(`timed out waiting for realtime account updates (trade=${sawTrade}, position=${sawPosition})`);
+  fail(`timed out waiting for realtime updates (trade=${sawTrade}, position=${sawPosition}, price=${sawPrice})`);
 }, timeoutMs);
 
 const ws = new WebSocket(wsUrl);
@@ -244,20 +269,30 @@ process.on('exit', () => {
 NODE
 
 echo "[check] ingress trade-service unknown ticker validation"
-status_code="$(curl -sS -o /tmp/traderx-state-007-trade.out -w "%{http_code}" \
+status_code="$(curl -sS -o /tmp/traderx-state-010-trade.out -w "%{http_code}" \
   -H "Content-Type: application/json" \
   -d '{"security":"NOTREAL","quantity":1,"accountId":22214,"side":"Buy"}' \
   "${INGRESS_URL}/trade-service/trade")"
-cat /tmp/traderx-state-007-trade.out
+cat /tmp/traderx-state-010-trade.out
 echo
-rm -f /tmp/traderx-state-007-trade.out
+rm -f /tmp/traderx-state-010-trade.out
 if [[ "${status_code}" != "404" ]]; then
   echo "[error] expected 404 for unknown ticker through ingress, got ${status_code}"
   exit 1
 fi
 
-echo "[check] baseline component smoke suite in state 007 runtime"
-"${REPO_ROOT}/scripts/test-reference-data-overlay.sh" "${ORIGIN}" "http://localhost:18085"
+echo "[check] persisted trade/position include price and average cost basis"
+curl -sS "http://localhost:18090/trades/22214" | jq -e 'length > 0 and (.[0].price != null)' >/dev/null || {
+  echo "[error] expected persisted trades to include price"
+  exit 1
+}
+curl -sS "http://localhost:18090/positions/22214" | jq -e 'length > 0 and (.[0].averageCostBasis != null)' >/dev/null || {
+  echo "[error] expected persisted positions to include averageCostBasis"
+  exit 1
+}
+
+echo "[check] baseline component smoke suite in state 010 runtime"
+"${REPO_ROOT}/scripts/test-reference-data-overlay.sh" "${ORIGIN}" "http://localhost:18085" "20"
 "${REPO_ROOT}/scripts/test-database-overlay.sh" "18082" "18083" "http://localhost:18084/" "http://localhost:18088/account/22214"
 "${REPO_ROOT}/scripts/test-people-service-overlay.sh" "${ORIGIN}" "http://localhost:18089" "http://localhost:18088/accountuser/"
 "${REPO_ROOT}/scripts/test-account-service-overlay.sh" "${ORIGIN}" "http://localhost:18088"
@@ -265,4 +300,4 @@ echo "[check] baseline component smoke suite in state 007 runtime"
 "${REPO_ROOT}/scripts/test-trade-service-overlay.sh" "${ORIGIN}" "http://localhost:18092" "http://localhost:18090"
 "${REPO_ROOT}/scripts/test-web-angular-overlay.sh" "${INGRESS_URL}"
 
-echo "[done] state 007 messaging-nats runtime smoke tests passed"
+echo "[done] state 010 pricing-awareness runtime smoke tests passed"

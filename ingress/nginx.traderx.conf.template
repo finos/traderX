@@ -50,6 +50,10 @@ server {
         proxy_pass ${TRADE_PROCESSOR_URL};
     }
 
+    location /price-publisher/ {
+        proxy_pass ${PRICE_PUBLISHER_URL};
+    }
+
     location / {
         proxy_pass ${WEB_FRONTEND_URL};
         proxy_http_version 1.1;

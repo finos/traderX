@@ -1,5 +1,6 @@
 package finos.traderx.positionservice.model;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 public class Trade {
@@ -9,6 +10,7 @@ public class Trade {
   private String side;
   private String state;
   private Integer quantity;
+  private BigDecimal price;
   private Date updated;
   private Date created;
 
@@ -58,6 +60,14 @@ public class Trade {
 
   public void setQuantity(Integer quantity) {
     this.quantity = quantity;
+  }
+
+  public BigDecimal getPrice() {
+    return price;
+  }
+
+  public void setPrice(BigDecimal price) {
+    this.price = price;
   }
 
   public Date getUpdated() {
