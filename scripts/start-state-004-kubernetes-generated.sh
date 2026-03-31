@@ -12,6 +12,7 @@ RUN_DIR="${STATE_DIR}/.run/state-004-kubernetes"
 DRY_RUN=0
 SKIP_BUILD=0
 RECREATE_CLUSTER=0
+SKIP_GENERATE=0
 K8S_PROVIDER="${K8S_PROVIDER:-kind}"
 MINIKUBE_PROFILE=""
 MINIKUBE_DRIVER="${MINIKUBE_DRIVER:-docker}"
@@ -27,6 +28,9 @@ while (( "$#" )); do
     --recreate-cluster)
       RECREATE_CLUSTER=1
       ;;
+    --skip-generate)
+      SKIP_GENERATE=1
+      ;;
     --provider)
       K8S_PROVIDER="${2:-}"
       shift
@@ -41,7 +45,7 @@ while (( "$#" )); do
       ;;
     *)
       echo "[error] unknown argument: $1"
-      echo "[hint] supported: --dry-run --skip-build --recreate-cluster --provider <kind|minikube> --minikube-profile <name> --minikube-driver <name>"
+      echo "[hint] supported: --dry-run --skip-build --recreate-cluster --skip-generate --provider <kind|minikube> --minikube-profile <name> --minikube-driver <name>"
       exit 1
       ;;
   esac
@@ -53,7 +57,11 @@ if ! command -v jq >/dev/null 2>&1; then
   exit 1
 fi
 
-bash "${REPO_ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+if (( SKIP_GENERATE == 0 )); then
+  bash "${REPO_ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+else
+  echo "[info] skipping state generation for ${STATE_ID} (--skip-generate)"
+fi
 
 [[ -f "${BUILD_PLAN}" ]] || {
   echo "[error] missing build plan: ${BUILD_PLAN}"

@@ -15,6 +15,10 @@
 - `SYS-FR-011` The generated codebase SHALL preserve current baseline API/event contracts required for UI and service interoperability.
 - `SYS-FR-012` Submitting a valid trade through trade-service SHALL produce realtime account-scoped trade and position websocket updates consumable without page refresh.
 - `SYS-FR-013` The UI position blotter SHALL upsert realtime position updates by security key so existing rows are updated in place and duplicates are not created.
+- `SYS-FR-014` The UI SHALL provide an `All Accounts` selection that loads aggregated trades and merged positions across all known accounts.
+- `SYS-FR-015` In `All Accounts` mode, the UI SHALL disable trade-ticket creation and display explanatory guidance.
+- `SYS-FR-016` Security entry in trade ticket SHALL use typeahead matching by combined ticker/company label and disable browser autocomplete.
+- `SYS-FR-017` Account administration UI SHALL resolve usernames to people-service full names for account-user display with fallback to username on lookup failure.
 
 ## Non-Functional Requirements
 
@@ -25,3 +29,4 @@
 - `SYS-NFR-005` Requirements SHALL be traceable to user stories, acceptance criteria, generated components, and verification commands.
 - `SYS-NFR-006` Angular UI branding assets and FINOS/TraderX identity SHALL remain intact in baseline UI generation.
 - `SYS-NFR-007` Spec-first generation SHALL not require hydration from deleted legacy source trees.
+- `SYS-NFR-008` Trade and position blotters SHALL keep responsive readability through side-by-side layout with wrap and minimum pane width constraints.

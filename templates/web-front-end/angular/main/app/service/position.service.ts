@@ -19,8 +19,20 @@ export class PositionService {
         );
     }
 
+    getAllTrades(): Observable<Trade[]> {
+        return this.http.get<Trade[]>(this.tradesUrl).pipe(
+            catchError(this.handleError)
+        );
+    }
+
     getPositions(account_id: number): Observable<Position[]> {
         return this.http.get<Position[]>(this.positionsUrl + account_id ).pipe(
+            catchError(this.handleError)
+        );
+    }
+
+    getAllPositions(): Observable<Position[]> {
+        return this.http.get<Position[]>(this.positionsUrl).pipe(
             catchError(this.handleError)
         );
     }

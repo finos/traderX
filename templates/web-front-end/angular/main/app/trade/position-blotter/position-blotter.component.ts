@@ -13,12 +13,14 @@ import { TradeFeedService } from 'main/app/service/trade-feed.service';
 })
 export class PositionBlotterComponent implements OnChanges, OnDestroy {
   @Input() account?: Account;
+  @Input() allAccountsMode = false;
+  @Input() accountIds: number[] = [];
   positions$: Observable<Position[]>;
   positions: any = [];
   gridApi: GridApi;
   pendingPosition: any[] = [];
   isPending = true;
-  socketUnSubscribeFn: Function;
+  socketUnSubscribeFns: Function[] = [];
 
   columnDefs: ColDef[] = [
     {
@@ -38,23 +40,9 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
   }
 
   ngOnChanges(change: SimpleChanges) {
-    if (change.account?.currentValue && change.account.currentValue !== change.account.previousValue) {
-      const accountId = change.account.currentValue.id;
-      this.isPending = true;
-
-      this.tradeService.getPositions(accountId).subscribe((positions: Position[]) => {
-        this.positions = positions;
-        this.processPendingPositions();
-      }, () => {
-        this.isPending = false;
-      });
-
-
-      this.socketUnSubscribeFn?.();
-      this.socketUnSubscribeFn = this.tradeFeed.subscribe(`/accounts/${accountId}/positions`, (data: any) => {
-        console.log('Position blotter feed...', data);
-        this.updatePosition(data);
-      });
+    const scopeChanged = !!change.account || !!change.allAccountsMode || !!change.accountIds;
+    if (scopeChanged) {
+      this.loadScope();
     }
   }
 
@@ -105,6 +93,7 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
   onGridReady(params: GridReadyEvent) {
     console.log('position blotter is ready...');
     this.gridApi = params.api;
+    this.gridApi.sizeColumnsToFit();
   }
 
   getRowId(params: GetRowIdParams<any>):string {
@@ -116,7 +105,100 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.socketUnSubscribeFn?.();
+    this.clearSubscriptions();
+  }
+
+  private loadScope() {
+    this.clearSubscriptions();
+    this.isPending = true;
+
+    if (this.allAccountsMode) {
+      this.refreshAllAccountsPositions();
+      for (const accountId of this.accountIds) {
+        const unSub = this.tradeFeed.subscribe(`/accounts/${accountId}/positions`, () => {
+          this.refreshAllAccountsPositions();
+        });
+        this.socketUnSubscribeFns.push(unSub);
+      }
+      return;
+    }
+
+    const accountId = this.account?.id;
+    if (!accountId || accountId <= 0) {
+      this.positions = [];
+      this.pendingPosition = [];
+      this.isPending = false;
+      return;
+    }
+
+    this.tradeService.getPositions(accountId).subscribe((positions: Position[]) => {
+      this.positions = positions ?? [];
+      this.processPendingPositions();
+    }, () => {
+      this.isPending = false;
+    });
+
+    const unSub = this.tradeFeed.subscribe(`/accounts/${accountId}/positions`, (data: any) => {
+      console.log('Position blotter feed...', data);
+      this.updatePosition(data);
+    });
+    this.socketUnSubscribeFns.push(unSub);
+  }
+
+  private refreshAllAccountsPositions() {
+    this.tradeService.getAllPositions().subscribe((positions: Position[]) => {
+      const merged = this.mergePositionsBySecurity(positions ?? []);
+      this.positions = merged;
+      if (this.gridApi) {
+        this.setGridRowData(merged);
+      }
+      this.pendingPosition = [];
+      this.isPending = false;
+    }, () => {
+      this.isPending = false;
+    });
+  }
+
+  private mergePositionsBySecurity(positions: Position[]): any[] {
+    const grouped = new Map<string, any>();
+    for (const position of positions) {
+      const security = (position as any)?.security;
+      if (!security) {
+        continue;
+      }
+      const quantity = Number((position as any).quantity ?? 0);
+      const updated = (position as any).updated;
+      if (!grouped.has(security)) {
+        grouped.set(security, {
+          security,
+          quantity: 0,
+          updated
+        });
+      }
+      const row = grouped.get(security);
+      row.quantity += quantity;
+      row.updated = updated ?? row.updated;
+    }
+    return Array.from(grouped.values()).sort((a, b) => String(a.security).localeCompare(String(b.security)));
+  }
+
+  private clearSubscriptions() {
+    for (const unSub of this.socketUnSubscribeFns) {
+      unSub?.();
+    }
+    this.socketUnSubscribeFns = [];
+  }
+
+  private setGridRowData(rows: any[]) {
+    if (!this.gridApi) {
+      return;
+    }
+    if (typeof (this.gridApi as any).setGridOption === 'function') {
+      (this.gridApi as any).setGridOption('rowData', rows);
+    } else if (typeof (this.gridApi as any).setRowData === 'function') {
+      (this.gridApi as any).setRowData(rows);
+    }
+    this.gridApi.sizeColumnsToFit();
   }
 
 }

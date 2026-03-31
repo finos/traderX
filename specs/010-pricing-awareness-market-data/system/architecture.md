@@ -37,7 +37,7 @@ flowchart LR
   tradeService -->|"Fetch execution price"| pricePublisher
   tradeService -->|"Publish /trades"| nats
   tradeProcessor -->|"Consume /trades, publish account updates"| nats
-  pricePublisher -->|"Publish pricing.<ticker>"| nats
+  pricePublisher -->|"Publish pricing.<TICKER>"| nats
   web -->|"Subscribe account + pricing topics"| nats
   tradeProcessor -->|"Persist trades + positions"| database
   position -->|"Query trades + positions"| database
@@ -52,7 +52,7 @@ flowchart LR
 | `ingress` | gateway | NGINX Ingress | Routes REST and websocket traffic. |
 | `web` | frontend | Web Front End Angular | Subscribes to account and pricing streams via nats.ws. |
 | `nats` | messaging | NATS Broker | Pub/sub broker for backend and browser streaming. |
-| `pricePublisher` | service | Price Publisher | Publishes pricing.<ticker> and exposes REST quote endpoint. |
+| `pricePublisher` | service | Price Publisher | Publishes `pricing.<TICKER>` and exposes REST quote endpoint. |
 | `tradeService` | service | Trade Service | Validates account/ticker and stamps execution price before publishing orders. |
 | `tradeProcessor` | service | Trade Processor | Processes trades, persists price/cost basis, emits account updates. |
 | `account` | service | Account Service | Account and account-user operations. |

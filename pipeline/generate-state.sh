@@ -11,10 +11,28 @@ if [[ -z "${STATE_ID}" ]]; then
   exit 1
 fi
 
+clean_target_root() {
+  local attempts=6
+  local delay=1
+  local i
+
+  for ((i=1; i<=attempts; i++)); do
+    rm -rf "${TARGET_ROOT}" && break || true
+    if (( i == attempts )); then
+      echo "[fail] unable to clean target root after ${attempts} attempts: ${TARGET_ROOT}"
+      echo "[hint] stop active state runtimes, then retry."
+      exit 1
+    fi
+    echo "[warn] target cleanup retry ${i}/${attempts} for ${TARGET_ROOT}"
+    sleep "${delay}"
+  done
+
+  mkdir -p "${TARGET_ROOT}"
+}
+
 # Always regenerate from a clean target so each state output is deterministic
 # and does not carry unrelated artifacts from prior state runs.
-rm -rf "${TARGET_ROOT}"
-mkdir -p "${TARGET_ROOT}"
+clean_target_root
 
 case "${STATE_ID}" in
   001-baseline-uncontainerized-parity)

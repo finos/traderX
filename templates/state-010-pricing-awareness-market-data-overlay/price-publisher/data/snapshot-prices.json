@@ -8,5 +8,15 @@
   "TSLA": { "openPrice": 169.200, "closePrice": 172.000 },
   "IBM": { "openPrice": 186.000, "closePrice": 187.400 },
   "BAC": { "openPrice": 41.100, "closePrice": 41.700 },
-  "C": { "openPrice": 59.200, "closePrice": 58.600 }
+  "C": { "openPrice": 59.200, "closePrice": 58.600 },
+  "JPM": { "openPrice": 194.100, "closePrice": 195.800 },
+  "GS": { "openPrice": 401.700, "closePrice": 404.200 },
+  "MS": { "openPrice": 90.500, "closePrice": 91.100 },
+  "UBS": { "openPrice": 29.400, "closePrice": 29.900 },
+  "DB": { "openPrice": 16.800, "closePrice": 17.050 },
+  "COF": { "openPrice": 149.200, "closePrice": 150.300 },
+  "DFS": { "openPrice": 126.400, "closePrice": 127.650 },
+  "FNMA": { "openPrice": 1.120, "closePrice": 1.145 },
+  "FIS": { "openPrice": 74.700, "closePrice": 75.200 },
+  "FNF": { "openPrice": 49.500, "closePrice": 49.950 }
 }

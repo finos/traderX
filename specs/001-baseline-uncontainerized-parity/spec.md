@@ -67,6 +67,36 @@ As an operations user, I need to create/update accounts and assign users validat
 1. **Given** account create/update payload, **When** submitted, **Then** account data persists and is retrievable.
 2. **Given** account-user mapping request, **When** username is unknown in people-service, **Then** mapping is rejected.
 
+---
+
+### User Story 5 - Cross-Account Monitoring UX (Priority: P2)
+
+As a trader, I need an **All Accounts** view that aggregates blotters while preventing ambiguous order entry.
+
+**Why this priority**: Baseline demos and learning flows frequently require cross-account visibility without sacrificing safe ticket semantics.
+
+**Independent Test**: Use UI contract checks to verify all-accounts selection, aggregated blotter wiring, and ticket-disable behavior.
+
+**Acceptance Scenarios**:
+
+1. **Given** `All Accounts` is selected, **When** blotter bootstrap runs, **Then** trades and positions are loaded in cross-account mode.
+2. **Given** `All Accounts` is selected, **When** the user opens trade ticket, **Then** ticket creation is disabled and explanatory guidance is shown.
+
+---
+
+### User Story 6 - Search + Identity UX (Priority: P2)
+
+As a trader/operations user, I need reliable security lookup and human-readable account-user names.
+
+**Why this priority**: Faster security entry and full-name user displays improve baseline usability without changing core trading semantics.
+
+**Independent Test**: Verify typeahead and account-user enrichment contracts in generated Angular source and smoke checks.
+
+**Acceptance Scenarios**:
+
+1. **Given** trade ticket security input, **When** user types, **Then** typeahead uses combined ticker/company matching and browser autocomplete is disabled.
+2. **Given** account users list is rendered, **When** people-service lookup succeeds, **Then** full names are shown (with username fallback on lookup error).
+
 ### Edge Cases
 
 - Unknown ticker must return `404` and no new trade publish.
@@ -95,6 +125,10 @@ As an operations user, I need to create/update accounts and assign users validat
 - **FR-013**: Generated implementation MUST run without copying code from deleted legacy root component directories.
 - **FR-014**: Submitting a valid trade through trade-service MUST emit realtime account-scoped trade and position topic updates consumable by websocket clients.
 - **FR-015**: The UI position blotter MUST upsert realtime position updates by security key, updating existing rows in place rather than appending duplicates.
+- **FR-016**: The UI MUST provide an `All Accounts` option that enables cross-account trades view and merged-by-security positions view.
+- **FR-017**: The UI MUST disable trade-ticket creation while `All Accounts` is selected and provide explanatory feedback.
+- **FR-018**: Trade ticket security lookup MUST use combined ticker/company typeahead matching with browser autocomplete disabled.
+- **FR-019**: Account-user administration view MUST display people-service `fullName` values (with username fallback).
 
 ### Non-Functional Requirements
 
@@ -105,6 +139,7 @@ As an operations user, I need to create/update accounts and assign users validat
 - **NFR-005 (Code Closeness Gate)**: Generation output MUST pass semantic comparison against the approved baseline with no differences in `source-code`, `runtime-config`, or `api-contract` categories.
 - **NFR-006 (Deterministic Generation)**: Re-running generation from unchanged specs MUST produce stable output with no unexpected drift.
 - **NFR-007 (Traceable Derivation)**: Every major generated component behavior MUST map to plain-English requirement statements and to technical constraints (ports/env/contracts/dependencies).
+- **NFR-008 (Responsive Blotters)**: Trade and position blotters MUST preserve readability across viewport sizes via side-by-side wrapping layout with minimum pane width constraints.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -130,6 +165,9 @@ As an operations user, I need to create/update accounts and assign users validat
 - **SC-008**: Baseline component technical profile (`fidelity-profile.md`) and generated manifests remain aligned.
 - **SC-009**: An automated websocket functional test can subscribe to account trade/position topics, submit a trade, and observe both updates without page reload.
 - **SC-010**: Realtime position updates for an already-rendered security update the existing UI row in place with no duplicate row created.
+- **SC-011**: `All Accounts` mode is available, loads cross-account blotters, and disables ticket creation.
+- **SC-012**: Security input typeahead uses combined ticker/company labels and suppresses browser autocomplete behavior.
+- **SC-013**: Account-user grid displays full names resolved from people-service (or username fallback when lookup fails).
 
 ## Assumptions
 

@@ -26,7 +26,9 @@ Add pricing behavior on top of state `007` messaging/runtime without breaking ex
 - Bootstrap baseline open/close values from:
   - snapshot file (default), or
   - yfinance (startup-only mode).
-- Emit `pricing.<TICKER>` NATS updates every 1-2 seconds.
+- Emit `pricing.<TICKER>` NATS updates on randomized interval (`750-1500ms` default),
+  publishing randomized subset per cycle (`25%` default, configurable).
+- Align supported symbol universe with reference-data and normalize legacy `FB` to `META` in reference-data output.
 
 ## Frontend Changes
 

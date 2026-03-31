@@ -3,6 +3,7 @@ set -euo pipefail
 
 ORIGIN="${1:-http://localhost:18093}"
 BASE_URL="${2:-http://localhost:18085}"
+MIN_STOCK_COUNT="${3:-500}"
 
 echo "[check] CORS header from ${BASE_URL}/stocks for origin ${ORIGIN}"
 headers="$(curl -sS -i -H "Origin: ${ORIGIN}" "${BASE_URL}/stocks" | sed -n '1,30p')"
@@ -22,8 +23,8 @@ fi
 echo "[check] stocks list size"
 stocks_count="$(curl -sS "${BASE_URL}/stocks" | jq 'length')"
 echo "[info] stock count=${stocks_count}"
-if [[ "${stocks_count}" -lt 500 ]]; then
-  echo "[error] expected at least 500 symbols from baseline CSV, got ${stocks_count}"
+if [[ "${stocks_count}" -lt "${MIN_STOCK_COUNT}" ]]; then
+  echo "[error] expected at least ${MIN_STOCK_COUNT} symbols, got ${stocks_count}"
   exit 1
 fi
 

@@ -13,13 +13,17 @@ This pack adds execution pricing, position average cost basis, and streaming val
 
 - Keep runtime model on Docker Compose + NGINX ingress from `007`.
 - Add `price-publisher` component:
-  - emits `pricing.<TICKER>` messages on NATS every 1-2 seconds,
+  - emits `pricing.<TICKER>` messages on NATS using randomized batch cadence (`750-1500ms` default, `25%` symbols per cycle),
   - supports startup bootstrap from snapshot data or yfinance.
 - Stamp trade execution price at submission (`trade-service`) and persist it (`trade-processor`).
 - Aggregate position average cost basis in persistence model on every trade.
+- Align supported symbol universe between `reference-data` and `price-publisher` via shared runtime config.
+- Normalize legacy `FB` symbol to `META` in state `010` reference-data responses.
+- Expand default sample universe to include financial-services institutions used in demos:
+  `MS`, `UBS`, `C`, `GS`, `DB`, `JPM`, `COF`, `DFS`, `FNMA`, `FIS`, `FNF`.
 - Extend Angular blotters with:
   - trade execution price and relative execution time,
-  - position market price/value/P&L,
+  - position open/market price/value/P&L with directional and semantic highlighting,
   - total portfolio value and cost basis.
 
 ## Artifacts

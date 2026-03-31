@@ -15,7 +15,14 @@ import { TradeFeedService } from '../service/trade-feed.service';
     styleUrls: ['./trade.component.scss']
 })
 export class TradeComponent implements OnInit, OnDestroy {
+    private readonly allAccountsOption: Account = {
+        id: 0,
+        displayName: 'All Accounts'
+    };
     accounts: Account[] = [];
+    realAccounts: Account[] = [];
+    accountIds: number[] = [];
+    accountNameById: { [accountId: number]: string } = {};
     accountModel?: Account = undefined;
     stocks: Stock[] = [];
     modalRef?: BsModalRef;
@@ -48,8 +55,14 @@ export class TradeComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         this.accountService.getAccounts().subscribe((accounts) => {
-            this.accounts = accounts;
-            this.setAccount(this.accounts[5]);
+            this.realAccounts = accounts;
+            this.accountNameById = this.realAccounts.reduce((acc, account) => {
+                acc[account.id] = account.displayName;
+                return acc;
+            }, {} as { [accountId: number]: string });
+            this.accountIds = this.realAccounts.map((account) => account.id);
+            this.accounts = [this.allAccountsOption, ...this.realAccounts];
+            this.setAccount(this.realAccounts[5] ?? this.realAccounts[0] ?? this.allAccountsOption);
             console.log(this.accounts);
         });
         this.symbolService.getStocks().subscribe((stocks) => this.stocks = stocks);
@@ -73,10 +86,17 @@ export class TradeComponent implements OnInit, OnDestroy {
     }
 
     openTicket(template: TemplateRef<any>) {
+        if (this.isAllAccountsSelected) {
+            return;
+        }
         this.modalRef = this.modalService.show(template);
     }
 
     createTradeTicket(ticket: TradeTicket) {
+        if (this.isAllAccountsSelected) {
+            this.createTicketResponse = { success: false, message: 'Select a specific account to create a trade.' };
+            return;
+        }
         console.log('createTradeTicket', ticket);
         this.symbolService.createTicket(ticket).subscribe((response) => {
             console.log(response);
@@ -96,7 +116,7 @@ export class TradeComponent implements OnInit, OnDestroy {
 
     onSummaryChange(summary: PortfolioSummary) {
         this.accountSummary = summary;
-        this.portfolioSummary = summary;
+        this.portfolioSummary = this.isAllAccountsSelected ? this.allAccountsSummary : summary;
     }
 
     private setAccount(account: Account) {
@@ -114,6 +134,9 @@ export class TradeComponent implements OnInit, OnDestroy {
         };
     }
 
+    get isAllAccountsSelected(): boolean {
+        return (this.accountModel?.id ?? -1) === this.allAccountsOption.id;
+    }
     ngOnDestroy(): void {
         this.priceStreamUnsubscribeFn?.();
     }
@@ -145,5 +168,9 @@ export class TradeComponent implements OnInit, OnDestroy {
         }
 
         this.allAccountsSummary = totals;
+        if (this.isAllAccountsSelected) {
+            this.accountSummary = totals;
+            this.portfolioSummary = totals;
+        }
     }
 }

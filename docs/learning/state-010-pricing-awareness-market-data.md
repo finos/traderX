@@ -23,11 +23,11 @@ title: "State 010: Pricing Awareness and Market Data Streaming"
 - **Added:** Trade execution pricing (`trade.price`) with 3-decimal precision.
 - **Added:** Position pre-aggregated volume-weighted average cost basis (`position.averageCostBasis`).
 - **Added:** Market price stream topics (`pricing.<TICKER>`) from a new `price-publisher` component.
+- **Added:** Startup-assigned per-ticker volatility band profile for synthetic pricing bounds (20% @ ±4%, 60% @ ±2%, 20% strict open/close).
 - **Added:** UI valuation fields: market price, position value, unrealized P&L, portfolio totals.
-- **Changed:** `trade-service` now enriches submitted trade orders with current price before NATS publication.
-- **Changed:** `trade-processor` now computes and persists average cost basis per account/security on every trade.
-- **Changed:** Trade blotter now includes execution price and relative execution timestamp rendering.
-- **Changed:** Position blotter now updates value and P&L in real time from price stream ticks.
+- **Added:** Position blotter `OPEN` column and directional market marker (`▲/▼/■`) against open price.
+- **Added:** Conditional valuation highlighting in position blotter for market-price/open and value-vs-cost comparisons.
+- **Added:** Trade ticket selected-security live price stream subscription from `pricing.<TICKER>`.
 
 ## Run This State
 

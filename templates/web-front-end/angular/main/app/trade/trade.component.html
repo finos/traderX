@@ -12,9 +12,12 @@
             </app-ngx-dropdown>
         </div>
         <div class="trade-ticket mb-4">
-            <button type="button" id="createTicketBtn" class="btn btn-sm btn-primary mb-2" (click)="openTicket(ticketComponent)">
+            <button type="button" id="createTicketBtn" class="btn btn-sm btn-primary mb-2" (click)="openTicket(ticketComponent)" [disabled]="isAllAccountsSelected">
                 Create Trade Ticket
             </button>
+            <div *ngIf="isAllAccountsSelected" class="text-muted small mb-2">
+                Trade ticket is disabled in <strong>All Accounts</strong> mode.
+            </div>
             <ng-template #ticketComponent>
                 <app-trade-ticket [stocks]="stocks" [account]="accountModel" (create)="createTradeTicket($event)" (cancel)="closeTicket()">
                 </app-trade-ticket>
@@ -32,7 +35,18 @@
     </div>
 
     <div class="trade-blotter">
-        <app-trade-blotter [account]="accountModel" class="trade-blotter-items me-2"> </app-trade-blotter>
-        <app-position-blotter [account]="accountModel" class="position-blotter-items"> </app-position-blotter>
+        <app-trade-blotter
+            [account]="accountModel"
+            [allAccountsMode]="isAllAccountsSelected"
+            [accountIds]="accountIds"
+            [accountNameById]="accountNameById"
+            class="trade-blotter-items">
+        </app-trade-blotter>
+        <app-position-blotter
+            [account]="accountModel"
+            [allAccountsMode]="isAllAccountsSelected"
+            [accountIds]="accountIds"
+            class="position-blotter-items">
+        </app-position-blotter>
     </div>
 </div>

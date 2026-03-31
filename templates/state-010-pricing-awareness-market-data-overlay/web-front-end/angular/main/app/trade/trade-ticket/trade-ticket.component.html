@@ -13,7 +13,7 @@
                 [minLength]="1"
                 [(ngModel)]="selectedCompany"
                 [typeahead]="filteredStocks"
-                typeaheadOptionField="companyName"
+                typeaheadOptionField="matchLabel"
                 (typeaheadOnSelect)="onSelect($event)"
                 (blur)="onBlur()"
                 placeholder="Search security"

@@ -13,12 +13,17 @@ import { TradeFeedService } from 'main/app/service/trade-feed.service';
 export class TradeBlotterComponent implements OnChanges, OnDestroy {
     trades$: Observable<Trade[]>;
     @Input() account?: Account;
+    @Input() allAccountsMode = false;
+    @Input() accountIds: number[] = [];
+    @Input() accountNameById: { [accountId: number]: string } = {};
     trades: Trade[] = [];
     gridApi: GridApi;
     pendingTrades: Trade[] = [];
     isPending = true;
-    socketUnSubscribeFn: Function;
-    columnDefs: ColDef[] = [
+    socketUnSubscribeFns: Function[] = [];
+    columnDefs: ColDef[] = [];
+
+    private readonly baseColumns: ColDef[] = [
         {
             headerName: 'SECURITY',
             field: 'security'
@@ -41,24 +46,21 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
     constructor(private tradeFeed: TradeFeedService, private tradeService: PositionService) { }
 
     ngOnChanges(change: SimpleChanges) {
-        if (change.account?.currentValue && change.account.currentValue !== change.account.previousValue) {
-            const accountId = change.account.currentValue.id;
-            this.isPending = true;
-            this.tradeService.getTrades(accountId).subscribe((trades: Trade[]) => {
-                this.trades = trades;
-                this.processPendingTrades();
-            });
-            this.socketUnSubscribeFn?.();
-            this.socketUnSubscribeFn = this.tradeFeed.subscribe(`/accounts/${accountId}/trades`, (data: Trade) => {
-                console.log('Trade blotter feed...', data);
-                this.updateTrades(data);
-            });
+        const scopeChanged =
+            !!change.account ||
+            !!change.allAccountsMode ||
+            !!change.accountIds ||
+            !!change.accountNameById;
+        if (scopeChanged) {
+            this.configureColumns();
+            this.loadScope();
         }
     }
 
     onGridReady(params: GridReadyEvent) {
         console.log('trade blotter is ready...');
         this.gridApi = params.api;
+        this.configureColumns();
         this.gridApi.sizeColumnsToFit();
     }
 
@@ -67,7 +69,7 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
     }
 
     ngOnDestroy() {
-        this.socketUnSubscribeFn?.();
+        this.clearSubscriptions();
     }
 
     private processPendingTrades() {
@@ -77,23 +79,29 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
     }
 
     private update(data: Trade) {
-        const row = this.gridApi.getRowNode(data.id);
+        if (!this.gridApi) {
+            this.pendingTrades.push(data);
+            return;
+        }
+        const tradeWithDisplay = this.withAccountDisplay(data);
+        const row = this.gridApi.getRowNode(this.toRowId(tradeWithDisplay.id));
         let tradeData;
         if (row) {
             tradeData = {
-                update: [Object.assign(row.data, { state: data.state })]
+                update: [Object.assign(row.data, { state: tradeWithDisplay.state, accountDisplayName: tradeWithDisplay.accountDisplayName })]
             };
         } else {
             tradeData = {
                 add: [{
-                    accountid: data.accountid,
-                    created: data.created,
-                    id: data.id,
-                    quantity: data.quantity,
-                    security: data.security,
-                    side: data.side,
-                    state: data.state,
-                    updated: data.updated
+                    accountid: tradeWithDisplay.accountid,
+                    accountDisplayName: tradeWithDisplay.accountDisplayName,
+                    created: tradeWithDisplay.created,
+                    id: tradeWithDisplay.id,
+                    quantity: tradeWithDisplay.quantity,
+                    security: tradeWithDisplay.security,
+                    side: tradeWithDisplay.side,
+                    state: tradeWithDisplay.state,
+                    updated: tradeWithDisplay.updated
                 }],
                 addIndex: 0
             };
@@ -107,5 +115,82 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
         } else {
             this.update(data);
         }
+    }
+
+    private loadScope() {
+        this.isPending = true;
+        this.clearSubscriptions();
+
+        if (this.allAccountsMode) {
+            this.tradeService.getAllTrades().subscribe((trades: Trade[]) => {
+                this.trades = (trades ?? []).map((trade) => this.withAccountDisplay(trade));
+                this.processPendingTrades();
+            }, () => {
+                this.isPending = false;
+            });
+            for (const accountId of this.accountIds) {
+                const unSub = this.tradeFeed.subscribe(`/accounts/${accountId}/trades`, (data: Trade) => {
+                    console.log('Trade blotter feed...', data);
+                    this.updateTrades(data);
+                });
+                this.socketUnSubscribeFns.push(unSub);
+            }
+            return;
+        }
+
+        const accountId = this.account?.id;
+        if (!accountId || accountId <= 0) {
+            this.trades = [];
+            this.pendingTrades = [];
+            this.isPending = false;
+            return;
+        }
+
+        this.tradeService.getTrades(accountId).subscribe((trades: Trade[]) => {
+            this.trades = (trades ?? []).map((trade) => this.withAccountDisplay(trade));
+            this.processPendingTrades();
+        }, () => {
+            this.isPending = false;
+        });
+
+        const unSub = this.tradeFeed.subscribe(`/accounts/${accountId}/trades`, (data: Trade) => {
+            console.log('Trade blotter feed...', data);
+            this.updateTrades(data);
+        });
+        this.socketUnSubscribeFns.push(unSub);
+    }
+
+    private clearSubscriptions() {
+        for (const unSub of this.socketUnSubscribeFns) {
+            unSub?.();
+        }
+        this.socketUnSubscribeFns = [];
+    }
+
+    private withAccountDisplay(data: Trade): Trade & { accountDisplayName: string } {
+        const accountId = Number((data as any).accountid ?? 0);
+        const accountDisplayName = this.accountNameById[accountId] ?? `#${accountId}`;
+        return Object.assign({}, data, { accountid: accountId, accountDisplayName });
+    }
+
+    private configureColumns() {
+        const allAccountsColumns: ColDef[] = this.allAccountsMode ? [{
+            headerName: 'ACCOUNT',
+            field: 'accountDisplayName'
+        }] : [];
+        this.columnDefs = [...allAccountsColumns, ...this.baseColumns];
+        if (!this.gridApi) {
+            return;
+        }
+        if (typeof (this.gridApi as any).setGridOption === 'function') {
+            (this.gridApi as any).setGridOption('columnDefs', this.columnDefs);
+        } else if (typeof (this.gridApi as any).setColumnDefs === 'function') {
+            (this.gridApi as any).setColumnDefs(this.columnDefs);
+        }
+        this.gridApi.sizeColumnsToFit();
+    }
+
+    private toRowId(id: string | number | undefined): string {
+        return `Trade-${id ?? 'unknown'}`;
     }
 }

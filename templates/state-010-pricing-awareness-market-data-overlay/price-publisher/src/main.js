@@ -7,6 +7,9 @@ const yahooFinance = require('yahoo-finance2').default;
 const PORT = Number(process.env.PRICE_PUBLISHER_PORT || '18100');
 const NATS_URL = process.env.NATS_ADDRESS || `nats://${process.env.NATS_BROKER_HOST || 'localhost'}:4222`;
 const BOOTSTRAP_MODE = (process.env.PRICE_BOOTSTRAP_MODE || 'snapshot').toLowerCase();
+const PUBLISH_INTERVAL_MIN_MS = Number(process.env.PRICE_PUBLISH_INTERVAL_MIN_MS || '750');
+const PUBLISH_INTERVAL_MAX_MS = Number(process.env.PRICE_PUBLISH_INTERVAL_MAX_MS || '1500');
+const PUBLISH_BATCH_RATIO = Number(process.env.PRICE_PUBLISH_BATCH_RATIO || '0.25');
 const TICKERS = (process.env.PRICE_TICKERS || 'AAPL,MSFT,AMZN,GOOGL,META,NVDA,TSLA,IBM,BAC,C')
   .split(',')
   .map((ticker) => ticker.trim().toUpperCase())
@@ -18,8 +21,29 @@ const app = express();
 const state = {
   source: BOOTSTRAP_MODE,
   nats: null,
-  prices: new Map()
+  prices: new Map(),
+  volatilityBands: new Map()
 };
+
+const VOLATILITY_PROFILES = [
+  { name: 'extended_4pct', upperRoll: 0.20, overflowPct: 0.04 },
+  { name: 'extended_2pct', upperRoll: 0.80, overflowPct: 0.02 },
+  { name: 'strict', upperRoll: 1.00, overflowPct: 0.00 }
+];
+
+function normalizePublishConfig() {
+  const minMs = Number.isFinite(PUBLISH_INTERVAL_MIN_MS) && PUBLISH_INTERVAL_MIN_MS > 0
+    ? Math.floor(PUBLISH_INTERVAL_MIN_MS)
+    : 750;
+  const maxMsCandidate = Number.isFinite(PUBLISH_INTERVAL_MAX_MS) && PUBLISH_INTERVAL_MAX_MS > 0
+    ? Math.floor(PUBLISH_INTERVAL_MAX_MS)
+    : 1500;
+  const maxMs = Math.max(minMs, maxMsCandidate);
+  const ratio = Number.isFinite(PUBLISH_BATCH_RATIO)
+    ? Math.min(1, Math.max(0.01, PUBLISH_BATCH_RATIO))
+    : 0.25;
+  return { minMs, maxMs, ratio };
+}
 
 function round3(value) {
   return Math.round(Number(value) * 1000) / 1000;
@@ -62,6 +86,74 @@ function normalizeQuote(ticker, openPrice, closePrice, source) {
   };
 }
 
+function chooseVolatilityProfile() {
+  const roll = Math.random();
+  for (const profile of VOLATILITY_PROFILES) {
+    if (roll <= profile.upperRoll) {
+      return profile;
+    }
+  }
+  return VOLATILITY_PROFILES[VOLATILITY_PROFILES.length - 1];
+}
+
+function shuffleInPlace(items) {
+  for (let i = items.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [items[i], items[j]] = [items[j], items[i]];
+  }
+  return items;
+}
+
+function buildVolatilityBand(quote, profile) {
+  const baselineLow = Math.min(Number(quote.openPrice), Number(quote.closePrice));
+  const baselineHigh = Math.max(Number(quote.openPrice), Number(quote.closePrice));
+  const low = round3(baselineLow * (1 - profile.overflowPct));
+  const high = round3(baselineHigh * (1 + profile.overflowPct));
+  return {
+    profile: profile.name,
+    overflowPct: profile.overflowPct,
+    low,
+    high
+  };
+}
+
+function ensureVolatilityBand(ticker, quote) {
+  if (!state.volatilityBands.has(ticker)) {
+    const profile = chooseVolatilityProfile();
+    state.volatilityBands.set(ticker, buildVolatilityBand(quote, profile));
+  }
+  return state.volatilityBands.get(ticker);
+}
+
+function assignStartupVolatilityBands() {
+  const tickers = shuffleInPlace(Array.from(state.prices.keys()));
+  const total = tickers.length;
+  if (total === 0) {
+    return;
+  }
+
+  const countExtended4 = Math.floor(total * 0.2);
+  const countStrict = Math.floor(total * 0.2);
+  const countExtended2 = total - countExtended4 - countStrict;
+
+  const assignments = [
+    ...Array(countExtended4).fill('extended_4pct'),
+    ...Array(countExtended2).fill('extended_2pct'),
+    ...Array(countStrict).fill('strict')
+  ];
+
+  for (let i = 0; i < tickers.length; i += 1) {
+    const ticker = tickers[i];
+    const quote = state.prices.get(ticker);
+    if (!quote) {
+      continue;
+    }
+    const profileName = assignments[i] || 'extended_2pct';
+    const profile = VOLATILITY_PROFILES.find((entry) => entry.name === profileName) || VOLATILITY_PROFILES[1];
+    state.volatilityBands.set(ticker, buildVolatilityBand(quote, profile));
+  }
+}
+
 async function loadFromYahoo(ticker, snapshotEntry) {
   const quote = await yahooFinance.quote(ticker);
   const open = Number(quote.regularMarketOpen);
@@ -80,6 +172,7 @@ async function bootstrapPrices() {
       try {
         const quote = await loadFromYahoo(ticker, snapshotEntry);
         state.prices.set(ticker, quote);
+        ensureVolatilityBand(ticker, quote);
         continue;
       } catch (err) {
         // fall through to snapshot/fallback
@@ -87,20 +180,22 @@ async function bootstrapPrices() {
     }
 
     if (snapshotEntry) {
-      state.prices.set(
-        ticker,
-        normalizeQuote(ticker, Number(snapshotEntry.openPrice), Number(snapshotEntry.closePrice), 'snapshot')
-      );
+      const quote = normalizeQuote(ticker, Number(snapshotEntry.openPrice), Number(snapshotEntry.closePrice), 'snapshot');
+      state.prices.set(ticker, quote);
+      ensureVolatilityBand(ticker, quote);
     } else {
-      state.prices.set(ticker, createFallbackQuote(ticker));
+      const quote = createFallbackQuote(ticker);
+      state.prices.set(ticker, quote);
+      ensureVolatilityBand(ticker, quote);
     }
   }
 }
 
 function updateTick(ticker) {
   const current = state.prices.get(ticker) || createFallbackQuote(ticker);
-  const low = Math.min(current.openPrice, current.closePrice) * 0.9;
-  const high = Math.max(current.openPrice, current.closePrice) * 1.1;
+  const band = ensureVolatilityBand(ticker, current);
+  const low = band.low;
+  const high = band.high;
   const drift = current.price * (Math.random() * 0.01 - 0.005);
   const nextPrice = round3(clamp(current.price + drift, low, high));
   const next = {
@@ -137,11 +232,24 @@ function publishTick(quote) {
   state.nats.publish(topic, Buffer.from(JSON.stringify(envelope)));
 }
 
-function scheduleTickerLoop(ticker) {
+function pickRandomSubset(items, count) {
+  const shuffled = shuffleInPlace([...items]);
+  return shuffled.slice(0, Math.max(1, Math.min(count, items.length)));
+}
+
+function schedulePublishLoop() {
+  const publishCfg = normalizePublishConfig();
   const loop = () => {
-    const quote = updateTick(ticker);
-    publishTick(quote);
-    const delayMs = 1000 + Math.floor(Math.random() * 1000);
+    const tickers = Array.from(state.prices.keys());
+    if (tickers.length > 0) {
+      const batchSize = Math.max(1, Math.ceil(tickers.length * publishCfg.ratio));
+      const selected = pickRandomSubset(tickers, batchSize);
+      for (const ticker of selected) {
+        const quote = updateTick(ticker);
+        publishTick(quote);
+      }
+    }
+    const delayMs = publishCfg.minMs + Math.floor(Math.random() * (publishCfg.maxMs - publishCfg.minMs + 1));
     setTimeout(loop, delayMs);
   };
   setTimeout(loop, 600);
@@ -153,17 +261,24 @@ function ensureTicker(ticker) {
     return null;
   }
   if (!state.prices.has(normalized)) {
-    state.prices.set(normalized, createFallbackQuote(normalized));
-    scheduleTickerLoop(normalized);
+    const quote = createFallbackQuote(normalized);
+    state.prices.set(normalized, quote);
+    ensureVolatilityBand(normalized, quote);
   }
   return state.prices.get(normalized);
 }
 
 app.get('/health', (_req, res) => {
+  const profileCounts = {};
+  for (const band of state.volatilityBands.values()) {
+    profileCounts[band.profile] = (profileCounts[band.profile] || 0) + 1;
+  }
   res.json({
     status: 'ok',
     source: state.source,
-    tickers: Array.from(state.prices.keys()).length
+    tickers: Array.from(state.prices.keys()).length,
+    publish: normalizePublishConfig(),
+    volatilityBands: profileCounts
   });
 });
 
@@ -183,10 +298,9 @@ app.get('/prices/:ticker', (req, res) => {
 
 async function main() {
   await bootstrapPrices();
+  assignStartupVolatilityBands();
   state.nats = await connect({ servers: NATS_URL, maxReconnectAttempts: -1 });
-  for (const ticker of state.prices.keys()) {
-    scheduleTickerLoop(ticker);
-  }
+  schedulePublishLoop();
   app.listen(PORT, () => {
     console.log(`price-publisher listening on :${PORT}`);
   });

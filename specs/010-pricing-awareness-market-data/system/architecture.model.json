@@ -48,7 +48,7 @@
       "id": "pricePublisher",
       "label": "Price Publisher",
       "kind": "service",
-      "description": "Publishes pricing.<ticker> and exposes REST quote endpoint."
+      "description": "Publishes `pricing.<TICKER>` and exposes REST quote endpoint."
     },
     {
       "id": "tradeService",
@@ -142,7 +142,7 @@
     {
       "from": "pricePublisher",
       "to": "nats",
-      "label": "Publish pricing.<ticker>"
+      "label": "Publish pricing.<TICKER>"
     },
     {
       "from": "web",

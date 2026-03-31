@@ -8,6 +8,7 @@ Parent state: `007-messaging-nats-replacement`
 - `position-service` payloads include `averageCostBasis` in positions and `price` in trades.
 - New local service endpoint:
   - `price-publisher`: `GET /prices`, `GET /prices/{ticker}`, `GET /health`.
+  - `price-publisher /health` includes active publish cadence config (`minMs`, `maxMs`, `ratio`).
 
 ## Event Contract Changes
 
@@ -29,3 +30,8 @@ Expected pricing payload:
   "source": "snapshot"
 }
 ```
+
+## Reference Data Symbol Contract Notes
+
+- State `010` normalizes legacy `FB` symbol to `META` for returned stock identifiers.
+- Runtime supported symbol set is expected to match between `reference-data` and `price-publisher`.

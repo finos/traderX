@@ -19,7 +19,7 @@ export class TradeTicketComponent implements OnInit {
 
   selectedCompany?: string = undefined;
   ticket: TradeTicket;
-  filteredStocks: Stock[] = [];
+  filteredStocks: Array<Stock & { matchLabel: string }> = [];
 
   ngOnInit() {
     this.ticket = {
@@ -29,13 +29,18 @@ export class TradeTicketComponent implements OnInit {
       security: ''
     };
 
-    this.filteredStocks = this.stocks;
+    this.filteredStocks = (this.stocks || []).map((stock) => ({
+      ...stock,
+      matchLabel: this.toMatchLabel(stock)
+    }));
   }
 
 
   onSelect(e: TypeaheadMatch): void {
     console.log('Selected value: ', e.value);
-    this.ticket.security = e.item.ticker;
+    const selectedStock = e.item as Stock & { matchLabel?: string };
+    this.ticket.security = selectedStock.ticker;
+    this.selectedCompany = selectedStock.matchLabel || this.toMatchLabel(selectedStock);
   }
 
   onBlur(): void {
@@ -54,5 +59,9 @@ export class TradeTicketComponent implements OnInit {
 
   onCancel() {
     this.cancel.emit();
+  }
+
+  private toMatchLabel(stock: Stock): string {
+    return `${stock.ticker} - ${stock.companyName}`;
   }
 }

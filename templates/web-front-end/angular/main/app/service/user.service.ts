@@ -30,4 +30,16 @@ export class UserService {
           })
         );
       }
+
+    getUser(logonId: string): Observable<User> {
+        return this.http.get<User>(`${this.baseUrl}/People/GetPerson`, {
+          headers: this.httpOptions.headers,
+          params: { LogonId: logonId }
+        }).pipe(
+          catchError((error: HttpErrorResponse) => {
+            console.error(error);
+            return throwError(() => error);
+          })
+        );
+      }
     }

@@ -2,6 +2,12 @@
 set -euo pipefail
 
 WEB_ROOT="${1:-generated/code/target-generated/web-front-end/angular}"
+if [[ ! -d "${WEB_ROOT}" ]]; then
+  ALT_WEB_ROOT="generated/code/components/web-front-end-angular-specfirst"
+  if [[ -d "${ALT_WEB_ROOT}" ]]; then
+    WEB_ROOT="${ALT_WEB_ROOT}"
+  fi
+fi
 POSITION_BLOTTER_TS="${WEB_ROOT}/main/app/trade/position-blotter/position-blotter.component.ts"
 
 if [[ ! -f "${POSITION_BLOTTER_TS}" ]]; then

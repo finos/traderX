@@ -1,12 +1,12 @@
 import { ColDef, GridApi, GridReadyEvent, Module } from 'ag-grid-community';
 import { Component, OnInit } from '@angular/core';
 import { AgGridModule } from 'ag-grid-angular';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, forkJoin, Observable, of } from 'rxjs';
 import { AccountService } from '../service/account.service';
 import { Account } from '../model/account.model';
-import { debounceTime, map, switchMap } from 'rxjs/operators';
+import { catchError, debounceTime, map, switchMap } from 'rxjs/operators';
 import { ButtonCellRendererComponent } from './button-renderer.component';
-import { AccountUser, User } from '../model/user.model';
+import { AccountUser } from '../model/user.model';
 import { UserService } from '../service/user.service';
 
 @Component({
@@ -18,7 +18,7 @@ export class AccountComponent implements OnInit {
     private gridApi!: GridApi;
 
     accounts$: Observable<Account[]>;
-    users$: Observable<AccountUser[]>;
+    users$: Observable<Array<AccountUser & { fullName: string }>>;
     accountBehaviorSubject = new BehaviorSubject(0);
     accountAddAction$ = this.accountBehaviorSubject.asObservable();
     selectedAccount?: Account = undefined;
@@ -48,7 +48,8 @@ export class AccountComponent implements OnInit {
             flex: 1
         },
         {
-            field: 'username',
+            headerName: 'name',
+            field: 'fullName',
             flex: 1
         }
     ];
@@ -57,7 +58,7 @@ export class AccountComponent implements OnInit {
         btnCellRenderer: ButtonCellRendererComponent
     };
 
-    constructor(private accountService: AccountService) { }
+    constructor(private accountService: AccountService, private userService: UserService) { }
 
     ngOnInit() {
         this.accounts$ = this.accountAddAction$.pipe(
@@ -68,7 +69,24 @@ export class AccountComponent implements OnInit {
         this.users$ = this.accountAddAction$.pipe(
             debounceTime(200),
             switchMap((accountId) => this.accountService.getAccountUsers().pipe(
-                map((users) => users.filter((user) => user.accountId === accountId))
+                map((users) => users.filter((user) => user.accountId === accountId)),
+                switchMap((users) => {
+                    if (!users.length) {
+                        return of([]);
+                    }
+                    return forkJoin(
+                        users.map((accountUser) => this.userService.getUser(accountUser.username).pipe(
+                            map((person) => ({
+                                ...accountUser,
+                                fullName: person?.fullName || accountUser.username
+                            })),
+                            catchError(() => of({
+                                ...accountUser,
+                                fullName: accountUser.username
+                            }))
+                        ))
+                    );
+                })
             ))
         );
     }

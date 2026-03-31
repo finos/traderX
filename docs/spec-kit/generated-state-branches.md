@@ -54,6 +54,13 @@ From a clean working tree:
 bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --push
 ```
 
+When adding or updating a state, publish the lineage neighborhood so adjacent
+branches get refreshed lineage/compare links:
+
+```bash
+bash pipeline/publish-generated-state-neighborhood.sh <state-id> --push
+```
+
 Default branch target for baseline:
 
 - `code/generated-state-001-baseline-uncontainerized-parity`
@@ -103,5 +110,10 @@ bash pipeline/scaffold-state-pack.sh <NNN-state-name> --title "<Title>" --previo
    - `generation.mode=planned` until implemented
 4. Implement state generation pipeline and change `generation.mode` to `implemented`.
 5. Publish generated branch + tag with validation evidence.
+
+Recommended publish sequence after implementing a new state:
+
+1. `bash pipeline/publish-generated-state-neighborhood.sh <state-id> --push`
+2. `bash pipeline/publish-generated-state-tree.sh --push` (optional full refresh)
 
 This keeps specification and generated code distribution clearly separated while preserving state-to-state continuity.

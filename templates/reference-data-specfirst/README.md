@@ -19,3 +19,7 @@ Default port: `18085` (override with `REFERENCE_DATA_SERVICE_PORT`).
 ## Dataset
 
 - Loads stock symbols from `data/s-and-p-500-companies.csv` (baseline parity dataset).
+- Optional universe filter: `REFERENCE_DATA_SUPPORTED_TICKERS` (comma-separated tickers).
+- Optional cap after filtering: `REFERENCE_DATA_MAX_TICKERS` (positive integer).
+- Includes supplemental sample symbols when needed for learning scenarios:
+  - `MS`, `UBS`, `C`, `GS`, `DB`, `JPM`, `COF`, `DFS`, `FNMA`, `FIS`, `FNF`.

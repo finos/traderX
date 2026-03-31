@@ -59,6 +59,7 @@ for required in \
 done
 
 start_args=(--provider "${K8S_PROVIDER}")
+start_args+=(--skip-generate)
 if (( DRY_RUN == 1 )); then
   start_args+=(--dry-run)
 fi

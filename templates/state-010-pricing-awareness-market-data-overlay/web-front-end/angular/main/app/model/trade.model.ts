@@ -29,6 +29,7 @@ export interface Position {
     quantity: number;
     security: string;
     averageCostBasis?: number;
+    openPrice?: number;
     marketPrice?: number;
     marketValue?: number;
     costBasisValue?: number;

@@ -39,3 +39,8 @@ SYS-NFR-004,US-007,AC-001,STARTUP,trade-feed,none,scripts/stop-base-uncontaineri
 SYS-NFR-005,US-009,AC-009,STARTUP,account-service,specs/001-baseline-uncontainerized-parity/contracts/account-service/openapi.yaml,pipeline/speckit/validate-speckit-readiness.sh
 SYS-NFR-006,US-001,AC-009,F2,web-front-end-angular,none,scripts/test-web-angular-overlay.sh
 SYS-NFR-007,US-009,AC-009,STARTUP,trade-service,specs/001-baseline-uncontainerized-parity/contracts/trade-service/openapi.yaml,pipeline/validate-regeneration-readiness.sh
+SYS-FR-014,US-010,AC-012,F2,web-front-end-angular,none,scripts/test-web-angular-baseline-ux-contract.sh
+SYS-FR-015,US-010,AC-013,F2,web-front-end-angular,none,scripts/test-web-angular-baseline-ux-contract.sh
+SYS-FR-016,US-011,AC-014,F3,web-front-end-angular,none,scripts/test-web-angular-baseline-ux-contract.sh
+SYS-FR-017,US-012,AC-015,F6,web-front-end-angular,none,scripts/test-web-angular-baseline-ux-contract.sh
+SYS-NFR-008,US-013,AC-016,F2,web-front-end-angular,none,scripts/test-web-angular-baseline-ux-contract.sh

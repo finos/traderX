@@ -10,7 +10,7 @@
 
 1. Add a new `price-publisher` component:
    - startup bootstrap from snapshot or yfinance,
-   - publish NATS `pricing.<TICKER>` ticks every 1-2 seconds,
+   - publish NATS `pricing.<TICKER>` ticks on randomized interval (`750-1500ms` default) for random subset (`25%` default),
    - expose REST lookup for current ticker price.
 2. Extend trade submission flow:
    - stamp execution price in `trade-service`,
@@ -19,7 +19,7 @@
    - persist volume-weighted average cost basis at each trade update.
 4. Extend frontend:
    - trade blotter price + relative execution time,
-   - position blotter market price/value/P&L updates from price stream,
+   - position blotter open/market/value/P&L updates from price stream with directional/semantic highlighting,
    - portfolio total value + total cost basis summary.
 5. Extend conformance/smoke:
    - verify quote endpoint, pricing stream, persisted price/cost-basis fields.

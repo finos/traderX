@@ -26,6 +26,8 @@ sequenceDiagram
 
 After account selection, the UI loads initial trades/positions and subscribes for incremental updates.
 
+In `All Accounts` mode, trades are loaded cross-account and positions are merged by security; trade ticket creation is disabled.
+
 ```mermaid
 sequenceDiagram
     participant W as WebGUI
@@ -45,6 +47,8 @@ sequenceDiagram
 ## F3: Submit Trade Ticket
 
 Trade-service validates ticker and account before publishing to trade-feed.
+
+Trade ticket security entry uses ticker/company typeahead with browser autocomplete disabled.
 
 ```mermaid
 sequenceDiagram
@@ -110,6 +114,8 @@ sequenceDiagram
 ## F6: Add/Update Account Users
 
 Account user mappings require people-service validation before persistence.
+
+Account-user display in UI resolves usernames to `fullName` via people-service lookup.
 
 ```mermaid
 sequenceDiagram
