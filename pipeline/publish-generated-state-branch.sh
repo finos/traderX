@@ -369,6 +369,127 @@ case "${ORIGIN_URL}" in
     ;;
 esac
 
+urlencode() {
+  local raw="${1:-}"
+  jq -nr --arg s "${raw}" '$s|@uri'
+}
+
+state_branch_name() {
+  local state_id="${1:-}"
+  jq -r --arg id "${state_id}" '.states[] | select(.id == $id) | (.publish.branch // "")' "${CATALOG}"
+}
+
+state_branch_url() {
+  local state_id="${1:-}"
+  local branch
+  branch="$(state_branch_name "${state_id}")"
+  if [[ -z "${REPO_WEB_BASE}" || -z "${branch}" ]]; then
+    return 1
+  fi
+  printf '%s/tree/%s' "${REPO_WEB_BASE}" "$(urlencode "${branch}")"
+}
+
+compare_url() {
+  local from_branch="${1:-}"
+  local to_branch="${2:-}"
+  if [[ -z "${REPO_WEB_BASE}" || -z "${from_branch}" || -z "${to_branch}" ]]; then
+    return 1
+  fi
+  printf '%s/compare/%s...%s' "${REPO_WEB_BASE}" "$(urlencode "${from_branch}")" "$(urlencode "${to_branch}")"
+}
+
+render_state_lineage_table_rows() {
+  local current_branch
+  current_branch="$(state_branch_name "${STATE_ID}")"
+  local rows=""
+  local prev_id prev_branch prev_branch_url prev_compare_url
+  while IFS= read -r prev_id; do
+    [[ -n "${prev_id}" ]] || continue
+    prev_branch="$(state_branch_name "${prev_id}")"
+    prev_branch_url="$(state_branch_url "${prev_id}" || true)"
+    prev_compare_url="$(compare_url "${prev_branch}" "${current_branch}" || true)"
+
+    local prev_branch_md="\`${prev_branch:-n/a}\`"
+    if [[ -n "${prev_branch_url}" ]]; then
+      prev_branch_md="[${prev_branch}](${prev_branch_url})"
+    fi
+
+    local prev_compare_md="n/a"
+    if [[ -n "${prev_compare_url}" ]]; then
+      prev_compare_md="🔍 [compare](${prev_compare_url})"
+    fi
+
+    rows="${rows}| Previous | \`${prev_id}\` | ${prev_branch_md} | ${prev_compare_md} |\n"
+  done < <(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | (.previous // [])[]?' "${CATALOG}")
+
+  local next_id next_branch next_branch_url next_compare_url
+  while IFS= read -r next_id; do
+    [[ -n "${next_id}" ]] || continue
+    next_branch="$(state_branch_name "${next_id}")"
+    next_branch_url="$(state_branch_url "${next_id}" || true)"
+    next_compare_url="$(compare_url "${current_branch}" "${next_branch}" || true)"
+
+    local next_branch_md="\`${next_branch:-n/a}\`"
+    if [[ -n "${next_branch_url}" ]]; then
+      next_branch_md="[${next_branch}](${next_branch_url})"
+    fi
+
+    local next_compare_md="n/a"
+    if [[ -n "${next_compare_url}" ]]; then
+      next_compare_md="🔍 [compare](${next_compare_url})"
+    fi
+
+    rows="${rows}| Next | \`${next_id}\` | ${next_branch_md} | ${next_compare_md} |\n"
+  done < <(jq -r --arg id "${STATE_ID}" '.states | [ .[] | select((.previous // []) | index($id)) | .id ][]?' "${CATALOG}")
+
+  if [[ -z "${rows}" ]]; then
+    rows="| Current | \`${STATE_ID}\` | \`$(state_branch_name "${STATE_ID}")\` | n/a |\n"
+  fi
+
+  printf '%b' "${rows}"
+}
+
+render_state_lineage_mermaid() {
+  local current_node="S_CUR"
+  local current_label
+  current_label="${STATE_ID} (current)"
+
+  printf '%s\n' '```mermaid'
+  printf '%s\n' 'flowchart LR'
+  printf '  %s["%s"]\n' "${current_node}" "${current_label}"
+  printf '  style %s fill:#2e7d32,stroke:#1b5e20,color:#ffffff,stroke-width:2px\n' "${current_node}"
+
+  local prev_id prev_node prev_url
+  while IFS= read -r prev_id; do
+    [[ -n "${prev_id}" ]] || continue
+    prev_node="S_PREV_$(echo "${prev_id}" | sed 's/[^A-Za-z0-9]/_/g')"
+    printf '  %s["%s"] --> %s\n' "${prev_node}" "${prev_id}" "${current_node}"
+    prev_url="$(state_branch_url "${prev_id}" || true)"
+    if [[ -n "${prev_url}" ]]; then
+      printf '  click %s href "%s" "Open branch"\n' "${prev_node}" "${prev_url}"
+    fi
+  done < <(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | (.previous // [])[]?' "${CATALOG}")
+
+  local next_id next_node next_url
+  while IFS= read -r next_id; do
+    [[ -n "${next_id}" ]] || continue
+    next_node="S_NEXT_$(echo "${next_id}" | sed 's/[^A-Za-z0-9]/_/g')"
+    printf '  %s --> %s["%s"]\n' "${current_node}" "${next_node}" "${next_id}"
+    next_url="$(state_branch_url "${next_id}" || true)"
+    if [[ -n "${next_url}" ]]; then
+      printf '  click %s href "%s" "Open branch"\n' "${next_node}" "${next_url}"
+    fi
+  done < <(jq -r --arg id "${STATE_ID}" '.states | [ .[] | select((.previous // []) | index($id)) | .id ][]?' "${CATALOG}")
+
+  local current_url
+  current_url="$(state_branch_url "${STATE_ID}" || true)"
+  if [[ -n "${current_url}" ]]; then
+    printf '  click %s href "%s" "Open current branch"\n' "${current_node}" "${current_url}"
+  fi
+
+  printf '%s\n' '```'
+}
+
 state_summary_markdown() {
   case "${STATE_ID}" in
     001-baseline-uncontainerized-parity)
@@ -1666,6 +1787,13 @@ $(state_summary_markdown)
 
 ## State Lineage
 
+$(render_state_lineage_mermaid)
+
+| Direction | State | Branch | Compare |
+| --- | --- | --- | --- |
+$(render_state_lineage_table_rows)
+
+State sets:
 - Previous states: \`${PREVIOUS_STATES_TEXT}\`
 - Next states: \`${NEXT_STATES_TEXT}\`
 
