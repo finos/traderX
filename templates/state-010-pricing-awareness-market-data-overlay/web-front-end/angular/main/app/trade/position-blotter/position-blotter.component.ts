@@ -31,29 +31,40 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
     {
       headerName: 'QUANTITY',
       field: 'quantity',
-      enableCellChangeFlash: true
+      enableCellChangeFlash: true,
+      headerClass: 'ag-right-aligned-header',
+      cellClass: 'ag-right-aligned-cell',
+      valueFormatter: ({ value }) => this.formatInteger(value)
     },
     {
       headerName: 'AVG COST',
       field: 'averageCostBasis',
+      headerClass: 'ag-right-aligned-header',
+      cellClass: 'ag-right-aligned-cell',
       valueFormatter: ({ value }) => this.formatCurrency(value)
     },
     {
       headerName: 'MKT PRICE',
       field: 'marketPrice',
       enableCellChangeFlash: true,
+      headerClass: 'ag-right-aligned-header',
+      cellClass: 'ag-right-aligned-cell',
       valueFormatter: ({ value }) => this.formatCurrency(value)
     },
     {
       headerName: 'POSITION VALUE',
       field: 'marketValue',
       enableCellChangeFlash: true,
+      headerClass: 'ag-right-aligned-header',
+      cellClass: 'ag-right-aligned-cell',
       valueFormatter: ({ value }) => this.formatCurrency(value)
     },
     {
       headerName: 'P&L',
       field: 'pnl',
       enableCellChangeFlash: true,
+      headerClass: 'ag-right-aligned-header',
+      cellClass: 'ag-right-aligned-cell',
       valueFormatter: ({ value }) => this.formatCurrency(value)
     }
   ];
@@ -220,20 +231,6 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
       totals.totalPnl += Number(node.data.pnl ?? 0);
     });
 
-    const pinnedRows = [{
-      security: 'TOTAL',
-      quantity: '',
-      averageCostBasis: '',
-      marketPrice: '',
-      marketValue: totals.totalMarketValue,
-      pnl: totals.totalPnl
-    }];
-    if (typeof (this.gridApi as any).setGridOption === 'function') {
-      (this.gridApi as any).setGridOption('pinnedBottomRowData', pinnedRows);
-    } else {
-      (this.gridApi as any).setPinnedBottomRowData(pinnedRows);
-    }
-
     this.summaryChange.emit(totals);
   }
 
@@ -245,6 +242,24 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
     if (!Number.isFinite(numeric)) {
       return '-';
     }
-    return numeric.toFixed(2);
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 3,
+      maximumFractionDigits: 3
+    }).format(numeric);
+  }
+
+  private formatInteger(value: any): string {
+    if (value == null || value === '') {
+      return '-';
+    }
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) {
+      return '-';
+    }
+    return new Intl.NumberFormat('en-US', {
+      maximumFractionDigits: 0
+    }).format(numeric);
   }
 }

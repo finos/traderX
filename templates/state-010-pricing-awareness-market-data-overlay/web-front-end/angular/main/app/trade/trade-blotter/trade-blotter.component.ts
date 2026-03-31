@@ -26,11 +26,16 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
         {
             headerName: 'PRICE',
             field: 'price',
-            valueFormatter: ({ value }) => value == null ? '-' : Number(value).toFixed(3)
+            headerClass: 'ag-right-aligned-header',
+            cellClass: 'ag-right-aligned-cell',
+            valueFormatter: ({ value }) => this.formatCurrency(value)
         },
         {
             headerName: 'QUANTITY',
-            field: 'quantity'
+            field: 'quantity',
+            headerClass: 'ag-right-aligned-header',
+            cellClass: 'ag-right-aligned-cell',
+            valueFormatter: ({ value }) => this.formatInteger(value)
         },
         {
             headerName: 'SIDE',
@@ -150,5 +155,34 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
         }
         const hours = Math.floor(elapsedMins / 60);
         return `${hours} hr ago`;
+    }
+
+    private formatCurrency(value: any): string {
+        if (value == null || value === '') {
+            return '-';
+        }
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric)) {
+            return '-';
+        }
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 3,
+            maximumFractionDigits: 3
+        }).format(numeric);
+    }
+
+    private formatInteger(value: any): string {
+        if (value == null || value === '') {
+            return '-';
+        }
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric)) {
+            return '-';
+        }
+        return new Intl.NumberFormat('en-US', {
+            maximumFractionDigits: 0
+        }).format(numeric);
     }
 }

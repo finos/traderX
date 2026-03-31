@@ -35,19 +35,19 @@
         <div class="col-sm-4">
             <div class="alert alert-secondary py-2 px-3 mb-0">
                 Total Portfolio Cost Basis:
-                <strong>{{ portfolioSummary.totalCostBasis | number:'1.2-2' }}</strong>
+                <strong>{{ portfolioSummary.totalCostBasis | currency:'USD':'symbol':'1.3-3' }}</strong>
             </div>
         </div>
         <div class="col-sm-4">
             <div class="alert alert-secondary py-2 px-3 mb-0">
                 Total Portfolio Value:
-                <strong>{{ portfolioSummary.totalMarketValue | number:'1.2-2' }}</strong>
+                <strong>{{ portfolioSummary.totalMarketValue | currency:'USD':'symbol':'1.3-3' }}</strong>
             </div>
         </div>
         <div class="col-sm-4">
             <div class="alert py-2 px-3 mb-0" [ngClass]="portfolioSummary.totalPnl >= 0 ? 'alert-success' : 'alert-danger'">
                 Total Net P&amp;L:
-                <strong>{{ portfolioSummary.totalPnl | number:'1.2-2' }}</strong>
+                <strong>{{ portfolioSummary.totalPnl | currency:'USD':'symbol':'1.3-3' }}</strong>
             </div>
         </div>
     </div>
