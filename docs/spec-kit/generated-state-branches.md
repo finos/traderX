@@ -32,6 +32,7 @@ Generated branches include metadata files so consumers can always see provenance
 - `STATE.md`
 - `.traderx-state/state.json`
 - `LEARNING.md`
+- `docs/learning/*` generated learning artifacts (component list, system design, architecture, diagram)
 
 These files record:
 

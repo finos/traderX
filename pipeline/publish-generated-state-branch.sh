@@ -1161,6 +1161,152 @@ EOF
   esac
 }
 
+write_snapshot_learning_docs() {
+  local feature_pack_dir="${ROOT}/${FEATURE_PACK}"
+  local system_dir="${feature_pack_dir}/system"
+  local model_path="${system_dir}/architecture.model.json"
+  local architecture_md_path="${system_dir}/architecture.md"
+  local runtime_topology_path="${system_dir}/runtime-topology.md"
+  local flows_path="${system_dir}/end-to-end-flows.md"
+  local system_design_source=""
+  local docs_root="${SNAPSHOT_DIR}/docs"
+  local learning_root="${docs_root}/learning"
+  local doc_source_links=""
+
+  if [[ ! -f "${model_path}" ]]; then
+    echo "[fail] missing architecture model for snapshot docs: ${model_path}"
+    exit 1
+  fi
+
+  if [[ -f "${runtime_topology_path}" ]]; then
+    system_design_source="${runtime_topology_path}"
+  elif [[ -f "${flows_path}" ]]; then
+    system_design_source="${flows_path}"
+  fi
+
+  mkdir -p "${learning_root}"
+
+  cat > "${docs_root}/README.md" <<EOF
+# Generated Docs
+
+This folder provides generated learning-oriented documentation for state \`${STATE_ID}\`.
+
+- [Learning Index](./learning/README.md)
+- [Component List](./learning/component-list.md)
+- [System Design](./learning/system-design.md)
+- [Software Architecture](./learning/software-architecture.md)
+- [Component Diagram](./learning/component-diagram.md)
+EOF
+
+  cat > "${learning_root}/component-list.md" <<EOF
+# Component List
+
+State: \`${STATE_ID}\`
+
+| ID | Label | Kind | Description |
+| --- | --- | --- | --- |
+$(jq -r '.nodes[] | "| `"'"'"'\(.id)`'"'"'" | \(.label) | \(.kind // "component") | \((.description // "n/a") | gsub("\\|"; "\\\\|")) |"' "${model_path}")
+EOF
+
+  cat > "${learning_root}/component-diagram.md" <<EOF
+# Component Diagram
+
+State: \`${STATE_ID}\`
+
+\`\`\`mermaid
+flowchart $(jq -r '.mermaidDirection // "LR"' "${model_path}")
+$(jq -r '
+  def sid: gsub("[^A-Za-z0-9_]"; "_");
+  .nodes[] | "  \(.id | sid)[\"" + (.label | gsub("\""; "\\\"")) + "\"]"
+' "${model_path}")
+
+$(jq -r '
+  def sid: gsub("[^A-Za-z0-9_]"; "_");
+  .edges[] |
+  if ((.label // "") | length) > 0 then
+    "  \(.from | sid) -->|"+(.label | gsub("\""; "\\\""))+"| \(.to | sid)"
+  else
+    "  \(.from | sid) --> \(.to | sid)"
+  end
+' "${model_path}")
+\`\`\`
+EOF
+
+  cat > "${learning_root}/software-architecture.md" <<EOF
+# Software Architecture
+
+State: \`${STATE_ID}\`
+Title: \`$(jq -r '.title' "${model_path}")\`
+
+## Architecture Summary
+
+$(jq -r '.description' "${model_path}")
+
+## Entrypoints
+
+$(jq -r '(.entrypoints // [])[] | "- `"'"'"'\(.name)`'"'"'" -> `\(.url)`"' "${model_path}")
+
+## Notes
+
+$(jq -r '(.notes // [])[] | "- " + .' "${model_path}")
+
+## Diagram
+
+See [Component Diagram](./component-diagram.md).
+EOF
+
+  if [[ -f "${architecture_md_path}" ]]; then
+    cat >> "${learning_root}/software-architecture.md" <<EOF
+
+## Detailed Architecture (Spec Extract)
+
+EOF
+    cat "${architecture_md_path}" >> "${learning_root}/software-architecture.md"
+  fi
+
+  cat > "${learning_root}/system-design.md" <<EOF
+# System Design
+
+State: \`${STATE_ID}\`
+
+## Design Intent
+
+$(jq -r '.description' "${model_path}")
+EOF
+
+  if [[ -n "${system_design_source}" ]]; then
+    cat >> "${learning_root}/system-design.md" <<EOF
+
+## Runtime Topology / Flow (Spec Extract)
+
+EOF
+    cat "${system_design_source}" >> "${learning_root}/system-design.md"
+  fi
+
+  if [[ -n "${REPO_WEB_BASE}" ]]; then
+    doc_source_links="- Source feature pack at commit: ${REPO_WEB_BASE}/tree/${SOURCE_COMMIT}/${FEATURE_PACK}
+- Source architecture model at commit: ${REPO_WEB_BASE}/blob/${SOURCE_COMMIT}/${FEATURE_PACK}/system/architecture.model.json"
+  fi
+
+  cat > "${learning_root}/README.md" <<EOF
+# Learning Docs
+
+These docs are generated for the published code snapshot for state \`${STATE_ID}\`.
+
+- [Component List](./component-list.md)
+- [System Design](./system-design.md)
+- [Software Architecture](./software-architecture.md)
+- [Component Diagram](./component-diagram.md)
+
+## Source-of-Truth
+
+Canonical source remains SpecKit artifacts in the main authoring branch:
+
+- Feature pack: \`${FEATURE_PACK}\`
+${doc_source_links}
+EOF
+}
+
 write_learning_guide() {
   local docs_learning_path="docs/learning/state-${STATE_ID}.md"
   local docs_learning_route="/docs/learning/state-${STATE_ID}"
@@ -1180,6 +1326,8 @@ $(learning_focus_markdown)
 - [README.md](./README.md)
 - [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
 - [STATE.md](./STATE.md)
+- [docs/README.md](./docs/README.md)
+- [docs/learning/README.md](./docs/learning/README.md)
 
 ## Canonical Spec Sources
 
@@ -1259,6 +1407,15 @@ $(runtime_guidance_markdown)
 
 Detailed clone-first instructions: [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
 
+## Learning Docs In This Snapshot
+
+- [Docs Index](./docs/README.md)
+- [Learning Index](./docs/learning/README.md)
+- [Component List](./docs/learning/component-list.md)
+- [System Design](./docs/learning/system-design.md)
+- [Software Architecture](./docs/learning/software-architecture.md)
+- [Component Diagram](./docs/learning/component-diagram.md)
+
 ## Canonical Specs And Docs
 
 Canonical source-of-truth is maintained in the SpecKit authoring branch, not in this code snapshot branch.
@@ -1290,6 +1447,7 @@ case "${STATE_ID}" in
 esac
 
 write_clone_runbook
+write_snapshot_learning_docs
 write_learning_guide
 
 if git -C "${ROOT}" show-ref --verify --quiet "refs/heads/${BRANCH_NAME}"; then
