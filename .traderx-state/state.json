@@ -1,13 +1,13 @@
 {
-  "stateId": "002-edge-proxy-uncontainerized",
-  "stateTitle": "Edge Proxy Uncontainerized",
+  "stateId": "003-containerized-compose-runtime",
+  "stateTitle": "Containerized Compose Runtime (NGINX Ingress)",
   "stateStatus": "implemented",
-  "featurePack": "specs/002-edge-proxy-uncontainerized",
-  "previousStates": ["001-baseline-uncontainerized-parity"],
-  "nextStates": ["003-containerized-compose-runtime"],
+  "featurePack": "specs/003-containerized-compose-runtime",
+  "previousStates": ["002-edge-proxy-uncontainerized"],
+  "nextStates": ["004-kubernetes-runtime","007-messaging-nats-replacement","009-postgres-database-replacement"],
   "sourceBranch": "feature/agentic-renovation",
   "sourceCommit": "68d19a554c7480a615b19c024eb0a88228c6b9ad",
-  "generatedAtUtc": "2026-03-31T13:04:58Z",
-  "generationEntryPoint": "bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized",
-  "publishTagHint": "generated/002-edge-proxy-uncontainerized/v1"
+  "generatedAtUtc": "2026-03-31T13:06:14Z",
+  "generationEntryPoint": "bash pipeline/generate-state.sh 003-containerized-compose-runtime",
+  "publishTagHint": "generated/003-containerized-compose-runtime/v1"
 }

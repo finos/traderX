@@ -1,12 +1,12 @@
-# Learning Guide For 002-edge-proxy-uncontainerized
+# Learning Guide For 003-containerized-compose-runtime
 
 This snapshot is code-first output. Canonical intent remains in SpecKit artifacts.
 
 ## Learning Focus
 
-- Understand browser traffic consolidation through the edge proxy.
-- Understand how path routing and websocket proxying preserve baseline behavior.
-- Compare cross-origin behavior vs state 001.
+- Understand runtime transition from host processes to containers.
+- Understand NGINX ingress behavior under Compose.
+- Trace container wiring back to unchanged functional requirements.
 
 ## Read In This Snapshot
 
@@ -18,9 +18,9 @@ This snapshot is code-first output. Canonical intent remains in SpecKit artifact
 
 ## Canonical Spec Sources
 
-- Feature pack: `specs/002-edge-proxy-uncontainerized`
+- Feature pack: `specs/003-containerized-compose-runtime`
 - State docs map route: `/docs/spec-kit/state-docs`
-- Learning guide route: `/docs/learning/state-002-edge-proxy-uncontainerized`
-- Learning guide markdown path in source branch: `docs/learning/state-002-edge-proxy-uncontainerized.md`
-- Source branch feature pack (exact commit): https://github.com/finos/traderX/tree/68d19a554c7480a615b19c024eb0a88228c6b9ad/specs/002-edge-proxy-uncontainerized
-- Source branch learning guide (exact commit): https://github.com/finos/traderX/blob/68d19a554c7480a615b19c024eb0a88228c6b9ad/docs/learning/state-002-edge-proxy-uncontainerized.md
+- Learning guide route: `/docs/learning/state-003-containerized-compose-runtime`
+- Learning guide markdown path in source branch: `docs/learning/state-003-containerized-compose-runtime.md`
+- Source branch feature pack (exact commit): https://github.com/finos/traderX/tree/68d19a554c7480a615b19c024eb0a88228c6b9ad/specs/003-containerized-compose-runtime
+- Source branch learning guide (exact commit): https://github.com/finos/traderX/blob/68d19a554c7480a615b19c024eb0a88228c6b9ad/docs/learning/state-003-containerized-compose-runtime.md

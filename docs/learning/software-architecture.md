@@ -1,21 +1,21 @@
 # Software Architecture
 
-State: `002-edge-proxy-uncontainerized`
-Title: `Architecture (State 002 Edge Proxy Uncontainerized)`
+State: `003-containerized-compose-runtime`
+Title: `Architecture (State 003 Containerized Compose Runtime)`
 
 ## Architecture Summary
 
-State 002 keeps uncontainerized services and introduces an edge proxy as the single browser-facing entrypoint.
+State 003 preserves state 002 routing semantics while moving runtime to Docker Compose and NGINX ingress.
 
 ## Entrypoints
 
-- `edge-proxy` -> `http://localhost:18080`
-- `angular-upstream` -> `http://localhost:18093`
+- `ingress` -> `http://localhost:8080`
+- `angular-debug` -> `http://localhost:18093`
 
 ## Notes
 
-- State 002 preserves baseline functional flows F1-F6.
-- Primary delta is topology and origin model, not business behavior.
+- State 003 preserves approved baseline functional behavior while changing runtime/ops model.
+- Inter-service network resolution uses Docker Compose service DNS names.
 
 ## Diagram
 
@@ -23,25 +23,25 @@ See [Component Diagram](./component-diagram.md).
 
 ## Detailed Architecture (Spec Extract)
 
-# Architecture (State 002 Edge Proxy Uncontainerized)
+# Architecture (State 003 Containerized Compose Runtime)
 
-State 002 keeps uncontainerized services and introduces an edge proxy as the single browser-facing entrypoint.
+State 003 preserves state 002 routing semantics while moving runtime to Docker Compose and NGINX ingress.
 
-- Inherits architectural baseline from: `001-baseline-uncontainerized-parity`
+- Inherits architectural baseline from: `002-edge-proxy-uncontainerized`
 - Generated from: `system/architecture.model.json`
 - Canonical flows: `../001-baseline-uncontainerized-parity/system/end-to-end-flows.md`
 
 ## Entry Points
 
-- `edge-proxy`: `http://localhost:18080`
-- `angular-upstream`: `http://localhost:18093`
+- `ingress`: `http://localhost:8080`
+- `angular-debug`: `http://localhost:18093`
 
 ## Architecture Diagram
 
 ```mermaid
 flowchart LR
   trader["Trader Browser"]
-  edge["Edge Proxy"]
+  ingress["NGINX Ingress"]
   web["Web Front End Angular"]
   account["Account Service"]
   position["Position Service"]
@@ -51,42 +51,42 @@ flowchart LR
   tradeFeed["Trade Feed"]
   tradeProcessor["Trade Processor"]
   database["Database"]
-  trader -->|"Single browser entrypoint"| edge
-  edge -->|"/"| web
-  edge -->|"/account-service"| account
-  edge -->|"/position-service"| position
-  edge -->|"/trade-service"| tradeService
-  edge -->|"/reference-data"| referenceData
-  edge -->|"/people-service"| people
-  edge -->|"/socket.io"| tradeFeed
+  trader -->|"Single browser entrypoint"| ingress
+  ingress -->|"/"| web
+  ingress -->|"/account-service"| account
+  ingress -->|"/position-service"| position
+  ingress -->|"/trade-service"| tradeService
+  ingress -->|"/reference-data"| referenceData
+  ingress -->|"/people-service"| people
+  ingress -->|"/trade-feed and /socket.io"| tradeFeed
   tradeService -->|"Validate account"| account
   tradeService -->|"Validate ticker"| referenceData
   tradeService -->|"Publish trades/new"| tradeFeed
   tradeProcessor -->|"Consume and publish updates"| tradeFeed
   tradeProcessor -->|"Persist trade/position state"| database
-  account -->|"Validate person for account-user mapping"| people
   account -->|"Account persistence"| database
   position -->|"Query trades/positions"| database
+  account -->|"Validate person for account-user mapping"| people
 ```
 
 ## Node Catalog
 
 | Node | Kind | Label | Notes |
 | --- | --- | --- | --- |
-| `trader` | actor | Trader Browser | User enters only through edge proxy. |
-| `edge` | gateway | Edge Proxy | Single browser-facing origin. |
-| `web` | frontend | Web Front End Angular | Served behind edge proxy. |
-| `account` | service | Account Service | Account and account-user CRUD. |
-| `position` | service | Position Service | Trades and positions query endpoints. |
-| `tradeService` | service | Trade Service | Trade submission and validation. |
-| `referenceData` | service | Reference Data | Ticker lookup/list. |
-| `people` | service | People Service | Directory lookup and validation. |
-| `tradeFeed` | messaging | Trade Feed | Socket.IO publish/subscribe bus. |
-| `tradeProcessor` | service | Trade Processor | Processes new trades and updates positions. |
-| `database` | database | Database | Persistent account, trade, and position state. |
+| `trader` | actor | Trader Browser | User traffic enters through ingress. |
+| `ingress` | gateway | NGINX Ingress | Compose ingress for UI/API/WebSocket routes. |
+| `web` | frontend | Web Front End Angular | Containerized Angular service. |
+| `account` | service | Account Service | Containerized Spring service. |
+| `position` | service | Position Service | Containerized Spring service. |
+| `tradeService` | service | Trade Service | Containerized Spring service. |
+| `referenceData` | service | Reference Data | Containerized Node service. |
+| `people` | service | People Service | Containerized .NET service. |
+| `tradeFeed` | messaging | Trade Feed | Containerized Socket.IO bus. |
+| `tradeProcessor` | service | Trade Processor | Containerized Spring service. |
+| `database` | database | Database | Containerized H2 persistence service. |
 
 ## State Notes
 
-- State 002 preserves baseline functional flows F1-F6.
-- Primary delta is topology and origin model, not business behavior.
+- State 003 preserves approved baseline functional behavior while changing runtime/ops model.
+- Inter-service network resolution uses Docker Compose service DNS names.
 

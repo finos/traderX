@@ -1,36 +1,35 @@
 # System Design
 
-State: `002-edge-proxy-uncontainerized`
+State: `003-containerized-compose-runtime`
 
 ## Design Intent
 
-State 002 keeps uncontainerized services and introduces an edge proxy as the single browser-facing entrypoint.
+State 003 preserves state 002 routing semantics while moving runtime to Docker Compose and NGINX ingress.
 
 ## Runtime Topology / Flow (Spec Extract)
 
-# Runtime Topology (State 002)
+# Runtime Topology (State 003)
 
-State `002-edge-proxy-uncontainerized` keeps all baseline backend processes and adds one browser-facing edge proxy endpoint.
+State `003-containerized-compose-runtime` retains state `002` routing behavior while moving runtime orchestration to Docker Compose.
 
-## Ports
+## Entry Points
 
-- `18080` edge proxy (new)
-- `18093` Angular dev server (kept as upstream to edge)
-- backend service ports unchanged from state `001`
+- Ingress/UI: `http://localhost:8080`
+- Angular direct (debug): `http://localhost:18093`
+- Service/debug ports preserved (`18082`-`18092`) for troubleshooting.
 
-## Browser Access Model
+## Service Discovery Model
 
-- Browser enters only via `http://localhost:18080`.
-- UI and API calls resolve through the same origin (`localhost:18080`).
-- Direct browser cross-origin calls to backend service ports are no longer required.
+- Inter-service traffic uses Docker Compose service DNS names.
+- Browser traffic enters through NGINX ingress (`ingress` service).
+- Ingress routing config is sourced from `system/ingress-nginx.conf.template`.
 
-## Route Prefixes
+## Startup Model
 
-Defined in `system/edge-routing.json`:
+- Compose `depends_on` defines startup ordering.
+- Runtime script waits for readiness endpoints (`/health`, `/stocks`, `/account/{id}`, `/`) before declaring ready.
 
-- `/account-service` -> account-service (`18088`)
-- `/reference-data` -> reference-data (`18085`)
-- `/trade-service` -> trade-service (`18092`)
-- `/position-service` -> position-service (`18090`)
-- `/people-service` -> people-service (`18089`)
-- `/socket.io` -> trade-feed (`18086`, websocket)
+## Source-of-Truth Artifacts
+
+- `system/docker-compose.spec.yaml`
+- `system/ingress-nginx.conf.template`

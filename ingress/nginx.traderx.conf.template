@@ -1,0 +1,66 @@
+server {
+    listen 8080;
+    server_name ${NGINX_HOST};
+
+    location = /health {
+        add_header Content-Type text/plain;
+        return 200 "ok\n";
+    }
+
+    location /db-web/ {
+        proxy_pass ${DATABASE_URL};
+    }
+
+    location /reference-data/ {
+        proxy_pass ${REFERENCE_DATA_URL};
+    }
+
+    location /ng-cli-ws {
+        proxy_pass ${WEB_FRONTEND_URL}ng-cli-ws;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+
+    location /trade-feed/ {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $http_host;
+        proxy_pass ${TRADE_FEED_URL};
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+
+    location /socket.io/ {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $http_host;
+        proxy_pass ${TRADE_FEED_URL}socket.io/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+
+    location /people-service/ {
+        proxy_pass ${PEOPLE_SERVICE_URL};
+    }
+
+    location /account-service/ {
+        proxy_pass ${ACCOUNT_SERVICE_URL};
+    }
+
+    location /position-service/ {
+        proxy_pass ${POSITION_SERVICE_URL};
+    }
+
+    location /trade-service/ {
+        proxy_pass ${TRADE_SERVICE_URL};
+    }
+
+    location /trade-processor/ {
+        proxy_pass ${TRADE_PROCESSOR_URL};
+    }
+
+    location / {
+        proxy_pass ${WEB_FRONTEND_URL};
+    }
+}

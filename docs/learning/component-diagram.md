@@ -1,11 +1,11 @@
 # Component Diagram
 
-State: `002-edge-proxy-uncontainerized`
+State: `003-containerized-compose-runtime`
 
 ```mermaid
 flowchart LR
   trader["Trader Browser"]
-  edge["Edge Proxy"]
+  ingress["NGINX Ingress"]
   web["Web Front End Angular"]
   account["Account Service"]
   position["Position Service"]
@@ -16,20 +16,20 @@ flowchart LR
   tradeProcessor["Trade Processor"]
   database["Database"]
 
-  trader -->|Single browser entrypoint| edge
-  edge -->|/| web
-  edge -->|/account-service| account
-  edge -->|/position-service| position
-  edge -->|/trade-service| tradeService
-  edge -->|/reference-data| referenceData
-  edge -->|/people-service| people
-  edge -->|/socket.io| tradeFeed
+  trader -->|Single browser entrypoint| ingress
+  ingress -->|/| web
+  ingress -->|/account-service| account
+  ingress -->|/position-service| position
+  ingress -->|/trade-service| tradeService
+  ingress -->|/reference-data| referenceData
+  ingress -->|/people-service| people
+  ingress -->|/trade-feed and /socket.io| tradeFeed
   tradeService -->|Validate account| account
   tradeService -->|Validate ticker| referenceData
   tradeService -->|Publish trades/new| tradeFeed
   tradeProcessor -->|Consume and publish updates| tradeFeed
   tradeProcessor -->|Persist trade/position state| database
-  account -->|Validate person for account-user mapping| people
   account -->|Account persistence| database
   position -->|Query trades/positions| database
+  account -->|Validate person for account-user mapping| people
 ```
