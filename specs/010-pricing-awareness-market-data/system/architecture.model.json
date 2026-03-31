@@ -1,0 +1,173 @@
+{
+  "stateId": "010-pricing-awareness-market-data",
+  "title": "Architecture (State 010 Pricing Awareness and Market Data)",
+  "description": "State 010 builds on NATS-based runtime from 007 and adds synthetic market pricing, trade execution price stamping, position cost basis aggregation, and frontend valuation.",
+  "inheritsFrom": "007-messaging-nats-replacement",
+  "flowDoc": "../001-baseline-uncontainerized-parity/system/end-to-end-flows.md",
+  "mermaidDirection": "LR",
+  "entrypoints": [
+    {
+      "name": "ingress",
+      "url": "http://localhost:8080"
+    },
+    {
+      "name": "nats-ws",
+      "url": "ws://localhost:8080/nats-ws"
+    },
+    {
+      "name": "price-publisher",
+      "url": "http://localhost:18100/prices"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "trader",
+      "label": "Trader Browser",
+      "kind": "actor",
+      "description": "Uses Angular UI and receives realtime trade, position, and pricing updates."
+    },
+    {
+      "id": "ingress",
+      "label": "NGINX Ingress",
+      "kind": "gateway",
+      "description": "Routes REST and websocket traffic."
+    },
+    {
+      "id": "web",
+      "label": "Web Front End Angular",
+      "kind": "frontend",
+      "description": "Subscribes to account and pricing streams via nats.ws."
+    },
+    {
+      "id": "nats",
+      "label": "NATS Broker",
+      "kind": "messaging",
+      "description": "Pub/sub broker for backend and browser streaming."
+    },
+    {
+      "id": "pricePublisher",
+      "label": "Price Publisher",
+      "kind": "service",
+      "description": "Publishes pricing.<ticker> and exposes REST quote endpoint."
+    },
+    {
+      "id": "tradeService",
+      "label": "Trade Service",
+      "kind": "service",
+      "description": "Validates account/ticker and stamps execution price before publishing orders."
+    },
+    {
+      "id": "tradeProcessor",
+      "label": "Trade Processor",
+      "kind": "service",
+      "description": "Processes trades, persists price/cost basis, emits account updates."
+    },
+    {
+      "id": "account",
+      "label": "Account Service",
+      "kind": "service",
+      "description": "Account and account-user operations."
+    },
+    {
+      "id": "position",
+      "label": "Position Service",
+      "kind": "service",
+      "description": "Trades/positions query endpoints."
+    },
+    {
+      "id": "referenceData",
+      "label": "Reference Data",
+      "kind": "service",
+      "description": "Ticker lookup/list."
+    },
+    {
+      "id": "people",
+      "label": "People Service",
+      "kind": "service",
+      "description": "Identity lookup and validation."
+    },
+    {
+      "id": "database",
+      "label": "Database",
+      "kind": "database",
+      "description": "Persistent account/trade/position state."
+    }
+  ],
+  "edges": [
+    {
+      "from": "trader",
+      "to": "ingress",
+      "label": "Single browser entrypoint"
+    },
+    {
+      "from": "ingress",
+      "to": "web",
+      "label": "/"
+    },
+    {
+      "from": "ingress",
+      "to": "pricePublisher",
+      "label": "/price-publisher"
+    },
+    {
+      "from": "ingress",
+      "to": "nats",
+      "label": "/nats-ws (WS upgrade)"
+    },
+    {
+      "from": "tradeService",
+      "to": "referenceData",
+      "label": "Validate ticker"
+    },
+    {
+      "from": "tradeService",
+      "to": "account",
+      "label": "Validate account"
+    },
+    {
+      "from": "tradeService",
+      "to": "pricePublisher",
+      "label": "Fetch execution price"
+    },
+    {
+      "from": "tradeService",
+      "to": "nats",
+      "label": "Publish /trades"
+    },
+    {
+      "from": "tradeProcessor",
+      "to": "nats",
+      "label": "Consume /trades, publish account updates"
+    },
+    {
+      "from": "pricePublisher",
+      "to": "nats",
+      "label": "Publish pricing.<ticker>"
+    },
+    {
+      "from": "web",
+      "to": "nats",
+      "label": "Subscribe account + pricing topics"
+    },
+    {
+      "from": "tradeProcessor",
+      "to": "database",
+      "label": "Persist trades + positions"
+    },
+    {
+      "from": "position",
+      "to": "database",
+      "label": "Query trades + positions"
+    },
+    {
+      "from": "account",
+      "to": "people",
+      "label": "Validate person"
+    }
+  ],
+  "notes": [
+    "Markets are treated as always open in this simulation.",
+    "yfinance bootstrap is optional startup-only and falls back to snapshot data.",
+    "Advanced pricing/risk engines are intentionally out of scope for this state."
+  ]
+}

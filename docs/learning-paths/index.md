@@ -16,8 +16,10 @@ This page maps the current state progression and points to canonical SpecKit art
 | 4 | [`004-kubernetes-runtime`](/specs/kubernetes-runtime) | [`/specs/kubernetes-runtime`](/specs/kubernetes-runtime) | [code/generated-state-004-kubernetes-runtime](https://github.com/finos/traderX/tree/code/generated-state-004-kubernetes-runtime) |
 | 5 | [`005-radius-kubernetes-platform`](/specs/radius-kubernetes-platform) | [`/specs/radius-kubernetes-platform`](/specs/radius-kubernetes-platform) | [code/generated-state-005-radius-kubernetes-platform](https://github.com/finos/traderX/tree/code/generated-state-005-radius-kubernetes-platform) |
 | 6 | [`006-tilt-kubernetes-dev-loop`](/specs/tilt-kubernetes-dev-loop) | [`/specs/tilt-kubernetes-dev-loop`](/specs/tilt-kubernetes-dev-loop) | [code/generated-state-006-tilt-kubernetes-dev-loop](https://github.com/finos/traderX/tree/code/generated-state-006-tilt-kubernetes-dev-loop) |
-| 7 | [`007-messaging-nats-replacement`](/specs/messaging-nats-replacement) | [`/specs/messaging-nats-replacement`](/specs/messaging-nats-replacement) | planned (`code/generated-state-007-messaging-nats-replacement`) |
-| 8+ | planned learning-path states | future `specs/NNN-*` packs | future generated snapshots |
+| 7 | [`007-messaging-nats-replacement`](/specs/messaging-nats-replacement) | [`/specs/messaging-nats-replacement`](/specs/messaging-nats-replacement) | [code/generated-state-007-messaging-nats-replacement](https://github.com/finos/traderX/tree/code/generated-state-007-messaging-nats-replacement) |
+| 8 | [`009-postgres-database-replacement`](/specs/postgres-database-replacement) | [`/specs/postgres-database-replacement`](/specs/postgres-database-replacement) | [code/generated-state-009-postgres-database-replacement](https://github.com/finos/traderX/tree/code/generated-state-009-postgres-database-replacement) |
+| 9 | [`010-pricing-awareness-market-data`](/specs/pricing-awareness-market-data) | [`/specs/pricing-awareness-market-data`](/specs/pricing-awareness-market-data) | [code/generated-state-010-pricing-awareness-market-data](https://github.com/finos/traderX/tree/code/generated-state-010-pricing-awareness-market-data) |
+| 10+ | planned learning-path states | future `specs/NNN-*` packs | future generated snapshots |
 
 ## Current Navigation
 
@@ -31,6 +33,7 @@ This page maps the current state progression and points to canonical SpecKit art
 
 - Baseline-first: `001` -> `002` -> `003`
 - Architecture branch: `003` -> `007` -> future architecture states
+- Functional pricing branch: `003` -> `007` -> `010`
 - Architecture-first: `state-docs` -> `visual-learning-graphs` -> state spec packs
 - Spec-first full rebuild: `docs/spec-kit/index` -> `docs/spec-kit/spec-kit-learning-path-strategy` -> `docs/spec-kit/visual-learning-graphs`
 - Future enhancement: a dedicated state/learning-path navigator will be added later as a separate capability.

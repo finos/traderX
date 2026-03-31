@@ -1,0 +1,32 @@
+# Compose snippet for state 010 (conceptual delta)
+services:
+  nats-broker:
+    image: nats:2.10-alpine
+    command:
+      - "--http_port=8222"
+      - "--ws"
+      - "--ws_port=8081"
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8222/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  price-publisher:
+    build:
+      context: ../price-publisher
+      dockerfile: Dockerfile.compose
+    environment:
+      PRICE_PUBLISHER_PORT: "18100"
+      PRICE_BOOTSTRAP_MODE: "snapshot" # or yfinance
+      NATS_BROKER_HOST: "nats-broker"
+    depends_on:
+      - nats-broker
+
+# Existing service deltas (conceptual):
+# - trade-service depends on nats-broker and price-publisher
+# - trade-service calls price-publisher for execution price

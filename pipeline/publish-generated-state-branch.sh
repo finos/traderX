@@ -548,6 +548,13 @@ EOF
 - Preserves baseline REST/event contracts and user-visible behavior.
 EOF
       ;;
+    010-pricing-awareness-market-data)
+      cat <<'EOF'
+- Builds on state `007` and preserves NATS-based messaging + compose ingress runtime behavior.
+- Adds market pricing stream, trade execution price stamping, and position average cost basis aggregation.
+- Extends UI blotters with pricing/value/P&L visualization while preserving baseline trade/account workflows.
+EOF
+      ;;
     *)
       cat <<'EOF'
 - Generated code snapshot for TraderX state transition.
@@ -714,6 +721,26 @@ Status / stop:
 ```
 EOF
       ;;
+    010-pricing-awareness-market-data)
+      cat <<'EOF'
+Run directly from this generated snapshot branch:
+
+```bash
+./scripts/start-state-010-pricing-awareness-market-data-generated.sh
+```
+
+UI/ingress endpoint: `http://localhost:8080`
+NATS monitor endpoint: `http://localhost:8222/varz`
+Price publisher endpoint: `http://localhost:18100/prices`
+
+Status / stop:
+
+```bash
+./scripts/status-state-010-pricing-awareness-market-data-generated.sh
+./scripts/stop-state-010-pricing-awareness-market-data-generated.sh
+```
+EOF
+      ;;
     *)
       cat <<'EOF'
 See `RUN_FROM_CLONE.md` for clone-first runtime instructions.
@@ -778,6 +805,13 @@ EOF
 - Understand focused database-engine replacement on top of stable runtime.
 - Compare datasource and schema-init changes required for PostgreSQL migration.
 - Validate flow compatibility after persistence-layer substitution.
+EOF
+      ;;
+    010-pricing-awareness-market-data)
+      cat <<'EOF'
+- Understand how pricing streams integrate with existing account-scoped event flows.
+- Review trade execution price stamping and position cost-basis aggregation logic.
+- Validate realtime UI valuation behavior (position value, totals, and P&L) under live price ticks.
 EOF
       ;;
     *)
@@ -1509,6 +1543,33 @@ Status / stop:
 ```
 EOF
       ;;
+    010-pricing-awareness-market-data)
+      cat > "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
+# Run From Clone
+
+Prerequisites:
+- Docker Desktop (or Docker Engine + Compose plugin)
+
+Start:
+
+```bash
+./scripts/start-state-010-pricing-awareness-market-data-generated.sh
+```
+
+Endpoints:
+- UI / ingress: `http://localhost:8080`
+- Ingress health: `http://localhost:8080/health`
+- NATS monitor: `http://localhost:8222/varz`
+- Price publisher: `http://localhost:18100/prices`
+
+Status / stop:
+
+```bash
+./scripts/status-state-010-pricing-awareness-market-data-generated.sh
+./scripts/stop-state-010-pricing-awareness-market-data-generated.sh
+```
+EOF
+      ;;
     *)
       cat > "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
 # Run From Clone
@@ -1841,6 +1902,9 @@ case "${STATE_ID}" in
     install_state_compose_clone_harness "${STATE_ID}"
     ;;
   009-postgres-database-replacement)
+    install_state_compose_clone_harness "${STATE_ID}"
+    ;;
+  010-pricing-awareness-market-data)
     install_state_compose_clone_harness "${STATE_ID}"
     ;;
   004-kubernetes-runtime|005-radius-kubernetes-platform|006-tilt-kubernetes-dev-loop)

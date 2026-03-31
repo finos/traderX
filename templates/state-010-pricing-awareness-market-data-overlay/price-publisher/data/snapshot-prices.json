@@ -1,0 +1,12 @@
+{
+  "AAPL": { "openPrice": 191.200, "closePrice": 192.800 },
+  "MSFT": { "openPrice": 429.100, "closePrice": 431.600 },
+  "AMZN": { "openPrice": 184.100, "closePrice": 185.500 },
+  "GOOGL": { "openPrice": 165.900, "closePrice": 167.100 },
+  "META": { "openPrice": 499.700, "closePrice": 503.200 },
+  "NVDA": { "openPrice": 901.400, "closePrice": 910.800 },
+  "TSLA": { "openPrice": 169.200, "closePrice": 172.000 },
+  "IBM": { "openPrice": 186.000, "closePrice": 187.400 },
+  "BAC": { "openPrice": 41.100, "closePrice": 41.700 },
+  "C": { "openPrice": 59.200, "closePrice": 58.600 }
+}

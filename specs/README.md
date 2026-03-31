@@ -7,20 +7,15 @@ This repository now uses the GitHub Spec Kit canonical structure at repo root:
 
 ## Active Feature Packs
 
-- `001-baseline-uncontainerized-parity` - Simple App - Base Uncontainerized App requirements for the current TraderX generated stack.
-  - includes `fidelity-profile.md` for technical NFR/code-closeness targets.
-  - includes `system/**`, `components/**`, and `conformance/**` artifacts used by generation/compliance scripts.
-
-## Planned Next Feature Packs
-
-- `002-edge-proxy-uncontainerized` (draft)
-  - introduces an edge routing/proxy boundary for browser traffic.
-  - expected to be primarily NFR/topology deltas.
-
-- `003-containerized-compose-runtime` (implemented; pending release tag)
-  - introduces Docker/Docker Compose runtime packaging for the baseline stack.
-  - uses NGINX for containerized ingress in this state.
-  - expected to be primarily runtime/operations NFR deltas.
+- `001-baseline-uncontainerized-parity`
+- `002-edge-proxy-uncontainerized`
+- `003-containerized-compose-runtime`
+- `004-kubernetes-runtime`
+- `005-radius-kubernetes-platform`
+- `006-tilt-kubernetes-dev-loop`
+- `007-messaging-nats-replacement`
+- `009-postgres-database-replacement`
+- `010-pricing-awareness-market-data`
 
 ## Transitional Note
 

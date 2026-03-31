@@ -9,21 +9,6 @@ This section is the developer-focused learning layer for generated TraderX code 
 Canonical requirements, contracts, and architecture remain in `specs/**`.  
 These guides explain how to read each generated code snapshot, compare it to previous states, and understand the code delta in plain English.
 
-## Visual Learning Path
-
-```mermaid
-flowchart LR
-  S001["001"] --> S002["002"]
-  S002 --> S003["003"]
-  S003 --> S004["004"]
-  S004 --> S005["005"]
-  S004 --> S006["006"]
-  S003 --> S007["007"]
-  S003 --> S009["009"]
-```
-
-For the full graph, swimlanes, and artifact mapping, see [Visual Learning Paths](/docs/spec-kit/visual-learning-graphs).
-
 ## State Guide Catalog
 
 | State | Learning Guide | Spec Pack | Generated Code Branch | Previous State(s) | Compare To Previous | ADR |
@@ -36,6 +21,7 @@ For the full graph, swimlanes, and artifact mapping, see [Visual Learning Paths]
 | `006-tilt-kubernetes-dev-loop` | [link](/docs/learning/state-006-tilt-kubernetes-dev-loop) | [link](/specs/tilt-kubernetes-dev-loop) | [code/generated-state-006-tilt-kubernetes-dev-loop](https://github.com/finos/traderX/tree/code/generated-state-006-tilt-kubernetes-dev-loop) | [004-kubernetes-runtime](/docs/learning/state-004-kubernetes-runtime) | [link](https://github.com/finos/traderX/compare/code%2Fgenerated-state-004-kubernetes-runtime...code%2Fgenerated-state-006-tilt-kubernetes-dev-loop) | `n/a` |
 | `007-messaging-nats-replacement` | [link](/docs/learning/state-007-messaging-nats-replacement) | [link](/specs/messaging-nats-replacement) | [code/generated-state-007-messaging-nats-replacement](https://github.com/finos/traderX/tree/code/generated-state-007-messaging-nats-replacement) | [003-containerized-compose-runtime](/docs/learning/state-003-containerized-compose-runtime) | [link](https://github.com/finos/traderX/compare/code%2Fgenerated-state-003-containerized-compose-runtime...code%2Fgenerated-state-007-messaging-nats-replacement) | [link](/docs/adr/005-state-007-use-nats-for-messaging-replacement) |
 | `009-postgres-database-replacement` | [link](/docs/learning/state-009-postgres-database-replacement) | [link](/specs/postgres-database-replacement) | [code/generated-state-009-postgres-database-replacement](https://github.com/finos/traderX/tree/code/generated-state-009-postgres-database-replacement) | [003-containerized-compose-runtime](/docs/learning/state-003-containerized-compose-runtime) | [link](https://github.com/finos/traderX/compare/code%2Fgenerated-state-003-containerized-compose-runtime...code%2Fgenerated-state-009-postgres-database-replacement) | [link](/docs/adr/006-state-009-use-postgres-for-database-replacement) |
+| `010-pricing-awareness-market-data` | [link](/docs/learning/state-010-pricing-awareness-market-data) | [link](/specs/pricing-awareness-market-data) | [code/generated-state-010-pricing-awareness-market-data](https://github.com/finos/traderX/tree/code/generated-state-010-pricing-awareness-market-data) | [007-messaging-nats-replacement](/docs/learning/state-007-messaging-nats-replacement) | [link](https://github.com/finos/traderX/compare/code%2Fgenerated-state-007-messaging-nats-replacement...code%2Fgenerated-state-010-pricing-awareness-market-data) | `n/a` |
 
 ## How To Use This Section
 

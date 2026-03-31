@@ -7,7 +7,7 @@ title: "State 007: Messaging Layer Replacement with NATS"
 ## Position In Learning Graph
 
 - Previous state(s): [003-containerized-compose-runtime](/docs/learning/state-003-containerized-compose-runtime)
-- Next state(s): none
+- Next state(s): [010-pricing-awareness-market-data](/docs/learning/state-010-pricing-awareness-market-data)
 
 ## Rendered Code
 

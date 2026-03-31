@@ -1,0 +1,173 @@
+name: traderx-state-010
+
+services:
+  database:
+    build:
+      context: ../database
+      dockerfile: Dockerfile.compose
+    environment:
+      DATABASE_TCP_PORT: "18082"
+      DATABASE_PG_PORT: "18083"
+      DATABASE_WEB_PORT: "18084"
+      DATABASE_WEB_HOSTNAMES: "localhost,database"
+    ports:
+      - "18082:18082"
+      - "18083:18083"
+      - "18084:18084"
+
+  reference-data:
+    build:
+      context: ../reference-data
+      dockerfile: Dockerfile.compose
+    environment:
+      REFERENCE_DATA_SERVICE_PORT: "18085"
+      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+    ports:
+      - "18085:18085"
+    depends_on:
+      - database
+
+  nats-broker:
+    image: nats:2.10-alpine
+    command: ["-c", "/etc/nats/nats.conf"]
+    volumes:
+      - ./nats/nats.conf:/etc/nats/nats.conf:ro
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+      - "8081:8081"
+
+  price-publisher:
+    build:
+      context: ../price-publisher
+      dockerfile: Dockerfile.compose
+    environment:
+      PRICE_PUBLISHER_PORT: "18100"
+      NATS_BROKER_HOST: "nats-broker"
+      PRICE_BOOTSTRAP_MODE: "${PRICE_BOOTSTRAP_MODE:-snapshot}"
+      PRICE_TICKERS: "${PRICE_TICKERS:-AAPL,MSFT,AMZN,GOOGL,META,NVDA,TSLA,IBM,BAC,C}"
+    ports:
+      - "18100:18100"
+    depends_on:
+      - nats-broker
+
+  people-service:
+    build:
+      context: ../people-service
+      dockerfile: Dockerfile.compose
+    environment:
+      PEOPLE_SERVICE_PORT: "18089"
+      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+    ports:
+      - "18089:18089"
+
+  account-service:
+    build:
+      context: ../account-service
+      dockerfile: Dockerfile.compose
+    environment:
+      ACCOUNT_SERVICE_PORT: "18088"
+      DATABASE_TCP_HOST: "database"
+      DATABASE_TCP_PORT: "18082"
+      PEOPLE_SERVICE_HOST: "people-service"
+      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+    ports:
+      - "18088:18088"
+    depends_on:
+      - database
+      - people-service
+
+  position-service:
+    build:
+      context: ../position-service
+      dockerfile: Dockerfile.compose
+    environment:
+      POSITION_SERVICE_PORT: "18090"
+      DATABASE_TCP_HOST: "database"
+      DATABASE_TCP_PORT: "18082"
+      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+    ports:
+      - "18090:18090"
+    depends_on:
+      - database
+
+  trade-processor:
+    build:
+      context: ../trade-processor
+      dockerfile: Dockerfile.compose
+    environment:
+      TRADE_PROCESSOR_SERVICE_PORT: "18091"
+      DATABASE_TCP_HOST: "database"
+      DATABASE_TCP_PORT: "18082"
+      NATS_BROKER_HOST: "nats-broker"
+      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+    ports:
+      - "18091:18091"
+    depends_on:
+      - database
+      - nats-broker
+
+  trade-service:
+    build:
+      context: ../trade-service
+      dockerfile: Dockerfile.compose
+    environment:
+      TRADING_SERVICE_PORT: "18092"
+      ACCOUNT_SERVICE_HOST: "account-service"
+      REFERENCE_DATA_HOST: "reference-data"
+      PEOPLE_SERVICE_HOST: "people-service"
+      NATS_BROKER_HOST: "nats-broker"
+      PRICE_SERVICE_HOST: "price-publisher"
+      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+    ports:
+      - "18092:18092"
+    depends_on:
+      - account-service
+      - reference-data
+      - people-service
+      - nats-broker
+      - price-publisher
+      - trade-processor
+
+  web-front-end-angular:
+    build:
+      context: ../web-front-end/angular
+      dockerfile: Dockerfile.compose
+    environment:
+      WEB_SERVICE_PORT: "18093"
+    ports:
+      - "18093:18093"
+    depends_on:
+      - account-service
+      - reference-data
+      - trade-service
+      - position-service
+      - people-service
+      - nats-broker
+
+  ingress:
+    build:
+      context: ../ingress
+      dockerfile: Dockerfile.compose
+    environment:
+      NGINX_HOST: "localhost"
+      DATABASE_URL: "http://database:18084/"
+      REFERENCE_DATA_URL: "http://reference-data:18085/"
+      PEOPLE_SERVICE_URL: "http://people-service:18089/"
+      ACCOUNT_SERVICE_URL: "http://account-service:18088/"
+      POSITION_SERVICE_URL: "http://position-service:18090/"
+      TRADE_PROCESSOR_URL: "http://trade-processor:18091/"
+      TRADE_SERVICE_URL: "http://trade-service:18092/"
+      PRICE_PUBLISHER_URL: "http://price-publisher:18100/"
+      WEB_FRONTEND_URL: "http://web-front-end-angular:18093/"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - web-front-end-angular
+      - account-service
+      - reference-data
+      - trade-service
+      - position-service
+      - people-service
+      - nats-broker
+      - price-publisher

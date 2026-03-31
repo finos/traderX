@@ -154,6 +154,25 @@
         "branch": "code/generated-state-009-postgres-database-replacement",
         "tag": "generated/009-postgres-database-replacement/v1"
       }
+    },
+    {
+      "id": "010-pricing-awareness-market-data",
+      "title": "Pricing Awareness and Market Data Streaming",
+      "status": "implemented",
+      "track": "functional",
+      "featurePack": "specs/010-pricing-awareness-market-data",
+      "previous": [
+        "007-messaging-nats-replacement"
+      ],
+      "generation": {
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-state.sh 010-pricing-awareness-market-data",
+        "runtime": "./scripts/start-state-010-pricing-awareness-market-data-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-010-pricing-awareness-market-data",
+        "tag": "generated/010-pricing-awareness-market-data/v1"
+      }
     }
   ]
 }
