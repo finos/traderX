@@ -245,6 +245,46 @@ prune_snapshot_for_state() {
 
 prune_snapshot_for_state
 
+remove_snapshot_transient_artifacts() {
+  local transient_dirs=(
+    "node_modules"
+    ".angular"
+    ".gradle"
+    ".npm"
+    ".pnpm-store"
+    ".cache"
+    ".run"
+    "coverage"
+    "dist"
+    "build"
+    "bin"
+    "obj"
+  )
+
+  local name dirpath
+  for name in "${transient_dirs[@]}"; do
+    while IFS= read -r dirpath; do
+      rm -rf "${dirpath}"
+    done < <(find "${SNAPSHOT_DIR}" -type d -name "${name}" -print)
+  done
+
+  find "${SNAPSHOT_DIR}" -type f \( -name "*.log" -o -name ".DS_Store" \) -delete
+}
+
+assert_snapshot_size_guardrails() {
+  local oversized
+  oversized="$(find "${SNAPSHOT_DIR}" -type f -size +95M -print | sed '/^$/d')"
+  if [[ -n "${oversized}" ]]; then
+    echo "[fail] oversized files found in snapshot (must be <=95MB):"
+    printf '%s\n' "${oversized}"
+    echo "[hint] ensure transient caches/build outputs are excluded from generated snapshot branches."
+    exit 1
+  fi
+}
+
+remove_snapshot_transient_artifacts
+assert_snapshot_size_guardrails
+
 SOURCE_COMMIT="$(git -C "${ROOT}" rev-parse HEAD)"
 SOURCE_BRANCH="$(git -C "${ROOT}" branch --show-current)"
 GENERATED_AT_UTC="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
@@ -1345,6 +1385,37 @@ EOF
   fi
 }
 
+write_snapshot_gitignore() {
+  cat > "${SNAPSHOT_DIR}/.gitignore" <<'EOF'
+# Runtime + package-manager artifacts
+**/node_modules/
+**/.angular/
+**/.gradle/
+**/.npm/
+**/.pnpm-store/
+**/.cache/
+**/.run/
+
+# Build outputs
+**/build/
+**/dist/
+**/out/
+**/coverage/
+**/bin/
+**/obj/
+
+# Logs and local temp files
+**/*.log
+**/.DS_Store
+
+# Environment + editor local state
+**/.env
+**/.env.*
+**/.idea/
+**/.vscode/
+EOF
+}
+
 mkdir -p "${SNAPSHOT_DIR}/.traderx-state"
 cat > "${SNAPSHOT_DIR}/.traderx-state/state.json" <<EOF
 {
@@ -1449,6 +1520,7 @@ esac
 write_clone_runbook
 write_snapshot_learning_docs
 write_learning_guide
+write_snapshot_gitignore
 
 if git -C "${ROOT}" show-ref --verify --quiet "refs/heads/${BRANCH_NAME}"; then
   git -C "${ROOT}" worktree add "${WORKTREE_DIR}" "${BRANCH_NAME}" >/dev/null
