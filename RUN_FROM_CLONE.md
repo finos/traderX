@@ -10,17 +10,17 @@ Prerequisites:
 Start:
 
 ```bash
-CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh
+CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-state-002-edge-proxy-generated.sh
 ```
 
 Endpoints:
-- UI: `http://localhost:18093`
-- Reference data: `http://localhost:18085/stocks`
-- Trade service swagger: `http://localhost:18092/swagger-ui.html`
+- Browser entrypoint (edge proxy): `http://localhost:18080`
+- Angular direct dev server: `http://localhost:18093`
+- Edge proxy health: `http://localhost:18080/health`
 
 Status / stop:
 
 ```bash
-./scripts/status-base-uncontainerized-generated.sh
-./scripts/stop-base-uncontainerized-generated.sh
+./scripts/status-state-002-edge-proxy-generated.sh
+./scripts/stop-state-002-edge-proxy-generated.sh
 ```

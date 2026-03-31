@@ -1,13 +1,13 @@
 {
-  "stateId": "001-baseline-uncontainerized-parity",
-  "stateTitle": "Simple App - Base Uncontainerized App",
-  "stateStatus": "released",
-  "featurePack": "specs/001-baseline-uncontainerized-parity",
-  "previousStates": [],
-  "nextStates": ["002-edge-proxy-uncontainerized"],
+  "stateId": "002-edge-proxy-uncontainerized",
+  "stateTitle": "Edge Proxy Uncontainerized",
+  "stateStatus": "implemented",
+  "featurePack": "specs/002-edge-proxy-uncontainerized",
+  "previousStates": ["001-baseline-uncontainerized-parity"],
+  "nextStates": ["003-containerized-compose-runtime"],
   "sourceBranch": "feature/agentic-renovation",
   "sourceCommit": "68d19a554c7480a615b19c024eb0a88228c6b9ad",
-  "generatedAtUtc": "2026-03-31T13:03:44Z",
-  "generationEntryPoint": "bash pipeline/generate-from-spec.sh",
-  "publishTagHint": "generated/001-baseline-uncontainerized-parity/v1"
+  "generatedAtUtc": "2026-03-31T13:04:58Z",
+  "generationEntryPoint": "bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized",
+  "publishTagHint": "generated/002-edge-proxy-uncontainerized/v1"
 }

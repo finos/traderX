@@ -1,11 +1,12 @@
 # Component List
 
-State: `001-baseline-uncontainerized-parity`
+State: `002-edge-proxy-uncontainerized`
 
 | ID | Label | Kind | Description |
 | --- | --- | --- | --- |
-| `trader` | Trader Browser | actor | Human user interacting with Angular UI. |
-| `web` | Web Front End Angular | frontend | Browser-hosted UI. |
+| `trader` | Trader Browser | actor | User enters only through edge proxy. |
+| `edge` | Edge Proxy | gateway | Single browser-facing origin. |
+| `web` | Web Front End Angular | frontend | Served behind edge proxy. |
 | `account` | Account Service | service | Account and account-user CRUD. |
 | `position` | Position Service | service | Trades and positions query endpoints. |
 | `tradeService` | Trade Service | service | Trade submission and validation. |

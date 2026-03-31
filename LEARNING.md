@@ -1,12 +1,12 @@
-# Learning Guide For 001-baseline-uncontainerized-parity
+# Learning Guide For 002-edge-proxy-uncontainerized
 
 This snapshot is code-first output. Canonical intent remains in SpecKit artifacts.
 
 ## Learning Focus
 
-- Understand baseline service boundaries and call patterns.
-- Understand startup sequencing and fixed port coupling.
-- Understand why CORS is an explicit NFR in this state.
+- Understand browser traffic consolidation through the edge proxy.
+- Understand how path routing and websocket proxying preserve baseline behavior.
+- Compare cross-origin behavior vs state 001.
 
 ## Read In This Snapshot
 
@@ -18,9 +18,9 @@ This snapshot is code-first output. Canonical intent remains in SpecKit artifact
 
 ## Canonical Spec Sources
 
-- Feature pack: `specs/001-baseline-uncontainerized-parity`
+- Feature pack: `specs/002-edge-proxy-uncontainerized`
 - State docs map route: `/docs/spec-kit/state-docs`
-- Learning guide route: `/docs/learning/state-001-baseline-uncontainerized-parity`
-- Learning guide markdown path in source branch: `docs/learning/state-001-baseline-uncontainerized-parity.md`
-- Source branch feature pack (exact commit): https://github.com/finos/traderX/tree/68d19a554c7480a615b19c024eb0a88228c6b9ad/specs/001-baseline-uncontainerized-parity
-- Source branch learning guide (exact commit): https://github.com/finos/traderX/blob/68d19a554c7480a615b19c024eb0a88228c6b9ad/docs/learning/state-001-baseline-uncontainerized-parity.md
+- Learning guide route: `/docs/learning/state-002-edge-proxy-uncontainerized`
+- Learning guide markdown path in source branch: `docs/learning/state-002-edge-proxy-uncontainerized.md`
+- Source branch feature pack (exact commit): https://github.com/finos/traderX/tree/68d19a554c7480a615b19c024eb0a88228c6b9ad/specs/002-edge-proxy-uncontainerized
+- Source branch learning guide (exact commit): https://github.com/finos/traderX/blob/68d19a554c7480a615b19c024eb0a88228c6b9ad/docs/learning/state-002-edge-proxy-uncontainerized.md
