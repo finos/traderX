@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAtUtc": "2026-03-31T12:59:32Z",
+  "component": {
+    "id": "trade-service",
+    "kind": "service",
+    "language": "Java",
+    "framework": "Spring Boot",
+    "buildTool": "Gradle",
+    "sourcePath": "generated/code/components/trade-service-specfirst",
+    "targetPath": "apps/trade-service",
+    "notes": "Validates account+ticker and publishes new trade orders to /trades."
+  },
+  "runtime": {
+    "defaultPort": 18092,
+    "dependsOn": ["account-service","reference-data","people-service","trade-feed","trade-processor"],
+    "requiredEnv": ["TRADING_SERVICE_PORT","ACCOUNT_SERVICE_URL","ACCOUNT_SERVICE_HOST","REFERENCE_DATA_SERVICE_URL","REFERENCE_DATA_HOST","PEOPLE_SERVICE_URL","PEOPLE_SERVICE_HOST","TRADE_FEED_ADDRESS","TRADE_FEED_HOST","CORS_ALLOWED_ORIGINS"]
+  },
+  "contracts": {
+    "primary": "specs/001-baseline-uncontainerized-parity/contracts/trade-service/openapi.yaml"
+  },
+  "traceability": {
+    "requirements": ["SYS-FR-001","SYS-FR-006","SYS-FR-010","SYS-FR-011","SYS-FR-012","SYS-NFR-007"],
+    "stories": ["US-003","US-004","US-007","US-008","US-009"],
+    "acceptanceCriteria": ["AC-001","AC-004","AC-009","AC-010"],
+    "flows": ["F3","F4","STARTUP"],
+    "verificationRefs": ["pipeline/validate-regeneration-readiness.sh","scripts/start-base-uncontainerized-generated.sh","scripts/status-base-uncontainerized-generated.sh","scripts/test-realtime-account-stream-overlay.sh","scripts/test-trade-service-overlay.sh"]
+  },
+  "constraints": {
+    "preIngressCorsRequired": false
+  }
+}

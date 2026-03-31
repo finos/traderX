@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAtUtc": "2026-03-31T12:59:32Z",
+  "component": {
+    "id": "database",
+    "kind": "service",
+    "language": "Java",
+    "framework": "H2 server + scripts",
+    "buildTool": "Gradle",
+    "sourcePath": "generated/code/components/database-specfirst",
+    "targetPath": "apps/database",
+    "notes": "Hosts H2 DB runtime; exposes 18082/18083/18084."
+  },
+  "runtime": {
+    "defaultPort": 18082,
+    "dependsOn": [],
+    "requiredEnv": ["DATABASE_WEB_HOSTNAMES"]
+  },
+  "contracts": {
+    "primary": null
+  },
+  "traceability": {
+    "requirements": ["SYS-FR-001","SYS-FR-007","SYS-NFR-002"],
+    "stories": ["US-004","US-007"],
+    "acceptanceCriteria": ["AC-001","AC-005"],
+    "flows": ["F4","STARTUP"],
+    "verificationRefs": ["catalog/base-uncontainerized-processes.csv","scripts/start-base-uncontainerized-generated.sh","scripts/test-database-overlay.sh"]
+  },
+  "constraints": {
+    "preIngressCorsRequired": false
+  }
+}

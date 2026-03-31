@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAtUtc": "2026-03-31T12:59:32Z",
+  "component": {
+    "id": "web-front-end-angular",
+    "kind": "ui",
+    "language": "TypeScript",
+    "framework": "Angular",
+    "buildTool": "npm",
+    "sourcePath": "generated/code/components/web-front-end-angular-specfirst",
+    "targetPath": "apps/web-front-end/angular",
+    "notes": "Primary UI for account/trade workflows with FINOS TraderX branding assets."
+  },
+  "runtime": {
+    "defaultPort": 18093,
+    "dependsOn": ["account-service","trade-service","position-service","reference-data","people-service","trade-feed","trade-processor"],
+    "requiredEnv": ["WEB_SERVICE_PORT"]
+  },
+  "contracts": {
+    "primary": null
+  },
+  "traceability": {
+    "requirements": ["SYS-FR-001","SYS-FR-013","SYS-FR-014","SYS-FR-015","SYS-FR-016","SYS-FR-017","SYS-NFR-003","SYS-NFR-006","SYS-NFR-008"],
+    "stories": ["US-001","US-004","US-007","US-010","US-011","US-012","US-013"],
+    "acceptanceCriteria": ["AC-001","AC-009","AC-011","AC-012","AC-013","AC-014","AC-015","AC-016"],
+    "flows": ["F2","F3","F4","F6","STARTUP"],
+    "verificationRefs": ["scripts/start-base-uncontainerized-generated.sh","scripts/test-position-blotter-upsert-contract.sh","scripts/test-web-angular-baseline-ux-contract.sh","scripts/test-web-angular-overlay.sh"]
+  },
+  "constraints": {
+    "preIngressCorsRequired": false
+  }
+}
