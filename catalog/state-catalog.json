@@ -126,7 +126,7 @@
         "003-containerized-compose-runtime"
       ],
       "generation": {
-        "mode": "scripted",
+        "mode": "implemented",
         "entrypoint": "bash pipeline/generate-state.sh 007-messaging-nats-replacement",
         "runtime": "./scripts/start-state-007-messaging-nats-replacement-generated.sh"
       },

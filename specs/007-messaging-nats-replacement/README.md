@@ -1,6 +1,6 @@
 # Feature Pack 007: Messaging Layer Replacement with NATS
 
-Status: Planned  
+Status: Implemented  
 Track: `architecture`  
 Previous state: `003-containerized-compose-runtime`
 
