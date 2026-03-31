@@ -245,8 +245,8 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-      minimumFractionDigits: 3,
-      maximumFractionDigits: 3
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(numeric);
   }
 
