@@ -3,10 +3,20 @@
 - Hook script: `pipeline/generate-state-009-postgres-database-replacement.sh`
 - Feature pack: `specs/009-postgres-database-replacement`
 
-Implemented responsibilities:
+Patch-set model:
 
-1. Generate or transform code artifacts for this state.
-2. Apply PostgreSQL overlays to DB-dependent services.
-3. Generate PostgreSQL compose runtime assets and init script.
-4. Keep compatibility with state lineage contracts unless explicitly changed.
-5. Produce deterministic output suitable for branch publishing.
+- Parent state: `003-containerized-compose-runtime`
+- Patch path: `specs/009-postgres-database-replacement/generation/patches/0001-state-overlay.patch`
+- Patch target root: `generated/code/target-generated`
+
+Hook flow:
+
+1. Generate parent state `003`.
+2. Apply state patch set (PostgreSQL runtime + service DB config deltas).
+3. Regenerate architecture docs.
+
+Patch refresh command:
+
+```bash
+bash pipeline/create-state-patchset.sh 009-postgres-database-replacement 003-containerized-compose-runtime
+```

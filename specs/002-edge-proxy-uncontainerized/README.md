@@ -18,5 +18,6 @@ Implemented artifacts:
 - `system/runtime-topology.md`
 - `components/edge-proxy.md`
 - `pipeline/generate-state.sh` (state `002` entrypoint)
-- `pipeline/generate-edge-proxy-specfirst.sh`
+- `pipeline/generate-state-002-edge-proxy-uncontainerized.sh`
+- `specs/002-edge-proxy-uncontainerized/generation/patches/*.patch`
 - `scripts/start-state-002-edge-proxy-generated.sh`

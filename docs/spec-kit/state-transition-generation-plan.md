@@ -17,9 +17,10 @@ This plan defines how TraderX will evolve from the current baseline into additio
    - functional deltas for behavior changes,
    - non-functional deltas for platform/ops changes.
 4. Compile manifests from the target state specs.
-5. Generate only impacted components.
-6. Run state-specific verification + shared conformance/parity gates.
-7. Publish a state changelog documenting:
+5. For derived states, generate parent then apply ordered patch sets from `specs/<state>/generation/patches/*.patch`.
+6. Generate only impacted components where component-level overlays are needed (state `002` pattern).
+7. Run state-specific verification + shared conformance/parity gates.
+8. Publish a state changelog documenting:
    - changed requirements,
    - changed components,
    - changed runtime contracts.
@@ -37,10 +38,10 @@ This plan defines how TraderX will evolve from the current baseline into additio
 ## Developer Workflow For A New State
 
 1. Read baseline + target state specs.
-2. Run generation for target state.
+2. Run generation for target state (parent + patch set apply).
 3. Start target runtime.
 4. Run state verifier and conformance pack.
-5. Inspect generated diff summary.
+5. Inspect generated patch and diff summary.
 6. Promote state only when all checks pass.
 
 ## Generated Snapshot Distribution

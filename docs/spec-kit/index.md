@@ -31,14 +31,16 @@ bash pipeline/scaffold-state-pack.sh <NNN-state-name> --title "<Title>" --previo
    - `/docs/spec-kit/spec-kit-workflow`
 4. Understand generated-code branch publishing:
    - `/docs/spec-kit/generated-state-branches`
-5. Browse state-specific architecture and flow docs:
+5. Follow patch-set implementation workflow:
+   - `/docs/spec-kit/patchset-authoring`
+6. Browse state-specific architecture and flow docs:
    - `/docs/spec-kit/state-docs`
-6. Browse developer-focused generated-code guides per state:
+7. Browse developer-focused generated-code guides per state:
    - `/docs/learning`
-7. Browse core artifacts:
+8. Browse core artifacts:
    - `/specs`
    - `/specify`
-8. Plan future-state transitions:
+9. Plan future-state transitions:
    - `/docs/spec-kit/spec-kit-learning-path-strategy`
    - `/docs/learning-paths`
 

@@ -1,0 +1,1375 @@
+diff --git a/containerized-compose/README.md b/containerized-compose/README.md
+deleted file mode 100644
+index 6204449..0000000
+--- a/containerized-compose/README.md
++++ /dev/null
+@@ -1,16 +0,0 @@
+-# State 003 Containerized Compose Runtime
+-
+-Generated from:
+-
+-- `specs/003-containerized-compose-runtime/system/docker-compose.spec.yaml`
+-- `specs/003-containerized-compose-runtime/system/ingress-nginx.conf.template`
+-
+-Run:
+-
+-```bash
+-docker compose -f docker-compose.yml up -d --build
+-```
+-
+-Ingress UI:
+-
+-- `http://localhost:8080`
+diff --git a/ingress/nginx.traderx.conf.template b/ingress/nginx.traderx.conf.template
+index fbe8473..f881206 100644
+--- a/ingress/nginx.traderx.conf.template
++++ b/ingress/nginx.traderx.conf.template
+@@ -16,28 +16,18 @@ server {
+     }
+ 
+     location /ng-cli-ws {
+-        proxy_pass ${WEB_FRONTEND_URL}ng-cli-ws;
++        proxy_pass ${WEB_FRONTEND_URL}/ng-cli-ws;
+         proxy_http_version 1.1;
+         proxy_set_header Upgrade $http_upgrade;
+         proxy_set_header Connection "upgrade";
+     }
+ 
+-    location /trade-feed/ {
+-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+-        proxy_set_header Host $http_host;
+-        proxy_pass ${TRADE_FEED_URL};
++    location /nats-ws {
++        proxy_pass http://nats-broker:8081;
+         proxy_http_version 1.1;
+         proxy_set_header Upgrade $http_upgrade;
+         proxy_set_header Connection "upgrade";
+-    }
+-
+-    location /socket.io/ {
+-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+         proxy_set_header Host $http_host;
+-        proxy_pass ${TRADE_FEED_URL}socket.io/;
+-        proxy_http_version 1.1;
+-        proxy_set_header Upgrade $http_upgrade;
+-        proxy_set_header Connection "upgrade";
+     }
+ 
+     location /people-service/ {
+@@ -62,5 +52,8 @@ server {
+ 
+     location / {
+         proxy_pass ${WEB_FRONTEND_URL};
++        proxy_http_version 1.1;
++        proxy_set_header Upgrade $http_upgrade;
++        proxy_set_header Connection "upgrade";
+     }
+ }
+diff --git a/messaging-nats-replacement/README.md b/messaging-nats-replacement/README.md
+new file mode 100644
+index 0000000..a0fda48
+--- /dev/null
++++ b/messaging-nats-replacement/README.md
+@@ -0,0 +1,17 @@
++# State 007 Messaging NATS Replacement Runtime
++
++Generated compose runtime for:
++
++- `specs/007-messaging-nats-replacement`
++
++Run:
++
++```bash
++docker compose -f docker-compose.yml up -d --build
++```
++
++Entrypoints:
++
++- UI/ingress: `http://localhost:8080`
++- NATS monitor: `http://localhost:8222/varz`
++- NATS websocket (ingress proxied): `ws://localhost:8080/nats-ws`
+diff --git a/containerized-compose/docker-compose.yml b/messaging-nats-replacement/docker-compose.yml
+similarity index 89%
+rename from containerized-compose/docker-compose.yml
+rename to messaging-nats-replacement/docker-compose.yml
+index 97b46a6..913dcd9 100644
+--- a/containerized-compose/docker-compose.yml
++++ b/messaging-nats-replacement/docker-compose.yml
+@@ -1,4 +1,4 @@
+-name: traderx-state-003
++name: traderx-state-007
+ 
+ services:
+   database:
+@@ -27,15 +27,15 @@ services:
+     depends_on:
+       - database
+ 
+-  trade-feed:
+-    build:
+-      context: ../trade-feed
+-      dockerfile: Dockerfile.compose
+-    environment:
+-      TRADE_FEED_PORT: "18086"
+-      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++  nats-broker:
++    image: nats:2.10-alpine
++    command: ["-c", "/etc/nats/nats.conf"]
++    volumes:
++      - ./nats/nats.conf:/etc/nats/nats.conf:ro
+     ports:
+-      - "18086:18086"
++      - "4222:4222"
++      - "8222:8222"
++      - "8081:8081"
+ 
+   people-service:
+     build:
+@@ -85,13 +85,13 @@ services:
+       TRADE_PROCESSOR_SERVICE_PORT: "18091"
+       DATABASE_TCP_HOST: "database"
+       DATABASE_TCP_PORT: "18082"
+-      TRADE_FEED_HOST: "trade-feed"
++      NATS_BROKER_HOST: "nats-broker"
+       CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+     ports:
+       - "18091:18091"
+     depends_on:
+       - database
+-      - trade-feed
++      - nats-broker
+ 
+   trade-service:
+     build:
+@@ -102,7 +102,7 @@ services:
+       ACCOUNT_SERVICE_HOST: "account-service"
+       REFERENCE_DATA_HOST: "reference-data"
+       PEOPLE_SERVICE_HOST: "people-service"
+-      TRADE_FEED_HOST: "trade-feed"
++      NATS_BROKER_HOST: "nats-broker"
+       CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+     ports:
+       - "18092:18092"
+@@ -110,7 +110,7 @@ services:
+       - account-service
+       - reference-data
+       - people-service
+-      - trade-feed
++      - nats-broker
+       - trade-processor
+ 
+   web-front-end-angular:
+@@ -127,7 +127,7 @@ services:
+       - trade-service
+       - position-service
+       - people-service
+-      - trade-feed
++      - nats-broker
+ 
+   ingress:
+     build:
+@@ -137,7 +137,6 @@ services:
+       NGINX_HOST: "localhost"
+       DATABASE_URL: "http://database:18084/"
+       REFERENCE_DATA_URL: "http://reference-data:18085/"
+-      TRADE_FEED_URL: "http://trade-feed:18086/"
+       PEOPLE_SERVICE_URL: "http://people-service:18089/"
+       ACCOUNT_SERVICE_URL: "http://account-service:18088/"
+       POSITION_SERVICE_URL: "http://position-service:18090/"
+@@ -153,4 +152,4 @@ services:
+       - trade-service
+       - position-service
+       - people-service
+-      - trade-feed
++      - nats-broker
+diff --git a/messaging-nats-replacement/nats/nats.conf b/messaging-nats-replacement/nats/nats.conf
+new file mode 100644
+index 0000000..d194d1f
+--- /dev/null
++++ b/messaging-nats-replacement/nats/nats.conf
+@@ -0,0 +1,7 @@
++port: 4222
++http: 8222
++
++websocket {
++  port: 8081
++  no_tls: true
++}
+diff --git a/trade-feed/Dockerfile.compose b/trade-feed/Dockerfile.compose
+deleted file mode 100644
+index 79db742..0000000
+--- a/trade-feed/Dockerfile.compose
++++ /dev/null
+@@ -1,13 +0,0 @@
+-# syntax=docker/dockerfile:1.7
+-FROM node:20-alpine
+-WORKDIR /app
+-COPY package*.json ./
+-RUN --mount=type=cache,target=/root/.npm,sharing=locked \
+-    if [ -f package-lock.json ]; then \
+-      npm ci --no-audit --prefer-offline; \
+-    else \
+-      npm install --no-audit --prefer-offline; \
+-    fi
+-COPY . .
+-EXPOSE 18086
+-CMD ["npm", "run", "start"]
+diff --git a/trade-feed/README.md b/trade-feed/README.md
+deleted file mode 100644
+index 187e687..0000000
+--- a/trade-feed/README.md
++++ /dev/null
+@@ -1,16 +0,0 @@
+-# Trade-Feed (Spec-First Generated)
+-
+-This component is synthesized from the TraderSpec Spec Kit manifest for the baseline pre-containerized runtime.
+-
+-## Run
+-
+-```bash
+-npm install
+-npm run start
+-```
+-
+-## Runtime Contract
+-
+-- Default port: `18086` via `TRADE_FEED_PORT`
+-- CORS origins: `CORS_ALLOWED_ORIGINS` (default `*`)
+-- Commands: `subscribe`, `unsubscribe`, `unusbscribe` (legacy compatibility), `publish`
+diff --git a/trade-feed/SPEC.manifest.json b/trade-feed/SPEC.manifest.json
+deleted file mode 100644
+index b0ff5e7..0000000
+--- a/trade-feed/SPEC.manifest.json
++++ /dev/null
+@@ -1,32 +0,0 @@
+-{
+-  "schemaVersion": "1.0.0",
+-  "generatedAtUtc": "2026-03-31T12:59:32Z",
+-  "component": {
+-    "id": "trade-feed",
+-    "kind": "service",
+-    "language": "JavaScript",
+-    "framework": "Node + Socket.IO",
+-    "buildTool": "npm",
+-    "sourcePath": "generated/code/components/trade-feed-specfirst",
+-    "targetPath": "apps/trade-feed",
+-    "notes": "PubSub broker with publish/subscribe events."
+-  },
+-  "runtime": {
+-    "defaultPort": 18086,
+-    "dependsOn": [],
+-    "requiredEnv": ["TRADE_FEED_PORT","CORS_ALLOWED_ORIGINS"]
+-  },
+-  "contracts": {
+-    "primary": null
+-  },
+-  "traceability": {
+-    "requirements": ["SYS-FR-001","SYS-FR-004","SYS-FR-012","SYS-NFR-004"],
+-    "stories": ["US-004","US-007"],
+-    "acceptanceCriteria": ["AC-001","AC-003","AC-010"],
+-    "flows": ["F2","F4","STARTUP"],
+-    "verificationRefs": ["scripts/start-base-uncontainerized-generated.sh","scripts/stop-base-uncontainerized-generated.sh","scripts/test-realtime-account-stream-overlay.sh","scripts/test-trade-feed-overlay.sh"]
+-  },
+-  "constraints": {
+-    "preIngressCorsRequired": false
+-  }
+-}
+diff --git a/trade-feed/index.html b/trade-feed/index.html
+deleted file mode 100644
+index 76202f0..0000000
+--- a/trade-feed/index.html
++++ /dev/null
+@@ -1,67 +0,0 @@
+-<!DOCTYPE html>
+-<html>
+-  <head>
+-    <title>Example Pub/Sub console inspector</title>
+-    <style>
+-      body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+-
+-      #form { background: rgba(0, 0, 0, 0.15); padding: 0.25rem; position: fixed; bottom: 0; left: 0; right: 0; display: flex; height: 3rem; box-sizing: border-box; backdrop-filter: blur(10px); }
+-      #input { border: none; padding: 0 1rem; flex-grow: 1; border-radius: 2rem; margin: 0.25rem; }
+-      #input:focus { outline: none; }
+-      #form > button { background: #333; border: none; padding: 0 1rem; margin: 0.25rem; border-radius: 3px; outline: none; color: #fff; }
+-
+-      #messages { list-style-type: none; margin: 0; padding: 0; }
+-      #messages > li { padding: 0.5rem 1rem; }
+-      #messages > li:nth-child(odd) { background: #efefef; }
+-    </style>
+-  </head>
+-  <body>
+-    <ul id="messages"></ul>
+-    <form id="form" action="">
+-      <input title="Send Message" id="input" autocomplete="off" /><button>Send</button>
+-    </form>
+-    <script src="/socket.io/socket.io.js"></script>
+-
+-    <script>
+-      var messages = document.getElementById('messages');
+-
+-      var form = document.getElementById('form');
+-      var input = document.getElementById('input');
+-
+-      function addMessage(category,message){
+-        var item = document.createElement('li');
+-        item.textContent = `[${category}] ${JSON.stringify(message)}`;
+-        messages.appendChild(item);
+-        window.scrollTo(0, document.body.scrollHeight);
+-      }
+-
+-      
+-      form.addEventListener('submit', function(e) {
+-        e.preventDefault();
+-        if (input.value) {
+-          socket.emit(PUBLISH, { topic:'/chat',payload:{message:input.value}});
+-          input.value = '';
+-        }
+-      });
+-
+-      var socket=io();
+-      const PUBLISH='publish';
+-      const SUBSCRIBE='subscribe';
+-      const UNSUBSCRIBE='unsubscribe';
+-      socket.on(PUBLISH,(data)=>{
+-        data=typeof(data)!="object"?JSON.parse(data):data;
+-        console.log("PUBLISH DATA "+JSON.stringify(data));
+-        addMessage(data.topic||'GENERAL',data);
+-      });
+-
+-      socket.emit(SUBSCRIBE,"/*");
+-      
+-      // Example:
+-      // socket.emit(SUBSCRIBE,"/accounts/12345/trades");
+-      // socket.emit(SUBSCRIBE,"/chat");
+-      // socket.emit(SUBSCRIBE,"/accounts/12345/positions");
+-      
+-      
+-    </script>
+-  </body>
+-</html>
+\ No newline at end of file
+diff --git a/trade-feed/index.js b/trade-feed/index.js
+deleted file mode 100644
+index ea23c90..0000000
+--- a/trade-feed/index.js
++++ /dev/null
+@@ -1,95 +0,0 @@
+-const sockio = require("socket.io");
+-const app = require("express")();
+-const winston = require("winston");
+-const http = require("http").createServer(app);
+-
+-const configuredOrigins = (process.env.CORS_ALLOWED_ORIGINS || "*")
+-  .split(",")
+-  .map((origin) => origin.trim())
+-  .filter((origin) => origin.length > 0);
+-
+-const io = new sockio.Server(http, {
+-  cors: {
+-    origin: configuredOrigins.includes("*") ? "*" : configuredOrigins,
+-    methods: ["GET", "POST"]
+-  }
+-});
+-
+-const port = Number(process.env.TRADE_FEED_PORT || 18086);
+-
+-const log = winston.createLogger({
+-  transports: [new winston.transports.Console()]
+-});
+-
+-const SUBSCRIBE = "subscribe";
+-const UNSUBSCRIBE = "unsubscribe";
+-const UNSUBSCRIBE_LEGACY = "unusbscribe";
+-const PUBLISH = "publish";
+-
+-app.get("/", (req, res) => {
+-  res.sendFile(__dirname + "/index.html");
+-});
+-
+-function wrapMessage(sender, topic, payloadType, payload) {
+-  return {
+-    type: payloadType || "message",
+-    from: sender,
+-    topic: topic,
+-    date: new Date().getTime(),
+-    payload: payload
+-  };
+-}
+-
+-function joinMessage(user, topic) {
+-  return {
+-    topic: topic,
+-    type: "message",
+-    payload: { message: `New Joiner ${user} to topic ${topic}` }
+-  };
+-}
+-
+-function leaveMessage(user, topic) {
+-  return {
+-    topic: topic,
+-    type: "message",
+-    payload: { message: `${user} has left ${topic}` }
+-  };
+-}
+-
+-function broadcast(from, data) {
+-  const message = wrapMessage(from, data.topic, data.type, data.payload);
+-  log.info(`Publish ${data.topic} -> ${JSON.stringify(message)}`);
+-  io.sockets.in([data.topic, "/*"]).emit(PUBLISH, message);
+-}
+-
+-function handleUnsubscribe(socket, topic) {
+-  log.info(`Unsubscribe ${topic}`);
+-  broadcast("System", leaveMessage(socket.id, topic));
+-  socket.leave(topic);
+-}
+-
+-io.on("connection", (socket) => {
+-  log.info(`New Connection from ${socket.id}`);
+-
+-  socket.on(SUBSCRIBE, (topic) => {
+-    log.info(`Subscribe ${topic}`);
+-    socket.join(topic);
+-    broadcast("System", joinMessage(socket.id, topic));
+-  });
+-
+-  socket.on(UNSUBSCRIBE, (topic) => {
+-    handleUnsubscribe(socket, topic);
+-  });
+-
+-  socket.on(UNSUBSCRIBE_LEGACY, (topic) => {
+-    handleUnsubscribe(socket, topic);
+-  });
+-
+-  socket.on(PUBLISH, (data) => {
+-    broadcast(socket.id, data);
+-  });
+-});
+-
+-http.listen(port, () => {
+-  log.info(`[ready] trade-feed-specfirst listening on :${port}`);
+-});
+diff --git a/trade-feed/package.json b/trade-feed/package.json
+deleted file mode 100644
+index 0355908..0000000
+--- a/trade-feed/package.json
++++ /dev/null
+@@ -1,15 +0,0 @@
+-{
+-  "name": "@traderspec/trade-feed-specfirst",
+-  "version": "0.1.0",
+-  "private": true,
+-  "license": "Apache-2.0",
+-  "scripts": {
+-    "start": "node index.js"
+-  },
+-  "dependencies": {
+-    "express": "^5.0.1",
+-    "socket.io": "^4.8.1",
+-    "socket.io-client": "^4.8.1",
+-    "winston": "^3.17.0"
+-  }
+-}
+diff --git a/trade-processor/build.gradle b/trade-processor/build.gradle
+index 2e6b43a..471d302 100644
+--- a/trade-processor/build.gradle
++++ b/trade-processor/build.gradle
+@@ -20,6 +20,7 @@ dependencies {
+   implementation 'org.springframework.boot:spring-boot-starter-web'
+   implementation 'com.h2database:h2:2.3.232'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
++  implementation 'io.nats:jnats:2.20.5'
+ 
+   implementation('org.json:json:20240303') {
+     because 'previous versions are affected by multiple CVE'
+diff --git a/trade-processor/src/main/java/finos/traderx/messaging/nats/NatsEnvelope.java b/trade-processor/src/main/java/finos/traderx/messaging/nats/NatsEnvelope.java
+new file mode 100644
+index 0000000..770ea68
+--- /dev/null
++++ b/trade-processor/src/main/java/finos/traderx/messaging/nats/NatsEnvelope.java
+@@ -0,0 +1,62 @@
++package finos.traderx.messaging.nats;
++
++import finos.traderx.messaging.Envelope;
++import java.util.Date;
++
++public class NatsEnvelope<T> implements Envelope<T> {
++  private String topic;
++  private T payload;
++  private Date date = new Date();
++  private String from;
++  private String type;
++
++  public NatsEnvelope() {}
++
++  public NatsEnvelope(String topic, T payload, String from) {
++    this.payload = payload;
++    this.topic = topic;
++    this.from = from;
++    this.type = (payload == null) ? "Unknown" : payload.getClass().getSimpleName();
++  }
++
++  public void setType(String type) {
++    this.type = type;
++  }
++
++  public void setPayload(T payload) {
++    this.payload = payload;
++  }
++
++  public void setTopic(String topic) {
++    this.topic = topic;
++  }
++
++  public void setFrom(String from) {
++    this.from = from;
++  }
++
++  @Override
++  public String getType() {
++    return type;
++  }
++
++  @Override
++  public String getTopic() {
++    return topic;
++  }
++
++  @Override
++  public T getPayload() {
++    return payload;
++  }
++
++  @Override
++  public Date getDate() {
++    return date;
++  }
++
++  @Override
++  public String getFrom() {
++    return from;
++  }
++}
+diff --git a/trade-processor/src/main/java/finos/traderx/messaging/nats/NatsJSONPublisher.java b/trade-processor/src/main/java/finos/traderx/messaging/nats/NatsJSONPublisher.java
+new file mode 100644
+index 0000000..8ec0be9
+--- /dev/null
++++ b/trade-processor/src/main/java/finos/traderx/messaging/nats/NatsJSONPublisher.java
+@@ -0,0 +1,96 @@
++package finos.traderx.messaging.nats;
++
++import com.fasterxml.jackson.annotation.JsonInclude;
++import com.fasterxml.jackson.databind.ObjectMapper;
++import finos.traderx.messaging.PubSubException;
++import finos.traderx.messaging.Publisher;
++import io.nats.client.Connection;
++import io.nats.client.Nats;
++import io.nats.client.Options;
++import java.time.Duration;
++import org.slf4j.LoggerFactory;
++import org.springframework.beans.factory.InitializingBean;
++
++public class NatsJSONPublisher<T> implements Publisher<T>, InitializingBean {
++  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
++      .setSerializationInclusion(JsonInclude.Include.NON_NULL);
++
++  org.slf4j.Logger log = LoggerFactory.getLogger(this.getClass().getName());
++
++  private boolean connected = false;
++  private Connection connection;
++  private String serverAddress = "nats://localhost:4222";
++  private String topic = "/default";
++  private String sender = "publisher";
++
++  public void setServerAddress(String addr) {
++    serverAddress = addr;
++  }
++
++  public void setTopic(String value) {
++    topic = value;
++  }
++
++  public void setSender(String value) {
++    sender = value;
++  }
++
++  @Override
++  public boolean isConnected() {
++    return connected;
++  }
++
++  @Override
++  public void publish(T message) throws PubSubException {
++    publish(topic, message);
++  }
++
++  @Override
++  public void publish(String topic, T message) throws PubSubException {
++    if (!isConnected()) {
++      throw new PubSubException("Cannot send %s on topic %s - not connected".formatted(message, topic));
++    }
++    try {
++      NatsEnvelope<T> envelope = new NatsEnvelope<>(topic, message, sender);
++      byte[] payload = OBJECT_MAPPER.writeValueAsBytes(envelope);
++      connection.publish(topic, payload);
++      connection.flush(Duration.ofSeconds(2));
++    } catch (Exception x) {
++      throw new PubSubException("Unable to publish on topic " + topic, x);
++    }
++  }
++
++  @Override
++  public void disconnect() throws PubSubException {
++    try {
++      if (connection != null) {
++        connection.close();
++      }
++      connected = false;
++      connection = null;
++    } catch (Exception x) {
++      throw new PubSubException("Failed to close NATS connection", x);
++    }
++  }
++
++  @Override
++  public void connect() throws PubSubException {
++    try {
++      Options options = new Options.Builder()
++          .server(serverAddress)
++          .maxReconnects(-1)
++          .connectionTimeout(Duration.ofSeconds(5))
++          .build();
++      connection = Nats.connect(options);
++      connected = true;
++      log.info("Connected to NATS at {}", serverAddress);
++    } catch (Exception x) {
++      throw new PubSubException("Cannot connect to NATS at " + serverAddress, x);
++    }
++  }
++
++  @Override
++  public void afterPropertiesSet() throws Exception {
++    connect();
++  }
++}
+diff --git a/trade-processor/src/main/java/finos/traderx/messaging/nats/NatsJSONSubscriber.java b/trade-processor/src/main/java/finos/traderx/messaging/nats/NatsJSONSubscriber.java
+new file mode 100644
+index 0000000..330bca5
+--- /dev/null
++++ b/trade-processor/src/main/java/finos/traderx/messaging/nats/NatsJSONSubscriber.java
+@@ -0,0 +1,118 @@
++package finos.traderx.messaging.nats;
++
++import com.fasterxml.jackson.annotation.JsonInclude;
++import com.fasterxml.jackson.databind.JavaType;
++import com.fasterxml.jackson.databind.ObjectMapper;
++import finos.traderx.messaging.Envelope;
++import finos.traderx.messaging.PubSubException;
++import finos.traderx.messaging.Subscriber;
++import io.nats.client.Connection;
++import io.nats.client.Dispatcher;
++import io.nats.client.Nats;
++import io.nats.client.Options;
++import java.time.Duration;
++import org.slf4j.LoggerFactory;
++import org.springframework.beans.factory.InitializingBean;
++
++public abstract class NatsJSONSubscriber<T> implements Subscriber<T>, InitializingBean {
++  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
++      .setSerializationInclusion(JsonInclude.Include.NON_NULL);
++
++  final JavaType envelopeType;
++  final Class<T> objectType;
++
++  org.slf4j.Logger log = LoggerFactory.getLogger(this.getClass().getName());
++
++  private boolean connected = false;
++  private Connection connection;
++  private Dispatcher dispatcher;
++  private String serverAddress = "nats://localhost:4222";
++  private String defaultTopic = "/default";
++
++  public NatsJSONSubscriber(Class<T> typeClass) {
++    JavaType type = OBJECT_MAPPER.getTypeFactory().constructParametricType(NatsEnvelope.class, typeClass);
++    this.envelopeType = type;
++    this.objectType = typeClass;
++  }
++
++  public void setServerAddress(String addr) {
++    serverAddress = addr;
++  }
++
++  public void setDefaultTopic(String topic) {
++    defaultTopic = topic;
++  }
++
++  @Override
++  public boolean isConnected() {
++    return connected;
++  }
++
++  @Override
++  public void subscribe(String topic) throws PubSubException {
++    if (!isConnected() || dispatcher == null) {
++      throw new PubSubException("Cannot subscribe - NATS connection is not ready");
++    }
++    dispatcher.subscribe(topic);
++    log.info("Subscribed to {}", topic);
++  }
++
++  @Override
++  public void unsubscribe(String topic) throws PubSubException {
++    if (dispatcher != null) {
++      dispatcher.unsubscribe(topic);
++    }
++  }
++
++  @Override
++  public void disconnect() throws PubSubException {
++    try {
++      if (connection != null) {
++        connection.close();
++      }
++      connected = false;
++      connection = null;
++      dispatcher = null;
++    } catch (Exception x) {
++      throw new PubSubException("Failed to close NATS connection", x);
++    }
++  }
++
++  @Override
++  public void connect() throws PubSubException {
++    try {
++      Options options = new Options.Builder()
++          .server(serverAddress)
++          .maxReconnects(-1)
++          .connectionTimeout(Duration.ofSeconds(5))
++          .build();
++      connection = Nats.connect(options);
++      dispatcher = connection.createDispatcher(msg -> {
++        try {
++          NatsEnvelope<T> envelope = OBJECT_MAPPER.readValue(msg.getData(), envelopeType);
++          if (envelope.getPayload() == null) {
++            log.debug("Ignoring message with empty payload on {}", msg.getSubject());
++            return;
++          }
++          if (!objectType.getSimpleName().equals(envelope.getType())) {
++            log.debug("Ignoring non-target message type {}", envelope.getType());
++            return;
++          }
++          onMessage(envelope, envelope.getPayload());
++        } catch (Exception x) {
++          log.error("Threw exception while handling incoming message", x);
++        }
++      });
++      connected = true;
++      log.info("Connected to NATS at {}", serverAddress);
++    } catch (Exception x) {
++      throw new PubSubException("Cannot connect to NATS at " + serverAddress, x);
++    }
++  }
++
++  @Override
++  public void afterPropertiesSet() throws Exception {
++    connect();
++    subscribe(defaultTopic);
++  }
++}
+diff --git a/trade-processor/src/main/java/finos/traderx/tradeprocessor/PubSubConfig.java b/trade-processor/src/main/java/finos/traderx/tradeprocessor/PubSubConfig.java
+index 1263b57..87b6b58 100644
+--- a/trade-processor/src/main/java/finos/traderx/tradeprocessor/PubSubConfig.java
++++ b/trade-processor/src/main/java/finos/traderx/tradeprocessor/PubSubConfig.java
+@@ -2,7 +2,7 @@ package finos.traderx.tradeprocessor;
+ 
+ import finos.traderx.messaging.Publisher;
+ import finos.traderx.messaging.Subscriber;
+-import finos.traderx.messaging.socketio.SocketIOJSONPublisher;
++import finos.traderx.messaging.nats.NatsJSONPublisher;
+ import finos.traderx.tradeprocessor.model.Position;
+ import finos.traderx.tradeprocessor.model.Trade;
+ import finos.traderx.tradeprocessor.model.TradeOrder;
+@@ -12,20 +12,22 @@ import org.springframework.context.annotation.Configuration;
+ 
+ @Configuration
+ public class PubSubConfig {
+-  @Value("${trade.feed.address}")
+-  private String tradeFeedAddress;
++  @Value("${nats.address}")
++  private String natsAddress;
+ 
+   @Bean
+   public Publisher<Position> positionPublisher() {
+-    SocketIOJSONPublisher<Position> publisher = new SocketIOJSONPublisher<>() {};
+-    publisher.setSocketAddress(tradeFeedAddress);
++    NatsJSONPublisher<Position> publisher = new NatsJSONPublisher<>();
++    publisher.setServerAddress(natsAddress);
++    publisher.setSender("trade-processor");
+     return publisher;
+   }
+ 
+   @Bean
+   public Publisher<Trade> tradePublisher() {
+-    SocketIOJSONPublisher<Trade> publisher = new SocketIOJSONPublisher<>() {};
+-    publisher.setSocketAddress(tradeFeedAddress);
++    NatsJSONPublisher<Trade> publisher = new NatsJSONPublisher<>();
++    publisher.setServerAddress(natsAddress);
++    publisher.setSender("trade-processor");
+     return publisher;
+   }
+ 
+@@ -33,7 +35,7 @@ public class PubSubConfig {
+   public Subscriber<TradeOrder> tradeFeedHandler() {
+     TradeFeedHandler handler = new TradeFeedHandler();
+     handler.setDefaultTopic("/trades");
+-    handler.setSocketAddress(tradeFeedAddress);
++    handler.setServerAddress(natsAddress);
+     return handler;
+   }
+ }
+diff --git a/trade-processor/src/main/java/finos/traderx/tradeprocessor/TradeFeedHandler.java b/trade-processor/src/main/java/finos/traderx/tradeprocessor/TradeFeedHandler.java
+index ec32e32..1dc48f4 100644
+--- a/trade-processor/src/main/java/finos/traderx/tradeprocessor/TradeFeedHandler.java
++++ b/trade-processor/src/main/java/finos/traderx/tradeprocessor/TradeFeedHandler.java
+@@ -1,12 +1,12 @@
+ package finos.traderx.tradeprocessor;
+ 
+ import finos.traderx.messaging.Envelope;
+-import finos.traderx.messaging.socketio.SocketIOJSONSubscriber;
++import finos.traderx.messaging.nats.NatsJSONSubscriber;
+ import finos.traderx.tradeprocessor.model.TradeOrder;
+ import finos.traderx.tradeprocessor.service.TradeService;
+ import org.springframework.beans.factory.annotation.Autowired;
+ 
+-public class TradeFeedHandler extends SocketIOJSONSubscriber<TradeOrder> {
++public class TradeFeedHandler extends NatsJSONSubscriber<TradeOrder> {
+   static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TradeFeedHandler.class);
+ 
+   public TradeFeedHandler() {
+diff --git a/trade-processor/src/main/resources/application.properties b/trade-processor/src/main/resources/application.properties
+index 300e3c9..0782b1a 100644
+--- a/trade-processor/src/main/resources/application.properties
++++ b/trade-processor/src/main/resources/application.properties
+@@ -10,7 +10,7 @@ spring.jpa.hibernate.ddl-auto=update
+ spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+ spring.threads.virtual.enabled=true
+ 
+-trade.feed.address=${TRADE_FEED_ADDRESS:http://${TRADE_FEED_HOST:localhost}:18086}
++nats.address=${NATS_ADDRESS:nats://${NATS_BROKER_HOST:localhost}:4222}
+ 
+ # To avoid "Request header is too large" when application is backed by oidc proxy.
+ server.max-http-request-header-size=1000000
+diff --git a/trade-service/build.gradle b/trade-service/build.gradle
+index 506bd2f..4869f35 100644
+--- a/trade-service/build.gradle
++++ b/trade-service/build.gradle
+@@ -24,6 +24,7 @@ dependencies {
+   implementation 'org.springframework.boot:spring-boot-starter-web'
+   implementation 'com.h2database:h2:2.3.232'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
++  implementation 'io.nats:jnats:2.20.5'
+ 
+   implementation('org.json:json:20240303') {
+     because 'previous versions are affected by multiple CVE'
+diff --git a/trade-service/src/main/java/finos/traderx/messaging/nats/NatsEnvelope.java b/trade-service/src/main/java/finos/traderx/messaging/nats/NatsEnvelope.java
+new file mode 100644
+index 0000000..770ea68
+--- /dev/null
++++ b/trade-service/src/main/java/finos/traderx/messaging/nats/NatsEnvelope.java
+@@ -0,0 +1,62 @@
++package finos.traderx.messaging.nats;
++
++import finos.traderx.messaging.Envelope;
++import java.util.Date;
++
++public class NatsEnvelope<T> implements Envelope<T> {
++  private String topic;
++  private T payload;
++  private Date date = new Date();
++  private String from;
++  private String type;
++
++  public NatsEnvelope() {}
++
++  public NatsEnvelope(String topic, T payload, String from) {
++    this.payload = payload;
++    this.topic = topic;
++    this.from = from;
++    this.type = (payload == null) ? "Unknown" : payload.getClass().getSimpleName();
++  }
++
++  public void setType(String type) {
++    this.type = type;
++  }
++
++  public void setPayload(T payload) {
++    this.payload = payload;
++  }
++
++  public void setTopic(String topic) {
++    this.topic = topic;
++  }
++
++  public void setFrom(String from) {
++    this.from = from;
++  }
++
++  @Override
++  public String getType() {
++    return type;
++  }
++
++  @Override
++  public String getTopic() {
++    return topic;
++  }
++
++  @Override
++  public T getPayload() {
++    return payload;
++  }
++
++  @Override
++  public Date getDate() {
++    return date;
++  }
++
++  @Override
++  public String getFrom() {
++    return from;
++  }
++}
+diff --git a/trade-service/src/main/java/finos/traderx/messaging/nats/NatsJSONPublisher.java b/trade-service/src/main/java/finos/traderx/messaging/nats/NatsJSONPublisher.java
+new file mode 100644
+index 0000000..8ec0be9
+--- /dev/null
++++ b/trade-service/src/main/java/finos/traderx/messaging/nats/NatsJSONPublisher.java
+@@ -0,0 +1,96 @@
++package finos.traderx.messaging.nats;
++
++import com.fasterxml.jackson.annotation.JsonInclude;
++import com.fasterxml.jackson.databind.ObjectMapper;
++import finos.traderx.messaging.PubSubException;
++import finos.traderx.messaging.Publisher;
++import io.nats.client.Connection;
++import io.nats.client.Nats;
++import io.nats.client.Options;
++import java.time.Duration;
++import org.slf4j.LoggerFactory;
++import org.springframework.beans.factory.InitializingBean;
++
++public class NatsJSONPublisher<T> implements Publisher<T>, InitializingBean {
++  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
++      .setSerializationInclusion(JsonInclude.Include.NON_NULL);
++
++  org.slf4j.Logger log = LoggerFactory.getLogger(this.getClass().getName());
++
++  private boolean connected = false;
++  private Connection connection;
++  private String serverAddress = "nats://localhost:4222";
++  private String topic = "/default";
++  private String sender = "publisher";
++
++  public void setServerAddress(String addr) {
++    serverAddress = addr;
++  }
++
++  public void setTopic(String value) {
++    topic = value;
++  }
++
++  public void setSender(String value) {
++    sender = value;
++  }
++
++  @Override
++  public boolean isConnected() {
++    return connected;
++  }
++
++  @Override
++  public void publish(T message) throws PubSubException {
++    publish(topic, message);
++  }
++
++  @Override
++  public void publish(String topic, T message) throws PubSubException {
++    if (!isConnected()) {
++      throw new PubSubException("Cannot send %s on topic %s - not connected".formatted(message, topic));
++    }
++    try {
++      NatsEnvelope<T> envelope = new NatsEnvelope<>(topic, message, sender);
++      byte[] payload = OBJECT_MAPPER.writeValueAsBytes(envelope);
++      connection.publish(topic, payload);
++      connection.flush(Duration.ofSeconds(2));
++    } catch (Exception x) {
++      throw new PubSubException("Unable to publish on topic " + topic, x);
++    }
++  }
++
++  @Override
++  public void disconnect() throws PubSubException {
++    try {
++      if (connection != null) {
++        connection.close();
++      }
++      connected = false;
++      connection = null;
++    } catch (Exception x) {
++      throw new PubSubException("Failed to close NATS connection", x);
++    }
++  }
++
++  @Override
++  public void connect() throws PubSubException {
++    try {
++      Options options = new Options.Builder()
++          .server(serverAddress)
++          .maxReconnects(-1)
++          .connectionTimeout(Duration.ofSeconds(5))
++          .build();
++      connection = Nats.connect(options);
++      connected = true;
++      log.info("Connected to NATS at {}", serverAddress);
++    } catch (Exception x) {
++      throw new PubSubException("Cannot connect to NATS at " + serverAddress, x);
++    }
++  }
++
++  @Override
++  public void afterPropertiesSet() throws Exception {
++    connect();
++  }
++}
+diff --git a/trade-service/src/main/java/finos/traderx/tradeservice/PubSubConfig.java b/trade-service/src/main/java/finos/traderx/tradeservice/PubSubConfig.java
+index 2224b99..7f8dc0d 100644
+--- a/trade-service/src/main/java/finos/traderx/tradeservice/PubSubConfig.java
++++ b/trade-service/src/main/java/finos/traderx/tradeservice/PubSubConfig.java
+@@ -1,7 +1,7 @@
+ package finos.traderx.tradeservice;
+ 
+ import finos.traderx.messaging.Publisher;
+-import finos.traderx.messaging.socketio.SocketIOJSONPublisher;
++import finos.traderx.messaging.nats.NatsJSONPublisher;
+ import finos.traderx.tradeservice.model.TradeOrder;
+ import org.springframework.beans.factory.annotation.Value;
+ import org.springframework.context.annotation.Bean;
+@@ -9,14 +9,15 @@ import org.springframework.context.annotation.Configuration;
+ 
+ @Configuration
+ public class PubSubConfig {
+-  @Value("${trade.feed.address}")
+-  private String tradeFeedAddress;
++  @Value("${nats.address}")
++  private String natsAddress;
+ 
+   @Bean
+   public Publisher<TradeOrder> tradePublisher() {
+-    SocketIOJSONPublisher<TradeOrder> publisher = new SocketIOJSONPublisher<>() {};
++    NatsJSONPublisher<TradeOrder> publisher = new NatsJSONPublisher<>();
+     publisher.setTopic("/trades");
+-    publisher.setSocketAddress(tradeFeedAddress);
++    publisher.setServerAddress(natsAddress);
++    publisher.setSender("trade-service");
+     return publisher;
+   }
+ }
+diff --git a/trade-service/src/main/resources/application.properties b/trade-service/src/main/resources/application.properties
+index 2640da4..3dfc1e9 100644
+--- a/trade-service/src/main/resources/application.properties
++++ b/trade-service/src/main/resources/application.properties
+@@ -5,7 +5,7 @@ people.service.url=${PEOPLE_SERVICE_URL:http://${PEOPLE_SERVICE_HOST:localhost}:
+ account.service.url=${ACCOUNT_SERVICE_URL:http://${ACCOUNT_SERVICE_HOST:localhost}:18088}
+ reference.data.service.url=${REFERENCE_DATA_SERVICE_URL:http://${REFERENCE_DATA_HOST:localhost}:18085}
+ 
+-trade.feed.address=${TRADE_FEED_ADDRESS:http://${TRADE_FEED_HOST:localhost}:18086}
++nats.address=${NATS_ADDRESS:nats://${NATS_BROKER_HOST:localhost}:4222}
+ 
+ # To avoid "Request header is too large" when application is backed by oidc proxy.
+ server.max-http-request-header-size=1000000
+diff --git a/web-front-end/angular/main/app/service/trade-feed.service.ts b/web-front-end/angular/main/app/service/trade-feed.service.ts
+index 1ef4b81..f15d8f2 100644
+--- a/web-front-end/angular/main/app/service/trade-feed.service.ts
++++ b/web-front-end/angular/main/app/service/trade-feed.service.ts
+@@ -1,52 +1,203 @@
+ import { Injectable } from '@angular/core';
+ import { environment } from 'main/environments/environment';
+-import { io, Socket } from "socket.io-client";
++
++type SubscriptionRecord = {
++    sid: number;
++    topic: string;
++    callback: (...args: any[]) => void;
++};
++
++type PendingMsg = {
++    subject: string;
++    sid: number;
++    bytes: number;
++};
+ 
+ @Injectable({
+     providedIn: 'root'
+ })
+ export class TradeFeedService {
+-    private socket: Socket;
++    private socket: WebSocket | null = null;
++    private reconnectTimer: number | null = null;
++    private connected = false;
++    private nextSid = 1;
++    private pendingData = '';
++    private pendingMsg: PendingMsg | null = null;
++    private readonly subscriptions = new Map<number, SubscriptionRecord>();
+ 
+     constructor() {
+         this.connect();
+     }
+ 
+     private connect() {
+-        // create socketio client with long polling only
+-        this.socket = io(environment.tradeFeedUrl);
+-        
+-        this.socket.on("connect", this.onConnect);
+-        this.socket.on("disconnect", this.onDisconnect);
++        if (this.socket && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) {
++            return;
++        }
++        const ws = new WebSocket(environment.tradeFeedUrl);
++        this.socket = ws;
++
++        ws.onopen = () => {
++            this.connected = true;
++            this.pendingData = '';
++            this.pendingMsg = null;
++            this.sendRaw('CONNECT {"protocol":1,"verbose":false,"pedantic":false,"echo":false}\r\n');
++            this.sendRaw('PING\r\n');
++            this.resubscribeAll();
++            console.log(`Trade feed (NATS websocket) connected: ${environment.tradeFeedUrl}`);
++        };
++
++        ws.onmessage = (event) => {
++            void this.handleIncoming(event.data);
++        };
++
++        ws.onerror = (event) => {
++            console.error('NATS websocket error', event);
++        };
++
++        ws.onclose = () => {
++            this.connected = false;
++            this.pendingData = '';
++            this.pendingMsg = null;
++            this.scheduleReconnect();
++            console.warn('NATS websocket disconnected; reconnect scheduled');
++        };
+     }
+ 
+-    private onConnect = () => {
+-        console.log('Trade feed is connected, connection id' + this.socket.id);
++    private scheduleReconnect() {
++        if (this.reconnectTimer !== null) {
++            window.clearTimeout(this.reconnectTimer);
++        }
++        this.reconnectTimer = window.setTimeout(() => {
++            this.reconnectTimer = null;
++            this.connect();
++        }, 1000);
+     }
+ 
+-    private onDisconnect = () => {
+-        console.log('Trade feed is disconnected, connection id was ' + this.socket.id);
++    private sendRaw(payload: string) {
++        if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
++            return;
++        }
++        this.socket.send(payload);
+     }
+ 
+-    public subscribe(topic: string, callback: (...args: any[]) => void) {
+-       
+-        const callbackFn = (args: any) => {
+-            console.log("received message -> "+ JSON.stringify(args));
+-            if (args.from !== 'System' && args.topic === topic) {
+-                callback(args.payload);
++    private resubscribeAll() {
++        for (const subscription of this.subscriptions.values()) {
++            this.sendRaw(`SUB ${subscription.topic} ${subscription.sid}\r\n`);
++        }
++        if (this.subscriptions.size > 0) {
++            this.sendRaw('PING\r\n');
++        }
++    }
++
++    private async handleIncoming(rawData: unknown) {
++        if (typeof rawData === 'string') {
++            this.consumeText(rawData);
++            return;
++        }
++        if (rawData instanceof Blob) {
++            const text = await rawData.text();
++            this.consumeText(text);
++            return;
++        }
++        if (rawData instanceof ArrayBuffer) {
++            const text = new TextDecoder().decode(new Uint8Array(rawData));
++            this.consumeText(text);
++        }
++    }
++
++    private consumeText(chunk: string) {
++        this.pendingData += chunk;
++
++        while (true) {
++            if (this.pendingMsg) {
++                const total = this.pendingMsg.bytes + 2;
++                if (this.pendingData.length < total) {
++                    return;
++                }
++
++                const payload = this.pendingData.slice(0, this.pendingMsg.bytes);
++                this.pendingData = this.pendingData.slice(total);
++                this.dispatchMessage(this.pendingMsg.sid, payload);
++                this.pendingMsg = null;
++                continue;
++            }
++
++            const lineEnd = this.pendingData.indexOf('\r\n');
++            if (lineEnd < 0) {
++                return;
++            }
++
++            const line = this.pendingData.slice(0, lineEnd);
++            this.pendingData = this.pendingData.slice(lineEnd + 2);
++            if (!line) {
++                continue;
++            }
++
++            if (line.startsWith('PING')) {
++                this.sendRaw('PONG\r\n');
++                continue;
++            }
++
++            if (line.startsWith('INFO') || line.startsWith('PONG')) {
++                continue;
++            }
++
++            if (line.startsWith('MSG ')) {
++                const parts = line.split(' ');
++                if (parts.length < 4) {
++                    continue;
++                }
++                const subject = parts[1];
++                const sid = Number(parts[2]);
++                const bytes = Number(parts[parts.length - 1]);
++                if (!Number.isFinite(sid) || !Number.isFinite(bytes)) {
++                    continue;
++                }
++                this.pendingMsg = { subject, sid, bytes };
+             }
+         }
+-        this.socket.on('publish', callbackFn);
+-        this.socket.emit('subscribe', topic);
+-        console.log('subscribing', topic);
+-        return () => {
+-            this.unSubscribe(topic, callbackFn);
++    }
++
++    private dispatchMessage(sid: number, payloadText: string) {
++        const record = this.subscriptions.get(sid);
++        if (!record) {
++            return;
+         }
++        try {
++            const parsed = JSON.parse(payloadText);
++            if (parsed && typeof parsed === 'object' && 'payload' in parsed) {
++                record.callback((parsed as any).payload);
++            } else {
++                record.callback(parsed);
++            }
++        } catch (err) {
++            console.error('Failed to parse NATS websocket payload', err);
++        }
++    }
++
++    private removeSubscription(sid: number) {
++        this.subscriptions.delete(sid);
++        this.sendRaw(`UNSUB ${sid}\r\n`);
++    }
++
++    public subscribe(topic: string, callback: (...args: any[]) => void) {
++        const sid = this.nextSid++;
++        this.subscriptions.set(sid, { sid, topic, callback });
++        this.connect();
++        this.sendRaw(`SUB ${topic} ${sid}\r\n`);
++        this.sendRaw('PING\r\n');
++        console.log(`Subscribed to NATS topic ${topic} (sid=${sid})`);
++
++        return () => {
++            this.removeSubscription(sid);
++        };
+     }
+ 
+     public unSubscribe(topic: string, callback: (...args: any[]) => void) {
+-        console.log('unsubscribing' + topic)
+-        this.socket.emit('unsubscribe', topic);
+-        this.socket.off('publish', callback)
++        for (const [sid, record] of this.subscriptions.entries()) {
++            if (record.topic === topic && record.callback === callback) {
++                this.removeSubscription(sid);
++            }
++        }
+     }
+ }
+diff --git a/web-front-end/angular/main/environments/environment.local.ts b/web-front-end/angular/main/environments/environment.local.ts
+index 2c08cc2..1632313 100644
+--- a/web-front-end/angular/main/environments/environment.local.ts
++++ b/web-front-end/angular/main/environments/environment.local.ts
+@@ -1,10 +1,9 @@
+-// State 002 overlay: route browser traffic through edge proxy endpoint.
+ export const environment = {
+     production:         false,
+-    accountUrl:         `//${window.location.host}/account-service`,
+-    refrenceDataUrl:    `//${window.location.host}/reference-data`,
+-    tradesUrl:          `//${window.location.host}/trade-service/trade/`,
+-    positionsUrl:       `//${window.location.host}/position-service`,
+-    peopleUrl:          `//${window.location.host}/people-service`,
+-    tradeFeedUrl:       `//${window.location.host}`
++    accountUrl:         `//${window.location.hostname}:18088`,
++    refrenceDataUrl:    `//${window.location.hostname}:18085`,
++    tradesUrl:          `//${window.location.hostname}:18092/trade/`,
++    positionsUrl:       `//${window.location.hostname}:18090`,
++    peopleUrl:          `//${window.location.hostname}:18089`,
++    tradeFeedUrl:       `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/nats-ws`
+ };
+diff --git a/web-front-end/angular/main/environments/environment.prod.ts b/web-front-end/angular/main/environments/environment.prod.ts
+index 9d15bb8..b884df5 100644
+--- a/web-front-end/angular/main/environments/environment.prod.ts
++++ b/web-front-end/angular/main/environments/environment.prod.ts
+@@ -5,5 +5,5 @@ export const environment = {
+     tradesUrl:          `//${window.location.host}/trade-service/trade/`,
+     positionsUrl:       `//${window.location.host}/position-service`,
+     peopleUrl:          `//${window.location.host}/people-service`,
+-    tradeFeedUrl:       `//${window.location.host}`
++    tradeFeedUrl:       `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/nats-ws`
+ };
+diff --git a/web-front-end/angular/main/environments/environment.ts b/web-front-end/angular/main/environments/environment.ts
+index 2c08cc2..1632313 100644
+--- a/web-front-end/angular/main/environments/environment.ts
++++ b/web-front-end/angular/main/environments/environment.ts
+@@ -1,10 +1,9 @@
+-// State 002 overlay: route browser traffic through edge proxy endpoint.
+ export const environment = {
+     production:         false,
+-    accountUrl:         `//${window.location.host}/account-service`,
+-    refrenceDataUrl:    `//${window.location.host}/reference-data`,
+-    tradesUrl:          `//${window.location.host}/trade-service/trade/`,
+-    positionsUrl:       `//${window.location.host}/position-service`,
+-    peopleUrl:          `//${window.location.host}/people-service`,
+-    tradeFeedUrl:       `//${window.location.host}`
++    accountUrl:         `//${window.location.hostname}:18088`,
++    refrenceDataUrl:    `//${window.location.hostname}:18085`,
++    tradesUrl:          `//${window.location.hostname}:18092/trade/`,
++    positionsUrl:       `//${window.location.hostname}:18090`,
++    peopleUrl:          `//${window.location.hostname}:18089`,
++    tradeFeedUrl:       `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/nats-ws`
+ };

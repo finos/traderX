@@ -3,18 +3,20 @@
 - Hook script: `pipeline/generate-state-004-kubernetes-runtime.sh`
 - Feature pack: `specs/004-kubernetes-runtime`
 
-This state generates Kubernetes runtime assets from:
+Patch-set model:
 
-- `system/kubernetes-runtime.spec.json`
-- `system/nginx-edge.conf`
+- Parent state: `003-containerized-compose-runtime`
+- Patch path: `specs/004-kubernetes-runtime/generation/patches/0001-state-overlay.patch`
+- Patch target root: `generated/code/target-generated`
 
-Hook responsibilities:
+Hook flow:
 
-1. Reuse generated state `003` assets as component source/build contexts.
-2. Generate deterministic Kubernetes manifests into:
-   - `generated/code/target-generated/kubernetes-runtime/manifests/base`
-3. Generate Kind cluster config into:
-   - `generated/code/target-generated/kubernetes-runtime/kind/cluster-config.yaml`
-4. Generate image build/load plan into:
-   - `generated/code/target-generated/kubernetes-runtime/build-plan.json`
-5. Regenerate architecture docs from `system/architecture.model.json`.
+1. Generate parent state `003`.
+2. Apply state patch set (k8s manifests, kind config, build plan).
+3. Regenerate architecture docs.
+
+Patch refresh command:
+
+```bash
+bash pipeline/create-state-patchset.sh 004-kubernetes-runtime 003-containerized-compose-runtime
+```

@@ -1,0 +1,1268 @@
+diff --git a/kubernetes-runtime/README.md b/kubernetes-runtime/README.md
+new file mode 100644
+index 0000000..d6bac51
+--- /dev/null
++++ b/kubernetes-runtime/README.md
+@@ -0,0 +1,18 @@
++# State 004 Kubernetes Runtime Artifacts
++
++Generated from:
++
++- `specs/004-kubernetes-runtime/system/kubernetes-runtime.spec.json`
++- `specs/004-kubernetes-runtime/system/nginx-edge.conf`
++
++Artifacts:
++
++- Kind cluster config: `kind/cluster-config.yaml`
++- K8s manifests: `manifests/base`
++- Image build plan: `build-plan.json`
++
++Run:
++
++```bash
++./scripts/start-state-004-kubernetes-generated.sh
++```
+diff --git a/kubernetes-runtime/build-plan.json b/kubernetes-runtime/build-plan.json
+new file mode 100644
+index 0000000..fff4b72
+--- /dev/null
++++ b/kubernetes-runtime/build-plan.json
+@@ -0,0 +1,76 @@
++{
++  "stateId": "004-kubernetes-runtime",
++  "namespace": "traderx",
++  "kindClusterName": "traderx-state-004",
++  "hostPort": 8080,
++  "nodePort": 30080,
++  "edgeService": "edge-proxy",
++  "images": [
++    {
++      "name": "database",
++      "image": "traderx/database:state004",
++      "context": "database",
++      "dockerfile": "Dockerfile.compose"
++    },
++    {
++      "name": "reference-data",
++      "image": "traderx/reference-data:state004",
++      "context": "reference-data",
++      "dockerfile": "Dockerfile.compose"
++    },
++    {
++      "name": "trade-feed",
++      "image": "traderx/trade-feed:state004",
++      "context": "trade-feed",
++      "dockerfile": "Dockerfile.compose"
++    },
++    {
++      "name": "people-service",
++      "image": "traderx/people-service:state004",
++      "context": "people-service",
++      "dockerfile": "Dockerfile.compose"
++    },
++    {
++      "name": "account-service",
++      "image": "traderx/account-service:state004",
++      "context": "account-service",
++      "dockerfile": "Dockerfile.compose"
++    },
++    {
++      "name": "position-service",
++      "image": "traderx/position-service:state004",
++      "context": "position-service",
++      "dockerfile": "Dockerfile.compose"
++    },
++    {
++      "name": "trade-processor",
++      "image": "traderx/trade-processor:state004",
++      "context": "trade-processor",
++      "dockerfile": "Dockerfile.compose"
++    },
++    {
++      "name": "trade-service",
++      "image": "traderx/trade-service:state004",
++      "context": "trade-service",
++      "dockerfile": "Dockerfile.compose"
++    },
++    {
++      "name": "web-front-end-angular",
++      "image": "traderx/web-front-end-angular:state004",
++      "context": "web-front-end/angular",
++      "dockerfile": "Dockerfile.compose"
++    }
++  ],
++  "deployments": [
++    "database",
++    "reference-data",
++    "trade-feed",
++    "people-service",
++    "account-service",
++    "position-service",
++    "trade-processor",
++    "trade-service",
++    "web-front-end-angular",
++    "edge-proxy"
++  ]
++}
+diff --git a/kubernetes-runtime/kind/cluster-config.yaml b/kubernetes-runtime/kind/cluster-config.yaml
+new file mode 100644
+index 0000000..8a0a138
+--- /dev/null
++++ b/kubernetes-runtime/kind/cluster-config.yaml
+@@ -0,0 +1,8 @@
++kind: Cluster
++apiVersion: kind.x-k8s.io/v1alpha4
++nodes:
++  - role: control-plane
++    extraPortMappings:
++      - containerPort: 30080
++        hostPort: 8080
++        protocol: TCP
+diff --git a/kubernetes-runtime/manifests/base/account-service-deployment.yaml b/kubernetes-runtime/manifests/base/account-service-deployment.yaml
+new file mode 100644
+index 0000000..c2d44a6
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/account-service-deployment.yaml
+@@ -0,0 +1,36 @@
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: account-service
++  namespace: traderx
++  labels:
++    app: account-service
++spec:
++  replicas: 1
++  selector:
++    matchLabels:
++      app: account-service
++  template:
++    metadata:
++      labels:
++        app: account-service
++    spec:
++      containers:
++        - name: account-service
++          image: traderx/account-service:state004
++          imagePullPolicy: IfNotPresent
++          ports:
++            - name: http
++              containerPort: 18088
++              protocol: TCP
++          env:
++            - name: ACCOUNT_SERVICE_PORT
++              value: "18088"
++            - name: DATABASE_TCP_HOST
++              value: "database"
++            - name: DATABASE_TCP_PORT
++              value: "18082"
++            - name: PEOPLE_SERVICE_HOST
++              value: "people-service"
++            - name: CORS_ALLOWED_ORIGINS
++              value: "http://localhost:8080"
+diff --git a/kubernetes-runtime/manifests/base/account-service-service.yaml b/kubernetes-runtime/manifests/base/account-service-service.yaml
+new file mode 100644
+index 0000000..ef50739
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/account-service-service.yaml
+@@ -0,0 +1,16 @@
++apiVersion: v1
++kind: Service
++metadata:
++  name: account-service
++  namespace: traderx
++  labels:
++    app: account-service
++spec:
++  type: ClusterIP
++  selector:
++    app: account-service
++  ports:
++    - name: http
++      protocol: TCP
++      port: 18088
++      targetPort: 18088
+diff --git a/kubernetes-runtime/manifests/base/database-deployment.yaml b/kubernetes-runtime/manifests/base/database-deployment.yaml
+new file mode 100644
+index 0000000..37d5f28
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/database-deployment.yaml
+@@ -0,0 +1,40 @@
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: database
++  namespace: traderx
++  labels:
++    app: database
++spec:
++  replicas: 1
++  selector:
++    matchLabels:
++      app: database
++  template:
++    metadata:
++      labels:
++        app: database
++    spec:
++      containers:
++        - name: database
++          image: traderx/database:state004
++          imagePullPolicy: IfNotPresent
++          ports:
++            - name: tcp
++              containerPort: 18082
++              protocol: TCP
++            - name: pg
++              containerPort: 18083
++              protocol: TCP
++            - name: web
++              containerPort: 18084
++              protocol: TCP
++          env:
++            - name: DATABASE_TCP_PORT
++              value: "18082"
++            - name: DATABASE_PG_PORT
++              value: "18083"
++            - name: DATABASE_WEB_PORT
++              value: "18084"
++            - name: DATABASE_WEB_HOSTNAMES
++              value: "localhost,database,edge-proxy"
+diff --git a/kubernetes-runtime/manifests/base/database-service.yaml b/kubernetes-runtime/manifests/base/database-service.yaml
+new file mode 100644
+index 0000000..ec9297b
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/database-service.yaml
+@@ -0,0 +1,24 @@
++apiVersion: v1
++kind: Service
++metadata:
++  name: database
++  namespace: traderx
++  labels:
++    app: database
++spec:
++  type: ClusterIP
++  selector:
++    app: database
++  ports:
++    - name: tcp
++      protocol: TCP
++      port: 18082
++      targetPort: 18082
++    - name: pg
++      protocol: TCP
++      port: 18083
++      targetPort: 18083
++    - name: web
++      protocol: TCP
++      port: 18084
++      targetPort: 18084
+diff --git a/kubernetes-runtime/manifests/base/edge-proxy-configmap.yaml b/kubernetes-runtime/manifests/base/edge-proxy-configmap.yaml
+new file mode 100644
+index 0000000..7ac15f9
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/edge-proxy-configmap.yaml
+@@ -0,0 +1,73 @@
++apiVersion: v1
++kind: ConfigMap
++metadata:
++  name: edge-proxy-config
++  namespace: traderx
++data:
++  default.conf: |
++    server {
++        listen 8080;
++        server_name localhost;
++    
++        location = /health {
++            add_header Content-Type text/plain;
++            return 200 "ok\n";
++        }
++    
++        location /db-web/ {
++            proxy_pass http://database:18084/;
++        }
++    
++        location /reference-data/ {
++            proxy_pass http://reference-data:18085/;
++        }
++    
++        location /ng-cli-ws {
++            proxy_pass http://web-front-end-angular:18093/ng-cli-ws;
++            proxy_http_version 1.1;
++            proxy_set_header Upgrade $http_upgrade;
++            proxy_set_header Connection "upgrade";
++        }
++    
++        location /trade-feed/ {
++            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
++            proxy_set_header Host $http_host;
++            proxy_pass http://trade-feed:18086/;
++            proxy_http_version 1.1;
++            proxy_set_header Upgrade $http_upgrade;
++            proxy_set_header Connection "upgrade";
++        }
++    
++        location /socket.io/ {
++            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
++            proxy_set_header Host $http_host;
++            proxy_pass http://trade-feed:18086/socket.io/;
++            proxy_http_version 1.1;
++            proxy_set_header Upgrade $http_upgrade;
++            proxy_set_header Connection "upgrade";
++        }
++    
++        location /people-service/ {
++            proxy_pass http://people-service:18089/;
++        }
++    
++        location /account-service/ {
++            proxy_pass http://account-service:18088/;
++        }
++    
++        location /position-service/ {
++            proxy_pass http://position-service:18090/;
++        }
++    
++        location /trade-service/ {
++            proxy_pass http://trade-service:18092/;
++        }
++    
++        location /trade-processor/ {
++            proxy_pass http://trade-processor:18091/;
++        }
++    
++        location / {
++            proxy_pass http://web-front-end-angular:18093/;
++        }
++    }
+diff --git a/kubernetes-runtime/manifests/base/edge-proxy-deployment.yaml b/kubernetes-runtime/manifests/base/edge-proxy-deployment.yaml
+new file mode 100644
+index 0000000..59bf594
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/edge-proxy-deployment.yaml
+@@ -0,0 +1,45 @@
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: edge-proxy
++  namespace: traderx
++  labels:
++    app: edge-proxy
++spec:
++  replicas: 1
++  selector:
++    matchLabels:
++      app: edge-proxy
++  template:
++    metadata:
++      labels:
++        app: edge-proxy
++    spec:
++      containers:
++        - name: edge-proxy
++          image: nginx:1.27-alpine
++          imagePullPolicy: IfNotPresent
++          ports:
++            - name: http
++              containerPort: 8080
++              protocol: TCP
++          volumeMounts:
++            - name: edge-proxy-config
++              mountPath: /etc/nginx/conf.d/default.conf
++              subPath: default.conf
++          readinessProbe:
++            httpGet:
++              path: /health
++              port: 8080
++            initialDelaySeconds: 2
++            periodSeconds: 5
++          livenessProbe:
++            httpGet:
++              path: /health
++              port: 8080
++            initialDelaySeconds: 5
++            periodSeconds: 10
++      volumes:
++        - name: edge-proxy-config
++          configMap:
++            name: edge-proxy-config
+diff --git a/kubernetes-runtime/manifests/base/edge-proxy-service.yaml b/kubernetes-runtime/manifests/base/edge-proxy-service.yaml
+new file mode 100644
+index 0000000..3e582f3
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/edge-proxy-service.yaml
+@@ -0,0 +1,17 @@
++apiVersion: v1
++kind: Service
++metadata:
++  name: edge-proxy
++  namespace: traderx
++  labels:
++    app: edge-proxy
++spec:
++  type: NodePort
++  selector:
++    app: edge-proxy
++  ports:
++    - name: http
++      protocol: TCP
++      port: 8080
++      targetPort: 8080
++      nodePort: 30080
+diff --git a/kubernetes-runtime/manifests/base/kustomization.yaml b/kubernetes-runtime/manifests/base/kustomization.yaml
+new file mode 100644
+index 0000000..b5eebd4
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/kustomization.yaml
+@@ -0,0 +1,26 @@
++apiVersion: kustomize.config.k8s.io/v1beta1
++kind: Kustomization
++namespace: traderx
++resources:
++  - namespace.yaml
++  - edge-proxy-configmap.yaml
++  - edge-proxy-deployment.yaml
++  - edge-proxy-service.yaml
++  - database-deployment.yaml
++  - database-service.yaml
++  - reference-data-deployment.yaml
++  - reference-data-service.yaml
++  - trade-feed-deployment.yaml
++  - trade-feed-service.yaml
++  - people-service-deployment.yaml
++  - people-service-service.yaml
++  - account-service-deployment.yaml
++  - account-service-service.yaml
++  - position-service-deployment.yaml
++  - position-service-service.yaml
++  - trade-processor-deployment.yaml
++  - trade-processor-service.yaml
++  - trade-service-deployment.yaml
++  - trade-service-service.yaml
++  - web-front-end-angular-deployment.yaml
++  - web-front-end-angular-service.yaml
+diff --git a/kubernetes-runtime/manifests/base/namespace.yaml b/kubernetes-runtime/manifests/base/namespace.yaml
+new file mode 100644
+index 0000000..282aa6b
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/namespace.yaml
+@@ -0,0 +1,4 @@
++apiVersion: v1
++kind: Namespace
++metadata:
++  name: traderx
+diff --git a/kubernetes-runtime/manifests/base/people-service-deployment.yaml b/kubernetes-runtime/manifests/base/people-service-deployment.yaml
+new file mode 100644
+index 0000000..8f7508c
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/people-service-deployment.yaml
+@@ -0,0 +1,30 @@
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: people-service
++  namespace: traderx
++  labels:
++    app: people-service
++spec:
++  replicas: 1
++  selector:
++    matchLabels:
++      app: people-service
++  template:
++    metadata:
++      labels:
++        app: people-service
++    spec:
++      containers:
++        - name: people-service
++          image: traderx/people-service:state004
++          imagePullPolicy: IfNotPresent
++          ports:
++            - name: http
++              containerPort: 18089
++              protocol: TCP
++          env:
++            - name: PEOPLE_SERVICE_PORT
++              value: "18089"
++            - name: CORS_ALLOWED_ORIGINS
++              value: "http://localhost:8080"
+diff --git a/kubernetes-runtime/manifests/base/people-service-service.yaml b/kubernetes-runtime/manifests/base/people-service-service.yaml
+new file mode 100644
+index 0000000..73149cb
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/people-service-service.yaml
+@@ -0,0 +1,16 @@
++apiVersion: v1
++kind: Service
++metadata:
++  name: people-service
++  namespace: traderx
++  labels:
++    app: people-service
++spec:
++  type: ClusterIP
++  selector:
++    app: people-service
++  ports:
++    - name: http
++      protocol: TCP
++      port: 18089
++      targetPort: 18089
+diff --git a/kubernetes-runtime/manifests/base/position-service-deployment.yaml b/kubernetes-runtime/manifests/base/position-service-deployment.yaml
+new file mode 100644
+index 0000000..2191425
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/position-service-deployment.yaml
+@@ -0,0 +1,34 @@
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: position-service
++  namespace: traderx
++  labels:
++    app: position-service
++spec:
++  replicas: 1
++  selector:
++    matchLabels:
++      app: position-service
++  template:
++    metadata:
++      labels:
++        app: position-service
++    spec:
++      containers:
++        - name: position-service
++          image: traderx/position-service:state004
++          imagePullPolicy: IfNotPresent
++          ports:
++            - name: http
++              containerPort: 18090
++              protocol: TCP
++          env:
++            - name: POSITION_SERVICE_PORT
++              value: "18090"
++            - name: DATABASE_TCP_HOST
++              value: "database"
++            - name: DATABASE_TCP_PORT
++              value: "18082"
++            - name: CORS_ALLOWED_ORIGINS
++              value: "http://localhost:8080"
+diff --git a/kubernetes-runtime/manifests/base/position-service-service.yaml b/kubernetes-runtime/manifests/base/position-service-service.yaml
+new file mode 100644
+index 0000000..3294520
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/position-service-service.yaml
+@@ -0,0 +1,16 @@
++apiVersion: v1
++kind: Service
++metadata:
++  name: position-service
++  namespace: traderx
++  labels:
++    app: position-service
++spec:
++  type: ClusterIP
++  selector:
++    app: position-service
++  ports:
++    - name: http
++      protocol: TCP
++      port: 18090
++      targetPort: 18090
+diff --git a/kubernetes-runtime/manifests/base/reference-data-deployment.yaml b/kubernetes-runtime/manifests/base/reference-data-deployment.yaml
+new file mode 100644
+index 0000000..8010ee5
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/reference-data-deployment.yaml
+@@ -0,0 +1,30 @@
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: reference-data
++  namespace: traderx
++  labels:
++    app: reference-data
++spec:
++  replicas: 1
++  selector:
++    matchLabels:
++      app: reference-data
++  template:
++    metadata:
++      labels:
++        app: reference-data
++    spec:
++      containers:
++        - name: reference-data
++          image: traderx/reference-data:state004
++          imagePullPolicy: IfNotPresent
++          ports:
++            - name: http
++              containerPort: 18085
++              protocol: TCP
++          env:
++            - name: REFERENCE_DATA_SERVICE_PORT
++              value: "18085"
++            - name: CORS_ALLOWED_ORIGINS
++              value: "http://localhost:8080"
+diff --git a/kubernetes-runtime/manifests/base/reference-data-service.yaml b/kubernetes-runtime/manifests/base/reference-data-service.yaml
+new file mode 100644
+index 0000000..ad7cd44
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/reference-data-service.yaml
+@@ -0,0 +1,16 @@
++apiVersion: v1
++kind: Service
++metadata:
++  name: reference-data
++  namespace: traderx
++  labels:
++    app: reference-data
++spec:
++  type: ClusterIP
++  selector:
++    app: reference-data
++  ports:
++    - name: http
++      protocol: TCP
++      port: 18085
++      targetPort: 18085
+diff --git a/kubernetes-runtime/manifests/base/trade-feed-deployment.yaml b/kubernetes-runtime/manifests/base/trade-feed-deployment.yaml
+new file mode 100644
+index 0000000..fdeaa1b
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/trade-feed-deployment.yaml
+@@ -0,0 +1,30 @@
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: trade-feed
++  namespace: traderx
++  labels:
++    app: trade-feed
++spec:
++  replicas: 1
++  selector:
++    matchLabels:
++      app: trade-feed
++  template:
++    metadata:
++      labels:
++        app: trade-feed
++    spec:
++      containers:
++        - name: trade-feed
++          image: traderx/trade-feed:state004
++          imagePullPolicy: IfNotPresent
++          ports:
++            - name: http
++              containerPort: 18086
++              protocol: TCP
++          env:
++            - name: TRADE_FEED_PORT
++              value: "18086"
++            - name: CORS_ALLOWED_ORIGINS
++              value: "http://localhost:8080"
+diff --git a/kubernetes-runtime/manifests/base/trade-feed-service.yaml b/kubernetes-runtime/manifests/base/trade-feed-service.yaml
+new file mode 100644
+index 0000000..1ec0a1f
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/trade-feed-service.yaml
+@@ -0,0 +1,16 @@
++apiVersion: v1
++kind: Service
++metadata:
++  name: trade-feed
++  namespace: traderx
++  labels:
++    app: trade-feed
++spec:
++  type: ClusterIP
++  selector:
++    app: trade-feed
++  ports:
++    - name: http
++      protocol: TCP
++      port: 18086
++      targetPort: 18086
+diff --git a/kubernetes-runtime/manifests/base/trade-processor-deployment.yaml b/kubernetes-runtime/manifests/base/trade-processor-deployment.yaml
+new file mode 100644
+index 0000000..e665f76
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/trade-processor-deployment.yaml
+@@ -0,0 +1,36 @@
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: trade-processor
++  namespace: traderx
++  labels:
++    app: trade-processor
++spec:
++  replicas: 1
++  selector:
++    matchLabels:
++      app: trade-processor
++  template:
++    metadata:
++      labels:
++        app: trade-processor
++    spec:
++      containers:
++        - name: trade-processor
++          image: traderx/trade-processor:state004
++          imagePullPolicy: IfNotPresent
++          ports:
++            - name: http
++              containerPort: 18091
++              protocol: TCP
++          env:
++            - name: TRADE_PROCESSOR_SERVICE_PORT
++              value: "18091"
++            - name: DATABASE_TCP_HOST
++              value: "database"
++            - name: DATABASE_TCP_PORT
++              value: "18082"
++            - name: TRADE_FEED_HOST
++              value: "trade-feed"
++            - name: CORS_ALLOWED_ORIGINS
++              value: "http://localhost:8080"
+diff --git a/kubernetes-runtime/manifests/base/trade-processor-service.yaml b/kubernetes-runtime/manifests/base/trade-processor-service.yaml
+new file mode 100644
+index 0000000..8b6514a
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/trade-processor-service.yaml
+@@ -0,0 +1,16 @@
++apiVersion: v1
++kind: Service
++metadata:
++  name: trade-processor
++  namespace: traderx
++  labels:
++    app: trade-processor
++spec:
++  type: ClusterIP
++  selector:
++    app: trade-processor
++  ports:
++    - name: http
++      protocol: TCP
++      port: 18091
++      targetPort: 18091
+diff --git a/kubernetes-runtime/manifests/base/trade-service-deployment.yaml b/kubernetes-runtime/manifests/base/trade-service-deployment.yaml
+new file mode 100644
+index 0000000..a759dce
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/trade-service-deployment.yaml
+@@ -0,0 +1,38 @@
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: trade-service
++  namespace: traderx
++  labels:
++    app: trade-service
++spec:
++  replicas: 1
++  selector:
++    matchLabels:
++      app: trade-service
++  template:
++    metadata:
++      labels:
++        app: trade-service
++    spec:
++      containers:
++        - name: trade-service
++          image: traderx/trade-service:state004
++          imagePullPolicy: IfNotPresent
++          ports:
++            - name: http
++              containerPort: 18092
++              protocol: TCP
++          env:
++            - name: TRADING_SERVICE_PORT
++              value: "18092"
++            - name: ACCOUNT_SERVICE_HOST
++              value: "account-service"
++            - name: REFERENCE_DATA_HOST
++              value: "reference-data"
++            - name: PEOPLE_SERVICE_HOST
++              value: "people-service"
++            - name: TRADE_FEED_HOST
++              value: "trade-feed"
++            - name: CORS_ALLOWED_ORIGINS
++              value: "http://localhost:8080"
+diff --git a/kubernetes-runtime/manifests/base/trade-service-service.yaml b/kubernetes-runtime/manifests/base/trade-service-service.yaml
+new file mode 100644
+index 0000000..5a8fffd
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/trade-service-service.yaml
+@@ -0,0 +1,16 @@
++apiVersion: v1
++kind: Service
++metadata:
++  name: trade-service
++  namespace: traderx
++  labels:
++    app: trade-service
++spec:
++  type: ClusterIP
++  selector:
++    app: trade-service
++  ports:
++    - name: http
++      protocol: TCP
++      port: 18092
++      targetPort: 18092
+diff --git a/kubernetes-runtime/manifests/base/web-front-end-angular-deployment.yaml b/kubernetes-runtime/manifests/base/web-front-end-angular-deployment.yaml
+new file mode 100644
+index 0000000..2ab085b
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/web-front-end-angular-deployment.yaml
+@@ -0,0 +1,28 @@
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: web-front-end-angular
++  namespace: traderx
++  labels:
++    app: web-front-end-angular
++spec:
++  replicas: 1
++  selector:
++    matchLabels:
++      app: web-front-end-angular
++  template:
++    metadata:
++      labels:
++        app: web-front-end-angular
++    spec:
++      containers:
++        - name: web-front-end-angular
++          image: traderx/web-front-end-angular:state004
++          imagePullPolicy: IfNotPresent
++          ports:
++            - name: http
++              containerPort: 18093
++              protocol: TCP
++          env:
++            - name: WEB_SERVICE_PORT
++              value: "18093"
+diff --git a/kubernetes-runtime/manifests/base/web-front-end-angular-service.yaml b/kubernetes-runtime/manifests/base/web-front-end-angular-service.yaml
+new file mode 100644
+index 0000000..908d33e
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/web-front-end-angular-service.yaml
+@@ -0,0 +1,16 @@
++apiVersion: v1
++kind: Service
++metadata:
++  name: web-front-end-angular
++  namespace: traderx
++  labels:
++    app: web-front-end-angular
++spec:
++  type: ClusterIP
++  selector:
++    app: web-front-end-angular
++  ports:
++    - name: http
++      protocol: TCP
++      port: 18093
++      targetPort: 18093
+diff --git a/kubernetes-runtime/spec-source/kubernetes-runtime.spec.json b/kubernetes-runtime/spec-source/kubernetes-runtime.spec.json
+new file mode 100644
+index 0000000..fb694f1
+--- /dev/null
++++ b/kubernetes-runtime/spec-source/kubernetes-runtime.spec.json
+@@ -0,0 +1,313 @@
++{
++  "runtime": {
++    "namespace": "traderx",
++    "kind": {
++      "clusterName": "traderx-state-004",
++      "hostPort": 8080,
++      "nodePort": 30080
++    },
++    "edge": {
++      "serviceName": "edge-proxy",
++      "image": "nginx:1.27-alpine",
++      "containerPort": 8080
++    }
++  },
++  "components": [
++    {
++      "name": "database",
++      "image": "traderx/database:state004",
++      "replicas": 1,
++      "build": {
++        "context": "database",
++        "dockerfile": "Dockerfile.compose"
++      },
++      "ports": [
++        {
++          "name": "tcp",
++          "containerPort": 18082,
++          "servicePort": 18082
++        },
++        {
++          "name": "pg",
++          "containerPort": 18083,
++          "servicePort": 18083
++        },
++        {
++          "name": "web",
++          "containerPort": 18084,
++          "servicePort": 18084
++        }
++      ],
++      "env": [
++        {
++          "name": "DATABASE_TCP_PORT",
++          "value": "18082"
++        },
++        {
++          "name": "DATABASE_PG_PORT",
++          "value": "18083"
++        },
++        {
++          "name": "DATABASE_WEB_PORT",
++          "value": "18084"
++        },
++        {
++          "name": "DATABASE_WEB_HOSTNAMES",
++          "value": "localhost,database,edge-proxy"
++        }
++      ]
++    },
++    {
++      "name": "reference-data",
++      "image": "traderx/reference-data:state004",
++      "replicas": 1,
++      "build": {
++        "context": "reference-data",
++        "dockerfile": "Dockerfile.compose"
++      },
++      "ports": [
++        {
++          "name": "http",
++          "containerPort": 18085,
++          "servicePort": 18085
++        }
++      ],
++      "env": [
++        {
++          "name": "REFERENCE_DATA_SERVICE_PORT",
++          "value": "18085"
++        },
++        {
++          "name": "CORS_ALLOWED_ORIGINS",
++          "value": "http://localhost:8080"
++        }
++      ]
++    },
++    {
++      "name": "trade-feed",
++      "image": "traderx/trade-feed:state004",
++      "replicas": 1,
++      "build": {
++        "context": "trade-feed",
++        "dockerfile": "Dockerfile.compose"
++      },
++      "ports": [
++        {
++          "name": "http",
++          "containerPort": 18086,
++          "servicePort": 18086
++        }
++      ],
++      "env": [
++        {
++          "name": "TRADE_FEED_PORT",
++          "value": "18086"
++        },
++        {
++          "name": "CORS_ALLOWED_ORIGINS",
++          "value": "http://localhost:8080"
++        }
++      ]
++    },
++    {
++      "name": "people-service",
++      "image": "traderx/people-service:state004",
++      "replicas": 1,
++      "build": {
++        "context": "people-service",
++        "dockerfile": "Dockerfile.compose"
++      },
++      "ports": [
++        {
++          "name": "http",
++          "containerPort": 18089,
++          "servicePort": 18089
++        }
++      ],
++      "env": [
++        {
++          "name": "PEOPLE_SERVICE_PORT",
++          "value": "18089"
++        },
++        {
++          "name": "CORS_ALLOWED_ORIGINS",
++          "value": "http://localhost:8080"
++        }
++      ]
++    },
++    {
++      "name": "account-service",
++      "image": "traderx/account-service:state004",
++      "replicas": 1,
++      "build": {
++        "context": "account-service",
++        "dockerfile": "Dockerfile.compose"
++      },
++      "ports": [
++        {
++          "name": "http",
++          "containerPort": 18088,
++          "servicePort": 18088
++        }
++      ],
++      "env": [
++        {
++          "name": "ACCOUNT_SERVICE_PORT",
++          "value": "18088"
++        },
++        {
++          "name": "DATABASE_TCP_HOST",
++          "value": "database"
++        },
++        {
++          "name": "DATABASE_TCP_PORT",
++          "value": "18082"
++        },
++        {
++          "name": "PEOPLE_SERVICE_HOST",
++          "value": "people-service"
++        },
++        {
++          "name": "CORS_ALLOWED_ORIGINS",
++          "value": "http://localhost:8080"
++        }
++      ]
++    },
++    {
++      "name": "position-service",
++      "image": "traderx/position-service:state004",
++      "replicas": 1,
++      "build": {
++        "context": "position-service",
++        "dockerfile": "Dockerfile.compose"
++      },
++      "ports": [
++        {
++          "name": "http",
++          "containerPort": 18090,
++          "servicePort": 18090
++        }
++      ],
++      "env": [
++        {
++          "name": "POSITION_SERVICE_PORT",
++          "value": "18090"
++        },
++        {
++          "name": "DATABASE_TCP_HOST",
++          "value": "database"
++        },
++        {
++          "name": "DATABASE_TCP_PORT",
++          "value": "18082"
++        },
++        {
++          "name": "CORS_ALLOWED_ORIGINS",
++          "value": "http://localhost:8080"
++        }
++      ]
++    },
++    {
++      "name": "trade-processor",
++      "image": "traderx/trade-processor:state004",
++      "replicas": 1,
++      "build": {
++        "context": "trade-processor",
++        "dockerfile": "Dockerfile.compose"
++      },
++      "ports": [
++        {
++          "name": "http",
++          "containerPort": 18091,
++          "servicePort": 18091
++        }
++      ],
++      "env": [
++        {
++          "name": "TRADE_PROCESSOR_SERVICE_PORT",
++          "value": "18091"
++        },
++        {
++          "name": "DATABASE_TCP_HOST",
++          "value": "database"
++        },
++        {
++          "name": "DATABASE_TCP_PORT",
++          "value": "18082"
++        },
++        {
++          "name": "TRADE_FEED_HOST",
++          "value": "trade-feed"
++        },
++        {
++          "name": "CORS_ALLOWED_ORIGINS",
++          "value": "http://localhost:8080"
++        }
++      ]
++    },
++    {
++      "name": "trade-service",
++      "image": "traderx/trade-service:state004",
++      "replicas": 1,
++      "build": {
++        "context": "trade-service",
++        "dockerfile": "Dockerfile.compose"
++      },
++      "ports": [
++        {
++          "name": "http",
++          "containerPort": 18092,
++          "servicePort": 18092
++        }
++      ],
++      "env": [
++        {
++          "name": "TRADING_SERVICE_PORT",
++          "value": "18092"
++        },
++        {
++          "name": "ACCOUNT_SERVICE_HOST",
++          "value": "account-service"
++        },
++        {
++          "name": "REFERENCE_DATA_HOST",
++          "value": "reference-data"
++        },
++        {
++          "name": "PEOPLE_SERVICE_HOST",
++          "value": "people-service"
++        },
++        {
++          "name": "TRADE_FEED_HOST",
++          "value": "trade-feed"
++        },
++        {
++          "name": "CORS_ALLOWED_ORIGINS",
++          "value": "http://localhost:8080"
++        }
++      ]
++    },
++    {
++      "name": "web-front-end-angular",
++      "image": "traderx/web-front-end-angular:state004",
++      "replicas": 1,
++      "build": {
++        "context": "web-front-end/angular",
++        "dockerfile": "Dockerfile.compose"
++      },
++      "ports": [
++        {
++          "name": "http",
++          "containerPort": 18093,
++          "servicePort": 18093
++        }
++      ],
++      "env": [
++        {
++          "name": "WEB_SERVICE_PORT",
++          "value": "18093"
++        }
++      ]
++    }
++  ]
++}
+diff --git a/kubernetes-runtime/spec-source/nginx-edge.conf b/kubernetes-runtime/spec-source/nginx-edge.conf
+new file mode 100644
+index 0000000..2f4123c
+--- /dev/null
++++ b/kubernetes-runtime/spec-source/nginx-edge.conf
+@@ -0,0 +1,66 @@
++server {
++    listen 8080;
++    server_name localhost;
++
++    location = /health {
++        add_header Content-Type text/plain;
++        return 200 "ok\n";
++    }
++
++    location /db-web/ {
++        proxy_pass http://database:18084/;
++    }
++
++    location /reference-data/ {
++        proxy_pass http://reference-data:18085/;
++    }
++
++    location /ng-cli-ws {
++        proxy_pass http://web-front-end-angular:18093/ng-cli-ws;
++        proxy_http_version 1.1;
++        proxy_set_header Upgrade $http_upgrade;
++        proxy_set_header Connection "upgrade";
++    }
++
++    location /trade-feed/ {
++        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
++        proxy_set_header Host $http_host;
++        proxy_pass http://trade-feed:18086/;
++        proxy_http_version 1.1;
++        proxy_set_header Upgrade $http_upgrade;
++        proxy_set_header Connection "upgrade";
++    }
++
++    location /socket.io/ {
++        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
++        proxy_set_header Host $http_host;
++        proxy_pass http://trade-feed:18086/socket.io/;
++        proxy_http_version 1.1;
++        proxy_set_header Upgrade $http_upgrade;
++        proxy_set_header Connection "upgrade";
++    }
++
++    location /people-service/ {
++        proxy_pass http://people-service:18089/;
++    }
++
++    location /account-service/ {
++        proxy_pass http://account-service:18088/;
++    }
++
++    location /position-service/ {
++        proxy_pass http://position-service:18090/;
++    }
++
++    location /trade-service/ {
++        proxy_pass http://trade-service:18092/;
++    }
++
++    location /trade-processor/ {
++        proxy_pass http://trade-processor:18091/;
++    }
++
++    location / {
++        proxy_pass http://web-front-end-angular:18093/;
++    }
++}

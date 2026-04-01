@@ -1,0 +1,541 @@
+diff --git a/account-service/build.gradle b/account-service/build.gradle
+index bb39efe..7fcf3b3 100644
+--- a/account-service/build.gradle
++++ b/account-service/build.gradle
+@@ -18,7 +18,7 @@ repositories {
+ dependencies {
+   implementation 'org.springframework.boot:spring-boot-starter-web'
+   implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+-  implementation 'com.h2database:h2:2.3.232'
++  implementation 'org.postgresql:postgresql:42.7.4'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
+ 
+   implementation ('ch.qos.logback:logback-core:1.5.18') {
+diff --git a/account-service/src/main/java/finos/traderx/accountservice/repository/AccountRepository.java b/account-service/src/main/java/finos/traderx/accountservice/repository/AccountRepository.java
+index dc66544..22d0aac 100644
+--- a/account-service/src/main/java/finos/traderx/accountservice/repository/AccountRepository.java
++++ b/account-service/src/main/java/finos/traderx/accountservice/repository/AccountRepository.java
+@@ -42,7 +42,7 @@ public class AccountRepository {
+   public Account save(Account account) {
+     Integer accountId = account.getId();
+     if (accountId == null || accountId <= 0) {
+-      Integer generatedId = jdbcTemplate.queryForObject("select next value for ACCOUNTS_SEQ", Integer.class);
++      Integer generatedId = jdbcTemplate.queryForObject("select nextval('accounts_seq')", Integer.class);
+       jdbcTemplate.update("insert into Accounts (ID, DisplayName) values (?, ?)", generatedId, account.getDisplayName());
+       account.setId(generatedId);
+       return account;
+diff --git a/account-service/src/main/resources/application.properties b/account-service/src/main/resources/application.properties
+index b33d8a4..eedd70d 100644
+--- a/account-service/src/main/resources/application.properties
++++ b/account-service/src/main/resources/application.properties
+@@ -1,9 +1,9 @@
+ server.port=${ACCOUNT_SERVICE_PORT:18088}
+ 
+-spring.datasource.url=jdbc:h2:tcp://${DATABASE_TCP_HOST:localhost}:${DATABASE_TCP_PORT:18082}/${DATABASE_NAME:traderx};CASE_INSENSITIVE_IDENTIFIERS=TRUE
+-spring.datasource.driverClassName=org.h2.Driver
+-spring.datasource.username=${DATABASE_DBUSER:sa}
+-spring.datasource.password=${DATABASE_DBPASS:sa}
++spring.datasource.url=jdbc:postgresql://${DATABASE_PG_HOST:localhost}:${DATABASE_PG_PORT:5432}/${DATABASE_NAME:traderx}
++spring.datasource.driverClassName=org.postgresql.Driver
++spring.datasource.username=${DATABASE_DBUSER:traderx}
++spring.datasource.password=${DATABASE_DBPASS:traderx}
+ spring.threads.virtual.enabled=true
+ 
+ people.service.url=${PEOPLE_SERVICE_URL:http://${PEOPLE_SERVICE_HOST:localhost}:18089}
+diff --git a/position-service/build.gradle b/position-service/build.gradle
+index 9cc048d..5c75760 100644
+--- a/position-service/build.gradle
++++ b/position-service/build.gradle
+@@ -18,7 +18,7 @@ repositories {
+ dependencies {
+   implementation 'org.springframework.boot:spring-boot-starter-web'
+   implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+-  implementation 'com.h2database:h2:2.3.232'
++  implementation 'org.postgresql:postgresql:42.7.4'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
+ 
+   implementation ('ch.qos.logback:logback-core:1.5.18') {
+diff --git a/position-service/src/main/resources/application.properties b/position-service/src/main/resources/application.properties
+index 908d7f3..8e4ca07 100644
+--- a/position-service/src/main/resources/application.properties
++++ b/position-service/src/main/resources/application.properties
+@@ -1,9 +1,9 @@
+ server.port=${POSITION_SERVICE_PORT:18090}
+ 
+-spring.datasource.url=jdbc:h2:tcp://${DATABASE_TCP_HOST:localhost}:${DATABASE_TCP_PORT:18082}/${DATABASE_NAME:traderx};CASE_INSENSITIVE_IDENTIFIERS=TRUE
+-spring.datasource.driverClassName=org.h2.Driver
+-spring.datasource.username=${DATABASE_DBUSER:sa}
+-spring.datasource.password=${DATABASE_DBPASS:sa}
++spring.datasource.url=jdbc:postgresql://${DATABASE_PG_HOST:localhost}:${DATABASE_PG_PORT:5432}/${DATABASE_NAME:traderx}
++spring.datasource.driverClassName=org.postgresql.Driver
++spring.datasource.username=${DATABASE_DBUSER:traderx}
++spring.datasource.password=${DATABASE_DBPASS:traderx}
+ spring.threads.virtual.enabled=true
+ 
+ server.max-http-request-header-size=1000000
+diff --git a/postgres-database-replacement/README.md b/postgres-database-replacement/README.md
+new file mode 100644
+index 0000000..b5d12f6
+--- /dev/null
++++ b/postgres-database-replacement/README.md
+@@ -0,0 +1,30 @@
++# State 009 PostgreSQL Database Replacement
++
++Generated from:
++
++- `specs/009-postgres-database-replacement/**`
++- parent state `003-containerized-compose-runtime`
++
++State intent:
++
++- replace H2 runtime database with PostgreSQL while preserving baseline behavior,
++- keep edge ingress and Docker Compose runtime model from state 003,
++- keep existing REST and messaging contracts stable for baseline flows.
++
++Artifacts:
++
++- Compose runtime: `docker-compose.yml`
++- Postgres bootstrap schema/data: `postgres-init/initialSchema.sql`
++- Spec references: `spec-source/*`
++
++Run:
++
++```bash
++./scripts/start-state-009-postgres-database-replacement-generated.sh
++```
++
++Smoke tests:
++
++```bash
++./scripts/test-state-009-postgres-database-replacement.sh
++```
+diff --git a/postgres-database-replacement/docker-compose.yml b/postgres-database-replacement/docker-compose.yml
+new file mode 100644
+index 0000000..82f4032
+--- /dev/null
++++ b/postgres-database-replacement/docker-compose.yml
+@@ -0,0 +1,176 @@
++name: traderx-state-009
++
++services:
++  database:
++    image: postgres:16-alpine
++    environment:
++      POSTGRES_DB: "traderx"
++      POSTGRES_USER: "traderx"
++      POSTGRES_PASSWORD: "traderx"
++    ports:
++      - "18083:5432"
++    healthcheck:
++      test: [ "CMD-SHELL", "pg_isready -U traderx -d traderx" ]
++      interval: 5s
++      timeout: 5s
++      retries: 20
++    volumes:
++      - postgres_state_009_data:/var/lib/postgresql/data
++      - ./postgres-init/initialSchema.sql:/docker-entrypoint-initdb.d/001-initialSchema.sql:ro
++
++  reference-data:
++    build:
++      context: ../reference-data
++      dockerfile: Dockerfile.compose
++    environment:
++      REFERENCE_DATA_SERVICE_PORT: "18085"
++      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++    ports:
++      - "18085:18085"
++    depends_on:
++      - database
++
++  trade-feed:
++    build:
++      context: ../trade-feed
++      dockerfile: Dockerfile.compose
++    environment:
++      TRADE_FEED_PORT: "18086"
++      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++    ports:
++      - "18086:18086"
++
++  people-service:
++    build:
++      context: ../people-service
++      dockerfile: Dockerfile.compose
++    environment:
++      PEOPLE_SERVICE_PORT: "18089"
++      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++    ports:
++      - "18089:18089"
++
++  account-service:
++    build:
++      context: ../account-service
++      dockerfile: Dockerfile.compose
++    environment:
++      ACCOUNT_SERVICE_PORT: "18088"
++      DATABASE_PG_HOST: "database"
++      DATABASE_PG_PORT: "5432"
++      DATABASE_NAME: "traderx"
++      DATABASE_DBUSER: "traderx"
++      DATABASE_DBPASS: "traderx"
++      PEOPLE_SERVICE_HOST: "people-service"
++      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++    ports:
++      - "18088:18088"
++    depends_on:
++      database:
++        condition: service_healthy
++      people-service:
++        condition: service_started
++
++  position-service:
++    build:
++      context: ../position-service
++      dockerfile: Dockerfile.compose
++    environment:
++      POSITION_SERVICE_PORT: "18090"
++      DATABASE_PG_HOST: "database"
++      DATABASE_PG_PORT: "5432"
++      DATABASE_NAME: "traderx"
++      DATABASE_DBUSER: "traderx"
++      DATABASE_DBPASS: "traderx"
++      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++    ports:
++      - "18090:18090"
++    depends_on:
++      database:
++        condition: service_healthy
++
++  trade-processor:
++    build:
++      context: ../trade-processor
++      dockerfile: Dockerfile.compose
++    environment:
++      TRADE_PROCESSOR_SERVICE_PORT: "18091"
++      DATABASE_PG_HOST: "database"
++      DATABASE_PG_PORT: "5432"
++      DATABASE_NAME: "traderx"
++      DATABASE_DBUSER: "traderx"
++      DATABASE_DBPASS: "traderx"
++      TRADE_FEED_HOST: "trade-feed"
++      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++    ports:
++      - "18091:18091"
++    depends_on:
++      database:
++        condition: service_healthy
++      trade-feed:
++        condition: service_started
++
++  trade-service:
++    build:
++      context: ../trade-service
++      dockerfile: Dockerfile.compose
++    environment:
++      TRADING_SERVICE_PORT: "18092"
++      ACCOUNT_SERVICE_HOST: "account-service"
++      REFERENCE_DATA_HOST: "reference-data"
++      PEOPLE_SERVICE_HOST: "people-service"
++      TRADE_FEED_HOST: "trade-feed"
++      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++    ports:
++      - "18092:18092"
++    depends_on:
++      - account-service
++      - reference-data
++      - people-service
++      - trade-feed
++      - trade-processor
++
++  web-front-end-angular:
++    build:
++      context: ../web-front-end/angular
++      dockerfile: Dockerfile.compose
++    environment:
++      WEB_SERVICE_PORT: "18093"
++    ports:
++      - "18093:18093"
++    depends_on:
++      - account-service
++      - reference-data
++      - trade-service
++      - position-service
++      - people-service
++      - trade-feed
++
++  ingress:
++    build:
++      context: ../ingress
++      dockerfile: Dockerfile.compose
++    environment:
++      NGINX_HOST: "localhost"
++      DATABASE_URL: "http://database:5432/"
++      REFERENCE_DATA_URL: "http://reference-data:18085/"
++      TRADE_FEED_URL: "http://trade-feed:18086/"
++      PEOPLE_SERVICE_URL: "http://people-service:18089/"
++      ACCOUNT_SERVICE_URL: "http://account-service:18088/"
++      POSITION_SERVICE_URL: "http://position-service:18090/"
++      TRADE_PROCESSOR_URL: "http://trade-processor:18091/"
++      TRADE_SERVICE_URL: "http://trade-service:18092/"
++      WEB_FRONTEND_URL: "http://web-front-end-angular:18093/"
++    ports:
++      - "8080:8080"
++    depends_on:
++      - web-front-end-angular
++      - account-service
++      - reference-data
++      - trade-service
++      - position-service
++      - people-service
++      - trade-feed
++
++volumes:
++  postgres_state_009_data:
+diff --git a/postgres-database-replacement/postgres-init/initialSchema.sql b/postgres-database-replacement/postgres-init/initialSchema.sql
+new file mode 100644
+index 0000000..18ac6a9
+--- /dev/null
++++ b/postgres-database-replacement/postgres-init/initialSchema.sql
+@@ -0,0 +1,77 @@
++DROP TABLE IF EXISTS trades;
++DROP TABLE IF EXISTS accountusers;
++DROP TABLE IF EXISTS positions;
++DROP TABLE IF EXISTS accounts;
++DROP SEQUENCE IF EXISTS accounts_seq;
++
++CREATE TABLE accounts (
++  id INTEGER PRIMARY KEY,
++  displayname VARCHAR(50)
++);
++
++CREATE TABLE accountusers (
++  accountid INTEGER NOT NULL,
++  username VARCHAR(15) NOT NULL,
++  PRIMARY KEY (accountid, username),
++  FOREIGN KEY (accountid) REFERENCES accounts(id)
++);
++
++CREATE TABLE positions (
++  accountid INTEGER,
++  security VARCHAR(15),
++  updated TIMESTAMP,
++  quantity INTEGER,
++  PRIMARY KEY (accountid, security),
++  FOREIGN KEY (accountid) REFERENCES accounts(id)
++);
++
++CREATE TABLE trades (
++  id VARCHAR(50) PRIMARY KEY,
++  accountid INTEGER REFERENCES accounts(id),
++  created TIMESTAMP,
++  updated TIMESTAMP,
++  security VARCHAR(15),
++  side VARCHAR(10) CHECK (side in ('Buy', 'Sell')),
++  quantity INTEGER CHECK (quantity > 0),
++  state VARCHAR(20) CHECK (state in ('New', 'Processing', 'Settled', 'Cancelled'))
++);
++
++CREATE SEQUENCE accounts_seq START WITH 65000 INCREMENT BY 1;
++
++INSERT INTO accounts (id, displayname) VALUES (22214, 'Test Account 20');
++INSERT INTO accounts (id, displayname) VALUES (11413, 'Private Clients Fund TTXX');
++INSERT INTO accounts (id, displayname) VALUES (42422, 'Algo Execution Partners');
++INSERT INTO accounts (id, displayname) VALUES (52355, 'Big Corporate Fund');
++INSERT INTO accounts (id, displayname) VALUES (62654, 'Hedge Fund TXY1');
++INSERT INTO accounts (id, displayname) VALUES (10031, 'Internal Trading Book');
++INSERT INTO accounts (id, displayname) VALUES (44044, 'Trading Account 1');
++
++INSERT INTO accountusers (accountid, username) VALUES (22214, 'user01');
++INSERT INTO accountusers (accountid, username) VALUES (22214, 'user03');
++INSERT INTO accountusers (accountid, username) VALUES (22214, 'user09');
++INSERT INTO accountusers (accountid, username) VALUES (22214, 'user05');
++INSERT INTO accountusers (accountid, username) VALUES (22214, 'user07');
++INSERT INTO accountusers (accountid, username) VALUES (62654, 'user09');
++INSERT INTO accountusers (accountid, username) VALUES (62654, 'user05');
++INSERT INTO accountusers (accountid, username) VALUES (62654, 'user07');
++INSERT INTO accountusers (accountid, username) VALUES (62654, 'user01');
++INSERT INTO accountusers (accountid, username) VALUES (10031, 'user01');
++INSERT INTO accountusers (accountid, username) VALUES (10031, 'user03');
++INSERT INTO accountusers (accountid, username) VALUES (10031, 'user09');
++INSERT INTO accountusers (accountid, username) VALUES (44044, 'user09');
++INSERT INTO accountusers (accountid, username) VALUES (44044, 'user05');
++INSERT INTO accountusers (accountid, username) VALUES (44044, 'user07');
++INSERT INTO accountusers (accountid, username) VALUES (44044, 'user04');
++INSERT INTO accountusers (accountid, username) VALUES (44044, 'user01');
++INSERT INTO accountusers (accountid, username) VALUES (44044, 'user06');
++
++INSERT INTO trades (id, created, updated, security, side, quantity, state, accountid) VALUES ('TRADE-22214-AABBCC', NOW(), NOW(), 'IBM', 'Sell', 100, 'Settled', 22214);
++INSERT INTO trades (id, created, updated, security, side, quantity, state, accountid) VALUES ('TRADE-22214-DDEEFF', NOW(), NOW(), 'MS', 'Buy', 1000, 'Settled', 22214);
++INSERT INTO trades (id, created, updated, security, side, quantity, state, accountid) VALUES ('TRADE-22214-GGHHII', NOW(), NOW(), 'C', 'Sell', 2000, 'Settled', 22214);
++
++INSERT INTO positions (accountid, security, updated, quantity) VALUES (22214, 'MS', NOW(), 1000);
++INSERT INTO positions (accountid, security, updated, quantity) VALUES (22214, 'IBM', NOW(), -100);
++INSERT INTO positions (accountid, security, updated, quantity) VALUES (22214, 'C', NOW(), -2000);
++
++INSERT INTO trades (id, created, updated, security, side, quantity, state, accountid) VALUES ('TRADE-52355-AABBCC', NOW(), NOW(), 'BAC', 'Sell', 2400, 'Settled', 52355);
++INSERT INTO positions (accountid, security, updated, quantity) VALUES (52355, 'BAC', NOW(), -2400);
+diff --git a/postgres-database-replacement/spec-source/contract-delta.md b/postgres-database-replacement/spec-source/contract-delta.md
+new file mode 100644
+index 0000000..ae06917
+--- /dev/null
++++ b/postgres-database-replacement/spec-source/contract-delta.md
+@@ -0,0 +1,17 @@
++# Contract Delta: 009-postgres-database-replacement
++
++Parent state: `003-containerized-compose-runtime`
++
++## OpenAPI Changes
++
++- No REST OpenAPI contract changes.
++
++## Event Contract Changes
++
++- No trade-feed Socket.IO event contract changes in this state.
++
++## Compatibility Notes
++
++- UI-visible behavior and endpoint contracts are intentionally preserved.
++- Persistence backend contract changes are internal (SQL engine + init process) and do not change REST payload shapes.
++- Account sequence semantics are preserved using PostgreSQL `accounts_seq`.
+diff --git a/postgres-database-replacement/spec-source/functional-delta.md b/postgres-database-replacement/spec-source/functional-delta.md
+new file mode 100644
+index 0000000..56221af
+--- /dev/null
++++ b/postgres-database-replacement/spec-source/functional-delta.md
+@@ -0,0 +1,28 @@
++# Functional Delta: 009-postgres-database-replacement
++
++Parent state: `003-containerized-compose-runtime`
++
++## Added
++
++- PostgreSQL runtime initialization pack (`postgres-init/initialSchema.sql`) for deterministic baseline schema and seed data.
++- Postgres-specific smoke checks (readiness + baseline data presence).
++
++## Changed
++
++- Runtime database engine changes from H2 server process to PostgreSQL container.
++- Service datasource wiring for:
++  - `account-service`
++  - `position-service`
++  - `trade-processor`
++- Account sequence ID generation query changes to PostgreSQL sequence syntax.
++
++## Removed
++
++- H2 web-console behavior from the runtime path (`/database` ingress route is no longer a supported interactive console flow in this state).
++
++## Flow Impact
++
++- `F1` load accounts on UI load: unchanged behavior, now backed by PostgreSQL reads.
++- `F2` bootstrap blotters: unchanged behavior, now backed by PostgreSQL reads.
++- `F3` account administration: unchanged behavior, account creation uses PostgreSQL sequence.
++- `F4` realtime blotter updates: unchanged behavior, writes/reads occur against PostgreSQL.
+diff --git a/postgres-database-replacement/spec-source/nonfunctional-delta.md b/postgres-database-replacement/spec-source/nonfunctional-delta.md
+new file mode 100644
+index 0000000..3b01c78
+--- /dev/null
++++ b/postgres-database-replacement/spec-source/nonfunctional-delta.md
+@@ -0,0 +1,24 @@
++# Non-Functional Delta: 009-postgres-database-replacement
++
++Parent state: `003-containerized-compose-runtime`
++
++## Runtime / Operations
++
++- Runtime remains Docker Compose + NGINX ingress from state `003`.
++- Database service switches to `postgres:16-alpine` with deterministic init SQL mounted at startup.
++- DB-dependent services use `depends_on` health sequencing against PostgreSQL readiness.
++
++## Security / Compliance
++
++- No auth/TLS model changes are introduced in this state.
++- Default local development credentials are intentionally simple and state-scoped.
++
++## Performance / Scalability
++
++- PostgreSQL provides more production-like query/transaction behavior than H2 while preserving local simplicity.
++- No horizontal scaling changes are introduced in this state.
++
++## Reliability / Observability
++
++- Startup checks include PostgreSQL readiness to reduce race-condition failures.
++- Smoke checks validate baseline data load and service compatibility against PostgreSQL.
+diff --git a/postgres-database-replacement/spec-source/spec.md b/postgres-database-replacement/spec-source/spec.md
+new file mode 100644
+index 0000000..47c25d5
+--- /dev/null
++++ b/postgres-database-replacement/spec-source/spec.md
+@@ -0,0 +1,36 @@
++# Feature Specification: PostgreSQL Database Replacement
++
++**Feature Branch**: `009-postgres-database-replacement`  
++**Created**: 2026-03-31  
++**Status**: Implemented  
++**Input**: Transition delta from `003-containerized-compose-runtime`
++
++## User Stories
++
++- As a maintainer, I want the baseline runtime to use a real PostgreSQL database without changing user-visible baseline behavior.
++- As a contributor, I want this architecture branch to stay close to state `003` except for the database engine replacement.
++- As a developer, I want generated code and smoke tests to prove that account/position/trade flows still work end-to-end.
++
++## Functional Requirements
++
++- FR-901: State runtime SHALL replace H2 database runtime with a PostgreSQL container initialized from deterministic schema/data scripts.
++- FR-902: Account, position, and trade-processor services SHALL use PostgreSQL datasource configuration in this state.
++- FR-903: Baseline flows `F1`, `F2`, `F3`, and `F4` from state `001` SHALL remain behaviorally compatible.
++- FR-904: Account identifier generation semantics SHALL remain compatible via sequence-backed ID generation.
++- FR-905: State SHALL keep Docker Compose + NGINX ingress model inherited from state `003`.
++
++## Non-Functional Requirements
++
++- NFR-901: Local runtime SHALL remain single-command containerized startup for contributors.
++- NFR-902: Database runtime SHALL use an official lightweight PostgreSQL container image.
++- NFR-903: Runtime SHALL include readiness/health expectations sufficient to avoid race conditions during startup.
++- NFR-904: State generation SHALL be deterministic and reproducible from spec-driven assets.
++- NFR-905: State SHALL preserve lineage compareability against state `003`.
++
++## Success Criteria
++
++- SC-901: `pipeline/generate-state-009-postgres-database-replacement.sh` generates a runnable PostgreSQL-based runtime pack.
++- SC-902: `scripts/start-state-009-postgres-database-replacement-generated.sh` starts runtime successfully.
++- SC-903: `scripts/test-state-009-postgres-database-replacement.sh` passes core smoke checks.
++- SC-904: State catalog points to `code/generated-state-009-postgres-database-replacement`.
++- SC-905: ADR for database engine choice is published and linked from state artifacts.
+diff --git a/trade-processor/build.gradle b/trade-processor/build.gradle
+index 2e6b43a..4457aa1 100644
+--- a/trade-processor/build.gradle
++++ b/trade-processor/build.gradle
+@@ -18,7 +18,7 @@ repositories {
+ dependencies {
+   implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+   implementation 'org.springframework.boot:spring-boot-starter-web'
+-  implementation 'com.h2database:h2:2.3.232'
++  implementation 'org.postgresql:postgresql:42.7.4'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
+ 
+   implementation('org.json:json:20240303') {
+diff --git a/trade-processor/src/main/resources/application.properties b/trade-processor/src/main/resources/application.properties
+index 300e3c9..b56e35a 100644
+--- a/trade-processor/src/main/resources/application.properties
++++ b/trade-processor/src/main/resources/application.properties
+@@ -1,12 +1,12 @@
+ server.port=${TRADE_PROCESSOR_SERVICE_PORT:18091}
+ 
+-spring.datasource.url=jdbc:h2:tcp://${DATABASE_TCP_HOST:localhost}:${DATABASE_TCP_PORT:18082}/${DATABASE_NAME:traderx};CASE_INSENSITIVE_IDENTIFIERS=TRUE
+-spring.datasource.driverClassName=org.h2.Driver
+-spring.datasource.username=${DATABASE_DBUSER:sa}
+-spring.datasource.password=${DATABASE_DBPASS:sa}
+-spring.data.jpa.database-platform=org.hibernate.dialect.H2Dialect
++spring.datasource.url=jdbc:postgresql://${DATABASE_PG_HOST:localhost}:${DATABASE_PG_PORT:5432}/${DATABASE_NAME:traderx}
++spring.datasource.driverClassName=org.postgresql.Driver
++spring.datasource.username=${DATABASE_DBUSER:traderx}
++spring.datasource.password=${DATABASE_DBPASS:traderx}
++spring.data.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+ spring.data.jpa.show-sql=true
+-spring.jpa.hibernate.ddl-auto=update
++spring.jpa.hibernate.ddl-auto=none
+ spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+ spring.threads.virtual.enabled=true
+ 

@@ -3,10 +3,26 @@
 - Hook script: `__GEN_HOOK__`
 - Feature pack: `__FEATURE_PACK__`
 
-This state is expected to implement generation in the hook script above.
+This state follows the patch-set overlay model.
 
-Minimum hook responsibilities:
+## Patch-Set Inputs
 
-1. Generate or transform code artifacts for this state.
-2. Keep compatibility with state lineage contracts unless explicitly changed.
-3. Produce deterministic output suitable for branch publishing.
+- Parent state id: `__PREVIOUS_STATE__`
+- Patch directory: `__FEATURE_PACK__/generation/patches/`
+- Canonical patch file: `0001-state-overlay.patch`
+
+## Hook Responsibilities
+
+1. Generate parent state output.
+2. Apply all ordered patch files from this pack.
+3. Regenerate architecture docs from `system/architecture.model.json`.
+4. Keep compatibility with lineage contracts unless explicitly changed.
+5. Produce deterministic output suitable for branch publishing.
+
+## Capture / Refresh Patch
+
+Use patch capture workflow after implementing deltas in this state:
+
+```bash
+bash pipeline/create-state-patchset.sh __STATE_ID__ __PREVIOUS_STATE__
+```

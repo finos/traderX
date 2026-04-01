@@ -19,6 +19,7 @@ Provide one browser-facing endpoint for state `002-edge-proxy-uncontainerized`, 
 
 ## Generation Source
 
-- Template: `templates/edge-proxy-specfirst/**`
-- Generator: `pipeline/generate-edge-proxy-specfirst.sh`
+- State generator: `pipeline/generate-state-002-edge-proxy-uncontainerized.sh`
+- Patch set: `specs/002-edge-proxy-uncontainerized/generation/patches/*.patch`
+- Patch apply target: `generated/code/components`
 - Routing spec input: `specs/002-edge-proxy-uncontainerized/system/edge-routing.json`

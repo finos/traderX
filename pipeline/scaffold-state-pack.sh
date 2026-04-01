@@ -139,12 +139,21 @@ set -euo pipefail
 
 ROOT="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")/.." && pwd)"
 STATE_ID="${STATE_ID}"
+PARENT_STATE_ID="${PREVIOUS}"
 
-echo "[todo] generation hook not implemented yet for \${STATE_ID}"
-echo "[todo] implement generation logic driven by ${FEATURE_PACK}"
-exit 1
+echo "[info] generating parent state \${PARENT_STATE_ID} for \${STATE_ID}"
+bash "\${ROOT}/pipeline/generate-state.sh" "\${PARENT_STATE_ID}"
+bash "\${ROOT}/pipeline/apply-state-patchset.sh" "\${STATE_ID}"
+bash "\${ROOT}/pipeline/generate-state-architecture-doc.sh" "\${STATE_ID}"
+
+cat <<'EOT'
+[todo] replace with state-specific summary lines
+EOT
 EOF
 chmod +x "${HOOK_SCRIPT_PATH}"
+
+mkdir -p "${STATE_DIR}/generation/patches"
+touch "${STATE_DIR}/generation/patches/.gitkeep"
 
 cat > "${SMOKE_SCRIPT_PATH}" <<EOF
 #!/usr/bin/env bash

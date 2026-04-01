@@ -4,38 +4,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 STATE_ID="010-pricing-awareness-market-data"
 PARENT_STATE_ID="007-messaging-nats-replacement"
-TARGET="${ROOT}/generated/code/target-generated"
-OVERLAY_DIR="${ROOT}/templates/state-010-pricing-awareness-market-data-overlay"
-STATE_DIR="${TARGET}/pricing-awareness-market-data"
 
 echo "[info] generating parent state ${PARENT_STATE_ID} for ${STATE_ID}"
 bash "${ROOT}/pipeline/generate-state.sh" "${PARENT_STATE_ID}"
-
-[[ -d "${TARGET}" ]] || {
-  echo "[fail] missing target output: ${TARGET}"
-  exit 1
-}
-
-[[ -d "${OVERLAY_DIR}" ]] || {
-  echo "[fail] missing overlay template directory: ${OVERLAY_DIR}"
-  exit 1
-}
-
-cp -R "${OVERLAY_DIR}/." "${TARGET}/"
-
-# State 010 is published as its own runtime assembly directory.
-rm -rf "${TARGET}/messaging-nats-replacement"
-
-[[ -f "${STATE_DIR}/docker-compose.yml" ]] || {
-  echo "[fail] missing state compose file: ${STATE_DIR}/docker-compose.yml"
-  exit 1
-}
-
-[[ -f "${TARGET}/price-publisher/src/main.js" ]] || {
-  echo "[fail] missing generated price-publisher component"
-  exit 1
-}
-
+bash "${ROOT}/pipeline/apply-state-patchset.sh" "${STATE_ID}"
 bash "${ROOT}/pipeline/generate-state-architecture-doc.sh" "${STATE_ID}"
 
 cat <<'EOF'

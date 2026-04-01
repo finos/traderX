@@ -53,6 +53,42 @@ bash pipeline/scaffold-state-pack.sh <NNN-state-name> --title "<Title>" --previo
 
 This keeps progression reversible and auditable across DevEx, NFR, and functional tracks.
 
+## State Generation Model (Patch-Set Overlays)
+
+TraderX now uses two generation modes:
+
+1. Baseline synthesis (state `001`): generate components from manifests/specs.
+2. Derived states (`002+`): generate parent, then apply ordered patch sets from `specs/<state>/generation/patches/*.patch`.
+
+Canonical patch apply helper:
+
+```bash
+bash pipeline/apply-state-patchset.sh <state-id> [target-root]
+```
+
+Patch capture helper (refresh a state patch from parent/child outputs):
+
+```bash
+bash pipeline/create-state-patchset.sh <state-id> [parent-state-id] [target-path]
+```
+
+Examples:
+
+```bash
+# Component-root overlay for state 002
+bash pipeline/create-state-patchset.sh \
+  002-edge-proxy-uncontainerized \
+  001-baseline-uncontainerized-parity \
+  generated/code/components
+
+# Runtime-root overlay for state 007
+bash pipeline/create-state-patchset.sh \
+  007-messaging-nats-replacement \
+  003-containerized-compose-runtime
+```
+
+This pattern keeps state deltas explicit, reviewable, and reusable by both humans and LLM-driven implementation workflows.
+
 Current state-aware generation entrypoints:
 
 - `bash pipeline/generate-state.sh 001-baseline-uncontainerized-parity`

@@ -1,0 +1,57 @@
+diff --git a/web-front-end-angular-specfirst/main/environments/environment.local.ts b/web-front-end-angular-specfirst/main/environments/environment.local.ts
+index 864e9d4..2c08cc2 100644
+--- a/web-front-end-angular-specfirst/main/environments/environment.local.ts
++++ b/web-front-end-angular-specfirst/main/environments/environment.local.ts
+@@ -1,11 +1,10 @@
+-// This is for running everything off of the local machine, connecting 
+-// to each service by its port number, not behind an aggregator/gateway
++// State 002 overlay: route browser traffic through edge proxy endpoint.
+ export const environment = {
+     production:         false,
+-    accountUrl:         `//${window.location.hostname}:18088`,
+-    refrenceDataUrl:    `//${window.location.hostname}:18085`,
+-    tradesUrl:          `//${window.location.hostname}:18092/trade/`,
+-    positionsUrl:       `//${window.location.hostname}:18090`,
+-    peopleUrl:          `//${window.location.hostname}:18089`,
+-    tradeFeedUrl:       `//${window.location.hostname}:18086`
++    accountUrl:         `//${window.location.host}/account-service`,
++    refrenceDataUrl:    `//${window.location.host}/reference-data`,
++    tradesUrl:          `//${window.location.host}/trade-service/trade/`,
++    positionsUrl:       `//${window.location.host}/position-service`,
++    peopleUrl:          `//${window.location.host}/people-service`,
++    tradeFeedUrl:       `//${window.location.host}`
+ };
+diff --git a/web-front-end-angular-specfirst/main/environments/environment.ts b/web-front-end-angular-specfirst/main/environments/environment.ts
+index 236e972..2c08cc2 100644
+--- a/web-front-end-angular-specfirst/main/environments/environment.ts
++++ b/web-front-end-angular-specfirst/main/environments/environment.ts
+@@ -1,22 +1,10 @@
+-// This file can be replaced during build by using the `fileReplacements` array.
+-// `ng build` replaces `environment.ts` with `environment.prod.ts`.
+-// The list of file replacements can be found in `angular.json`.
+-
++// State 002 overlay: route browser traffic through edge proxy endpoint.
+ export const environment = {
+     production:         false,
+-    accountUrl:         `//${window.location.hostname}:18088`,
+-    refrenceDataUrl:    `//${window.location.hostname}:18085`,
+-    tradesUrl:          `//${window.location.hostname}:18092/trade/`,
+-    positionsUrl:       `//${window.location.hostname}:18090`,
+-    peopleUrl:          `//${window.location.hostname}:18089`,
+-    tradeFeedUrl:       `//${window.location.hostname}:18086`
++    accountUrl:         `//${window.location.host}/account-service`,
++    refrenceDataUrl:    `//${window.location.host}/reference-data`,
++    tradesUrl:          `//${window.location.host}/trade-service/trade/`,
++    positionsUrl:       `//${window.location.host}/position-service`,
++    peopleUrl:          `//${window.location.host}/people-service`,
++    tradeFeedUrl:       `//${window.location.host}`
+ };
+-
+-/*
+- * For easier debugging in development mode, you can import the following file
+- * to ignore zone related error stack frames such as `zone.run`, `zoneDelegate.invokeTask`.
+- *
+- * This import should be commented out in production mode because it will have a negative impact
+- * on performance if an error is thrown.
+- */
+-// import 'zone.js/plugins/zone-error';  // Included with Angular CLI.

@@ -1,0 +1,463 @@
+diff --git a/radius-kubernetes-platform/README.md b/radius-kubernetes-platform/README.md
+new file mode 100644
+index 0000000..7db447b
+--- /dev/null
++++ b/radius-kubernetes-platform/README.md
+@@ -0,0 +1,37 @@
++# State 005 Radius Platform Artifacts
++
++Generated from:
++
++- `specs/005-radius-kubernetes-platform/**`
++- `generated/code/target-generated/kubernetes-runtime/build-plan.json`
++
++State intent:
++
++- preserve state 004 runtime behavior,
++- add Radius app/resource definitions as the primary platform abstraction artifacts.
++
++Artifacts:
++
++- Radius app model: `radius/app.bicep`
++- Radius workspace config: `radius/.rad/rad.yaml`
++- Bicep extension config: `radius/bicepconfig.json`
++- Parent image map reference: `upstream-build-plan.json`
++
++Run baseline runtime for this state:
++
++```bash
++./scripts/start-state-005-radius-kubernetes-platform-generated.sh --provider kind
++```
++
++Run state smoke tests:
++
++```bash
++./scripts/test-state-005-radius-kubernetes-platform.sh
++```
++
++Optional Radius command flow (requires `rad`):
++
++```bash
++cd generated/code/target-generated/radius-kubernetes-platform/radius
++rad run app.bicep
++```
+diff --git a/radius-kubernetes-platform/radius/.rad/rad.yaml b/radius-kubernetes-platform/radius/.rad/rad.yaml
+new file mode 100644
+index 0000000..e4dccec
+--- /dev/null
++++ b/radius-kubernetes-platform/radius/.rad/rad.yaml
+@@ -0,0 +1,2 @@
++workspace:
++  application: "traderx-state-005"
+diff --git a/radius-kubernetes-platform/radius/app.bicep b/radius-kubernetes-platform/radius/app.bicep
+new file mode 100644
+index 0000000..4322999
+--- /dev/null
++++ b/radius-kubernetes-platform/radius/app.bicep
+@@ -0,0 +1,189 @@
++extension radius
++
++param application string = 'traderx-state-005'
++
++resource database 'Applications.Core/containers@2023-10-01-preview' = {
++  name: 'database'
++  properties: {
++    application: application
++    container: {
++      image: 'traderx/database:state004'
++      ports: {
++        tcp: { containerPort: 18082 }
++        pg: { containerPort: 18083 }
++        web: { containerPort: 18084 }
++      }
++    }
++  }
++}
++
++resource referencedata 'Applications.Core/containers@2023-10-01-preview' = {
++  name: 'reference-data'
++  properties: {
++    application: application
++    container: {
++      image: 'traderx/reference-data:state004'
++      ports: {
++        web: { containerPort: 18085 }
++      }
++    }
++  }
++}
++
++resource tradefeed 'Applications.Core/containers@2023-10-01-preview' = {
++  name: 'trade-feed'
++  properties: {
++    application: application
++    container: {
++      image: 'traderx/trade-feed:state004'
++      ports: {
++        web: { containerPort: 18086 }
++      }
++    }
++  }
++}
++
++resource peopleservice 'Applications.Core/containers@2023-10-01-preview' = {
++  name: 'people-service'
++  properties: {
++    application: application
++    container: {
++      image: 'traderx/people-service:state004'
++      ports: {
++        web: { containerPort: 18089 }
++      }
++    }
++  }
++}
++
++resource accountservice 'Applications.Core/containers@2023-10-01-preview' = {
++  name: 'account-service'
++  properties: {
++    application: application
++    container: {
++      image: 'traderx/account-service:state004'
++      ports: {
++        web: { containerPort: 18088 }
++      }
++      env: {
++        DATABASE_TCP_HOST: { value: database.name }
++        PEOPLE_SERVICE_HOST: { value: peopleservice.name }
++      }
++    }
++    connections: {
++      peopleservice: { source: peopleservice.id }
++      database: { source: database.id }
++    }
++  }
++}
++
++resource positionservice 'Applications.Core/containers@2023-10-01-preview' = {
++  name: 'position-service'
++  properties: {
++    application: application
++    container: {
++      image: 'traderx/position-service:state004'
++      ports: {
++        web: { containerPort: 18090 }
++      }
++      env: {
++        DATABASE_TCP_HOST: { value: database.name }
++      }
++    }
++    connections: {
++      database: { source: database.id }
++    }
++  }
++}
++
++resource tradeservice 'Applications.Core/containers@2023-10-01-preview' = {
++  name: 'trade-service'
++  properties: {
++    application: application
++    container: {
++      image: 'traderx/trade-service:state004'
++      ports: {
++        web: { containerPort: 18092 }
++      }
++      env: {
++        DATABASE_TCP_HOST: { value: database.name }
++        PEOPLE_SERVICE_HOST: { value: peopleservice.name }
++        ACCOUNT_SERVICE_HOST: { value: accountservice.name }
++        REFERENCE_DATA_HOST: { value: referencedata.name }
++        TRADE_FEED_HOST: { value: tradefeed.name }
++      }
++    }
++    connections: {
++      database: { source: database.id }
++      peopleservice: { source: peopleservice.id }
++      accountservice: { source: accountservice.id }
++      referencedata: { source: referencedata.id }
++      tradefeed: { source: tradefeed.id }
++    }
++  }
++}
++
++resource tradeprocessor 'Applications.Core/containers@2023-10-01-preview' = {
++  name: 'trade-processor'
++  properties: {
++    application: application
++    container: {
++      image: 'traderx/trade-processor:state004'
++      ports: {
++        web: { containerPort: 18091 }
++      }
++      env: {
++        DATABASE_TCP_HOST: { value: database.name }
++        TRADE_FEED_HOST: { value: tradefeed.name }
++      }
++    }
++    connections: {
++      database: { source: database.id }
++      tradefeed: { source: tradefeed.id }
++    }
++  }
++}
++
++resource webfrontend 'Applications.Core/containers@2023-10-01-preview' = {
++  name: 'web-front-end-angular'
++  properties: {
++    application: application
++    container: {
++      image: 'traderx/web-front-end-angular:state004'
++      ports: {
++        web: { containerPort: 18093 }
++      }
++    }
++    connections: {
++      tradefeed: { source: tradefeed.id }
++      accountservice: { source: accountservice.id }
++      positionservice: { source: positionservice.id }
++      tradeservice: { source: tradeservice.id }
++      referencedata: { source: referencedata.id }
++    }
++  }
++}
++
++resource edgeproxy 'Applications.Core/containers@2023-10-01-preview' = {
++  name: 'edge-proxy'
++  properties: {
++    application: application
++    container: {
++      image: 'nginx:1.27-alpine'
++      ports: {
++        web: { containerPort: 8080 }
++      }
++    }
++    connections: {
++      database: { source: database.id }
++      tradefeed: { source: tradefeed.id }
++      peopleservice: { source: peopleservice.id }
++      accountservice: { source: accountservice.id }
++      positionservice: { source: positionservice.id }
++      tradeservice: { source: tradeservice.id }
++      tradeprocessor: { source: tradeprocessor.id }
++      webfrontend: { source: webfrontend.id }
++      referencedata: { source: referencedata.id }
++    }
++  }
++}
+diff --git a/radius-kubernetes-platform/radius/bicepconfig.json b/radius-kubernetes-platform/radius/bicepconfig.json
+new file mode 100644
+index 0000000..6b9ead4
+--- /dev/null
++++ b/radius-kubernetes-platform/radius/bicepconfig.json
+@@ -0,0 +1,11 @@
++{
++  "experimentalFeaturesEnabled": {
++    "extensibility": true,
++    "extensionRegistry": true,
++    "dynamicTypeLoading": true
++  },
++  "extensions": {
++    "radius": "br:biceptypes.azurecr.io/radius:0.38",
++    "aws": "br:biceptypes.azurecr.io/aws:0.38"
++  }
++}
+diff --git a/radius-kubernetes-platform/spec-source/contract-delta.md b/radius-kubernetes-platform/spec-source/contract-delta.md
+new file mode 100644
+index 0000000..a293dbe
+--- /dev/null
++++ b/radius-kubernetes-platform/spec-source/contract-delta.md
+@@ -0,0 +1,18 @@
++# Contract Delta: 005-radius-kubernetes-platform
++
++Parent state: `004-kubernetes-runtime`
++
++Document any API/event/schema changes for this state.
++
++## OpenAPI Changes
++
++- No changes yet.
++
++## Event Contract Changes
++
++- No changes yet.
++
++## Compatibility Notes
++
++- OpenAPI and event contracts are unchanged from state `004-kubernetes-runtime`.
++- State `005` introduces platform deployment abstractions (Radius artifacts) only.
+diff --git a/radius-kubernetes-platform/spec-source/functional-delta.md b/radius-kubernetes-platform/spec-source/functional-delta.md
+new file mode 100644
+index 0000000..fde4bfc
+--- /dev/null
++++ b/radius-kubernetes-platform/spec-source/functional-delta.md
+@@ -0,0 +1,21 @@
++# Functional Delta: 005-radius-kubernetes-platform
++
++Parent state: `004-kubernetes-runtime`
++
++Document only functional behavior changes introduced by this state.
++
++## Added
++
++- None.
++
++## Changed
++
++- None.
++
++## Removed
++
++- None.
++
++## Flow Impact
++
++- No functional flow deltas. Baseline flows `F1`-`F6` and startup behavior remain compatible with state `004`.
+diff --git a/radius-kubernetes-platform/spec-source/nonfunctional-delta.md b/radius-kubernetes-platform/spec-source/nonfunctional-delta.md
+new file mode 100644
+index 0000000..fc69a25
+--- /dev/null
++++ b/radius-kubernetes-platform/spec-source/nonfunctional-delta.md
+@@ -0,0 +1,26 @@
++# Non-Functional Delta: 005-radius-kubernetes-platform
++
++Parent state: `004-kubernetes-runtime`
++
++This state layers Radius platform abstractions on top of the Kubernetes baseline from state `004`.
++
++## Runtime / Operations
++
++- Runtime substrate remains Kubernetes.
++- Deployment model shifts to Radius application/resource definitions.
++- Operator workflow targets Radius-first deployment primitives.
++
++## Security / Compliance
++
++- No authn/authz model change is required in this state by default.
++- Platform policy controls can be attached through Radius environment/application boundaries.
++
++## Performance / Scalability
++
++- Scaling behavior remains Kubernetes-native unless overridden through Radius-managed policy.
++- No baseline performance contract changes are introduced.
++
++## Reliability / Observability
++
++- Radius resource model adds stronger platform-level dependency visibility.
++- Application health/readiness behavior remains inherited from Kubernetes state `004`.
+diff --git a/radius-kubernetes-platform/spec-source/spec.md b/radius-kubernetes-platform/spec-source/spec.md
+new file mode 100644
+index 0000000..06bae22
+--- /dev/null
++++ b/radius-kubernetes-platform/spec-source/spec.md
+@@ -0,0 +1,29 @@
++# Feature Specification: Radius Platform on Kubernetes
++
++**Feature Branch**: `005-radius-kubernetes-platform`  
++**Created**: 2026-03-29  
++**Status**: Implemented  
++**Input**: Transition delta from `004-kubernetes-runtime`
++
++## User Stories
++
++- As a platform engineer, I want Radius application/resource definitions layered on the Kubernetes baseline.
++- As a maintainer, I want this state to remain independent from the Tilt dev-loop path.
++- As a developer, I want no functional regressions while platform abstractions are introduced.
++
++## Functional Requirements
++
++- FR-00501: Baseline flows F1-F6 remain behaviorally compatible with state `004`.
++- FR-00502: API routes and payload contracts remain unchanged unless explicitly declared in this pack.
++
++## Non-Functional Requirements
++
++- NFR-00501: Radius model artifacts are introduced as the primary deployment abstraction for this state.
++- NFR-00502: Kubernetes remains the runtime substrate inherited from state `004`.
++- NFR-00503: This state is independent of Tilt workflows and does not require Tilt assets.
++
++## Success Criteria
++
++- SC-00501: Generation hook and smoke test paths are implemented for Radius-based deployment artifacts.
++- SC-00502: Generated snapshot branch and tag strategy are defined in state catalog.
++- SC-00503: State topology/docs clearly identify this state as a sibling (not parent/child) of `006`.
+diff --git a/radius-kubernetes-platform/upstream-build-plan.json b/radius-kubernetes-platform/upstream-build-plan.json
+new file mode 100644
+index 0000000..fff4b72
+--- /dev/null
++++ b/radius-kubernetes-platform/upstream-build-plan.json
+@@ -0,0 +1,76 @@
++{
++  "stateId": "004-kubernetes-runtime",
++  "namespace": "traderx",
++  "kindClusterName": "traderx-state-004",
++  "hostPort": 8080,
++  "nodePort": 30080,
++  "edgeService": "edge-proxy",
++  "images": [
++    {
++      "name": "database",
++      "image": "traderx/database:state004",
++      "context": "database",
++      "dockerfile": "Dockerfile.compose"
++    },
++    {
++      "name": "reference-data",
++      "image": "traderx/reference-data:state004",
++      "context": "reference-data",
++      "dockerfile": "Dockerfile.compose"
++    },
++    {
++      "name": "trade-feed",
++      "image": "traderx/trade-feed:state004",
++      "context": "trade-feed",
++      "dockerfile": "Dockerfile.compose"
++    },
++    {
++      "name": "people-service",
++      "image": "traderx/people-service:state004",
++      "context": "people-service",
++      "dockerfile": "Dockerfile.compose"
++    },
++    {
++      "name": "account-service",
++      "image": "traderx/account-service:state004",
++      "context": "account-service",
++      "dockerfile": "Dockerfile.compose"
++    },
++    {
++      "name": "position-service",
++      "image": "traderx/position-service:state004",
++      "context": "position-service",
++      "dockerfile": "Dockerfile.compose"
++    },
++    {
++      "name": "trade-processor",
++      "image": "traderx/trade-processor:state004",
++      "context": "trade-processor",
++      "dockerfile": "Dockerfile.compose"
++    },
++    {
++      "name": "trade-service",
++      "image": "traderx/trade-service:state004",
++      "context": "trade-service",
++      "dockerfile": "Dockerfile.compose"
++    },
++    {
++      "name": "web-front-end-angular",
++      "image": "traderx/web-front-end-angular:state004",
++      "context": "web-front-end/angular",
++      "dockerfile": "Dockerfile.compose"
++    }
++  ],
++  "deployments": [
++    "database",
++    "reference-data",
++    "trade-feed",
++    "people-service",
++    "account-service",
++    "position-service",
++    "trade-processor",
++    "trade-service",
++    "web-front-end-angular",
++    "edge-proxy"
++  ]
++}

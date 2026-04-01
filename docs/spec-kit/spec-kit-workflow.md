@@ -41,6 +41,25 @@ Browse in docs:
 3. Synthesize generated components from manifest + templates.
 4. Start generated overlays and run smoke tests/parity checks.
 
+## Derived-State Generation Flow
+
+For states `002+`, generation follows:
+
+1. Generate parent state output.
+2. Apply ordered patch set from `specs/<state>/generation/patches/*.patch`.
+3. Regenerate architecture docs and run state smoke checks.
+
+## LLM Feature-Add Implementation Contract
+
+When implementing a new state delta with an LLM:
+
+1. Generate the parent state (`bash pipeline/generate-state.sh <parent-state-id>`).
+2. Make only the intended child-state edits against generated output.
+3. Capture patch set (`bash pipeline/create-state-patchset.sh <state-id> <parent-state-id> [target-path]`).
+4. Keep state hook as parent-generation + `apply-state-patchset.sh` only.
+5. Update `specs/<state>/generation/generation-hook.md` with parent, patch path, and refresh commands.
+6. Do not introduce or keep large file-payload heredoc generators for derived states.
+
 ## Validation Commands
 
 ```bash
@@ -131,7 +150,12 @@ After baseline parity is green:
 
 1. add FR/NFR deltas in the next feature pack under `specs/NNN-*`
 2. update contracts if interfaces change
-3. regenerate affected components
+3. update and capture state patch set:
+
+```bash
+bash pipeline/create-state-patchset.sh <state-id> <parent-state-id> [target-path]
+```
+
 4. rerun conformance + parity gates
 
 This keeps each learning-path state reproducible from requirements instead of from copied source.

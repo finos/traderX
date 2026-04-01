@@ -26,7 +26,8 @@ Define container build/run packaging for the full TraderX baseline component set
 
 ## Generation Surface
 
-- `pipeline/generate-state-003-compose-assets.sh`
+- `pipeline/generate-state-003-containerized-compose-runtime.sh`
+- `specs/003-containerized-compose-runtime/generation/patches/*.patch`
 - `scripts/start-state-003-containerized-generated.sh`
 - `scripts/stop-state-003-containerized-generated.sh`
 - `scripts/status-state-003-containerized-generated.sh`

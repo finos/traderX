@@ -1,22 +1,22 @@
-# Generation Hook: 007 Messaging NATS Replacement
+# Generation Hook: 007-messaging-nats-replacement
 
 - Hook script: `pipeline/generate-state-007-messaging-nats-replacement.sh`
 - Feature pack: `specs/007-messaging-nats-replacement`
 
-## Intended Hook Flow
+Patch-set model:
 
-1. Generate state `003` as base output.
-2. Replace messaging layer artifacts:
-   - remove Socket.IO `trade-feed` runtime component,
-   - add NATS broker runtime artifacts.
-3. Apply service and frontend migration deltas:
-   - backend NATS publish/subscribe wiring,
-   - frontend `nats.ws` stream wiring.
-4. Apply ingress and compose deltas from `system/` snippets.
-5. Emit deterministic target output for state `007`.
+- Parent state: `003-containerized-compose-runtime`
+- Patch path: `specs/007-messaging-nats-replacement/generation/patches/0001-state-overlay.patch`
+- Patch target root: `generated/code/target-generated`
 
-## Implementation Notes
+Hook flow:
 
-- Keep business behavior aligned with prior state.
-- Limit this state to messaging transport/topology change.
-- Preserve readiness for a future Kubernetes-on-007 follow-up state.
+1. Generate parent state `003`.
+2. Apply state patch set (trade-feed replacement with NATS + service/frontend deltas).
+3. Regenerate architecture docs.
+
+Patch refresh command:
+
+```bash
+bash pipeline/create-state-patchset.sh 007-messaging-nats-replacement 003-containerized-compose-runtime
+```

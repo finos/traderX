@@ -3,17 +3,20 @@
 - Hook script: `pipeline/generate-state-005-radius-kubernetes-platform.sh`
 - Feature pack: `specs/005-radius-kubernetes-platform`
 
-This state is expected to implement generation in the hook script above.
+Patch-set model:
 
-Minimum hook responsibilities:
+- Parent state: `004-kubernetes-runtime`
+- Patch path: `specs/005-radius-kubernetes-platform/generation/patches/0001-state-overlay.patch`
+- Patch target root: `generated/code/target-generated`
 
-1. Generate or transform code artifacts for this state.
-2. Keep compatibility with state lineage contracts unless explicitly changed.
-3. Produce deterministic output suitable for branch publishing.
+Hook flow:
 
-Current generated outputs:
+1. Generate parent state `004`.
+2. Apply state patch set (Radius app model + workspace artifacts).
+3. Regenerate architecture docs.
 
-- `generated/code/target-generated/radius-kubernetes-platform/radius/app.bicep`
-- `generated/code/target-generated/radius-kubernetes-platform/radius/bicepconfig.json`
-- `generated/code/target-generated/radius-kubernetes-platform/radius/.rad/rad.yaml`
-- `generated/code/target-generated/radius-kubernetes-platform/README.md`
+Patch refresh command:
+
+```bash
+bash pipeline/create-state-patchset.sh 005-radius-kubernetes-platform 004-kubernetes-runtime
+```

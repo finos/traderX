@@ -3,17 +3,20 @@
 - Hook script: `pipeline/generate-state-006-tilt-kubernetes-dev-loop.sh`
 - Feature pack: `specs/006-tilt-kubernetes-dev-loop`
 
-This state is expected to implement generation in the hook script above.
+Patch-set model:
 
-Minimum hook responsibilities:
+- Parent state: `004-kubernetes-runtime`
+- Patch path: `specs/006-tilt-kubernetes-dev-loop/generation/patches/0001-state-overlay.patch`
+- Patch target root: `generated/code/target-generated`
 
-1. Generate or transform code artifacts for this state.
-2. Keep compatibility with state lineage contracts unless explicitly changed.
-3. Produce deterministic output suitable for branch publishing.
+Hook flow:
 
-Current generated outputs:
+1. Generate parent state `004`.
+2. Apply state patch set (Tilt assets + k8s dev-loop artifacts).
+3. Regenerate architecture docs.
 
-- `generated/code/target-generated/tilt-kubernetes-dev-loop/tilt/Tiltfile`
-- `generated/code/target-generated/tilt-kubernetes-dev-loop/tilt/tilt-settings.json`
-- `generated/code/target-generated/tilt-kubernetes-dev-loop/manifests/base/*`
-- `generated/code/target-generated/tilt-kubernetes-dev-loop/README.md`
+Patch refresh command:
+
+```bash
+bash pipeline/create-state-patchset.sh 006-tilt-kubernetes-dev-loop 004-kubernetes-runtime
+```
