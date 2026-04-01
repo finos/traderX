@@ -31,7 +31,7 @@
     "rxjs": "^7.8.1",
     "socket.io-client": "^4.8.1",
     "tslib": "^2.7.0",
-    "zone.js": "^0.14.10"
+    "zone.js": "^0.16.0"
   },
   "devDependencies": {
     "@cyclonedx/cyclonedx-npm": "^1.19.3",
