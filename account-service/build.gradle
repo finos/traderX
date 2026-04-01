@@ -9,6 +9,20 @@ plugins {
   id 'java'
   id 'org.springframework.boot' version '3.5.7'
   id 'io.spring.dependency-management' version '1.1.7'
+  id 'org.cyclonedx.bom' version '1.10.0'
+}
+
+cyclonedxBom {
+    includeConfigs = ["runtimeClasspath"]
+    skipConfigs = ["testCompileClasspath", "testRuntimeClasspath"]
+    projectType = "application"
+    schemaVersion = "1.5"
+    destination = file("build/reports")
+    outputName = "sbom"
+    outputFormat = "all"
+    includeBomSerialNumber = true
+    includeLicenseText = false
+    componentVersion = version
 }
 
 group = 'finos.traderx.account-service'

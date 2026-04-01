@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js"
+    "start": "node index.js",
+    "sbom": "cyclonedx-npm --output-file build/reports/sbom.json --output-format JSON",
+    "sbom:xml": "cyclonedx-npm --output-file build/reports/sbom.xml --output-format XML"
   },
   "author": "",
   "license": "ISC",
@@ -15,5 +17,8 @@
     "npm-check-updates": "^17.1.16",
     "socket.io": "^4.8.1",
     "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "@cyclonedx/cyclonedx-npm": "^1.19.3"
   }
 }
