@@ -40,4 +40,7 @@ title: "State 010: Pricing Awareness and Market Data Streaming"
 - State spec pack: [/specs/pricing-awareness-market-data](/specs/pricing-awareness-market-data)
 - Architecture: [/specs/pricing-awareness-market-data/system/architecture](/specs/pricing-awareness-market-data/system/architecture)
 - Flows / topology: [/specs/pricing-awareness-market-data/system/runtime-topology](/specs/pricing-awareness-market-data/system/runtime-topology)
+- Research: [link](/specs/pricing-awareness-market-data/research)
+- Data model: [link](/specs/pricing-awareness-market-data/data-model)
+- Quickstart: [link](/specs/pricing-awareness-market-data/quickstart)
 

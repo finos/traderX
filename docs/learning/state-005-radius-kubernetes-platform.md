@@ -33,4 +33,7 @@ title: "State 005: Radius Platform on Kubernetes"
 - State spec pack: [/specs/radius-kubernetes-platform](/specs/radius-kubernetes-platform)
 - Architecture: [/specs/radius-kubernetes-platform/system/architecture](/specs/radius-kubernetes-platform/system/architecture)
 - Flows / topology: [/specs/radius-kubernetes-platform/system/runtime-topology](/specs/radius-kubernetes-platform/system/runtime-topology)
+- Research: [link](/specs/radius-kubernetes-platform/research)
+- Data model: [link](/specs/radius-kubernetes-platform/data-model)
+- Quickstart: [link](/specs/radius-kubernetes-platform/quickstart)
 

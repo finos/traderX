@@ -35,4 +35,7 @@ CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized
 - State spec pack: [/specs/baseline-uncontainerized-parity](/specs/baseline-uncontainerized-parity)
 - Architecture: [/specs/baseline-uncontainerized-parity/system/architecture](/specs/baseline-uncontainerized-parity/system/architecture)
 - Flows / topology: [/specs/baseline-uncontainerized-parity/system/end-to-end-flows](/specs/baseline-uncontainerized-parity/system/end-to-end-flows)
+- Research: [link](/specs/baseline-uncontainerized-parity/research)
+- Data model: [link](/specs/baseline-uncontainerized-parity/data-model)
+- Quickstart: [link](/specs/baseline-uncontainerized-parity/quickstart)
 

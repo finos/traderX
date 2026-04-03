@@ -12,6 +12,12 @@ TraderX baseline generation now follows a root-canonical GitHub Spec Kit flow.
 - `specs/001-baseline-uncontainerized-parity/**` for baseline requirements, stories, plan, tasks, and contracts
 - `pipeline/**` for generation and validation orchestration
 
+Each state pack under `specs/NNN-*` must include:
+
+- `research.md`
+- `data-model.md`
+- `quickstart.md`
+
 Browse in docs:
 
 - `/specs/baseline-uncontainerized-parity`
@@ -64,6 +70,7 @@ When implementing a new state delta with an LLM:
 
 ```bash
 bash pipeline/generate-learning-paths-catalog.sh --check
+bash pipeline/validate-state-pack-artifacts.sh
 ./pipeline/speckit/validate-speckit-readiness.sh
 ./pipeline/speckit/verify-spec-expressiveness.sh
 bash pipeline/speckit/compile-all-component-manifests.sh

@@ -40,4 +40,7 @@ title: "State 009: PostgreSQL Database Replacement"
 - State spec pack: [/specs/postgres-database-replacement](/specs/postgres-database-replacement)
 - Architecture: [/specs/postgres-database-replacement/system/architecture](/specs/postgres-database-replacement/system/architecture)
 - Flows / topology: [/specs/postgres-database-replacement/system/runtime-topology](/specs/postgres-database-replacement/system/runtime-topology)
+- Research: [link](/specs/postgres-database-replacement/research)
+- Data model: [link](/specs/postgres-database-replacement/data-model)
+- Quickstart: [link](/specs/postgres-database-replacement/quickstart)
 - State ADR: [link](/docs/adr/006-state-009-use-postgres-for-database-replacement)

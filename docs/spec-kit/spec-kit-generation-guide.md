@@ -56,7 +56,8 @@ bash pipeline/scaffold-state-pack.sh <NNN-state-name> --title "<Title>" --previo
 
 2. Carry forward baseline requirements and add only the intended deltas.
 3. Update contracts and component requirements for affected services.
-4. Regenerate only impacted components, then rerun conformance/parity gates.
+4. Ensure state artifacts are complete (`research.md`, `data-model.md`, `quickstart.md`).
+5. Regenerate only impacted components, then rerun conformance/parity gates.
 
 This keeps progression reversible and auditable across DevEx, NFR, and functional tracks.
 

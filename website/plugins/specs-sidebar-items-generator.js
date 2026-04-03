@@ -21,17 +21,59 @@ function normalizeLabel(label) {
     .trim()
 }
 
+function docSlug(item) {
+  if (item?.type !== 'doc' || typeof item.id !== 'string') {
+    return ''
+  }
+  const parts = item.id.split('/')
+  return parts[parts.length - 1]?.toLowerCase() ?? ''
+}
+
 function priorityFor(item) {
+  if (item?.type === 'doc') {
+    const slug = docSlug(item)
+    const order = {
+      readme: 0,
+      spec: 1,
+      plan: 2,
+      tasks: 3,
+      research: 4,
+      'data-model': 5,
+      quickstart: 6,
+      'fidelity-profile': 7,
+    }
+    if (Object.prototype.hasOwnProperty.call(order, slug)) {
+      return order[slug]
+    }
+    return 8
+  }
+
   if (item?.type === 'category') {
     const label = normalizeLabel(item.label || '')
     if (label === 'components') {
-      return 0
+      return 20
     }
     if (label === 'system') {
-      return 1
+      return 21
+    }
+    if (label === 'contracts') {
+      return 22
+    }
+    if (label === 'requirements') {
+      return 23
+    }
+    if (label === 'conformance') {
+      return 24
+    }
+    if (label === 'tests') {
+      return 25
+    }
+    if (label === 'generation') {
+      return 26
     }
   }
-  return 2
+
+  return 30
 }
 
 function sortItems(items) {
@@ -53,6 +95,27 @@ function isStatePackLabel(label) {
 }
 
 function transformItem(item, depth = 0) {
+  if (item?.type === 'doc') {
+    const slug = docSlug(item)
+    const docDecorations = {
+      readme: '📘 Overview',
+      spec: '📜 Specification',
+      plan: '🗺️ Implementation Plan',
+      tasks: '✅ Tasks',
+      research: '🔎 Research',
+      'data-model': '🧱 Data Model',
+      quickstart: '🚀 Quickstart',
+      'fidelity-profile': '🎯 Fidelity Profile',
+    }
+    if (docDecorations[slug]) {
+      return {
+        ...item,
+        label: docDecorations[slug],
+      }
+    }
+    return item
+  }
+
   if (item?.type !== 'category') {
     return item
   }

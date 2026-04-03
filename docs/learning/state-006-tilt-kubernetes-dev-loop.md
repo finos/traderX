@@ -33,4 +33,7 @@ title: "State 006: Tilt Local Dev on Kubernetes"
 - State spec pack: [/specs/tilt-kubernetes-dev-loop](/specs/tilt-kubernetes-dev-loop)
 - Architecture: [/specs/tilt-kubernetes-dev-loop/system/architecture](/specs/tilt-kubernetes-dev-loop/system/architecture)
 - Flows / topology: [/specs/tilt-kubernetes-dev-loop/system/runtime-topology](/specs/tilt-kubernetes-dev-loop/system/runtime-topology)
+- Research: [link](/specs/tilt-kubernetes-dev-loop/research)
+- Data model: [link](/specs/tilt-kubernetes-dev-loop/data-model)
+- Quickstart: [link](/specs/tilt-kubernetes-dev-loop/quickstart)
 

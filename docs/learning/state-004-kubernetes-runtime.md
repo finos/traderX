@@ -40,4 +40,7 @@ title: "State 004: Kubernetes Runtime Baseline"
 - State spec pack: [/specs/kubernetes-runtime](/specs/kubernetes-runtime)
 - Architecture: [/specs/kubernetes-runtime/system/architecture](/specs/kubernetes-runtime/system/architecture)
 - Flows / topology: [/specs/kubernetes-runtime/system/runtime-topology](/specs/kubernetes-runtime/system/runtime-topology)
+- Research: [link](/specs/kubernetes-runtime/research)
+- Data model: [link](/specs/kubernetes-runtime/data-model)
+- Quickstart: [link](/specs/kubernetes-runtime/quickstart)
 

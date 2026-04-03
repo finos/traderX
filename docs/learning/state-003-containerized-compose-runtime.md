@@ -35,4 +35,7 @@ title: "State 003: Containerized Compose Runtime (NGINX Ingress)"
 - State spec pack: [/specs/containerized-compose-runtime](/specs/containerized-compose-runtime)
 - Architecture: [/specs/containerized-compose-runtime/system/architecture](/specs/containerized-compose-runtime/system/architecture)
 - Flows / topology: [/specs/containerized-compose-runtime/system/runtime-topology](/specs/containerized-compose-runtime/system/runtime-topology)
+- Research: [link](/specs/containerized-compose-runtime/research)
+- Data model: [link](/specs/containerized-compose-runtime/data-model)
+- Quickstart: [link](/specs/containerized-compose-runtime/quickstart)
 

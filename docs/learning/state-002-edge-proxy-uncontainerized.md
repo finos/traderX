@@ -35,4 +35,7 @@ title: "State 002: Edge Proxy Uncontainerized"
 - State spec pack: [/specs/edge-proxy-uncontainerized](/specs/edge-proxy-uncontainerized)
 - Architecture: [/specs/edge-proxy-uncontainerized/system/architecture](/specs/edge-proxy-uncontainerized/system/architecture)
 - Flows / topology: [/specs/edge-proxy-uncontainerized/system/runtime-topology](/specs/edge-proxy-uncontainerized/system/runtime-topology)
+- Research: [link](/specs/edge-proxy-uncontainerized/research)
+- Data model: [link](/specs/edge-proxy-uncontainerized/data-model)
+- Quickstart: [link](/specs/edge-proxy-uncontainerized/quickstart)
 

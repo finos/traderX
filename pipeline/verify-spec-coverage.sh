@@ -28,6 +28,7 @@ if [[ "${state_specs_count}" -lt 3 ]]; then
 fi
 
 "${ROOT}/pipeline/validate-regeneration-readiness.sh"
+bash "${ROOT}/pipeline/validate-state-pack-artifacts.sh"
 "${ROOT}/pipeline/speckit/validate-speckit-readiness.sh"
 "${ROOT}/pipeline/speckit/verify-spec-expressiveness.sh"
 bash "${ROOT}/pipeline/generate-learning-paths-catalog.sh" --check

@@ -40,4 +40,7 @@ title: "State 007: Messaging Layer Replacement with NATS"
 - State spec pack: [/specs/messaging-nats-replacement](/specs/messaging-nats-replacement)
 - Architecture: [/specs/messaging-nats-replacement/system/architecture](/specs/messaging-nats-replacement/system/architecture)
 - Flows / topology: [/specs/messaging-nats-replacement/system/runtime-topology](/specs/messaging-nats-replacement/system/runtime-topology)
+- Research: [link](/specs/messaging-nats-replacement/research)
+- Data model: [link](/specs/messaging-nats-replacement/data-model)
+- Quickstart: [link](/specs/messaging-nats-replacement/quickstart)
 - State ADR: [link](/docs/adr/005-state-007-use-nats-for-messaging-replacement)

@@ -63,6 +63,14 @@ const topologyRouteFor = (state) => {
   return `${specRouteFor(state.id)}/system/system-context`
 }
 
+const stateDocRouteIfExists = (state, filename, routeSuffix) => {
+  const absolute = path.join(root, state.featurePack, filename)
+  if (!fs.existsSync(absolute)) {
+    return null
+  }
+  return `${specRouteFor(state.id)}/${routeSuffix}`
+}
+
 const normalizeNone = (value) =>
   /^(none\.?|n\/a)$/i.test(value.trim())
 
@@ -213,6 +221,9 @@ const writeLearningGuides = () => {
     const deltaBullets = plainEnglishDeltaFor(state)
     const runtimeCommand = state.generation?.runtime ?? state.generation?.entrypoint ?? 'not defined'
     const adrRoute = adrRouteFor(state.decisionRecord)
+    const researchRoute = stateDocRouteIfExists(state, 'research.md', 'research')
+    const dataModelRoute = stateDocRouteIfExists(state, 'data-model.md', 'data-model')
+    const quickstartRoute = stateDocRouteIfExists(state, 'quickstart.md', 'quickstart')
     const routePath = learningPathFor(state.id)
 
     const body = `---
@@ -250,6 +261,9 @@ ${runtimeCommand}
 - State spec pack: [${specRoute}](${specRoute})
 - Architecture: [${architectureRoute}](${architectureRoute})
 - Flows / topology: [${topologyRoute}](${topologyRoute})
+- Research: ${researchRoute ? `[link](${researchRoute})` : '`n/a`'}
+- Data model: ${dataModelRoute ? `[link](${dataModelRoute})` : '`n/a`'}
+- Quickstart: ${quickstartRoute ? `[link](${quickstartRoute})` : '`n/a`'}
 ${adrRoute ? `- State ADR: [link](${adrRoute})` : ''}
 `
 
@@ -322,6 +336,12 @@ const writeStateDocs = () => {
     const learningRoute = learningRouteFor(state.id)
     const branchName = state.publish?.branch ?? 'n/a'
     const branchCell = branchName !== 'n/a' ? `[${branchName}](${branchLinkFor(branchName)})` : '`n/a`'
+    const researchRoute = stateDocRouteIfExists(state, 'research.md', 'research')
+    const dataModelRoute = stateDocRouteIfExists(state, 'data-model.md', 'data-model')
+    const quickstartRoute = stateDocRouteIfExists(state, 'quickstart.md', 'quickstart')
+    const researchCell = researchRoute ? `[link](${researchRoute})` : '`n/a`'
+    const dataModelCell = dataModelRoute ? `[link](${dataModelRoute})` : '`n/a`'
+    const quickstartCell = quickstartRoute ? `[link](${quickstartRoute})` : '`n/a`'
     const previousIds = Array.isArray(state.previous) ? state.previous : []
     const adrRoute = adrRouteFor(state.decisionRecord)
     const adrCell = adrRoute ? `[link](${adrRoute})` : '`n/a`'
@@ -332,7 +352,7 @@ const writeStateDocs = () => {
       })
       .join('<br/>')
 
-    return `| \`${state.id}\` | ${state.status} | [link](${learningRoute}) | [link](${specRoute}) | [link](${architectureRoute}) | [link](${topologyRoute}) | ${branchCell} | ${compareCell} | ${adrCell} |`
+    return `| \`${state.id}\` | ${state.status} | [link](${learningRoute}) | [link](${specRoute}) | [link](${architectureRoute}) | [link](${topologyRoute}) | ${researchCell} | ${dataModelCell} | ${quickstartCell} | ${branchCell} | ${compareCell} | ${adrCell} |`
   })
 
   const body = `---
@@ -348,8 +368,8 @@ For progression context, see [Visual Learning Paths](/docs/spec-kit/visual-learn
 
 ## State Catalog
 
-| State | Status | Learning Guide | Spec Pack | Architecture | Flows / Topology | Generated Code Branch | Compare To Previous | ADR |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| State | Status | Learning Guide | Spec Pack | Architecture | Flows / Topology | Research | Data Model | Quickstart | Generated Code Branch | Compare To Previous | ADR |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 ${rows.join('\n')}
 
 ## API Explorer by State
