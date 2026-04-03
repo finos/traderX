@@ -29,6 +29,10 @@ tracks:
     states:
       - 007-messaging-nats-replacement
       - 010-pricing-awareness-market-data
+  nonfunctional:
+    description: "Security, reliability, and platform NFR overlays."
+    states:
+      - planned
 
 stateCatalog:
   - id: 001-baseline-uncontainerized-parity

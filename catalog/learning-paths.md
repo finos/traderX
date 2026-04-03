@@ -1,41 +1,47 @@
 # Learning Paths Catalog
 
-This is the human-browsable catalog view of `learning-paths.yaml`.
+This file is generated from `catalog/state-catalog.json`.
 
 ## Baseline
 
-- `base-001-baseline-uncontainerized-parity`: State 001 baseline uncontainerized parity
+- `001-baseline-uncontainerized-parity`: Simple App - Base Uncontainerized App
 
-## DevEx Steps
+## Tracks
 
-- `devex-01-foundation`
-- `devex-02-docker-compose`
-- `devex-03-tilt-dev`
-- `devex-04-kubernetes`
-- `devex-04-radius`
-- `devex-05-gitops`
+### DevEx
 
-## Non-Functional Steps
+- `001-baseline-uncontainerized-parity`
+- `002-edge-proxy-uncontainerized`
+- `003-containerized-compose-runtime`
+- `004-kubernetes-runtime`
+- `005-radius-kubernetes-platform`
+- `006-tilt-kubernetes-dev-loop`
 
-- `nf-01-basic-auth`
-- `nf-02-oauth2`
-- `nf-02-zero-trust`
-- `nf-03-observability`
-- `nf-04-redis-caching`
-- `nf-04-distributed-caching`
-- `nf-05-postgres-ha`
-- `nf-05-circuit-breakers`
+### Architecture
 
-## Functional Steps
+- `003-containerized-compose-runtime`
+- `007-messaging-nats-replacement`
+- `009-postgres-database-replacement`
 
-- `func-01-common-data-model`
-- `func-02-real-time-pricing`
-- `func-03-advanced-orders`
-- `func-03-portfolio-analytics`
-- `func-04-angular-modern`
-- `func-04-micro-frontends`
-- `func-05-event-driven`
+### Functional
 
-## Source of Truth
+- `007-messaging-nats-replacement`
+- `010-pricing-awareness-market-data`
 
-- `catalog/learning-paths.yaml`
+### Non-Functional
+
+- planned
+
+## State Catalog
+
+| State ID | Previous | Spec |
+| --- | --- | --- |
+| `001-baseline-uncontainerized-parity` | none | `specs/001-baseline-uncontainerized-parity/spec.md` |
+| `002-edge-proxy-uncontainerized` | 001-baseline-uncontainerized-parity | `specs/002-edge-proxy-uncontainerized/spec.md` |
+| `003-containerized-compose-runtime` | 002-edge-proxy-uncontainerized | `specs/003-containerized-compose-runtime/spec.md` |
+| `004-kubernetes-runtime` | 003-containerized-compose-runtime | `specs/004-kubernetes-runtime/spec.md` |
+| `005-radius-kubernetes-platform` | 004-kubernetes-runtime | `specs/005-radius-kubernetes-platform/spec.md` |
+| `006-tilt-kubernetes-dev-loop` | 004-kubernetes-runtime | `specs/006-tilt-kubernetes-dev-loop/spec.md` |
+| `007-messaging-nats-replacement` | 003-containerized-compose-runtime | `specs/007-messaging-nats-replacement/spec.md` |
+| `009-postgres-database-replacement` | 003-containerized-compose-runtime | `specs/009-postgres-database-replacement/spec.md` |
+| `010-pricing-awareness-market-data` | 007-messaging-nats-replacement | `specs/010-pricing-awareness-market-data/spec.md` |

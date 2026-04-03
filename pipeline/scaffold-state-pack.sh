@@ -14,6 +14,9 @@ Example:
     --title "Kubernetes Runtime Baseline" \
     --previous 003-containerized-compose-runtime \
     --track devex
+
+Supported tracks:
+  devex | architecture | functional | nonfunctional
 EOF
 }
 
@@ -197,9 +200,11 @@ jq \
 
 mv "${tmp_catalog}" "${CATALOG}"
 
+bash "${ROOT}/pipeline/generate-learning-paths-catalog.sh"
 node "${ROOT}/pipeline/generate-state-docs-from-catalog.mjs"
 
 echo "[ok] scaffolded new state pack: ${STATE_ID}"
 echo "[ok] created feature pack: ${STATE_DIR}"
 echo "[ok] created generation hook: ${HOOK_SCRIPT_REL}"
 echo "[ok] created smoke-test stub: ${SMOKE_SCRIPT_REL}"
+echo "[ok] updated learning-paths catalog artifacts"

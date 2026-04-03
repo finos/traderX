@@ -30,5 +30,6 @@ fi
 "${ROOT}/pipeline/validate-regeneration-readiness.sh"
 "${ROOT}/pipeline/speckit/validate-speckit-readiness.sh"
 "${ROOT}/pipeline/speckit/verify-spec-expressiveness.sh"
+bash "${ROOT}/pipeline/generate-learning-paths-catalog.sh" --check
 
 echo "[ok] Spec coverage checks passed (${state_specs_count} state specs)"

@@ -18,6 +18,13 @@ This guide explains how to regenerate TraderX from requirements, then iterate in
 - Baseline feature pack: `specs/001-baseline-uncontainerized-parity/**`
 - Contracts: `specs/001-baseline-uncontainerized-parity/contracts/**/openapi.yaml`
 - State lineage + publish model: `catalog/state-catalog.json`
+- Learning-path catalog artifacts (generated): `catalog/learning-paths.yaml`, `catalog/learning-paths.md`
+
+Regenerate learning-path catalog artifacts:
+
+```bash
+bash pipeline/generate-learning-paths-catalog.sh
+```
 
 ## Generate Baseline Components
 
