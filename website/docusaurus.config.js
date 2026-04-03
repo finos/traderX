@@ -171,7 +171,6 @@ module.exports = {
       require.resolve('docusaurus-lunr-search'),
       {
         languages: ['en'],
-        excludeRoutes: ['/docs/guide/**', 'docs/guide/**'],
       },
     ],
     [

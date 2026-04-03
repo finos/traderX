@@ -48,7 +48,7 @@ This page maps the current state progression and points to canonical SpecKit art
 ## Runbook
 
 ```bash
-# Validate guide front matter
+# Validate learning-doc front matter
 tools/validate-frontmatter.sh
 
 # Validate canonical spec/readiness coverage

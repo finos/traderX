@@ -1,26 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ALLOWED_STATES=(
-  "00-monolith"
-  "01-basic-microservices"
-  "02-containerized"
-  "03-service-mesh"
-  "04-contract-driven"
-  "05-ai-first"
-)
-
 if (($# > 0)); then
   FILES=("$@")
 else
   FILES=()
   while IFS= read -r file; do
     FILES+=("${file}")
-  done < <(find docs/guide -type f -name "*.md" | sort)
+  done < <(find docs/learning -type f -name "*.md" | sort)
 fi
 
 if ((${#FILES[@]} == 0)); then
-  echo "[error] no guide files found"
+  echo "[error] no learning doc files found under docs/learning"
   exit 1
 fi
 
@@ -44,15 +35,6 @@ contains_required_key() {
   grep -Eq "^${key}:[[:space:]]*" <<<"${block}"
 }
 
-is_allowed_state() {
-  local state="$1"
-  local allowed
-  for allowed in "${ALLOWED_STATES[@]}"; do
-    [[ "${state}" == "${allowed}" ]] && return 0
-  done
-  return 1
-}
-
 for file in "${FILES[@]}"; do
   block="$(extract_frontmatter "${file}")"
 
@@ -62,45 +44,8 @@ for file in "${FILES[@]}"; do
     continue
   fi
 
-  for key in id title level prereqs outcomes state tags estimatedTimeMins owner; do
-    if ! contains_required_key "${block}" "${key}"; then
-      echo "[fail] ${file}: missing required key '${key}'"
-      errors=$((errors + 1))
-    fi
-  done
-
-  level="$(sed -nE 's/^level:[[:space:]]*([0-9]+).*/\1/p' <<<"${block}" | head -n1)"
-  if [[ -z "${level}" || ! "${level}" =~ ^[0-5]$ ]]; then
-    echo "[fail] ${file}: level must be an integer between 0 and 5"
-    errors=$((errors + 1))
-  fi
-
-  state_id="$(
-    awk '
-      BEGIN { in_state = 0 }
-      /^state:[[:space:]]*$/ { in_state = 1; next }
-      in_state && /^[^[:space:]]/ { in_state = 0 }
-      in_state && /^[[:space:]]+id:[[:space:]]*/ {
-        line = $0
-        sub(/^[[:space:]]+id:[[:space:]]*/, "", line)
-        gsub(/"/, "", line)
-        print line
-        exit
-      }
-    ' <<<"${block}"
-  )"
-
-  if [[ -z "${state_id}" ]]; then
-    echo "[fail] ${file}: state.id is missing"
-    errors=$((errors + 1))
-  elif ! is_allowed_state "${state_id}"; then
-    echo "[fail] ${file}: invalid state.id '${state_id}'"
-    errors=$((errors + 1))
-  fi
-
-  time_mins="$(sed -nE 's/^estimatedTimeMins:[[:space:]]*([0-9]+).*/\1/p' <<<"${block}" | head -n1)"
-  if [[ -z "${time_mins}" ]]; then
-    echo "[fail] ${file}: estimatedTimeMins must be a positive integer"
+  if ! contains_required_key "${block}" "title"; then
+    echo "[fail] ${file}: missing required key 'title'"
     errors=$((errors + 1))
   fi
 done

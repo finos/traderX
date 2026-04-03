@@ -12,7 +12,6 @@ The baseline implementation is generated and validated from requirements, storie
 - `specs/001-baseline-uncontainerized-parity/` - baseline feature pack
 - `pipeline/` + `scripts/` - generation, runtime, conformance, and parity orchestration
 - `templates/` + `catalog/` - synthesis inputs and component/process catalogs
-- `tracks/` - learning-path definitions
 - `generated/` - generated runtime/code/docs artifacts workspace (ephemeral outputs)
 - `docs/` + `website/` - documentation portal and API explorer
 - `docs/learning/**` - developer-focused per-state learning guides for generated code snapshots

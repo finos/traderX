@@ -4,7 +4,7 @@ This repository follows a SpecKit-first, multi-state architecture. Agents should
 
 ## Core Model
 
-- Learning guides live in `docs/guide/**/*.md` and must include normalized front-matter.
+- Learning guides live in `docs/learning/**/*.md` and must include normalized front-matter.
 - State definitions and contracts live in root `specs/NNN-*` feature packs.
 - Contracts and architecture docs are generated from state-local spec artifacts.
 - Learning graph index lives at `docs/learning-paths/index.md`.
@@ -15,25 +15,13 @@ This repository follows a SpecKit-first, multi-state architecture. Agents should
 - `002-edge-proxy-uncontainerized`
 - `003-containerized-compose-runtime`
 
-## Guide Front-Matter Contract
+## Learning Doc Front-Matter Contract
 
-Every file under `docs/guide/**/*.md` must include:
+Every file under `docs/learning/**/*.md` must include:
 
 ```yaml
 ---
-id: learn-<slug>
 title: "<Human friendly title>"
-level: 0|1|2|3|4|5
-prereqs:
-  - learn-<slug-a>
-outcomes:
-  - "A concrete testable outcome"
-state:
-  id: "001-baseline-uncontainerized-parity|002-edge-proxy-uncontainerized|003-containerized-compose-runtime"
-  diffFromPrev: true
-tags: ["learning-path","traderx"]
-estimatedTimeMins: 20
-owner: "@finos/traderx-maintainers"
 ---
 ```
 

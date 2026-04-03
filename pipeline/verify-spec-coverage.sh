@@ -15,18 +15,15 @@ required=(
   "${SPECKIT_SYSTEM_DIR}/requirements-traceability.csv"
   "${SPECKIT_SYSTEM_DIR}/component-generation-manifest.md"
   "${SPECKIT_SYSTEM_DIR}/architecture.md"
-  "${ROOT}/tracks/devex/path.md"
-  "${ROOT}/tracks/nonfunctional/path.md"
-  "${ROOT}/tracks/functional/path.md"
 )
 
 for file in "${required[@]}"; do
   [[ -f "${file}" ]] || { echo "[missing] ${file}"; exit 1; }
 done
 
-step_specs_count="$(find "${ROOT}/tracks" -type f -name "spec.md" | wc -l | tr -d ' ')"
-if [[ "${step_specs_count}" -lt 20 ]]; then
-  echo "[fail] expected at least 20 step specs, found ${step_specs_count}"
+state_specs_count="$(find "${ROOT}/specs" -maxdepth 2 -type f -name "spec.md" | wc -l | tr -d ' ')"
+if [[ "${state_specs_count}" -lt 3 ]]; then
+  echo "[fail] expected at least 3 state specs, found ${state_specs_count}"
   exit 1
 fi
 
@@ -34,4 +31,4 @@ fi
 "${ROOT}/pipeline/speckit/validate-speckit-readiness.sh"
 "${ROOT}/pipeline/speckit/verify-spec-expressiveness.sh"
 
-echo "[ok] TraderSpec coverage checks passed (${step_specs_count} step specs)"
+echo "[ok] Spec coverage checks passed (${state_specs_count} state specs)"

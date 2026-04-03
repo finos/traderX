@@ -1,86 +1,68 @@
-version: 1
+version: 2
 baseline:
-  id: base-001-baseline-uncontainerized-parity
-  label: "State 001 Baseline Uncontainerized Parity"
-  specs:
-    - specs/001-baseline-uncontainerized-parity/system/system-context.md
-    - specs/001-baseline-uncontainerized-parity/system/system-requirements.md
-    - specs/001-baseline-uncontainerized-parity/system/end-to-end-flows.md
-    - specs/001-baseline-uncontainerized-parity/system/architecture.md
-    - specs/001-baseline-uncontainerized-parity/system/requirements-traceability.csv
+  id: 001-baseline-uncontainerized-parity
+  label: "State 001: Simple App - Base Uncontainerized App"
+  artifacts:
+    spec: specs/001-baseline-uncontainerized-parity/spec.md
+    requirements: specs/001-baseline-uncontainerized-parity/system/system-requirements.md
+    flows: specs/001-baseline-uncontainerized-parity/system/end-to-end-flows.md
+    architecture: specs/001-baseline-uncontainerized-parity/system/architecture.md
 
 tracks:
   devex:
-    rule: "No new functional requirements. Apply NFR and operability overlays."
-    steps:
-      - id: devex-01-foundation
-        from: base-001-baseline-uncontainerized-parity
-        spec: tracks/devex/steps/01-foundation/spec.md
-      - id: devex-02-docker-compose
-        from: devex-01-foundation
-        spec: tracks/devex/steps/02-docker-compose/spec.md
-      - id: devex-03-tilt-dev
-        from: devex-02-docker-compose
-        spec: tracks/devex/steps/03-tilt-dev/spec.md
-      - id: devex-04-kubernetes
-        from: devex-03-tilt-dev
-        spec: tracks/devex/steps/04-kubernetes/spec.md
-      - id: devex-04-radius
-        from: devex-03-tilt-dev
-        spec: tracks/devex/steps/04-radius/spec.md
-      - id: devex-05-gitops
-        from: devex-04-kubernetes|devex-04-radius
-        spec: tracks/devex/steps/05-gitops/spec.md
-
-  nonfunctional:
-    rule: "No new functional requirements. Add security, observability, reliability overlays."
-    steps:
-      - id: nf-01-basic-auth
-        from: base-001-baseline-uncontainerized-parity
-        spec: tracks/nonfunctional/steps/01-basic-auth/spec.md
-      - id: nf-02-oauth2
-        from: nf-01-basic-auth
-        spec: tracks/nonfunctional/steps/02-oauth2/spec.md
-      - id: nf-02-zero-trust
-        from: nf-01-basic-auth
-        spec: tracks/nonfunctional/steps/02-zero-trust/spec.md
-      - id: nf-03-observability
-        from: nf-02-oauth2|nf-02-zero-trust
-        spec: tracks/nonfunctional/steps/03-observability/spec.md
-      - id: nf-04-redis-caching
-        from: nf-03-observability
-        spec: tracks/nonfunctional/steps/04-redis-caching/spec.md
-      - id: nf-04-distributed-caching
-        from: nf-03-observability
-        spec: tracks/nonfunctional/steps/04-distributed-caching/spec.md
-      - id: nf-05-postgres-ha
-        from: nf-04-redis-caching|nf-04-distributed-caching
-        spec: tracks/nonfunctional/steps/05-postgres-ha/spec.md
-      - id: nf-05-circuit-breakers
-        from: nf-04-redis-caching|nf-04-distributed-caching
-        spec: tracks/nonfunctional/steps/05-circuit-breakers/spec.md
-
+    description: "Developer experience and runtime topology progression."
+    states:
+      - 001-baseline-uncontainerized-parity
+      - 002-edge-proxy-uncontainerized
+      - 003-containerized-compose-runtime
+      - 004-kubernetes-runtime
+      - 005-radius-kubernetes-platform
+      - 006-tilt-kubernetes-dev-loop
+  architecture:
+    description: "Architecture substitutions and component-level platform changes."
+    states:
+      - 003-containerized-compose-runtime
+      - 007-messaging-nats-replacement
+      - 009-postgres-database-replacement
   functional:
-    rule: "May introduce additive functional requirements with compatibility guarantees."
-    steps:
-      - id: func-01-common-data-model
-        from: base-001-baseline-uncontainerized-parity
-        spec: tracks/functional/steps/01-common-data-model/spec.md
-      - id: func-02-real-time-pricing
-        from: func-01-common-data-model
-        spec: tracks/functional/steps/02-real-time-pricing/spec.md
-      - id: func-03-advanced-orders
-        from: func-02-real-time-pricing
-        spec: tracks/functional/steps/03-advanced-orders/spec.md
-      - id: func-03-portfolio-analytics
-        from: func-02-real-time-pricing
-        spec: tracks/functional/steps/03-portfolio-analytics/spec.md
-      - id: func-04-angular-modern
-        from: func-03-advanced-orders|func-03-portfolio-analytics
-        spec: tracks/functional/steps/04-angular-modern/spec.md
-      - id: func-04-micro-frontends
-        from: func-03-advanced-orders|func-03-portfolio-analytics
-        spec: tracks/functional/steps/04-micro-frontends/spec.md
-      - id: func-05-event-driven
-        from: func-04-angular-modern|func-04-micro-frontends
-        spec: tracks/functional/steps/05-event-driven/spec.md
+    description: "Functional capability expansion built on architecture states."
+    states:
+      - 007-messaging-nats-replacement
+      - 010-pricing-awareness-market-data
+
+stateCatalog:
+  - id: 001-baseline-uncontainerized-parity
+    previous: []
+    spec: specs/001-baseline-uncontainerized-parity/spec.md
+  - id: 002-edge-proxy-uncontainerized
+    previous:
+      - 001-baseline-uncontainerized-parity
+    spec: specs/002-edge-proxy-uncontainerized/spec.md
+  - id: 003-containerized-compose-runtime
+    previous:
+      - 002-edge-proxy-uncontainerized
+    spec: specs/003-containerized-compose-runtime/spec.md
+  - id: 004-kubernetes-runtime
+    previous:
+      - 003-containerized-compose-runtime
+    spec: specs/004-kubernetes-runtime/spec.md
+  - id: 005-radius-kubernetes-platform
+    previous:
+      - 004-kubernetes-runtime
+    spec: specs/005-radius-kubernetes-platform/spec.md
+  - id: 006-tilt-kubernetes-dev-loop
+    previous:
+      - 004-kubernetes-runtime
+    spec: specs/006-tilt-kubernetes-dev-loop/spec.md
+  - id: 007-messaging-nats-replacement
+    previous:
+      - 003-containerized-compose-runtime
+    spec: specs/007-messaging-nats-replacement/spec.md
+  - id: 009-postgres-database-replacement
+    previous:
+      - 003-containerized-compose-runtime
+    spec: specs/009-postgres-database-replacement/spec.md
+  - id: 010-pricing-awareness-market-data
+    previous:
+      - 007-messaging-nats-replacement
+    spec: specs/010-pricing-awareness-market-data/spec.md

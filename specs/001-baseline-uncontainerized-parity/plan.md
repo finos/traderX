@@ -73,7 +73,6 @@ generated/               # ephemeral output workspace (gitignored)
   └── api-docs/
 .specify/
 specs/
-tracks/
 ```
 
 **Structure Decision**: Root `.specify/` + `specs/NNN-*` are canonical, with generated runtime/code/docs outputs emitted under root `generated/`.

@@ -63,7 +63,7 @@ Browse directly:
 
 - SpecKit scaffold and governance: `/.specify/**`
 - Baseline feature pack: `/specs/001-baseline-uncontainerized-parity/**`
-- Learning-path definitions: `/tracks/**`
+- Learning-path definitions and state map: `/docs/learning-paths/**` and `/catalog/learning-paths.yaml`
 - Generation/runtime orchestration: `/pipeline/**` and `/scripts/**`
 
 ## Why This Structure Works
