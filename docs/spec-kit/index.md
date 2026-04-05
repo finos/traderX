@@ -21,6 +21,12 @@ Create a new planned state pack from template:
 bash pipeline/scaffold-state-pack.sh <NNN-state-name> --title "<Title>" --previous <prior-state-id> --track <devex|nonfunctional|functional>
 ```
 
+Run the integrated state-change playbook:
+
+```bash
+bash pipeline/state-playbook.sh --state <state-id> --publish-neighborhood --push-generated
+```
+
 ## New Contributor Path
 
 1. Read the source-of-truth map:

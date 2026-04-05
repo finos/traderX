@@ -30,7 +30,10 @@ This file is generated from `catalog/state-catalog.json`.
 
 ### Non-Functional
 
-- planned
+- `003-containerized-compose-runtime`
+- `010-pricing-awareness-market-data`
+- `011-observability-lgtm-compose`
+- `012-observability-on-pricing`
 
 ## State Catalog
 
@@ -45,3 +48,5 @@ This file is generated from `catalog/state-catalog.json`.
 | `007-messaging-nats-replacement` | 003-containerized-compose-runtime | `specs/007-messaging-nats-replacement/spec.md` |
 | `009-postgres-database-replacement` | 003-containerized-compose-runtime | `specs/009-postgres-database-replacement/spec.md` |
 | `010-pricing-awareness-market-data` | 007-messaging-nats-replacement | `specs/010-pricing-awareness-market-data/spec.md` |
+| `011-observability-lgtm-compose` | 003-containerized-compose-runtime | `specs/011-observability-lgtm-compose/spec.md` |
+| `012-observability-on-pricing` | 010-pricing-awareness-market-data | `specs/012-observability-on-pricing/spec.md` |

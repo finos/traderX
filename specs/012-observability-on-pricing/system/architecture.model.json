@@ -1,0 +1,149 @@
+{
+  "title": "Observability with LGTM on Pricing State",
+  "stateId": "012-observability-on-pricing",
+  "parentState": "010-pricing-awareness-market-data",
+  "description": "Pricing-aware TraderX runtime with LGTM observability and pricing-path probe coverage.",
+  "mermaidDirection": "LR",
+  "nodes": [
+    {
+      "id": "developer",
+      "label": "Developer",
+      "kind": "actor",
+      "description": "Local developer using this state."
+    },
+    {
+      "id": "pricing_runtime",
+      "label": "TraderX Pricing Runtime (State 010)",
+      "kind": "boundary",
+      "description": "Pricing-aware app services with NATS and price publisher."
+    },
+    {
+      "id": "obs_runtime",
+      "label": "Observability Runtime",
+      "kind": "boundary",
+      "description": "LGTM + OTel stack for metrics/logs/traces."
+    },
+    {
+      "id": "ingress",
+      "label": "NGINX Ingress",
+      "kind": "service",
+      "description": "Edge entrypoint for UI and APIs."
+    },
+    {
+      "id": "pricing_services",
+      "label": "Pricing Services",
+      "kind": "service",
+      "description": "Trade service, trade processor, position service, price publisher."
+    },
+    {
+      "id": "nats",
+      "label": "NATS Broker",
+      "kind": "service",
+      "description": "Realtime messaging for account and pricing subjects."
+    },
+    {
+      "id": "prometheus",
+      "label": "Prometheus",
+      "kind": "service",
+      "description": "Scrapes probe and collector metrics."
+    },
+    {
+      "id": "blackbox",
+      "label": "Blackbox Exporter",
+      "kind": "service",
+      "description": "HTTP probe exporter for app/pricing endpoints."
+    },
+    {
+      "id": "loki",
+      "label": "Loki",
+      "kind": "service",
+      "description": "Log aggregation backend."
+    },
+    {
+      "id": "promtail",
+      "label": "Promtail",
+      "kind": "service",
+      "description": "Docker log collector to Loki."
+    },
+    {
+      "id": "tempo",
+      "label": "Tempo",
+      "kind": "service",
+      "description": "Trace backend."
+    },
+    {
+      "id": "otel",
+      "label": "OpenTelemetry Collector",
+      "kind": "service",
+      "description": "OTLP ingest and telemetry routing."
+    },
+    {
+      "id": "grafana",
+      "label": "Grafana",
+      "kind": "service",
+      "description": "Dashboards for pricing + platform telemetry."
+    }
+  ],
+  "edges": [
+    {
+      "from": "developer",
+      "to": "ingress",
+      "label": "Uses TraderX"
+    },
+    {
+      "from": "ingress",
+      "to": "pricing_services",
+      "label": "Routes UI/API traffic"
+    },
+    {
+      "from": "pricing_services",
+      "to": "nats",
+      "label": "Publishes/subscribes subjects"
+    },
+    {
+      "from": "blackbox",
+      "to": "pricing_services",
+      "label": "HTTP probes"
+    },
+    {
+      "from": "blackbox",
+      "to": "nats",
+      "label": "Probe NATS monitor"
+    },
+    {
+      "from": "prometheus",
+      "to": "blackbox",
+      "label": "Scrapes probe metrics"
+    },
+    {
+      "from": "promtail",
+      "to": "loki",
+      "label": "Ships logs"
+    },
+    {
+      "from": "otel",
+      "to": "tempo",
+      "label": "Exports traces"
+    },
+    {
+      "from": "developer",
+      "to": "grafana",
+      "label": "Views observability dashboards"
+    },
+    {
+      "from": "grafana",
+      "to": "prometheus",
+      "label": "Queries metrics"
+    },
+    {
+      "from": "grafana",
+      "to": "loki",
+      "label": "Queries logs"
+    },
+    {
+      "from": "grafana",
+      "to": "tempo",
+      "label": "Queries traces"
+    }
+  ]
+}

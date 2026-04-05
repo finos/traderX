@@ -1,0 +1,1393 @@
+diff --git a/observability-lgtm-compose/README.md b/observability-lgtm-compose/README.md
+new file mode 100644
+index 0000000..cb90909
+--- /dev/null
++++ b/observability-lgtm-compose/README.md
+@@ -0,0 +1,24 @@
++## TraderX State 011 Runtime
++
++This directory defines the compose runtime for:
++
++- `011-observability-lgtm-compose`
++
++It extends the state `003` containerized stack with:
++
++- OpenTelemetry Collector
++- Prometheus
++- Loki
++- Grafana
++- Tempo
++- Promtail
++- Blackbox Exporter
++
++Primary endpoints:
++
++- TraderX UI: `http://localhost:8080`
++- Grafana: `http://localhost:3000` (`admin` / `admin`)
++- Prometheus: `http://localhost:9090`
++- Loki: `http://localhost:3100`
++- Tempo: `http://localhost:3200`
++- OTel Collector health: `http://localhost:13133`
+diff --git a/observability-lgtm-compose/docker-compose.yml b/observability-lgtm-compose/docker-compose.yml
+new file mode 100644
+index 0000000..743d3f2
+--- /dev/null
++++ b/observability-lgtm-compose/docker-compose.yml
+@@ -0,0 +1,231 @@
++name: traderx-state-011
++
++services:
++  database:
++    build:
++      context: ../database
++      dockerfile: Dockerfile.compose
++    environment:
++      DATABASE_TCP_PORT: "18082"
++      DATABASE_PG_PORT: "18083"
++      DATABASE_WEB_PORT: "18084"
++      DATABASE_WEB_HOSTNAMES: "localhost,database"
++    ports:
++      - "18082:18082"
++      - "18083:18083"
++      - "18084:18084"
++
++  reference-data:
++    build:
++      context: ../reference-data
++      dockerfile: Dockerfile.compose
++    environment:
++      REFERENCE_DATA_SERVICE_PORT: "18085"
++      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++    ports:
++      - "18085:18085"
++    depends_on:
++      - database
++
++  trade-feed:
++    build:
++      context: ../trade-feed
++      dockerfile: Dockerfile.compose
++    environment:
++      TRADE_FEED_PORT: "18086"
++      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++    ports:
++      - "18086:18086"
++
++  people-service:
++    build:
++      context: ../people-service
++      dockerfile: Dockerfile.compose
++    environment:
++      PEOPLE_SERVICE_PORT: "18089"
++      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++    ports:
++      - "18089:18089"
++
++  account-service:
++    build:
++      context: ../account-service
++      dockerfile: Dockerfile.compose
++    environment:
++      ACCOUNT_SERVICE_PORT: "18088"
++      DATABASE_TCP_HOST: "database"
++      DATABASE_TCP_PORT: "18082"
++      PEOPLE_SERVICE_HOST: "people-service"
++      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++    ports:
++      - "18088:18088"
++    depends_on:
++      - database
++      - people-service
++
++  position-service:
++    build:
++      context: ../position-service
++      dockerfile: Dockerfile.compose
++    environment:
++      POSITION_SERVICE_PORT: "18090"
++      DATABASE_TCP_HOST: "database"
++      DATABASE_TCP_PORT: "18082"
++      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++    ports:
++      - "18090:18090"
++    depends_on:
++      - database
++
++  trade-processor:
++    build:
++      context: ../trade-processor
++      dockerfile: Dockerfile.compose
++    environment:
++      TRADE_PROCESSOR_SERVICE_PORT: "18091"
++      DATABASE_TCP_HOST: "database"
++      DATABASE_TCP_PORT: "18082"
++      TRADE_FEED_HOST: "trade-feed"
++      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++    ports:
++      - "18091:18091"
++    depends_on:
++      - database
++      - trade-feed
++
++  trade-service:
++    build:
++      context: ../trade-service
++      dockerfile: Dockerfile.compose
++    environment:
++      TRADING_SERVICE_PORT: "18092"
++      ACCOUNT_SERVICE_HOST: "account-service"
++      REFERENCE_DATA_HOST: "reference-data"
++      PEOPLE_SERVICE_HOST: "people-service"
++      TRADE_FEED_HOST: "trade-feed"
++      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++    ports:
++      - "18092:18092"
++    depends_on:
++      - account-service
++      - reference-data
++      - people-service
++      - trade-feed
++      - trade-processor
++
++  web-front-end-angular:
++    build:
++      context: ../web-front-end/angular
++      dockerfile: Dockerfile.compose
++    environment:
++      WEB_SERVICE_PORT: "18093"
++    ports:
++      - "18093:18093"
++    depends_on:
++      - account-service
++      - reference-data
++      - trade-service
++      - position-service
++      - people-service
++      - trade-feed
++
++  ingress:
++    build:
++      context: ../ingress
++      dockerfile: Dockerfile.compose
++    environment:
++      NGINX_HOST: "localhost"
++      DATABASE_URL: "http://database:18084/"
++      REFERENCE_DATA_URL: "http://reference-data:18085/"
++      TRADE_FEED_URL: "http://trade-feed:18086/"
++      PEOPLE_SERVICE_URL: "http://people-service:18089/"
++      ACCOUNT_SERVICE_URL: "http://account-service:18088/"
++      POSITION_SERVICE_URL: "http://position-service:18090/"
++      TRADE_PROCESSOR_URL: "http://trade-processor:18091/"
++      TRADE_SERVICE_URL: "http://trade-service:18092/"
++      WEB_FRONTEND_URL: "http://web-front-end-angular:18093/"
++    ports:
++      - "8080:8080"
++    depends_on:
++      - web-front-end-angular
++      - account-service
++      - reference-data
++      - trade-service
++      - position-service
++      - people-service
++      - trade-feed
++
++  otel-collector:
++    image: otel/opentelemetry-collector-contrib:0.103.1
++    command: ["--config=/etc/otelcol-contrib/config.yaml"]
++    volumes:
++      - ./observability/otel-collector/config.yaml:/etc/otelcol-contrib/config.yaml:ro
++    ports:
++      - "4317:4317"
++      - "4318:4318"
++      - "8888:8888"
++      - "8889:8889"
++      - "13133:13133"
++    depends_on:
++      - tempo
++
++  blackbox-exporter:
++    image: prom/blackbox-exporter:v0.25.0
++    command: ["--config.file=/etc/blackbox_exporter/config.yml"]
++    volumes:
++      - ./observability/blackbox/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
++    ports:
++      - "9115:9115"
++
++  prometheus:
++    image: prom/prometheus:v2.53.2
++    command: ["--config.file=/etc/prometheus/prometheus.yml", "--web.enable-lifecycle"]
++    volumes:
++      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
++    ports:
++      - "9090:9090"
++    depends_on:
++      - blackbox-exporter
++      - otel-collector
++
++  loki:
++    image: grafana/loki:2.9.8
++    command: ["-config.file=/etc/loki/config.yaml"]
++    volumes:
++      - ./observability/loki/config.yaml:/etc/loki/config.yaml:ro
++    ports:
++      - "3100:3100"
++
++  promtail:
++    image: grafana/promtail:2.9.8
++    command: ["-config.file=/etc/promtail/config.yaml"]
++    volumes:
++      - ./observability/promtail/config.yaml:/etc/promtail/config.yaml:ro
++      - /var/run/docker.sock:/var/run/docker.sock:ro
++    depends_on:
++      - loki
++
++  tempo:
++    image: grafana/tempo:2.5.0
++    command: ["-config.file=/etc/tempo/config.yaml"]
++    volumes:
++      - ./observability/tempo/config.yaml:/etc/tempo/config.yaml:ro
++    ports:
++      - "3200:3200"
++
++  grafana:
++    image: grafana/grafana:11.1.0
++    environment:
++      GF_SECURITY_ADMIN_USER: "admin"
++      GF_SECURITY_ADMIN_PASSWORD: "admin"
++      GF_USERS_ALLOW_SIGN_UP: "false"
++      GF_AUTH_ANONYMOUS_ENABLED: "false"
++    volumes:
++      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
++      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
++    ports:
++      - "3000:3000"
++    depends_on:
++      - prometheus
++      - loki
++      - tempo
+diff --git a/observability-lgtm-compose/observability/blackbox/blackbox.yml b/observability-lgtm-compose/observability/blackbox/blackbox.yml
+new file mode 100644
+index 0000000..981da60
+--- /dev/null
++++ b/observability-lgtm-compose/observability/blackbox/blackbox.yml
+@@ -0,0 +1,6 @@
++modules:
++  http_2xx:
++    prober: http
++    timeout: 5s
++    http:
++      preferred_ip_protocol: "ip4"
+diff --git a/observability-lgtm-compose/observability/grafana/dashboards/traderx-overview.json b/observability-lgtm-compose/observability/grafana/dashboards/traderx-overview.json
+new file mode 100644
+index 0000000..adfec01
+--- /dev/null
++++ b/observability-lgtm-compose/observability/grafana/dashboards/traderx-overview.json
+@@ -0,0 +1,128 @@
++{
++  "id": null,
++  "uid": "traderx-obs-011-overview",
++  "title": "TraderX Observability Overview (State 011)",
++  "tags": ["traderx", "state-011", "observability"],
++  "timezone": "browser",
++  "schemaVersion": 39,
++  "version": 1,
++  "refresh": "10s",
++  "time": {
++    "from": "now-30m",
++    "to": "now"
++  },
++  "panels": [
++    {
++      "id": 1,
++      "type": "stat",
++      "title": "Overall Endpoint Availability",
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "avg(probe_success{job=\"traderx-http-probe\"})"
++        }
++      ],
++      "options": {
++        "reduceOptions": {
++          "calcs": ["lastNotNull"],
++          "fields": "",
++          "values": false
++        }
++      }
++    },
++    {
++      "id": 2,
++      "type": "timeseries",
++      "title": "Endpoint Probe Success by Instance",
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "gridPos": { "h": 8, "w": 18, "x": 6, "y": 0 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "probe_success{job=\"traderx-http-probe\"}",
++          "legendFormat": "{{instance}}"
++        }
++      ]
++    },
++    {
++      "id": 3,
++      "type": "timeseries",
++      "title": "Probe P95 Latency (seconds)",
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "histogram_quantile(0.95, sum by (le, instance) (rate(probe_duration_seconds_bucket{job=\"traderx-http-probe\"}[5m])))",
++          "legendFormat": "{{instance}}"
++        }
++      ]
++    },
++    {
++      "id": 4,
++      "type": "table",
++      "title": "Latest HTTP Status by Endpoint",
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "max by (instance) (probe_http_status_code{job=\"traderx-http-probe\"})",
++          "format": "table",
++          "instant": true
++        }
++      ]
++    },
++    {
++      "id": 5,
++      "type": "timeseries",
++      "title": "Container Log Throughput (lines / 5m)",
++      "datasource": {
++        "type": "loki",
++        "uid": "loki"
++      },
++      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 14 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "sum by (service) (count_over_time({job=\"traderx-docker\", service=~\".+\"}[5m]))"
++        }
++      ]
++    },
++    {
++      "id": 6,
++      "type": "logs",
++      "title": "Live Container Logs",
++      "datasource": {
++        "type": "loki",
++        "uid": "loki"
++      },
++      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 14 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "{job=\"traderx-docker\"}"
++        }
++      ],
++      "options": {
++        "showLabels": true,
++        "showTime": true,
++        "sortOrder": "Descending"
++      }
++    }
++  ]
++}
+diff --git a/observability-lgtm-compose/observability/grafana/provisioning/dashboards/dashboards.yaml b/observability-lgtm-compose/observability/grafana/provisioning/dashboards/dashboards.yaml
+new file mode 100644
+index 0000000..74cc9a0
+--- /dev/null
++++ b/observability-lgtm-compose/observability/grafana/provisioning/dashboards/dashboards.yaml
+@@ -0,0 +1,11 @@
++apiVersion: 1
++
++providers:
++  - name: TraderX Dashboards
++    orgId: 1
++    folder: TraderX
++    type: file
++    disableDeletion: false
++    updateIntervalSeconds: 30
++    options:
++      path: /var/lib/grafana/dashboards
+diff --git a/observability-lgtm-compose/observability/grafana/provisioning/datasources/datasources.yaml b/observability-lgtm-compose/observability/grafana/provisioning/datasources/datasources.yaml
+new file mode 100644
+index 0000000..caf551f
+--- /dev/null
++++ b/observability-lgtm-compose/observability/grafana/provisioning/datasources/datasources.yaml
+@@ -0,0 +1,27 @@
++apiVersion: 1
++
++datasources:
++  - name: Prometheus
++    uid: prometheus
++    type: prometheus
++    access: proxy
++    url: http://prometheus:9090
++    isDefault: true
++
++  - name: Loki
++    uid: loki
++    type: loki
++    access: proxy
++    url: http://loki:3100
++
++  - name: Tempo
++    uid: tempo
++    type: tempo
++    access: proxy
++    url: http://tempo:3200
++    jsonData:
++      httpMethod: GET
++      tracesToLogs:
++        datasourceUid: loki
++      serviceMap:
++        datasourceUid: prometheus
+diff --git a/observability-lgtm-compose/observability/loki/config.yaml b/observability-lgtm-compose/observability/loki/config.yaml
+new file mode 100644
+index 0000000..4fcbd67
+--- /dev/null
++++ b/observability-lgtm-compose/observability/loki/config.yaml
+@@ -0,0 +1,31 @@
++auth_enabled: false
++
++server:
++  http_listen_port: 3100
++  grpc_listen_port: 9096
++
++common:
++  path_prefix: /tmp/loki
++  storage:
++    filesystem:
++      chunks_directory: /tmp/loki/chunks
++      rules_directory: /tmp/loki/rules
++  replication_factor: 1
++  ring:
++    kvstore:
++      store: inmemory
++
++schema_config:
++  configs:
++    - from: "2024-01-01"
++      store: tsdb
++      object_store: filesystem
++      schema: v13
++      index:
++        prefix: index_
++        period: 24h
++
++limits_config:
++  allow_structured_metadata: false
++  reject_old_samples: true
++  reject_old_samples_max_age: 168h
+diff --git a/observability-lgtm-compose/observability/otel-collector/config.yaml b/observability-lgtm-compose/observability/otel-collector/config.yaml
+new file mode 100644
+index 0000000..18604ee
+--- /dev/null
++++ b/observability-lgtm-compose/observability/otel-collector/config.yaml
+@@ -0,0 +1,37 @@
++extensions:
++  health_check:
++    endpoint: 0.0.0.0:13133
++
++receivers:
++  otlp:
++    protocols:
++      grpc:
++        endpoint: 0.0.0.0:4317
++      http:
++        endpoint: 0.0.0.0:4318
++
++processors:
++  batch:
++    timeout: 1s
++
++exporters:
++  logging:
++    verbosity: normal
++  prometheus:
++    endpoint: 0.0.0.0:8889
++  otlp/tempo:
++    endpoint: tempo:4317
++    tls:
++      insecure: true
++
++service:
++  extensions: [health_check]
++  pipelines:
++    traces:
++      receivers: [otlp]
++      processors: [batch]
++      exporters: [otlp/tempo, logging]
++    metrics:
++      receivers: [otlp]
++      processors: [batch]
++      exporters: [prometheus, logging]
+diff --git a/observability-lgtm-compose/observability/prometheus/prometheus.yml b/observability-lgtm-compose/observability/prometheus/prometheus.yml
+new file mode 100644
+index 0000000..4115332
+--- /dev/null
++++ b/observability-lgtm-compose/observability/prometheus/prometheus.yml
+@@ -0,0 +1,41 @@
++global:
++  scrape_interval: 15s
++  evaluation_interval: 15s
++
++scrape_configs:
++  - job_name: prometheus
++    static_configs:
++      - targets: ["prometheus:9090"]
++
++  - job_name: otel-collector
++    static_configs:
++      - targets: ["otel-collector:8888", "otel-collector:8889", "otel-collector:13133"]
++
++  - job_name: blackbox-exporter
++    static_configs:
++      - targets: ["blackbox-exporter:9115"]
++
++  - job_name: traderx-http-probe
++    metrics_path: /probe
++    params:
++      module: [http_2xx]
++    static_configs:
++      - targets:
++          - http://ingress:8080/health
++          - http://ingress:8080/
++          - http://database:18084/
++          - http://reference-data:18085/stocks
++          - http://account-service:18088/account/22214
++          - http://people-service:18089/swagger
++          - http://position-service:18090/health/alive
++          - http://trade-processor:18091/health
++          - http://trade-service:18092/swagger-ui.html
++          - http://web-front-end-angular:18093/
++          - http://trade-feed:18086/
++    relabel_configs:
++      - source_labels: [__address__]
++        target_label: __param_target
++      - source_labels: [__param_target]
++        target_label: instance
++      - target_label: __address__
++        replacement: blackbox-exporter:9115
+diff --git a/observability-lgtm-compose/observability/promtail/config.yaml b/observability-lgtm-compose/observability/promtail/config.yaml
+new file mode 100644
+index 0000000..7ffa433
+--- /dev/null
++++ b/observability-lgtm-compose/observability/promtail/config.yaml
+@@ -0,0 +1,25 @@
++server:
++  http_listen_port: 9080
++  grpc_listen_port: 0
++
++positions:
++  filename: /tmp/positions.yaml
++
++clients:
++  - url: http://loki:3100/loki/api/v1/push
++
++scrape_configs:
++  - job_name: traderx-docker
++    docker_sd_configs:
++      - host: unix:///var/run/docker.sock
++        refresh_interval: 10s
++    relabel_configs:
++      - source_labels: [__meta_docker_container_name]
++        regex: "/(.*)"
++        target_label: container
++      - source_labels: [__meta_docker_container_label_com_docker_compose_service]
++        target_label: service
++      - source_labels: [__meta_docker_container_label_com_docker_compose_project]
++        target_label: compose_project
++      - target_label: job
++        replacement: traderx-docker
+diff --git a/observability-lgtm-compose/observability/tempo/config.yaml b/observability-lgtm-compose/observability/tempo/config.yaml
+new file mode 100644
+index 0000000..0ac9f9f
+--- /dev/null
++++ b/observability-lgtm-compose/observability/tempo/config.yaml
+@@ -0,0 +1,24 @@
++server:
++  http_listen_port: 3200
++
++distributor:
++  receivers:
++    otlp:
++      protocols:
++        grpc:
++          endpoint: 0.0.0.0:4317
++        http:
++          endpoint: 0.0.0.0:4318
++
++ingester:
++  max_block_duration: 5m
++
++compactor:
++  compaction:
++    block_retention: 24h
++
++storage:
++  trace:
++    backend: local
++    local:
++      path: /tmp/tempo/traces
+diff --git a/observability-lgtm-compose/observability/grafana/dashboards/traderx-logs-errors.json b/observability-lgtm-compose/observability/grafana/dashboards/traderx-logs-errors.json
+new file mode 100644
+index 0000000..96e1157
+--- /dev/null
++++ b/observability-lgtm-compose/observability/grafana/dashboards/traderx-logs-errors.json
+@@ -0,0 +1,158 @@
++{
++  "panels": [
++    {
++      "datasource": {
++        "type": "loki",
++        "uid": "loki"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "unit": "lines/s"
++        }
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 0,
++        "y": 0
++      },
++      "id": 1,
++      "options": {
++        "legend": {
++          "displayMode": "table",
++          "placement": "bottom"
++        }
++      },
++      "targets": [
++        {
++          "expr": "sum by (service) (rate({compose_project=\"traderx-state-011\",service=~\"$service\"}[1m]))",
++          "refId": "A"
++        }
++      ],
++      "title": "Log Throughput by Service",
++      "type": "timeseries"
++    },
++    {
++      "datasource": {
++        "type": "loki",
++        "uid": "loki"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "unit": "lines/s"
++        }
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 12,
++        "y": 0
++      },
++      "id": 2,
++      "options": {
++        "legend": {
++          "displayMode": "table",
++          "placement": "bottom"
++        }
++      },
++      "targets": [
++        {
++          "expr": "sum by (service) (rate({compose_project=\"traderx-state-011\",service=~\"$service\"} |~ \"(?i)(error|warn|exception|fail)\" [1m]))",
++          "refId": "A"
++        }
++      ],
++      "title": "Error/Warn Throughput by Service",
++      "type": "timeseries"
++    },
++    {
++      "datasource": {
++        "type": "loki",
++        "uid": "loki"
++      },
++      "gridPos": {
++        "h": 10,
++        "w": 24,
++        "x": 0,
++        "y": 8
++      },
++      "id": 3,
++      "options": {
++        "enableLogDetails": true,
++        "showLabels": true,
++        "showTime": true,
++        "wrapLogMessage": true
++      },
++      "targets": [
++        {
++          "expr": "{compose_project=\"traderx-state-011\",service=~\"$service\"}",
++          "refId": "A"
++        }
++      ],
++      "title": "Live Logs (Selected Services)",
++      "type": "logs"
++    },
++    {
++      "datasource": {
++        "type": "loki",
++        "uid": "loki"
++      },
++      "gridPos": {
++        "h": 10,
++        "w": 24,
++        "x": 0,
++        "y": 18
++      },
++      "id": 4,
++      "options": {
++        "enableLogDetails": true,
++        "showLabels": true,
++        "showTime": true,
++        "wrapLogMessage": true
++      },
++      "targets": [
++        {
++          "expr": "{compose_project=\"traderx-state-011\",service=~\"$service\"} |~ \"(?i)(error|warn|exception|fail)\"",
++          "refId": "A"
++        }
++      ],
++      "title": "Error Focus",
++      "type": "logs"
++    }
++  ],
++  "refresh": "10s",
++  "schemaVersion": 39,
++  "tags": [
++    "traderx",
++    "logs",
++    "provisioned"
++  ],
++  "templating": {
++    "list": [
++      {
++        "current": {
++          "text": "All",
++          "value": [
++            "$__all"
++          ]
++        },
++        "datasource": {
++          "type": "loki",
++          "uid": "loki"
++        },
++        "includeAll": true,
++        "label": "Service",
++        "multi": true,
++        "name": "service",
++        "query": "label_values({compose_project=\"traderx-state-011\"}, service)",
++        "type": "query"
++      }
++    ]
++  },
++  "time": {
++    "from": "now-30m",
++    "to": "now"
++  },
++  "timezone": "browser",
++  "title": "TraderX Logs & Errors",
++  "uid": "traderx-logs-errors"
++}
+diff --git a/observability-lgtm-compose/observability/grafana/dashboards/traderx-observability-control-plane.json b/observability-lgtm-compose/observability/grafana/dashboards/traderx-observability-control-plane.json
+new file mode 100644
+index 0000000..111bb6b
+--- /dev/null
++++ b/observability-lgtm-compose/observability/grafana/dashboards/traderx-observability-control-plane.json
+@@ -0,0 +1,268 @@
++{
++  "panels": [
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "max": 1,
++          "min": 0,
++          "thresholds": {
++            "mode": "absolute",
++            "steps": [
++              {
++                "color": "red",
++                "value": null
++              },
++              {
++                "color": "green",
++                "value": 1
++              }
++            ]
++          }
++        }
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 0,
++        "y": 0
++      },
++      "id": 1,
++      "targets": [
++        {
++          "expr": "up{job=\"prometheus\"}",
++          "refId": "A"
++        }
++      ],
++      "title": "Prometheus Up",
++      "type": "stat"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "unit": "none"
++        }
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 6,
++        "y": 0
++      },
++      "id": 2,
++      "targets": [
++        {
++          "expr": "sum(up{job=\"otel-collector\"})",
++          "refId": "A"
++        }
++      ],
++      "title": "OTel Collector Targets Up",
++      "type": "stat"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "max": 1,
++          "min": 0,
++          "thresholds": {
++            "mode": "absolute",
++            "steps": [
++              {
++                "color": "red",
++                "value": null
++              },
++              {
++                "color": "green",
++                "value": 1
++              }
++            ]
++          }
++        }
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 12,
++        "y": 0
++      },
++      "id": 3,
++      "targets": [
++        {
++          "expr": "up{job=\"blackbox-exporter\"}",
++          "refId": "A"
++        }
++      ],
++      "title": "Blackbox Exporter Up",
++      "type": "stat"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "unit": "none"
++        }
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 18,
++        "y": 0
++      },
++      "id": 4,
++      "targets": [
++        {
++          "expr": "sum(otelcol_exporter_queue_size)",
++          "refId": "A"
++        }
++      ],
++      "title": "OTel Exporter Queue Size",
++      "type": "stat"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "unit": "bytes"
++        }
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 0,
++        "y": 4
++      },
++      "id": 5,
++      "options": {
++        "legend": {
++          "displayMode": "table",
++          "placement": "bottom"
++        }
++      },
++      "targets": [
++        {
++          "expr": "process_resident_memory_bytes{job=~\"prometheus|blackbox-exporter\"}",
++          "refId": "A"
++        },
++        {
++          "expr": "otelcol_process_memory_rss",
++          "refId": "B"
++        }
++      ],
++      "title": "Observability Process RSS",
++      "type": "timeseries"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "unit": "none"
++        }
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 12,
++        "y": 4
++      },
++      "id": 6,
++      "options": {
++        "legend": {
++          "displayMode": "table",
++          "placement": "bottom"
++        }
++      },
++      "targets": [
++        {
++          "expr": "otelcol_exporter_queue_size",
++          "refId": "A"
++        },
++        {
++          "expr": "otelcol_exporter_queue_capacity",
++          "refId": "B"
++        }
++      ],
++      "title": "OTel Exporter Queue (size/capacity)",
++      "type": "timeseries"
++    },
++    {
++      "datasource": {
++        "type": "loki",
++        "uid": "loki"
++      },
++      "gridPos": {
++        "h": 10,
++        "w": 24,
++        "x": 0,
++        "y": 12
++      },
++      "id": 7,
++      "options": {
++        "enableLogDetails": true,
++        "showLabels": true,
++        "showTime": true,
++        "wrapLogMessage": true
++      },
++      "targets": [
++        {
++          "expr": "{compose_project=\"traderx-state-011\",service=~\"grafana|loki|tempo|otel-collector|prometheus|promtail\"}",
++          "refId": "A"
++        }
++      ],
++      "title": "Control Plane Logs (Grafana/Loki/Tempo/OTel/Prometheus)",
++      "type": "logs"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "gridPos": {
++        "h": 6,
++        "w": 24,
++        "x": 0,
++        "y": 22
++      },
++      "id": 8,
++      "options": {
++        "content": "### Tempo is wired and ready\n- Data source: **Tempo**\n- Open Explore with Tempo selected and run TraceQL search: `{}`\n- In this base state, spans appear once services emit OTLP traces (current stack is ready for that next step).",
++        "mode": "markdown"
++      },
++      "title": "Tempo / Trace Exploration",
++      "type": "text"
++    }
++  ],
++  "refresh": "10s",
++  "schemaVersion": 39,
++  "tags": [
++    "traderx",
++    "observability",
++    "provisioned"
++  ],
++  "time": {
++    "from": "now-30m",
++    "to": "now"
++  },
++  "timezone": "browser",
++  "title": "TraderX Observability Control Plane",
++  "uid": "traderx-obs-control-plane"
++}
+diff --git a/observability-lgtm-compose/observability/grafana/dashboards/traderx-runtime-health.json b/observability-lgtm-compose/observability/grafana/dashboards/traderx-runtime-health.json
+new file mode 100644
+index 0000000..678e98b
+--- /dev/null
++++ b/observability-lgtm-compose/observability/grafana/dashboards/traderx-runtime-health.json
+@@ -0,0 +1,298 @@
++{
++  "panels": [
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "decimals": 2,
++          "thresholds": {
++            "mode": "absolute",
++            "steps": [
++              {
++                "color": "red",
++                "value": null
++              },
++              {
++                "color": "orange",
++                "value": 95
++              },
++              {
++                "color": "green",
++                "value": 99
++              }
++            ]
++          },
++          "unit": "percent"
++        }
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 0,
++        "y": 0
++      },
++      "id": 1,
++      "targets": [
++        {
++          "expr": "100 * avg_over_time(probe_success{job=\"traderx-http-probe\"}[5m])",
++          "refId": "A"
++        }
++      ],
++      "title": "Endpoint Availability % (5m)",
++      "type": "stat"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "thresholds": {
++            "mode": "absolute",
++            "steps": [
++              {
++                "color": "green",
++                "value": null
++              },
++              {
++                "color": "red",
++                "value": 1
++              }
++            ]
++          },
++          "unit": "none"
++        }
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 6,
++        "y": 0
++      },
++      "id": 2,
++      "targets": [
++        {
++          "expr": "count(probe_success{job=\"traderx-http-probe\"} == 0)",
++          "refId": "A"
++        }
++      ],
++      "title": "Failing Endpoints (now)",
++      "type": "stat"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "unit": "none"
++        }
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 12,
++        "y": 0
++      },
++      "id": 3,
++      "targets": [
++        {
++          "expr": "count(probe_success{job=\"traderx-http-probe\"})",
++          "refId": "A"
++        }
++      ],
++      "title": "Monitored Endpoints",
++      "type": "stat"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "decimals": 3,
++          "thresholds": {
++            "mode": "absolute",
++            "steps": [
++              {
++                "color": "green",
++                "value": null
++              },
++              {
++                "color": "orange",
++                "value": 0.5
++              },
++              {
++                "color": "red",
++                "value": 1.5
++              }
++            ]
++          },
++          "unit": "s"
++        }
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 18,
++        "y": 0
++      },
++      "id": 4,
++      "targets": [
++        {
++          "expr": "quantile_over_time(0.95, probe_duration_seconds{job=\"traderx-http-probe\"}[5m])",
++          "refId": "A"
++        }
++      ],
++      "title": "Probe p95 Latency (5m)",
++      "type": "stat"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "max": 1,
++          "min": 0
++        }
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 0,
++        "y": 4
++      },
++      "id": 5,
++      "options": {
++        "legend": {
++          "displayMode": "table",
++          "placement": "bottom"
++        }
++      },
++      "targets": [
++        {
++          "expr": "probe_success{job=\"traderx-http-probe\"}",
++          "refId": "A"
++        }
++      ],
++      "title": "Endpoint Up/Down by Target",
++      "type": "timeseries"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "decimals": 3,
++          "unit": "s"
++        }
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 12,
++        "y": 4
++      },
++      "id": 6,
++      "options": {
++        "legend": {
++          "displayMode": "table",
++          "placement": "bottom"
++        }
++      },
++      "targets": [
++        {
++          "expr": "probe_duration_seconds{job=\"traderx-http-probe\"}",
++          "refId": "A"
++        }
++      ],
++      "title": "Probe Duration by Target",
++      "type": "timeseries"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 0,
++        "y": 12
++      },
++      "id": 7,
++      "options": {
++        "showHeader": true
++      },
++      "targets": [
++        {
++          "expr": "probe_success{job=\"traderx-http-probe\"}",
++          "instant": true,
++          "refId": "A"
++        }
++      ],
++      "title": "Current Endpoint Status",
++      "type": "table"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "unit": "none"
++        }
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 12,
++        "y": 12
++      },
++      "id": 8,
++      "options": {
++        "legend": {
++          "displayMode": "table",
++          "placement": "bottom"
++        }
++      },
++      "targets": [
++        {
++          "expr": "otelcol_exporter_queue_size",
++          "refId": "A"
++        },
++        {
++          "expr": "otelcol_exporter_queue_capacity",
++          "refId": "B"
++        }
++      ],
++      "title": "Collector Queue Size",
++      "type": "timeseries"
++    }
++  ],
++  "refresh": "10s",
++  "schemaVersion": 39,
++  "tags": [
++    "traderx",
++    "runtime",
++    "provisioned"
++  ],
++  "time": {
++    "from": "now-30m",
++    "to": "now"
++  },
++  "timezone": "browser",
++  "title": "TraderX Runtime Health",
++  "uid": "traderx-runtime-health"
++}

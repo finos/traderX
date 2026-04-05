@@ -32,7 +32,10 @@ tracks:
   nonfunctional:
     description: "Security, reliability, and platform NFR overlays."
     states:
-      - planned
+      - 003-containerized-compose-runtime
+      - 010-pricing-awareness-market-data
+      - 011-observability-lgtm-compose
+      - 012-observability-on-pricing
 
 stateCatalog:
   - id: 001-baseline-uncontainerized-parity
@@ -70,3 +73,11 @@ stateCatalog:
     previous:
       - 007-messaging-nats-replacement
     spec: specs/010-pricing-awareness-market-data/spec.md
+  - id: 011-observability-lgtm-compose
+    previous:
+      - 003-containerized-compose-runtime
+    spec: specs/011-observability-lgtm-compose/spec.md
+  - id: 012-observability-on-pricing
+    previous:
+      - 010-pricing-awareness-market-data
+    spec: specs/012-observability-on-pricing/spec.md

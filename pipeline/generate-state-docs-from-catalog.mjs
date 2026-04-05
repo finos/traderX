@@ -8,6 +8,7 @@ const root = path.resolve(__dirname, '..')
 
 const catalogPath = path.join(root, 'catalog', 'state-catalog.json')
 const stateDocsPath = path.join(root, 'docs', 'spec-kit', 'state-docs.md')
+const visualLearningGraphsPath = path.join(root, 'docs', 'spec-kit', 'visual-learning-graphs.md')
 const learningIndexPath = path.join(root, 'docs', 'learning', 'index.md')
 const learningDir = path.join(root, 'docs', 'learning')
 
@@ -18,10 +19,28 @@ if (!fs.existsSync(catalogPath)) {
 
 const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'))
 const states = Array.isArray(catalog.states) ? catalog.states : []
+const checkMode = process.argv.includes('--check')
+let checkFailures = 0
 
 if (states.length === 0) {
   console.error('[fail] no states found in state catalog')
   process.exit(1)
+}
+
+const emitFile = (filePath, content) => {
+  const normalized = content.endsWith('\n') ? content : `${content}\n`
+
+  if (checkMode) {
+    const existing = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : null
+    if (existing !== normalized) {
+      console.error(`[fail] generated doc out of date: ${path.relative(root, filePath)}`)
+      checkFailures += 1
+    }
+    return
+  }
+
+  fs.mkdirSync(path.dirname(filePath), {recursive: true})
+  fs.writeFileSync(filePath, normalized, 'utf8')
 }
 
 const repoWebBase = 'https://github.com/finos/traderX'
@@ -209,6 +228,8 @@ const compareLinksMarkdown = (state, previousIds) => {
 }
 
 const writeLearningGuides = () => {
+  const expectedGuideFiles = new Set()
+
   for (const state of states) {
     const previousIds = Array.isArray(state.previous) ? state.previous : []
     const nextIds = nextStateIdsFor(state.id)
@@ -225,6 +246,7 @@ const writeLearningGuides = () => {
     const dataModelRoute = stateDocRouteIfExists(state, 'data-model.md', 'data-model')
     const quickstartRoute = stateDocRouteIfExists(state, 'quickstart.md', 'quickstart')
     const routePath = learningPathFor(state.id)
+    expectedGuideFiles.add(path.basename(routePath))
 
     const body = `---
 title: "State ${stateNumber(state.id)}: ${state.title}"
@@ -267,7 +289,25 @@ ${runtimeCommand}
 ${adrRoute ? `- State ADR: [link](${adrRoute})` : ''}
 `
 
-    fs.writeFileSync(routePath, body, 'utf8')
+    emitFile(routePath, body)
+  }
+
+  const existingGuideFiles = fs.existsSync(learningDir)
+    ? fs.readdirSync(learningDir).filter((name) => /^state-.*\.md$/.test(name))
+    : []
+
+  for (const name of existingGuideFiles) {
+    if (expectedGuideFiles.has(name)) {
+      continue
+    }
+
+    const stalePath = path.join(learningDir, name)
+    if (checkMode) {
+      console.error(`[fail] stale learning guide not in catalog: ${path.relative(root, stalePath)}`)
+      checkFailures += 1
+    } else {
+      fs.unlinkSync(stalePath)
+    }
   }
 }
 
@@ -320,7 +360,7 @@ ${rows.join('\n')}
 4. Follow links back to spec architecture/flows/contracts when you need system context.
 `
 
-  fs.writeFileSync(learningIndexPath, body, 'utf8')
+  emitFile(learningIndexPath, body)
 }
 
 const writeStateDocs = () => {
@@ -385,7 +425,7 @@ ${rows.join('\n')}
 - Regenerate docs pages:
 
 \`\`\`bash
-node pipeline/generate-state-docs-from-catalog.mjs
+bash pipeline/refresh-state-docs.sh
 \`\`\`
 
 - State architecture docs are generated from:
@@ -403,13 +443,141 @@ bash pipeline/generate-all-architecture-docs.sh
 \`\`\`
 `
 
-  fs.writeFileSync(stateDocsPath, body, 'utf8')
+  emitFile(stateDocsPath, body)
+}
+
+const trackKeyFor = (state) => state.track ?? 'baseline'
+const trackLabelFor = (trackKey) => {
+  if (trackKey === 'baseline') {
+    return 'Baseline'
+  }
+  return trackKey.charAt(0).toUpperCase() + trackKey.slice(1)
+}
+
+const mermaidNodeIdFor = (stateId) => `S${stateId.replace(/[^a-zA-Z0-9]/g, '_')}`
+const mermaidLabelFor = (state) =>
+  `${stateNumber(state.id)}: ${state.title}`.replace(/"/g, '\\"')
+
+const writeVisualLearningGraphs = () => {
+  const sortedStates = [...states].sort((a, b) => a.id.localeCompare(b.id))
+
+  const nodeLines = sortedStates.map((state) =>
+    `  ${mermaidNodeIdFor(state.id)}["${mermaidLabelFor(state)}"]`
+  )
+
+  const edgeLines = []
+  for (const state of sortedStates) {
+    const previousIds = Array.isArray(state.previous) ? state.previous : []
+    for (const previousId of previousIds) {
+      const linkType = state.status === 'implemented' ? '-->' : '-.->'
+      edgeLines.push(`  ${mermaidNodeIdFor(previousId)} ${linkType} ${mermaidNodeIdFor(state.id)}`)
+    }
+  }
+
+  const clickLines = sortedStates.map((state) =>
+    `  click ${mermaidNodeIdFor(state.id)} href "${specRouteFor(state.id)}" "Open State ${stateNumber(state.id)} Spec Pack"`
+  )
+
+  const trackOrder = ['baseline', 'devex', 'architecture', 'functional', 'nonfunctional']
+  const trackStates = new Map(trackOrder.map((track) => [track, []]))
+  for (const state of sortedStates) {
+    const trackKey = trackKeyFor(state)
+    if (!trackStates.has(trackKey)) {
+      trackStates.set(trackKey, [])
+    }
+    trackStates.get(trackKey).push(state)
+  }
+
+  const swimlaneLines = ['flowchart LR']
+  for (const trackKey of trackOrder) {
+    const statesForTrack = trackStates.get(trackKey) ?? []
+    if (statesForTrack.length === 0) {
+      continue
+    }
+    swimlaneLines.push(`  subgraph ${trackKey.toUpperCase()}["${trackLabelFor(trackKey)} Track"]`)
+    for (const state of statesForTrack) {
+      swimlaneLines.push(`    ${mermaidNodeIdFor(state.id)}["${mermaidLabelFor(state)}"]`)
+    }
+    swimlaneLines.push('  end')
+  }
+
+  for (const [trackKey, statesForTrack] of trackStates.entries()) {
+    if (trackOrder.includes(trackKey) || statesForTrack.length === 0) {
+      continue
+    }
+    const safeId = trackKey.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase()
+    swimlaneLines.push(`  subgraph ${safeId}["${trackLabelFor(trackKey)} Track"]`)
+    for (const state of statesForTrack) {
+      swimlaneLines.push(`    ${mermaidNodeIdFor(state.id)}["${mermaidLabelFor(state)}"]`)
+    }
+    swimlaneLines.push('  end')
+  }
+
+  swimlaneLines.push(...edgeLines)
+
+  const tableRows = sortedStates.map((state) => {
+    const specRoute = specRouteFor(state.id)
+    const architectureRoute = `${specRoute}/system/architecture`
+    const topologyRoute = topologyRouteFor(state)
+    const learningRoute = learningRouteFor(state.id)
+    const branchName = state.publish?.branch ?? 'n/a'
+    const branchCell = branchName === 'n/a'
+      ? '`n/a`'
+      : `[${branchName}](${branchLinkFor(branchName)})`
+
+    return `| [\`${state.id}\`](${specRoute}) | [link](${specRoute}) | [link](${architectureRoute}) | [link](${topologyRoute}) | [link](${learningRoute}) | ${branchCell} |`
+  })
+
+  const body = `---
+title: Visual Learning Paths
+---
+
+# Visual Learning Paths
+
+This page is generated from \`catalog/state-catalog.json\`.
+
+## Official Current Graph
+
+\`\`\`mermaid
+flowchart LR
+${nodeLines.join('\n')}
+${edgeLines.join('\n')}
+${clickLines.join('\n')}
+\`\`\`
+
+## State To Artifact Mapping
+
+| State | Spec Pack | Architecture | Flows / Runtime Topology | Learning Guide | Generated Code Branch |
+| --- | --- | --- | --- | --- | --- |
+${tableRows.join('\n')}
+
+## Swimlane View
+
+\`\`\`mermaid
+${swimlaneLines.join('\n')}
+\`\`\`
+
+Use \`catalog/state-catalog.json\` as the canonical state lineage record.
+`
+
+  emitFile(visualLearningGraphsPath, body)
 }
 
 writeLearningGuides()
 writeLearningIndex()
 writeStateDocs()
+writeVisualLearningGraphs()
 
-console.log(`[ok] wrote ${stateDocsPath}`)
-console.log(`[ok] wrote ${learningIndexPath}`)
-console.log(`[ok] wrote docs/learning/state-*.md`)
+if (checkMode) {
+  if (checkFailures > 0) {
+    console.error(`[fail] state-doc generation check found ${checkFailures} out-of-date artifact(s)`)
+    process.exit(1)
+  }
+  console.log('[ok] state-doc generation artifacts are up to date')
+  process.exit(0)
+}
+
+console.log(`[ok] wrote ${path.relative(root, stateDocsPath)}`)
+console.log(`[ok] wrote ${path.relative(root, visualLearningGraphsPath)}`)
+console.log(`[ok] wrote ${path.relative(root, learningIndexPath)}`)
+console.log('[ok] wrote docs/learning/state-*.md')

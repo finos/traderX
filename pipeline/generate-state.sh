@@ -62,4 +62,4 @@ EOF
     ;;
 esac
 
-bash "${ROOT}/pipeline/generate-state-docs-from-catalog.sh"
+bash "${ROOT}/pipeline/refresh-state-docs.sh"

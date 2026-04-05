@@ -173,6 +173,44 @@
         "branch": "code/generated-state-010-pricing-awareness-market-data",
         "tag": "generated/010-pricing-awareness-market-data/v1"
       }
+    },
+    {
+      "id": "011-observability-lgtm-compose",
+      "title": "Observability with LGTM on Compose",
+      "status": "implemented",
+      "track": "nonfunctional",
+      "featurePack": "specs/011-observability-lgtm-compose",
+      "previous": [
+        "003-containerized-compose-runtime"
+      ],
+      "generation": {
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-state.sh 011-observability-lgtm-compose",
+        "runtime": "./scripts/start-state-011-observability-lgtm-compose-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-011-observability-lgtm-compose",
+        "tag": "generated/011-observability-lgtm-compose/v1"
+      }
+    },
+    {
+      "id": "012-observability-on-pricing",
+      "title": "Observability with LGTM on Pricing State",
+      "status": "implemented",
+      "track": "nonfunctional",
+      "featurePack": "specs/012-observability-on-pricing",
+      "previous": [
+        "010-pricing-awareness-market-data"
+      ],
+      "generation": {
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-state.sh 012-observability-on-pricing",
+        "runtime": "./scripts/start-state-012-observability-on-pricing-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-012-observability-on-pricing",
+        "tag": "generated/012-observability-on-pricing/v1"
+      }
     }
   ]
 }

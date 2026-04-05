@@ -20,10 +20,10 @@ This guide explains how to regenerate TraderX from requirements, then iterate in
 - State lineage + publish model: `catalog/state-catalog.json`
 - Learning-path catalog artifacts (generated): `catalog/learning-paths.yaml`, `catalog/learning-paths.md`
 
-Regenerate learning-path catalog artifacts:
+Refresh all state-derived docs and catalogs:
 
 ```bash
-bash pipeline/generate-learning-paths-catalog.sh
+bash pipeline/refresh-state-docs.sh
 ```
 
 ## Generate Baseline Components
@@ -60,6 +60,12 @@ bash pipeline/scaffold-state-pack.sh <NNN-state-name> --title "<Title>" --previo
 5. Regenerate only impacted components, then rerun conformance/parity gates.
 
 This keeps progression reversible and auditable across DevEx, NFR, and functional tracks.
+
+Canonical playbook command:
+
+```bash
+bash pipeline/state-playbook.sh --state <state-id> --publish-neighborhood --push-generated
+```
 
 ## State Generation Model (Patch-Set Overlays)
 
@@ -105,6 +111,11 @@ Current state-aware generation entrypoints:
 - `bash pipeline/generate-state.sh 004-kubernetes-runtime`
 - `bash pipeline/generate-state.sh 005-radius-kubernetes-platform`
 - `bash pipeline/generate-state.sh 006-tilt-kubernetes-dev-loop`
+- `bash pipeline/generate-state.sh 007-messaging-nats-replacement`
+- `bash pipeline/generate-state.sh 009-postgres-database-replacement`
+- `bash pipeline/generate-state.sh 010-pricing-awareness-market-data`
+- `bash pipeline/generate-state.sh 011-observability-lgtm-compose`
+- `bash pipeline/generate-state.sh 012-observability-on-pricing`
 
 Architecture docs are generated from state-local models under `specs/*/system/architecture.model.json`:
 
@@ -139,6 +150,34 @@ Tilt local dev-loop state (state `006`) commands:
 - `./scripts/status-state-006-tilt-kubernetes-dev-loop-generated.sh --provider kind`
 - `./scripts/test-state-006-tilt-kubernetes-dev-loop.sh http://localhost:8080 traderx kind traderx-state-004`
 - `./scripts/stop-state-006-tilt-kubernetes-dev-loop-generated.sh --provider kind`
+
+Messaging replacement state (state `007`) commands:
+
+- `./scripts/start-state-007-messaging-nats-replacement-generated.sh`
+- `./scripts/status-state-007-messaging-nats-replacement-generated.sh`
+- `./scripts/test-state-007-messaging-nats-replacement.sh`
+- `./scripts/stop-state-007-messaging-nats-replacement-generated.sh`
+
+Pricing state (state `010`) commands:
+
+- `./scripts/start-state-010-pricing-awareness-market-data-generated.sh`
+- `./scripts/status-state-010-pricing-awareness-market-data-generated.sh`
+- `./scripts/test-state-010-pricing-awareness-market-data.sh`
+- `./scripts/stop-state-010-pricing-awareness-market-data-generated.sh`
+
+Observability on compose baseline (state `011`) commands:
+
+- `./scripts/start-state-011-observability-lgtm-compose-generated.sh`
+- `./scripts/status-state-011-observability-lgtm-compose-generated.sh`
+- `./scripts/test-state-011-observability-lgtm-compose.sh`
+- `./scripts/stop-state-011-observability-lgtm-compose-generated.sh`
+
+Observability on pricing runtime (state `012`) commands:
+
+- `./scripts/start-state-012-observability-on-pricing-generated.sh`
+- `./scripts/status-state-012-observability-on-pricing-generated.sh`
+- `./scripts/test-state-012-observability-on-pricing.sh`
+- `./scripts/stop-state-012-observability-on-pricing-generated.sh`
 
 ## Publish Code-Only Snapshot Branches
 

@@ -7,7 +7,7 @@ title: "State 010: Pricing Awareness and Market Data Streaming"
 ## Position In Learning Graph
 
 - Previous state(s): [007-messaging-nats-replacement](/docs/learning/state-007-messaging-nats-replacement)
-- Next state(s): none
+- Next state(s): [012-observability-on-pricing](/docs/learning/state-012-observability-on-pricing)
 
 ## Rendered Code
 
