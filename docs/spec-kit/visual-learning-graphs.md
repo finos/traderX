@@ -21,6 +21,7 @@ flowchart LR
   S010_pricing_awareness_market_data["010: Pricing Awareness and Market Data Streaming"]
   S011_observability_lgtm_compose["011: Observability with LGTM on Compose"]
   S012_observability_on_pricing["012: Observability with LGTM on Pricing State"]
+  S013_order_management_matcher["013: Order Management and Matcher"]
   S001_baseline_uncontainerized_parity --> S002_edge_proxy_uncontainerized
   S002_edge_proxy_uncontainerized --> S003_containerized_compose_runtime
   S003_containerized_compose_runtime --> S004_kubernetes_runtime
@@ -31,6 +32,7 @@ flowchart LR
   S007_messaging_nats_replacement --> S010_pricing_awareness_market_data
   S003_containerized_compose_runtime --> S011_observability_lgtm_compose
   S010_pricing_awareness_market_data --> S012_observability_on_pricing
+  S012_observability_on_pricing -.-> S013_order_management_matcher
   click S001_baseline_uncontainerized_parity href "/specs/baseline-uncontainerized-parity" "Open State 001 Spec Pack"
   click S002_edge_proxy_uncontainerized href "/specs/edge-proxy-uncontainerized" "Open State 002 Spec Pack"
   click S003_containerized_compose_runtime href "/specs/containerized-compose-runtime" "Open State 003 Spec Pack"
@@ -42,6 +44,7 @@ flowchart LR
   click S010_pricing_awareness_market_data href "/specs/pricing-awareness-market-data" "Open State 010 Spec Pack"
   click S011_observability_lgtm_compose href "/specs/observability-lgtm-compose" "Open State 011 Spec Pack"
   click S012_observability_on_pricing href "/specs/observability-on-pricing" "Open State 012 Spec Pack"
+  click S013_order_management_matcher href "/specs/order-management-matcher" "Open State 013 Spec Pack"
 ```
 
 ## State To Artifact Mapping
@@ -59,6 +62,7 @@ flowchart LR
 | [`010-pricing-awareness-market-data`](/specs/pricing-awareness-market-data) | [link](/specs/pricing-awareness-market-data) | [link](/specs/pricing-awareness-market-data/system/architecture) | [link](/specs/pricing-awareness-market-data/system/runtime-topology) | [link](/docs/learning/state-010-pricing-awareness-market-data) | [code/generated-state-010-pricing-awareness-market-data](https://github.com/finos/traderX/tree/code/generated-state-010-pricing-awareness-market-data) |
 | [`011-observability-lgtm-compose`](/specs/observability-lgtm-compose) | [link](/specs/observability-lgtm-compose) | [link](/specs/observability-lgtm-compose/system/architecture) | [link](/specs/observability-lgtm-compose/system/runtime-topology) | [link](/docs/learning/state-011-observability-lgtm-compose) | [code/generated-state-011-observability-lgtm-compose](https://github.com/finos/traderX/tree/code/generated-state-011-observability-lgtm-compose) |
 | [`012-observability-on-pricing`](/specs/observability-on-pricing) | [link](/specs/observability-on-pricing) | [link](/specs/observability-on-pricing/system/architecture) | [link](/specs/observability-on-pricing/system/runtime-topology) | [link](/docs/learning/state-012-observability-on-pricing) | [code/generated-state-012-observability-on-pricing](https://github.com/finos/traderX/tree/code/generated-state-012-observability-on-pricing) |
+| [`013-order-management-matcher`](/specs/order-management-matcher) | [link](/specs/order-management-matcher) | [link](/specs/order-management-matcher/system/architecture) | [link](/specs/order-management-matcher/system/runtime-topology) | [link](/docs/learning/state-013-order-management-matcher) | [code/generated-state-013-order-management-matcher](https://github.com/finos/traderX/tree/code/generated-state-013-order-management-matcher) |
 
 ## Swimlane View
 
@@ -80,6 +84,7 @@ flowchart LR
   end
   subgraph FUNCTIONAL["Functional Track"]
     S010_pricing_awareness_market_data["010: Pricing Awareness and Market Data Streaming"]
+    S013_order_management_matcher["013: Order Management and Matcher"]
   end
   subgraph NONFUNCTIONAL["Nonfunctional Track"]
     S011_observability_lgtm_compose["011: Observability with LGTM on Compose"]
@@ -95,6 +100,7 @@ flowchart LR
   S007_messaging_nats_replacement --> S010_pricing_awareness_market_data
   S003_containerized_compose_runtime --> S011_observability_lgtm_compose
   S010_pricing_awareness_market_data --> S012_observability_on_pricing
+  S012_observability_on_pricing -.-> S013_order_management_matcher
 ```
 
 Use `catalog/state-catalog.json` as the canonical state lineage record.

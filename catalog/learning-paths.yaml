@@ -29,6 +29,8 @@ tracks:
     states:
       - 007-messaging-nats-replacement
       - 010-pricing-awareness-market-data
+      - 012-observability-on-pricing
+      - 013-order-management-matcher
   nonfunctional:
     description: "Security, reliability, and platform NFR overlays."
     states:
@@ -81,3 +83,7 @@ stateCatalog:
     previous:
       - 010-pricing-awareness-market-data
     spec: specs/012-observability-on-pricing/spec.md
+  - id: 013-order-management-matcher
+    previous:
+      - 012-observability-on-pricing
+    spec: specs/013-order-management-matcher/spec.md

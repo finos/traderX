@@ -27,6 +27,8 @@ This file is generated from `catalog/state-catalog.json`.
 
 - `007-messaging-nats-replacement`
 - `010-pricing-awareness-market-data`
+- `012-observability-on-pricing`
+- `013-order-management-matcher`
 
 ### Non-Functional
 
@@ -50,3 +52,4 @@ This file is generated from `catalog/state-catalog.json`.
 | `010-pricing-awareness-market-data` | 007-messaging-nats-replacement | `specs/010-pricing-awareness-market-data/spec.md` |
 | `011-observability-lgtm-compose` | 003-containerized-compose-runtime | `specs/011-observability-lgtm-compose/spec.md` |
 | `012-observability-on-pricing` | 010-pricing-awareness-market-data | `specs/012-observability-on-pricing/spec.md` |
+| `013-order-management-matcher` | 012-observability-on-pricing | `specs/013-order-management-matcher/spec.md` |

@@ -211,6 +211,25 @@
         "branch": "code/generated-state-012-observability-on-pricing",
         "tag": "generated/012-observability-on-pricing/v1"
       }
+    },
+    {
+      "id": "013-order-management-matcher",
+      "title": "Order Management and Matcher",
+      "status": "planned",
+      "track": "functional",
+      "featurePack": "specs/013-order-management-matcher",
+      "previous": [
+        "012-observability-on-pricing"
+      ],
+      "generation": {
+        "mode": "planned",
+        "entrypoint": "bash pipeline/generate-state.sh 013-order-management-matcher",
+        "runtime": "TBD"
+      },
+      "publish": {
+        "branch": "code/generated-state-013-order-management-matcher",
+        "tag": "generated/013-order-management-matcher/v1"
+      }
     }
   ]
 }

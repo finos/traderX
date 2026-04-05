@@ -1,0 +1,164 @@
+{
+  "title": "Order Management and Matcher",
+  "stateId": "013-order-management-matcher",
+  "parentState": "012-observability-on-pricing",
+  "description": "Pricing + observability runtime extended with order management, matcher flow, and order-specific telemetry.",
+  "mermaidDirection": "LR",
+  "nodes": [
+    {
+      "id": "developer",
+      "label": "Developer",
+      "kind": "actor",
+      "description": "Local developer using this state."
+    },
+    {
+      "id": "app_runtime",
+      "label": "TraderX App Runtime",
+      "kind": "boundary",
+      "description": "State 012 pricing runtime with order-management extensions."
+    },
+    {
+      "id": "obs_runtime",
+      "label": "Observability Runtime",
+      "kind": "boundary",
+      "description": "LGTM + OTel stack from state 012 with order telemetry coverage."
+    },
+    {
+      "id": "ingress",
+      "label": "NGINX Ingress",
+      "kind": "service",
+      "description": "Routes UI, API, and order admin traffic."
+    },
+    {
+      "id": "trade_ui",
+      "label": "Angular Trade UI",
+      "kind": "service",
+      "description": "Trade ticket, blotters, and admin tab."
+    },
+    {
+      "id": "order_api",
+      "label": "Order Management API",
+      "kind": "service",
+      "description": "Order create/query/edit/cancel/force-fill endpoints."
+    },
+    {
+      "id": "order_matcher",
+      "label": "Order Matcher",
+      "kind": "service",
+      "description": "Matches open orders and emits order lifecycle + fill events."
+    },
+    {
+      "id": "nats",
+      "label": "NATS Broker",
+      "kind": "service",
+      "description": "Realtime transport for pricing, trade, position, and order subjects."
+    },
+    {
+      "id": "trade_processor",
+      "label": "Trade Processor",
+      "kind": "service",
+      "description": "Consumes fills and persists trades/positions."
+    },
+    {
+      "id": "prometheus",
+      "label": "Prometheus",
+      "kind": "service",
+      "description": "Scrapes order metrics and blackbox probes."
+    },
+    {
+      "id": "blackbox",
+      "label": "Blackbox Exporter",
+      "kind": "service",
+      "description": "Probes order endpoints and inherited runtime endpoints."
+    },
+    {
+      "id": "loki",
+      "label": "Loki",
+      "kind": "service",
+      "description": "Aggregates order and runtime logs."
+    },
+    {
+      "id": "grafana",
+      "label": "Grafana",
+      "kind": "service",
+      "description": "Dashboards for queue depth, open orders, events, and matcher latency."
+    }
+  ],
+  "edges": [
+    {
+      "from": "developer",
+      "to": "ingress",
+      "label": "Uses app and admin UI"
+    },
+    {
+      "from": "ingress",
+      "to": "trade_ui",
+      "label": "Serves UI"
+    },
+    {
+      "from": "trade_ui",
+      "to": "order_api",
+      "label": "Calls order APIs"
+    },
+    {
+      "from": "order_api",
+      "to": "order_matcher",
+      "label": "Submits and updates orders"
+    },
+    {
+      "from": "order_api",
+      "to": "nats",
+      "label": "Publishes lifecycle events"
+    },
+    {
+      "from": "order_matcher",
+      "to": "nats",
+      "label": "Publishes fills and status"
+    },
+    {
+      "from": "nats",
+      "to": "trade_processor",
+      "label": "Delivers matcher-generated fills"
+    },
+    {
+      "from": "prometheus",
+      "to": "order_matcher",
+      "label": "Scrapes /metrics"
+    },
+    {
+      "from": "prometheus",
+      "to": "blackbox",
+      "label": "Scrapes probe metrics"
+    },
+    {
+      "from": "blackbox",
+      "to": "order_api",
+      "label": "HTTP probes"
+    },
+    {
+      "from": "blackbox",
+      "to": "order_matcher",
+      "label": "HTTP probes"
+    },
+    {
+      "from": "order_matcher",
+      "to": "loki",
+      "label": "Structured logs via promtail"
+    },
+    {
+      "from": "developer",
+      "to": "grafana",
+      "label": "Views order observability"
+    },
+    {
+      "from": "grafana",
+      "to": "prometheus",
+      "label": "Queries metrics"
+    },
+    {
+      "from": "grafana",
+      "to": "loki",
+      "label": "Queries logs"
+    }
+  ]
+}

@@ -13,3 +13,4 @@ This is the active ADR set for TraderX SpecKit governance.
 - [ADR-004 Lightweight Baseline Infrastructure and Replaceability](/docs/adr/004-prefer-lightweight-default-infra-and-swappable-components)
 - [ADR-005 Use NATS for State 007 Messaging Replacement](/docs/adr/005-state-007-use-nats-for-messaging-replacement)
 - [ADR-006 Use PostgreSQL for State 009 Database Replacement](/docs/adr/006-state-009-use-postgres-for-database-replacement)
+- [ADR-007 Adopt LGTM + OpenTelemetry Stack for States 011 and 012](/docs/adr/007-states-011-012-adopt-lgtm-observability-stack)

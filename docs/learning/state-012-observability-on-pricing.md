@@ -7,7 +7,7 @@ title: "State 012: Observability with LGTM on Pricing State"
 ## Position In Learning Graph
 
 - Previous state(s): [010-pricing-awareness-market-data](/docs/learning/state-010-pricing-awareness-market-data)
-- Next state(s): none
+- Next state(s): [013-order-management-matcher](/docs/learning/state-013-order-management-matcher)
 
 ## Rendered Code
 
