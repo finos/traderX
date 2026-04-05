@@ -32,7 +32,7 @@ title: "State 013: Order Management and Matcher"
 ## Run This State
 
 ```bash
-TBD
+./scripts/start-state-013-order-management-matcher-generated.sh
 ```
 
 ## Canonical Spec Links

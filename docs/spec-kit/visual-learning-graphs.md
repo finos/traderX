@@ -32,7 +32,7 @@ flowchart LR
   S007_messaging_nats_replacement --> S010_pricing_awareness_market_data
   S003_containerized_compose_runtime --> S011_observability_lgtm_compose
   S010_pricing_awareness_market_data --> S012_observability_on_pricing
-  S012_observability_on_pricing -.-> S013_order_management_matcher
+  S012_observability_on_pricing --> S013_order_management_matcher
   click S001_baseline_uncontainerized_parity href "/specs/baseline-uncontainerized-parity" "Open State 001 Spec Pack"
   click S002_edge_proxy_uncontainerized href "/specs/edge-proxy-uncontainerized" "Open State 002 Spec Pack"
   click S003_containerized_compose_runtime href "/specs/containerized-compose-runtime" "Open State 003 Spec Pack"
@@ -100,7 +100,7 @@ flowchart LR
   S007_messaging_nats_replacement --> S010_pricing_awareness_market_data
   S003_containerized_compose_runtime --> S011_observability_lgtm_compose
   S010_pricing_awareness_market_data --> S012_observability_on_pricing
-  S012_observability_on_pricing -.-> S013_order_management_matcher
+  S012_observability_on_pricing --> S013_order_management_matcher
 ```
 
 Use `catalog/state-catalog.json` as the canonical state lineage record.
