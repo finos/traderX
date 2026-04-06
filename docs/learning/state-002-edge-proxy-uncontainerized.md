@@ -7,7 +7,16 @@ title: "State 002: Edge Proxy Uncontainerized"
 ## Position In Learning Graph
 
 - Previous state(s): [001-baseline-uncontainerized-parity](/docs/learning/state-001-baseline-uncontainerized-parity)
+- Dotted-line parent(s): none
 - Next state(s): [003-containerized-compose-runtime](/docs/learning/state-003-containerized-compose-runtime)
+
+## Convergence Metadata
+
+- Convergence state: `no`
+- Convergence level: `none`
+- Lineage role: `prelude`
+- Nearest previous convergence: `none`
+- Nearest next convergence: `none`
 
 ## Rendered Code
 

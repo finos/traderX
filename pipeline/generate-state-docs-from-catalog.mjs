@@ -65,9 +65,28 @@ const adrRouteFor = (recordPath) => {
 }
 
 const stateById = new Map(states.map((state) => [state.id, state]))
+const orderedStates = [...states]
+const convergenceStates = orderedStates.filter((state) => state.isConvergence === true)
 
 const nextStateIdsFor = (stateId) =>
   states.filter((candidate) => (candidate.previous ?? []).includes(stateId)).map((state) => state.id)
+
+const dottedParentIdsFor = (state) => Array.isArray(state.dottedParents) ? state.dottedParents : []
+const convergenceLevelFor = (state) => state.convergenceLevel ?? 'none'
+const primaryLineageRoleFor = (state) => state.primaryLineageRole ?? 'canonical'
+const isConvergenceState = (state) => state.isConvergence === true
+const convergenceDocAnchorFor = (level) => `/docs/spec-kit/convergence-states#${String(level || 'none').toLowerCase()}`
+
+const nearestConvergenceNeighborsFor = (stateId) => {
+  const index = convergenceStates.findIndex((state) => state.id === stateId)
+  if (index < 0) {
+    return {previous: null, next: null}
+  }
+  return {
+    previous: convergenceStates[index - 1]?.id ?? null,
+    next: convergenceStates[index + 1]?.id ?? null
+  }
+}
 
 const topologyRouteFor = (state) => {
   const featurePackDir = path.join(root, state.featurePack)
@@ -233,6 +252,10 @@ const writeLearningGuides = () => {
   for (const state of states) {
     const previousIds = Array.isArray(state.previous) ? state.previous : []
     const nextIds = nextStateIdsFor(state.id)
+    const dottedParentIds = dottedParentIdsFor(state)
+    const convergenceLevel = convergenceLevelFor(state)
+    const lineageRole = primaryLineageRoleFor(state)
+    const convergenceNeighbors = nearestConvergenceNeighborsFor(state.id)
     const specRoute = specRouteFor(state.id)
     const architectureRoute = `${specRoute}/system/architecture`
     const topologyRoute = topologyRouteFor(state)
@@ -257,7 +280,16 @@ title: "State ${stateNumber(state.id)}: ${state.title}"
 ## Position In Learning Graph
 
 - Previous state(s): ${linkedStateList(previousIds)}
+- Dotted-line parent(s): ${linkedStateList(dottedParentIds)}
 - Next state(s): ${linkedStateList(nextIds)}
+
+## Convergence Metadata
+
+- Convergence state: \`${isConvergenceState(state) ? 'yes' : 'no'}\`
+- Convergence level: \`${convergenceLevel}\`
+- Lineage role: \`${lineageRole}\`
+- Nearest previous convergence: ${convergenceNeighbors.previous ? `[${convergenceNeighbors.previous}](${learningRouteFor(convergenceNeighbors.previous)})` : '`none`'}
+- Nearest next convergence: ${convergenceNeighbors.next ? `[${convergenceNeighbors.next}](${learningRouteFor(convergenceNeighbors.next)})` : '`none`'}
 
 ## Rendered Code
 
@@ -320,6 +352,12 @@ const writeLearningIndex = () => {
       ? '`n/a`'
       : `[${branchName}](${branchLinkFor(branchName)})`
     const previousIds = Array.isArray(state.previous) ? state.previous : []
+    const dottedParentIds = dottedParentIdsFor(state)
+    const convergenceLevel = convergenceLevelFor(state)
+    const convergenceCell = isConvergenceState(state) ? `\`${convergenceLevel}\`` : '`none`'
+    const dottedCell = dottedParentIds.length === 0
+      ? '`none`'
+      : dottedParentIds.map((id) => `[${id}](${learningRouteFor(id)})`).join('<br/>')
     const adrRoute = adrRouteFor(state.decisionRecord)
     const adrCell = adrRoute ? `[link](${adrRoute})` : '`n/a`'
     const previousCell = previousIds.length === 0
@@ -332,7 +370,7 @@ const writeLearningIndex = () => {
       })
       .join('<br/>')
 
-    return `| \`${state.id}\` | [link](${learningRoute}) | [link](${specRoute}) | ${branchCell} | ${previousCell} | ${compareCell} | ${adrCell} |`
+    return `| \`${state.id}\` | [link](${learningRoute}) | [link](${specRoute}) | ${branchCell} | ${convergenceCell} | ${dottedCell} | ${previousCell} | ${compareCell} | ${adrCell} |`
   })
 
   const body = `---
@@ -346,10 +384,12 @@ This section is the developer-focused learning layer for generated TraderX code 
 Canonical requirements, contracts, and architecture remain in \`specs/**\`.  
 These guides explain how to read each generated code snapshot, compare it to previous states, and understand the code delta in plain English.
 
+For the visual progression map, see [Visual Learning Paths](/docs/spec-kit/visual-learning-graphs).
+
 ## State Guide Catalog
 
-| State | Learning Guide | Spec Pack | Generated Code Branch | Previous State(s) | Compare To Previous | ADR |
-| --- | --- | --- | --- | --- | --- | --- |
+| State | Learning Guide | Spec Pack | Generated Code Branch | Convergence | Dotted Parents | Previous State(s) | Compare To Previous | ADR |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
 ${rows.join('\n')}
 
 ## How To Use This Section
@@ -358,6 +398,10 @@ ${rows.join('\n')}
 2. Use the GitHub compare link to inspect exact code changes against previous state(s).
 3. Read the plain-English delta for rationale and intent.
 4. Follow links back to spec architecture/flows/contracts when you need system context.
+
+## Recommended Starting Points For New State Design
+
+${convergenceStates.map((state) => `- \`${state.id}\` (${convergenceLevelFor(state)}): ${state.title}`).join('\n')}
 `
 
   emitFile(learningIndexPath, body)
@@ -383,6 +427,12 @@ const writeStateDocs = () => {
     const dataModelCell = dataModelRoute ? `[link](${dataModelRoute})` : '`n/a`'
     const quickstartCell = quickstartRoute ? `[link](${quickstartRoute})` : '`n/a`'
     const previousIds = Array.isArray(state.previous) ? state.previous : []
+    const dottedParentIds = dottedParentIdsFor(state)
+    const convergenceLevel = convergenceLevelFor(state)
+    const convergenceCell = isConvergenceState(state) ? `\`${convergenceLevel}\`` : '`none`'
+    const dottedCell = dottedParentIds.length === 0
+      ? '`none`'
+      : dottedParentIds.map((id) => `[${id}](${learningRouteFor(id)})`).join('<br/>')
     const adrRoute = adrRouteFor(state.decisionRecord)
     const adrCell = adrRoute ? `[link](${adrRoute})` : '`n/a`'
     const compareCell = compareLinksMarkdown(state, previousIds)
@@ -392,7 +442,7 @@ const writeStateDocs = () => {
       })
       .join('<br/>')
 
-    return `| \`${state.id}\` | ${state.status} | [link](${learningRoute}) | [link](${specRoute}) | [link](${architectureRoute}) | [link](${topologyRoute}) | ${researchCell} | ${dataModelCell} | ${quickstartCell} | ${branchCell} | ${compareCell} | ${adrCell} |`
+    return `| \`${state.id}\` | ${state.status} | ${convergenceCell} | ${dottedCell} | [link](${learningRoute}) | [link](${specRoute}) | [link](${architectureRoute}) | [link](${topologyRoute}) | ${researchCell} | ${dataModelCell} | ${quickstartCell} | ${branchCell} | ${compareCell} | ${adrCell} |`
   })
 
   const body = `---
@@ -408,8 +458,8 @@ For progression context, see [Visual Learning Paths](/docs/spec-kit/visual-learn
 
 ## State Catalog
 
-| State | Status | Learning Guide | Spec Pack | Architecture | Flows / Topology | Research | Data Model | Quickstart | Generated Code Branch | Compare To Previous | ADR |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| State | Status | Convergence | Dotted Parents | Learning Guide | Spec Pack | Architecture | Flows / Topology | Research | Data Model | Quickstart | Generated Code Branch | Compare To Previous | ADR |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 ${rows.join('\n')}
 
 ## API Explorer by State
@@ -455,22 +505,28 @@ const trackLabelFor = (trackKey) => {
 }
 
 const mermaidNodeIdFor = (stateId) => `S${stateId.replace(/[^a-zA-Z0-9]/g, '_')}`
-const mermaidLabelFor = (state) =>
-  `${stateNumber(state.id)}: ${state.title}`.replace(/"/g, '\\"')
+const mermaidLabelFor = (state) => {
+  const convergenceBadge = isConvergenceState(state) ? ` [${convergenceLevelFor(state)}]` : ''
+  return `${stateNumber(state.id)}: ${state.title}${convergenceBadge}`.replace(/"/g, '\\"')
+}
 
 const writeVisualLearningGraphs = () => {
-  const sortedStates = [...states].sort((a, b) => a.id.localeCompare(b.id))
+  const sortedStates = [...states]
 
   const nodeLines = sortedStates.map((state) =>
     `  ${mermaidNodeIdFor(state.id)}["${mermaidLabelFor(state)}"]`
   )
 
   const edgeLines = []
+  const dottedEdgeLines = []
   for (const state of sortedStates) {
     const previousIds = Array.isArray(state.previous) ? state.previous : []
     for (const previousId of previousIds) {
       const linkType = state.status === 'implemented' ? '-->' : '-.->'
       edgeLines.push(`  ${mermaidNodeIdFor(previousId)} ${linkType} ${mermaidNodeIdFor(state.id)}`)
+    }
+    for (const dottedParentId of dottedParentIdsFor(state)) {
+      dottedEdgeLines.push(`  ${mermaidNodeIdFor(dottedParentId)} -.-> ${mermaidNodeIdFor(state.id)}`)
     }
   }
 
@@ -478,7 +534,7 @@ const writeVisualLearningGraphs = () => {
     `  click ${mermaidNodeIdFor(state.id)} href "${specRouteFor(state.id)}" "Open State ${stateNumber(state.id)} Spec Pack"`
   )
 
-  const trackOrder = ['baseline', 'devex', 'architecture', 'functional', 'nonfunctional']
+  const trackOrder = ['prelude', 'baseline', 'architecture', 'nonfunctional', 'functional', 'devex']
   const trackStates = new Map(trackOrder.map((track) => [track, []]))
   for (const state of sortedStates) {
     const trackKey = trackKeyFor(state)
@@ -488,7 +544,7 @@ const writeVisualLearningGraphs = () => {
     trackStates.get(trackKey).push(state)
   }
 
-  const swimlaneLines = ['flowchart LR']
+  const swimlaneLines = ['flowchart TB']
   for (const trackKey of trackOrder) {
     const statesForTrack = trackStates.get(trackKey) ?? []
     if (statesForTrack.length === 0) {
@@ -514,19 +570,46 @@ const writeVisualLearningGraphs = () => {
   }
 
   swimlaneLines.push(...edgeLines)
+  swimlaneLines.push(...dottedEdgeLines)
+
+  const convergenceClassLines = []
+  for (const state of sortedStates) {
+    if (isConvergenceState(state)) {
+      convergenceClassLines.push(`  class ${mermaidNodeIdFor(state.id)} convergence`)
+    }
+  }
 
   const tableRows = sortedStates.map((state) => {
     const specRoute = specRouteFor(state.id)
     const architectureRoute = `${specRoute}/system/architecture`
     const topologyRoute = topologyRouteFor(state)
     const learningRoute = learningRouteFor(state.id)
+    const convergenceLevel = convergenceLevelFor(state)
+    const stateCell = isConvergenceState(state)
+      ? `**[\`${state.id}\`](${specRoute})** [(${convergenceLevel})](${convergenceDocAnchorFor(convergenceLevel)})`
+      : `[\`${state.id}\`](${specRoute})`
     const branchName = state.publish?.branch ?? 'n/a'
     const branchCell = branchName === 'n/a'
       ? '`n/a`'
       : `[${branchName}](${branchLinkFor(branchName)})`
 
-    return `| [\`${state.id}\`](${specRoute}) | [link](${specRoute}) | [link](${architectureRoute}) | [link](${topologyRoute}) | [link](${learningRoute}) | ${branchCell} |`
+    return `| ${stateCell} | [link](${specRoute}) | [link](${architectureRoute}) | [link](${topologyRoute}) | [link](${learningRoute}) | ${branchCell} |`
   })
+
+  const convergenceFlowLines = ['flowchart LR']
+  for (const state of convergenceStates) {
+    convergenceFlowLines.push(`  ${mermaidNodeIdFor(state.id)}["${mermaidLabelFor(state)}"]`)
+  }
+  for (let i = 1; i < convergenceStates.length; i += 1) {
+    const previous = convergenceStates[i - 1]
+    const current = convergenceStates[i]
+    convergenceFlowLines.push(`  ${mermaidNodeIdFor(previous.id)} --> ${mermaidNodeIdFor(current.id)}`)
+  }
+  for (const state of convergenceStates) {
+    convergenceFlowLines.push(
+      `  click ${mermaidNodeIdFor(state.id)} href "${specRouteFor(state.id)}" "Open ${state.id}"`
+    )
+  }
 
   const body = `---
 title: Visual Learning Paths
@@ -535,14 +618,28 @@ title: Visual Learning Paths
 # Visual Learning Paths
 
 This page is generated from \`catalog/state-catalog.json\`.
+Green nodes represent convergence checkpoints (C-level milestones such as \`[C0]\`, \`[C1]\`, \`[C2]\`, \`[C3]\`).
+
+## Convergence-Level Graph
+
+This high-level view shows only the canonical convergence progression from \`C0\` to \`C3\`.
+
+\`\`\`mermaid
+${convergenceFlowLines.join('\n')}
+  classDef convergence fill:#d7f5dd,stroke:#2e7d32,stroke-width:2px
+${convergenceClassLines.join('\n')}
+\`\`\`
 
 ## Official Current Graph
 
 \`\`\`mermaid
-flowchart LR
+flowchart TB
 ${nodeLines.join('\n')}
 ${edgeLines.join('\n')}
+${dottedEdgeLines.join('\n')}
 ${clickLines.join('\n')}
+  classDef convergence fill:#d7f5dd,stroke:#2e7d32,stroke-width:2px
+${convergenceClassLines.join('\n')}
 \`\`\`
 
 ## State To Artifact Mapping
@@ -555,6 +652,7 @@ ${tableRows.join('\n')}
 
 \`\`\`mermaid
 ${swimlaneLines.join('\n')}
+  classDef convergence fill:#d7f5dd,stroke:#2e7d32,stroke-width:2px
 \`\`\`
 
 Use \`catalog/state-catalog.json\` as the canonical state lineage record.

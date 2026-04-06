@@ -52,64 +52,46 @@ trap 'rm -rf "${tmp_dir}"' EXIT
 tmp_yaml="${tmp_dir}/learning-paths.yaml"
 tmp_md="${tmp_dir}/learning-paths.md"
 
-baseline_id="$(jq -r '.states | sort_by(.id) | .[0].id' "${STATE_CATALOG}")"
-baseline_title="$(jq -r --arg id "${baseline_id}" '.states[] | select(.id == $id) | .title' "${STATE_CATALOG}")"
+baseline_id="$(jq -r '.states[0].id // ""' "${STATE_CATALOG}")"
+baseline_title="$(jq -r --arg id "${baseline_id}" '.states[] | select(.id == $id) | .title // ""' "${STATE_CATALOG}")"
 
 if [[ -z "${baseline_id}" || "${baseline_id}" == "null" ]]; then
   echo "[fail] no states found in ${STATE_CATALOG}"
   exit 1
 fi
 
-devex_states="$(
-  jq -r '.states[] | select((.track // "devex") == "devex") | .id' "${STATE_CATALOG}" | sort
+track_states() {
+  local track="$1"
+  jq -r --arg track "${track}" '.states[] | select((.track // "") == $track) | .id' "${STATE_CATALOG}"
+}
+
+role_states() {
+  local role="$1"
+  jq -r --arg role "${role}" '.states[] | select((.primaryLineageRole // "canonical") == $role) | .id' "${STATE_CATALOG}"
+}
+
+convergence_states="$(
+  jq -r '.states[] | select((.isConvergence // false) == true) | .id' "${STATE_CATALOG}"
 )"
-architecture_states="$(
-  jq -r '
-    [
-      (.states[] | select(.track == "architecture") | .id),
-      (.states[] | select(.track == "architecture") | (.previous // [])[])
-    ]
-    | flatten
-    | unique
-    | sort
-    | .[]
-  ' "${STATE_CATALOG}"
-)"
-functional_states="$(
-  jq -r '
-    [
-      (.states[] | select(.track == "functional") | .id),
-      (.states[] | select(.track == "functional") | (.previous // [])[])
-    ]
-    | flatten
-    | unique
-    | sort
-    | .[]
-  ' "${STATE_CATALOG}"
-)"
-nonfunctional_states="$(
-  jq -r '
-    [
-      (.states[] | select(.track == "nonfunctional") | .id),
-      (.states[] | select(.track == "nonfunctional") | (.previous // [])[])
-    ]
-    | flatten
-    | unique
-    | sort
-    | .[]
-  ' "${STATE_CATALOG}"
-)"
+
+prelude_states="$(track_states "prelude")"
+architecture_states="$(track_states "architecture")"
+nonfunctional_states="$(track_states "nonfunctional")"
+functional_states="$(track_states "functional")"
+devex_states="$(track_states "devex")"
+optional_states="$(role_states "optional")"
 
 yaml_state_catalog="$(
   jq -r '
-    .states
-    | sort_by(.id)
-    | .[]
+    .states[]
     | "  - id: \(.id)\n" +
       (if ((.previous // []) | length) == 0
        then "    previous: []"
        else "    previous:\n" + ((.previous // []) | map("      - " + .) | join("\n"))
        end) +
+      "\n    convergenceLevel: \(.convergenceLevel // "none")" +
+      "\n    isConvergence: \(.isConvergence // false)" +
+      "\n    lineageRole: \(.primaryLineageRole // "canonical")" +
       "\n    spec: \(.featurePack)/spec.md"
   ' "${STATE_CATALOG}"
 )"
@@ -127,8 +109,21 @@ baseline:
     architecture: specs/${baseline_id}/system/architecture.md
 
 tracks:
+  prelude:
+    description: "Onboarding progression before convergence baselines."
+    states:
+EOF
+  if [[ -z "${prelude_states}" ]]; then
+    echo "      - none"
+  else
+    while IFS= read -r state; do
+      [[ -n "${state}" ]] && echo "      - ${state}"
+    done <<< "${prelude_states}"
+  fi
+
+  cat <<'EOF'
   devex:
-    description: "Developer experience and runtime topology progression."
+    description: "Platform/runtime developer-experience progression."
     states:
 EOF
 
@@ -138,33 +133,67 @@ EOF
 
   cat <<'EOF'
   architecture:
-    description: "Architecture substitutions and component-level platform changes."
+    description: "Architecture substitutions and platform-component changes."
     states:
 EOF
-  while IFS= read -r state; do
-    [[ -n "${state}" ]] && echo "      - ${state}"
-  done <<< "${architecture_states}"
+  if [[ -z "${architecture_states}" ]]; then
+    echo "      - none"
+  else
+    while IFS= read -r state; do
+      [[ -n "${state}" ]] && echo "      - ${state}"
+    done <<< "${architecture_states}"
+  fi
 
   cat <<'EOF'
   functional:
-    description: "Functional capability expansion built on architecture states."
+    description: "Functional capability expansion states."
     states:
 EOF
-  while IFS= read -r state; do
-    [[ -n "${state}" ]] && echo "      - ${state}"
-  done <<< "${functional_states}"
+  if [[ -z "${functional_states}" ]]; then
+    echo "      - none"
+  else
+    while IFS= read -r state; do
+      [[ -n "${state}" ]] && echo "      - ${state}"
+    done <<< "${functional_states}"
+  fi
 
   cat <<'EOF'
   nonfunctional:
-    description: "Security, reliability, and platform NFR overlays."
+    description: "Non-functional overlays (observability, resilience, operations)."
     states:
 EOF
   if [[ -z "${nonfunctional_states}" ]]; then
-    echo "      - planned"
+    echo "      - none"
   else
     while IFS= read -r state; do
       [[ -n "${state}" ]] && echo "      - ${state}"
     done <<< "${nonfunctional_states}"
+  fi
+
+  cat <<'EOF'
+  optional:
+    description: "Optional side branches not in primary publish lineage."
+    states:
+EOF
+  if [[ -z "${optional_states}" ]]; then
+    echo "      - none"
+  else
+    while IFS= read -r state; do
+      [[ -n "${state}" ]] && echo "      - ${state}"
+    done <<< "${optional_states}"
+  fi
+
+  cat <<'EOF'
+  convergence:
+    description: "Named convergence milestones (C0/C1/C2/C3)."
+    states:
+EOF
+  if [[ -z "${convergence_states}" ]]; then
+    echo "      - none"
+  else
+    while IFS= read -r state; do
+      [[ -n "${state}" ]] && echo "      - ${state}"
+    done <<< "${convergence_states}"
   fi
 
   cat <<'EOF'
@@ -188,6 +217,19 @@ EOF
   cat <<'EOF'
 
 ## Tracks
+
+### Prelude
+
+EOF
+  if [[ -z "${prelude_states}" ]]; then
+    echo "- none"
+  else
+    while IFS= read -r state; do
+      [[ -n "${state}" ]] && printf -- "- \`%s\`\n" "${state}"
+    done <<< "${prelude_states}"
+  fi
+
+  cat <<'EOF'
 
 ### DevEx
 
@@ -228,7 +270,7 @@ EOF
 
 EOF
   if [[ -z "${nonfunctional_states}" ]]; then
-    echo "- planned"
+    echo "- none"
   else
     while IFS= read -r state; do
       [[ -n "${state}" ]] && printf -- "- \`%s\`\n" "${state}"
@@ -237,18 +279,42 @@ EOF
 
   cat <<'EOF'
 
+### Optional
+
+EOF
+  if [[ -z "${optional_states}" ]]; then
+    echo "- none"
+  else
+    while IFS= read -r state; do
+      [[ -n "${state}" ]] && printf -- "- \`%s\`\n" "${state}"
+    done <<< "${optional_states}"
+  fi
+
+  cat <<'EOF'
+
+### Convergence
+
+EOF
+  if [[ -z "${convergence_states}" ]]; then
+    echo "- none"
+  else
+    while IFS= read -r state; do
+      [[ -n "${state}" ]] && printf -- "- \`%s\`\n" "${state}"
+    done <<< "${convergence_states}"
+  fi
+
+  cat <<'EOF'
+
 ## State Catalog
 
-| State ID | Previous | Spec |
-| --- | --- | --- |
+| State ID | Previous | Convergence | Is Convergence | Role | Spec |
+| --- | --- | --- | --- | --- | --- |
 EOF
   jq -r '
-    .states
-    | sort_by(.id)
-    | .[]
+    .states[]
     | "| `\(.id)` | " +
       ((.previous // []) | if length == 0 then "none" else (join(", ")) end) +
-      " | `\(.featurePack)/spec.md` |"
+      " | `\(.convergenceLevel // "none")` | `\(.isConvergence // false)` | `\(.primaryLineageRole // "canonical")` | `\(.featurePack)/spec.md` |"
   ' "${STATE_CATALOG}"
 } > "${tmp_md}"
 

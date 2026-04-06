@@ -18,6 +18,10 @@ Each state pack under `specs/NNN-*` must include:
 - `data-model.md`
 - `quickstart.md`
 
+Convergence states must also include:
+
+- `system/convergence-rationale.md`
+
 Browse in docs:
 
 - `/specs/baseline-uncontainerized-parity`
@@ -54,6 +58,14 @@ For states `002+`, generation follows:
 1. Generate parent state output.
 2. Apply ordered patch set from `specs/<state>/generation/patches/*.patch`.
 3. Regenerate architecture docs and run state smoke checks.
+
+## Convergence-State Policy
+
+- Prefer new state proposals from the nearest suitable convergence state (`C0/C1/C2/C3`).
+- Keep `previous` single-parent for publish lineage.
+- Use `dottedParents` only for convergence states.
+- If convergence-state metadata/content changes, update that state's `system/convergence-rationale.md`.
+- Reference: [`/docs/spec-kit/convergence-states`](/docs/spec-kit/convergence-states)
 
 ## LLM Feature-Add Implementation Contract
 
@@ -93,12 +105,10 @@ Learning-path catalog policy:
 
 ## Generation Commands
 
-Regenerate baseline components:
+Generate any state:
 
 ```bash
-bash pipeline/generate-state.sh 001-baseline-uncontainerized-parity
-bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized
-bash pipeline/generate-state.sh 003-containerized-compose-runtime
+bash pipeline/generate-state.sh <state-id>
 ```
 
 These commands also regenerate state architecture docs from `specs/*/system/architecture.model.json`.
@@ -107,7 +117,7 @@ State docs (`/docs/spec-kit/state-docs`) are generated from `catalog/state-catal
 Scaffold a new planned state pack:
 
 ```bash
-bash pipeline/scaffold-state-pack.sh <NNN-state-name> --title "<Title>" --previous <prior-state-id> --track <devex|nonfunctional|functional>
+bash pipeline/scaffold-state-pack.sh <NNN-state-name> --title "<Title>" --previous <prior-state-id> --track <prelude|baseline|architecture|nonfunctional|functional|devex>
 ```
 
 Run the state-change playbook (refresh docs -> gates -> generate -> optional publish/push):

@@ -29,6 +29,8 @@ fi
 
 "${ROOT}/pipeline/validate-regeneration-readiness.sh"
 bash "${ROOT}/pipeline/validate-state-pack-artifacts.sh"
+bash "${ROOT}/pipeline/validate-convergence-state-model.sh"
+bash "${ROOT}/pipeline/validate-convergence-rationale-deltas.sh"
 "${ROOT}/pipeline/speckit/validate-speckit-readiness.sh"
 "${ROOT}/pipeline/speckit/verify-spec-expressiveness.sh"
 bash "${ROOT}/pipeline/refresh-state-docs.sh" --check

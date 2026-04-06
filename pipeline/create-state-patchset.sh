@@ -9,7 +9,7 @@ TARGET_PATH="${ROOT}/${TARGET_PATH_ARG}"
 
 if [[ -z "${STATE_ID}" ]]; then
   echo "usage: bash pipeline/create-state-patchset.sh <state-id> [parent-state-id] [target-path]"
-  echo "example: bash pipeline/create-state-patchset.sh 007-messaging-nats-replacement"
+  echo "example: bash pipeline/create-state-patchset.sh 005-messaging-nats-replacement"
   echo "example: bash pipeline/create-state-patchset.sh 002-edge-proxy-uncontainerized 001-baseline-uncontainerized-parity generated/code/components"
   exit 1
 fi

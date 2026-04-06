@@ -92,3 +92,99 @@ body{
   margin-top: 25px;
   margin-bottom: 25px;
 }
+
+.tx-mermaid-zoom-shell {
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 8px;
+  margin: 0 0 1.25rem;
+  background: var(--ifm-background-surface-color);
+  position: relative;
+  z-index: 1;
+}
+
+.tx-mermaid-zoom-controls {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--ifm-color-emphasis-300);
+  background: var(--ifm-background-surface-color);
+}
+
+.tx-mermaid-zoom-btn {
+  background: var(--ifm-color-emphasis-200);
+  border: 1px solid var(--ifm-color-emphasis-300);
+  color: var(--ifm-font-color-base);
+  border-radius: 6px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.tx-mermaid-zoom-btn:hover {
+  background: var(--ifm-color-emphasis-300);
+}
+
+.tx-mermaid-zoom-viewport {
+  overflow: auto;
+  padding: 0.75rem;
+  max-height: 600px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.tx-mermaid-zoom-viewport .theme-mermaid,
+.tx-mermaid-zoom-viewport .mermaid {
+  width: 100%;
+  min-width: 0;
+}
+
+.tx-mermaid-zoom-canvas {
+  width: 100%;
+  margin: 0 auto;
+  min-height: 100px;
+}
+
+.tx-mermaid-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transition: opacity 120ms ease-out;
+  z-index: 2000;
+}
+
+.tx-mermaid-modal-backdrop.is-visible {
+  opacity: 1;
+}
+
+.tx-mermaid-zoom-shell--modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  border-radius: 0;
+  z-index: 2001;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+}
+
+.tx-mermaid-zoom-shell--modal .tx-mermaid-zoom-controls {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.tx-mermaid-zoom-shell--modal .tx-mermaid-zoom-viewport {
+  max-height: none;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+}
+
+body.tx-mermaid-modal-open {
+  overflow: hidden;
+}

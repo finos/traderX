@@ -7,7 +7,16 @@ title: "State 001: Simple App - Base Uncontainerized App"
 ## Position In Learning Graph
 
 - Previous state(s): none
+- Dotted-line parent(s): none
 - Next state(s): [002-edge-proxy-uncontainerized](/docs/learning/state-002-edge-proxy-uncontainerized)
+
+## Convergence Metadata
+
+- Convergence state: `no`
+- Convergence level: `none`
+- Lineage role: `prelude`
+- Nearest previous convergence: `none`
+- Nearest next convergence: `none`
 
 ## Rendered Code
 

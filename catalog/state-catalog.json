@@ -10,6 +10,11 @@
       "id": "001-baseline-uncontainerized-parity",
       "title": "Simple App - Base Uncontainerized App",
       "status": "released",
+      "track": "prelude",
+      "convergenceLevel": "none",
+      "isConvergence": false,
+      "dottedParents": [],
+      "primaryLineageRole": "prelude",
       "featurePack": "specs/001-baseline-uncontainerized-parity",
       "previous": [],
       "generation": {
@@ -26,6 +31,11 @@
       "id": "002-edge-proxy-uncontainerized",
       "title": "Edge Proxy Uncontainerized",
       "status": "implemented",
+      "track": "prelude",
+      "convergenceLevel": "none",
+      "isConvergence": false,
+      "dottedParents": [],
+      "primaryLineageRole": "prelude",
       "featurePack": "specs/002-edge-proxy-uncontainerized",
       "previous": [
         "001-baseline-uncontainerized-parity"
@@ -44,6 +54,11 @@
       "id": "003-containerized-compose-runtime",
       "title": "Containerized Compose Runtime (NGINX Ingress)",
       "status": "implemented",
+      "track": "baseline",
+      "convergenceLevel": "C0",
+      "isConvergence": true,
+      "dottedParents": [],
+      "primaryLineageRole": "canonical",
       "featurePack": "specs/003-containerized-compose-runtime",
       "previous": [
         "002-edge-proxy-uncontainerized"
@@ -59,176 +74,216 @@
       }
     },
     {
-      "id": "004-kubernetes-runtime",
-      "title": "Kubernetes Runtime Baseline",
-      "status": "implemented",
-      "track": "devex",
-      "featurePack": "specs/004-kubernetes-runtime",
-      "previous": [
-        "003-containerized-compose-runtime"
-      ],
-      "generation": {
-        "mode": "implemented",
-        "entrypoint": "bash pipeline/generate-state.sh 004-kubernetes-runtime",
-        "runtime": "./scripts/start-state-004-kubernetes-generated.sh"
-      },
-      "publish": {
-        "branch": "code/generated-state-004-kubernetes-runtime",
-        "tag": "generated/004-kubernetes-runtime/v1"
-      }
-    },
-    {
-      "id": "005-radius-kubernetes-platform",
-      "title": "Radius Platform on Kubernetes",
-      "status": "implemented",
-      "track": "devex",
-      "featurePack": "specs/005-radius-kubernetes-platform",
-      "previous": [
-        "004-kubernetes-runtime"
-      ],
-      "generation": {
-        "mode": "implemented",
-        "entrypoint": "bash pipeline/generate-state.sh 005-radius-kubernetes-platform",
-        "runtime": "./scripts/start-state-005-radius-kubernetes-platform-generated.sh"
-      },
-      "publish": {
-        "branch": "code/generated-state-005-radius-kubernetes-platform",
-        "tag": "generated/005-radius-kubernetes-platform/v1"
-      }
-    },
-    {
-      "id": "006-tilt-kubernetes-dev-loop",
-      "title": "Tilt Local Dev on Kubernetes",
-      "status": "implemented",
-      "track": "devex",
-      "featurePack": "specs/006-tilt-kubernetes-dev-loop",
-      "previous": [
-        "004-kubernetes-runtime"
-      ],
-      "generation": {
-        "mode": "implemented",
-        "entrypoint": "bash pipeline/generate-state.sh 006-tilt-kubernetes-dev-loop",
-        "runtime": "./scripts/start-state-006-tilt-kubernetes-dev-loop-generated.sh"
-      },
-      "publish": {
-        "branch": "code/generated-state-006-tilt-kubernetes-dev-loop",
-        "tag": "generated/006-tilt-kubernetes-dev-loop/v1"
-      }
-    },
-    {
-      "id": "007-messaging-nats-replacement",
-      "title": "Messaging Layer Replacement with NATS",
-      "status": "implemented",
-      "track": "architecture",
-      "featurePack": "specs/007-messaging-nats-replacement",
-      "decisionRecord": "docs/adr/005-state-007-use-nats-for-messaging-replacement.md",
-      "previous": [
-        "003-containerized-compose-runtime"
-      ],
-      "generation": {
-        "mode": "implemented",
-        "entrypoint": "bash pipeline/generate-state.sh 007-messaging-nats-replacement",
-        "runtime": "./scripts/start-state-007-messaging-nats-replacement-generated.sh"
-      },
-      "publish": {
-        "branch": "code/generated-state-007-messaging-nats-replacement",
-        "tag": "generated/007-messaging-nats-replacement/v1"
-      }
-    },
-    {
-      "id": "009-postgres-database-replacement",
+      "id": "004-postgres-database-replacement",
       "title": "PostgreSQL Database Replacement",
       "status": "implemented",
       "track": "architecture",
-      "featurePack": "specs/009-postgres-database-replacement",
-      "decisionRecord": "docs/adr/006-state-009-use-postgres-for-database-replacement.md",
+      "convergenceLevel": "none",
+      "isConvergence": false,
+      "dottedParents": [],
+      "primaryLineageRole": "canonical",
+      "featurePack": "specs/004-postgres-database-replacement",
+      "decisionRecord": "docs/adr/006-state-004-use-postgres-for-database-replacement.md",
       "previous": [
         "003-containerized-compose-runtime"
       ],
       "generation": {
         "mode": "implemented",
-        "entrypoint": "bash pipeline/generate-state.sh 009-postgres-database-replacement",
-        "runtime": "./scripts/start-state-009-postgres-database-replacement-generated.sh"
+        "entrypoint": "bash pipeline/generate-state.sh 004-postgres-database-replacement",
+        "runtime": "./scripts/start-state-004-postgres-database-replacement-generated.sh"
       },
       "publish": {
-        "branch": "code/generated-state-009-postgres-database-replacement",
-        "tag": "generated/009-postgres-database-replacement/v1"
+        "branch": "code/generated-state-004-postgres-database-replacement",
+        "tag": "generated/004-postgres-database-replacement/v1"
       }
     },
     {
-      "id": "010-pricing-awareness-market-data",
-      "title": "Pricing Awareness and Market Data Streaming",
+      "id": "005-messaging-nats-replacement",
+      "title": "Messaging Layer Replacement with NATS",
       "status": "implemented",
-      "track": "functional",
-      "featurePack": "specs/010-pricing-awareness-market-data",
+      "track": "architecture",
+      "convergenceLevel": "none",
+      "isConvergence": false,
+      "dottedParents": [],
+      "primaryLineageRole": "canonical",
+      "featurePack": "specs/005-messaging-nats-replacement",
+      "decisionRecord": "docs/adr/005-state-005-use-nats-for-messaging-replacement.md",
       "previous": [
-        "007-messaging-nats-replacement"
+        "004-postgres-database-replacement"
       ],
       "generation": {
         "mode": "implemented",
-        "entrypoint": "bash pipeline/generate-state.sh 010-pricing-awareness-market-data",
-        "runtime": "./scripts/start-state-010-pricing-awareness-market-data-generated.sh"
+        "entrypoint": "bash pipeline/generate-state.sh 005-messaging-nats-replacement",
+        "runtime": "./scripts/start-state-005-messaging-nats-replacement-generated.sh"
       },
       "publish": {
-        "branch": "code/generated-state-010-pricing-awareness-market-data",
-        "tag": "generated/010-pricing-awareness-market-data/v1"
+        "branch": "code/generated-state-005-messaging-nats-replacement",
+        "tag": "generated/005-messaging-nats-replacement/v1"
       }
     },
     {
-      "id": "011-observability-lgtm-compose",
+      "id": "006-observability-lgtm-compose",
       "title": "Observability with LGTM on Compose",
       "status": "implemented",
       "track": "nonfunctional",
-      "featurePack": "specs/011-observability-lgtm-compose",
+      "convergenceLevel": "C1",
+      "isConvergence": true,
+      "dottedParents": [],
+      "primaryLineageRole": "canonical",
+      "featurePack": "specs/006-observability-lgtm-compose",
+      "decisionRecord": "docs/adr/007-state-006-adopt-lgtm-observability-stack.md",
       "previous": [
-        "003-containerized-compose-runtime"
+        "005-messaging-nats-replacement"
       ],
       "generation": {
         "mode": "implemented",
-        "entrypoint": "bash pipeline/generate-state.sh 011-observability-lgtm-compose",
-        "runtime": "./scripts/start-state-011-observability-lgtm-compose-generated.sh"
+        "entrypoint": "bash pipeline/generate-state.sh 006-observability-lgtm-compose",
+        "runtime": "./scripts/start-state-006-observability-lgtm-compose-generated.sh"
       },
       "publish": {
-        "branch": "code/generated-state-011-observability-lgtm-compose",
-        "tag": "generated/011-observability-lgtm-compose/v1"
+        "branch": "code/generated-state-006-observability-lgtm-compose",
+        "tag": "generated/006-observability-lgtm-compose/v1"
       }
     },
     {
-      "id": "012-observability-on-pricing",
-      "title": "Observability with LGTM on Pricing State",
+      "id": "007-pricing-awareness-market-data",
+      "title": "Pricing Awareness and Market Data Streaming",
       "status": "implemented",
-      "track": "nonfunctional",
-      "featurePack": "specs/012-observability-on-pricing",
+      "track": "functional",
+      "convergenceLevel": "none",
+      "isConvergence": false,
+      "dottedParents": [],
+      "primaryLineageRole": "canonical",
+      "featurePack": "specs/007-pricing-awareness-market-data",
       "previous": [
-        "010-pricing-awareness-market-data"
+        "006-observability-lgtm-compose"
       ],
       "generation": {
         "mode": "implemented",
-        "entrypoint": "bash pipeline/generate-state.sh 012-observability-on-pricing",
-        "runtime": "./scripts/start-state-012-observability-on-pricing-generated.sh"
+        "entrypoint": "bash pipeline/generate-state.sh 007-pricing-awareness-market-data",
+        "runtime": "./scripts/start-state-007-pricing-awareness-market-data-generated.sh"
       },
       "publish": {
-        "branch": "code/generated-state-012-observability-on-pricing",
-        "tag": "generated/012-observability-on-pricing/v1"
+        "branch": "code/generated-state-007-pricing-awareness-market-data",
+        "tag": "generated/007-pricing-awareness-market-data/v1"
       }
     },
     {
-      "id": "013-order-management-matcher",
+      "id": "008-order-management-matcher",
       "title": "Order Management and Matcher",
       "status": "implemented",
       "track": "functional",
-      "featurePack": "specs/013-order-management-matcher",
+      "convergenceLevel": "C2",
+      "isConvergence": true,
+      "dottedParents": [],
+      "primaryLineageRole": "canonical",
+      "featurePack": "specs/008-order-management-matcher",
       "previous": [
-        "012-observability-on-pricing"
+        "007-pricing-awareness-market-data"
       ],
       "generation": {
         "mode": "implemented",
-        "entrypoint": "bash pipeline/generate-state.sh 013-order-management-matcher",
-        "runtime": "./scripts/start-state-013-order-management-matcher-generated.sh"
+        "entrypoint": "bash pipeline/generate-state.sh 008-order-management-matcher",
+        "runtime": "./scripts/start-state-008-order-management-matcher-generated.sh"
       },
       "publish": {
-        "branch": "code/generated-state-013-order-management-matcher",
-        "tag": "generated/013-order-management-matcher/v1"
+        "branch": "code/generated-state-008-order-management-matcher",
+        "tag": "generated/008-order-management-matcher/v1"
+      }
+    },
+    {
+      "id": "009-kubernetes-runtime",
+      "title": "Kubernetes Runtime on C2",
+      "status": "implemented",
+      "track": "devex",
+      "convergenceLevel": "none",
+      "isConvergence": false,
+      "dottedParents": [],
+      "primaryLineageRole": "canonical",
+      "featurePack": "specs/009-kubernetes-runtime",
+      "previous": [
+        "008-order-management-matcher"
+      ],
+      "generation": {
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-state.sh 009-kubernetes-runtime",
+        "runtime": "./scripts/start-state-009-kubernetes-runtime-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-009-kubernetes-runtime",
+        "tag": "generated/009-kubernetes-runtime/v1"
+      }
+    },
+    {
+      "id": "010-tilt-kubernetes-dev-loop",
+      "title": "Tilt Local Dev on Kubernetes",
+      "status": "implemented",
+      "track": "devex",
+      "convergenceLevel": "none",
+      "isConvergence": false,
+      "dottedParents": [],
+      "primaryLineageRole": "canonical",
+      "featurePack": "specs/010-tilt-kubernetes-dev-loop",
+      "previous": [
+        "009-kubernetes-runtime"
+      ],
+      "generation": {
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-state.sh 010-tilt-kubernetes-dev-loop",
+        "runtime": "./scripts/start-state-010-tilt-kubernetes-dev-loop-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-010-tilt-kubernetes-dev-loop",
+        "tag": "generated/010-tilt-kubernetes-dev-loop/v1"
+      }
+    },
+    {
+      "id": "011-platform-convergence-c3",
+      "title": "Platform Convergence C3",
+      "status": "implemented",
+      "track": "devex",
+      "convergenceLevel": "C3",
+      "isConvergence": true,
+      "dottedParents": [
+        "008-order-management-matcher"
+      ],
+      "primaryLineageRole": "canonical",
+      "featurePack": "specs/011-platform-convergence-c3",
+      "decisionRecord": "docs/adr/008-convergence-state-model.md",
+      "previous": [
+        "010-tilt-kubernetes-dev-loop"
+      ],
+      "generation": {
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-state.sh 011-platform-convergence-c3",
+        "runtime": "./scripts/start-state-011-platform-convergence-c3-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-011-platform-convergence-c3",
+        "tag": "generated/011-platform-convergence-c3/v1"
+      }
+    },
+    {
+      "id": "012-radius-kubernetes-platform",
+      "title": "Radius Platform on Kubernetes (Optional)",
+      "status": "implemented",
+      "track": "devex",
+      "convergenceLevel": "none",
+      "isConvergence": false,
+      "dottedParents": [],
+      "primaryLineageRole": "optional",
+      "featurePack": "specs/012-radius-kubernetes-platform",
+      "previous": [
+        "009-kubernetes-runtime"
+      ],
+      "generation": {
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-state.sh 012-radius-kubernetes-platform",
+        "runtime": "./scripts/start-state-012-radius-kubernetes-platform-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-012-radius-kubernetes-platform",
+        "tag": "generated/012-radius-kubernetes-platform/v1"
       }
     }
   ]

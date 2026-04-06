@@ -1,0 +1,34 @@
+# Non-Functional Delta: 006-observability-lgtm-compose
+
+Parent state: `005-messaging-nats-replacement`
+
+Document NFR changes introduced by this state.
+
+## Runtime / Operations
+
+- Add observability services to compose runtime:
+  - Grafana (`:3000`)
+  - Prometheus (`:9090`)
+  - Loki (`:3100`)
+  - Tempo (`:3200`)
+  - OTel Collector (`:4317`, `:4318`, `:13133`)
+  - Blackbox Exporter (`:9115`)
+  - Promtail (internal)
+- Keep all existing TraderX service ports unchanged from state `005`.
+
+## Security / Compliance
+
+- No authentication hardening added in this state; Grafana credentials are local-dev defaults (`admin/admin`).
+- State is intended for local learning environments, not production deployment.
+
+## Performance / Scalability
+
+- Prometheus probe interval defaults to 15 seconds to balance signal quality and local resource cost.
+- Log scraping uses Docker service discovery and label relabeling for low-friction local operation.
+
+## Reliability / Observability
+
+- Blackbox probe success and latency metrics are available for key TraderX endpoints.
+- Container logs are queryable in Grafana via Loki.
+- OTel Collector and Tempo are wired for trace ingestion to support future instrumentation growth.
+- Provisioned dashboards provide out-of-the-box visibility for service availability, latency, and log throughput.

@@ -7,7 +7,16 @@ title: "State 003: Containerized Compose Runtime (NGINX Ingress)"
 ## Position In Learning Graph
 
 - Previous state(s): [002-edge-proxy-uncontainerized](/docs/learning/state-002-edge-proxy-uncontainerized)
-- Next state(s): [004-kubernetes-runtime](/docs/learning/state-004-kubernetes-runtime), [007-messaging-nats-replacement](/docs/learning/state-007-messaging-nats-replacement), [009-postgres-database-replacement](/docs/learning/state-009-postgres-database-replacement), [011-observability-lgtm-compose](/docs/learning/state-011-observability-lgtm-compose)
+- Dotted-line parent(s): none
+- Next state(s): [004-postgres-database-replacement](/docs/learning/state-004-postgres-database-replacement)
+
+## Convergence Metadata
+
+- Convergence state: `yes`
+- Convergence level: `C0`
+- Lineage role: `canonical`
+- Nearest previous convergence: `none`
+- Nearest next convergence: [006-observability-lgtm-compose](/docs/learning/state-006-observability-lgtm-compose)
 
 ## Rendered Code
 

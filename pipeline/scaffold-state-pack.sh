@@ -10,13 +10,13 @@ usage() {
 usage: bash pipeline/scaffold-state-pack.sh <state-id> --title "<state title>" --previous <state-id> [--track <track>]
 
 Example:
-  bash pipeline/scaffold-state-pack.sh 004-kubernetes-runtime \
+  bash pipeline/scaffold-state-pack.sh 009-kubernetes-runtime \
     --title "Kubernetes Runtime Baseline" \
     --previous 003-containerized-compose-runtime \
-    --track devex
+    --track functional
 
 Supported tracks:
-  devex | architecture | functional | nonfunctional
+  prelude | baseline | architecture | nonfunctional | functional | devex
 EOF
 }
 
@@ -184,6 +184,10 @@ jq \
     "title": $title,
     "status": "planned",
     "track": $track,
+    "convergenceLevel": "none",
+    "isConvergence": false,
+    "dottedParents": [],
+    "primaryLineageRole": "canonical",
     "featurePack": $featurePack,
     "previous": [$previous],
     "generation": {

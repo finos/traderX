@@ -2,7 +2,7 @@
 
 Generated compose runtime for:
 
-- `specs/010-pricing-awareness-market-data`
+- `specs/007-pricing-awareness-market-data`
 
 Run:
 

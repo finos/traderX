@@ -17,6 +17,7 @@ The state catalog is the publish contract for generated snapshots:
 
 - state id/title/status
 - predecessor states (`previous`)
+- convergence metadata (`isConvergence`, `convergenceLevel`, `dottedParents`, `primaryLineageRole`)
 - generation readiness (`generation.mode`)
 - default generated-state branch name
 - release tag hint
@@ -25,7 +26,8 @@ The state catalog is the publish contract for generated snapshots:
 
 Each state must be buildable from its own feature pack without requiring branch-local edits.
 
-Lineage is explicit through `previous` in `catalog/state-catalog.json`.
+Publish lineage is explicit through `previous` in `catalog/state-catalog.json`.
+Dotted-line parents are documentation lineage only and are not used for branch ancestry.
 
 Generated branches include metadata files so consumers can always see provenance:
 
@@ -100,7 +102,7 @@ Current published generated branches:
 1. Scaffold the feature pack:
 
 ```bash
-bash pipeline/scaffold-state-pack.sh <NNN-state-name> --title "<Title>" --previous <prior-state-id> --track <devex|nonfunctional|functional>
+bash pipeline/scaffold-state-pack.sh <NNN-state-name> --title "<Title>" --previous <prior-state-id> --track <prelude|baseline|architecture|nonfunctional|functional|devex>
 ```
 
 2. Add/update requirements, plan, tasks, contracts, and traceability for the new state.

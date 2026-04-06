@@ -4,203 +4,97 @@ title: Spec Kit Generation Guide
 
 # Spec Kit Generation Guide
 
-This guide explains how to regenerate TraderX from requirements, then iterate into later learning-path states.
+This guide describes how to regenerate TraderX code from specs and evolve between states.
 
-## Why This Helps
+## Source of Truth
 
-- You can recreate a working baseline from specs without relying on legacy root source.
-- Every state transition is explicit as FR/NFR deltas in `specs/NNN-*`.
-- New contributors can start from a known state and replay evolution with predictable gates.
+- Spec framework: `/.specify/**`
+- State packs: `/specs/NNN-*`
+- State lineage and publish metadata: `/catalog/state-catalog.json`
 
-## Baseline Source of Truth
-
-- Spec scaffold and constitution: `/.specify/**`
-- Baseline feature pack: `specs/001-baseline-uncontainerized-parity/**`
-- Contracts: `specs/001-baseline-uncontainerized-parity/contracts/**/openapi.yaml`
-- State lineage + publish model: `catalog/state-catalog.json`
-- Learning-path catalog artifacts (generated): `catalog/learning-paths.yaml`, `catalog/learning-paths.md`
-
-Refresh all state-derived docs and catalogs:
+Refresh all derived learning/state docs:
 
 ```bash
 bash pipeline/refresh-state-docs.sh
 ```
 
-## Generate Baseline Components
+## Generate and Run a State
+
+Generate any state:
+
+```bash
+bash pipeline/generate-state.sh <state-id>
+```
+
+Typical examples:
 
 ```bash
 bash pipeline/generate-state.sh 001-baseline-uncontainerized-parity
+bash pipeline/generate-state.sh 003-containerized-compose-runtime
+bash pipeline/generate-state.sh 006-observability-lgtm-compose
+bash pipeline/generate-state.sh 011-platform-convergence-c3
 ```
 
-## Run the Generated Baseline
+Run examples:
 
 ```bash
+# 001 (uncontainerized)
 CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh
+
+# 003 (compose)
+./scripts/start-state-003-containerized-generated.sh
+
+# 006 (compose + observability)
+./scripts/start-state-006-observability-lgtm-compose-generated.sh
+
+# 009 (kubernetes)
+./scripts/start-state-009-kubernetes-runtime-generated.sh --provider kind
 ```
 
-## Validate Requirements-to-Behavior Fidelity
+## Derived-State Implementation Pattern
 
-```bash
-./pipeline/speckit/validate-speckit-readiness.sh
-./pipeline/speckit/verify-spec-expressiveness.sh
-bash pipeline/speckit/run-full-parity-validation.sh
-```
+For states `002+`:
 
-## Move to the Next Learning-Path State
+1. Generate parent state.
+2. Apply patch set from `specs/<state>/generation/patches/*.patch`.
+3. Regenerate architecture docs.
+4. Run state smoke tests + global gates.
 
-1. Scaffold the next numbered feature pack:
-
-```bash
-bash pipeline/scaffold-state-pack.sh <NNN-state-name> --title "<Title>" --previous <prior-state-id> --track <devex|nonfunctional|functional>
-```
-
-2. Carry forward baseline requirements and add only the intended deltas.
-3. Update contracts and component requirements for affected services.
-4. Ensure state artifacts are complete (`research.md`, `data-model.md`, `quickstart.md`).
-5. Regenerate only impacted components, then rerun conformance/parity gates.
-
-This keeps progression reversible and auditable across DevEx, NFR, and functional tracks.
-
-Canonical playbook command:
-
-```bash
-bash pipeline/state-playbook.sh --state <state-id> --publish-neighborhood --push-generated
-```
-
-## State Generation Model (Patch-Set Overlays)
-
-TraderX now uses two generation modes:
-
-1. Baseline synthesis (state `001`): generate components from manifests/specs.
-2. Derived states (`002+`): generate parent, then apply ordered patch sets from `specs/<state>/generation/patches/*.patch`.
-
-Canonical patch apply helper:
+Patch tooling:
 
 ```bash
 bash pipeline/apply-state-patchset.sh <state-id> [target-root]
+bash pipeline/create-state-patchset.sh <state-id> <parent-state-id> [target-path]
 ```
 
-Patch capture helper (refresh a state patch from parent/child outputs):
+## Convergence-First Guidance
+
+- Prefer starting new state work from convergence states:
+  - `003` (`C0`)
+  - `006` (`C1`)
+  - `008` (`C2`)
+  - `011` (`C3`)
+- Keep `previous` single-parent.
+- Use `dottedParents` only for convergence states.
+- Update `system/convergence-rationale.md` when changing convergence states.
+
+## Validation Gates
 
 ```bash
-bash pipeline/create-state-patchset.sh <state-id> [parent-state-id] [target-path]
+bash pipeline/refresh-state-docs.sh --check
+bash pipeline/validate-state-pack-artifacts.sh
+bash pipeline/verify-spec-coverage.sh
 ```
 
-Examples:
+## Publish Code Snapshot Branches
 
 ```bash
-# Component-root overlay for state 002
-bash pipeline/create-state-patchset.sh \
-  002-edge-proxy-uncontainerized \
-  001-baseline-uncontainerized-parity \
-  generated/code/components
-
-# Runtime-root overlay for state 007
-bash pipeline/create-state-patchset.sh \
-  007-messaging-nats-replacement \
-  003-containerized-compose-runtime
+bash pipeline/publish-generated-state-branch.sh <state-id> --push
 ```
 
-This pattern keeps state deltas explicit, reviewable, and reusable by both humans and LLM-driven implementation workflows.
+Published branches include:
 
-Current state-aware generation entrypoints:
-
-- `bash pipeline/generate-state.sh 001-baseline-uncontainerized-parity`
-- `bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized`
-- `bash pipeline/generate-state.sh 003-containerized-compose-runtime`
-- `bash pipeline/generate-state.sh 004-kubernetes-runtime`
-- `bash pipeline/generate-state.sh 005-radius-kubernetes-platform`
-- `bash pipeline/generate-state.sh 006-tilt-kubernetes-dev-loop`
-- `bash pipeline/generate-state.sh 007-messaging-nats-replacement`
-- `bash pipeline/generate-state.sh 009-postgres-database-replacement`
-- `bash pipeline/generate-state.sh 010-pricing-awareness-market-data`
-- `bash pipeline/generate-state.sh 011-observability-lgtm-compose`
-- `bash pipeline/generate-state.sh 012-observability-on-pricing`
-
-Architecture docs are generated from state-local models under `specs/*/system/architecture.model.json`:
-
-- `bash pipeline/generate-state-architecture-doc.sh 001-baseline-uncontainerized-parity`
-- `bash pipeline/generate-all-architecture-docs.sh`
-
-Containerized runtime (state `003`) commands:
-
-- `./scripts/start-state-003-containerized-generated.sh`
-- `./scripts/status-state-003-containerized-generated.sh`
-- `./scripts/test-state-003-containerized.sh`
-- `./scripts/stop-state-003-containerized-generated.sh`
-- ingress endpoint: `http://localhost:8080`
-
-Kubernetes runtime (state `004`) commands:
-
-- `./scripts/start-state-004-kubernetes-generated.sh --provider kind`
-- `./scripts/status-state-004-kubernetes-generated.sh --provider kind`
-- `./scripts/test-state-004-kubernetes-runtime.sh http://localhost:8080 traderx kind traderx-state-004`
-- `./scripts/stop-state-004-kubernetes-generated.sh --provider kind`
-
-Radius platform state (state `005`) commands:
-
-- `./scripts/start-state-005-radius-kubernetes-platform-generated.sh --provider kind`
-- `./scripts/status-state-005-radius-kubernetes-platform-generated.sh --provider kind`
-- `./scripts/test-state-005-radius-kubernetes-platform.sh http://localhost:8080 traderx kind traderx-state-004`
-- `./scripts/stop-state-005-radius-kubernetes-platform-generated.sh --provider kind`
-
-Tilt local dev-loop state (state `006`) commands:
-
-- `./scripts/start-state-006-tilt-kubernetes-dev-loop-generated.sh --provider kind`
-- `./scripts/status-state-006-tilt-kubernetes-dev-loop-generated.sh --provider kind`
-- `./scripts/test-state-006-tilt-kubernetes-dev-loop.sh http://localhost:8080 traderx kind traderx-state-004`
-- `./scripts/stop-state-006-tilt-kubernetes-dev-loop-generated.sh --provider kind`
-
-Messaging replacement state (state `007`) commands:
-
-- `./scripts/start-state-007-messaging-nats-replacement-generated.sh`
-- `./scripts/status-state-007-messaging-nats-replacement-generated.sh`
-- `./scripts/test-state-007-messaging-nats-replacement.sh`
-- `./scripts/stop-state-007-messaging-nats-replacement-generated.sh`
-
-Pricing state (state `010`) commands:
-
-- `./scripts/start-state-010-pricing-awareness-market-data-generated.sh`
-- `./scripts/status-state-010-pricing-awareness-market-data-generated.sh`
-- `./scripts/test-state-010-pricing-awareness-market-data.sh`
-- `./scripts/stop-state-010-pricing-awareness-market-data-generated.sh`
-
-Observability on compose baseline (state `011`) commands:
-
-- `./scripts/start-state-011-observability-lgtm-compose-generated.sh`
-- `./scripts/status-state-011-observability-lgtm-compose-generated.sh`
-- `./scripts/test-state-011-observability-lgtm-compose.sh`
-- `./scripts/stop-state-011-observability-lgtm-compose-generated.sh`
-
-Observability on pricing runtime (state `012`) commands:
-
-- `./scripts/start-state-012-observability-on-pricing-generated.sh`
-- `./scripts/status-state-012-observability-on-pricing-generated.sh`
-- `./scripts/test-state-012-observability-on-pricing.sh`
-- `./scripts/stop-state-012-observability-on-pricing-generated.sh`
-
-## Publish Code-Only Snapshot Branches
-
-For consumers who want runnable code without the full spec authoring workspace, publish a generated-state branch:
-
-```bash
-bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --push
-```
-
-And for state `003`:
-
-```bash
-bash pipeline/publish-generated-state-branch.sh 003-containerized-compose-runtime --push
-```
-
-Published snapshot branches include:
-
+- `README.md` (lineage + convergence context)
 - `STATE.md`
 - `.traderx-state/state.json`
 - `LEARNING.md`
-- `docs/learning/component-list.md`
-- `docs/learning/system-design.md`
-- `docs/learning/software-architecture.md`
-- `docs/learning/component-diagram.md`
-
-These capture the current state id and lineage so users know exactly what state they are running and what came before it.

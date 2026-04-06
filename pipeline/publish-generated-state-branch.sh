@@ -70,6 +70,7 @@ if [[ "${PREVIOUS_STATE_COUNT}" -gt 1 ]]; then
 fi
 
 PRIMARY_PREVIOUS_STATE_ID="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | ((.previous // [])[0] // "")' "${CATALOG}")"
+DOTTED_PARENTS_FOR_STATE="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | ((.dottedParents // []) | join(", "))' "${CATALOG}")"
 PRIMARY_PREVIOUS_BRANCH=""
 if [[ -n "${PRIMARY_PREVIOUS_STATE_ID}" ]]; then
   PRIMARY_PREVIOUS_BRANCH="$(jq -r --arg id "${PRIMARY_PREVIOUS_STATE_ID}" '.states[] | select(.id == $id) | (.publish.branch // "")' "${CATALOG}")"
@@ -77,6 +78,11 @@ if [[ -n "${PRIMARY_PREVIOUS_STATE_ID}" ]]; then
     echo "[fail] previous state ${PRIMARY_PREVIOUS_STATE_ID} does not define publish.branch"
     exit 1
   fi
+fi
+
+if [[ -n "${DOTTED_PARENTS_FOR_STATE}" ]]; then
+  echo "[info] dotted-line parents for ${STATE_ID}: ${DOTTED_PARENTS_FOR_STATE}"
+  echo "[info] dotted-line parents are documentation lineage only and are ignored for publish ancestry"
 fi
 
 FEATURE_PACK="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | .featurePack' "${CATALOG}")"
@@ -128,25 +134,25 @@ case "${STATE_ID}" in
       exit 1
     }
     ;;
-  004-kubernetes-runtime)
+  009-kubernetes-runtime)
     bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
     [[ -f "${ROOT}/generated/code/target-generated/kubernetes-runtime/build-plan.json" ]] || {
-      echo "[fail] missing generated kubernetes build-plan for state 004"
+      echo "[fail] missing generated kubernetes build-plan for state 009"
       exit 1
     }
-    "${ROOT}/scripts/start-state-004-kubernetes-generated.sh" --dry-run
+    "${ROOT}/scripts/start-state-009-kubernetes-runtime-generated.sh" --dry-run
     ;;
-  005-radius-kubernetes-platform)
+  012-radius-kubernetes-platform)
     bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
     [[ -f "${ROOT}/generated/code/target-generated/radius-kubernetes-platform/radius/app.bicep" ]] || {
-      echo "[fail] missing generated radius app model for state 005"
+      echo "[fail] missing generated radius app model for state 012"
       exit 1
     }
     ;;
-  006-tilt-kubernetes-dev-loop)
+  010-tilt-kubernetes-dev-loop)
     bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
     [[ -f "${ROOT}/generated/code/target-generated/tilt-kubernetes-dev-loop/tilt/Tiltfile" ]] || {
-      echo "[fail] missing generated tilt assets for state 006"
+      echo "[fail] missing generated tilt assets for state 010"
       exit 1
     }
     ;;
@@ -249,13 +255,13 @@ snapshot_keep_paths_for_state() {
     003-containerized-compose-runtime)
       printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "containerized-compose" "ingress"
       ;;
-    004-kubernetes-runtime)
+    009-kubernetes-runtime)
       printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "kubernetes-runtime"
       ;;
-    005-radius-kubernetes-platform)
+    012-radius-kubernetes-platform)
       printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "kubernetes-runtime" "radius-kubernetes-platform"
       ;;
-    006-tilt-kubernetes-dev-loop)
+    010-tilt-kubernetes-dev-loop)
       printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "kubernetes-runtime" "tilt-kubernetes-dev-loop"
       ;;
     *)
@@ -356,6 +362,23 @@ PREVIOUS_STATES_JSON="$(jq -c --arg id "${STATE_ID}" '.states[] | select(.id == 
 NEXT_STATES_JSON="$(jq -c --arg id "${STATE_ID}" '.states | [ .[] | select((.previous // []) | index($id)) | .id ]' "${CATALOG}")"
 PREVIOUS_STATES_TEXT="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | (.previous // []) | if length == 0 then "none" else join(", ") end' "${CATALOG}")"
 NEXT_STATES_TEXT="$(jq -r --arg id "${STATE_ID}" '.states | [ .[] | select((.previous // []) | index($id)) | .id ] | if length == 0 then "none" else join(", ") end' "${CATALOG}")"
+IS_CONVERGENCE="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | (.isConvergence // false)' "${CATALOG}")"
+CONVERGENCE_LEVEL="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | (.convergenceLevel // "none")' "${CATALOG}")"
+CONVERGENCE_ROLE="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | (.primaryLineageRole // "canonical")' "${CATALOG}")"
+DOTTED_PARENTS_JSON="$(jq -c --arg id "${STATE_ID}" '.states[] | select(.id == $id) | (.dottedParents // [])' "${CATALOG}")"
+DOTTED_PARENTS_TEXT="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | (.dottedParents // []) | if length == 0 then "none" else join(", ") end' "${CATALOG}")"
+PREVIOUS_CONVERGENCE_STATE="$(jq -r --arg id "${STATE_ID}" '
+  .states
+  | [ .[] | select((.isConvergence // false) == true) | .id ] as $c
+  | ($c | index($id)) as $i
+  | if $i == null then "" elif $i > 0 then ($c[$i-1] // "") else "" end
+' "${CATALOG}")"
+NEXT_CONVERGENCE_STATE="$(jq -r --arg id "${STATE_ID}" '
+  .states
+  | [ .[] | select((.isConvergence // false) == true) | .id ] as $c
+  | ($c | index($id)) as $i
+  | if $i == null then "" elif ($i + 1) < ($c | length) then ($c[$i+1] // "") else "" end
+' "${CATALOG}")"
 
 ORIGIN_URL="$(git -C "${ROOT}" remote get-url origin)"
 REPO_WEB_BASE=""
@@ -490,6 +513,56 @@ render_state_lineage_mermaid() {
   printf '%s\n' '```'
 }
 
+render_convergence_mermaid() {
+  local current_node="C_CUR"
+  local current_label="${STATE_ID} (current)"
+  local prev_id="${PREVIOUS_CONVERGENCE_STATE}"
+  local next_id="${NEXT_CONVERGENCE_STATE}"
+
+  printf '%s\n' '```mermaid'
+  printf '%s\n' 'flowchart LR'
+  printf '  %s["%s"]\n' "${current_node}" "${current_label}"
+  printf '  style %s fill:#2e7d32,stroke:#1b5e20,color:#ffffff,stroke-width:2px\n' "${current_node}"
+
+  if [[ -n "${prev_id}" ]]; then
+    local prev_node="C_PREV_$(echo "${prev_id}" | sed 's/[^A-Za-z0-9]/_/g')"
+    local prev_url
+    prev_url="$(state_branch_url "${prev_id}" || true)"
+    local prev_compare
+    prev_compare="$(compare_url "$(state_branch_name "${prev_id}")" "$(state_branch_name "${STATE_ID}")" || true)"
+    printf '  %s["%s"] --> %s\n' "${prev_node}" "${prev_id}" "${current_node}"
+    if [[ -n "${prev_url}" ]]; then
+      printf '  click %s href "%s" "Open branch"\n' "${prev_node}" "${prev_url}"
+    fi
+    if [[ -n "${prev_compare}" ]]; then
+      printf '  %% compare: %s\n' "${prev_compare}"
+    fi
+  fi
+
+  if [[ -n "${next_id}" ]]; then
+    local next_node="C_NEXT_$(echo "${next_id}" | sed 's/[^A-Za-z0-9]/_/g')"
+    local next_url
+    next_url="$(state_branch_url "${next_id}" || true)"
+    local next_compare
+    next_compare="$(compare_url "$(state_branch_name "${STATE_ID}")" "$(state_branch_name "${next_id}")" || true)"
+    printf '  %s --> %s["%s"]\n' "${current_node}" "${next_node}" "${next_id}"
+    if [[ -n "${next_url}" ]]; then
+      printf '  click %s href "%s" "Open branch"\n' "${next_node}" "${next_url}"
+    fi
+    if [[ -n "${next_compare}" ]]; then
+      printf '  %% compare: %s\n' "${next_compare}"
+    fi
+  fi
+
+  local current_url
+  current_url="$(state_branch_url "${STATE_ID}" || true)"
+  if [[ -n "${current_url}" ]]; then
+    printf '  click %s href "%s" "Open current branch"\n' "${current_node}" "${current_url}"
+  fi
+
+  printf '%s\n' '```'
+}
+
 state_summary_markdown() {
   case "${STATE_ID}" in
     001-baseline-uncontainerized-parity)
@@ -513,44 +586,44 @@ EOF
 - Preserves baseline functional behavior while changing runtime/ops model.
 EOF
       ;;
-    004-kubernetes-runtime)
+    009-kubernetes-runtime)
       cat <<'EOF'
-- Builds on state `003` by moving runtime from Docker Compose to Kubernetes (Kind baseline).
+- Builds on state `008` by moving runtime from Docker Compose to Kubernetes (Kind baseline).
 - Uses in-cluster NGINX edge-proxy as browser/API/WebSocket entrypoint at `http://localhost:8080`.
-- Preserves baseline functional behavior while changing runtime orchestration and deployment model.
+- Preserves C2 functional behavior while changing runtime orchestration and deployment model.
 EOF
       ;;
-    005-radius-kubernetes-platform)
+    012-radius-kubernetes-platform)
       cat <<'EOF'
-- Builds on state `004` and preserves Kubernetes runtime behavior.
+- Builds on state `009` and preserves Kubernetes runtime behavior.
 - Adds Radius application/resource model artifacts as platform abstraction overlays.
 - Preserves baseline functional behavior and API contracts.
 EOF
       ;;
-    006-tilt-kubernetes-dev-loop)
+    010-tilt-kubernetes-dev-loop)
       cat <<'EOF'
-- Builds on state `004` and preserves Kubernetes runtime behavior.
+- Builds on state `009` and preserves Kubernetes runtime behavior.
 - Adds Tilt local developer-loop artifacts (`Tiltfile`, Tilt settings, workflow docs).
 - Preserves baseline functional behavior and API contracts.
 EOF
       ;;
-    007-messaging-nats-replacement)
+    005-messaging-nats-replacement)
       cat <<'EOF'
-- Builds on state `003` and preserves containerized ingress runtime behavior.
+- Builds on state `004` and preserves containerized ingress runtime behavior.
 - Replaces Socket.IO trade-feed with NATS broker for backend and browser streaming.
 - Preserves baseline user-visible behavior while changing messaging transport.
 EOF
       ;;
-    009-postgres-database-replacement)
+    004-postgres-database-replacement)
       cat <<'EOF'
 - Builds on state `003` and preserves containerized ingress runtime behavior.
 - Replaces H2 runtime database with PostgreSQL container + deterministic init SQL.
 - Preserves baseline REST/event contracts and user-visible behavior.
 EOF
       ;;
-    010-pricing-awareness-market-data)
+    007-pricing-awareness-market-data)
       cat <<'EOF'
-- Builds on state `007` and preserves NATS-based messaging + compose ingress runtime behavior.
+- Builds on state `006` and preserves NATS-based messaging + compose ingress runtime behavior.
 - Adds market pricing stream, trade execution price stamping, and position average cost basis aggregation.
 - Extends UI blotters with pricing/value/P&L visualization while preserving baseline trade/account workflows.
 EOF
@@ -618,12 +691,12 @@ Stop:
 ```
 EOF
       ;;
-    004-kubernetes-runtime)
+    009-kubernetes-runtime)
       cat <<'EOF'
 Run directly from this generated snapshot branch:
 
 ```bash
-./scripts/start-state-004-kubernetes-generated.sh
+./scripts/start-state-009-kubernetes-runtime-generated.sh
 ```
 
 UI/edge endpoint: `http://localhost:8080`
@@ -631,17 +704,17 @@ UI/edge endpoint: `http://localhost:8080`
 Status / stop:
 
 ```bash
-./scripts/status-state-004-kubernetes-generated.sh
-./scripts/stop-state-004-kubernetes-generated.sh
+./scripts/status-state-009-kubernetes-runtime-generated.sh
+./scripts/stop-state-009-kubernetes-runtime-generated.sh
 ```
 EOF
       ;;
-    005-radius-kubernetes-platform)
+    012-radius-kubernetes-platform)
       cat <<'EOF'
 Run directly from this generated snapshot branch:
 
 ```bash
-./scripts/start-state-004-kubernetes-generated.sh --provider kind
+./scripts/start-state-009-kubernetes-runtime-generated.sh --provider kind
 ```
 
 UI/edge endpoint: `http://localhost:8080`
@@ -654,17 +727,17 @@ Radius artifact pack:
 Status / stop:
 
 ```bash
-./scripts/status-state-004-kubernetes-generated.sh --provider kind
-./scripts/stop-state-004-kubernetes-generated.sh --provider kind
+./scripts/status-state-009-kubernetes-runtime-generated.sh --provider kind
+./scripts/stop-state-009-kubernetes-runtime-generated.sh --provider kind
 ```
 EOF
       ;;
-    006-tilt-kubernetes-dev-loop)
+    010-tilt-kubernetes-dev-loop)
       cat <<'EOF'
 Run directly from this generated snapshot branch:
 
 ```bash
-./scripts/start-state-004-kubernetes-generated.sh --provider kind
+./scripts/start-state-009-kubernetes-runtime-generated.sh --provider kind
 ```
 
 UI/edge endpoint: `http://localhost:8080`
@@ -678,17 +751,17 @@ Tilt artifact pack:
 Status / stop:
 
 ```bash
-./scripts/status-state-004-kubernetes-generated.sh --provider kind
-./scripts/stop-state-004-kubernetes-generated.sh --provider kind
+./scripts/status-state-009-kubernetes-runtime-generated.sh --provider kind
+./scripts/stop-state-009-kubernetes-runtime-generated.sh --provider kind
 ```
 EOF
       ;;
-    007-messaging-nats-replacement)
+    005-messaging-nats-replacement)
       cat <<'EOF'
 Run directly from this generated snapshot branch:
 
 ```bash
-./scripts/start-state-007-messaging-nats-replacement-generated.sh
+./scripts/start-state-005-messaging-nats-replacement-generated.sh
 ```
 
 UI/ingress endpoint: `http://localhost:8080`
@@ -697,17 +770,17 @@ NATS monitor endpoint: `http://localhost:8222/varz`
 Status / stop:
 
 ```bash
-./scripts/status-state-007-messaging-nats-replacement-generated.sh
-./scripts/stop-state-007-messaging-nats-replacement-generated.sh
+./scripts/status-state-005-messaging-nats-replacement-generated.sh
+./scripts/stop-state-005-messaging-nats-replacement-generated.sh
 ```
 EOF
       ;;
-    009-postgres-database-replacement)
+    004-postgres-database-replacement)
       cat <<'EOF'
 Run directly from this generated snapshot branch:
 
 ```bash
-./scripts/start-state-009-postgres-database-replacement-generated.sh
+./scripts/start-state-004-postgres-database-replacement-generated.sh
 ```
 
 UI/ingress endpoint: `http://localhost:8080`
@@ -716,17 +789,17 @@ PostgreSQL endpoint: `localhost:18083`
 Status / stop:
 
 ```bash
-./scripts/status-state-009-postgres-database-replacement-generated.sh
-./scripts/stop-state-009-postgres-database-replacement-generated.sh
+./scripts/status-state-004-postgres-database-replacement-generated.sh
+./scripts/stop-state-004-postgres-database-replacement-generated.sh
 ```
 EOF
       ;;
-    010-pricing-awareness-market-data)
+    007-pricing-awareness-market-data)
       cat <<'EOF'
 Run directly from this generated snapshot branch:
 
 ```bash
-./scripts/start-state-010-pricing-awareness-market-data-generated.sh
+./scripts/start-state-007-pricing-awareness-market-data-generated.sh
 ```
 
 UI/ingress endpoint: `http://localhost:8080`
@@ -736,8 +809,8 @@ Price publisher endpoint: `http://localhost:18100/prices`
 Status / stop:
 
 ```bash
-./scripts/status-state-010-pricing-awareness-market-data-generated.sh
-./scripts/stop-state-010-pricing-awareness-market-data-generated.sh
+./scripts/status-state-007-pricing-awareness-market-data-generated.sh
+./scripts/stop-state-007-pricing-awareness-market-data-generated.sh
 ```
 EOF
       ;;
@@ -772,42 +845,42 @@ EOF
 - Trace container wiring back to unchanged functional requirements.
 EOF
       ;;
-    004-kubernetes-runtime)
+    009-kubernetes-runtime)
       cat <<'EOF'
 - Understand Kubernetes deployment/service decomposition.
 - Understand image build plan and runtime orchestration scripts.
 - Compare local Kind/Minikube execution model to state 003.
 EOF
       ;;
-    005-radius-kubernetes-platform)
+    012-radius-kubernetes-platform)
       cat <<'EOF'
 - Understand Radius artifacts as a platform-model overlay on Kubernetes.
 - Understand what remains baseline runtime vs what is platform abstraction.
 - Evaluate portability goals and platform-level NFR impact.
 EOF
       ;;
-    006-tilt-kubernetes-dev-loop)
+    010-tilt-kubernetes-dev-loop)
       cat <<'EOF'
 - Understand developer-loop acceleration using Tilt.
 - Understand what parts are runtime-stable vs dev-loop specific.
 - Evaluate inner-loop productivity deltas while preserving contracts.
 EOF
       ;;
-    007-messaging-nats-replacement)
+    005-messaging-nats-replacement)
       cat <<'EOF'
 - Understand focused messaging-layer replacement on top of stable runtime.
 - Compare NATS subject topology to prior Socket.IO channel patterns.
 - Validate realtime behavior parity while changing transport internals.
 EOF
       ;;
-    009-postgres-database-replacement)
+    004-postgres-database-replacement)
       cat <<'EOF'
 - Understand focused database-engine replacement on top of stable runtime.
 - Compare datasource and schema-init changes required for PostgreSQL migration.
 - Validate flow compatibility after persistence-layer substitution.
 EOF
       ;;
-    010-pricing-awareness-market-data)
+    007-pricing-awareness-market-data)
       cat <<'EOF'
 - Understand how pricing streams integrate with existing account-scoped event flows.
 - Review trade execution price stamping and position cost-basis aggregation logic.
@@ -957,7 +1030,7 @@ install_state_compose_clone_harness() {
 install_kubernetes_clone_harness() {
   mkdir -p "${SNAPSHOT_DIR}/scripts"
 
-  cat > "${SNAPSHOT_DIR}/scripts/start-state-004-kubernetes-generated.sh" <<'EOF'
+  cat > "${SNAPSHOT_DIR}/scripts/start-state-009-kubernetes-runtime-generated.sh" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -966,7 +1039,7 @@ STATE_DIR="${ROOT}/kubernetes-runtime"
 BUILD_PLAN="${STATE_DIR}/build-plan.json"
 KUSTOMIZE_DIR="${STATE_DIR}/manifests/base"
 KIND_CONFIG="${STATE_DIR}/kind/cluster-config.yaml"
-RUN_DIR="${STATE_DIR}/.run/state-004-kubernetes"
+RUN_DIR="${STATE_DIR}/.run/state-009-kubernetes-runtime"
 
 SKIP_BUILD=0
 RECREATE_CLUSTER=0
@@ -1109,18 +1182,18 @@ if [[ "${K8S_PROVIDER}" == "minikube" ]]; then
   echo "$!" > "${PORT_FORWARD_PID_FILE}"
 fi
 
-echo "[done] state 004 kubernetes runtime started"
+echo "[done] state 009 kubernetes runtime started"
 echo "[provider] ${K8S_PROVIDER}"
 echo "[ui] http://localhost:${host_port}"
 EOF
 
-  cat > "${SNAPSHOT_DIR}/scripts/stop-state-004-kubernetes-generated.sh" <<'EOF'
+  cat > "${SNAPSHOT_DIR}/scripts/stop-state-009-kubernetes-runtime-generated.sh" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUILD_PLAN="${ROOT}/kubernetes-runtime/build-plan.json"
-RUN_DIR="${ROOT}/kubernetes-runtime/.run/state-004-kubernetes"
+RUN_DIR="${ROOT}/kubernetes-runtime/.run/state-009-kubernetes-runtime"
 DELETE_CLUSTER=0
 K8S_PROVIDER="${K8S_PROVIDER:-kind}"
 MINIKUBE_PROFILE=""
@@ -1207,16 +1280,16 @@ case "${K8S_PROVIDER}" in
     ;;
 esac
 
-echo "[done] state 004 stop sequence complete"
+echo "[done] state 009 stop sequence complete"
 EOF
 
-  cat > "${SNAPSHOT_DIR}/scripts/status-state-004-kubernetes-generated.sh" <<'EOF'
+  cat > "${SNAPSHOT_DIR}/scripts/status-state-009-kubernetes-runtime-generated.sh" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUILD_PLAN="${ROOT}/kubernetes-runtime/build-plan.json"
-RUN_DIR="${ROOT}/kubernetes-runtime/.run/state-004-kubernetes"
+RUN_DIR="${ROOT}/kubernetes-runtime/.run/state-009-kubernetes-runtime"
 K8S_PROVIDER="${K8S_PROVIDER:-kind}"
 MINIKUBE_PROFILE=""
 
@@ -1311,9 +1384,9 @@ fi
 EOF
 
   chmod +x \
-    "${SNAPSHOT_DIR}/scripts/start-state-004-kubernetes-generated.sh" \
-    "${SNAPSHOT_DIR}/scripts/stop-state-004-kubernetes-generated.sh" \
-    "${SNAPSHOT_DIR}/scripts/status-state-004-kubernetes-generated.sh"
+    "${SNAPSHOT_DIR}/scripts/start-state-009-kubernetes-runtime-generated.sh" \
+    "${SNAPSHOT_DIR}/scripts/stop-state-009-kubernetes-runtime-generated.sh" \
+    "${SNAPSHOT_DIR}/scripts/status-state-009-kubernetes-runtime-generated.sh"
 }
 
 write_clone_runbook() {
@@ -1403,7 +1476,7 @@ Status / stop:
 ```
 EOF
       ;;
-    004-kubernetes-runtime)
+    009-kubernetes-runtime)
       cat > "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
 # Run From Clone
 
@@ -1416,9 +1489,9 @@ Prerequisites:
 Start:
 
 ```bash
-./scripts/start-state-004-kubernetes-generated.sh
+./scripts/start-state-009-kubernetes-runtime-generated.sh
 # optional:
-# ./scripts/start-state-004-kubernetes-generated.sh --provider minikube --minikube-profile traderx-state-004
+# ./scripts/start-state-009-kubernetes-runtime-generated.sh --provider minikube --minikube-profile traderx-state-009
 ```
 
 Endpoints:
@@ -1428,12 +1501,12 @@ Endpoints:
 Status / stop:
 
 ```bash
-./scripts/status-state-004-kubernetes-generated.sh
-./scripts/stop-state-004-kubernetes-generated.sh
+./scripts/status-state-009-kubernetes-runtime-generated.sh
+./scripts/stop-state-009-kubernetes-runtime-generated.sh
 ```
 EOF
       ;;
-    005-radius-kubernetes-platform)
+    012-radius-kubernetes-platform)
       cat > "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
 # Run From Clone
 
@@ -1443,13 +1516,13 @@ Prerequisites:
 - jq
 - Kind (default) or Minikube
 
-Start baseline runtime (inherited from state 004):
+Start baseline runtime (inherited from state 009):
 
 ```bash
-./scripts/start-state-004-kubernetes-generated.sh
+./scripts/start-state-009-kubernetes-runtime-generated.sh
 ```
 
-State 005 artifact pack:
+State 012 artifact pack:
 - `radius-kubernetes-platform/radius/app.bicep`
 - `radius-kubernetes-platform/radius/bicepconfig.json`
 - `radius-kubernetes-platform/radius/.rad/rad.yaml`
@@ -1462,7 +1535,7 @@ rad run app.bicep
 ```
 EOF
       ;;
-    006-tilt-kubernetes-dev-loop)
+    010-tilt-kubernetes-dev-loop)
       cat > "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
 # Run From Clone
 
@@ -1473,13 +1546,13 @@ Prerequisites:
 - Kind (default) or Minikube
 - Tilt (optional, for interactive dev loop)
 
-Start baseline runtime (inherited from state 004):
+Start baseline runtime (inherited from state 009):
 
 ```bash
-./scripts/start-state-004-kubernetes-generated.sh
+./scripts/start-state-009-kubernetes-runtime-generated.sh
 ```
 
-State 006 artifact pack:
+State 010 artifact pack:
 - `tilt-kubernetes-dev-loop/tilt/Tiltfile`
 - `tilt-kubernetes-dev-loop/tilt/tilt-settings.json`
 
@@ -1491,7 +1564,7 @@ tilt up
 ```
 EOF
       ;;
-    007-messaging-nats-replacement)
+    005-messaging-nats-replacement)
       cat > "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
 # Run From Clone
 
@@ -1501,7 +1574,7 @@ Prerequisites:
 Start:
 
 ```bash
-./scripts/start-state-007-messaging-nats-replacement-generated.sh
+./scripts/start-state-005-messaging-nats-replacement-generated.sh
 ```
 
 Endpoints:
@@ -1512,12 +1585,12 @@ Endpoints:
 Status / stop:
 
 ```bash
-./scripts/status-state-007-messaging-nats-replacement-generated.sh
-./scripts/stop-state-007-messaging-nats-replacement-generated.sh
+./scripts/status-state-005-messaging-nats-replacement-generated.sh
+./scripts/stop-state-005-messaging-nats-replacement-generated.sh
 ```
 EOF
       ;;
-    009-postgres-database-replacement)
+    004-postgres-database-replacement)
       cat > "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
 # Run From Clone
 
@@ -1527,7 +1600,7 @@ Prerequisites:
 Start:
 
 ```bash
-./scripts/start-state-009-postgres-database-replacement-generated.sh
+./scripts/start-state-004-postgres-database-replacement-generated.sh
 ```
 
 Endpoints:
@@ -1538,12 +1611,12 @@ Endpoints:
 Status / stop:
 
 ```bash
-./scripts/status-state-009-postgres-database-replacement-generated.sh
-./scripts/stop-state-009-postgres-database-replacement-generated.sh
+./scripts/status-state-004-postgres-database-replacement-generated.sh
+./scripts/stop-state-004-postgres-database-replacement-generated.sh
 ```
 EOF
       ;;
-    010-pricing-awareness-market-data)
+    007-pricing-awareness-market-data)
       cat > "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
 # Run From Clone
 
@@ -1553,7 +1626,7 @@ Prerequisites:
 Start:
 
 ```bash
-./scripts/start-state-010-pricing-awareness-market-data-generated.sh
+./scripts/start-state-007-pricing-awareness-market-data-generated.sh
 ```
 
 Endpoints:
@@ -1565,8 +1638,8 @@ Endpoints:
 Status / stop:
 
 ```bash
-./scripts/status-state-010-pricing-awareness-market-data-generated.sh
-./scripts/stop-state-010-pricing-awareness-market-data-generated.sh
+./scripts/status-state-007-pricing-awareness-market-data-generated.sh
+./scripts/stop-state-007-pricing-awareness-market-data-generated.sh
 ```
 EOF
       ;;
@@ -1804,6 +1877,12 @@ cat > "${SNAPSHOT_DIR}/.traderx-state/state.json" <<EOF
   "featurePack": "${FEATURE_PACK}",
   "previousStates": ${PREVIOUS_STATES_JSON},
   "nextStates": ${NEXT_STATES_JSON},
+  "isConvergenceState": ${IS_CONVERGENCE},
+  "convergenceLevel": "${CONVERGENCE_LEVEL}",
+  "lineageRole": "${CONVERGENCE_ROLE}",
+  "dottedParents": ${DOTTED_PARENTS_JSON},
+  "previousConvergenceState": "${PREVIOUS_CONVERGENCE_STATE}",
+  "nextConvergenceState": "${NEXT_CONVERGENCE_STATE}",
   "sourceBranch": "${SOURCE_BRANCH}",
   "sourceCommit": "${SOURCE_COMMIT}",
   "generatedAtUtc": "${GENERATED_AT_UTC}",
@@ -1821,6 +1900,12 @@ cat > "${SNAPSHOT_DIR}/STATE.md" <<EOF
 - Feature Pack: \`${FEATURE_PACK}\`
 - Previous States: \`${PREVIOUS_STATES_JSON}\`
 - Next States: \`${NEXT_STATES_JSON}\`
+- Convergence State: \`${IS_CONVERGENCE}\`
+- Convergence Level: \`${CONVERGENCE_LEVEL}\`
+- Lineage Role: \`${CONVERGENCE_ROLE}\`
+- Dotted Parents: \`${DOTTED_PARENTS_TEXT}\`
+- Previous Convergence State: \`${PREVIOUS_CONVERGENCE_STATE:-none}\`
+- Next Convergence State: \`${NEXT_CONVERGENCE_STATE:-none}\`
 - Source Branch: \`${SOURCE_BRANCH}\`
 - Source Commit: \`${SOURCE_COMMIT}\`
 - Generated At (UTC): \`${GENERATED_AT_UTC}\`
@@ -1857,6 +1942,19 @@ $(render_state_lineage_table_rows)
 State sets:
 - Previous states: \`${PREVIOUS_STATES_TEXT}\`
 - Next states: \`${NEXT_STATES_TEXT}\`
+
+## Convergence Status
+
+- Convergence state: \`${IS_CONVERGENCE}\`
+- Convergence level: \`${CONVERGENCE_LEVEL}\`
+- Lineage role: \`${CONVERGENCE_ROLE}\`
+- Dotted-line parents: \`${DOTTED_PARENTS_TEXT}\`
+- Previous convergence: \`${PREVIOUS_CONVERGENCE_STATE:-none}\`
+- Next convergence: \`${NEXT_CONVERGENCE_STATE:-none}\`
+
+### Convergence Neighborhood
+
+$(render_convergence_mermaid)
 
 ## Runtime Guidance
 
@@ -1898,16 +1996,16 @@ case "${STATE_ID}" in
   003-containerized-compose-runtime)
     install_containerized_clone_harness
     ;;
-  007-messaging-nats-replacement)
+  005-messaging-nats-replacement)
     install_state_compose_clone_harness "${STATE_ID}"
     ;;
-  009-postgres-database-replacement)
+  004-postgres-database-replacement)
     install_state_compose_clone_harness "${STATE_ID}"
     ;;
-  010-pricing-awareness-market-data)
+  007-pricing-awareness-market-data)
     install_state_compose_clone_harness "${STATE_ID}"
     ;;
-  004-kubernetes-runtime|005-radius-kubernetes-platform|006-tilt-kubernetes-dev-loop)
+  009-kubernetes-runtime|012-radius-kubernetes-platform|010-tilt-kubernetes-dev-loop)
     install_kubernetes_clone_harness
     ;;
 esac

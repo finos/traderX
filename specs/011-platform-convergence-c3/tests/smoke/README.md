@@ -1,0 +1,22 @@
+# Smoke Tests: 011-platform-convergence-c3
+
+- Primary smoke script: `scripts/test-state-011-platform-convergence-c3.sh`
+
+Document and implement the minimum end-to-end checks required for this state.
+
+Suggested categories:
+
+- Runtime starts cleanly.
+- Core API/flow health checks.
+- State-specific behavioral checks.
+
+Implemented smoke command:
+
+```bash
+./scripts/test-state-011-platform-convergence-c3.sh http://localhost:8080 traderx kind traderx-state-004
+```
+
+State-specific checks include:
+
+- Tilt artifact pack generation (`Tiltfile`, `tilt-settings.json`).
+- Tiltfile mappings for all runtime images in the inherited state `004` build plan.

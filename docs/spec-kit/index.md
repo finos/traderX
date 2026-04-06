@@ -18,7 +18,7 @@ From this state, we generate code from specs and move forward by adding controll
 Create a new planned state pack from template:
 
 ```bash
-bash pipeline/scaffold-state-pack.sh <NNN-state-name> --title "<Title>" --previous <prior-state-id> --track <devex|nonfunctional|functional>
+bash pipeline/scaffold-state-pack.sh <NNN-state-name> --title "<Title>" --previous <prior-state-id> --track <prelude|baseline|architecture|nonfunctional|functional|devex>
 ```
 
 Run the integrated state-change playbook:
@@ -48,6 +48,7 @@ bash pipeline/state-playbook.sh --state <state-id> --publish-neighborhood --push
    - `/specify`
 9. Plan future-state transitions:
    - `/docs/spec-kit/spec-kit-learning-path-strategy`
+   - `/docs/spec-kit/convergence-states`
    - `/docs/learning-paths`
 
 ## Where Is The Generated Code?

@@ -1,64 +1,66 @@
 # SpecKit Learning Path Strategy
 
-This page defines how TraderX learning paths evolve from the same baseline using GitHub SpecKit artifacts in `specs/` and `.specify/`.
+TraderX uses a convergence-first state model on top of GitHub Spec Kit artifacts in `specs/` and `.specify/`.
 
-The model supports both parallel tracks and intentionally conflicting architectural choices, while preserving explicit lineage between states.
+## Canonical Progression
 
-## Transition Model
+- Prelude onboarding: `001 -> 002`
+- `C0`: `003`
+- Architecture to `C1`: `004 -> 005 -> 006`
+- Functional to `C2`: `007 -> 008`
+- Platform to `C3`: `009 -> 010 -> 011`
+- Optional side branch: `012` off `009`
 
-Each learning-path transition is modeled as a separate spec feature branch:
+Convergence checkpoints:
 
-1. Keep `001-baseline-uncontainerized-parity` as the stable base.
-2. Create a new feature spec for one state transition only (for example, add containerization or add ingress).
-3. Capture new or changed functional requirements only where behavior changes.
-4. Layer non-functional requirements for platform, security, operability, and performance goals.
-5. Generate and validate code for that transition against the previous accepted state.
+- `C0`: `003-containerized-compose-runtime`
+- `C1`: `006-observability-lgtm-compose`
+- `C2`: `008-order-management-matcher`
+- `C3`: `011-platform-convergence-c3`
 
-Current published baseline progression:
+## Lineage Rules
 
-- `001-baseline-uncontainerized-parity`
-- `002-edge-proxy-uncontainerized`
-- `003-containerized-compose-runtime`
+- `previous` is the single publish lineage parent (max length 1).
+- `dottedParents` is documentation lineage only and allowed only on convergence states.
+- `primaryLineageRole` is one of `prelude`, `canonical`, `optional`.
 
-Current branch tracks from `003`:
+## Authoring Guidance
 
-- DevEx track: `004-kubernetes-runtime` -> (`005-radius-kubernetes-platform` | `006-tilt-kubernetes-dev-loop`)
-- Architecture track: `007-messaging-nats-replacement` (planned implementation)
-
-## Candidate Next Architecture Step
-
-One planned learning-path candidate is adopting CALM as architecture modeling input:
-
-- CALM reference: [https://calm.finos.org](https://calm.finos.org)
-- Expected transition shape:
-  - add CALM architecture artifacts per state,
-  - map CALM model deltas to state requirements,
-  - regenerate state architecture docs and implementation with traceability.
+1. Start new work from the nearest suitable convergence state by default.
+2. Create one feature pack per transition.
+3. Add FR deltas only when behavior changes.
+4. Add NFR deltas for runtime/platform/ops objectives.
+5. Keep contract changes scoped and explicit.
+6. If changing a convergence state, update `system/convergence-rationale.md`.
 
 ## Required Artifacts Per Transition
 
-- `spec.md`: user stories, acceptance criteria, and explicit in-scope change.
-- `plan.md`: technical approach, interfaces, runtime model, and rollout notes.
-- `tasks.md`: ordered implementation tasks and verification tasks.
-- contracts updates (`contracts/**`) only for interface changes.
-- traceability updates when requirements or stories move.
+- `spec.md`
+- `plan.md`
+- `tasks.md`
+- `system/**` (requirements, flows, architecture, topology)
+- `generation/generation-hook.md`
+- `generation/patches/*.patch` for derived-state implementation deltas
+- `tests/smoke/README.md`
 
-## Generation and Validation Loop
+## Validation and Promotion Loop
 
-1. Update specs first.
-2. Regenerate affected components.
-3. Run conformance pack and parity checks.
-4. Run state verification scripts for the target learning-path state.
-5. Promote the transition only after docs and runtime checks pass.
+1. Update spec artifacts.
+2. Regenerate state outputs.
+3. Refresh catalog-derived docs.
+4. Run gates and state smoke tests.
+5. Publish generated code branch when green.
 
-## Publish Code Snapshots Per State
-
-After a state passes validation, publish a generated-code snapshot branch:
+Commands:
 
 ```bash
+bash pipeline/refresh-state-docs.sh
+bash pipeline/verify-spec-coverage.sh
 bash pipeline/publish-generated-state-branch.sh <state-id> --push
 ```
 
-State lineage and branch conventions are tracked in `catalog/state-catalog.json`.
+## References
 
-This keeps each learning step reproducible, reviewable, and reversible while preserving a clean baseline lineage.
+- State catalog: `catalog/state-catalog.json`
+- Visual graph: `/docs/spec-kit/visual-learning-graphs`
+- Convergence policy: `/docs/spec-kit/convergence-states`

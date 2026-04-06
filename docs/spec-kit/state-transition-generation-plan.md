@@ -1,108 +1,57 @@
 # Multi-State Generation Plan
 
-This plan defines how TraderX will evolve from the current baseline into additional learning-path states using SpecKit change specs.
+This plan defines how TraderX evolves through numbered states with explicit convergence checkpoints.
 
 ## Objectives
 
-- make each state transition explicit and reproducible,
-- isolate which components change per transition,
-- generate runnable code for each state from spec deltas,
-- show developers exactly what changed and why.
+- keep each transition reproducible from specs,
+- keep generated branches compareable and publishable,
+- isolate FR/NFR deltas per state,
+- preserve a clear set of recommended jump-off points (`C0-C3`).
 
-## Operating Model
+## Transition Mechanics
 
-1. Keep `001-baseline-uncontainerized-parity` as immutable baseline reference.
-2. Create one new feature pack per state transition (for example `002-containerized-runtime`).
-3. Capture only delta requirements in the new pack:
-   - functional deltas for behavior changes,
-   - non-functional deltas for platform/ops changes.
-4. Compile manifests from the target state specs.
-5. For derived states, generate parent then apply ordered patch sets from `specs/<state>/generation/patches/*.patch`.
-6. Generate only impacted components where component-level overlays are needed (state `002` pattern).
-7. Run state-specific verification + shared conformance/parity gates.
-8. Publish a state changelog documenting:
-   - changed requirements,
-   - changed components,
-   - changed runtime contracts.
+1. Update target state pack (`spec.md`, `plan.md`, `tasks.md`, `system/**`).
+2. Generate parent state.
+3. Apply ordered patch set (`specs/<state>/generation/patches/*.patch`) for derived changes.
+4. Regenerate architecture docs.
+5. Run state smoke tests + global gates.
+6. Publish code snapshot branch.
 
-## Required Artifacts Per New State
+## Current Convergence-First Model
 
-- `spec.md` for changed user stories, FR, NFR.
-- `plan.md` for technical realization.
-- `tasks.md` for execution order and checks.
-- `system/requirements-traceability.md` updated for new mappings.
-- `components/*.md` for impacted components only.
-- contract updates under `contracts/**` only where interfaces change.
-- `catalog/state-catalog.json` update for lineage + publish metadata.
+```mermaid
+flowchart LR
+  S001["001 Prelude"] --> S002["002 Prelude"]
+  S002 --> C0["003 C0"]
+  C0 --> A004["004 Postgres"]
+  A004 --> A005["005 NATS"]
+  A005 --> C1["006 C1 Observability"]
+  C1 --> F007["007 Pricing"]
+  F007 --> C2["008 C2 Order Mgmt"]
+  C2 --> P009["009 Kubernetes"]
+  P009 --> P010["010 Tilt"]
+  P010 --> C3["011 C3 Platform Convergence"]
+  P009 --> O012["012 Radius Optional"]
+```
 
-## Developer Workflow For A New State
+## Publish Model
 
-1. Read baseline + target state specs.
-2. Run generation for target state (parent + patch set apply).
-3. Start target runtime.
-4. Run state verifier and conformance pack.
-5. Inspect generated patch and diff summary.
-6. Promote state only when all checks pass.
+- Canonical authoring stays in this branch (`specs/**`, `.specify/**`, pipeline/docs).
+- Generated code snapshots are published to `code/generated-state-*` branches.
+- Publish ancestry follows `previous` only.
+- Dotted-line parents are docs lineage only.
 
-## Generated Snapshot Distribution
+## Required Governance for Convergence States
 
-Canonical authoring stays in `specs/**` + `.specify/**`. Runnable code snapshots are published to `code/generated-state-*` branches.
+- `catalog/state-catalog.json` must carry convergence metadata.
+- `system/convergence-rationale.md` must exist and be updated when convergence state content/metadata changes.
+- CI gates must pass before publish.
 
-Publish command:
+## Reference Commands
 
 ```bash
+bash pipeline/refresh-state-docs.sh
+bash pipeline/verify-spec-coverage.sh
 bash pipeline/publish-generated-state-branch.sh <state-id> --push
 ```
-
-Every generated snapshot branch includes:
-
-- `STATE.md`
-- `.traderx-state/state.json`
-
-This makes each snapshot self-describing (current state + lineage + source commit).
-
-## Transition Visualization
-
-```mermaid
-flowchart LR
-  B["001: Simple App - Base Uncontainerized App"] --> S2["002: Next State (Spec Delta)"]
-  S2 --> S3["003: Next State (Spec Delta)"]
-  S3 --> S4["004: Next State (Spec Delta)"]
-
-  B --> G1["Generate Baseline"]
-  S2 --> G2["Generate State 002"]
-  S3 --> G3["Generate State 003"]
-  S4 --> G4["Generate State 004"]
-```
-
-## Programmed Next Three States
-
-```mermaid
-flowchart LR
-  A["001 Baseline Uncontainerized"] --> B["002 Edge Proxy Uncontainerized"]
-  B --> C["003 Containerized Compose Runtime"]
-  C --> D["004 Kubernetes Runtime (Planned)"]
-  C --> E["007 Messaging NATS Replacement (Planned)"]
-
-  A --> TA["Tag generated/001-baseline-uncontainerized-parity/v1"]
-  B --> TB["Tag generated/002-edge-proxy-uncontainerized/v1"]
-  C --> TC["Tag generated/003-containerized-compose-runtime/v1"]
-  D --> TD["Tag generated/004-kubernetes-runtime/v1 (Planned)"]
-  E --> TE["Tag generated/007-messaging-nats-replacement/v1 (Planned)"]
-```
-
-### Official Data of Record for Each State
-
-For each state release, the canonical record must include:
-
-1. numbered feature pack under `specs/NNN-*` (`spec.md`, `plan.md`, `tasks.md`);
-2. updated traceability and affected contracts/components;
-3. generated-code snapshot tag + validation evidence references in migration artifacts.
-
-## Phase-10 Execution Backlog
-
-- define canonical naming for state packs (`00N-state-name`),
-- add state-delta template for FR/NFR/change-impact capture (implemented: `templates/state-pack-template` + `pipeline/scaffold-state-pack.sh`),
-- add per-state component impact matrix output,
-- add state-aware generation entrypoint,
-- add state-aware verification scripts and docs runbooks.

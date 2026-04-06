@@ -21,6 +21,16 @@ function pathBrowserPolyfillPlugin() {
   }
 }
 
+function mermaidZoomClientPlugin() {
+  return {
+    name: 'mermaid-zoom-client',
+    getClientModules() {
+      return [require.resolve('./src/mermaid-zoom-client.js')]
+    },
+  }
+}
+
+
 module.exports = {
   onBrokenLinks: 'ignore',
   title: `${projectName}`,
@@ -259,6 +269,7 @@ module.exports = {
         },
       },
     ],
+    mermaidZoomClientPlugin,
     pathBrowserPolyfillPlugin,
   ],
 };

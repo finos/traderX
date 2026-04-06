@@ -64,9 +64,9 @@ We chose to keep canonical spec authoring in the main renovation branch, and pub
 - `code/generated-state-001-baseline-uncontainerized-parity`
 - `code/generated-state-002-edge-proxy-uncontainerized`
 - `code/generated-state-003-containerized-compose-runtime`
-- `code/generated-state-004-kubernetes-runtime`
-- `code/generated-state-005-radius-kubernetes-platform`
-- `code/generated-state-006-tilt-kubernetes-dev-loop`
+- `code/generated-state-009-kubernetes-runtime`
+- `code/generated-state-012-radius-kubernetes-platform`
+- `code/generated-state-010-tilt-kubernetes-dev-loop`
 
 This gave us a useful split:
 

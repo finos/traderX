@@ -5,7 +5,7 @@ slug: /blog/2026-03-31-state-009-postgres-architecture-track
 
 # State 009: Replacing H2 with PostgreSQL
 
-State `009-postgres-database-replacement` is the second architecture-track branch after state `007`.
+State `004-postgres-database-replacement` is the second architecture-track branch after state `007`.
 
 This change keeps the same baseline functional behavior, APIs, and runtime entry model from state `003`, but replaces the underlying database runtime from H2 to PostgreSQL.
 
@@ -25,9 +25,9 @@ This also validates the SpecKit-first approach: we define a focused architecture
 ## Spec + Decision Links
 
 - State spec pack: [/specs/postgres-database-replacement](/specs/postgres-database-replacement)
-- ADR: [/docs/adr/006-state-009-use-postgres-for-database-replacement](/docs/adr/006-state-009-use-postgres-for-database-replacement)
-- Learning guide: [/docs/learning/state-009-postgres-database-replacement](/docs/learning/state-009-postgres-database-replacement)
-- Generated code branch: [code/generated-state-009-postgres-database-replacement](https://github.com/finos/traderX/tree/code/generated-state-009-postgres-database-replacement)
+- ADR: [/docs/adr/006-state-004-use-postgres-for-database-replacement](/docs/adr/006-state-004-use-postgres-for-database-replacement)
+- Learning guide: [/docs/learning/state-004-postgres-database-replacement](/docs/learning/state-004-postgres-database-replacement)
+- Generated code branch: [code/generated-state-004-postgres-database-replacement](https://github.com/finos/traderX/tree/code/generated-state-004-postgres-database-replacement)
 
 ## Why This Matters For The Learning Graph
 
