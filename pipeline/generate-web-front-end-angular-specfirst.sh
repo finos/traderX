@@ -37,9 +37,19 @@ DEFAULT_PORT="$(jq -r '.runtime.defaultPort' "${MANIFEST_PATH}")"
   exit 1
 }
 
-rm -rf "${TARGET}"
+if [[ -d "${TARGET}" ]]; then
+  tmp_empty="$(mktemp -d)"
+  rsync -a --delete "${tmp_empty}/" "${TARGET}/" >/dev/null 2>&1 || true
+  rm -rf "${tmp_empty}"
+  rm -rf "${TARGET}"
+fi
 mkdir -p "${TARGET}"
-cp -R "${TEMPLATE_ROOT}/." "${TARGET}/"
+rsync -a \
+  --exclude "node_modules/" \
+  --exclude ".angular/" \
+  --exclude "dist/" \
+  --exclude "coverage/" \
+  "${TEMPLATE_ROOT}/" "${TARGET}/"
 
 for asset in \
   "main/assets/img/traderx-apple-touch-icon.png" \
