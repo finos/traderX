@@ -136,6 +136,44 @@ function rebaseMermaidLinks(svg) {
   })
 }
 
+function isMermaidAnchorElement(el) {
+  if (!el || typeof el.closest !== 'function') {
+    return false
+  }
+  return Boolean(el.closest('.theme-mermaid, .mermaid, .docusaurus-mermaid-container'))
+}
+
+function installMermaidClickRewriter() {
+  if (window.__txMermaidClickRewriterInstalled) {
+    return
+  }
+  window.__txMermaidClickRewriterInstalled = true
+
+  document.addEventListener('click', (event) => {
+    const target = event.target
+    if (!isMermaidAnchorElement(target)) {
+      return
+    }
+    const anchor = target.closest('a[href], a[xlink\\:href]')
+    if (!anchor) {
+      return
+    }
+
+    const href = anchor.getAttribute('href') || anchor.getAttribute('xlink:href')
+    if (!isRootRelativeInternalHref(href)) {
+      return
+    }
+
+    const rebased = withBaseUrl(href, currentBaseUrl())
+    if (rebased === href) {
+      return
+    }
+
+    event.preventDefault()
+    window.location.assign(rebased)
+  }, true)
+}
+
 function enhanceDiagram(container) {
   if (!container || container.dataset.txZoomReady === 'true') {
     return
@@ -297,6 +335,7 @@ function enhanceAllMermaid() {
 }
 
 export function initMermaidZoomControls() {
+  installMermaidClickRewriter()
   const tick = () => enhanceAllMermaid()
   tick()
   const interval = window.setInterval(tick, 600)

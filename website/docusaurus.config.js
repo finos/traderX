@@ -67,7 +67,7 @@ module.exports = {
       },
       items: [
         {to: '/docs/home', label: 'Overview', position: 'right'},
-        {to: '/docs/spec-kit', label: 'Getting Started', position: 'right'},
+        {to: '/docs/spec-kit/getting-started-with-traderx', label: 'Getting Started', position: 'right'},
         {to: '/specs', label: 'Specs', position: 'right'},
         {to: '/docs/spec-kit/state-docs', label: 'State Docs', position: 'right'},
         {to: '/docs/adr', label: 'ADRs', position: 'right'},
@@ -102,7 +102,7 @@ module.exports = {
             },
             {
               label: 'Getting Started',
-              to: '/docs/spec-kit',
+              to: '/docs/spec-kit/getting-started-with-traderx',
             },
             {
               label: 'Learning Paths',
