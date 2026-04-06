@@ -67,7 +67,7 @@ index fbe8473..f881206 100644
  }
 diff --git a/messaging-nats-replacement/README.md b/messaging-nats-replacement/README.md
 new file mode 100644
-index 0000000..a0fda48
+index 0000000..5d13f67
 --- /dev/null
 +++ b/messaging-nats-replacement/README.md
 @@ -0,0 +1,17 @@
@@ -471,12 +471,12 @@ index 0355908..0000000
 -  }
 -}
 diff --git a/trade-processor/build.gradle b/trade-processor/build.gradle
-index 2e6b43a..471d302 100644
+index 4457aa1..724f8d8 100644
 --- a/trade-processor/build.gradle
 +++ b/trade-processor/build.gradle
 @@ -20,6 +20,7 @@ dependencies {
    implementation 'org.springframework.boot:spring-boot-starter-web'
-   implementation 'com.h2database:h2:2.3.232'
+   implementation 'org.postgresql:postgresql:42.7.4'
    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
 +  implementation 'io.nats:jnats:2.20.5'
  
@@ -847,10 +847,10 @@ index ec32e32..1dc48f4 100644
  
    public TradeFeedHandler() {
 diff --git a/trade-processor/src/main/resources/application.properties b/trade-processor/src/main/resources/application.properties
-index 300e3c9..0782b1a 100644
+index b56e35a..a11e2e7 100644
 --- a/trade-processor/src/main/resources/application.properties
 +++ b/trade-processor/src/main/resources/application.properties
-@@ -10,7 +10,7 @@ spring.jpa.hibernate.ddl-auto=update
+@@ -10,7 +10,7 @@ spring.jpa.hibernate.ddl-auto=none
  spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
  spring.threads.virtual.enabled=true
  
