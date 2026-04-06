@@ -996,6 +996,18 @@ install_uncontainerized_clone_harness() {
     cp "${ROOT}/scripts/start-state-002-edge-proxy-generated.sh" "${SNAPSHOT_DIR}/scripts/"
     cp "${ROOT}/scripts/stop-state-002-edge-proxy-generated.sh" "${SNAPSHOT_DIR}/scripts/"
     cp "${ROOT}/scripts/status-state-002-edge-proxy-generated.sh" "${SNAPSHOT_DIR}/scripts/"
+
+    if [[ ! -d "${SNAPSHOT_DIR}/edge-proxy" ]]; then
+      local edge_source="${ROOT}/generated/code/components/edge-proxy-specfirst"
+      if [[ ! -d "${edge_source}" ]]; then
+        echo "[fail] missing generated edge-proxy component: ${edge_source}"
+        echo "[hint] run: bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized"
+        exit 1
+      fi
+      mkdir -p "${SNAPSHOT_DIR}/edge-proxy"
+      cp -R "${edge_source}/." "${SNAPSHOT_DIR}/edge-proxy/"
+    fi
+
     link_snapshot_component "edge-proxy" "edge-proxy"
   fi
 }

@@ -55,3 +55,155 @@ index 236e972..2c08cc2 100644
 - * on performance if an error is thrown.
 - */
 -// import 'zone.js/plugins/zone-error';  // Included with Angular CLI.
+diff --git a/edge-proxy-specfirst/.gitignore b/edge-proxy-specfirst/.gitignore
+new file mode 100644
+--- /dev/null
++++ b/edge-proxy-specfirst/.gitignore
+@@ -0,0 +1,2 @@
++node_modules/
++npm-debug.log
+diff --git a/edge-proxy-specfirst/README.md b/edge-proxy-specfirst/README.md
+new file mode 100644
+--- /dev/null
++++ b/edge-proxy-specfirst/README.md
+@@ -0,0 +1,16 @@
++# Edge Proxy (Spec-First Generated)
++
++This component is generated from:
++
++- state pack: `specs/002-edge-proxy-uncontainerized`
++- routing spec: `specs/002-edge-proxy-uncontainerized/system/edge-routing.json`
++
++## Run
++
++```bash
++npm install
++npm run start
++```
++
++## Runtime Contract
++- listen port: `18080` (env override: `EDGE_PROXY_PORT`)
++- web upstream: `http://localhost:18093` (env override: `EDGE_PROXY_WEB_TARGET`)
+diff --git a/edge-proxy-specfirst/SPEC.generated.md b/edge-proxy-specfirst/SPEC.generated.md
+new file mode 100644
+--- /dev/null
++++ b/edge-proxy-specfirst/SPEC.generated.md
+@@ -0,0 +1,7 @@
++# Edge Proxy (Spec-First Generated)
++
++- component: `edge-proxy`
++- defaultPort: `18080`
++- routesFile: `config/routes.json`
++- routeCount: `6`
++- state: `002-edge-proxy-uncontainerized`
+diff --git a/edge-proxy-specfirst/config/routes.json b/edge-proxy-specfirst/config/routes.json
+new file mode 100644
+--- /dev/null
++++ b/edge-proxy-specfirst/config/routes.json
+@@ -0,0 +1,17 @@
++{
++  "defaultPort": 18080,
++  "webTarget": "http://localhost:18093",
++  "apiRoutes": [
++    { "prefix": "/account-service", "target": "http://localhost:18088", "rewritePrefix": "" },
++    { "prefix": "/reference-data", "target": "http://localhost:18085", "rewritePrefix": "" },
++    { "prefix": "/trade-service", "target": "http://localhost:18092", "rewritePrefix": "" },
++    { "prefix": "/position-service", "target": "http://localhost:18090", "rewritePrefix": "" },
++    { "prefix": "/people-service", "target": "http://localhost:18089", "rewritePrefix": "" },
++    {
++      "prefix": "/socket.io",
++      "target": "http://localhost:18086",
++      "rewritePrefix": "/socket.io",
++      "ws": true
++    }
++  ]
++}
+diff --git a/edge-proxy-specfirst/package.json b/edge-proxy-specfirst/package.json
+new file mode 100644
+--- /dev/null
++++ b/edge-proxy-specfirst/package.json
+@@ -0,0 +1,14 @@
++{
++  "name": "traderx-edge-proxy-specfirst",
++  "version": "1.0.0",
++  "private": true,
++  "description": "Spec-first generated edge proxy for TraderX state 002",
++  "main": "src/server.js",
++  "scripts": {
++    "start": "node src/server.js"
++  },
++  "dependencies": {
++    "express": "^4.21.2",
++    "http-proxy-middleware": "^3.0.3"
++  }
++}
+diff --git a/edge-proxy-specfirst/src/server.js b/edge-proxy-specfirst/src/server.js
+new file mode 100644
+--- /dev/null
++++ b/edge-proxy-specfirst/src/server.js
+@@ -0,0 +1,63 @@
++const fs = require('fs');
++const path = require('path');
++const express = require('express');
++const { createProxyMiddleware } = require('http-proxy-middleware');
++
++function escapeRegex(value) {
++  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
++}
++
++function buildPathRewrite(prefix, rewritePrefix) {
++  if (rewritePrefix === null || rewritePrefix === undefined) {
++    return undefined;
++  }
++  const prefixRegex = new RegExp(`^${escapeRegex(prefix)}`);
++  return (requestPath) => requestPath.replace(prefixRegex, rewritePrefix);
++}
++
++function loadRoutesConfig() {
++  const configPath =
++    process.env.EDGE_PROXY_ROUTES_FILE ||
++    path.resolve(__dirname, '..', 'config', 'routes.json');
++  const raw = fs.readFileSync(configPath, 'utf8');
++  const config = JSON.parse(raw);
++  if (!config.webTarget || !Array.isArray(config.apiRoutes)) {
++    throw new Error(`invalid route config file: ${configPath}`);
++  }
++  return { configPath, config };
++}
++
++function createApp() {
++  const app = express();
++  const { configPath, config } = loadRoutesConfig();
++  const port = Number(process.env.EDGE_PROXY_PORT || config.defaultPort || 18080);
++
++  app.get('/health', (_req, res) => {
++    res.json({ status: 'ok', state: '002-edge-proxy-uncontainerized', routesFile: configPath });
++  });
++
++  for (const route of config.apiRoutes) {
++    if (!route.prefix || !route.target) {
++      throw new Error(`invalid api route entry in ${configPath}`);
++    }
++    app.use(route.prefix, createProxyMiddleware({
++      target: route.target,
++      changeOrigin: true,
++      ws: Boolean(route.ws),
++      pathRewrite: buildPathRewrite(route.prefix, route.rewritePrefix),
++      logLevel: process.env.EDGE_PROXY_LOG_LEVEL || 'warn'
++    }));
++  }
++
++  const webTarget = process.env.EDGE_PROXY_WEB_TARGET || config.webTarget;
++  app.use('/', createProxyMiddleware({
++    target: webTarget,
++    changeOrigin: true,
++    ws: true,
++    logLevel: process.env.EDGE_PROXY_LOG_LEVEL || 'warn'
++  }));
++  return { app, port };
++}
++
++const { app, port } = createApp();
++app.listen(port, () => {
++  console.log(`[ready] edge-proxy listening on :${port}`);
++});
