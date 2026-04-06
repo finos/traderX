@@ -244,6 +244,20 @@ CORE_COMPONENT_DIRS=(
   "web-front-end"
 )
 
+C2_COMPONENT_DIRS=(
+  "account-service"
+  "database"
+  "ingress"
+  "order-matcher"
+  "people-service"
+  "position-service"
+  "price-publisher"
+  "reference-data"
+  "trade-processor"
+  "trade-service"
+  "web-front-end"
+)
+
 snapshot_keep_paths_for_state() {
   case "${STATE_ID}" in
     001-baseline-uncontainerized-parity)
@@ -256,13 +270,13 @@ snapshot_keep_paths_for_state() {
       printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "containerized-compose" "ingress"
       ;;
     009-kubernetes-runtime)
-      printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "kubernetes-runtime"
+      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime"
       ;;
     012-radius-kubernetes-platform)
-      printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "kubernetes-runtime" "radius-kubernetes-platform"
+      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "radius-kubernetes-platform"
       ;;
     010-tilt-kubernetes-dev-loop)
-      printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "kubernetes-runtime" "tilt-kubernetes-dev-loop"
+      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "tilt-kubernetes-dev-loop"
       ;;
     *)
       find "${SNAPSHOT_DIR}" -mindepth 1 -maxdepth 1 -exec basename {} \;
