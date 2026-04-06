@@ -13,7 +13,7 @@ Suggested categories:
 Implemented smoke command:
 
 ```bash
-./scripts/test-state-012-radius-kubernetes-platform.sh http://localhost:8080 traderx kind traderx-state-004
+./scripts/test-state-012-radius-kubernetes-platform.sh http://localhost:8080 traderx kind traderx-state-009
 ```
 
 State-specific checks include:

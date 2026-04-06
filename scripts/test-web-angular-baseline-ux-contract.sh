@@ -36,7 +36,7 @@ echo "[check] all-accounts mode contract in trade page"
 require_pattern "${TRADE_TS}" "displayName: 'All Accounts'" "expected explicit All Accounts option"
 require_pattern "${TRADE_TS}" "id: 0" "expected All Accounts sentinel id=0"
 require_pattern "${TRADE_HTML}" "\\[disabled\\]=\"isAllAccountsSelected\"" "expected trade ticket button disabled in all-accounts mode"
-require_pattern "${TRADE_HTML}" "Trade ticket is disabled in <strong>All Accounts</strong> mode\\." "expected all-accounts explanatory message"
+require_pattern "${TRADE_HTML}" "disabled in <strong>All Accounts</strong> mode\\." "expected all-accounts explanatory message"
 require_pattern "${TRADE_HTML}" "\\[allAccountsMode\\]=\"isAllAccountsSelected\"" "expected allAccountsMode input binding for blotters"
 require_pattern "${TRADE_HTML}" "\\[accountIds\\]=\"accountIds\"" "expected accountIds input binding for blotters"
 

@@ -15,7 +15,7 @@ index 64b3ad9..33bcfc0 100644
          proxy_http_version 1.1;
 diff --git a/order-management-matcher/README.md b/order-management-matcher/README.md
 new file mode 100644
-index 0000000..b0a17cc
+index 0000000..1ddc920
 --- /dev/null
 +++ b/order-management-matcher/README.md
 @@ -0,0 +1,29 @@
@@ -50,26 +50,29 @@ index 0000000..b0a17cc
 +- Order matcher: `http://localhost:18110/health`
 diff --git a/order-management-matcher/docker-compose.yml b/order-management-matcher/docker-compose.yml
 new file mode 100644
-index 0000000..4f04622
+index 0000000..1e684a7
 --- /dev/null
 +++ b/order-management-matcher/docker-compose.yml
-@@ -0,0 +1,274 @@
+@@ -0,0 +1,297 @@
 +name: traderx-state-013
 +
 +services:
 +  database:
-+    build:
-+      context: ../database
-+      dockerfile: Dockerfile.compose
++    image: postgres:16-alpine
 +    environment:
-+      DATABASE_TCP_PORT: "18082"
-+      DATABASE_PG_PORT: "18083"
-+      DATABASE_WEB_PORT: "18084"
-+      DATABASE_WEB_HOSTNAMES: "localhost,database"
++      POSTGRES_DB: "traderx"
++      POSTGRES_USER: "traderx"
++      POSTGRES_PASSWORD: "traderx"
 +    ports:
-+      - "18082:18082"
-+      - "18083:18083"
-+      - "18084:18084"
++      - "18083:5432"
++    healthcheck:
++      test: [ "CMD-SHELL", "pg_isready -U traderx -d traderx" ]
++      interval: 5s
++      timeout: 5s
++      retries: 20
++    volumes:
++      - postgres_state_009_data:/var/lib/postgresql/data
++      - ../postgres-database-replacement/postgres-init/initialSchema.sql:/docker-entrypoint-initdb.d/001-initialSchema.sql:ro
 +
 +  reference-data:
 +    build:
@@ -124,15 +127,20 @@ index 0000000..4f04622
 +      dockerfile: Dockerfile.compose
 +    environment:
 +      ACCOUNT_SERVICE_PORT: "18088"
-+      DATABASE_TCP_HOST: "database"
-+      DATABASE_TCP_PORT: "18082"
++      DATABASE_PG_HOST: "database"
++      DATABASE_PG_PORT: "5432"
++      DATABASE_NAME: "traderx"
++      DATABASE_DBUSER: "traderx"
++      DATABASE_DBPASS: "traderx"
 +      PEOPLE_SERVICE_HOST: "people-service"
 +      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
 +    ports:
 +      - "18088:18088"
 +    depends_on:
-+      - database
-+      - people-service
++      database:
++        condition: service_healthy
++      people-service:
++        condition: service_started
 +
 +  position-service:
 +    build:
@@ -140,13 +148,17 @@ index 0000000..4f04622
 +      dockerfile: Dockerfile.compose
 +    environment:
 +      POSITION_SERVICE_PORT: "18090"
-+      DATABASE_TCP_HOST: "database"
-+      DATABASE_TCP_PORT: "18082"
++      DATABASE_PG_HOST: "database"
++      DATABASE_PG_PORT: "5432"
++      DATABASE_NAME: "traderx"
++      DATABASE_DBUSER: "traderx"
++      DATABASE_DBPASS: "traderx"
 +      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
 +    ports:
 +      - "18090:18090"
 +    depends_on:
-+      - database
++      database:
++        condition: service_healthy
 +
 +  trade-processor:
 +    build:
@@ -154,15 +166,20 @@ index 0000000..4f04622
 +      dockerfile: Dockerfile.compose
 +    environment:
 +      TRADE_PROCESSOR_SERVICE_PORT: "18091"
-+      DATABASE_TCP_HOST: "database"
-+      DATABASE_TCP_PORT: "18082"
++      DATABASE_PG_HOST: "database"
++      DATABASE_PG_PORT: "5432"
++      DATABASE_NAME: "traderx"
++      DATABASE_DBUSER: "traderx"
++      DATABASE_DBPASS: "traderx"
 +      NATS_BROKER_HOST: "nats-broker"
 +      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
 +    ports:
 +      - "18091:18091"
 +    depends_on:
-+      - database
-+      - nats-broker
++      database:
++        condition: service_healthy
++      nats-broker:
++        condition: service_started
 +
 +  trade-service:
 +    build:
@@ -208,11 +225,11 @@ index 0000000..4f04622
 +      dockerfile: Dockerfile.compose
 +    environment:
 +      ORDER_MATCHER_PORT: "18110"
-+      DATABASE_TCP_HOST: "database"
-+      DATABASE_TCP_PORT: "18082"
++      DATABASE_PG_HOST: "database"
++      DATABASE_PG_PORT: "5432"
 +      DATABASE_NAME: "traderx"
-+      DATABASE_DBUSER: "sa"
-+      DATABASE_DBPASS: "sa"
++      DATABASE_DBUSER: "traderx"
++      DATABASE_DBPASS: "traderx"
 +      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
 +      PRICE_SERVICE_URL: "http://price-publisher:18100"
 +      TRADE_SERVICE_URL: "http://trade-service:18092/trade/"
@@ -221,9 +238,12 @@ index 0000000..4f04622
 +    ports:
 +      - "18110:18110"
 +    depends_on:
-+      - database
-+      - price-publisher
-+      - trade-service
++      database:
++        condition: service_healthy
++      price-publisher:
++        condition: service_started
++      trade-service:
++        condition: service_started
 +
 +  ingress:
 +    build:
@@ -231,7 +251,7 @@ index 0000000..4f04622
 +      dockerfile: Dockerfile.compose
 +    environment:
 +      NGINX_HOST: "localhost"
-+      DATABASE_URL: "http://database:18084/"
++      DATABASE_URL: "http://database:5432/"
 +      REFERENCE_DATA_URL: "http://reference-data:18085/"
 +      PEOPLE_SERVICE_URL: "http://people-service:18089/"
 +      ACCOUNT_SERVICE_URL: "http://account-service:18088/"
@@ -328,6 +348,9 @@ index 0000000..4f04622
 +      - prometheus
 +      - loki
 +      - tempo
++
++volumes:
++  postgres_state_009_data:
 diff --git a/order-management-matcher/nats/nats.conf b/order-management-matcher/nats/nats.conf
 new file mode 100644
 index 0000000..1fb5a5f
@@ -1788,7 +1811,7 @@ index 0000000..9b1b5d1
 +- Full-fill threshold: `ORDER_FILL_FULL_THRESHOLD` (default `1000`)
 diff --git a/order-matcher/SPEC.manifest.json b/order-matcher/SPEC.manifest.json
 new file mode 100644
-index 0000000..e7cd72c
+index 0000000..2e64d20
 --- /dev/null
 +++ b/order-matcher/SPEC.manifest.json
 @@ -0,0 +1,52 @@
@@ -1846,7 +1869,7 @@ index 0000000..e7cd72c
 +
 diff --git a/order-matcher/build.gradle b/order-matcher/build.gradle
 new file mode 100644
-index 0000000..a62f652
+index 0000000..6af285f
 --- /dev/null
 +++ b/order-matcher/build.gradle
 @@ -0,0 +1,33 @@
@@ -1870,7 +1893,7 @@ index 0000000..a62f652
 +dependencies {
 +  implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 +  implementation 'org.springframework.boot:spring-boot-starter-web'
-+  implementation 'com.h2database:h2:2.3.232'
++  runtimeOnly 'org.postgresql:postgresql'
 +  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
 +  implementation ('ch.qos.logback:logback-core:1.5.18') {
 +    because 'version brought in by spring boot 3.5.3 affected by CVE-2024-12798'
@@ -4233,17 +4256,17 @@ index 0000000..f3d51a2
 +}
 diff --git a/order-matcher/src/main/resources/application.properties b/order-matcher/src/main/resources/application.properties
 new file mode 100644
-index 0000000..9289f0f
+index 0000000..7999334
 --- /dev/null
 +++ b/order-matcher/src/main/resources/application.properties
 @@ -0,0 +1,22 @@
 +server.port=${ORDER_MATCHER_PORT:18110}
 +
-+spring.datasource.url=jdbc:h2:tcp://${DATABASE_TCP_HOST:localhost}:${DATABASE_TCP_PORT:18082}/${DATABASE_NAME:traderx};CASE_INSENSITIVE_IDENTIFIERS=TRUE
-+spring.datasource.driverClassName=org.h2.Driver
-+spring.datasource.username=${DATABASE_DBUSER:sa}
-+spring.datasource.password=${DATABASE_DBPASS:sa}
-+spring.data.jpa.database-platform=org.hibernate.dialect.H2Dialect
++spring.datasource.url=jdbc:postgresql://${DATABASE_PG_HOST:localhost}:${DATABASE_PG_PORT:5432}/${DATABASE_NAME:traderx}
++spring.datasource.driverClassName=org.postgresql.Driver
++spring.datasource.username=${DATABASE_DBUSER:traderx}
++spring.datasource.password=${DATABASE_DBPASS:traderx}
++spring.data.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 +spring.jpa.hibernate.ddl-auto=update
 +spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
 +spring.jpa.open-in-view=false

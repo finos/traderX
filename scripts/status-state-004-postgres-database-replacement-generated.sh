@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-009}"
+COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-004}"
 COMPOSE_FILE="${REPO_ROOT}/generated/code/target-generated/postgres-database-replacement/docker-compose.yml"
 
 if ! command -v docker >/dev/null 2>&1; then

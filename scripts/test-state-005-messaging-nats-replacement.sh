@@ -31,6 +31,18 @@ if docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" 
   exit 1
 fi
 
+echo "[check] postgres readiness"
+docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" exec -T database \
+  pg_isready -U traderx -d traderx
+
+echo "[check] postgres baseline data loaded"
+accounts_count="$(docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" exec -T database \
+  psql -U traderx -d traderx -tAc "select count(*) from accounts;" | tr -d '[:space:]')"
+if [[ -z "${accounts_count}" || "${accounts_count}" -lt 7 ]]; then
+  echo "[error] expected baseline accounts in postgres, got count=${accounts_count:-0}"
+  exit 1
+fi
+
 echo "[check] nginx ingress health endpoint"
 health_headers="$(curl -sS -i "${INGRESS_URL}/health" | sed -n '1,20p')"
 echo "${health_headers}"
@@ -258,7 +270,6 @@ fi
 
 echo "[check] baseline component smoke suite in state 005 runtime"
 "${REPO_ROOT}/scripts/test-reference-data-overlay.sh" "${ORIGIN}" "http://localhost:18085"
-"${REPO_ROOT}/scripts/test-database-overlay.sh" "18082" "18083" "http://localhost:18084/" "http://localhost:18088/account/22214"
 "${REPO_ROOT}/scripts/test-people-service-overlay.sh" "${ORIGIN}" "http://localhost:18089" "http://localhost:18088/accountuser/"
 "${REPO_ROOT}/scripts/test-account-service-overlay.sh" "${ORIGIN}" "http://localhost:18088"
 "${REPO_ROOT}/scripts/test-position-service-overlay.sh" "${ORIGIN}" "http://localhost:18090"

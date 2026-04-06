@@ -206,6 +206,48 @@ index bb2e027..479b3d6 100644
          TRADE_ROW_MAPPER,
          accountId
      );
+diff --git a/postgres-database-replacement/postgres-init/initialSchema.sql b/postgres-database-replacement/postgres-init/initialSchema.sql
+index 18ac6a9..cde3c01 100644
+--- a/postgres-database-replacement/postgres-init/initialSchema.sql
++++ b/postgres-database-replacement/postgres-init/initialSchema.sql
+@@ -21,6 +21,7 @@ CREATE TABLE positions (
+   security VARCHAR(15),
+   updated TIMESTAMP,
+   quantity INTEGER,
++  averagecostbasis DECIMAL(18,3),
+   PRIMARY KEY (accountid, security),
+   FOREIGN KEY (accountid) REFERENCES accounts(id)
+ );
+@@ -33,6 +34,7 @@ CREATE TABLE trades (
+   security VARCHAR(15),
+   side VARCHAR(10) CHECK (side in ('Buy', 'Sell')),
+   quantity INTEGER CHECK (quantity > 0),
++  price DECIMAL(18,3),
+   state VARCHAR(20) CHECK (state in ('New', 'Processing', 'Settled', 'Cancelled'))
+ );
+ 
+@@ -65,13 +67,13 @@ INSERT INTO accountusers (accountid, username) VALUES (44044, 'user04');
+ INSERT INTO accountusers (accountid, username) VALUES (44044, 'user01');
+ INSERT INTO accountusers (accountid, username) VALUES (44044, 'user06');
+ 
+-INSERT INTO trades (id, created, updated, security, side, quantity, state, accountid) VALUES ('TRADE-22214-AABBCC', NOW(), NOW(), 'IBM', 'Sell', 100, 'Settled', 22214);
+-INSERT INTO trades (id, created, updated, security, side, quantity, state, accountid) VALUES ('TRADE-22214-DDEEFF', NOW(), NOW(), 'MS', 'Buy', 1000, 'Settled', 22214);
+-INSERT INTO trades (id, created, updated, security, side, quantity, state, accountid) VALUES ('TRADE-22214-GGHHII', NOW(), NOW(), 'C', 'Sell', 2000, 'Settled', 22214);
++INSERT INTO trades (id, created, updated, security, side, quantity, price, state, accountid) VALUES ('TRADE-22214-AABBCC', NOW(), NOW(), 'IBM', 'Sell', 100, 136.250, 'Settled', 22214);
++INSERT INTO trades (id, created, updated, security, side, quantity, price, state, accountid) VALUES ('TRADE-22214-DDEEFF', NOW(), NOW(), 'MS', 'Buy', 1000, 95.125, 'Settled', 22214);
++INSERT INTO trades (id, created, updated, security, side, quantity, price, state, accountid) VALUES ('TRADE-22214-GGHHII', NOW(), NOW(), 'C', 'Sell', 2000, 57.500, 'Settled', 22214);
+ 
+-INSERT INTO positions (accountid, security, updated, quantity) VALUES (22214, 'MS', NOW(), 1000);
+-INSERT INTO positions (accountid, security, updated, quantity) VALUES (22214, 'IBM', NOW(), -100);
+-INSERT INTO positions (accountid, security, updated, quantity) VALUES (22214, 'C', NOW(), -2000);
++INSERT INTO positions (accountid, security, updated, quantity, averagecostbasis) VALUES (22214, 'MS', NOW(), 1000, 95.125);
++INSERT INTO positions (accountid, security, updated, quantity, averagecostbasis) VALUES (22214, 'IBM', NOW(), -100, 136.250);
++INSERT INTO positions (accountid, security, updated, quantity, averagecostbasis) VALUES (22214, 'C', NOW(), -2000, 57.500);
+ 
+-INSERT INTO trades (id, created, updated, security, side, quantity, state, accountid) VALUES ('TRADE-52355-AABBCC', NOW(), NOW(), 'BAC', 'Sell', 2400, 'Settled', 52355);
+-INSERT INTO positions (accountid, security, updated, quantity) VALUES (52355, 'BAC', NOW(), -2400);
++INSERT INTO trades (id, created, updated, security, side, quantity, price, state, accountid) VALUES ('TRADE-52355-AABBCC', NOW(), NOW(), 'BAC', 'Sell', 2400, 41.125, 'Settled', 52355);
++INSERT INTO positions (accountid, security, updated, quantity, averagecostbasis) VALUES (52355, 'BAC', NOW(), -2400, 41.125);
 diff --git a/price-publisher/Dockerfile.compose b/price-publisher/Dockerfile.compose
 new file mode 100644
 index 0000000..cd089d0
@@ -267,7 +309,7 @@ index 0000000..074d3db
 +- `reference-data` uses the same shared list via `REFERENCE_DATA_SUPPORTED_TICKERS`, so every supported symbol has a corresponding price stream and quote endpoint.
 diff --git a/price-publisher/SPEC.manifest.json b/price-publisher/SPEC.manifest.json
 new file mode 100644
-index 0000000..6e8c094
+index 0000000..0325d59
 --- /dev/null
 +++ b/price-publisher/SPEC.manifest.json
 @@ -0,0 +1,6 @@
@@ -648,7 +690,7 @@ diff --git a/messaging-nats-replacement/README.md b/pricing-awareness-market-dat
 similarity index 63%
 rename from messaging-nats-replacement/README.md
 rename to pricing-awareness-market-data/README.md
-index a0fda48..17db18e 100644
+index 5d13f67..8333633 100644
 --- a/messaging-nats-replacement/README.md
 +++ b/pricing-awareness-market-data/README.md
 @@ -1,8 +1,8 @@
@@ -668,10 +710,10 @@ index a0fda48..17db18e 100644
  - NATS websocket (ingress proxied): `ws://localhost:8080/nats-ws`
 +- Price publisher API: `http://localhost:18100/prices`
 diff --git a/messaging-nats-replacement/docker-compose.yml b/pricing-awareness-market-data/docker-compose.yml
-similarity index 83%
+similarity index 85%
 rename from messaging-nats-replacement/docker-compose.yml
 rename to pricing-awareness-market-data/docker-compose.yml
-index 913dcd9..809403e 100644
+index ba4a919..0db1ee2 100644
 --- a/messaging-nats-replacement/docker-compose.yml
 +++ b/pricing-awareness-market-data/docker-compose.yml
 @@ -1,4 +1,4 @@
@@ -680,7 +722,7 @@ index 913dcd9..809403e 100644
  
  services:
    database:
-@@ -22,6 +22,7 @@ services:
+@@ -25,6 +25,7 @@ services:
      environment:
        REFERENCE_DATA_SERVICE_PORT: "18085"
        CORS_ALLOWED_ORIGINS: "http://localhost:8080"
@@ -688,7 +730,7 @@ index 913dcd9..809403e 100644
      ports:
        - "18085:18085"
      depends_on:
-@@ -37,6 +38,20 @@ services:
+@@ -40,6 +41,20 @@ services:
        - "8222:8222"
        - "8081:8081"
  
@@ -709,7 +751,7 @@ index 913dcd9..809403e 100644
    people-service:
      build:
        context: ../people-service
-@@ -103,6 +118,7 @@ services:
+@@ -120,6 +135,7 @@ services:
        REFERENCE_DATA_HOST: "reference-data"
        PEOPLE_SERVICE_HOST: "people-service"
        NATS_BROKER_HOST: "nats-broker"
@@ -717,7 +759,7 @@ index 913dcd9..809403e 100644
        CORS_ALLOWED_ORIGINS: "http://localhost:8080"
      ports:
        - "18092:18092"
-@@ -111,6 +127,7 @@ services:
+@@ -128,6 +144,7 @@ services:
        - reference-data
        - people-service
        - nats-broker
@@ -725,7 +767,15 @@ index 913dcd9..809403e 100644
        - trade-processor
  
    web-front-end-angular:
-@@ -142,6 +159,7 @@ services:
+@@ -145,6 +162,7 @@ services:
+       - position-service
+       - people-service
+       - nats-broker
++      - price-publisher
+ 
+   ingress:
+     build:
+@@ -159,6 +177,7 @@ services:
        POSITION_SERVICE_URL: "http://position-service:18090/"
        TRADE_PROCESSOR_URL: "http://trade-processor:18091/"
        TRADE_SERVICE_URL: "http://trade-service:18092/"
@@ -733,11 +783,6 @@ index 913dcd9..809403e 100644
        WEB_FRONTEND_URL: "http://web-front-end-angular:18093/"
      ports:
        - "8080:8080"
-@@ -153,3 +171,4 @@ services:
-       - position-service
-       - people-service
-       - nats-broker
-+      - price-publisher
 diff --git a/messaging-nats-replacement/nats/nats.conf b/pricing-awareness-market-data/nats/nats.conf
 similarity index 100%
 rename from messaging-nats-replacement/nats/nats.conf

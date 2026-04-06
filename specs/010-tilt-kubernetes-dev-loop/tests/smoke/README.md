@@ -13,10 +13,10 @@ Suggested categories:
 Implemented smoke command:
 
 ```bash
-./scripts/test-state-010-tilt-kubernetes-dev-loop.sh http://localhost:8080 traderx kind traderx-state-004
+./scripts/test-state-010-tilt-kubernetes-dev-loop.sh http://localhost:8080 traderx kind traderx-state-009
 ```
 
 State-specific checks include:
 
 - Tilt artifact pack generation (`Tiltfile`, `tilt-settings.json`).
-- Tiltfile mappings for all runtime images in the inherited state `004` build plan.
+- Tiltfile mappings for all runtime images in the inherited state `009` build plan.

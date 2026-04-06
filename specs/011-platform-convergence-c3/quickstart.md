@@ -11,6 +11,6 @@ bash pipeline/generate-state.sh 011-platform-convergence-c3
 ```bash
 ./scripts/start-state-011-platform-convergence-c3-generated.sh --provider kind
 ./scripts/status-state-011-platform-convergence-c3-generated.sh --provider kind
-./scripts/test-state-011-platform-convergence-c3.sh http://localhost:8080 traderx kind traderx-state-004
+./scripts/test-state-011-platform-convergence-c3.sh http://localhost:8080 traderx kind traderx-state-009
 ./scripts/stop-state-011-platform-convergence-c3-generated.sh --provider kind
 ```

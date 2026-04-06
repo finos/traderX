@@ -382,16 +382,28 @@ CONVERGENCE_ROLE="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id)
 DOTTED_PARENTS_JSON="$(jq -c --arg id "${STATE_ID}" '.states[] | select(.id == $id) | (.dottedParents // [])' "${CATALOG}")"
 DOTTED_PARENTS_TEXT="$(jq -r --arg id "${STATE_ID}" '.states[] | select(.id == $id) | (.dottedParents // []) | if length == 0 then "none" else join(", ") end' "${CATALOG}")"
 PREVIOUS_CONVERGENCE_STATE="$(jq -r --arg id "${STATE_ID}" '
-  .states
-  | [ .[] | select((.isConvergence // false) == true) | .id ] as $c
-  | ($c | index($id)) as $i
-  | if $i == null then "" elif $i > 0 then ($c[$i-1] // "") else "" end
+  .states as $states
+  | ($states | map(.id) | index($id)) as $idx
+  | if $idx == null then ""
+    else
+      [ range(0; $idx) as $i
+        | $states[$i]
+        | select((.isConvergence // false) == true)
+        | .id ] as $prev
+      | if ($prev | length) == 0 then "" else ($prev[-1] // "") end
+    end
 ' "${CATALOG}")"
 NEXT_CONVERGENCE_STATE="$(jq -r --arg id "${STATE_ID}" '
-  .states
-  | [ .[] | select((.isConvergence // false) == true) | .id ] as $c
-  | ($c | index($id)) as $i
-  | if $i == null then "" elif ($i + 1) < ($c | length) then ($c[$i+1] // "") else "" end
+  .states as $states
+  | ($states | map(.id) | index($id)) as $idx
+  | if $idx == null then ""
+    else
+      [ range($idx + 1; ($states | length)) as $i
+        | $states[$i]
+        | select((.isConvergence // false) == true)
+        | .id ] as $next
+      | if ($next | length) == 0 then "" else ($next[0] // "") end
+    end
 ' "${CATALOG}")"
 
 ORIGIN_URL="$(git -C "${ROOT}" remote get-url origin)"
@@ -433,6 +445,39 @@ compare_url() {
     return 1
   fi
   printf '%s/compare/%s...%s' "${REPO_WEB_BASE}" "$(urlencode "${from_branch}")" "$(urlencode "${to_branch}")"
+}
+
+render_convergence_reference_markdown() {
+  local direction="${1:-}"
+  local ref_state_id="${2:-}"
+  if [[ -z "${ref_state_id}" ]]; then
+    printf '`none`'
+    return 0
+  fi
+
+  local branch_name branch_url compare_link compare_from compare_to
+  branch_name="$(state_branch_name "${ref_state_id}")"
+  branch_url="$(state_branch_url "${ref_state_id}" || true)"
+
+  local state_md="\`${ref_state_id}\`"
+  if [[ -n "${branch_url}" ]]; then
+    state_md="[${ref_state_id}](${branch_url})"
+  fi
+
+  compare_from="$(state_branch_name "${STATE_ID}")"
+  compare_to="${branch_name}"
+  if [[ "${direction}" == "previous" ]]; then
+    compare_from="${branch_name}"
+    compare_to="$(state_branch_name "${STATE_ID}")"
+  fi
+
+  compare_link="$(compare_url "${compare_from}" "${compare_to}" || true)"
+  if [[ -n "${compare_link}" ]]; then
+    printf '%s (🔍 [compare](%s))' "${state_md}" "${compare_link}"
+    return 0
+  fi
+
+  printf '%s' "${state_md}"
 }
 
 render_state_lineage_table_rows() {
@@ -549,7 +594,7 @@ render_convergence_mermaid() {
       printf '  click %s href "%s" "Open branch"\n' "${prev_node}" "${prev_url}"
     fi
     if [[ -n "${prev_compare}" ]]; then
-      printf '  %% compare: %s\n' "${prev_compare}"
+      printf '  %%%% compare: %s\n' "${prev_compare}"
     fi
   fi
 
@@ -564,7 +609,7 @@ render_convergence_mermaid() {
       printf '  click %s href "%s" "Open branch"\n' "${next_node}" "${next_url}"
     fi
     if [[ -n "${next_compare}" ]]; then
-      printf '  %% compare: %s\n' "${next_compare}"
+      printf '  %%%% compare: %s\n' "${next_compare}"
     fi
   fi
 
@@ -1963,8 +2008,8 @@ State sets:
 - Convergence level: \`${CONVERGENCE_LEVEL}\`
 - Lineage role: \`${CONVERGENCE_ROLE}\`
 - Dotted-line parents: \`${DOTTED_PARENTS_TEXT}\`
-- Previous convergence: \`${PREVIOUS_CONVERGENCE_STATE:-none}\`
-- Next convergence: \`${NEXT_CONVERGENCE_STATE:-none}\`
+- Previous convergence milestone: $(render_convergence_reference_markdown "previous" "${PREVIOUS_CONVERGENCE_STATE}")
+- Next convergence milestone: $(render_convergence_reference_markdown "next" "${NEXT_CONVERGENCE_STATE}")
 
 ### Convergence Neighborhood
 

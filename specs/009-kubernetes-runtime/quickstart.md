@@ -1,6 +1,6 @@
 # Quickstart: Kubernetes Runtime Baseline
 
-## 1) Generate State 004
+## 1) Generate State 009
 
 ```bash
 bash pipeline/generate-state.sh 009-kubernetes-runtime
@@ -11,6 +11,6 @@ bash pipeline/generate-state.sh 009-kubernetes-runtime
 ```bash
 ./scripts/start-state-009-kubernetes-runtime-generated.sh --provider kind
 ./scripts/status-state-009-kubernetes-runtime-generated.sh --provider kind
-./scripts/test-state-009-kubernetes-runtime.sh http://localhost:8080 traderx kind traderx-state-004
+./scripts/test-state-009-kubernetes-runtime.sh http://localhost:8080 traderx kind traderx-state-009
 ./scripts/stop-state-009-kubernetes-runtime-generated.sh --provider kind
 ```

@@ -1,8 +1,8 @@
 # Functional Delta: 009-kubernetes-runtime
 
-Parent state: `003-containerized-compose-runtime`
+Parent state: `008-order-management-matcher`
 
-State `004` intentionally introduces no business-functional deltas. This transition is runtime/topology-focused.
+State `009` intentionally introduces no business-functional deltas. This transition is runtime/topology-focused.
 
 ## Added
 
@@ -23,5 +23,5 @@ State `004` intentionally introduces no business-functional deltas. This transit
 - F2 View Positions: unchanged behavior; data path unchanged.
 - F3 Account/User lookups: unchanged behavior; cross-service validation unchanged.
 - F4 Reference Data lookup: unchanged behavior; ticker validation unchanged.
-- F5 Trade Feed pub/sub: unchanged behavior; websocket route preserved at `/socket.io/`.
+- F5 Messaging/pub-sub: unchanged behavior; websocket route preserved at `/nats-ws`.
 - F6 UI browsing and navigation: unchanged behavior; single-origin path retained.

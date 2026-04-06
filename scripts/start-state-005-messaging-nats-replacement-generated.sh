@@ -52,6 +52,21 @@ fi
 
 docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" up -d --build
 
+wait_for_postgres() {
+  local attempts=90
+  local i
+  for ((i=1; i<=attempts; i++)); do
+    if docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" exec -T database \
+      pg_isready -U traderx -d traderx >/dev/null 2>&1; then
+      echo "[ready] postgres database"
+      return 0
+    fi
+    sleep 2
+  done
+  echo "[error] timeout waiting for postgres readiness"
+  return 1
+}
+
 wait_for_http() {
   local name="$1"
   local url="$2"
@@ -68,7 +83,7 @@ wait_for_http() {
   return 1
 }
 
-wait_for_http "database-web" "http://localhost:18084" || exit 1
+wait_for_postgres || exit 1
 wait_for_http "reference-data" "http://localhost:18085/stocks" || exit 1
 wait_for_http "nats-monitor" "http://localhost:8222/varz" || exit 1
 wait_for_http "account-service" "http://localhost:18088/account/22214" || exit 1
