@@ -56,3 +56,4 @@ flowchart LR
 | `blackbox` | service | Blackbox Exporter | Probes order endpoints and inherited runtime endpoints. |
 | `loki` | service | Loki | Aggregates order and runtime logs. |
 | `grafana` | service | Grafana | Dashboards for queue depth, open orders, events, and matcher latency. |
+
