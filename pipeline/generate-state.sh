@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 STATE_ID="${1:-}"
 TARGET_ROOT="${ROOT}/generated/code/target-generated"
+COMPONENTS_ROOT="${ROOT}/generated/code/components"
 
 if [[ -z "${STATE_ID}" ]]; then
   echo "usage: bash pipeline/generate-state.sh <state-id>"
@@ -30,9 +31,29 @@ clean_target_root() {
   mkdir -p "${TARGET_ROOT}"
 }
 
+clean_components_root() {
+  local attempts=6
+  local delay=1
+  local i
+
+  for ((i=1; i<=attempts; i++)); do
+    rm -rf "${COMPONENTS_ROOT}" && break || true
+    if (( i == attempts )); then
+      echo "[fail] unable to clean components root after ${attempts} attempts: ${COMPONENTS_ROOT}"
+      echo "[hint] stop active state runtimes, then retry."
+      exit 1
+    fi
+    echo "[warn] components cleanup retry ${i}/${attempts} for ${COMPONENTS_ROOT}"
+    sleep "${delay}"
+  done
+
+  mkdir -p "${COMPONENTS_ROOT}"
+}
+
 # Always regenerate from a clean target so each state output is deterministic
 # and does not carry unrelated artifacts from prior state runs.
 clean_target_root
+clean_components_root
 
 case "${STATE_ID}" in
   001-baseline-uncontainerized-parity)
