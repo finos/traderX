@@ -1,6 +1,6 @@
 # Observability with LGTM on Compose
 
-Containerized TraderX baseline with an LGTM observability layer for local learning.
+Containerized TraderX runtime (state 005) with an LGTM observability layer for local learning.
 
 - Generated from: `system/architecture.model.json`
 - Canonical flows: `system/end-to-end-flows.md`
@@ -10,7 +10,7 @@ Containerized TraderX baseline with an LGTM observability layer for local learni
 ```mermaid
 flowchart LR
   developer["Developer"]
-  app_runtime["TraderX App Runtime (State 003)"]
+  app_runtime["TraderX App Runtime (State 005)"]
   obs_runtime["Observability Runtime"]
   ingress["NGINX Ingress"]
   core_services["Core Services"]
@@ -38,10 +38,10 @@ flowchart LR
 | Node | Kind | Label | Notes |
 | --- | --- | --- | --- |
 | `developer` | actor | Developer | Local developer using this state. |
-| `app_runtime` | boundary | TraderX App Runtime (State 003) | Baseline containerized TraderX services. |
+| `app_runtime` | boundary | TraderX App Runtime (State 005) | Baseline containerized TraderX services. |
 | `obs_runtime` | boundary | Observability Runtime | LGTM + OTel stack for metrics/logs/traces. |
 | `ingress` | service | NGINX Ingress | Edge entrypoint for UI and service proxy. |
-| `core_services` | service | Core Services | Account, position, trade, processor, people, reference-data, trade-feed, database, UI. |
+| `core_services` | service | Core Services | Account, position, trade, processor, people, reference-data, nats-broker, database, UI. |
 | `prometheus` | service | Prometheus | Scrapes probe and collector metrics. |
 | `blackbox` | service | Blackbox Exporter | HTTP probe exporter for service availability/latency. |
 | `loki` | service | Loki | Log aggregation backend. |
