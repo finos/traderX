@@ -98,7 +98,7 @@ Learning-path catalog policy:
 - Derived artifacts include:
   - `catalog/learning-paths.yaml`
   - `catalog/learning-paths.md`
-  - `/docs/spec-kit/visual-learning-graphs`
+  - `/docs/learning-paths`
   - `/docs/spec-kit/state-docs`
   - `/docs/learning/index`
   - `/docs/learning/state-*.md`

@@ -8,7 +8,8 @@ const __dirname = path.dirname(__filename)
 const root = path.resolve(__dirname, '..', '..')
 const apiDocsDir = path.join(root, 'generated', 'api-docs')
 const componentsDir = path.join(root, 'specs', '001-baseline-uncontainerized-parity', 'components')
-const flowsDocRoute = '/specs/001-baseline-uncontainerized-parity/system/end-to-end-flows'
+const baseSpecRoute = '/specs/baseline-uncontainerized-parity'
+const flowsDocRoute = `${baseSpecRoute}/system/end-to-end-flows`
 
 if (!fs.existsSync(apiDocsDir)) {
   console.error(`[fail] missing api docs dir: ${apiDocsDir}`)
@@ -35,11 +36,10 @@ const flowLink = (flowToken) => {
     return `\`${token}\``
   }
   const flowId = match[1]
-  const anchor = flowId.toLowerCase()
-  return `[\`${flowId}\`](${flowsDocRoute}#${anchor})`
+  return `[\`${flowId}\`](${flowsDocRoute})`
 }
 
-const toRoute = (serviceDir) => `/specs/001-baseline-uncontainerized-parity/components/${serviceDir}`
+const toRoute = (serviceDir) => `${baseSpecRoute}/components/${serviceDir}`
 
 const serviceDirs = fs
   .readdirSync(apiDocsDir, {withFileTypes: true})

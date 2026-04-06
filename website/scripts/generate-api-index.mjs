@@ -10,6 +10,7 @@ const catalogPath = path.join(root, 'catalog', 'state-catalog.json')
 const apiDocsDir = path.join(root, 'generated', 'api-docs')
 const componentsDir = path.join(root, 'specs', '001-baseline-uncontainerized-parity', 'components')
 const outFile = path.join(apiDocsDir, 'index.mdx')
+const baseSpecRoute = '/specs/baseline-uncontainerized-parity'
 
 if (!fs.existsSync(catalogPath)) {
   console.error(`[fail] missing state catalog: ${catalogPath}`)
@@ -76,7 +77,7 @@ const serviceLinks = serviceDirs.map((serviceDir) => {
   return {
     label: toTitle(serviceDir),
     route: `/api/${serviceDir}/${routeSlug}`,
-    componentRoute: `/specs/001-baseline-uncontainerized-parity/components/${serviceDir}`,
+    componentRoute: `${baseSpecRoute}/components/${serviceDir}`,
     responsibilities,
   }
 })

@@ -46,5 +46,5 @@ flowchart LR
 ## Decision + Navigation Links
 
 - ADR: [ADR-008 Convergence State Model](/docs/adr/008-convergence-state-model)
-- Visual learning graphs: [/docs/spec-kit/visual-learning-graphs](/docs/spec-kit/visual-learning-graphs)
+- Visual learning graphs: [/docs/learning-paths](/docs/learning-paths)
 - State catalog: [/docs/spec-kit/state-docs](/docs/spec-kit/state-docs)

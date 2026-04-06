@@ -8,7 +8,7 @@ const root = path.resolve(__dirname, '..')
 
 const catalogPath = path.join(root, 'catalog', 'state-catalog.json')
 const stateDocsPath = path.join(root, 'docs', 'spec-kit', 'state-docs.md')
-const visualLearningGraphsPath = path.join(root, 'docs', 'spec-kit', 'visual-learning-graphs.md')
+const learningPathsDocPath = path.join(root, 'docs', 'learning-paths', 'index.md')
 const learningIndexPath = path.join(root, 'docs', 'learning', 'index.md')
 const learningDir = path.join(root, 'docs', 'learning')
 
@@ -384,7 +384,7 @@ This section is the developer-focused learning layer for generated TraderX code 
 Canonical requirements, contracts, and architecture remain in \`specs/**\`.  
 These guides explain how to read each generated code snapshot, compare it to previous states, and understand the code delta in plain English.
 
-For the visual progression map, see [Visual Learning Paths](/docs/spec-kit/visual-learning-graphs).
+For the visual progression map, see [Visual Learning Paths](/docs/learning-paths).
 
 ## State Guide Catalog
 
@@ -454,7 +454,7 @@ hide_table_of_contents: true
 
 This page is generated from \`catalog/state-catalog.json\` and links the most important per-state artifacts.
 
-For progression context, see [Visual Learning Paths](/docs/spec-kit/visual-learning-graphs).
+For progression context, see [Visual Learning Paths](/docs/learning-paths).
 
 ## State Catalog
 
@@ -612,10 +612,10 @@ const writeVisualLearningGraphs = () => {
   }
 
   const body = `---
-title: Visual Learning Paths
+title: Learning Paths
 ---
 
-# Visual Learning Paths
+# Learning Paths
 
 This page is generated from \`catalog/state-catalog.json\`.
 Green nodes represent convergence checkpoints (C-level milestones such as \`[C0]\`, \`[C1]\`, \`[C2]\`, \`[C3]\`).
@@ -658,7 +658,7 @@ ${swimlaneLines.join('\n')}
 Use \`catalog/state-catalog.json\` as the canonical state lineage record.
 `
 
-  emitFile(visualLearningGraphsPath, body)
+  emitFile(learningPathsDocPath, body)
 }
 
 writeLearningGuides()
@@ -676,6 +676,6 @@ if (checkMode) {
 }
 
 console.log(`[ok] wrote ${path.relative(root, stateDocsPath)}`)
-console.log(`[ok] wrote ${path.relative(root, visualLearningGraphsPath)}`)
+console.log(`[ok] wrote ${path.relative(root, learningPathsDocPath)}`)
 console.log(`[ok] wrote ${path.relative(root, learningIndexPath)}`)
 console.log('[ok] wrote docs/learning/state-*.md')

@@ -62,5 +62,5 @@ bash pipeline/publish-generated-state-branch.sh <state-id> --push
 ## References
 
 - State catalog: `catalog/state-catalog.json`
-- Visual graph: `/docs/spec-kit/visual-learning-graphs`
+- Visual graph: `/docs/learning-paths`
 - Convergence policy: `/docs/spec-kit/convergence-states`

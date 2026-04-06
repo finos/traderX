@@ -7,7 +7,7 @@ hide_table_of_contents: true
 
 This page is generated from `catalog/state-catalog.json` and links the most important per-state artifacts.
 
-For progression context, see [Visual Learning Paths](/docs/spec-kit/visual-learning-graphs).
+For progression context, see [Visual Learning Paths](/docs/learning-paths).
 
 ## State Catalog
 

@@ -9,7 +9,7 @@ This section is the developer-focused learning layer for generated TraderX code 
 Canonical requirements, contracts, and architecture remain in `specs/**`.  
 These guides explain how to read each generated code snapshot, compare it to previous states, and understand the code delta in plain English.
 
-For the visual progression map, see [Visual Learning Paths](/docs/spec-kit/visual-learning-graphs).
+For the visual progression map, see [Visual Learning Paths](/docs/learning-paths).
 
 ## State Guide Catalog
 

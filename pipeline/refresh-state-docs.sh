@@ -11,7 +11,7 @@ Refreshes all docs derived from catalog/state-catalog.json:
   - catalog/learning-paths.yaml
   - catalog/learning-paths.md
   - docs/spec-kit/state-docs.md
-  - docs/spec-kit/visual-learning-graphs.md
+  - docs/learning-paths/index.md
   - docs/learning/index.md
   - docs/learning/state-*.md
 

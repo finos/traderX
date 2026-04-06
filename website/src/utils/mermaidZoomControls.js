@@ -53,6 +53,89 @@ function makeButton(label, title, onClick) {
   return button
 }
 
+function normalizeBaseUrl(value) {
+  if (!value || typeof value !== 'string') {
+    return '/'
+  }
+  if (value === '/') {
+    return '/'
+  }
+  let normalized = value.trim()
+  if (!normalized.startsWith('/')) {
+    normalized = `/${normalized}`
+  }
+  if (!normalized.endsWith('/')) {
+    normalized = `${normalized}/`
+  }
+  return normalized
+}
+
+function inferBaseUrlFromPath(pathname) {
+  if (!pathname || typeof pathname !== 'string') {
+    return '/'
+  }
+  const markers = ['/docs/', '/specs/', '/specify/', '/api/']
+  const markerIndexes = markers
+    .map((marker) => pathname.indexOf(marker))
+    .filter((index) => index >= 0)
+  if (markerIndexes.length === 0) {
+    return '/'
+  }
+  const splitAt = Math.min(...markerIndexes)
+  if (splitAt <= 0) {
+    return '/'
+  }
+  return normalizeBaseUrl(pathname.slice(0, splitAt))
+}
+
+function currentBaseUrl() {
+  try {
+    const configured = window.__docusaurus?.baseUrl
+    if (configured) {
+      return normalizeBaseUrl(configured)
+    }
+  } catch (_) {
+    // noop
+  }
+  return inferBaseUrlFromPath(window.location?.pathname || '')
+}
+
+function isRootRelativeInternalHref(href) {
+  return (
+    typeof href === 'string' &&
+    href.startsWith('/') &&
+    !href.startsWith('//')
+  )
+}
+
+function withBaseUrl(href, baseUrl) {
+  if (!isRootRelativeInternalHref(href)) {
+    return href
+  }
+  if (baseUrl === '/' || href.startsWith(baseUrl)) {
+    return href
+  }
+  return `${baseUrl}${href.slice(1)}`
+}
+
+function rebaseMermaidLinks(svg) {
+  if (!svg) {
+    return
+  }
+  const baseUrl = currentBaseUrl()
+  const anchors = svg.querySelectorAll('a[href], a[xlink\\:href]')
+  anchors.forEach((anchor) => {
+    const href = anchor.getAttribute('href')
+    const xlinkHref = anchor.getAttribute('xlink:href')
+    if (href) {
+      anchor.setAttribute('href', withBaseUrl(href, baseUrl))
+    }
+    if (xlinkHref) {
+      anchor.setAttribute('xlink:href', withBaseUrl(xlinkHref, baseUrl))
+    }
+  })
+}
+
 function enhanceDiagram(container) {
   if (!container || container.dataset.txZoomReady === 'true') {
     return
@@ -62,6 +145,7 @@ function enhanceDiagram(container) {
   if (!svg) {
     return
   }
+  rebaseMermaidLinks(svg)
 
   const naturalHeight = svg.getBoundingClientRect().height || 0
   if (naturalHeight > 0 && naturalHeight <= SMALL_DIAGRAM_THRESHOLD) {

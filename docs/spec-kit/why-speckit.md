@@ -8,7 +8,7 @@ The primary goal is to support multiple parallel and sometimes conflicting state
 
 Browse the state landscape directly:
 
-- [Visual Learning Paths](/docs/spec-kit/visual-learning-graphs)
+- [Visual Learning Paths](/docs/learning-paths)
 - [Spec Catalog](/specs)
 
 ## Problem With The Old Code-First Model

@@ -83,4 +83,4 @@ Related artifacts:
 
 * Catalog source of truth: `/catalog/state-catalog.json`
 * Convergence reference: `/docs/spec-kit/convergence-states`
-* Visual learning graph: `/docs/spec-kit/visual-learning-graphs`
+* Visual learning graph: `/docs/learning-paths`

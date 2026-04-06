@@ -44,4 +44,4 @@ Convergence context is represented separately via `isConvergence`, `convergenceL
 
 - State metadata: `catalog/state-catalog.json`
 - Convergence governance ADR: `/docs/adr/008-convergence-state-model`
-- Visual graph: `/docs/spec-kit/visual-learning-graphs`
+- Visual graph: `/docs/learning-paths`

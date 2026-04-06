@@ -78,7 +78,6 @@ module.exports = {
         'learning/state-011-platform-convergence-c3',
         'learning/state-012-radius-kubernetes-platform',
         'learning-paths/index',
-        'spec-kit/visual-learning-graphs',
         'spec-kit/spec-kit-learning-path-strategy',
         'spec-kit/state-transition-generation-plan',
       ],
