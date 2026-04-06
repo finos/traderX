@@ -2,9 +2,26 @@ module.exports = {
   mainSidebar: [
     'home',
     {
-      type: 'doc',
-      id: 'blog/index',
+      type: 'category',
       label: 'Engineering Blog',
+      link: {
+        type: 'doc',
+        id: 'blog/index',
+      },
+      items: [
+        'blog/2026-04-06-convergence-milestone-releases',
+        'blog/2026-04-06-state-008-order-management-matcher',
+        'blog/2026-04-06-state-006-observability-baseline',
+        'blog/2026-03-31-state-010-pricing-awareness-functional-track',
+        'blog/2026-03-31-state-009-postgres-architecture-track',
+        'blog/2026-03-31-state-007-nats-architecture-track',
+        'blog/2026-03-29-traderx-speckit-migration',
+        'blog/2024-09-platform-paths-kubernetes-radius',
+        'blog/2024-03-docs-portal-and-project-storytelling',
+        'blog/2023-11-osff-nyc-keynote-and-go-live',
+        'blog/2023-09-open-source-hardening-and-governance',
+        'blog/2023-05-from-hackathon-to-open-source-baseline',
+      ],
     },
     {
       type: 'category',

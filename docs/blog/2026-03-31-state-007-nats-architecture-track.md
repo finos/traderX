@@ -1,14 +1,14 @@
 ---
-title: "State 007: Swapping Socket.IO for NATS"
+title: "State 005: Swapping Socket.IO for NATS"
 date: 2026-03-31
-description: "TraderX state 007 moves from a brittle Socket.IO messaging layer to NATS, marks the first architecture-track branch from state 003, and shows why SpecKit accelerated delivery and documentation."
+description: "TraderX state 005 moves from a brittle Socket.IO messaging layer to NATS, establishes the architecture-track messaging baseline, and shows why SpecKit accelerated delivery and documentation."
 ---
 
-# State 007: Swapping Socket.IO for NATS
+# State 005: Swapping Socket.IO for NATS
 
 Published: **Tuesday, March 31, 2026**
 
-State `005-messaging-nats-replacement` is now in place as our first major architecture-track breakout from `003-containerized-compose-runtime`.
+State `005-messaging-nats-replacement` is in place as the messaging architecture transition on top of `004-postgres-database-replacement`.
 
 For a long time, TraderX used a deliberately simple messaging layer that was easy to run but increasingly brittle as we pushed toward more realistic multi-service evolution. The old Socket.IO-centric setup worked, but it forced us into awkward conventions for server-to-server eventing and created fragility when we wanted clearer protocol behavior.
 
@@ -27,7 +27,7 @@ Code and specs:
 - State spec pack: [/specs/messaging-nats-replacement](/specs/messaging-nats-replacement)
 - State learning guide: [/docs/learning/state-005-messaging-nats-replacement](/docs/learning/state-005-messaging-nats-replacement)
 - Generated code branch: [code/generated-state-005-messaging-nats-replacement](https://github.com/finos/traderX/tree/code/generated-state-005-messaging-nats-replacement)
-- Compare against parent state `003`: [generated-state 003...007](https://github.com/finos/traderX/compare/code%2Fgenerated-state-003-containerized-compose-runtime...code%2Fgenerated-state-005-messaging-nats-replacement)
+- Compare against parent state `004`: [generated-state 004...005](https://github.com/finos/traderX/compare/code%2Fgenerated-state-004-postgres-database-replacement...code%2Fgenerated-state-005-messaging-nats-replacement)
 
 ## Why NATS
 
@@ -56,12 +56,10 @@ Instead of manually curating long-lived code branches, we changed the system of 
 
 ## Track Implications
 
-State `007` proves the architecture track can branch independently from the DevEx track (`004/005/006`) while still sharing ancestry at `003`.
+State `005` sets up the messaging baseline that later states inherit:
 
-That unlocks useful combinations:
+- `006` adds observability,
+- `007` layers pricing streams on top of NATS,
+- `008` layers order matching on top of pricing and NATS.
 
-- Compose + NATS today (`007`),
-- Kubernetes + NATS next (tentative `008` branch shown in the learning graph),
-- parallel experimentation without forcing unrelated changes into one branch path.
-
-This is exactly the learning model we wanted: explicit state transitions, clear diffs, and runnable outputs at each step.
+This keeps transitions explicit, diffs reviewable, and runnable outputs available at each step.

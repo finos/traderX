@@ -64,9 +64,15 @@ We chose to keep canonical spec authoring in the main renovation branch, and pub
 - `code/generated-state-001-baseline-uncontainerized-parity`
 - `code/generated-state-002-edge-proxy-uncontainerized`
 - `code/generated-state-003-containerized-compose-runtime`
+- `code/generated-state-004-postgres-database-replacement`
+- `code/generated-state-005-messaging-nats-replacement`
+- `code/generated-state-006-observability-lgtm-compose`
+- `code/generated-state-007-pricing-awareness-market-data`
+- `code/generated-state-008-order-management-matcher`
 - `code/generated-state-009-kubernetes-runtime`
-- `code/generated-state-012-radius-kubernetes-platform`
 - `code/generated-state-010-tilt-kubernetes-dev-loop`
+- `code/generated-state-011-platform-convergence-c3`
+- `code/generated-state-012-radius-kubernetes-platform`
 
 This gave us a useful split:
 
@@ -102,5 +108,6 @@ One likely next move is a "pre-phase-0" explanation state that is intentionally 
 - Renovation branch: [feature/agentic-renovation](https://github.com/finos/traderX/tree/feature/agentic-renovation)
 - Commit history: [feature/agentic-renovation commits](https://github.com/finos/traderX/commits/feature/agentic-renovation)
 - Generated state-code branches: [search `code/generated-state-*`](https://github.com/finos/traderX/branches/all?query=code%2Fgenerated-state-)
+- Canonical state metadata and lineage: [state catalog](/docs/spec-kit/state-catalog)
 
 The commit trail and generated-state branches show how this evolved in real time, including course-corrections and cleanup decisions that were necessary to move from "looks like it works" to "this is a real and sustainable foundation."

@@ -1,18 +1,18 @@
 ---
-title: "March 31, 2026: State 010 - Pricing Awareness as a Functional Track"
+title: "March 31, 2026: State 007 - Pricing Awareness as a Functional Track"
 slug: /blog/2026-03-31-state-010-pricing-awareness-functional-track
 ---
 
-# State 010: Pricing Awareness as a Functional Track
+# State 007: Pricing Awareness as a Functional Track
 
-State `007-pricing-awareness-market-data` extends state `007` and marks the first major functional expansion after the NATS messaging upgrade.
+State `007-pricing-awareness-market-data` extends `006-observability-lgtm-compose` and marks the first major functional expansion after the NATS messaging upgrade.
 
 This state adds pricing awareness to trade execution, persistence, and portfolio presentation, while preserving the existing end-to-end trading flow.
 
 ## Why This State
 
 The system previously handled quantities and securities but had no execution pricing context in persisted trades or aggregated positions.  
-State `010` introduces that missing functional layer and keeps it realtime via NATS topics.
+State `007` introduces that missing functional layer and keeps it realtime via NATS topics.
 
 ## What Changed
 
@@ -32,11 +32,11 @@ State `010` introduces that missing functional layer and keeps it realtime via N
 - Persistence checks validated:
   - `trade.price` is populated
   - `position.averageCostBasis` is populated
-- Baseline overlay smoke tests also pass under the 010 runtime to ensure no regressions in prior behavior.
+- Baseline overlay smoke tests also pass under the state runtime to ensure no regressions in prior behavior.
 
 ## Spec + Code Links
 
 - State spec pack: [/specs/pricing-awareness-market-data](/specs/pricing-awareness-market-data)
 - Learning guide: [/docs/learning/state-007-pricing-awareness-market-data](/docs/learning/state-007-pricing-awareness-market-data)
 - Generated code branch: [code/generated-state-007-pricing-awareness-market-data](https://github.com/finos/traderX/tree/code/generated-state-007-pricing-awareness-market-data)
-- Compare vs parent (`007`): [code/generated-state-005-messaging-nats-replacement...code/generated-state-007-pricing-awareness-market-data](https://github.com/finos/traderX/compare/code%2Fgenerated-state-005-messaging-nats-replacement...code%2Fgenerated-state-007-pricing-awareness-market-data)
+- Compare vs parent (`006`): [code/generated-state-006-observability-lgtm-compose...code/generated-state-007-pricing-awareness-market-data](https://github.com/finos/traderX/compare/code%2Fgenerated-state-006-observability-lgtm-compose...code%2Fgenerated-state-007-pricing-awareness-market-data)
