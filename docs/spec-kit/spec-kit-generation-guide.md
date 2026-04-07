@@ -47,6 +47,25 @@ TRADERX_GENERATED_ROOT=/absolute/path/to/generated bash pipeline/generate-state.
 
 When unset, behavior is unchanged.
 
+## Generated Runtime Harness Requirement
+
+Every generated state output now includes a local runtime harness under:
+
+- `generated/code/target-generated/scripts`
+
+This harness is part of the generation contract and must include state-local
+`start/stop/status` scripts (plus state smoke tests where available) so each
+generated codebase is runnable with local scripts.
+
+Root scripts under `/scripts` act as wrappers and may forward to the generated
+local harness when present.
+
+Harness sanity check:
+
+```bash
+./scripts/test-generated-runtime-harness.sh
+```
+
 Run examples:
 
 ```bash

@@ -3,6 +3,13 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
+
+if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
+  LOCAL_RUNTIME_SCRIPT="${GENERATED_ROOT}/code/target-generated/scripts/$(basename "${BASH_SOURCE[0]}")"
+  if [[ -x "${LOCAL_RUNTIME_SCRIPT}" ]]; then
+    exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+  fi
+fi
 STATE_ID="009-kubernetes-runtime"
 STATE_DIR="${GENERATED_ROOT}/code/target-generated/kubernetes-runtime"
 BUILD_PLAN="${STATE_DIR}/build-plan.json"
@@ -52,6 +59,10 @@ while (( "$#" )); do
   esac
   shift
 done
+
+if [[ "${TRADERX_SKIP_GENERATE:-0}" == "1" ]]; then
+  SKIP_GENERATE=1
+fi
 
 if ! command -v jq >/dev/null 2>&1; then
   echo "[error] required command not found: jq"

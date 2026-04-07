@@ -84,4 +84,7 @@ EOF
     ;;
 esac
 
+# Install self-contained runtime scripts alongside the generated codebase.
+bash "${ROOT}/pipeline/install-generated-runtime-harness.sh" "${STATE_ID}" "${TARGET_ROOT}"
+
 bash "${ROOT}/pipeline/refresh-state-docs.sh"

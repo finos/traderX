@@ -3,6 +3,13 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
+
+if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
+  LOCAL_RUNTIME_SCRIPT="${GENERATED_ROOT}/code/target-generated/scripts/$(basename "${BASH_SOURCE[0]}")"
+  if [[ -x "${LOCAL_RUNTIME_SCRIPT}" ]]; then
+    exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+  fi
+fi
 TARGET="${GENERATED_ROOT}/code/target-generated"
 RUN_DIR="${TARGET}/.run/state-002-edge-proxy"
 EDGE_PROXY_PORT="${EDGE_PROXY_PORT:-18080}"

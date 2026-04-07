@@ -129,6 +129,13 @@ TRADERX_GENERATED_ROOT=/path/to/traderx-corporate-overlay/generated \
   bash upstream/traderX/pipeline/generate-state.sh 003-containerized-compose-runtime
 ```
 
+Generated state output includes a local runtime harness at:
+
+- `/path/to/traderx-corporate-overlay/generated/code/target-generated/scripts`
+
+This lets corporate overlays run start/stop/status from generated artifacts directly,
+while upstream root scripts can forward to those local harness scripts.
+
 ## Generation Rules For Agents and Humans
 
 - Never modify `upstream/traderX` for corporate-only requirements.

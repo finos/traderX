@@ -12,6 +12,10 @@ This is the canonical runbook for the base uncontainerized generated runtime.
 bash pipeline/generate-state.sh 001-baseline-uncontainerized-parity
 ```
 
+Generation now installs local runtime scripts into:
+
+- `generated/code/target-generated/scripts`
+
 ## Start Full Overlay Stack
 
 ```bash

@@ -3,6 +3,13 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
+
+if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
+  LOCAL_RUNTIME_SCRIPT="${GENERATED_ROOT}/code/target-generated/scripts/$(basename "${BASH_SOURCE[0]}")"
+  if [[ -x "${LOCAL_RUNTIME_SCRIPT}" ]]; then
+    exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+  fi
+fi
 STATE_ID="006-observability-lgtm-compose"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-006}"
 COMPOSE_DIR="${GENERATED_ROOT}/code/target-generated/observability-lgtm-compose"
@@ -38,7 +45,11 @@ if [[ -z "${DOCKER_BUILDKIT:-}" ]]; then
   echo "[info] DOCKER_BUILDKIT not set; defaulting to 1 for Docker cache mounts"
 fi
 
-bash "${REPO_ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+if [[ "${TRADERX_SKIP_GENERATE:-0}" != "1" ]]; then
+  bash "${REPO_ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+else
+  echo "[info] skipping state generation for ${STATE_ID} (TRADERX_SKIP_GENERATE=1)"
+fi
 
 [[ -f "${COMPOSE_FILE}" ]] || {
   echo "[error] compose file not found: ${COMPOSE_FILE}"

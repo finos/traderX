@@ -3,6 +3,13 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
+
+if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
+  LOCAL_RUNTIME_SCRIPT="${GENERATED_ROOT}/code/target-generated/scripts/$(basename "${BASH_SOURCE[0]}")"
+  if [[ -x "${LOCAL_RUNTIME_SCRIPT}" ]]; then
+    exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+  fi
+fi
 STATE_ID="012-radius-kubernetes-platform"
 STATE_DIR="${GENERATED_ROOT}/code/target-generated/radius-kubernetes-platform"
 RADIUS_DIR="${STATE_DIR}/radius"
@@ -46,7 +53,11 @@ while (( "$#" )); do
   shift
 done
 
-bash "${REPO_ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+if [[ "${TRADERX_SKIP_GENERATE:-0}" != "1" ]]; then
+  bash "${REPO_ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+else
+  echo "[info] skipping state generation for ${STATE_ID} (TRADERX_SKIP_GENERATE=1)"
+fi
 
 for required in \
   "${STATE_DIR}/README.md" \

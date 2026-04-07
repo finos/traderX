@@ -50,6 +50,7 @@ Run a demo generation + corporate transform pass:
 ```
 
 The demo script calls upstream generation with `TRADERX_GENERATED_ROOT` so output is written directly into the overlay repository (`./generated`) instead of the upstream submodule path.
+Generated outputs include local runtime scripts under `generated/code/target-generated/scripts`.
 
 ## Example Corporate Rules Included
 
