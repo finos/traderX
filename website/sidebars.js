@@ -26,8 +26,13 @@ module.exports = {
     {
       type: 'category',
       label: 'Start Here',
+      link: {
+        type: 'doc',
+        id: 'spec-kit/getting-started-with-traderx',
+      },
       items: [
         'spec-kit/getting-started-with-traderx',
+        'spec-kit/corporate-environments-guide',
         'spec-kit/index',
         'spec-kit/why-speckit',
         'spec-kit/spec-kit-generation-guide',

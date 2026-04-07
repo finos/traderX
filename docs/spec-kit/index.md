@@ -50,6 +50,9 @@ bash pipeline/state-playbook.sh --state <state-id> --publish-neighborhood --push
    - `/docs/spec-kit/spec-kit-learning-path-strategy`
    - `/docs/spec-kit/convergence-states`
    - `/docs/learning-paths`
+10. Plan enterprise/private extension strategy:
+    - `/docs/spec-kit/corporate-environments-guide`
+    - in-repo bootstrap starter: `examples/corporate-overlay-template/`
 
 ## Where Is The Generated Code?
 

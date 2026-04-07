@@ -11,6 +11,8 @@ TraderX has multiple generated codebases representing different learning states,
 - Search generated branches directly: [code/generated-state-* branches](https://github.com/finos/traderX/branches/all?query=code%2Fgenerated-state-)
 - See full state mapping and links: [State Docs](/docs/spec-kit/state-docs)
 - See the progression and visual graph: [Learning Paths](/docs/learning-paths)
+- For corporate/private extension setup: [Corporate Environments Guide](/docs/spec-kit/corporate-environments-guide)
+- Bootstrap starter template path: `examples/corporate-overlay-template/`
 
 If you want to run demos quickly, use the generated state branches listed below.
 
@@ -50,3 +52,12 @@ Example contribution themes:
 - Service mesh adoption.
 - Multi-temporal data support and related UI updates.
 - Swapping messaging or database implementations.
+
+## Corporate Internal Extension Point
+
+If your organization needs private runtime constraints, internal-only states, or private generated branches:
+
+1. Use the in-repo bootstrap starter under `examples/corporate-overlay-template/`.
+2. Create a separate corporate overlay repository (do not fork TraderX for corporate-only deltas).
+3. Add TraderX as a pinned submodule dependency.
+4. Publish an internal docs portal that includes only your sanctioned internal learning graph branches.
