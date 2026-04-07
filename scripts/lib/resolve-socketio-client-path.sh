@@ -2,10 +2,11 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
 
 candidate_paths=(
-  "${REPO_ROOT}/generated/code/target-generated/trade-feed/node_modules/socket.io-client"
-  "${REPO_ROOT}/generated/code/components/trade-feed-specfirst/node_modules/socket.io-client"
+  "${GENERATED_ROOT}/code/target-generated/trade-feed/node_modules/socket.io-client"
+  "${GENERATED_ROOT}/code/components/trade-feed-specfirst/node_modules/socket.io-client"
   "${REPO_ROOT}/node_modules/socket.io-client"
 )
 
@@ -21,7 +22,7 @@ if ! command -v npm >/dev/null 2>&1; then
   exit 1
 fi
 
-cache_dir="${REPO_ROOT}/generated/tool-cache/socketio-client"
+cache_dir="${GENERATED_ROOT}/tool-cache/socketio-client"
 module_dir="${cache_dir}/node_modules/socket.io-client"
 
 if [[ ! -d "${module_dir}" ]]; then

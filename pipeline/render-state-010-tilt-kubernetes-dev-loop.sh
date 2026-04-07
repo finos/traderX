@@ -2,7 +2,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TARGET_ROOT="${ROOT}/generated/code/target-generated"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${ROOT}/generated}"
+TARGET_ROOT="${GENERATED_ROOT}/code/target-generated"
 UPSTREAM_DIR="${TARGET_ROOT}/kubernetes-runtime"
 STATE_DIR="${TARGET_ROOT}/tilt-kubernetes-dev-loop"
 MANIFEST_DIR="${STATE_DIR}/manifests/base"

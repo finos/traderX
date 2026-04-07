@@ -2,8 +2,9 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
 STATE_ID="010-tilt-kubernetes-dev-loop"
-STATE_DIR="${REPO_ROOT}/generated/code/target-generated/tilt-kubernetes-dev-loop"
+STATE_DIR="${GENERATED_ROOT}/code/target-generated/tilt-kubernetes-dev-loop"
 TILT_DIR="${STATE_DIR}/tilt"
 
 DRY_RUN=0

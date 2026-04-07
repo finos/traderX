@@ -39,13 +39,14 @@ if [[ -z "${COMPONENT_ID}" ]]; then
 fi
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${ROOT}/generated}"
 REPO_ROOT="${ROOT}"
 source "${ROOT}/pipeline/speckit/lib.sh"
 
 MATRIX="${SPECKIT_MATRIX}"
 CSV="${ROOT}/catalog/component-spec.csv"
 PACK_FILE="${SPECKIT_CONFORMANCE_DIR}/${COMPONENT_ID}.md"
-MANIFEST_PATH="${ROOT}/generated/manifests/${COMPONENT_ID}.manifest.json"
+MANIFEST_PATH="${GENERATED_ROOT}/manifests/${COMPONENT_ID}.manifest.json"
 
 normalize_field() {
   local value="$1"

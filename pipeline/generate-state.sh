@@ -2,9 +2,10 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${ROOT}/generated}"
 STATE_ID="${1:-}"
-TARGET_ROOT="${ROOT}/generated/code/target-generated"
-COMPONENTS_ROOT="${ROOT}/generated/code/components"
+TARGET_ROOT="${GENERATED_ROOT}/code/target-generated"
+COMPONENTS_ROOT="${GENERATED_ROOT}/code/components"
 
 if [[ -z "${STATE_ID}" ]]; then
   echo "usage: bash pipeline/generate-state.sh <state-id>"

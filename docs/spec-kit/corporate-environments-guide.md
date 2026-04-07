@@ -122,6 +122,13 @@ git add upstream/traderX
 git commit -m "chore: bump TraderX upstream pin"
 ```
 
+Generate from upstream submodule directly into corporate overlay output root:
+
+```bash
+TRADERX_GENERATED_ROOT=/path/to/traderx-corporate-overlay/generated \
+  bash upstream/traderX/pipeline/generate-state.sh 003-containerized-compose-runtime
+```
+
 ## Generation Rules For Agents and Humans
 
 - Never modify `upstream/traderX` for corporate-only requirements.

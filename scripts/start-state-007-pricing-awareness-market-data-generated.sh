@@ -2,9 +2,10 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
 STATE_ID="007-pricing-awareness-market-data"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-007}"
-COMPOSE_DIR="${REPO_ROOT}/generated/code/target-generated/pricing-awareness-market-data"
+COMPOSE_DIR="${GENERATED_ROOT}/code/target-generated/pricing-awareness-market-data"
 COMPOSE_FILE="${COMPOSE_DIR}/docker-compose.yml"
 DRY_RUN=0
 

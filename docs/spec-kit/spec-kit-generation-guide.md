@@ -35,6 +35,18 @@ bash pipeline/generate-state.sh 006-observability-lgtm-compose
 bash pipeline/generate-state.sh 011-platform-convergence-c3
 ```
 
+## Override Generated Output Root
+
+Generation defaults to `generated/` under the TraderX repository root.
+
+You can override that location with:
+
+```bash
+TRADERX_GENERATED_ROOT=/absolute/path/to/generated bash pipeline/generate-state.sh <state-id>
+```
+
+When unset, behavior is unchanged.
+
 Run examples:
 
 ```bash

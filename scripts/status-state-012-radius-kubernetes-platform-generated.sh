@@ -2,7 +2,8 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-STATE_DIR="${REPO_ROOT}/generated/code/target-generated/radius-kubernetes-platform"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
+STATE_DIR="${GENERATED_ROOT}/code/target-generated/radius-kubernetes-platform"
 RADIUS_DIR="${STATE_DIR}/radius"
 
 K8S_PROVIDER="${K8S_PROVIDER:-kind}"

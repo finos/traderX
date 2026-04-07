@@ -2,9 +2,10 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
 STATE_ID="006-observability-lgtm-compose"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-006}"
-COMPOSE_DIR="${REPO_ROOT}/generated/code/target-generated/observability-lgtm-compose"
+COMPOSE_DIR="${GENERATED_ROOT}/code/target-generated/observability-lgtm-compose"
 COMPOSE_FILE="${COMPOSE_DIR}/docker-compose.yml"
 DRY_RUN=0
 

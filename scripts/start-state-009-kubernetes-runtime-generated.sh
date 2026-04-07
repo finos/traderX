@@ -2,8 +2,9 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
 STATE_ID="009-kubernetes-runtime"
-STATE_DIR="${REPO_ROOT}/generated/code/target-generated/kubernetes-runtime"
+STATE_DIR="${GENERATED_ROOT}/code/target-generated/kubernetes-runtime"
 BUILD_PLAN="${STATE_DIR}/build-plan.json"
 KUSTOMIZE_DIR="${STATE_DIR}/manifests/base"
 KIND_CONFIG="${STATE_DIR}/kind/cluster-config.yaml"
@@ -124,7 +125,7 @@ if (( DRY_RUN == 1 )); then
       image="$(jq -r '.image' <<<"${item}")"
       context_rel="$(jq -r '.context' <<<"${item}")"
       dockerfile_rel="$(jq -r '.dockerfile' <<<"${item}")"
-      echo "[dry-run] docker build -t ${image} -f ${REPO_ROOT}/generated/code/target-generated/${context_rel}/${dockerfile_rel} ${REPO_ROOT}/generated/code/target-generated/${context_rel}  # ${name}"
+      echo "[dry-run] docker build -t ${image} -f ${GENERATED_ROOT}/code/target-generated/${context_rel}/${dockerfile_rel} ${GENERATED_ROOT}/code/target-generated/${context_rel}  # ${name}"
       if [[ "${K8S_PROVIDER}" == "kind" ]]; then
         echo "[dry-run] kind load docker-image ${image} --name ${cluster_name}"
       else
@@ -237,7 +238,7 @@ while IFS= read -r item; do
   image="$(jq -r '.image' <<<"${item}")"
   context_rel="$(jq -r '.context' <<<"${item}")"
   dockerfile_rel="$(jq -r '.dockerfile' <<<"${item}")"
-  context_abs="${REPO_ROOT}/generated/code/target-generated/${context_rel}"
+  context_abs="${GENERATED_ROOT}/code/target-generated/${context_rel}"
   dockerfile_abs="${context_abs}/${dockerfile_rel}"
 
   [[ -d "${context_abs}" ]] || {

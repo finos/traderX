@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-GENERATED_ROOT="${REPO_ROOT}/generated"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
 TARGET="${GENERATED_ROOT}/code/target-generated"
 SPEC="${REPO_ROOT}/catalog/base-uncontainerized-processes.csv"
 RUN_DIR="${TARGET}/.run/base-uncontainerized"

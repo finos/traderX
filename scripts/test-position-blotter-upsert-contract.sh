@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-WEB_ROOT="${1:-generated/code/target-generated/web-front-end/angular}"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
+WEB_ROOT="${1:-${GENERATED_ROOT}/code/target-generated/web-front-end/angular}"
 if [[ ! -d "${WEB_ROOT}" ]]; then
-  ALT_WEB_ROOT="generated/code/components/web-front-end-angular-specfirst"
+  ALT_WEB_ROOT="${GENERATED_ROOT}/code/components/web-front-end-angular-specfirst"
   if [[ -d "${ALT_WEB_ROOT}" ]]; then
     WEB_ROOT="${ALT_WEB_ROOT}"
   fi

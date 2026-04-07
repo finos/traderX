@@ -2,7 +2,8 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TARGET="${REPO_ROOT}/generated/code/target-generated"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
+TARGET="${GENERATED_ROOT}/code/target-generated"
 RUN_DIR="${TARGET}/.run/state-002-edge-proxy"
 EDGE_PROXY_PORT="${EDGE_PROXY_PORT:-18080}"
 

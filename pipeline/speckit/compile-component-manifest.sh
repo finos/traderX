@@ -2,6 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${ROOT}/generated}"
 REPO_ROOT="${ROOT}"
 source "${ROOT}/pipeline/speckit/lib.sh"
 
@@ -18,7 +19,7 @@ speckit_assert_component_ready "${COMPONENT_ID}"
 
 CSV="${ROOT}/catalog/component-spec.csv"
 MATRIX="${SPECKIT_MATRIX}"
-OUT_DIR="${ROOT}/generated/manifests"
+OUT_DIR="${GENERATED_ROOT}/manifests"
 
 json_escape() {
   local raw="$1"

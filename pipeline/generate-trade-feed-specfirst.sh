@@ -2,12 +2,13 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${ROOT}/generated}"
 source "${ROOT}/pipeline/speckit/lib.sh"
 
 COMPONENT_ID="trade-feed"
-TARGET="${ROOT}/generated/code/components/trade-feed-specfirst"
+TARGET="${GENERATED_ROOT}/code/components/trade-feed-specfirst"
 TEMPLATE_ROOT="${ROOT}/templates/trade-feed-specfirst"
-MANIFEST_PATH="${ROOT}/generated/manifests/${COMPONENT_ID}.manifest.json"
+MANIFEST_PATH="${GENERATED_ROOT}/manifests/${COMPONENT_ID}.manifest.json"
 
 speckit_assert_global_readiness
 speckit_assert_component_ready "${COMPONENT_ID}"

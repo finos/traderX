@@ -179,44 +179,45 @@ if [[ -z "${COMPONENT_ID}" ]]; then
 fi
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
 cd "${REPO_ROOT}"
 
 case "${COMPONENT_ID}" in
   reference-data)
     GENERATOR_SCRIPT_CANDIDATES=("pipeline/generate-reference-data-specfirst.sh" "TraderSpec/pipeline/generate-reference-data-specfirst.sh")
-    GENERATED_DIR="generated/code/components/reference-data-specfirst"
+    GENERATED_COMPONENT_REL="code/components/reference-data-specfirst"
     ;;
   database)
     GENERATOR_SCRIPT_CANDIDATES=("pipeline/generate-database-specfirst.sh" "TraderSpec/pipeline/generate-database-specfirst.sh")
-    GENERATED_DIR="generated/code/components/database-specfirst"
+    GENERATED_COMPONENT_REL="code/components/database-specfirst"
     ;;
   people-service)
     GENERATOR_SCRIPT_CANDIDATES=("pipeline/generate-people-service-specfirst.sh" "TraderSpec/pipeline/generate-people-service-specfirst.sh")
-    GENERATED_DIR="generated/code/components/people-service-specfirst"
+    GENERATED_COMPONENT_REL="code/components/people-service-specfirst"
     ;;
   account-service)
     GENERATOR_SCRIPT_CANDIDATES=("pipeline/generate-account-service-specfirst.sh" "TraderSpec/pipeline/generate-account-service-specfirst.sh")
-    GENERATED_DIR="generated/code/components/account-service-specfirst"
+    GENERATED_COMPONENT_REL="code/components/account-service-specfirst"
     ;;
   position-service)
     GENERATOR_SCRIPT_CANDIDATES=("pipeline/generate-position-service-specfirst.sh" "TraderSpec/pipeline/generate-position-service-specfirst.sh")
-    GENERATED_DIR="generated/code/components/position-service-specfirst"
+    GENERATED_COMPONENT_REL="code/components/position-service-specfirst"
     ;;
   trade-feed)
     GENERATOR_SCRIPT_CANDIDATES=("pipeline/generate-trade-feed-specfirst.sh" "TraderSpec/pipeline/generate-trade-feed-specfirst.sh")
-    GENERATED_DIR="generated/code/components/trade-feed-specfirst"
+    GENERATED_COMPONENT_REL="code/components/trade-feed-specfirst"
     ;;
   trade-processor)
     GENERATOR_SCRIPT_CANDIDATES=("pipeline/generate-trade-processor-specfirst.sh" "TraderSpec/pipeline/generate-trade-processor-specfirst.sh")
-    GENERATED_DIR="generated/code/components/trade-processor-specfirst"
+    GENERATED_COMPONENT_REL="code/components/trade-processor-specfirst"
     ;;
   trade-service)
     GENERATOR_SCRIPT_CANDIDATES=("pipeline/generate-trade-service-specfirst.sh" "TraderSpec/pipeline/generate-trade-service-specfirst.sh")
-    GENERATED_DIR="generated/code/components/trade-service-specfirst"
+    GENERATED_COMPONENT_REL="code/components/trade-service-specfirst"
     ;;
   web-front-end-angular)
     GENERATOR_SCRIPT_CANDIDATES=("pipeline/generate-web-front-end-angular-specfirst.sh" "TraderSpec/pipeline/generate-web-front-end-angular-specfirst.sh")
-    GENERATED_DIR="generated/code/components/web-front-end-angular-specfirst"
+    GENERATED_COMPONENT_REL="code/components/web-front-end-angular-specfirst"
     ;;
   *)
     echo "[fail] unsupported component-id: ${COMPONENT_ID}"
@@ -250,6 +251,8 @@ LEGACY_OUT="${TMP_DIR}/legacy-output"
 CURRENT_OUT="${TMP_DIR}/current-output"
 DIFF_FILE="${TMP_DIR}/diff.patch"
 DIFF_NAMES_FILE="${TMP_DIR}/diff.names"
+LEGACY_GENERATED_ROOT="${LEGACY_WORKTREE}/generated"
+CURRENT_GENERATED_ROOT="${GENERATED_ROOT}"
 
 cleanup() {
   git worktree remove --force "${LEGACY_WORKTREE}" >/dev/null 2>&1 || true
@@ -272,25 +275,25 @@ if [[ -z "${LEGACY_GENERATOR_SCRIPT}" ]]; then
 fi
 
 echo "[run] legacy generator (${LEGACY_REF})"
-bash "${LEGACY_WORKTREE}/${LEGACY_GENERATOR_SCRIPT}"
+TRADERX_GENERATED_ROOT="${LEGACY_GENERATED_ROOT}" bash "${LEGACY_WORKTREE}/${LEGACY_GENERATOR_SCRIPT}"
 
-if [[ ! -d "${LEGACY_WORKTREE}/${GENERATED_DIR}" ]]; then
-  echo "[fail] legacy generation did not create expected directory: ${GENERATED_DIR}"
+if [[ ! -d "${LEGACY_GENERATED_ROOT}/${GENERATED_COMPONENT_REL}" ]]; then
+  echo "[fail] legacy generation did not create expected directory: ${LEGACY_GENERATED_ROOT}/${GENERATED_COMPONENT_REL}"
   exit 1
 fi
 
 mkdir -p "${LEGACY_OUT}" "${CURRENT_OUT}"
-cp -R "${LEGACY_WORKTREE}/${GENERATED_DIR}" "${LEGACY_OUT}/component"
+cp -R "${LEGACY_GENERATED_ROOT}/${GENERATED_COMPONENT_REL}" "${LEGACY_OUT}/component"
 
 echo "[run] current generator (working tree)"
-bash "${CURRENT_GENERATOR_SCRIPT}"
+TRADERX_GENERATED_ROOT="${CURRENT_GENERATED_ROOT}" bash "${CURRENT_GENERATOR_SCRIPT}"
 
-if [[ ! -d "${GENERATED_DIR}" ]]; then
-  echo "[fail] current generation did not create expected directory: ${GENERATED_DIR}"
+if [[ ! -d "${CURRENT_GENERATED_ROOT}/${GENERATED_COMPONENT_REL}" ]]; then
+  echo "[fail] current generation did not create expected directory: ${CURRENT_GENERATED_ROOT}/${GENERATED_COMPONENT_REL}"
   exit 1
 fi
 
-cp -R "${GENERATED_DIR}" "${CURRENT_OUT}/component"
+cp -R "${CURRENT_GENERATED_ROOT}/${GENERATED_COMPONENT_REL}" "${CURRENT_OUT}/component"
 
 set +e
 diff -ru "${LEGACY_OUT}/component" "${CURRENT_OUT}/component" > "${DIFF_FILE}"

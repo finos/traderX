@@ -2,13 +2,14 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${ROOT}/generated}"
 REPO_ROOT="${ROOT}"
 source "${ROOT}/pipeline/speckit/lib.sh"
 
 COMPONENT_ID="account-service"
-TARGET="${ROOT}/generated/code/components/account-service-specfirst"
+TARGET="${GENERATED_ROOT}/code/components/account-service-specfirst"
 TEMPLATE_ROOT="${ROOT}/templates/account-service-specfirst"
-MANIFEST_PATH="${ROOT}/generated/manifests/${COMPONENT_ID}.manifest.json"
+MANIFEST_PATH="${GENERATED_ROOT}/manifests/${COMPONENT_ID}.manifest.json"
 
 speckit_assert_global_readiness
 speckit_assert_component_ready "${COMPONENT_ID}"

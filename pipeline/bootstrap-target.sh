@@ -2,7 +2,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TARGET="${ROOT}/generated/code/target-generated"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${ROOT}/generated}"
+TARGET="${GENERATED_ROOT}/code/target-generated"
 
 mkdir -p "${TARGET}"
 mkdir -p "${TARGET}/apps" "${TARGET}/infra" "${TARGET}/contracts" "${TARGET}/tests"

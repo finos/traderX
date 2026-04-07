@@ -5,6 +5,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 UPSTREAM_ROOT="${ROOT}/upstream/traderX"
 STATE_ID="${1:-003-containerized-compose-runtime}"
 TARGET_ROOT="${ROOT}/generated/code/target-generated"
+OVERLAY_GENERATED_ROOT="${ROOT}/generated"
 
 if [[ ! -d "${UPSTREAM_ROOT}" ]]; then
   echo "[fail] upstream submodule not found at ${UPSTREAM_ROOT}"
@@ -13,10 +14,7 @@ if [[ ! -d "${UPSTREAM_ROOT}" ]]; then
 fi
 
 echo "[info] generating upstream state ${STATE_ID}"
-bash "${UPSTREAM_ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
-
-mkdir -p "${TARGET_ROOT}"
-rsync -a --delete "${UPSTREAM_ROOT}/generated/code/target-generated/" "${TARGET_ROOT}/"
+TRADERX_GENERATED_ROOT="${OVERLAY_GENERATED_ROOT}" bash "${UPSTREAM_ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
 
 echo "[info] applying corporate transforms"
 bash "${ROOT}/corporate/transforms/managed-postgres-endpoint-overlay.sh" "${TARGET_ROOT}" "${STATE_ID}"

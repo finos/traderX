@@ -2,10 +2,11 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${ROOT}/generated}"
 REPO_ROOT="${ROOT}"
 CSV="${ROOT}/catalog/component-spec.csv"
-MANIFEST_DIR="${ROOT}/generated/manifests"
-COMPONENTS_DIR="${ROOT}/generated/code/components"
+MANIFEST_DIR="${GENERATED_ROOT}/manifests"
+COMPONENTS_DIR="${GENERATED_ROOT}/code/components"
 
 "${ROOT}/pipeline/validate-regeneration-readiness.sh"
 bash "${ROOT}/pipeline/speckit/compile-all-component-manifests.sh"

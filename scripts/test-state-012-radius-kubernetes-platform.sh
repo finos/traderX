@@ -2,14 +2,15 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
 INGRESS_URL="${1:-http://localhost:8080}"
 NAMESPACE="${2:-traderx}"
 K8S_PROVIDER="${3:-${K8S_PROVIDER:-kind}}"
 CLUSTER_OR_PROFILE="${4:-${MINIKUBE_PROFILE:-traderx-state-009}}"
-STATE_DIR="${REPO_ROOT}/generated/code/target-generated/radius-kubernetes-platform"
+STATE_DIR="${GENERATED_ROOT}/code/target-generated/radius-kubernetes-platform"
 RADIUS_DIR="${STATE_DIR}/radius"
 UPSTREAM_BUILD_PLAN="${STATE_DIR}/upstream-build-plan.json"
-UPSTREAM_SPEC="${REPO_ROOT}/generated/code/target-generated/kubernetes-runtime/spec-source/kubernetes-runtime.spec.json"
+UPSTREAM_SPEC="${GENERATED_ROOT}/code/target-generated/kubernetes-runtime/spec-source/kubernetes-runtime.spec.json"
 
 echo "[check] state 009 baseline compatibility for state 012"
 "${REPO_ROOT}/scripts/test-state-009-kubernetes-runtime.sh" "${INGRESS_URL}" "${NAMESPACE}" "${K8S_PROVIDER}" "${CLUSTER_OR_PROFILE}"

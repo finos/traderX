@@ -2,15 +2,22 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${ROOT}/generated}"
 STATE_ID="${1:-}"
 PARENT_STATE_ID="${2:-}"
-TARGET_PATH_ARG="${3:-generated/code/target-generated}"
-TARGET_PATH="${ROOT}/${TARGET_PATH_ARG}"
+TARGET_PATH_ARG="${3:-${GENERATED_ROOT}/code/target-generated}"
+
+if [[ "${TARGET_PATH_ARG}" = /* ]]; then
+  TARGET_PATH="${TARGET_PATH_ARG}"
+else
+  TARGET_PATH="${ROOT}/${TARGET_PATH_ARG}"
+fi
 
 if [[ -z "${STATE_ID}" ]]; then
   echo "usage: bash pipeline/create-state-patchset.sh <state-id> [parent-state-id] [target-path]"
   echo "example: bash pipeline/create-state-patchset.sh 005-messaging-nats-replacement"
   echo "example: bash pipeline/create-state-patchset.sh 002-edge-proxy-uncontainerized 001-baseline-uncontainerized-parity generated/code/components"
+  echo "env: TRADERX_GENERATED_ROOT=/abs/path/to/generated"
   exit 1
 fi
 

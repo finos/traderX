@@ -2,9 +2,10 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BUILD_PLAN="${REPO_ROOT}/generated/code/target-generated/kubernetes-runtime/build-plan.json"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
+BUILD_PLAN="${GENERATED_ROOT}/code/target-generated/kubernetes-runtime/build-plan.json"
 SPEC_FILE="${REPO_ROOT}/specs/009-kubernetes-runtime/system/kubernetes-runtime.spec.json"
-RUN_DIR="${REPO_ROOT}/generated/code/target-generated/kubernetes-runtime/.run/state-009-kubernetes-runtime"
+RUN_DIR="${GENERATED_ROOT}/code/target-generated/kubernetes-runtime/.run/state-009-kubernetes-runtime"
 
 DELETE_CLUSTER=0
 K8S_PROVIDER="${K8S_PROVIDER:-kind}"

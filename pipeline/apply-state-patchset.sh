@@ -2,8 +2,9 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${ROOT}/generated}"
 STATE_ID="${1:-}"
-TARGET_ROOT="${2:-${ROOT}/generated/code/target-generated}"
+TARGET_ROOT="${2:-${GENERATED_ROOT}/code/target-generated}"
 PATCH_DIR="${ROOT}/specs/${STATE_ID}/generation/patches"
 
 if [[ -z "${STATE_ID}" ]]; then
@@ -16,19 +17,10 @@ if [[ ! -d "${TARGET_ROOT}" ]]; then
   exit 1
 fi
 
-if [[ "${TARGET_ROOT}" != "${ROOT}"/* ]]; then
-  echo "[fail] target root must be under repository root for git-apply directory routing"
-  echo "[hint] target=${TARGET_ROOT}"
-  echo "[hint] root=${ROOT}"
-  exit 1
-fi
-
 if [[ ! -d "${PATCH_DIR}" ]]; then
   echo "[fail] missing patch directory: ${PATCH_DIR}"
   exit 1
 fi
-
-TARGET_REL="${TARGET_ROOT#${ROOT}/}"
 
 patch_files=()
 while IFS= read -r patch_file; do
@@ -41,11 +33,11 @@ if [[ "${#patch_files[@]}" -eq 0 ]]; then
 fi
 
 for patch_file in "${patch_files[@]}"; do
-  git -C "${ROOT}" apply --check --whitespace=nowarn --directory="${TARGET_REL}" "${patch_file}"
+  git -C "${TARGET_ROOT}" apply --check --whitespace=nowarn "${patch_file}"
 done
 
 for patch_file in "${patch_files[@]}"; do
-  git -C "${ROOT}" apply --whitespace=nowarn --directory="${TARGET_REL}" "${patch_file}"
+  git -C "${TARGET_ROOT}" apply --whitespace=nowarn "${patch_file}"
   echo "[apply] ${patch_file}"
 done
 

@@ -2,6 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${ROOT}/generated}"
 CATALOG="${ROOT}/catalog/state-catalog.json"
 GENERATED_ROOT_BRANCH="${GENERATED_ROOT_BRANCH:-code/generated-state-root}"
 
@@ -129,14 +130,14 @@ case "${STATE_ID}" in
     ;;
   003-containerized-compose-runtime)
     bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
-    [[ -f "${ROOT}/generated/code/target-generated/containerized-compose/docker-compose.yml" ]] || {
+    [[ -f "${GENERATED_ROOT}/code/target-generated/containerized-compose/docker-compose.yml" ]] || {
       echo "[fail] missing generated compose file for state 003"
       exit 1
     }
     ;;
   009-kubernetes-runtime)
     bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
-    [[ -f "${ROOT}/generated/code/target-generated/kubernetes-runtime/build-plan.json" ]] || {
+    [[ -f "${GENERATED_ROOT}/code/target-generated/kubernetes-runtime/build-plan.json" ]] || {
       echo "[fail] missing generated kubernetes build-plan for state 009"
       exit 1
     }
@@ -144,14 +145,14 @@ case "${STATE_ID}" in
     ;;
   012-radius-kubernetes-platform)
     bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
-    [[ -f "${ROOT}/generated/code/target-generated/radius-kubernetes-platform/radius/app.bicep" ]] || {
+    [[ -f "${GENERATED_ROOT}/code/target-generated/radius-kubernetes-platform/radius/app.bicep" ]] || {
       echo "[fail] missing generated radius app model for state 012"
       exit 1
     }
     ;;
   010-tilt-kubernetes-dev-loop)
     bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
-    [[ -f "${ROOT}/generated/code/target-generated/tilt-kubernetes-dev-loop/tilt/Tiltfile" ]] || {
+    [[ -f "${GENERATED_ROOT}/code/target-generated/tilt-kubernetes-dev-loop/tilt/Tiltfile" ]] || {
       echo "[fail] missing generated tilt assets for state 010"
       exit 1
     }
@@ -167,7 +168,7 @@ case "${STATE_ID}" in
     ;;
 esac
 
-SNAPSHOT_ROOT="${ROOT}/generated/code/target-generated"
+SNAPSHOT_ROOT="${GENERATED_ROOT}/code/target-generated"
 if [[ ! -d "${SNAPSHOT_ROOT}" ]]; then
   echo "[fail] missing generated target directory: ${SNAPSHOT_ROOT}"
   exit 1
@@ -998,7 +999,7 @@ install_uncontainerized_clone_harness() {
     cp "${ROOT}/scripts/status-state-002-edge-proxy-generated.sh" "${SNAPSHOT_DIR}/scripts/"
 
     if [[ ! -d "${SNAPSHOT_DIR}/edge-proxy" ]]; then
-      local edge_source="${ROOT}/generated/code/components/edge-proxy-specfirst"
+      local edge_source="${GENERATED_ROOT}/code/components/edge-proxy-specfirst"
       if [[ ! -d "${edge_source}" ]]; then
         echo "[fail] missing generated edge-proxy component: ${edge_source}"
         echo "[hint] run: bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized"

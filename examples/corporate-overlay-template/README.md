@@ -49,6 +49,8 @@ Run a demo generation + corporate transform pass:
 ./scripts/demo-generate-corp-overlay.sh 003-containerized-compose-runtime
 ```
 
+The demo script calls upstream generation with `TRADERX_GENERATED_ROOT` so output is written directly into the overlay repository (`./generated`) instead of the upstream submodule path.
+
 ## Example Corporate Rules Included
 
 - `RULE-IMG-001`: public container images are blocked; corporate registry mirror required.

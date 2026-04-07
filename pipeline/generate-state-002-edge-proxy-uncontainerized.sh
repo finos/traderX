@@ -2,9 +2,10 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${ROOT}/generated}"
 STATE_ID="002-edge-proxy-uncontainerized"
 PARENT_STATE_ID="001-baseline-uncontainerized-parity"
-COMPONENTS_ROOT="${ROOT}/generated/code/components"
+COMPONENTS_ROOT="${GENERATED_ROOT}/code/components"
 
 echo "[info] generating parent state ${PARENT_STATE_ID} for ${STATE_ID}"
 bash "${ROOT}/pipeline/generate-state.sh" "${PARENT_STATE_ID}"
