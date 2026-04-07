@@ -423,16 +423,13 @@ const writeStateDocs = () => {
     const researchRoute = stateDocRouteIfExists(state, 'research.md', 'research')
     const dataModelRoute = stateDocRouteIfExists(state, 'data-model.md', 'data-model')
     const quickstartRoute = stateDocRouteIfExists(state, 'quickstart.md', 'quickstart')
-    const researchCell = researchRoute ? `[link](${researchRoute})` : '`n/a`'
-    const dataModelCell = dataModelRoute ? `[link](${dataModelRoute})` : '`n/a`'
-    const quickstartCell = quickstartRoute ? `[link](${quickstartRoute})` : '`n/a`'
     const previousIds = Array.isArray(state.previous) ? state.previous : []
     const dottedParentIds = dottedParentIdsFor(state)
     const convergenceLevel = convergenceLevelFor(state)
-    const convergenceCell = isConvergenceState(state) ? `\`${convergenceLevel}\`` : '`none`'
-    const dottedCell = dottedParentIds.length === 0
-      ? '`none`'
-      : dottedParentIds.map((id) => `[${id}](${learningRouteFor(id)})`).join('<br/>')
+    const dottedInline = dottedParentIds.length === 0
+      ? ''
+      : `<br/>Dotted: ${dottedParentIds.map((id) => `[${stateNumber(id)}](${learningRouteFor(id)})`).join(', ')}`
+    const convergenceCell = `${isConvergenceState(state) ? `\`${convergenceLevel}\`` : '`none`'}${dottedInline}`
     const adrRoute = adrRouteFor(state.decisionRecord)
     const adrCell = adrRoute ? `[link](${adrRoute})` : '`n/a`'
     const compareCell = compareLinksMarkdown(state, previousIds)
@@ -441,8 +438,21 @@ const writeStateDocs = () => {
         return urlMatch ? `[link](${urlMatch[1]})` : '`n/a`'
       })
       .join('<br/>')
+    const docsCell = [
+      `[Learning Guide](${learningRoute})`,
+      quickstartRoute ? `[Quick Start](${quickstartRoute})` : '`Quick Start: n/a`',
+    ].join('<br/>')
+    const architectureCell = [
+      `[Architecture](${architectureRoute})`,
+      `[Flows](${topologyRoute})`,
+      dataModelRoute ? `[Data Model](${dataModelRoute})` : '`Data Model: n/a`',
+    ].join('<br/>')
+    const specsCell = [
+      `[Spec Pack](${specRoute})`,
+      researchRoute ? `[Research](${researchRoute})` : '`Research: n/a`',
+    ].join('<br/>')
 
-    return `| \`${state.id}\` | ${state.status} | ${convergenceCell} | ${dottedCell} | [link](${learningRoute}) | [link](${specRoute}) | [link](${architectureRoute}) | [link](${topologyRoute}) | ${researchCell} | ${dataModelCell} | ${quickstartCell} | ${branchCell} | ${compareCell} | ${adrCell} |`
+    return `| \`${state.id}\` | ${state.status} | ${convergenceCell} | ${docsCell} | ${architectureCell} | ${specsCell} | ${branchCell} | ${compareCell} | ${adrCell} |`
   })
 
   const body = `---
@@ -458,8 +468,8 @@ For progression context, see [Visual Learning Paths](/docs/learning-paths).
 
 ## State Catalog
 
-| State | Status | Convergence | Dotted Parents | Learning Guide | Spec Pack | Architecture | Flows / Topology | Research | Data Model | Quickstart | Generated Code Branch | Compare To Previous | ADR |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| State | Status | Convergence | Docs | Architecture | Specs | Generated Code Branch | Compare To Previous | ADR |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
 ${rows.join('\n')}
 
 ## API Explorer by State
