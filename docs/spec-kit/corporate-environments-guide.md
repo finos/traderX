@@ -132,6 +132,7 @@ TRADERX_GENERATED_ROOT=/path/to/traderx-corporate-overlay/generated \
 Generated state output includes a local runtime harness at:
 
 - `/path/to/traderx-corporate-overlay/generated/code/target-generated/scripts`
+- `/path/to/traderx-corporate-overlay/generated/code/target-generated/RUN_FROM_GENERATED.md`
 
 This lets corporate overlays run start/stop/status from generated artifacts directly,
 while upstream root scripts can forward to those local harness scripts.

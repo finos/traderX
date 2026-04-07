@@ -15,6 +15,7 @@ bash pipeline/generate-state.sh 001-baseline-uncontainerized-parity
 Generation now installs local runtime scripts into:
 
 - `generated/code/target-generated/scripts`
+- state-local runbook: `generated/code/target-generated/RUN_FROM_GENERATED.md`
 
 ## Start Full Overlay Stack
 

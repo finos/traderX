@@ -52,6 +52,7 @@ When unset, behavior is unchanged.
 Every generated state output now includes a local runtime harness under:
 
 - `generated/code/target-generated/scripts`
+- `generated/code/target-generated/RUN_FROM_GENERATED.md`
 
 This harness is part of the generation contract and must include state-local
 `start/stop/status` scripts (plus state smoke tests where available) so each
