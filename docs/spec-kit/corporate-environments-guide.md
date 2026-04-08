@@ -94,6 +94,10 @@ The bootstrap template includes:
 - `examples/corporate-overlay-template/corporate/docs/internal-learning-graph.md`
 - `examples/corporate-overlay-template/corporate/docs/internal-docs-portal.md`
 
+For docs-platform upgrade safety (Docusaurus/plugins/Webpack), follow:
+
+- `/docs/spec-kit/spec-kit-workflow#docusaurus-ci-compatibility`
+
 ## Upstream Sync Workflow
 
 1. Update submodule pin to a tested upstream commit.

@@ -31,7 +31,7 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Install website dependencies
-        run: npm --prefix website install --no-audit --no-fund
+        run: npm --prefix website ci --no-audit --no-fund
 
       - name: Build Docusaurus site
         env:

@@ -27,7 +27,7 @@ jobs:
           node-version: 22
 
       - name: Install website dependencies
-        run: npm --prefix website install --no-audit --no-fund
+        run: npm --prefix website ci --no-audit --no-fund
 
       - name: Validate root Spec Kit gates
         run: bash pipeline/speckit/validate-root-spec-kit-gates.sh

@@ -90,6 +90,26 @@ bash pipeline/speckit/compile-all-component-manifests.sh
 ./pipeline/verify-spec-coverage.sh
 ```
 
+## Docusaurus CI Compatibility
+
+When changing Docusaurus, docs plugins, or website build configuration:
+
+1. Keep `website/package-lock.json` committed and updated with the dependency change.
+2. Use `npm --prefix website ci --no-audit --no-fund` (not `npm install`) for CI parity.
+3. Validate docs build with GitHub Pages settings:
+
+```bash
+DOCUSAURUS_URL=https://finos.github.io \
+DOCUSAURUS_BASE_URL=/traderX/ \
+npm --prefix website run clear
+
+DOCUSAURUS_URL=https://finos.github.io \
+DOCUSAURUS_BASE_URL=/traderX/ \
+npm --prefix website run build
+```
+
+4. If dependency changes alter transitive Webpack behavior, pin and re-lock before merge.
+
 Learning-path catalog policy:
 
 - `catalog/state-catalog.json` is the source for state lineage.
