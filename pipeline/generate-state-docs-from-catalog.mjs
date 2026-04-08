@@ -48,7 +48,9 @@ const sourceAuthoringBranch = 'feature/agentic-renovation'
 const stripNumericPrefix = (stateId) => stateId.replace(/^[0-9]{3}-/, '')
 const stateNumber = (stateId) => stateId.match(/^([0-9]{3})-/)?.[1] ?? stateId
 const specRouteFor = (stateId) => `/specs/${stripNumericPrefix(stateId)}`
+const specRouteForLearningPaths = (stateId) => `../../specs/${stripNumericPrefix(stateId)}`
 const learningRouteFor = (stateId) => `/docs/learning/state-${stateId}`
+const learningRouteForLearningPaths = (stateId) => `../learning/state-${stateId}`
 const learningPathFor = (stateId) => path.join(learningDir, `state-${stateId}.md`)
 const branchLinkFor = (branch) => `${repoWebBase}/tree/${branch}`
 const compareLinkFor = (baseBranch, headBranch) =>
@@ -76,6 +78,8 @@ const convergenceLevelFor = (state) => state.convergenceLevel ?? 'none'
 const primaryLineageRoleFor = (state) => state.primaryLineageRole ?? 'canonical'
 const isConvergenceState = (state) => state.isConvergence === true
 const convergenceDocAnchorFor = (level) => `/docs/spec-kit/convergence-states#${String(level || 'none').toLowerCase()}`
+const convergenceDocAnchorForLearningPaths = (level) =>
+  `../spec-kit/convergence-states#${String(level || 'none').toLowerCase()}`
 
 const nearestConvergenceNeighborsFor = (stateId) => {
   const index = convergenceStates.findIndex((state) => state.id === stateId)
@@ -99,6 +103,19 @@ const topologyRouteFor = (state) => {
     return `${specRouteFor(state.id)}/system/end-to-end-flows`
   }
   return `${specRouteFor(state.id)}/system/system-context`
+}
+
+const topologyRouteForLearningPaths = (state) => {
+  const featurePackDir = path.join(root, state.featurePack)
+  const runtimeTopologyPath = path.join(featurePackDir, 'system', 'runtime-topology.md')
+  const flowsPath = path.join(featurePackDir, 'system', 'end-to-end-flows.md')
+  if (fs.existsSync(runtimeTopologyPath)) {
+    return `${specRouteForLearningPaths(state.id)}/system/runtime-topology`
+  }
+  if (fs.existsSync(flowsPath)) {
+    return `${specRouteForLearningPaths(state.id)}/system/end-to-end-flows`
+  }
+  return `${specRouteForLearningPaths(state.id)}/system/system-context`
 }
 
 const stateDocRouteIfExists = (state, filename, routeSuffix) => {
@@ -541,7 +558,7 @@ const writeVisualLearningGraphs = () => {
   }
 
   const clickLines = sortedStates.map((state) =>
-    `  click ${mermaidNodeIdFor(state.id)} href "${specRouteFor(state.id)}" "Open State ${stateNumber(state.id)} Spec Pack"`
+    `  click ${mermaidNodeIdFor(state.id)} href "${specRouteForLearningPaths(state.id)}" "Open State ${stateNumber(state.id)} Spec Pack"`
   )
 
   const trackOrder = ['prelude', 'baseline', 'architecture', 'nonfunctional', 'functional', 'devex']
@@ -590,13 +607,13 @@ const writeVisualLearningGraphs = () => {
   }
 
   const tableRows = sortedStates.map((state) => {
-    const specRoute = specRouteFor(state.id)
+    const specRoute = specRouteForLearningPaths(state.id)
     const architectureRoute = `${specRoute}/system/architecture`
-    const topologyRoute = topologyRouteFor(state)
-    const learningRoute = learningRouteFor(state.id)
+    const topologyRoute = topologyRouteForLearningPaths(state)
+    const learningRoute = learningRouteForLearningPaths(state.id)
     const convergenceLevel = convergenceLevelFor(state)
     const stateCell = isConvergenceState(state)
-      ? `**[\`${state.id}\`](${specRoute})** [(${convergenceLevel})](${convergenceDocAnchorFor(convergenceLevel)})`
+      ? `**[\`${state.id}\`](${specRoute})** [(${convergenceLevel})](${convergenceDocAnchorForLearningPaths(convergenceLevel)})`
       : `[\`${state.id}\`](${specRoute})`
     const branchName = state.publish?.branch ?? 'n/a'
     const branchCell = branchName === 'n/a'
@@ -617,7 +634,7 @@ const writeVisualLearningGraphs = () => {
   }
   for (const state of convergenceStates) {
     convergenceFlowLines.push(
-      `  click ${mermaidNodeIdFor(state.id)} href "${specRouteFor(state.id)}" "Open ${state.id}"`
+      `  click ${mermaidNodeIdFor(state.id)} href "${specRouteForLearningPaths(state.id)}" "Open ${state.id}"`
     )
   }
 

@@ -51,7 +51,7 @@ const FeatureList: FeatureItem[] = [
 			<>
 				Learn more about the project - including a brief demo, in the Keynote Demo session 
 that was presented at the <a href="https://events.linuxfoundation.org/archive/2023/open-source-finance-forum-new-york/)">Open Source in Finance Forum 2023</a> <br clear="all" />
- <a href="https://youtu.be/tSKDJlRYkm0?list=PLmPXh6nBuhJueQS5q-5IU3-0vmZEIUbz0&t=400"><img src="/img/graphics/2023_osff_video_thumb.png" /> </a>
+ <a href="https://youtu.be/tSKDJlRYkm0?list=PLmPXh6nBuhJueQS5q-5IU3-0vmZEIUbz0&t=400"><img src="img/graphics/2023_osff_video_thumb.png" alt="Open Source in Finance Forum 2023 demo thumbnail" /> </a>
 			</>
 		),
 	},
