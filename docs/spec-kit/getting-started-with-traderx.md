@@ -12,7 +12,10 @@ TraderX has multiple generated codebases representing different learning states,
 - See full state mapping and links: [State Docs](/docs/spec-kit/state-docs)
 - See the progression and visual graph: [Learning Paths](/docs/learning-paths)
 - For corporate/private extension setup: [Corporate Environments Guide](/docs/spec-kit/corporate-environments-guide)
+- For overlay implementation contracts: [Custom Overlay Architecture](/docs/spec-kit/custom-overlay-architecture)
+- For environment integration guidance: [Custom Environments Guide](/docs/spec-kit/custom-environments-guide)
 - Bootstrap starter template path: `examples/corporate-overlay-template/`
+- Generic custom overlay contract stubs: `examples/custom-overlay-template/`
 
 If you want to run demos quickly, use the generated state branches listed below.
 

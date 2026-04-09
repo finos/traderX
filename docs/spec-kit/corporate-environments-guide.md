@@ -6,6 +6,11 @@ title: Corporate Environments Guide
 
 This guide defines how enterprises can extend TraderX privately without pushing corporate-specific changes upstream.
 
+Detailed implementation contracts:
+
+- [Custom Overlay Architecture](/docs/spec-kit/custom-overlay-architecture)
+- [Custom Environments Guide](/docs/spec-kit/custom-environments-guide)
+
 ## Current Repository Baseline
 
 As of this branch (`feature/agentic-renovation`), TraderX is already set up with:

@@ -89,7 +89,7 @@ if [[ -z "${component_row}" ]]; then
   exit 1
 fi
 
-IFS=, read -r component_id kind source_path target_path language framework build_tool default_port contract_file depends_on required_env notes <<< "${component_row}"
+IFS=, read -r component_id kind source_path target_path language framework build_tool default_port contract_file depends_on required_env notes health_hint <<< "${component_row}"
 
 component_id="$(normalize_field "${component_id}")"
 kind="$(normalize_field "${kind}")"
@@ -103,6 +103,7 @@ contract_file="$(normalize_field "${contract_file}")"
 depends_on="$(normalize_field "${depends_on}")"
 required_env="$(normalize_field "${required_env}")"
 notes="$(normalize_field "${notes}")"
+health_hint="$(normalize_field "${health_hint}")"
 
 requirements="$(awk -F, -v component_id="${COMPONENT_ID}" 'NR > 1 && $5 == component_id { print $1 }' "${MATRIX}" | sort -u)"
 stories="$(awk -F, -v component_id="${COMPONENT_ID}" 'NR > 1 && $5 == component_id { print $2 }' "${MATRIX}" | sort -u)"
@@ -165,7 +166,8 @@ cat > "${OUTPUT_PATH}" <<EOF
   "runtime": {
     "defaultPort": ${default_port},
     "dependsOn": ${depends_on_json},
-    "requiredEnv": ${required_env_json}
+    "requiredEnv": ${required_env_json},
+    "healthHint": "$(json_escape "${health_hint}")"
   },
   "contracts": {
     "primary": ${contract_primary}

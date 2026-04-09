@@ -26,7 +26,7 @@ done
 row=0
 services=0
 
-while IFS=, read -r component_id kind source_path target_path language framework build_tool default_port contract_file depends_on required_env notes; do
+while IFS=, read -r component_id kind source_path target_path language framework build_tool default_port contract_file depends_on required_env notes health_hint; do
   row=$((row + 1))
   if ((row == 1)); then
     continue

@@ -33,6 +33,8 @@ module.exports = {
       items: [
         'spec-kit/getting-started-with-traderx',
         'spec-kit/corporate-environments-guide',
+        'spec-kit/custom-overlay-architecture',
+        'spec-kit/custom-environments-guide',
         'spec-kit/index',
         'spec-kit/why-speckit',
         'spec-kit/spec-kit-generation-guide',

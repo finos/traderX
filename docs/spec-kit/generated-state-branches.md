@@ -97,6 +97,25 @@ Current published generated branches:
 - `code/generated-state-002-edge-proxy-uncontainerized`
 - `code/generated-state-003-containerized-compose-runtime`
 
+## Branch Invariant -- One Commit Per State
+
+Every `code/generated-state-<id>` branch, in both upstream and any custom overlay, must contain exactly one content commit on top of its base branch.
+
+How this works:
+
+1. The publish script always starts from the base branch (the previous state's branch, or the root anchor), not from the existing generated branch tip.
+2. The publish script creates or resets the generated branch to the base tip using `git checkout -B`.
+3. The full generated snapshot is applied as a single commit.
+4. The publish script force-pushes that branch (`git push --force`) to replace the prior snapshot commit.
+
+Why this matters:
+
+- `git diff code/generated-state-A code/generated-state-B` stays a clean state-to-state diff.
+- Lineage is expressed through branch ancestry (the base branch), not through cumulative commit depth.
+- History remains readable and reproducible for both humans and automation.
+
+Custom overlay pipelines must enforce the same invariant. Using `--force-with-lease` on a branch that accumulates commits does not satisfy this model.
+
 ## How To Add A New State
 
 1. Scaffold the feature pack:
