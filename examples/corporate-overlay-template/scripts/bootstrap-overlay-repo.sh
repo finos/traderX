@@ -25,4 +25,5 @@ fi
 git -C "${TARGET_DIR}" submodule update --init --recursive
 
 echo "[ok] corporate overlay repo bootstrapped at ${TARGET_DIR}"
+echo "[note] this pack is an optional scenario/example. Prefer examples/custom-overlay-template as canonical starter."
 echo "[next] run ${TARGET_DIR}/scripts/render-internal-learning-graph.sh"

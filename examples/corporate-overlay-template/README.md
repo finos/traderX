@@ -1,33 +1,43 @@
-# TraderX Corporate Overlay Bootstrap Template
+# TraderX Corporate Overlay Scenario Pack (Optional)
 
-This directory is a bootstrap starter for enterprise teams extending TraderX privately.
+This directory is an optional scenario pack for teams extending TraderX privately.
+It is not the canonical starter template.
 
 ## What This Is
 
-- A reference template for creating a separate corporate overlay repository.
+- A reference scenario pack for corporate-style overlay policies.
 - A policy-and-transform pattern for private state/runtime constraints.
-- A starter model for an internal docs portal that shows sanctioned learning states.
+- An example internal docs portal model that shows sanctioned learning states.
 
 ## What This Is Not
 
 - Not a production-ready corporate implementation.
 - Not a generated code distribution branch.
+- Not a canonical overlay starter.
 - Not a fork target for day-to-day corporate development.
+
+Canonical starter:
+
+- `examples/custom-overlay-template/`
 
 Do not fork TraderX to carry corporate-only deltas.
 Create a separate `traderx-corporate-overlay` repository and treat upstream TraderX as a pinned dependency.
 
 ## Quick Start
 
-Create a new external repo and copy this template into it:
+Start from the canonical custom starter, then optionally layer this scenario pack:
 
 ```bash
 mkdir traderx-corporate-overlay
 cd traderx-corporate-overlay
 git init
 
-# copy this template directory from your TraderX clone
-rsync -a /path/to/traderX/examples/corporate-overlay-template/ ./
+# Step 1: copy canonical starter template
+rsync -a /path/to/traderX/examples/custom-overlay-template/ ./
+
+# Step 2 (optional): layer selected scenario assets from this pack
+# rsync -a /path/to/traderX/examples/corporate-overlay-template/corporate/ ./corporate/
+# rsync -a /path/to/traderX/examples/corporate-overlay-template/scripts/ ./scripts/
 ```
 
 Add upstream TraderX as a pinned submodule:

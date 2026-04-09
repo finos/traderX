@@ -59,7 +59,8 @@ traderx-corporate-overlay/
 
 Bootstrap starter included in this repository:
 
-- `examples/corporate-overlay-template/`
+- canonical starter: `examples/custom-overlay-template/`
+- optional scenario pack: `examples/corporate-overlay-template/`
 
 ## State and Branch Policy
 

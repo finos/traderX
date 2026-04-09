@@ -29,8 +29,13 @@ Use this page as the single entrypoint for building and operating a private over
 
 ## Templates
 
-- Opinionated bootstrap starter: `examples/corporate-overlay-template/`
-- Minimal contract stubs: `examples/custom-overlay-template/`
+- Canonical starter template: `examples/custom-overlay-template/`
+- Optional scenario pack (policy/demo overlays): `examples/corporate-overlay-template/`
+
+Recommended usage:
+
+1. Start from `examples/custom-overlay-template/`.
+2. Add selected scenario artifacts from `examples/corporate-overlay-template/` only if they match your environment policy.
 
 ## Compatibility Note
 

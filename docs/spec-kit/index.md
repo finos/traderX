@@ -55,8 +55,8 @@ bash pipeline/state-playbook.sh --state <state-id> --publish-neighborhood --push
     - `/docs/spec-kit/corporate-environments-guide` (overview)
     - `/docs/spec-kit/custom-overlay-architecture` (implementation contract)
     - `/docs/spec-kit/custom-environments-guide` (environment integration)
-    - in-repo bootstrap starter: `examples/corporate-overlay-template/`
-    - generic contract stubs: `examples/custom-overlay-template/`
+    - canonical starter: `examples/custom-overlay-template/`
+    - optional scenario pack: `examples/corporate-overlay-template/`
 
 ## Where Is The Generated Code?
 
