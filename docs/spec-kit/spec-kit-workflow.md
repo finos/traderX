@@ -101,12 +101,19 @@ When changing Docusaurus, docs plugins, or website build configuration:
 ```bash
 DOCUSAURUS_URL=https://finos.github.io \
 DOCUSAURUS_BASE_URL=/traderX/ \
+TRADERX_SITE_ROOT=/traderX \
+bash pipeline/refresh-state-docs.sh
+
+DOCUSAURUS_URL=https://finos.github.io \
+DOCUSAURUS_BASE_URL=/traderX/ \
 npm --prefix website run clear
 
 DOCUSAURUS_URL=https://finos.github.io \
 DOCUSAURUS_BASE_URL=/traderX/ \
 npm --prefix website run build
 ```
+
+`TRADERX_SITE_ROOT` is used when regenerating `/docs/learning-paths` Mermaid click links so GitHub Pages artifacts resolve under `/traderX/...` instead of root-relative `/...`.
 
 4. If dependency changes alter transitive Webpack behavior, pin and re-lock before merge.
 

@@ -48,7 +48,37 @@ const sourceAuthoringBranch = 'feature/agentic-renovation'
 const stripNumericPrefix = (stateId) => stateId.replace(/^[0-9]{3}-/, '')
 const stateNumber = (stateId) => stateId.match(/^([0-9]{3})-/)?.[1] ?? stateId
 const specRouteFor = (stateId) => `/specs/${stripNumericPrefix(stateId)}`
-const specRouteForLearningPathsMermaid = (stateId) => `/specs/${stripNumericPrefix(stateId)}`
+
+const normalizeSiteRoot = (value) => {
+  if (!value || typeof value !== 'string') {
+    return ''
+  }
+
+  const trimmed = value.trim()
+  if (!trimmed || trimmed === '/') {
+    return ''
+  }
+
+  let pathname = trimmed
+  try {
+    if (/^https?:\/\//i.test(trimmed)) {
+      pathname = new URL(trimmed).pathname || ''
+    }
+  } catch (_) {
+    pathname = trimmed
+  }
+
+  if (!pathname.startsWith('/')) {
+    pathname = `/${pathname}`
+  }
+  pathname = pathname.replace(/\/+$/, '')
+  return pathname === '/' ? '' : pathname
+}
+
+const siteRoot = normalizeSiteRoot(process.env.TRADERX_SITE_ROOT || process.env.DOCUSAURUS_BASE_URL || '')
+const withSiteRoot = (route) => siteRoot ? `${siteRoot}${route}` : route
+const specRouteForLearningPathsMermaid = (stateId) =>
+  withSiteRoot(`/specs/${stripNumericPrefix(stateId)}`)
 const specRouteForLearningPathsDoc = (stateId) => `pathname:///specs/${stripNumericPrefix(stateId)}`
 const learningRouteFor = (stateId) => `/docs/learning/state-${stateId}`
 const learningRouteForLearningPathsDoc = (stateId) => `pathname:///docs/learning/state-${stateId}`

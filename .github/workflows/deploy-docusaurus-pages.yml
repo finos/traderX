@@ -38,6 +38,7 @@ jobs:
           DOCUSAURUS_URL: https://finos.github.io
           DOCUSAURUS_BASE_URL: /traderX/
         run: |
+          TRADERX_SITE_ROOT="${DOCUSAURUS_BASE_URL%/}" bash pipeline/refresh-state-docs.sh
           npm --prefix website run clear
           npm --prefix website run build
 
