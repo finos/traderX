@@ -51,9 +51,10 @@ bash pipeline/state-playbook.sh --state <state-id> --publish-neighborhood --push
    - `/docs/spec-kit/convergence-states`
    - `/docs/learning-paths`
 10. Plan enterprise/private extension strategy:
-    - `/docs/spec-kit/corporate-environments-guide`
-    - `/docs/spec-kit/custom-overlay-architecture`
-    - `/docs/spec-kit/custom-environments-guide`
+    - `/docs/spec-kit/customizing-traderx`
+    - `/docs/spec-kit/corporate-environments-guide` (overview)
+    - `/docs/spec-kit/custom-overlay-architecture` (implementation contract)
+    - `/docs/spec-kit/custom-environments-guide` (environment integration)
     - in-repo bootstrap starter: `examples/corporate-overlay-template/`
     - generic contract stubs: `examples/custom-overlay-template/`
 

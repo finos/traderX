@@ -32,18 +32,41 @@ module.exports = {
       },
       items: [
         'spec-kit/getting-started-with-traderx',
-        'spec-kit/corporate-environments-guide',
-        'spec-kit/custom-overlay-architecture',
-        'spec-kit/custom-environments-guide',
-        'spec-kit/index',
-        'spec-kit/why-speckit',
-        'spec-kit/spec-kit-generation-guide',
-        'spec-kit/spec-kit-workflow',
-        'spec-kit/state-docs',
-        'spec-kit/convergence-states',
-        'spec-kit/generated-state-branches',
-        'spec-kit/run-generated-overlays',
-        'spec-kit/baseline-vs-parity',
+        {
+          type: 'category',
+          label: 'Core Concepts',
+          items: [
+            'spec-kit/index',
+            'spec-kit/why-speckit',
+            'spec-kit/baseline-vs-parity',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Generation and Validation',
+          items: [
+            'spec-kit/spec-kit-generation-guide',
+            'spec-kit/spec-kit-workflow',
+            'spec-kit/state-docs',
+            'spec-kit/convergence-states',
+            'spec-kit/generated-state-branches',
+            'spec-kit/run-generated-overlays',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Customizing TraderX',
+          link: {
+            type: 'doc',
+            id: 'spec-kit/customizing-traderx',
+          },
+          items: [
+            'spec-kit/customizing-traderx',
+            'spec-kit/corporate-environments-guide',
+            'spec-kit/custom-overlay-architecture',
+            'spec-kit/custom-environments-guide',
+          ],
+        },
       ],
     },
     {

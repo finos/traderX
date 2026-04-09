@@ -11,9 +11,7 @@ TraderX has multiple generated codebases representing different learning states,
 - Search generated branches directly: [code/generated-state-* branches](https://github.com/finos/traderX/branches/all?query=code%2Fgenerated-state-)
 - See full state mapping and links: [State Docs](/docs/spec-kit/state-docs)
 - See the progression and visual graph: [Learning Paths](/docs/learning-paths)
-- For corporate/private extension setup: [Corporate Environments Guide](/docs/spec-kit/corporate-environments-guide)
-- For overlay implementation contracts: [Custom Overlay Architecture](/docs/spec-kit/custom-overlay-architecture)
-- For environment integration guidance: [Custom Environments Guide](/docs/spec-kit/custom-environments-guide)
+- For private overlay customization: [Customizing TraderX](/docs/spec-kit/customizing-traderx)
 - Bootstrap starter template path: `examples/corporate-overlay-template/`
 - Generic custom overlay contract stubs: `examples/custom-overlay-template/`
 

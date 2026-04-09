@@ -6,6 +6,12 @@ title: Corporate Environments Guide
 
 This guide defines how enterprises can extend TraderX privately without pushing corporate-specific changes upstream.
 
+Status:
+
+- This page is the high-level strategy overview.
+- Use [Customizing TraderX](/docs/spec-kit/customizing-traderx) as the primary entrypoint.
+- Use the two `custom-*` guides for implementation contracts and environment details.
+
 Detailed implementation contracts:
 
 - [Custom Overlay Architecture](/docs/spec-kit/custom-overlay-architecture)

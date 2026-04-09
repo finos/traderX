@@ -42,6 +42,32 @@ Each state feature pack should include:
 Legacy `prompts/**` scaffolding has been retired from the active repository surface.
 Use the canonical SpecKit artifacts and docs under `docs/spec-kit/**` instead.
 
+## Custom Overlay Requests (Agent Guidance)
+
+When a user asks how to customize TraderX for a private environment, create an overlay repository, or publish internal generated states:
+
+1. Start from `docs/spec-kit/customizing-traderx.md`.
+2. Use `docs/spec-kit/corporate-environments-guide.md` for strategy and governance framing.
+3. Use `docs/spec-kit/custom-overlay-architecture.md` for implementation contracts:
+   - overlay repository layout
+   - overlay state catalog fields
+   - transform idempotency and ordering
+   - `--dry-run` start-script behavior
+   - `TRADERX_GENERATED_ROOT` output redirection
+   - working-directory anchor rules
+4. Use `docs/spec-kit/custom-environments-guide.md` for environment integration norms:
+   - package management policy
+   - runtime version/tool loading (`env-loader`)
+   - pub/sub replacement decision points
+   - smoke-test `health_hint` usage
+
+Agent operating rules for overlay workflows:
+
+- Keep upstream TraderX canonical; do not place environment-specific deltas in upstream state packs.
+- Prefer additive docs/spec updates and reusable templates over one-off generated output edits.
+- Do not hand-edit generated artifacts as a persistent solution.
+- Preserve generated-state branch invariant: one snapshot commit per branch (reset to base + force-push).
+
 ## Quality Gates
 
 ```bash
