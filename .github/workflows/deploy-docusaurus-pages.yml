@@ -57,3 +57,36 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Setup Node for AFDocs
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      - name: Run AFDocs on published GitHub Pages URL
+        env:
+          PUBLISHED_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          echo "[info] checking published docs at ${PUBLISHED_URL}"
+          SUCCESS=0
+          for attempt in $(seq 1 10); do
+            if npx --yes afdocs check "${PUBLISHED_URL}" --format scorecard; then
+              if npx --yes afdocs check "${PUBLISHED_URL}" --format json --score > afdocs-score-published.json; then
+                SUCCESS=1
+                break
+              fi
+            fi
+            echo "[warn] AFDocs check failed on attempt ${attempt}, retrying..."
+            sleep 15
+          done
+          if [ "$SUCCESS" -eq 0 ]; then
+            echo '{"status":"error","message":"AFDocs check failed after retries"}' > afdocs-score-published.json
+            echo "[warn] AFDocs checks failed after retries (non-blocking in deploy workflow)."
+          fi
+
+      - name: Upload AFDocs published score artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: afdocs-published-score
+          path: afdocs-score-published.json
+          if-no-files-found: warn

@@ -43,3 +43,34 @@ jobs:
 
       - name: Build docs (includes on-demand API docs generation)
         run: npm --prefix website run build
+
+      - name: Run AFDocs scorecard on local built site
+        run: |
+          python3 -m http.server 3000 --directory website/build >/tmp/traderx-docs-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill ${SERVER_PID}' EXIT
+          for i in $(seq 1 20); do
+            if curl -fsS http://127.0.0.1:3000 >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          set +e
+          npx --yes afdocs check http://127.0.0.1:3000 --format scorecard
+          SCORE_EXIT=$?
+          npx --yes afdocs check http://127.0.0.1:3000 --format json --score > afdocs-score-local.json
+          JSON_EXIT=$?
+          set -e
+          if [ ! -s afdocs-score-local.json ]; then
+            echo '{"status":"error","message":"AFDocs JSON score output missing"}' > afdocs-score-local.json
+          fi
+          if [ "$SCORE_EXIT" -ne 0 ] || [ "$JSON_EXIT" -ne 0 ]; then
+            echo "[warn] AFDocs check reported findings (non-blocking in this workflow)."
+          fi
+
+      - name: Upload AFDocs local score artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: afdocs-local-score
+          path: afdocs-score-local.json
+          if-no-files-found: warn

@@ -184,6 +184,18 @@ module.exports = {
       },
     ],
     [
+      'docusaurus-plugin-llms',
+      {
+        docsDir: '../docs',
+        includeBlog: false,
+        generateLLMsTxt: true,
+        generateLLMsFullTxt: true,
+        generateMarkdownFiles: false,
+        excludeImports: true,
+        removeDuplicateHeadings: true,
+      },
+    ],
+    [
       '@docusaurus/plugin-content-docs',
       {
         id: 'traderspec-root-specs',
