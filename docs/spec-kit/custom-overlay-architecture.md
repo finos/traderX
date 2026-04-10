@@ -178,3 +178,14 @@ TRADERX_GENERATED_ROOT="${OVERLAY_ROOT}/generated" \
 ```
 
 Default behavior remains unchanged when `TRADERX_GENERATED_ROOT` is unset (`upstream/traderX/generated`).
+
+## LLM-Friendly Docs Output (Optional)
+
+If your overlay publishes a docs portal, optionally add an llms output generator plugin to your Docusaurus build so `/llms.txt` and related LLM-friendly artifacts are generated automatically.
+
+Implementation guidance:
+
+1. Add a maintained Docusaurus llms plugin in website dependencies.
+2. Configure plugin output paths and URL handling to match your site base path.
+3. Regenerate docs and run AFDocs checks (`scorecard` and JSON score output).
+4. Keep this as a build-time concern in docs pipeline/configuration rather than manual per-page edits.

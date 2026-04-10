@@ -9,3 +9,13 @@ It intentionally includes only reference stubs for key contracts:
 - `pipeline/publish-state-branch.sh`
 
 Use these as patterns when implementing your own overlay-specific generation and publishing workflows.
+
+## Docs Quality Checks (Optional)
+
+For overlay docs portals, run AFDocs against local preview and published URLs:
+
+```bash
+npx afdocs check http://localhost:<PORT_FOR_DOCUSAURUS> --format scorecard
+npx afdocs check http://localhost:<PORT_FOR_DOCUSAURUS> --format json --score
+npx afdocs check https://docs.example.com --format scorecard
+```

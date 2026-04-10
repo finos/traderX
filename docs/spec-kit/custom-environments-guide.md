@@ -180,3 +180,35 @@ Use `catalog/component-spec.csv` `health_hint` as canonical guidance:
 
 - HTTP services can be checked via documented data or API docs endpoints.
 - TCP-only services should use TCP reachability checks (`nc -z` or equivalent), not HTTP probes.
+
+## LLM-Friendly Docs Quality (AFDocs)
+
+For custom overlays that publish internal documentation portals, run AFDocs checks as part of documentation maintenance.
+
+Local preview check (while Docusaurus is running locally):
+
+```bash
+npx afdocs check http://localhost:<PORT_FOR_DOCUSAURUS> --format scorecard
+```
+
+Machine-readable scoring output:
+
+```bash
+npx afdocs check http://localhost:<PORT_FOR_DOCUSAURUS> --format json --score
+```
+
+Published-site check:
+
+```bash
+npx afdocs check https://docs.example.com --format scorecard
+```
+
+Recommended workflow:
+
+1. Run scorecard to identify highest-impact failing categories.
+2. Use JSON output for automation and trend tracking.
+3. Prioritize fixes that can be solved at docs pipeline/plugin level before editing large amounts of page content manually.
+
+Optional enhancement:
+
+- Generate `/llms.txt` and markdown mirrors using a Docusaurus llms plugin in the docs build pipeline, then re-run AFDocs to confirm score improvements.

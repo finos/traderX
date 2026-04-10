@@ -117,6 +117,19 @@ npm --prefix website run build
 
 4. If dependency changes alter transitive Webpack behavior, pin and re-lock before merge.
 
+5. Run AFDocs checks for agent-friendliness:
+
+```bash
+# local preview (while docusaurus start runs)
+npx afdocs check http://localhost:3000 --format scorecard
+npx afdocs check http://localhost:3000 --format json --score
+
+# published docs URL
+npx afdocs check https://finos.github.io/traderX/ --format scorecard
+```
+
+Use AFDocs scorecards to prioritize high-impact fixes. Prefer improvements via docs build/pipeline/plugins (for example llms outputs) before broad manual content rewrites.
+
 Learning-path catalog policy:
 
 - `catalog/state-catalog.json` is the source for state lineage.

@@ -26,6 +26,7 @@ Use this page as the single entrypoint for building and operating a private over
 6. Implement idempotent overlay transforms and apply them after layout copy.
 7. Add overlay-specific states and publish generated-state branches using the one-commit invariant.
 8. Maintain alignment by regularly syncing upstream pin, regenerating, and validating.
+9. Run AFDocs checks against local and published docs URLs to keep the portal agent-friendly.
 
 ## Templates
 
