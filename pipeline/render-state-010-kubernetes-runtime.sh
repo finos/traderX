@@ -18,6 +18,26 @@ for required in "${SPEC_JSON}" "${NGINX_CONF}" "${SQL_SOURCE}" "${NATS_CONF_SOUR
   }
 done
 
+patch_web_frontend_env_for_ingress() {
+  local env_dir="${TARGET_ROOT}/web-front-end/angular/main/environments"
+  local env_file=""
+
+  [[ -d "${env_dir}" ]] || return 0
+
+  for env_file in "${env_dir}/environment.ts" "${env_dir}/environment.prod.ts"; do
+    [[ -f "${env_file}" ]] || continue
+    perl -0pi -e 's#accountUrl:\s*`[^`]*`#accountUrl:         `/account-service`#g' "${env_file}"
+    perl -0pi -e 's#refrenceDataUrl:\s*`[^`]*`#refrenceDataUrl:    `/reference-data`#g' "${env_file}"
+    perl -0pi -e 's#tradesUrl:\s*`[^`]*`#tradesUrl:          `/trade-service/trade/`#g' "${env_file}"
+    perl -0pi -e 's#positionsUrl:\s*`[^`]*`#positionsUrl:       `/position-service`#g' "${env_file}"
+    perl -0pi -e 's#peopleUrl:\s*`[^`]*`#peopleUrl:          `/people-service`#g' "${env_file}"
+    perl -0pi -e 's#orderMatcherUrl:\s*`[^`]*`#orderMatcherUrl:    `/order-matcher`#g' "${env_file}"
+  done
+  echo "[info] patched web-front-end angular environments for ingress-routed APIs"
+}
+
+patch_web_frontend_env_for_ingress
+
 rm -rf "${STATE_DIR}"
 mkdir -p "${MANIFEST_DIR}" "${STATE_DIR}/kind" "${STATE_DIR}/spec-source"
 

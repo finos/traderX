@@ -19,6 +19,7 @@ SKIP_BUILD=0
 RECREATE_CLUSTER=0
 RUN_TILT=0
 K8S_PROVIDER="${K8S_PROVIDER:-kind}"
+KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-traderx-state-011}"
 MINIKUBE_PROFILE=""
 MINIKUBE_DRIVER="${MINIKUBE_DRIVER:-docker}"
 
@@ -40,6 +41,10 @@ while (( "$#" )); do
       K8S_PROVIDER="${2:-}"
       shift
       ;;
+    --cluster-name)
+      KIND_CLUSTER_NAME="${2:-}"
+      shift
+      ;;
     --minikube-profile)
       MINIKUBE_PROFILE="${2:-}"
       shift
@@ -50,7 +55,7 @@ while (( "$#" )); do
       ;;
     *)
       echo "[error] unknown argument: $1"
-      echo "[hint] supported: --dry-run --skip-build --recreate-cluster --run-tilt --provider <kind|minikube> --minikube-profile <name> --minikube-driver <name>"
+      echo "[hint] supported: --dry-run --skip-build --recreate-cluster --run-tilt --provider <kind|minikube> --cluster-name <name> --minikube-profile <name> --minikube-driver <name>"
       exit 1
       ;;
   esac
@@ -76,6 +81,7 @@ done
 
 start_args=(--provider "${K8S_PROVIDER}")
 start_args+=(--skip-generate)
+start_args+=(--cluster-name "${KIND_CLUSTER_NAME}")
 if (( DRY_RUN == 1 )); then
   start_args+=(--dry-run)
 fi

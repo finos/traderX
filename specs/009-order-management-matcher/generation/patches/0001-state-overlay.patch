@@ -5578,10 +5578,10 @@ index 1632313..691545a 100644
 --- a/web-front-end/angular/main/environments/environment.local.ts
 +++ b/web-front-end/angular/main/environments/environment.local.ts
 @@ -5,5 +5,6 @@ export const environment = {
-     tradesUrl:          `//${window.location.hostname}:18092/trade/`,
-     positionsUrl:       `//${window.location.hostname}:18090`,
-     peopleUrl:          `//${window.location.hostname}:18089`,
-+    orderMatcherUrl:    `//${window.location.hostname}:18110`,
+     tradesUrl:          `//${window.location.host}/trade-service/trade/`,
+     positionsUrl:       `//${window.location.host}/position-service`,
+     peopleUrl:          `//${window.location.host}/people-service`,
++    orderMatcherUrl:    `//${window.location.host}/order-matcher`,
      tradeFeedUrl:       `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/nats-ws`
  };
 diff --git a/web-front-end/angular/main/environments/environment.prod.ts b/web-front-end/angular/main/environments/environment.prod.ts
@@ -5600,9 +5600,9 @@ index 1632313..691545a 100644
 --- a/web-front-end/angular/main/environments/environment.ts
 +++ b/web-front-end/angular/main/environments/environment.ts
 @@ -5,5 +5,6 @@ export const environment = {
-     tradesUrl:          `//${window.location.hostname}:18092/trade/`,
-     positionsUrl:       `//${window.location.hostname}:18090`,
-     peopleUrl:          `//${window.location.hostname}:18089`,
-+    orderMatcherUrl:    `//${window.location.hostname}:18110`,
+     tradesUrl:          `//${window.location.host}/trade-service/trade/`,
+     positionsUrl:       `//${window.location.host}/position-service`,
+     peopleUrl:          `//${window.location.host}/people-service`,
++    orderMatcherUrl:    `//${window.location.host}/order-matcher`,
      tradeFeedUrl:       `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/nats-ws`
  };

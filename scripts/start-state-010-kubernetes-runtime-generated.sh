@@ -22,6 +22,7 @@ SKIP_BUILD=0
 RECREATE_CLUSTER=0
 SKIP_GENERATE=0
 K8S_PROVIDER="${K8S_PROVIDER:-kind}"
+KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-}"
 MINIKUBE_PROFILE=""
 MINIKUBE_DRIVER="${MINIKUBE_DRIVER:-docker}"
 
@@ -43,6 +44,10 @@ while (( "$#" )); do
       K8S_PROVIDER="${2:-}"
       shift
       ;;
+    --cluster-name)
+      KIND_CLUSTER_NAME="${2:-}"
+      shift
+      ;;
     --minikube-profile)
       MINIKUBE_PROFILE="${2:-}"
       shift
@@ -53,7 +58,7 @@ while (( "$#" )); do
       ;;
     *)
       echo "[error] unknown argument: $1"
-      echo "[hint] supported: --dry-run --skip-build --recreate-cluster --skip-generate --provider <kind|minikube> --minikube-profile <name> --minikube-driver <name>"
+      echo "[hint] supported: --dry-run --skip-build --recreate-cluster --skip-generate --provider <kind|minikube> --cluster-name <name> --minikube-profile <name> --minikube-driver <name>"
       exit 1
       ;;
   esac
@@ -94,6 +99,10 @@ cluster_name="$(jq -r '.kindClusterName' "${BUILD_PLAN}")"
 namespace="$(jq -r '.namespace' "${BUILD_PLAN}")"
 host_port="$(jq -r '.hostPort' "${BUILD_PLAN}")"
 edge_service="$(jq -r '.edgeService' "${BUILD_PLAN}")"
+
+if [[ -n "${KIND_CLUSTER_NAME}" ]]; then
+  cluster_name="${KIND_CLUSTER_NAME}"
+fi
 
 if [[ -z "${MINIKUBE_PROFILE}" ]]; then
   MINIKUBE_PROFILE="${cluster_name}"
@@ -161,6 +170,9 @@ if (( DRY_RUN == 1 )); then
     echo "[dry-run] kubectl -n ${namespace} port-forward svc/${edge_service} ${host_port}:8080"
   fi
   echo "[dry-run] kubectl apply -k ${KUSTOMIZE_DIR}"
+  while IFS= read -r deployment; do
+    echo "[dry-run] kubectl rollout restart deployment/${deployment} -n ${namespace}"
+  done < <(jq -r '.deployments[]' "${BUILD_PLAN}")
   echo "[done] dry run complete for state 010"
   exit 0
 fi
@@ -290,6 +302,11 @@ fi
 
 echo "[apply] kubernetes manifests"
 kubectl apply -k "${KUSTOMIZE_DIR}"
+
+echo "[restart] rolling deployments to pick freshly loaded images"
+while IFS= read -r deployment; do
+  kubectl rollout restart "deployment/${deployment}" -n "${namespace}" >/dev/null
+done < <(jq -r '.deployments[]' "${BUILD_PLAN}")
 
 echo "[wait] deployments available in namespace ${namespace}"
 kubectl wait --for=condition=Available deployment --all -n "${namespace}" --timeout=600s

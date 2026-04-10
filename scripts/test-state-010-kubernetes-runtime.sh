@@ -14,7 +14,17 @@ fi
 INGRESS_URL="${1:-http://localhost:8080}"
 NAMESPACE="${2:-traderx}"
 K8S_PROVIDER="${3:-${K8S_PROVIDER:-kind}}"
-MINIKUBE_PROFILE="${4:-${MINIKUBE_PROFILE:-traderx-state-010}}"
+BUILD_PLAN="${GENERATED_ROOT}/code/target-generated/kubernetes-runtime/build-plan.json"
+DEFAULT_CLUSTER_NAME="traderx-state-010"
+
+if [[ -f "${BUILD_PLAN}" ]] && command -v jq >/dev/null 2>&1; then
+  parsed_cluster_name="$(jq -r '.kindClusterName // empty' "${BUILD_PLAN}" 2>/dev/null || true)"
+  if [[ -n "${parsed_cluster_name}" && "${parsed_cluster_name}" != "null" ]]; then
+    DEFAULT_CLUSTER_NAME="${parsed_cluster_name}"
+  fi
+fi
+
+MINIKUBE_PROFILE="${4:-${MINIKUBE_PROFILE:-${DEFAULT_CLUSTER_NAME}}}"
 
 if ! command -v kubectl >/dev/null 2>&1; then
   echo "[error] kubectl command not found"

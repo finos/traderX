@@ -2,7 +2,7 @@
   "runtime": {
     "namespace": "traderx",
     "kind": {
-      "clusterName": "traderx-state-009",
+      "clusterName": "traderx-state-010",
       "hostPort": 8080,
       "nodePort": 30080
     },

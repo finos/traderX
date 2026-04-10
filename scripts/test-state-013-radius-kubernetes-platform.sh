@@ -13,7 +13,7 @@ fi
 INGRESS_URL="${1:-http://localhost:8080}"
 NAMESPACE="${2:-traderx}"
 K8S_PROVIDER="${3:-${K8S_PROVIDER:-kind}}"
-CLUSTER_OR_PROFILE="${4:-${MINIKUBE_PROFILE:-traderx-state-010}}"
+CLUSTER_OR_PROFILE="${4:-${MINIKUBE_PROFILE:-traderx-state-013}}"
 STATE_DIR="${GENERATED_ROOT}/code/target-generated/radius-kubernetes-platform"
 RADIUS_DIR="${STATE_DIR}/radius"
 UPSTREAM_BUILD_PLAN="${STATE_DIR}/upstream-build-plan.json"

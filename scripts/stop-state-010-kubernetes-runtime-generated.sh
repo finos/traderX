@@ -16,6 +16,7 @@ RUN_DIR="${GENERATED_ROOT}/code/target-generated/kubernetes-runtime/.run/state-0
 
 DELETE_CLUSTER=0
 K8S_PROVIDER="${K8S_PROVIDER:-kind}"
+KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-}"
 MINIKUBE_PROFILE=""
 
 while (( "$#" )); do
@@ -27,13 +28,17 @@ while (( "$#" )); do
       K8S_PROVIDER="${2:-}"
       shift
       ;;
+    --cluster-name)
+      KIND_CLUSTER_NAME="${2:-}"
+      shift
+      ;;
     --minikube-profile)
       MINIKUBE_PROFILE="${2:-}"
       shift
       ;;
     *)
       echo "[error] unknown argument: $1"
-      echo "[hint] supported: --delete-cluster --provider <kind|minikube> --minikube-profile <name>"
+      echo "[hint] supported: --delete-cluster --provider <kind|minikube> --cluster-name <name> --minikube-profile <name>"
       exit 1
       ;;
   esac
@@ -51,6 +56,10 @@ if [[ -f "${BUILD_PLAN}" ]]; then
 else
   cluster_name="$(jq -r '.runtime.kind.clusterName' "${SPEC_FILE}")"
   namespace="$(jq -r '.runtime.namespace' "${SPEC_FILE}")"
+fi
+
+if [[ -n "${KIND_CLUSTER_NAME}" ]]; then
+  cluster_name="${KIND_CLUSTER_NAME}"
 fi
 
 if [[ -z "${MINIKUBE_PROFILE}" ]]; then

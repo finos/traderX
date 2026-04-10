@@ -13,6 +13,7 @@ fi
 
 DELETE_CLUSTER=0
 K8S_PROVIDER="${K8S_PROVIDER:-kind}"
+KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-traderx-state-013}"
 MINIKUBE_PROFILE=""
 
 while (( "$#" )); do
@@ -24,13 +25,17 @@ while (( "$#" )); do
       K8S_PROVIDER="${2:-}"
       shift
       ;;
+    --cluster-name)
+      KIND_CLUSTER_NAME="${2:-}"
+      shift
+      ;;
     --minikube-profile)
       MINIKUBE_PROFILE="${2:-}"
       shift
       ;;
     *)
       echo "[error] unknown argument: $1"
-      echo "[hint] supported: --delete-cluster --provider <kind|minikube> --minikube-profile <name>"
+      echo "[hint] supported: --delete-cluster --provider <kind|minikube> --cluster-name <name> --minikube-profile <name>"
       exit 1
       ;;
   esac
@@ -38,6 +43,7 @@ while (( "$#" )); do
 done
 
 stop_args=(--provider "${K8S_PROVIDER}")
+stop_args+=(--cluster-name "${KIND_CLUSTER_NAME}")
 if (( DELETE_CLUSTER == 1 )); then
   stop_args+=(--delete-cluster)
 fi
