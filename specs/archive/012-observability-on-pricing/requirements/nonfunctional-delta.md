@@ -18,7 +18,7 @@ Document NFR changes introduced by this state.
 
 ## Security / Compliance
 
-- No authentication hardening added in this state; Grafana credentials are local-dev defaults (`admin/admin`).
+- No authentication hardening added in this state; Grafana uses local development credentials by default.
 - State is intended for local learning environments, not production deployment.
 
 ## Performance / Scalability

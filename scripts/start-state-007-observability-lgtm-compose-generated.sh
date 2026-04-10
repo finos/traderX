@@ -114,4 +114,4 @@ bash "${REPO_ROOT}/scripts/star-grafana-traderx-dashboards.sh" \
 
 echo "[done] state 007 observability runtime started"
 echo "[ui] http://localhost:8080"
-echo "[grafana] http://localhost:${GRAFANA_PORT} (admin/admin)"
+echo "[grafana] http://localhost:${GRAFANA_PORT} (local login credentials)"

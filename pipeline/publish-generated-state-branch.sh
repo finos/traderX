@@ -947,7 +947,7 @@ EOF
     007-observability-lgtm-compose)
       cat <<'EOF'
 - UI (ingress): `http://localhost:8080`
-- Grafana: `http://localhost:3001` (`admin/admin`)
+- Grafana: `http://localhost:3001` (local login credentials)
 - Prometheus: `http://localhost:9090`
 - Loki: `http://localhost:3100`
 - Tempo: `http://localhost:3200`
@@ -956,7 +956,7 @@ EOF
     009-order-management-matcher)
       cat <<'EOF'
 - UI (ingress): `http://localhost:8080`
-- Grafana: `http://localhost:3001` (`admin/admin`)
+- Grafana: `http://localhost:3001` (local login credentials)
 - Prometheus: `http://localhost:9090`
 - Order matcher health: `http://localhost:18110/health`
 - Order matcher metrics: `http://localhost:18110/metrics`
@@ -1714,7 +1714,7 @@ Start:
 Endpoints:
 - UI / edge: `http://localhost:8080`
 - Edge health: `http://localhost:8080/health`
-- Grafana: `http://localhost:8080/grafana` (`admin/admin`)
+- Grafana: `http://localhost:8080/grafana` (local login credentials)
 - Prometheus: `http://localhost:8080/prometheus`
 
 Status / stop:
@@ -1743,7 +1743,7 @@ Start baseline runtime (inherited from state 010):
 
 Inherited runtime endpoints:
 - UI / edge: `http://localhost:8080`
-- Grafana: `http://localhost:8080/grafana` (`admin/admin`)
+- Grafana: `http://localhost:8080/grafana` (local login credentials)
 - Prometheus: `http://localhost:8080/prometheus`
 
 State 013 artifact pack:
@@ -1778,7 +1778,7 @@ Start baseline runtime (inherited from state 010):
 
 Inherited runtime endpoints:
 - UI / edge: `http://localhost:8080`
-- Grafana: `http://localhost:8080/grafana` (`admin/admin`)
+- Grafana: `http://localhost:8080/grafana` (local login credentials)
 - Prometheus: `http://localhost:8080/prometheus`
 
 State 011 artifact pack:

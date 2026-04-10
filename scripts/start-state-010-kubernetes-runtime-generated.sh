@@ -342,5 +342,5 @@ wait_for_http "prometheus-ready" "http://localhost:${host_port}/prometheus/-/rea
 echo "[done] state 010 kubernetes runtime started"
 echo "[provider] ${K8S_PROVIDER}"
 echo "[ui] http://localhost:${host_port}"
-echo "[grafana] http://localhost:${host_port}/grafana (admin/admin)"
+echo "[grafana] http://localhost:${host_port}/grafana (local login credentials)"
 echo "[prometheus] http://localhost:${host_port}/prometheus"
