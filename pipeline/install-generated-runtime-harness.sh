@@ -503,6 +503,62 @@ EOF
   esac
 }
 
+generated_runtime_urls_markdown() {
+  case "${STATE_ID}" in
+    001-baseline-uncontainerized-parity)
+      cat <<'EOF'
+- UI: `http://localhost:18093`
+- Trade service Swagger: `http://localhost:18092/swagger-ui.html`
+- Account service Swagger: `http://localhost:18088/swagger-ui/index.html`
+EOF
+      ;;
+    002-edge-proxy-uncontainerized|003-agentic-harness-foundation)
+      cat <<'EOF'
+- UI (edge): `http://localhost:18080`
+- Trade service Swagger (edge): `http://localhost:18080/trade-service/swagger-ui.html`
+- Account service Swagger (edge): `http://localhost:18080/account-service/swagger-ui/index.html`
+EOF
+      ;;
+    004-containerized-compose-runtime|005-postgres-database-replacement|006-messaging-nats-replacement|008-pricing-awareness-market-data)
+      cat <<'EOF'
+- UI (ingress): `http://localhost:8080`
+- Trade service Swagger: `http://localhost:18092/swagger-ui.html`
+- Account service API sample: `http://localhost:18088/account/22214`
+- Position service health: `http://localhost:18090/health/alive`
+EOF
+      ;;
+    007-observability-lgtm-compose)
+      cat <<'EOF'
+- UI (ingress): `http://localhost:8080`
+- Grafana: `http://localhost:3001` (`admin/admin`)
+- Prometheus: `http://localhost:9090`
+- Loki: `http://localhost:3100`
+- Tempo: `http://localhost:3200`
+EOF
+      ;;
+    009-order-management-matcher)
+      cat <<'EOF'
+- UI (ingress): `http://localhost:8080`
+- Grafana: `http://localhost:3001` (`admin/admin`)
+- Prometheus: `http://localhost:9090`
+- Order matcher health: `http://localhost:18110/health`
+- Order matcher metrics: `http://localhost:18110/metrics`
+EOF
+      ;;
+    010-kubernetes-runtime|011-tilt-kubernetes-dev-loop|012-platform-convergence-c3|013-radius-kubernetes-platform)
+      cat <<'EOF'
+- UI (ingress): `http://localhost:8080`
+- Trade page: `http://localhost:8080/trade`
+- Account service route: `http://localhost:8080/account-service/account/22214`
+- Position service route: `http://localhost:8080/position-service/positions/22214`
+EOF
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
 write_generated_agentic_docs() {
   local state_num="${STATE_ID%%-*}"
   if [[ ! "${state_num}" =~ ^[0-9]+$ ]] || (( 10#${state_num} < 3 )); then
@@ -542,6 +598,15 @@ EOF
 }
 
 write_generated_runbook
+if generated_runtime_urls_markdown >/tmp/traderx-runtime-urls.$$; then
+  {
+    echo
+    echo "## Interactive URLs"
+    echo
+    cat /tmp/traderx-runtime-urls.$$
+  } >> "${TARGET_ROOT}/RUN_FROM_GENERATED.md"
+  rm -f /tmp/traderx-runtime-urls.$$
+fi
 write_generated_agentic_docs
 
 echo "[ok] installed generated runtime harness for ${STATE_ID} at ${SCRIPTS_DST}"

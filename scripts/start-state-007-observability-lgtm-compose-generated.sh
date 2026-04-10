@@ -12,6 +12,7 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
 fi
 STATE_ID="007-observability-lgtm-compose"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-007}"
+GRAFANA_PORT="${GRAFANA_PORT:-3001}"
 COMPOSE_DIR="${GENERATED_ROOT}/code/target-generated/observability-lgtm-compose"
 COMPOSE_FILE="${COMPOSE_DIR}/docker-compose.yml"
 DRY_RUN=0
@@ -98,14 +99,14 @@ wait_for_http() {
 wait_for_postgres || exit 1
 wait_for_http "reference-data" "http://localhost:18085/stocks" || exit 1
 wait_for_http "ingress" "http://localhost:8080/health" || exit 1
-wait_for_http "grafana" "http://localhost:3000/api/health" || exit 1
+wait_for_http "grafana" "http://localhost:${GRAFANA_PORT}/api/health" || exit 1
 wait_for_http "prometheus" "http://localhost:9090/-/ready" || exit 1
 wait_for_http "loki" "http://localhost:3100/ready" || exit 1
 wait_for_http "tempo" "http://localhost:3200/ready" || exit 1
 wait_for_http "otel-collector-health" "http://localhost:13133/" || exit 1
 
 bash "${REPO_ROOT}/scripts/star-grafana-traderx-dashboards.sh" \
-  "http://localhost:3000" \
+  "http://localhost:${GRAFANA_PORT}" \
   "admin" \
   "admin" \
   "TraderX" \
@@ -113,4 +114,4 @@ bash "${REPO_ROOT}/scripts/star-grafana-traderx-dashboards.sh" \
 
 echo "[done] state 007 observability runtime started"
 echo "[ui] http://localhost:8080"
-echo "[grafana] http://localhost:3000 (admin/admin)"
+echo "[grafana] http://localhost:${GRAFANA_PORT} (admin/admin)"

@@ -7,7 +7,7 @@ Describe runtime topology and network/data flow changes introduced by this state
 ## Entrypoints
 
 - App ingress: `http://localhost:8080`
-- Grafana: `http://localhost:3000`
+- Grafana: `http://localhost:3001`
 - Prometheus: `http://localhost:9090`
 - NATS monitor: `http://localhost:8222/varz`
 - Order matcher health: `http://localhost:<order-matcher-port>/health`
@@ -32,6 +32,7 @@ Describe runtime topology and network/data flow changes introduced by this state
 - Order matcher writes order lifecycle to shared DB and submits fills through trade-service API.
 - Trade processor and position service consume matcher-generated trades via existing integration path.
 - Prometheus scrapes order matcher metrics and probes order endpoints via blackbox exporter.
+- Prometheus also scrapes Spring Boot actuator metrics (`/actuator/prometheus`) for all compatible services in this state.
 - Grafana queries Prometheus/Loki/Tempo for order-management views.
 
 ## Startup / Health Order

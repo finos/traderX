@@ -28,6 +28,7 @@ Document NFR changes introduced by this state.
 ## Reliability / Observability
 
 - Order-management components expose Prometheus metrics and `/health` endpoints.
+- Prometheus scrape coverage is mandatory for all services in this state that expose Prometheus-compatible metrics (including `order-matcher` and compatible JVM services via `/actuator/prometheus`).
 - Required order metrics:
   - `traderx_orders_open_total` (gauge): total open, unfilled orders.
   - `traderx_orders_unfilled_total` (gauge): open + partially filled orders awaiting completion.
@@ -39,5 +40,6 @@ Document NFR changes introduced by this state.
   - current open/unfilled orders,
   - fill/cancel/reject/force-fill rates,
   - matcher latency percentiles,
-  - order-management error logs.
+  - order-management error logs,
+  - JVM/service SLI panels (request rate, latency percentiles, and scrape target health) for compatible services.
 - Smoke tests assert metrics endpoint availability and non-empty response for required metric families.

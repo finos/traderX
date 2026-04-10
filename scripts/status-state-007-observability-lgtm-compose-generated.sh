@@ -11,6 +11,7 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
   fi
 fi
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-007}"
+GRAFANA_PORT="${GRAFANA_PORT:-3001}"
 COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/observability-lgtm-compose/docker-compose.yml"
 
 if ! command -v docker >/dev/null 2>&1; then
@@ -38,7 +39,7 @@ printf "%-28s %-8s %s\n" "----------------------------" "--------" "---"
 for target in \
   "ingress-health|http://localhost:8080/health" \
   "ingress-ui|http://localhost:8080/" \
-  "grafana|http://localhost:3000/api/health" \
+  "grafana|http://localhost:${GRAFANA_PORT}/api/health" \
   "prometheus|http://localhost:9090/-/ready" \
   "loki|http://localhost:3100/ready" \
   "tempo|http://localhost:3200/ready" \

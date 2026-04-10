@@ -11,6 +11,7 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
   fi
 fi
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-009}"
+GRAFANA_PORT="${GRAFANA_PORT:-3001}"
 COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/order-management-matcher/docker-compose.yml"
 
 if ! command -v docker >/dev/null 2>&1; then
@@ -42,7 +43,7 @@ for target in \
   "order-matcher-metrics|http://localhost:18110/metrics" \
   "price-publisher|http://localhost:18100/health" \
   "nats-monitor|http://localhost:8222/varz" \
-  "grafana|http://localhost:3000/api/health" \
+  "grafana|http://localhost:${GRAFANA_PORT}/api/health" \
   "prometheus|http://localhost:9090/-/ready" \
   "loki|http://localhost:3100/ready" \
   "tempo|http://localhost:3200/ready" \

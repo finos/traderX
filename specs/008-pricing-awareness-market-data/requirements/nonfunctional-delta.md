@@ -30,3 +30,4 @@ Parent state: `007-observability-lgtm-compose`
 - yfinance bootstrap is startup-only and falls back to snapshot/fallback values on failure.
 - Existing baseline trade/account validation behavior remains unchanged.
 - Legacy ticker compatibility is normalized at source (`FB` emitted as `META`) to avoid dual-symbol drift across clients.
+- Prometheus scraping coverage from state `007` remains required for any service in this state that exposes Prometheus-compatible metrics.

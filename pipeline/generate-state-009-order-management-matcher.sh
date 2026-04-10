@@ -8,6 +8,7 @@ PARENT_STATE_ID="008-pricing-awareness-market-data"
 echo "[info] generating parent state ${PARENT_STATE_ID} for ${STATE_ID}"
 bash "${ROOT}/pipeline/generate-state.sh" "${PARENT_STATE_ID}"
 bash "${ROOT}/pipeline/apply-state-patchset.sh" "${STATE_ID}"
+bash "${ROOT}/pipeline/render-state-009-order-management-matcher.sh"
 bash "${ROOT}/pipeline/generate-state-architecture-doc.sh" "${STATE_ID}"
 
 cat <<'EOT'

@@ -8,6 +8,7 @@ PARENT_STATE_ID="006-messaging-nats-replacement"
 echo "[info] generating parent state ${PARENT_STATE_ID} for ${STATE_ID}"
 bash "${ROOT}/pipeline/generate-state.sh" "${PARENT_STATE_ID}"
 bash "${ROOT}/pipeline/apply-state-patchset.sh" "${STATE_ID}"
+bash "${ROOT}/pipeline/render-state-007-observability-lgtm-compose.sh"
 bash "${ROOT}/pipeline/generate-state-architecture-doc.sh" "${STATE_ID}"
 
 cat <<'EOT'

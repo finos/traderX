@@ -51,6 +51,7 @@
 - NFR-1005: Existing `006` functional flows SHALL remain backward-compatible (trade submit, account validation, realtime updates).
 - NFR-1006: Pricing stream defaults SHALL reduce local runtime churn versus per-symbol 1-second fanout while preserving timely UI valuation refresh.
 - NFR-1007: Pricing visualization semantics (marker + color) SHALL remain deterministic and derived solely from open/market and cost/value comparisons.
+- NFR-1008: For all services in this state that expose Prometheus-compatible metrics, Prometheus scraping and provisioned Grafana visualization SHALL be maintained.
 
 ## Success Criteria
 

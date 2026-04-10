@@ -7,7 +7,7 @@ Document NFR changes introduced by this state.
 ## Runtime / Operations
 
 - Add observability services to compose runtime:
-  - Grafana (`:3000`)
+  - Grafana (`:3001`, container `3000`)
   - Prometheus (`:9090`)
   - Loki (`:3100`)
   - Tempo (`:3200`)
@@ -29,6 +29,8 @@ Document NFR changes introduced by this state.
 ## Reliability / Observability
 
 - Blackbox probe success and latency metrics are available for key TraderX endpoints.
+- Spring Boot actuator Prometheus metrics are scraped for all compatible JVM services in this state.
+- Prometheus-compatible metrics exposure is a required integration point: if a service supports it, scrape targets and dashboards must be updated in the same change.
 - Container logs are queryable in Grafana via Loki.
 - OTel Collector and Tempo are wired for trace ingestion to support future instrumentation growth.
-- Provisioned dashboards provide out-of-the-box visibility for service availability, latency, and log throughput.
+- Provisioned dashboards provide out-of-the-box visibility for service availability, latency, log throughput, and JVM/service metric health.

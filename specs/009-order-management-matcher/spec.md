@@ -35,6 +35,7 @@
 - NFR-01305: Runtime and topology constraints are captured in `system/runtime-topology.md`.
 - NFR-01306: Architecture updates are encoded in `system/architecture.model.json`.
 - NFR-01307: Order matcher runtime uses Java 21 + Spring Boot for consistency with existing TraderX JVM services and shared operational patterns.
+- NFR-01308: Every service in this state that exposes Prometheus-compatible metrics MUST be scraped by Prometheus and represented in provisioned Grafana dashboards.
 
 ## Success Criteria
 

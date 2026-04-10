@@ -36,5 +36,5 @@ curl -s "http://localhost:${ORDER_MATCHER_PORT}/metrics" | rg "traderx_orders_op
 curl -s "http://localhost:${ORDER_MATCHER_PORT}/health"
 
 # dashboard landing
-open http://localhost:3000
+open http://localhost:3001
 ```

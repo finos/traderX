@@ -7,7 +7,7 @@ Describe runtime topology and network/data flow changes introduced by this state
 ## Entrypoints
 
 - App ingress: `http://localhost:8080`
-- Grafana: `http://localhost:3000`
+- Grafana: `http://localhost:3001`
 - Prometheus: `http://localhost:9090`
 - Loki: `http://localhost:3100`
 - Tempo: `http://localhost:3200`
@@ -28,6 +28,7 @@ Describe runtime topology and network/data flow changes introduced by this state
 ## Networking
 
 - Prometheus probes application endpoints through the compose network via blackbox exporter.
+- Prometheus also scrapes Spring Boot actuator metrics (`/actuator/prometheus`) for all compatible services in this state.
 - Promtail discovers Docker containers and pushes logs to Loki.
 - Grafana queries Prometheus, Loki, and Tempo datasources.
 - OTel Collector exposes OTLP receivers for future app instrumentation.

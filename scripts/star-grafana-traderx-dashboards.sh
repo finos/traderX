@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-GRAFANA_URL="${1:-http://localhost:3000}"
+GRAFANA_URL="${1:-http://localhost:3001}"
 GRAFANA_USER="${2:-admin}"
 GRAFANA_PASSWORD="${3:-admin}"
 DASHBOARD_QUERY="${4:-TraderX}"

@@ -4,6 +4,7 @@ set -euo pipefail
 INGRESS_URL="${1:-http://localhost:8080}"
 ORIGIN="${2:-http://localhost:8080}"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-007}"
+GRAFANA_PORT="${GRAFANA_PORT:-3001}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
 
@@ -46,7 +47,7 @@ fi
 
 echo "[check] observability endpoints"
 for endpoint in \
-  "http://localhost:3000/api/health" \
+  "http://localhost:${GRAFANA_PORT}/api/health" \
   "http://localhost:9090/-/ready" \
   "http://localhost:3100/ready" \
   "http://localhost:3200/ready" \
@@ -61,7 +62,7 @@ done
 
 echo "[check] grafana provisioned dashboards"
 dashboard_count="$(
-  curl -sS -u admin:admin "http://localhost:3000/api/search?query=TraderX" \
+  curl -sS -u admin:admin "http://localhost:${GRAFANA_PORT}/api/search?query=TraderX" \
   | jq 'length'
 )"
 if [[ "${dashboard_count}" -lt 1 ]]; then
@@ -69,6 +70,27 @@ if [[ "${dashboard_count}" -lt 1 ]]; then
   exit 1
 fi
 echo "[info] grafana dashboards=${dashboard_count}"
+
+echo "[check] grafana includes spring actuator dashboards"
+dashboard_uids_raw="$(
+  curl -sS -u admin:admin "http://localhost:${GRAFANA_PORT}/api/search?query=TraderX&type=dash-db" \
+  | jq -r '.[].uid'
+)"
+spring_dashboard_uid=""
+while IFS= read -r dashboard_uid; do
+  [[ -z "${dashboard_uid}" ]] && continue
+  dashboard_payload="$(curl -sS -u admin:admin "http://localhost:${GRAFANA_PORT}/api/dashboards/uid/${dashboard_uid}")"
+  dashboard_text="$(echo "${dashboard_payload}" | jq -r '.dashboard | tostring')"
+  if printf '%s\n' "${dashboard_text}" | rg -q 'http_server_requests_seconds_count|jvm_memory_used_bytes'; then
+    spring_dashboard_uid="${dashboard_uid}"
+    break
+  fi
+done <<< "${dashboard_uids_raw}"
+if [[ -z "${spring_dashboard_uid}" ]]; then
+  echo "[error] no provisioned TraderX dashboard includes expected Spring actuator metric queries"
+  exit 1
+fi
+echo "[info] grafana dashboard uid=${spring_dashboard_uid} includes Spring actuator metric queries"
 
 echo "[check] prometheus traderx probe targets discovered"
 target_count="$(
@@ -80,6 +102,29 @@ if [[ "${target_count}" -lt 8 ]]; then
   exit 1
 fi
 echo "[info] active traderx probe targets=${target_count}"
+
+echo "[check] prometheus spring actuator scrape targets discovered"
+actuator_target_count="$(
+  curl -sS "http://localhost:9090/api/v1/targets" \
+  | jq '[.data.activeTargets[] | select(.labels.job=="traderx-spring-boot-actuator")] | length'
+)"
+if [[ "${actuator_target_count}" -lt 4 ]]; then
+  echo "[error] expected 4+ active Spring actuator targets, got ${actuator_target_count}"
+  exit 1
+fi
+echo "[info] active spring actuator targets=${actuator_target_count}"
+
+echo "[check] prometheus spring actuator metric families are queryable"
+actuator_metric_samples="$(
+  curl -sS --get "http://localhost:9090/api/v1/query" \
+    --data-urlencode 'query=count(http_server_requests_seconds_count{job="traderx-spring-boot-actuator"})' \
+  | jq -r '.data.result[0].value[1] // "0"'
+)"
+if ! awk "BEGIN {exit !(${actuator_metric_samples} > 0)}"; then
+  echo "[error] expected Spring actuator metric samples in Prometheus query results, got ${actuator_metric_samples}"
+  exit 1
+fi
+echo "[info] spring actuator metric sample count=${actuator_metric_samples}"
 
 echo "[check] baseline behavior under observability runtime"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-007}"

@@ -4,6 +4,7 @@ set -euo pipefail
 INGRESS_URL="${1:-http://localhost:8080}"
 ORDER_MATCHER_PORT="${ORDER_MATCHER_PORT:-18110}"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-009}"
+GRAFANA_PORT="${GRAFANA_PORT:-3001}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
 
@@ -36,7 +37,7 @@ fi
 
 echo "[check] observability control-plane endpoints"
 for endpoint in \
-  "http://localhost:3000/api/health" \
+  "http://localhost:${GRAFANA_PORT}/api/health" \
   "http://localhost:9090/-/ready" \
   "http://localhost:3100/ready" \
   "http://localhost:3200/ready"; do
@@ -77,7 +78,7 @@ echo "[info] required order metrics detected"
 
 echo "[check] grafana order dashboards provisioned"
 dashboard_uids_raw="$(
-  curl -sS -u admin:admin "http://localhost:3000/api/search?query=TraderX&type=dash-db" \
+  curl -sS -u admin:admin "http://localhost:${GRAFANA_PORT}/api/search?query=TraderX&type=dash-db" \
   | jq -r '.[].uid'
 )"
 if [[ -z "${dashboard_uids_raw}" ]]; then
@@ -87,7 +88,7 @@ fi
 order_metrics_dashboard_uid=""
 while IFS= read -r dashboard_uid; do
   [[ -z "${dashboard_uid}" ]] && continue
-  dashboard_payload="$(curl -sS -u admin:admin "http://localhost:3000/api/dashboards/uid/${dashboard_uid}")"
+  dashboard_payload="$(curl -sS -u admin:admin "http://localhost:${GRAFANA_PORT}/api/dashboards/uid/${dashboard_uid}")"
   dashboard_text="$(echo "${dashboard_payload}" | jq -r '.dashboard | tostring')"
   if printf '%s\n' "${dashboard_text}" | rg -q 'traderx_orders_open_total|traderx_order_events_total'; then
     order_metrics_dashboard_uid="${dashboard_uid}"
@@ -100,6 +101,23 @@ if [[ -z "${order_metrics_dashboard_uid}" ]]; then
 fi
 echo "[info] grafana dashboard uid=${order_metrics_dashboard_uid} includes order observability metrics"
 
+echo "[check] grafana includes order + spring actuator SLI dashboard coverage"
+order_sli_dashboard_uid=""
+while IFS= read -r dashboard_uid; do
+  [[ -z "${dashboard_uid}" ]] && continue
+  dashboard_payload="$(curl -sS -u admin:admin "http://localhost:${GRAFANA_PORT}/api/dashboards/uid/${dashboard_uid}")"
+  dashboard_text="$(echo "${dashboard_payload}" | jq -r '.dashboard | tostring')"
+  if printf '%s\n' "${dashboard_text}" | rg -q 'traderx_order_match_latency_seconds_bucket|http_server_requests_seconds_count'; then
+    order_sli_dashboard_uid="${dashboard_uid}"
+    break
+  fi
+done <<< "${dashboard_uids_raw}"
+if [[ -z "${order_sli_dashboard_uid}" ]]; then
+  echo "[error] no provisioned TraderX dashboard includes combined order matcher + Spring actuator SLI queries"
+  exit 1
+fi
+echo "[info] grafana dashboard uid=${order_sli_dashboard_uid} includes order matcher + actuator SLI queries"
+
 echo "[check] prometheus discovered order-matcher scrape target"
 target_count="$(
   curl -sS "http://localhost:9090/api/v1/targets" \
@@ -110,6 +128,29 @@ if [[ "${target_count}" -lt 1 ]]; then
   exit 1
 fi
 echo "[info] prometheus order-matcher targets=${target_count}"
+
+echo "[check] prometheus spring actuator scrape targets discovered"
+actuator_target_count="$(
+  curl -sS "http://localhost:9090/api/v1/targets" \
+  | jq '[.data.activeTargets[] | select(.labels.job=="traderx-spring-boot-actuator")] | length'
+)"
+if [[ "${actuator_target_count}" -lt 5 ]]; then
+  echo "[error] expected 5+ active Spring actuator targets, got ${actuator_target_count}"
+  exit 1
+fi
+echo "[info] active spring actuator targets=${actuator_target_count}"
+
+echo "[check] prometheus order-matcher actuator metrics are queryable"
+order_matcher_http_samples="$(
+  curl -sS --get "http://localhost:9090/api/v1/query" \
+    --data-urlencode 'query=count(http_server_requests_seconds_count{job="traderx-spring-boot-actuator",instance=~".*order-matcher.*"})' \
+  | jq -r '.data.result[0].value[1] // "0"'
+)"
+if ! awk "BEGIN {exit !(${order_matcher_http_samples} > 0)}"; then
+  echo "[error] expected order-matcher Spring actuator HTTP metrics in Prometheus query results, got ${order_matcher_http_samples}"
+  exit 1
+fi
+echo "[info] order-matcher actuator metric sample count=${order_matcher_http_samples}"
 
 echo "[check] ingress remains healthy"
 curl -fsS "${INGRESS_URL}/health" >/dev/null

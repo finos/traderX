@@ -23,7 +23,7 @@ index 0000000..b16dd7c
 +Primary endpoints:
 +
 +- TraderX UI: `http://localhost:8080`
-+- Grafana: `http://localhost:3000` (`admin` / `admin`)
++- Grafana: `http://localhost:3001` (`admin` / `admin`)
 +- Prometheus: `http://localhost:9090`
 +- Loki: `http://localhost:3100`
 +- Tempo: `http://localhost:3200`
@@ -276,7 +276,7 @@ index 0000000..20aa0c2
 +      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
 +      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
 +    ports:
-+      - "3000:3000"
++      - "${GRAFANA_PORT:-3001}:3000"
 +    depends_on:
 +      - prometheus
 +      - loki
