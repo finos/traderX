@@ -9,6 +9,7 @@ This repository now uses the GitHub Spec Kit canonical structure at repo root:
 
 - `001-baseline-uncontainerized-parity`
 - `002-edge-proxy-uncontainerized`
+- `003-agentic-harness-foundation`
 - `004-containerized-compose-runtime`
 - `005-postgres-database-replacement`
 - `006-messaging-nats-replacement`
@@ -20,9 +21,7 @@ This repository now uses the GitHub Spec Kit canonical structure at repo root:
 - `012-platform-convergence-c3`
 - `013-radius-kubernetes-platform`
 
-## Transitional Note
-
-Legacy `TraderSpec/` migration artifacts have been removed after Phase C cleanup. New requirements work is authored in numbered root `specs/` feature directories.
+## References
 
 State lineage and generated-branch publish conventions are tracked in:
 

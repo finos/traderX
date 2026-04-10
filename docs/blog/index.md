@@ -9,6 +9,8 @@ This blog captures the broader TraderX story over time: how the project started,
 
 ## Articles
 
+- [April 10, 2026: Custom Overlay Model for Environment-Specific TraderX](/docs/blog/2026-04-10-custom-overlay-model-and-example)
+- [April 10, 2026: State 003 - Agentic Harness Foundation](/docs/blog/2026-04-10-state-003-agentic-harness-foundation)
 - [April 6, 2026: Convergence Milestone Releases (C0-C3)](/docs/blog/2026-04-06-convergence-milestone-releases)
 - [April 6, 2026: State 009 - Rudimentary Order Manager and Matcher](/docs/blog/2026-04-06-state-009-order-management-matcher)
 - [April 6, 2026: State 007 - Observability Baseline with LGTM](/docs/blog/2026-04-06-state-007-observability-baseline)

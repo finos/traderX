@@ -8,7 +8,7 @@ title: "State 012: Platform Convergence C3"
 
 - Previous state(s): [011-tilt-kubernetes-dev-loop](/docs/learning/state-011-tilt-kubernetes-dev-loop)
 - Dotted-line parent(s): [009-order-management-matcher](/docs/learning/state-009-order-management-matcher)
-- Next state(s): none
+- Next state(s): [013-radius-kubernetes-platform](/docs/learning/state-013-radius-kubernetes-platform)
 
 ## Convergence Metadata
 

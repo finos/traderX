@@ -297,7 +297,7 @@
       "primaryLineageRole": "optional",
       "featurePack": "specs/013-radius-kubernetes-platform",
       "previous": [
-        "010-kubernetes-runtime"
+        "012-platform-convergence-c3"
       ],
       "generation": {
         "mode": "implemented",

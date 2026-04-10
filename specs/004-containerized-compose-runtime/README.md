@@ -1,8 +1,8 @@
-# Feature Pack 003: Containerized Compose Runtime
+# Feature Pack 004: Containerized Compose Runtime
 
 Status: Implemented (pending release validation/tag)
 
-This pack defines the next state after `002-edge-proxy-uncontainerized`.
+This pack defines the next state after `003-agentic-harness-foundation`.
 
 Primary intent:
 

@@ -1,11 +1,11 @@
-# Feature Pack 012: Radius Platform on Kubernetes
+# Feature Pack 013: Radius Platform on Kubernetes
 
 Status: Implemented  
 Track: `devex`  
 Lineage role: `optional`  
-Previous state: `010-kubernetes-runtime`
+Previous state: `012-platform-convergence-c3`
 
-This pack defines the optional Radius platform branch. It is intentionally independent from the Tilt path (`010`).
+This pack defines the optional Radius platform branch on top of the C3 convergence baseline.
 
 Primary intent:
 

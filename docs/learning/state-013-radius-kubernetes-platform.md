@@ -6,7 +6,7 @@ title: "State 013: Radius Platform on Kubernetes (Optional)"
 
 ## Position In Learning Graph
 
-- Previous state(s): [010-kubernetes-runtime](/docs/learning/state-010-kubernetes-runtime)
+- Previous state(s): [012-platform-convergence-c3](/docs/learning/state-012-platform-convergence-c3)
 - Dotted-line parent(s): none
 - Next state(s): none
 
@@ -25,7 +25,7 @@ title: "State 013: Radius Platform on Kubernetes (Optional)"
 
 ## Code Comparison With Previous State
 
-- Compare against `010-kubernetes-runtime`: [code/generated-state-010-kubernetes-runtime...code/generated-state-013-radius-kubernetes-platform](https://github.com/finos/traderX/compare/code%2Fgenerated-state-010-kubernetes-runtime...code%2Fgenerated-state-013-radius-kubernetes-platform)
+- Compare against `012-platform-convergence-c3`: [code/generated-state-012-platform-convergence-c3...code/generated-state-013-radius-kubernetes-platform](https://github.com/finos/traderX/compare/code%2Fgenerated-state-012-platform-convergence-c3...code%2Fgenerated-state-013-radius-kubernetes-platform)
 
 ## Plain-English Code Delta
 

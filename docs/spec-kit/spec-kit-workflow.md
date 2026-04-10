@@ -82,6 +82,7 @@ When implementing a new state delta with an LLM:
 
 ```bash
 bash pipeline/refresh-state-docs.sh --check
+bash pipeline/validate-state-doc-consistency.sh
 bash pipeline/validate-state-pack-artifacts.sh
 ./pipeline/speckit/validate-speckit-readiness.sh
 ./pipeline/speckit/verify-spec-expressiveness.sh

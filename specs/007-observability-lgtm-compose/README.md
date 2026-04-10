@@ -1,4 +1,4 @@
-# Feature Pack 006: Observability with LGTM on Compose
+# Feature Pack 007: Observability with LGTM on Compose
 
 Status: Implemented
 Track: `nonfunctional`

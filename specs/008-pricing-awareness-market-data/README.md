@@ -1,4 +1,4 @@
-# Feature Pack 007: Pricing Awareness and Market Data Streaming
+# Feature Pack 008: Pricing Awareness and Market Data Streaming
 
 Status: Implemented  
 Track: `functional`  

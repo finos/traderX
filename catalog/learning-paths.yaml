@@ -134,7 +134,7 @@ stateCatalog:
     spec: specs/012-platform-convergence-c3/spec.md
   - id: 013-radius-kubernetes-platform
     previous:
-      - 010-kubernetes-runtime
+      - 012-platform-convergence-c3
     convergenceLevel: none
     isConvergence: false
     lineageRole: optional

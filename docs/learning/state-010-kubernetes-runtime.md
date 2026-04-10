@@ -8,7 +8,7 @@ title: "State 010: Kubernetes Runtime on C2"
 
 - Previous state(s): [009-order-management-matcher](/docs/learning/state-009-order-management-matcher)
 - Dotted-line parent(s): none
-- Next state(s): [011-tilt-kubernetes-dev-loop](/docs/learning/state-011-tilt-kubernetes-dev-loop), [013-radius-kubernetes-platform](/docs/learning/state-013-radius-kubernetes-platform)
+- Next state(s): [011-tilt-kubernetes-dev-loop](/docs/learning/state-011-tilt-kubernetes-dev-loop)
 
 ## Convergence Metadata
 

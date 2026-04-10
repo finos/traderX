@@ -1,4 +1,4 @@
-# Feature Pack 005: Messaging Layer Replacement with NATS
+# Feature Pack 006: Messaging Layer Replacement with NATS
 
 Status: Implemented  
 Track: `architecture`  

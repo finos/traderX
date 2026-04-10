@@ -62,4 +62,4 @@ This file is generated from `catalog/state-catalog.json`.
 | `010-kubernetes-runtime` | 009-order-management-matcher | `none` | `false` | `canonical` | `specs/010-kubernetes-runtime/spec.md` |
 | `011-tilt-kubernetes-dev-loop` | 010-kubernetes-runtime | `none` | `false` | `canonical` | `specs/011-tilt-kubernetes-dev-loop/spec.md` |
 | `012-platform-convergence-c3` | 011-tilt-kubernetes-dev-loop | `C3` | `true` | `canonical` | `specs/012-platform-convergence-c3/spec.md` |
-| `013-radius-kubernetes-platform` | 010-kubernetes-runtime | `none` | `false` | `optional` | `specs/013-radius-kubernetes-platform/spec.md` |
+| `013-radius-kubernetes-platform` | 012-platform-convergence-c3 | `none` | `false` | `optional` | `specs/013-radius-kubernetes-platform/spec.md` |

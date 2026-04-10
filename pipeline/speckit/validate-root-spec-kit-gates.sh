@@ -92,4 +92,6 @@ if [[ -d "${TRADERSPEC_ROOT}/speckit/contracts" ]]; then
   [[ -z "${extra_contracts}" ]] || fail "legacy contracts still contain non-pointer artifacts: ${extra_contracts}"
 fi
 
+bash "${REPO_ROOT}/pipeline/validate-state-doc-consistency.sh"
+
 echo "[ok] root Spec Kit quality gates passed (feature=${FEATURE_ID}, branch=${branch_name})"
