@@ -114,6 +114,39 @@ if [[ "${actuator_target_count}" -lt 4 ]]; then
 fi
 echo "[info] active spring actuator targets=${actuator_target_count}"
 
+echo "[check] spring actuator targets are healthy (up)"
+actuator_target_up_count="$(
+  curl -sS "http://localhost:9090/api/v1/targets" \
+  | jq '[.data.activeTargets[] | select(.labels.job=="traderx-spring-boot-actuator" and .health=="up")] | length'
+)"
+if [[ "${actuator_target_up_count}" -lt 4 ]]; then
+  echo "[error] expected 4+ healthy Spring actuator targets, got ${actuator_target_up_count}"
+  curl -sS "http://localhost:9090/api/v1/targets" \
+    | jq -r '.data.activeTargets[] | select(.labels.job=="traderx-spring-boot-actuator") | "\(.labels.instance) health=\(.health) error=\(.lastError // "")"'
+  exit 1
+fi
+echo "[info] healthy spring actuator targets=${actuator_target_up_count}"
+
+echo "[check] spring services expose /actuator/prometheus"
+for endpoint in \
+  "http://localhost:18088/actuator/prometheus" \
+  "http://localhost:18090/actuator/prometheus" \
+  "http://localhost:18091/actuator/prometheus" \
+  "http://localhost:18092/actuator/prometheus"; do
+  headers="$(curl -sS -i "${endpoint}" | sed -n '1,20p')"
+  echo "${headers}"
+  printf '%s\n' "${headers}" | grep -Eq "HTTP/1\\.[01] 200" || {
+    echo "[error] expected 200 from ${endpoint}"
+    exit 1
+  }
+done
+
+echo "[check] warm representative business endpoints so http_server metrics are non-empty"
+curl -sS "${INGRESS_URL}/account-service/account/22214" >/dev/null
+curl -sS "${INGRESS_URL}/position-service/positions/22214" >/dev/null
+curl -sS "${INGRESS_URL}/trade-service/swagger-ui.html" >/dev/null
+curl -sS "${INGRESS_URL}/trade-processor/health" >/dev/null
+
 echo "[check] prometheus spring actuator metric families are queryable"
 actuator_metric_samples="$(
   curl -sS --get "http://localhost:9090/api/v1/query" \

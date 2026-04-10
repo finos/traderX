@@ -8,4 +8,7 @@ Implemented smoke checks:
 - Grafana/Prometheus/Loki/Tempo/OTel Collector health endpoints return success.
 - Grafana dashboards are provisioned.
 - Prometheus blackbox targets are discovered.
+- Spring actuator scrape targets are discovered and healthy.
+- Spring services expose `/actuator/prometheus` on service ports (`18088`, `18090`, `18091`, `18092`).
+- Prometheus query for `http_server_requests_seconds_count` under `job="traderx-spring-boot-actuator"` returns samples.
 - Baseline functional flow from state `003` remains green.
