@@ -8,6 +8,7 @@ STATE_DIR="${TARGET_ROOT}/order-management-matcher"
 COMPOSE_FILE="${STATE_DIR}/docker-compose.yml"
 PROMETHEUS_FILE="${STATE_DIR}/observability/prometheus/prometheus.yml"
 DASHBOARD_DIR="${STATE_DIR}/observability/grafana/dashboards"
+COMPOSE_PROJECT_LABEL="traderx-state-009"
 
 require_file() {
   local path="$1"
@@ -34,6 +35,8 @@ require_file "${PROMETHEUS_FILE}"
 for service in account-service position-service trade-processor trade-service order-matcher; do
   ensure_gradle_prometheus_support "${TARGET_ROOT}/${service}/build.gradle"
 done
+
+perl -0pi -e 's/^name:\s*traderx-state-\d+/name: traderx-state-009/m' "${COMPOSE_FILE}"
 
 perl -0pi -e 's/"3000:3000"/"${GRAFANA_PORT:-3001}:3000"/g' "${COMPOSE_FILE}"
 
@@ -325,6 +328,10 @@ cat > "${DASHBOARD_DIR}/traderx-order-matcher-sli.json" <<'EOF'
 }
 EOF
 
+while IFS= read -r dashboard_file; do
+  perl -0pi -e "s/compose_project=\\\\\"traderx-state-\\d+\\\\\"/compose_project=\\\\\"${COMPOSE_PROJECT_LABEL}\\\\\"/g" "${dashboard_file}"
+done < <(find "${DASHBOARD_DIR}" -maxdepth 1 -type f -name '*.json' | sort)
+
 cat > "${STATE_DIR}/README.md" <<'EOF'
 ## TraderX State 009 Runtime
 
@@ -342,7 +349,7 @@ It extends pricing + observability runtime with:
 Primary endpoints:
 
 - TraderX UI: `http://localhost:8080`
-- Grafana: `http://localhost:3001` (`admin` / `admin`)
+- Grafana: `http://localhost:3001` (local login credentials)
 - Prometheus: `http://localhost:9090`
 - Loki: `http://localhost:3100`
 - Tempo: `http://localhost:3200`

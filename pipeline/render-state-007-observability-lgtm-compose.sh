@@ -8,6 +8,7 @@ STATE_DIR="${TARGET_ROOT}/observability-lgtm-compose"
 COMPOSE_FILE="${STATE_DIR}/docker-compose.yml"
 PROMETHEUS_FILE="${STATE_DIR}/observability/prometheus/prometheus.yml"
 DASHBOARD_DIR="${STATE_DIR}/observability/grafana/dashboards"
+COMPOSE_PROJECT_LABEL="traderx-state-007"
 
 require_file() {
   local path="$1"
@@ -34,6 +35,9 @@ require_file "${PROMETHEUS_FILE}"
 for service in account-service position-service trade-processor trade-service; do
   ensure_gradle_prometheus_support "${TARGET_ROOT}/${service}/build.gradle"
 done
+
+# Keep generated compose metadata aligned with this state id for manual `docker compose` flows.
+perl -0pi -e 's/^name:\s*traderx-state-\d+/name: traderx-state-007/m' "${COMPOSE_FILE}"
 
 # Avoid collisions with local dev servers (for example docs) that often use 3000.
 perl -0pi -e 's/"3000:3000"/"${GRAFANA_PORT:-3001}:3000"/g' "${COMPOSE_FILE}"
@@ -237,6 +241,11 @@ cat > "${DASHBOARD_DIR}/traderx-spring-service-sli.json" <<'EOF'
 }
 EOF
 
+# Normalize legacy compose labels embedded in dashboard queries so Loki panels resolve for state 007.
+while IFS= read -r dashboard_file; do
+  perl -0pi -e "s/compose_project=\\\\\"traderx-state-\\d+\\\\\"/compose_project=\\\\\"${COMPOSE_PROJECT_LABEL}\\\\\"/g" "${dashboard_file}"
+done < <(find "${DASHBOARD_DIR}" -maxdepth 1 -type f -name '*.json' | sort)
+
 cat > "${STATE_DIR}/README.md" <<'EOF'
 ## TraderX State 007 Runtime
 
@@ -259,7 +268,7 @@ It extends the containerized stack with:
 Primary endpoints:
 
 - TraderX UI: `http://localhost:8080`
-- Grafana: `http://localhost:3001` (`admin` / `admin`)
+- Grafana: `http://localhost:3001` (local login credentials)
 - Prometheus: `http://localhost:9090`
 - Loki: `http://localhost:3100`
 - Tempo: `http://localhost:3200`

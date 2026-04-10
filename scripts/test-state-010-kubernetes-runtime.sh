@@ -105,6 +105,76 @@ printf '%s\n' "${prometheus_query_payload}" | grep -q '"status":"success"' || {
   exit 1
 }
 
+echo "[check] grafana datasource can query prometheus"
+now_ms=$(($(date +%s) * 1000))
+from_ms=$((now_ms - 10 * 60 * 1000))
+grafana_query_result="$(
+  curl -sS -u admin:admin -H 'Content-Type: application/json' -X POST "${INGRESS_URL}/grafana/api/ds/query" \
+    -d "{\"from\":\"${from_ms}\",\"to\":\"${now_ms}\",\"queries\":[{\"refId\":\"A\",\"datasource\":{\"uid\":\"prometheus\",\"type\":\"prometheus\"},\"expr\":\"probe_success{job=\\\"traderx-http-probe\\\"}\",\"instant\":true,\"range\":false,\"intervalMs\":1000,\"maxDataPoints\":500}]}"
+)"
+grafana_query_error="$(echo "${grafana_query_result}" | jq -r '.results.A.error // empty')"
+grafana_query_frames="$(echo "${grafana_query_result}" | jq -r '.results.A.frames | length')"
+if [[ -n "${grafana_query_error}" ]]; then
+  echo "[error] grafana datasource query failed: ${grafana_query_error}"
+  exit 1
+fi
+if [[ "${grafana_query_frames}" -lt 1 ]]; then
+  echo "[error] expected at least one Grafana data frame from Prometheus query"
+  exit 1
+fi
+
+echo "[check] spring actuator scrape targets healthy in prometheus"
+actuator_up_count=0
+for _ in {1..30}; do
+  actuator_up_count="$(
+    curl -sS "${INGRESS_URL}/prometheus/api/v1/targets" \
+    | jq '[.data.activeTargets[] | select(.labels.job=="traderx-spring-boot-actuator" and .health=="up")] | length'
+  )"
+  if [[ "${actuator_up_count}" -ge 5 ]]; then
+    break
+  fi
+  sleep 2
+done
+if [[ "${actuator_up_count}" -lt 5 ]]; then
+  echo "[error] expected 5 healthy Spring actuator scrape targets, got ${actuator_up_count}"
+  curl -sS "${INGRESS_URL}/prometheus/api/v1/targets" \
+    | jq -r '.data.activeTargets[] | select(.labels.job=="traderx-spring-boot-actuator") | "\(.labels.instance) health=\(.health) error=\(.lastError // "")"'
+  exit 1
+fi
+
+echo "[check] spring actuator endpoints reachable through ingress"
+for endpoint in \
+  "${INGRESS_URL}/account-service/actuator/prometheus" \
+  "${INGRESS_URL}/position-service/actuator/prometheus" \
+  "${INGRESS_URL}/trade-processor/actuator/prometheus" \
+  "${INGRESS_URL}/trade-service/actuator/prometheus" \
+  "${INGRESS_URL}/order-matcher/actuator/prometheus"; do
+  headers="$(curl -sS -i "${endpoint}" | sed -n '1,20p')"
+  echo "${headers}"
+  printf '%s\n' "${headers}" | grep -Eq "HTTP/1\\.[01] 200" || {
+    echo "[error] expected HTTP 200 from ${endpoint}"
+    exit 1
+  }
+done
+
+echo "[check] warm traffic for spring http_server metrics"
+curl -sS "${INGRESS_URL}/account-service/account/22214" >/dev/null
+curl -sS "${INGRESS_URL}/position-service/positions/22214" >/dev/null
+curl -sS "${INGRESS_URL}/trade-service/swagger-ui.html" >/dev/null
+curl -sS "${INGRESS_URL}/trade-processor/health" >/dev/null
+curl -sS "${INGRESS_URL}/order-matcher/orders/open-count" >/dev/null
+
+echo "[check] spring http_server metrics are queryable in prometheus"
+spring_metric_sample_count="$(
+  curl -sS --get "${INGRESS_URL}/prometheus/api/v1/query" \
+    --data-urlencode 'query=count(http_server_requests_seconds_count{job="traderx-spring-boot-actuator"})' \
+  | jq -r '.data.result[0].value[1] // "0"'
+)"
+if ! awk "BEGIN {exit !(${spring_metric_sample_count} > 0)}"; then
+  echo "[error] expected spring http_server metric samples, got ${spring_metric_sample_count}"
+  exit 1
+fi
+
 echo "[check] state 010 ingress-routed service smoke suite"
 "${REPO_ROOT}/scripts/test-reference-data-overlay.sh" "${INGRESS_URL}" "${INGRESS_URL}/reference-data"
 "${REPO_ROOT}/scripts/test-account-service-overlay.sh" "${INGRESS_URL}" "${INGRESS_URL}/account-service"

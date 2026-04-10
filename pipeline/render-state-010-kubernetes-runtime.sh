@@ -183,6 +183,10 @@ EOF
 
 PROMETHEUS_RENDER_SOURCE="$(mktemp)"
 sed 's#http://ingress:8080#http://edge-proxy:8080#g' "${PROMETHEUS_SOURCE}" > "${PROMETHEUS_RENDER_SOURCE}"
+# Prometheus is served behind /prometheus in state 010+, so self-scrape path must include the prefix.
+if ! rg -q 'metrics_path:\s*/prometheus/metrics' "${PROMETHEUS_RENDER_SOURCE}"; then
+  perl -0pi -e 's/(^\s*-\sjob_name:\sprometheus\n)/$1    metrics_path: \/prometheus\/metrics\n/m' "${PROMETHEUS_RENDER_SOURCE}"
+fi
 {
   echo "apiVersion: v1"
   echo "kind: ConfigMap"
@@ -239,6 +243,11 @@ rm -f "${PROMETHEUS_RENDER_SOURCE}"
   sed 's/^/    /' "${OTEL_SOURCE}"
 } > "${MANIFEST_DIR}/observability-otel-configmap.yaml"
 
+GRAFANA_DATASOURCES_RENDER_SOURCE="$(mktemp)"
+cp "${GRAFANA_DATASOURCES_SOURCE}" "${GRAFANA_DATASOURCES_RENDER_SOURCE}"
+# Grafana runs in-cluster and must query Prometheus through its configured route prefix.
+perl -0pi -e 's#url:\s*http://prometheus:9090\b#url: http://prometheus:9090/prometheus#g' "${GRAFANA_DATASOURCES_RENDER_SOURCE}"
+
 {
   echo "apiVersion: v1"
   echo "kind: ConfigMap"
@@ -247,8 +256,9 @@ rm -f "${PROMETHEUS_RENDER_SOURCE}"
   echo "  namespace: ${NAMESPACE}"
   echo "data:"
   echo "  datasources.yaml: |"
-  sed 's/^/    /' "${GRAFANA_DATASOURCES_SOURCE}"
+  sed 's/^/    /' "${GRAFANA_DATASOURCES_RENDER_SOURCE}"
 } > "${MANIFEST_DIR}/observability-grafana-datasources-configmap.yaml"
+rm -f "${GRAFANA_DATASOURCES_RENDER_SOURCE}"
 
 {
   echo "apiVersion: v1"
@@ -362,6 +372,20 @@ render_component() {
     .components[] | select(.name == $name) | (.env // [])[] |
     "            - name: \(.name)\n              value: \"\(.value)\""
   ' "${SPEC_JSON}")"
+
+  case "${name}" in
+    account-service|position-service|trade-processor|trade-service|order-matcher)
+      if ! printf '%s\n' "${env_yaml}" | rg -q 'MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE'; then
+        env_yaml+=$'\n            - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE\n              value: "health,prometheus,info"'
+      fi
+      if ! printf '%s\n' "${env_yaml}" | rg -q 'MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED'; then
+        env_yaml+=$'\n            - name: MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED\n              value: "true"'
+      fi
+      if ! printf '%s\n' "${env_yaml}" | rg -q 'MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED'; then
+        env_yaml+=$'\n            - name: MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED\n              value: "true"'
+      fi
+      ;;
+  esac
 
   cat > "${MANIFEST_DIR}/${name}-deployment.yaml" <<EOF
 apiVersion: apps/v1
