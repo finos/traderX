@@ -29,7 +29,7 @@ title: "State 013: Radius Platform on Kubernetes (Optional)"
 
 ## Plain-English Code Delta
 
-- **Flow Impact:** No functional flow deltas. Baseline flows `F1`-`F6` and startup behavior remain compatible with state `004`.
+- **Flow Impact:** No functional flow deltas. Baseline flows `F1`-`F6` and startup behavior remain compatible with state `010`.
 
 ## Run This State
 

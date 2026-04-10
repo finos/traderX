@@ -2,7 +2,7 @@
 
 ## Scope
 
-State `006` introduces developer workflow tooling and does not change the business data model from state `004`.
+State `011` introduces developer workflow tooling and does not change the business data model from state `010`.
 
 ## Entity Impact
 

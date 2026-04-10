@@ -11,7 +11,7 @@ Patch-set model:
 
 Hook flow:
 
-1. Generate parent state `004`.
+1. Generate parent state `010`.
 2. Apply state patch set (Radius app model + workspace artifacts).
 3. Regenerate architecture docs.
 

@@ -13,7 +13,7 @@
 
 ## Functional Requirements
 
-- FR-401: Baseline flows F1-F6 SHALL remain behaviorally compatible with state `008`.
+- FR-401: Baseline flows F1-F6 SHALL remain behaviorally compatible with state `009-order-management-matcher`.
 - FR-402: The browser entrypoint SHALL remain a single origin at `http://localhost:8080`.
 - FR-403: Existing API path prefixes (`/account-service`, `/trade-service`, `/reference-data`, etc.) SHALL remain stable in this state.
 
@@ -24,10 +24,11 @@
 - NFR-403: Generated manifests SHALL be deterministic and derived from `system/kubernetes-runtime.spec.json`.
 - NFR-404: Generated images SHALL be built from generated component source and loaded into the target cluster.
 - NFR-405: Runtime topology and architecture SHALL be machine-documented in `system/runtime-topology.md` and `system/architecture.model.json`.
+- NFR-406: Observability capabilities inherited from state `009-order-management-matcher` (Prometheus scrape coverage, provisioned Grafana dashboards, and LGTM control-plane services) SHALL remain available through Kubernetes runtime entrypoints.
 
 ## Success Criteria
 
 - SC-401: `bash pipeline/generate-state.sh 010-kubernetes-runtime` produces Kubernetes artifacts under `generated/code/target-generated/kubernetes-runtime`.
 - SC-402: `./scripts/start-state-010-kubernetes-runtime-generated.sh` creates/uses a Kind cluster, applies manifests, and reaches `http://localhost:8080/health`.
-- SC-403: `./scripts/test-state-010-kubernetes-runtime.sh` passes core ingress/API/UI smoke checks.
+- SC-403: `./scripts/test-state-010-kubernetes-runtime.sh` passes core ingress/API/UI smoke checks and inherited observability checks (`/grafana`, `/prometheus`).
 - SC-404: Catalog metadata marks state `009` as implemented with canonical runtime commands.

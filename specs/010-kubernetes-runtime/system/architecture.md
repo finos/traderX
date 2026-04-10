@@ -10,6 +10,8 @@ State 010 preserves state 009 browser/API routing behavior while running all ser
 
 - `edge-proxy`: `http://localhost:8080`
 - `edge-health`: `http://localhost:8080/health`
+- `grafana`: `http://localhost:8080/grafana`
+- `prometheus`: `http://localhost:8080/prometheus`
 
 ## Architecture Diagram
 
@@ -27,6 +29,8 @@ flowchart LR
   nats["NATS Broker"]
   tradeProcessor["Trade Processor"]
   database["Database"]
+  grafana["Grafana"]
+  prometheus["Prometheus"]
   developer -->|"Starts runtime"| cluster
   developer -->|"Browser access :8080"| edge
   edge -->|"/"| web
@@ -37,6 +41,8 @@ flowchart LR
   edge -->|"/people-service"| people
   edge -->|"/nats-ws"| nats
   edge -->|"/trade-processor"| tradeProcessor
+  edge -->|"/grafana"| grafana
+  edge -->|"/prometheus"| prometheus
   tradeService -->|"Validate account"| account
   tradeService -->|"Validate ticker"| referenceData
   tradeService -->|"Publish trades/new"| nats
@@ -63,10 +69,13 @@ flowchart LR
 | `nats` | messaging | NATS Broker | Messaging backbone for trade, position, pricing, and order lifecycle streams. |
 | `tradeProcessor` | service | Trade Processor | Consumes trade events and persists settled state. |
 | `database` | database | Database | PostgreSQL persistence service. |
+| `grafana` | observability | Grafana | Dashboard and observability visualization UI. |
+| `prometheus` | observability | Prometheus | Metrics collection and query engine. |
 
 ## State Notes
 
 - Functional behavior remains intentionally equivalent to state 009.
 - Primary delta is runtime/operations model (Compose to Kubernetes).
 - Edge proxy remains NGINX-based to keep route semantics stable.
+- Observability stack from state 009 remains available in Kubernetes runtime.
 

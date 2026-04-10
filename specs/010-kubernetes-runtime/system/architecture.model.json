@@ -12,6 +12,14 @@
     {
       "name": "edge-health",
       "url": "http://localhost:8080/health"
+    },
+    {
+      "name": "grafana",
+      "url": "http://localhost:8080/grafana"
+    },
+    {
+      "name": "prometheus",
+      "url": "http://localhost:8080/prometheus"
     }
   ],
   "mermaidDirection": "LR",
@@ -87,6 +95,18 @@
       "label": "Database",
       "kind": "database",
       "description": "PostgreSQL persistence service."
+    },
+    {
+      "id": "grafana",
+      "label": "Grafana",
+      "kind": "observability",
+      "description": "Dashboard and observability visualization UI."
+    },
+    {
+      "id": "prometheus",
+      "label": "Prometheus",
+      "kind": "observability",
+      "description": "Metrics collection and query engine."
     }
   ],
   "edges": [
@@ -141,6 +161,16 @@
       "label": "/trade-processor"
     },
     {
+      "from": "edge",
+      "to": "grafana",
+      "label": "/grafana"
+    },
+    {
+      "from": "edge",
+      "to": "prometheus",
+      "label": "/prometheus"
+    },
+    {
       "from": "tradeService",
       "to": "account",
       "label": "Validate account"
@@ -184,6 +214,7 @@
   "notes": [
     "Functional behavior remains intentionally equivalent to state 009.",
     "Primary delta is runtime/operations model (Compose to Kubernetes).",
-    "Edge proxy remains NGINX-based to keep route semantics stable."
+    "Edge proxy remains NGINX-based to keep route semantics stable.",
+    "Observability stack from state 009 remains available in Kubernetes runtime."
   ]
 }

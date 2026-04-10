@@ -116,6 +116,16 @@ Why this matters:
 
 Custom overlay pipelines must enforce the same invariant. Using `--force-with-lease` on a branch that accumulates commits does not satisfy this model.
 
+## Behavior Invariant -- Inherit Unless Explicitly Replaced
+
+Across upstream and custom overlays, each state must preserve parent behavior by default.
+
+Required rule:
+
+1. Downstream states inherit all prior behavior from `previous` lineage unless the state spec explicitly declares a conflict, replacement, or deprecation.
+2. Runtime migrations (for example Compose to Kubernetes) must carry inherited capabilities forward unless an explicit requirement says otherwise.
+3. Smoke tests for downstream states should include inherited capability checks so regressions are detected during publish.
+
 ## How To Add A New State
 
 1. Scaffold the feature pack:

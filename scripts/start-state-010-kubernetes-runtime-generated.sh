@@ -336,7 +336,11 @@ wait_for_http() {
 
 wait_for_http "edge-health" "http://localhost:${host_port}/health"
 wait_for_http "edge-ui" "http://localhost:${host_port}/"
+wait_for_http "grafana-health" "http://localhost:${host_port}/grafana/api/health"
+wait_for_http "prometheus-ready" "http://localhost:${host_port}/prometheus/-/ready"
 
 echo "[done] state 010 kubernetes runtime started"
 echo "[provider] ${K8S_PROVIDER}"
 echo "[ui] http://localhost:${host_port}"
+echo "[grafana] http://localhost:${host_port}/grafana (admin/admin)"
+echo "[prometheus] http://localhost:${host_port}/prometheus"

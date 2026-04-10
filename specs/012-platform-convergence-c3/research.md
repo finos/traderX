@@ -2,7 +2,7 @@
 
 ## Objective
 
-Define the transition from state `004` to `006` by adding Tilt-based local development workflows on Kubernetes.
+Define state `012` as a C3 convergence checkpoint on top of state `011` without introducing new runtime behavior.
 
 ## Inputs Reviewed
 
@@ -14,6 +14,6 @@ Define the transition from state `004` to `006` by adding Tilt-based local devel
 
 ## Key Decisions
 
-1. Reuse Kubernetes runtime baseline from state `004`.
-2. Add a developer inner-loop workflow using Tilt.
+1. Reuse the complete runtime and functional baseline from state `011`.
+2. Keep convergence as metadata/documentation, not a runtime fork.
 3. Preserve functional behavior and external API expectations from predecessor state.

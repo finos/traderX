@@ -18,4 +18,4 @@ Document only functional behavior changes introduced by this state.
 
 ## Flow Impact
 
-- No functional flow deltas. Baseline flows `F1`-`F6` and startup behavior remain compatible with state `004`.
+- No functional flow deltas. Baseline flows `F1`-`F6` and startup behavior remain compatible with state `010`.

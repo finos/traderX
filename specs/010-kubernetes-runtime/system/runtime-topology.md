@@ -2,7 +2,7 @@
 
 Parent state: `009-order-management-matcher`
 
-State `009` preserves parent-state functional behavior while moving runtime orchestration to Kubernetes.
+State `010` preserves parent-state functional behavior while moving runtime orchestration to Kubernetes.
 
 ## Entrypoints
 
@@ -18,11 +18,16 @@ State `009` preserves parent-state functional behavior while moving runtime orch
   - `edge-proxy` service (`NodePort`)
   - `edge-proxy-config` ConfigMap generated from `system/nginx-edge.conf`
 - Core services and supporting components are inherited from state `008` and rendered as Kubernetes Deployments/Services.
+- Observability stack inherited from state `009` is rendered as Kubernetes Deployments/Services:
+  - `grafana`, `prometheus`, `loki`, `tempo`, `otel-collector`, `blackbox-exporter`
 
 ## Networking
 
 - Browser traffic enters through `edge-proxy` only.
 - Path prefixes remain stable across inherited API routes and websocket routes.
+- Observability entrypoints remain available through edge routes:
+  - `/grafana`
+  - `/prometheus`
 - Inter-service traffic uses Kubernetes service DNS names.
 
 ## Startup / Health Order

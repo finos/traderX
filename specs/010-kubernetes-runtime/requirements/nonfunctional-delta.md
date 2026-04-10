@@ -1,6 +1,6 @@
 # Non-Functional Delta: 010-kubernetes-runtime
 
-Parent state: `004-containerized-compose-runtime`
+Parent state: `009-order-management-matcher`
 
 This state changes runtime and operations model while keeping baseline functional behavior stable.
 
@@ -10,6 +10,7 @@ This state changes runtime and operations model while keeping baseline functiona
 - Generated state includes:
   - Kind cluster config with fixed host port mapping (`8080 -> nodePort 30080`)
   - Kubernetes manifests (namespace, deployments, services, edge-proxy config)
+  - Kubernetes observability manifests (Prometheus, Grafana, Loki, Tempo, OpenTelemetry collector, blackbox exporter)
   - Build plan for deterministic local image build/load flow.
 - Canonical runtime scripts:
   - `scripts/start-state-010-kubernetes-runtime-generated.sh`
@@ -31,3 +32,6 @@ This state changes runtime and operations model while keeping baseline functiona
 
 - Startup scripts gate readiness by waiting for Kubernetes deployment availability and edge health endpoint.
 - State status script provides deployment/pod/service visibility plus ingress health probes.
+- Inherited observability capabilities from state `009-order-management-matcher` are preserved through ingress-routed endpoints:
+  - Grafana: `http://localhost:8080/grafana`
+  - Prometheus: `http://localhost:8080/prometheus`

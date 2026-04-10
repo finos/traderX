@@ -9,6 +9,13 @@ This plan defines how TraderX evolves through numbered states with explicit conv
 - isolate FR/NFR deltas per state,
 - preserve a clear set of recommended jump-off points (`C0-C3`).
 
+## Explicit State Inheritance Policy
+
+- Every state inherits all functional and non-functional behavior from its `previous` lineage by default.
+- A state may diverge from inherited behavior only when the feature pack declares an explicit conflict, replacement, or deprecation requirement.
+- If no explicit conflict/replacement/deprecation is declared, generation, runtime scripts, smoke tests, and docs must keep inherited capabilities intact.
+- Validation should verify inherited capabilities in downstream states to prevent accidental feature loss during runtime transitions.
+
 ## Transition Mechanics
 
 1. Update target state pack (`spec.md`, `plan.md`, `tasks.md`, `system/**`).

@@ -2,7 +2,7 @@
 
 ## Objective
 
-Define the transition from state `004` to `005` by layering Radius platform capabilities on Kubernetes.
+Define the transition from state `010` to `013` by layering Radius platform capabilities on Kubernetes.
 
 ## Inputs Reviewed
 
@@ -14,6 +14,6 @@ Define the transition from state `004` to `005` by layering Radius platform capa
 
 ## Key Decisions
 
-1. Preserve Kubernetes runtime semantics from state `004`.
+1. Preserve Kubernetes runtime semantics from state `010`.
 2. Introduce Radius as a platform abstraction without changing core business flows.
 3. Keep generated state publishability and compareability with predecessor state.

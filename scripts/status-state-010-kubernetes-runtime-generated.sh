@@ -124,6 +124,8 @@ printf "%-20s %-8s %s\n" "--------------------" "--------" "---"
 for target in \
   "edge-health|http://localhost:${host_port}/health" \
   "edge-ui|http://localhost:${host_port}/" \
+  "grafana|http://localhost:${host_port}/grafana/api/health" \
+  "prometheus|http://localhost:${host_port}/prometheus/-/ready" \
   "account|http://localhost:${host_port}/account-service/account/22214" \
   "reference-data|http://localhost:${host_port}/reference-data/stocks"; do
   name="${target%%|*}"

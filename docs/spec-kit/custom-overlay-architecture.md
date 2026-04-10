@@ -90,6 +90,14 @@ Expected semantics:
 3. Commit full generated snapshot once.
 4. Force-push (`git push --force`) to preserve one-commit invariant.
 
+## State Inheritance Policy (Overlay + Upstream)
+
+Overlay states follow the same inheritance rule as upstream states:
+
+- Inherit all behavior from the base (`previous` / `overlayState.extends`) by default.
+- Diverge only when the overlay state spec explicitly declares a conflict, replacement, or deprecation.
+- Keep inherited capability checks in downstream smoke tests so runtime transitions do not silently drop prior behavior.
+
 ## Transform Script Contract
 
 Transform scripts must follow this contract:

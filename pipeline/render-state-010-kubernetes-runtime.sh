@@ -10,13 +10,43 @@ SPEC_JSON="${ROOT}/specs/010-kubernetes-runtime/system/kubernetes-runtime.spec.j
 NGINX_CONF="${ROOT}/specs/010-kubernetes-runtime/system/nginx-edge.conf"
 SQL_SOURCE="${TARGET_ROOT}/postgres-database-replacement/postgres-init/initialSchema.sql"
 NATS_CONF_SOURCE="${TARGET_ROOT}/pricing-awareness-market-data/nats/nats.conf"
+OBS_SOURCE_DIR="${TARGET_ROOT}/order-management-matcher/observability"
+PROMETHEUS_SOURCE="${OBS_SOURCE_DIR}/prometheus/prometheus.yml"
+BLACKBOX_SOURCE="${OBS_SOURCE_DIR}/blackbox/blackbox.yml"
+LOKI_SOURCE="${OBS_SOURCE_DIR}/loki/config.yaml"
+TEMPO_SOURCE="${OBS_SOURCE_DIR}/tempo/config.yaml"
+OTEL_SOURCE="${OBS_SOURCE_DIR}/otel-collector/config.yaml"
+GRAFANA_DATASOURCES_SOURCE="${OBS_SOURCE_DIR}/grafana/provisioning/datasources/datasources.yaml"
+GRAFANA_DASHBOARD_PROVIDER_SOURCE="${OBS_SOURCE_DIR}/grafana/provisioning/dashboards/dashboards.yaml"
+GRAFANA_DASHBOARDS_DIR="${OBS_SOURCE_DIR}/grafana/dashboards"
 
-for required in "${SPEC_JSON}" "${NGINX_CONF}" "${SQL_SOURCE}" "${NATS_CONF_SOURCE}"; do
+for required in \
+  "${SPEC_JSON}" \
+  "${NGINX_CONF}" \
+  "${SQL_SOURCE}" \
+  "${NATS_CONF_SOURCE}" \
+  "${PROMETHEUS_SOURCE}" \
+  "${BLACKBOX_SOURCE}" \
+  "${LOKI_SOURCE}" \
+  "${TEMPO_SOURCE}" \
+  "${OTEL_SOURCE}" \
+  "${GRAFANA_DATASOURCES_SOURCE}" \
+  "${GRAFANA_DASHBOARD_PROVIDER_SOURCE}" \
+  "${GRAFANA_DASHBOARDS_DIR}"; do
   [[ -f "${required}" ]] || {
+    if [[ -d "${required}" ]]; then
+      continue
+    fi
     echo "[fail] required file missing for state 010 render: ${required}"
     exit 1
   }
 done
+
+dashboard_count="$(find "${GRAFANA_DASHBOARDS_DIR}" -maxdepth 1 -type f -name '*.json' | wc -l | tr -d ' ')"
+if [[ "${dashboard_count}" == "0" ]]; then
+  echo "[fail] no Grafana dashboards found at ${GRAFANA_DASHBOARDS_DIR}"
+  exit 1
+fi
 
 patch_web_frontend_env_for_ingress() {
   local env_dir="${TARGET_ROOT}/web-front-end/angular/main/environments"
@@ -57,6 +87,7 @@ Artifacts:
 - Kind cluster config: `kind/cluster-config.yaml`
 - K8s manifests: `manifests/base`
 - Image build plan: `build-plan.json`
+- Observability assets: Prometheus + Grafana + Loki + Tempo + OpenTelemetry + blackbox exporter
 
 Run:
 
@@ -78,7 +109,14 @@ jq '{
     context: .build.context,
     dockerfile: .build.dockerfile
   }],
-  deployments: ([.components[].name] + [.runtime.edge.serviceName])
+  deployments: (([.components[].name] + [.runtime.edge.serviceName]) + [
+    "blackbox-exporter",
+    "loki",
+    "tempo",
+    "otel-collector",
+    "prometheus",
+    "grafana"
+  ])
 }' "${SPEC_JSON}" > "${STATE_DIR}/build-plan.json"
 
 KIND_CLUSTER_NAME="$(jq -r '.runtime.kind.clusterName' "${SPEC_JSON}")"
@@ -142,6 +180,100 @@ EOF
   echo "  nats.conf: |"
   sed 's/^/    /' "${NATS_CONF_SOURCE}"
 } > "${MANIFEST_DIR}/nats-configmap.yaml"
+
+PROMETHEUS_RENDER_SOURCE="$(mktemp)"
+sed 's#http://ingress:8080#http://edge-proxy:8080#g' "${PROMETHEUS_SOURCE}" > "${PROMETHEUS_RENDER_SOURCE}"
+{
+  echo "apiVersion: v1"
+  echo "kind: ConfigMap"
+  echo "metadata:"
+  echo "  name: observability-prometheus-config"
+  echo "  namespace: ${NAMESPACE}"
+  echo "data:"
+  echo "  prometheus.yml: |"
+  sed 's/^/    /' "${PROMETHEUS_RENDER_SOURCE}"
+} > "${MANIFEST_DIR}/observability-prometheus-configmap.yaml"
+rm -f "${PROMETHEUS_RENDER_SOURCE}"
+
+{
+  echo "apiVersion: v1"
+  echo "kind: ConfigMap"
+  echo "metadata:"
+  echo "  name: observability-blackbox-config"
+  echo "  namespace: ${NAMESPACE}"
+  echo "data:"
+  echo "  blackbox.yml: |"
+  sed 's/^/    /' "${BLACKBOX_SOURCE}"
+} > "${MANIFEST_DIR}/observability-blackbox-configmap.yaml"
+
+{
+  echo "apiVersion: v1"
+  echo "kind: ConfigMap"
+  echo "metadata:"
+  echo "  name: observability-loki-config"
+  echo "  namespace: ${NAMESPACE}"
+  echo "data:"
+  echo "  config.yaml: |"
+  sed 's/^/    /' "${LOKI_SOURCE}"
+} > "${MANIFEST_DIR}/observability-loki-configmap.yaml"
+
+{
+  echo "apiVersion: v1"
+  echo "kind: ConfigMap"
+  echo "metadata:"
+  echo "  name: observability-tempo-config"
+  echo "  namespace: ${NAMESPACE}"
+  echo "data:"
+  echo "  config.yaml: |"
+  sed 's/^/    /' "${TEMPO_SOURCE}"
+} > "${MANIFEST_DIR}/observability-tempo-configmap.yaml"
+
+{
+  echo "apiVersion: v1"
+  echo "kind: ConfigMap"
+  echo "metadata:"
+  echo "  name: observability-otel-collector-config"
+  echo "  namespace: ${NAMESPACE}"
+  echo "data:"
+  echo "  config.yaml: |"
+  sed 's/^/    /' "${OTEL_SOURCE}"
+} > "${MANIFEST_DIR}/observability-otel-configmap.yaml"
+
+{
+  echo "apiVersion: v1"
+  echo "kind: ConfigMap"
+  echo "metadata:"
+  echo "  name: observability-grafana-datasources"
+  echo "  namespace: ${NAMESPACE}"
+  echo "data:"
+  echo "  datasources.yaml: |"
+  sed 's/^/    /' "${GRAFANA_DATASOURCES_SOURCE}"
+} > "${MANIFEST_DIR}/observability-grafana-datasources-configmap.yaml"
+
+{
+  echo "apiVersion: v1"
+  echo "kind: ConfigMap"
+  echo "metadata:"
+  echo "  name: observability-grafana-dashboard-providers"
+  echo "  namespace: ${NAMESPACE}"
+  echo "data:"
+  echo "  dashboards.yaml: |"
+  sed 's/^/    /' "${GRAFANA_DASHBOARD_PROVIDER_SOURCE}"
+} > "${MANIFEST_DIR}/observability-grafana-dashboard-providers-configmap.yaml"
+
+{
+  echo "apiVersion: v1"
+  echo "kind: ConfigMap"
+  echo "metadata:"
+  echo "  name: observability-grafana-dashboards"
+  echo "  namespace: ${NAMESPACE}"
+  echo "data:"
+  while IFS= read -r dashboard_file; do
+    dashboard_name="$(basename "${dashboard_file}")"
+    echo "  ${dashboard_name}: |"
+    sed 's/^/    /' "${dashboard_file}"
+  done < <(find "${GRAFANA_DASHBOARDS_DIR}" -maxdepth 1 -type f -name '*.json' | sort)
+} > "${MANIFEST_DIR}/observability-grafana-dashboards-configmap.yaml"
 
 cat > "${MANIFEST_DIR}/edge-proxy-deployment.yaml" <<EOF
 apiVersion: apps/v1
@@ -324,6 +456,459 @@ while IFS= read -r component; do
   render_component "${component}"
 done < <(jq -r '.components[].name' "${SPEC_JSON}")
 
+cat > "${MANIFEST_DIR}/blackbox-exporter-deployment.yaml" <<EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blackbox-exporter
+  namespace: ${NAMESPACE}
+  labels:
+    app: blackbox-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blackbox-exporter
+  template:
+    metadata:
+      labels:
+        app: blackbox-exporter
+    spec:
+      containers:
+        - name: blackbox-exporter
+          image: prom/blackbox-exporter:v0.25.0
+          imagePullPolicy: IfNotPresent
+          args: ["--config.file=/etc/blackbox_exporter/config.yml"]
+          ports:
+            - name: http
+              containerPort: 9115
+              protocol: TCP
+          volumeMounts:
+            - name: blackbox-config
+              mountPath: /etc/blackbox_exporter/config.yml
+              subPath: blackbox.yml
+      volumes:
+        - name: blackbox-config
+          configMap:
+            name: observability-blackbox-config
+EOF
+
+cat > "${MANIFEST_DIR}/blackbox-exporter-service.yaml" <<EOF
+apiVersion: v1
+kind: Service
+metadata:
+  name: blackbox-exporter
+  namespace: ${NAMESPACE}
+  labels:
+    app: blackbox-exporter
+spec:
+  type: ClusterIP
+  selector:
+    app: blackbox-exporter
+  ports:
+    - name: http
+      protocol: TCP
+      port: 9115
+      targetPort: 9115
+EOF
+
+cat > "${MANIFEST_DIR}/loki-deployment.yaml" <<EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loki
+  namespace: ${NAMESPACE}
+  labels:
+    app: loki
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loki
+  template:
+    metadata:
+      labels:
+        app: loki
+    spec:
+      containers:
+        - name: loki
+          image: grafana/loki:2.9.8
+          imagePullPolicy: IfNotPresent
+          args: ["-config.file=/etc/loki/config.yaml"]
+          ports:
+            - name: http
+              containerPort: 3100
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 3100
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: 3100
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - name: loki-config
+              mountPath: /etc/loki/config.yaml
+              subPath: config.yaml
+      volumes:
+        - name: loki-config
+          configMap:
+            name: observability-loki-config
+EOF
+
+cat > "${MANIFEST_DIR}/loki-service.yaml" <<EOF
+apiVersion: v1
+kind: Service
+metadata:
+  name: loki
+  namespace: ${NAMESPACE}
+  labels:
+    app: loki
+spec:
+  type: ClusterIP
+  selector:
+    app: loki
+  ports:
+    - name: http
+      protocol: TCP
+      port: 3100
+      targetPort: 3100
+EOF
+
+cat > "${MANIFEST_DIR}/tempo-deployment.yaml" <<EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tempo
+  namespace: ${NAMESPACE}
+  labels:
+    app: tempo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tempo
+  template:
+    metadata:
+      labels:
+        app: tempo
+    spec:
+      containers:
+        - name: tempo
+          image: grafana/tempo:2.5.0
+          imagePullPolicy: IfNotPresent
+          args: ["-config.file=/etc/tempo/config.yaml"]
+          ports:
+            - name: http
+              containerPort: 3200
+              protocol: TCP
+            - name: otlp-grpc
+              containerPort: 4317
+              protocol: TCP
+            - name: otlp-http
+              containerPort: 4318
+              protocol: TCP
+          volumeMounts:
+            - name: tempo-config
+              mountPath: /etc/tempo/config.yaml
+              subPath: config.yaml
+      volumes:
+        - name: tempo-config
+          configMap:
+            name: observability-tempo-config
+EOF
+
+cat > "${MANIFEST_DIR}/tempo-service.yaml" <<EOF
+apiVersion: v1
+kind: Service
+metadata:
+  name: tempo
+  namespace: ${NAMESPACE}
+  labels:
+    app: tempo
+spec:
+  type: ClusterIP
+  selector:
+    app: tempo
+  ports:
+    - name: http
+      protocol: TCP
+      port: 3200
+      targetPort: 3200
+    - name: otlp-grpc
+      protocol: TCP
+      port: 4317
+      targetPort: 4317
+    - name: otlp-http
+      protocol: TCP
+      port: 4318
+      targetPort: 4318
+EOF
+
+cat > "${MANIFEST_DIR}/otel-collector-deployment.yaml" <<EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  namespace: ${NAMESPACE}
+  labels:
+    app: otel-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-collector
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+    spec:
+      containers:
+        - name: otel-collector
+          image: otel/opentelemetry-collector-contrib:0.103.1
+          imagePullPolicy: IfNotPresent
+          args: ["--config=/etc/otelcol-contrib/config.yaml"]
+          ports:
+            - name: otlp-grpc
+              containerPort: 4317
+              protocol: TCP
+            - name: otlp-http
+              containerPort: 4318
+              protocol: TCP
+            - name: prometheus
+              containerPort: 8889
+              protocol: TCP
+            - name: metrics
+              containerPort: 8888
+              protocol: TCP
+            - name: health
+              containerPort: 13133
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 13133
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 13133
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - name: otel-config
+              mountPath: /etc/otelcol-contrib/config.yaml
+              subPath: config.yaml
+      volumes:
+        - name: otel-config
+          configMap:
+            name: observability-otel-collector-config
+EOF
+
+cat > "${MANIFEST_DIR}/otel-collector-service.yaml" <<EOF
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector
+  namespace: ${NAMESPACE}
+  labels:
+    app: otel-collector
+spec:
+  type: ClusterIP
+  selector:
+    app: otel-collector
+  ports:
+    - name: otlp-grpc
+      protocol: TCP
+      port: 4317
+      targetPort: 4317
+    - name: otlp-http
+      protocol: TCP
+      port: 4318
+      targetPort: 4318
+    - name: metrics
+      protocol: TCP
+      port: 8888
+      targetPort: 8888
+    - name: prometheus
+      protocol: TCP
+      port: 8889
+      targetPort: 8889
+    - name: health
+      protocol: TCP
+      port: 13133
+      targetPort: 13133
+EOF
+
+cat > "${MANIFEST_DIR}/prometheus-deployment.yaml" <<EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: ${NAMESPACE}
+  labels:
+    app: prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+        - name: prometheus
+          image: prom/prometheus:v2.53.2
+          imagePullPolicy: IfNotPresent
+          args:
+            - --config.file=/etc/prometheus/prometheus.yml
+            - --web.enable-lifecycle
+            - --web.route-prefix=/prometheus
+            - --web.external-url=/prometheus
+          ports:
+            - name: http
+              containerPort: 9090
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /prometheus/-/ready
+              port: 9090
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /prometheus/-/healthy
+              port: 9090
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - name: prometheus-config
+              mountPath: /etc/prometheus/prometheus.yml
+              subPath: prometheus.yml
+      volumes:
+        - name: prometheus-config
+          configMap:
+            name: observability-prometheus-config
+EOF
+
+cat > "${MANIFEST_DIR}/prometheus-service.yaml" <<EOF
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: ${NAMESPACE}
+  labels:
+    app: prometheus
+spec:
+  type: ClusterIP
+  selector:
+    app: prometheus
+  ports:
+    - name: http
+      protocol: TCP
+      port: 9090
+      targetPort: 9090
+EOF
+
+cat > "${MANIFEST_DIR}/grafana-deployment.yaml" <<EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: ${NAMESPACE}
+  labels:
+    app: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+        - name: grafana
+          image: grafana/grafana:11.1.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: GF_SECURITY_ADMIN_USER
+              value: "admin"
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              value: "admin"
+            - name: GF_USERS_ALLOW_SIGN_UP
+              value: "false"
+            - name: GF_AUTH_ANONYMOUS_ENABLED
+              value: "false"
+            - name: GF_SERVER_ROOT_URL
+              value: "%(protocol)s://%(domain)s/grafana/"
+            - name: GF_SERVER_SERVE_FROM_SUB_PATH
+              value: "true"
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - name: grafana-datasources
+              mountPath: /etc/grafana/provisioning/datasources/datasources.yaml
+              subPath: datasources.yaml
+            - name: grafana-dashboard-providers
+              mountPath: /etc/grafana/provisioning/dashboards/dashboards.yaml
+              subPath: dashboards.yaml
+            - name: grafana-dashboards
+              mountPath: /var/lib/grafana/dashboards
+      volumes:
+        - name: grafana-datasources
+          configMap:
+            name: observability-grafana-datasources
+        - name: grafana-dashboard-providers
+          configMap:
+            name: observability-grafana-dashboard-providers
+        - name: grafana-dashboards
+          configMap:
+            name: observability-grafana-dashboards
+EOF
+
+cat > "${MANIFEST_DIR}/grafana-service.yaml" <<EOF
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: ${NAMESPACE}
+  labels:
+    app: grafana
+spec:
+  type: ClusterIP
+  selector:
+    app: grafana
+  ports:
+    - name: http
+      protocol: TCP
+      port: 3000
+      targetPort: 3000
+EOF
+
 {
   echo "apiVersion: kustomize.config.k8s.io/v1beta1"
   echo "kind: Kustomization"
@@ -333,8 +918,28 @@ done < <(jq -r '.components[].name' "${SPEC_JSON}")
   echo "  - edge-proxy-configmap.yaml"
   echo "  - database-init-configmap.yaml"
   echo "  - nats-configmap.yaml"
+  echo "  - observability-blackbox-configmap.yaml"
+  echo "  - observability-loki-configmap.yaml"
+  echo "  - observability-tempo-configmap.yaml"
+  echo "  - observability-otel-configmap.yaml"
+  echo "  - observability-prometheus-configmap.yaml"
+  echo "  - observability-grafana-datasources-configmap.yaml"
+  echo "  - observability-grafana-dashboard-providers-configmap.yaml"
+  echo "  - observability-grafana-dashboards-configmap.yaml"
   echo "  - edge-proxy-deployment.yaml"
   echo "  - edge-proxy-service.yaml"
+  echo "  - blackbox-exporter-deployment.yaml"
+  echo "  - blackbox-exporter-service.yaml"
+  echo "  - loki-deployment.yaml"
+  echo "  - loki-service.yaml"
+  echo "  - tempo-deployment.yaml"
+  echo "  - tempo-service.yaml"
+  echo "  - otel-collector-deployment.yaml"
+  echo "  - otel-collector-service.yaml"
+  echo "  - prometheus-deployment.yaml"
+  echo "  - prometheus-service.yaml"
+  echo "  - grafana-deployment.yaml"
+  echo "  - grafana-service.yaml"
   while IFS= read -r component; do
     echo "  - ${component}-deployment.yaml"
     echo "  - ${component}-service.yaml"

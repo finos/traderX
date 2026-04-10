@@ -1714,6 +1714,8 @@ Start:
 Endpoints:
 - UI / edge: `http://localhost:8080`
 - Edge health: `http://localhost:8080/health`
+- Grafana: `http://localhost:8080/grafana` (`admin/admin`)
+- Prometheus: `http://localhost:8080/prometheus`
 
 Status / stop:
 
@@ -1738,6 +1740,11 @@ Start baseline runtime (inherited from state 010):
 ```bash
 ./scripts/start-state-010-kubernetes-runtime-generated.sh
 ```
+
+Inherited runtime endpoints:
+- UI / edge: `http://localhost:8080`
+- Grafana: `http://localhost:8080/grafana` (`admin/admin`)
+- Prometheus: `http://localhost:8080/prometheus`
 
 State 013 artifact pack:
 - `radius-kubernetes-platform/radius/app.bicep`
@@ -1768,6 +1775,11 @@ Start baseline runtime (inherited from state 010):
 ```bash
 ./scripts/start-state-010-kubernetes-runtime-generated.sh
 ```
+
+Inherited runtime endpoints:
+- UI / edge: `http://localhost:8080`
+- Grafana: `http://localhost:8080/grafana` (`admin/admin`)
+- Prometheus: `http://localhost:8080/prometheus`
 
 State 011 artifact pack:
 - `tilt-kubernetes-dev-loop/tilt/Tiltfile`

@@ -2,13 +2,13 @@
 
 Parent state: `010-kubernetes-runtime`
 
-This state adds local development loop automation on top of Kubernetes baseline state `004`.
+This state adds local development loop automation on top of Kubernetes baseline state `010`.
 
 ## Runtime / Operations
 
 - Runtime substrate remains Kubernetes.
 - Developer workflow is driven by Tilt (live update/build/deploy loop).
-- Runtime entrypoint behavior remains functionally equivalent to state `004`.
+- Runtime entrypoint behavior remains functionally equivalent to state `010`.
 
 ## Security / Compliance
 
@@ -23,4 +23,7 @@ This state adds local development loop automation on top of Kubernetes baseline 
 ## Reliability / Observability
 
 - Tilt provides consolidated service logs/status and rapid failure feedback.
-- Baseline readiness/health semantics inherited from state `004` remain unchanged.
+- Baseline readiness/health semantics inherited from state `010` remain unchanged.
+- Inherited observability entrypoints from state `010` remain required:
+  - `http://localhost:8080/grafana`
+  - `http://localhost:8080/prometheus`

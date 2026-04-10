@@ -2,7 +2,7 @@
 
 ## Objective
 
-Define the transition from state `004` to `006` by adding Tilt-based local development workflows on Kubernetes.
+Define the transition from state `010` to `011` by adding Tilt-based local development workflows on Kubernetes.
 
 ## Inputs Reviewed
 
@@ -14,6 +14,6 @@ Define the transition from state `004` to `006` by adding Tilt-based local devel
 
 ## Key Decisions
 
-1. Reuse Kubernetes runtime baseline from state `004`.
+1. Reuse Kubernetes runtime baseline from state `010`.
 2. Add a developer inner-loop workflow using Tilt.
 3. Preserve functional behavior and external API expectations from predecessor state.

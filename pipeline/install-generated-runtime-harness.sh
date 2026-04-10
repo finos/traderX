@@ -551,6 +551,8 @@ EOF
 - Trade page: `http://localhost:8080/trade`
 - Account service route: `http://localhost:8080/account-service/account/22214`
 - Position service route: `http://localhost:8080/position-service/positions/22214`
+- Grafana (ingress): `http://localhost:8080/grafana` (`admin/admin`)
+- Prometheus (ingress): `http://localhost:8080/prometheus`
 EOF
       ;;
     *)

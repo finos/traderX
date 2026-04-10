@@ -2,7 +2,7 @@
 
 ## Scope
 
-State `006` introduces developer workflow tooling and does not change the business data model from state `004`.
+State `012` is a convergence checkpoint and does not change the business data model from state `011`.
 
 ## Entity Impact
 
@@ -12,4 +12,4 @@ State `006` introduces developer workflow tooling and does not change the busine
 
 ## Notes
 
-Tilt resources affect developer runtime ergonomics only; domain entities, persistence schema, and contract payloads remain compatible.
+Convergence metadata affects lineage and documentation only; domain entities, persistence schema, and contract payloads remain compatible.

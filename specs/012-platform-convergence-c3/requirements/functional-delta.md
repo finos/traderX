@@ -1,6 +1,6 @@
 # Functional Delta: 012-platform-convergence-c3
 
-Parent state: `010-kubernetes-runtime`
+Parent state: `011-tilt-kubernetes-dev-loop`
 
 Document only functional behavior changes introduced by this state.
 
@@ -18,4 +18,4 @@ Document only functional behavior changes introduced by this state.
 
 ## Flow Impact
 
-- No functional flow deltas. Baseline flows `F1`-`F6` and startup behavior remain compatible with state `004`.
+- No functional flow deltas. Baseline flows `F1`-`F6` and startup behavior remain compatible with state `011`.

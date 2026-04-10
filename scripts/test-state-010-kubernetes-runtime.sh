@@ -83,6 +83,28 @@ printf '%s\n' "${account_headers}" | grep -Eq "HTTP/1\\.[01] 200" || {
   exit 1
 }
 
+echo "[check] observability ingress routes"
+grafana_headers="$(curl -sS -i "${INGRESS_URL}/grafana/api/health" | sed -n '1,25p')"
+echo "${grafana_headers}"
+printf '%s\n' "${grafana_headers}" | grep -Eq "HTTP/1\\.[01] 200" || {
+  echo "[error] expected HTTP 200 from ${INGRESS_URL}/grafana/api/health"
+  exit 1
+}
+
+prometheus_headers="$(curl -sS -i "${INGRESS_URL}/prometheus/-/ready" | sed -n '1,25p')"
+echo "${prometheus_headers}"
+printf '%s\n' "${prometheus_headers}" | grep -Eq "HTTP/1\\.[01] 200" || {
+  echo "[error] expected HTTP 200 from ${INGRESS_URL}/prometheus/-/ready"
+  exit 1
+}
+
+echo "[check] prometheus query API responds"
+prometheus_query_payload="$(curl -sS "${INGRESS_URL}/prometheus/api/v1/query?query=up" | tr -d '\n')"
+printf '%s\n' "${prometheus_query_payload}" | grep -q '"status":"success"' || {
+  echo "[error] expected Prometheus API query to return status=success"
+  exit 1
+}
+
 echo "[check] state 010 ingress-routed service smoke suite"
 "${REPO_ROOT}/scripts/test-reference-data-overlay.sh" "${INGRESS_URL}" "${INGRESS_URL}/reference-data"
 "${REPO_ROOT}/scripts/test-account-service-overlay.sh" "${INGRESS_URL}" "${INGRESS_URL}/account-service"
