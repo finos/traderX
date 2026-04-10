@@ -244,7 +244,7 @@ const fixedSummaryByState = {
     '**Runtime behavior:** Keeps services uncontainerized while reducing client-side cross-origin complexity.',
     '**Learning takeaway:** Introduces ingress-style edge concerns before containerization.'
   ],
-  '003-containerized-compose-runtime': [
+  '004-containerized-compose-runtime': [
     '**Code focus:** Adds Dockerfiles and Compose assembly for all baseline services.',
     '**Runtime behavior:** Keeps behavior from state 002 but moves orchestration to containers.',
     '**Learning takeaway:** Establishes the containerized baseline that other architecture branches build from.'

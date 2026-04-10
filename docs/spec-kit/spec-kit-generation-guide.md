@@ -30,9 +30,9 @@ Typical examples:
 
 ```bash
 bash pipeline/generate-state.sh 001-baseline-uncontainerized-parity
-bash pipeline/generate-state.sh 003-containerized-compose-runtime
-bash pipeline/generate-state.sh 006-observability-lgtm-compose
-bash pipeline/generate-state.sh 011-platform-convergence-c3
+bash pipeline/generate-state.sh 004-containerized-compose-runtime
+bash pipeline/generate-state.sh 007-observability-lgtm-compose
+bash pipeline/generate-state.sh 012-platform-convergence-c3
 ```
 
 ## Override Generated Output Root
@@ -74,13 +74,13 @@ Run examples:
 CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh
 
 # 003 (compose)
-./scripts/start-state-003-containerized-generated.sh
+./scripts/start-state-004-containerized-generated.sh
 
 # 006 (compose + observability)
-./scripts/start-state-006-observability-lgtm-compose-generated.sh
+./scripts/start-state-007-observability-lgtm-compose-generated.sh
 
 # 009 (kubernetes)
-./scripts/start-state-009-kubernetes-runtime-generated.sh --provider kind
+./scripts/start-state-010-kubernetes-runtime-generated.sh --provider kind
 ```
 
 ## Derived-State Implementation Pattern

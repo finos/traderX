@@ -2,9 +2,9 @@
 
 Status: Implemented
 Track: `nonfunctional`
-Previous state: `007-pricing-awareness-market-data`
+Previous state: `008-pricing-awareness-market-data`
 
-This pack defines the next state after `007-pricing-awareness-market-data`.
+This pack defines the next state after `008-pricing-awareness-market-data`.
 
 Primary intent:
 

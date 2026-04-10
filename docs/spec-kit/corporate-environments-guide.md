@@ -19,7 +19,7 @@ Detailed implementation contracts:
 
 ## Current Repository Baseline
 
-As of this branch (`feature/agentic-renovation`), TraderX is already set up with:
+Current TraderX baseline is already set up with:
 
 - canonical authoring in `specs/**` and `.specify/**`
 - generated code publish model in `code/generated-state-*` branches
@@ -60,7 +60,6 @@ traderx-corporate-overlay/
 Bootstrap starter included in this repository:
 
 - canonical starter: `examples/custom-overlay-template/`
-- optional scenario pack: `examples/corporate-overlay-template/`
 
 ## State and Branch Policy
 
@@ -76,15 +75,15 @@ Example policy file in corporate overlay repo (`corporate/profiles/corporate-int
 profile: corporate-internal
 upstreamPin: feature/agentic-renovation
 mirroredUpstreamStates:
-  - 003-containerized-compose-runtime
-  - 006-observability-lgtm-compose
-  - 008-order-management-matcher
+  - 004-containerized-compose-runtime
+  - 007-observability-lgtm-compose
+  - 009-order-management-matcher
 suppressedUpstreamStates:
-  - id: 009-kubernetes-runtime
+  - id: 010-kubernetes-runtime
     reason: "Cluster runtime not approved in this environment"
 internalStates:
   - id: corp-001-managed-postgres-runtime
-    basedOn: 003-containerized-compose-runtime
+    basedOn: 004-containerized-compose-runtime
     publishBranch: code/generated-state-corp-001-managed-postgres-runtime
   - id: corp-002-internal-docs-branding
     basedOn: corp-001-managed-postgres-runtime
@@ -102,9 +101,9 @@ Corporate overlays should run an internal docs portal that:
 
 The bootstrap template includes:
 
-- `examples/corporate-overlay-template/corporate/catalog/sanctioned-learning-graph.yaml`
-- `examples/corporate-overlay-template/corporate/docs/internal-learning-graph.md`
-- `examples/corporate-overlay-template/corporate/docs/internal-docs-portal.md`
+- `examples/custom-overlay-template/overlay/catalog/sanctioned-learning-graph.example.yaml`
+- `examples/custom-overlay-template/overlay/docs/internal-learning-graph.example.md`
+- `examples/custom-overlay-template/overlay/docs/internal-docs-portal.example.md`
 
 For docs-platform upgrade safety (Docusaurus/plugins/Webpack), follow:
 
@@ -124,7 +123,7 @@ Bootstrap commands:
 mkdir traderx-corporate-overlay
 cd traderx-corporate-overlay
 git init
-git submodule add -b feature/agentic-renovation https://github.com/finos/traderX.git upstream/traderX
+git submodule add -b main https://github.com/finos/traderX.git upstream/traderX
 git submodule update --init --recursive
 ```
 
@@ -132,7 +131,7 @@ Refresh upstream pin:
 
 ```bash
 git -C upstream/traderX fetch origin
-git -C upstream/traderX checkout feature/agentic-renovation
+git -C upstream/traderX checkout main
 git -C upstream/traderX pull --ff-only
 git add upstream/traderX
 git commit -m "chore: bump TraderX upstream pin"
@@ -142,7 +141,7 @@ Generate from upstream submodule directly into corporate overlay output root:
 
 ```bash
 TRADERX_GENERATED_ROOT=/path/to/traderx-corporate-overlay/generated \
-  bash upstream/traderX/pipeline/generate-state.sh 003-containerized-compose-runtime
+  bash upstream/traderX/pipeline/generate-state.sh 004-containerized-compose-runtime
 ```
 
 Generated state output includes a local runtime harness at:

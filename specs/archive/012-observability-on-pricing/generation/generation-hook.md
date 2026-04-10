@@ -1,14 +1,14 @@
-# Generation Hook: 007-pricing-awareness-market-data
+# Generation Hook: 008-pricing-awareness-market-data
 
-- Hook script: `pipeline/generate-state-007-pricing-awareness-market-data.sh`
-- Feature pack: `specs/007-pricing-awareness-market-data`
+- Hook script: `pipeline/generate-state-008-pricing-awareness-market-data.sh`
+- Feature pack: `specs/008-pricing-awareness-market-data`
 
 This state follows the patch-set overlay model.
 
 ## Patch-Set Inputs
 
-- Parent state id: `007-pricing-awareness-market-data`
-- Patch directory: `specs/007-pricing-awareness-market-data/generation/patches/`
+- Parent state id: `008-pricing-awareness-market-data`
+- Patch directory: `specs/008-pricing-awareness-market-data/generation/patches/`
 - Canonical patch file: `0001-state-overlay.patch`
 
 ## Hook Responsibilities
@@ -22,15 +22,15 @@ This state follows the patch-set overlay model.
 
 Runtime scripts:
 
-- `scripts/start-state-007-pricing-awareness-market-data-generated.sh`
-- `scripts/status-state-007-pricing-awareness-market-data-generated.sh`
-- `scripts/stop-state-007-pricing-awareness-market-data-generated.sh`
-- `scripts/test-state-007-pricing-awareness-market-data.sh`
+- `scripts/start-state-008-pricing-awareness-market-data-generated.sh`
+- `scripts/status-state-008-pricing-awareness-market-data-generated.sh`
+- `scripts/stop-state-008-pricing-awareness-market-data-generated.sh`
+- `scripts/test-state-008-pricing-awareness-market-data.sh`
 
 ## Capture / Refresh Patch
 
 Use patch capture workflow after implementing deltas in this state:
 
 ```bash
-bash pipeline/create-state-patchset.sh 007-pricing-awareness-market-data 007-pricing-awareness-market-data
+bash pipeline/create-state-patchset.sh 008-pricing-awareness-market-data 008-pricing-awareness-market-data
 ```

@@ -1,0 +1,28 @@
+{
+  "title": "Agentic Harness Foundation",
+  "stateId": "003-agentic-harness-foundation",
+  "parentState": "002-edge-proxy-uncontainerized",
+  "description": "Update this model with the authoritative architecture for this state.",
+  "mermaidDirection": "LR",
+  "nodes": [
+    {
+      "id": "developer",
+      "label": "Developer",
+      "kind": "actor",
+      "description": "Local developer using this state."
+    },
+    {
+      "id": "runtime",
+      "label": "003-agentic-harness-foundation Runtime",
+      "kind": "boundary",
+      "description": "Target runtime for this state."
+    }
+  ],
+  "edges": [
+    {
+      "from": "developer",
+      "to": "runtime",
+      "label": "Runs state"
+    }
+  ]
+}

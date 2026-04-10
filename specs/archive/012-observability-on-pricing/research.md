@@ -11,7 +11,7 @@ Carry the LGTM observability stack onto the pricing-aware runtime and expose pri
 - `tasks.md`
 - `system/architecture.md`
 - `system/runtime-topology.md`
-- `scripts/test-state-007-pricing-awareness-market-data.sh`
+- `scripts/test-state-008-pricing-awareness-market-data.sh`
 
 ## Key Decisions
 

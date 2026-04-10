@@ -1,6 +1,6 @@
-# Contract Delta: 007-pricing-awareness-market-data
+# Contract Delta: 008-pricing-awareness-market-data
 
-Parent state: `007-pricing-awareness-market-data`
+Parent state: `008-pricing-awareness-market-data`
 
 Document any API/event/schema changes for this state.
 

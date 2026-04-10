@@ -7,4 +7,4 @@ Project ADRs (Architecture Decision Records) are documented at [/docs/adr](/docs
 - Baseline architecture: [State 001 Architecture](/specs/baseline-uncontainerized-parity/system/architecture)
 - Baseline flows: [State 001 End-to-End Flows](/specs/baseline-uncontainerized-parity/system/end-to-end-flows)
 - Edge-proxy architecture: [State 002 Architecture](/specs/edge-proxy-uncontainerized/system/architecture)
-- Containerized architecture: [State 003 Architecture](/specs/containerized-compose-runtime/system/architecture)
+- Containerized architecture: [State 004 Architecture](/specs/containerized-compose-runtime/system/architecture)

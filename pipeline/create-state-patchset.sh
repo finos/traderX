@@ -15,7 +15,7 @@ fi
 
 if [[ -z "${STATE_ID}" ]]; then
   echo "usage: bash pipeline/create-state-patchset.sh <state-id> [parent-state-id] [target-path]"
-  echo "example: bash pipeline/create-state-patchset.sh 005-messaging-nats-replacement"
+  echo "example: bash pipeline/create-state-patchset.sh 006-messaging-nats-replacement"
   echo "example: bash pipeline/create-state-patchset.sh 002-edge-proxy-uncontainerized 001-baseline-uncontainerized-parity generated/code/components"
   echo "env: TRADERX_GENERATED_ROOT=/abs/path/to/generated"
   exit 1

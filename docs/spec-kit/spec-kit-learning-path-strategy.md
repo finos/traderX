@@ -13,10 +13,10 @@ TraderX uses a convergence-first state model on top of GitHub Spec Kit artifacts
 
 Convergence checkpoints:
 
-- `C0`: `003-containerized-compose-runtime`
-- `C1`: `006-observability-lgtm-compose`
-- `C2`: `008-order-management-matcher`
-- `C3`: `011-platform-convergence-c3`
+- `C0`: `004-containerized-compose-runtime`
+- `C1`: `007-observability-lgtm-compose`
+- `C2`: `009-order-management-matcher`
+- `C3`: `012-platform-convergence-c3`
 
 ## Lineage Rules
 

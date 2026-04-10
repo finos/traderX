@@ -1,8 +1,8 @@
-# State 010 Pricing Awareness and Market Data Runtime
+# State 011 Pricing Awareness and Market Data Runtime
 
 Generated compose runtime for:
 
-- `specs/007-pricing-awareness-market-data`
+- `specs/008-pricing-awareness-market-data`
 
 Run:
 

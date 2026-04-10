@@ -10,9 +10,9 @@ usage() {
 usage: bash pipeline/scaffold-state-pack.sh <state-id> --title "<state title>" --previous <state-id> [--track <track>]
 
 Example:
-  bash pipeline/scaffold-state-pack.sh 009-kubernetes-runtime \
+  bash pipeline/scaffold-state-pack.sh 010-kubernetes-runtime \
     --title "Kubernetes Runtime Baseline" \
-    --previous 003-containerized-compose-runtime \
+    --previous 004-containerized-compose-runtime \
     --track functional
 
 Supported tracks:

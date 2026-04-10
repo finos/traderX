@@ -14,38 +14,39 @@ tracks:
     states:
       - 001-baseline-uncontainerized-parity
       - 002-edge-proxy-uncontainerized
+      - 003-agentic-harness-foundation
   devex:
     description: "Platform/runtime developer-experience progression."
     states:
-      - 009-kubernetes-runtime
-      - 010-tilt-kubernetes-dev-loop
-      - 011-platform-convergence-c3
-      - 012-radius-kubernetes-platform
+      - 010-kubernetes-runtime
+      - 011-tilt-kubernetes-dev-loop
+      - 012-platform-convergence-c3
+      - 013-radius-kubernetes-platform
   architecture:
     description: "Architecture substitutions and platform-component changes."
     states:
-      - 004-postgres-database-replacement
-      - 005-messaging-nats-replacement
+      - 005-postgres-database-replacement
+      - 006-messaging-nats-replacement
   functional:
     description: "Functional capability expansion states."
     states:
-      - 007-pricing-awareness-market-data
-      - 008-order-management-matcher
+      - 008-pricing-awareness-market-data
+      - 009-order-management-matcher
   nonfunctional:
     description: "Non-functional overlays (observability, resilience, operations)."
     states:
-      - 006-observability-lgtm-compose
+      - 007-observability-lgtm-compose
   optional:
     description: "Optional side branches not in primary publish lineage."
     states:
-      - 012-radius-kubernetes-platform
+      - 013-radius-kubernetes-platform
   convergence:
     description: "Named convergence milestones (C0/C1/C2/C3)."
     states:
-      - 003-containerized-compose-runtime
-      - 006-observability-lgtm-compose
-      - 008-order-management-matcher
-      - 011-platform-convergence-c3
+      - 004-containerized-compose-runtime
+      - 007-observability-lgtm-compose
+      - 009-order-management-matcher
+      - 012-platform-convergence-c3
 
 stateCatalog:
   - id: 001-baseline-uncontainerized-parity
@@ -61,73 +62,80 @@ stateCatalog:
     isConvergence: false
     lineageRole: prelude
     spec: specs/002-edge-proxy-uncontainerized/spec.md
-  - id: 003-containerized-compose-runtime
+  - id: 003-agentic-harness-foundation
     previous:
       - 002-edge-proxy-uncontainerized
+    convergenceLevel: none
+    isConvergence: false
+    lineageRole: prelude
+    spec: specs/003-agentic-harness-foundation/spec.md
+  - id: 004-containerized-compose-runtime
+    previous:
+      - 003-agentic-harness-foundation
     convergenceLevel: C0
     isConvergence: true
     lineageRole: canonical
-    spec: specs/003-containerized-compose-runtime/spec.md
-  - id: 004-postgres-database-replacement
+    spec: specs/004-containerized-compose-runtime/spec.md
+  - id: 005-postgres-database-replacement
     previous:
-      - 003-containerized-compose-runtime
+      - 004-containerized-compose-runtime
     convergenceLevel: none
     isConvergence: false
     lineageRole: canonical
-    spec: specs/004-postgres-database-replacement/spec.md
-  - id: 005-messaging-nats-replacement
+    spec: specs/005-postgres-database-replacement/spec.md
+  - id: 006-messaging-nats-replacement
     previous:
-      - 004-postgres-database-replacement
+      - 005-postgres-database-replacement
     convergenceLevel: none
     isConvergence: false
     lineageRole: canonical
-    spec: specs/005-messaging-nats-replacement/spec.md
-  - id: 006-observability-lgtm-compose
+    spec: specs/006-messaging-nats-replacement/spec.md
+  - id: 007-observability-lgtm-compose
     previous:
-      - 005-messaging-nats-replacement
+      - 006-messaging-nats-replacement
     convergenceLevel: C1
     isConvergence: true
     lineageRole: canonical
-    spec: specs/006-observability-lgtm-compose/spec.md
-  - id: 007-pricing-awareness-market-data
+    spec: specs/007-observability-lgtm-compose/spec.md
+  - id: 008-pricing-awareness-market-data
     previous:
-      - 006-observability-lgtm-compose
+      - 007-observability-lgtm-compose
     convergenceLevel: none
     isConvergence: false
     lineageRole: canonical
-    spec: specs/007-pricing-awareness-market-data/spec.md
-  - id: 008-order-management-matcher
+    spec: specs/008-pricing-awareness-market-data/spec.md
+  - id: 009-order-management-matcher
     previous:
-      - 007-pricing-awareness-market-data
+      - 008-pricing-awareness-market-data
     convergenceLevel: C2
     isConvergence: true
     lineageRole: canonical
-    spec: specs/008-order-management-matcher/spec.md
-  - id: 009-kubernetes-runtime
+    spec: specs/009-order-management-matcher/spec.md
+  - id: 010-kubernetes-runtime
     previous:
-      - 008-order-management-matcher
+      - 009-order-management-matcher
     convergenceLevel: none
     isConvergence: false
     lineageRole: canonical
-    spec: specs/009-kubernetes-runtime/spec.md
-  - id: 010-tilt-kubernetes-dev-loop
+    spec: specs/010-kubernetes-runtime/spec.md
+  - id: 011-tilt-kubernetes-dev-loop
     previous:
-      - 009-kubernetes-runtime
+      - 010-kubernetes-runtime
     convergenceLevel: none
     isConvergence: false
     lineageRole: canonical
-    spec: specs/010-tilt-kubernetes-dev-loop/spec.md
-  - id: 011-platform-convergence-c3
+    spec: specs/011-tilt-kubernetes-dev-loop/spec.md
+  - id: 012-platform-convergence-c3
     previous:
-      - 010-tilt-kubernetes-dev-loop
+      - 011-tilt-kubernetes-dev-loop
     convergenceLevel: C3
     isConvergence: true
     lineageRole: canonical
-    spec: specs/011-platform-convergence-c3/spec.md
-  - id: 012-radius-kubernetes-platform
+    spec: specs/012-platform-convergence-c3/spec.md
+  - id: 013-radius-kubernetes-platform
     previous:
-      - 009-kubernetes-runtime
+      - 010-kubernetes-runtime
     convergenceLevel: none
     isConvergence: false
     lineageRole: optional
-    spec: specs/012-radius-kubernetes-platform/spec.md
+    spec: specs/013-radius-kubernetes-platform/spec.md

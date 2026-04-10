@@ -31,12 +31,11 @@ Use this page as the single entrypoint for building and operating a private over
 ## Templates
 
 - Canonical starter template: `examples/custom-overlay-template/`
-- Optional scenario pack (policy/demo overlays): `examples/corporate-overlay-template/`
 
 Recommended usage:
 
 1. Start from `examples/custom-overlay-template/`.
-2. Add selected scenario artifacts from `examples/corporate-overlay-template/` only if they match your environment policy.
+2. Tailor the included profile, transform, and internal-docs examples for your environment policy.
 
 ## Compatibility Note
 

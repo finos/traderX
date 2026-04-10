@@ -1,6 +1,6 @@
-# Non-Functional Delta: 007-pricing-awareness-market-data
+# Non-Functional Delta: 008-pricing-awareness-market-data
 
-Parent state: `007-pricing-awareness-market-data`
+Parent state: `008-pricing-awareness-market-data`
 
 Document NFR changes introduced by this state.
 

@@ -69,8 +69,8 @@ EOF
   002-edge-proxy-uncontainerized)
     bash "${ROOT}/pipeline/generate-state-002-edge-proxy-uncontainerized.sh"
     ;;
-  003-containerized-compose-runtime)
-    bash "${ROOT}/pipeline/generate-state-003-containerized-compose-runtime.sh"
+  004-containerized-compose-runtime)
+    bash "${ROOT}/pipeline/generate-state-004-containerized-compose-runtime.sh"
     ;;
   *)
     HOOK="${ROOT}/pipeline/generate-state-${STATE_ID}.sh"

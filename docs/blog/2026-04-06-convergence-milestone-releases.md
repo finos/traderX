@@ -17,10 +17,10 @@ Convergence states are not just another node in the graph. They are curated chec
 
 ## Current Convergence Levels
 
-- `C0`: `003-containerized-compose-runtime`
-- `C1`: `006-observability-lgtm-compose`
-- `C2`: `008-order-management-matcher`
-- `C3`: `011-platform-convergence-c3`
+- `C0`: `004-containerized-compose-runtime`
+- `C1`: `007-observability-lgtm-compose`
+- `C2`: `009-order-management-matcher`
+- `C3`: `012-platform-convergence-c3`
 
 ## Dotted-Line Inheritance
 

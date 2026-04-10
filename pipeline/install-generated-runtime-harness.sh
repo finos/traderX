@@ -67,74 +67,83 @@ case "${STATE_ID}" in
     copy_script_if_exists "status-state-002-edge-proxy-generated.sh"
     copy_script_if_exists "test-state-002-edge-proxy.sh"
     ;;
-  003-containerized-compose-runtime)
-    copy_script_if_exists "start-state-003-containerized-generated.sh"
-    copy_script_if_exists "stop-state-003-containerized-generated.sh"
-    copy_script_if_exists "status-state-003-containerized-generated.sh"
-    copy_script_if_exists "test-state-003-containerized.sh"
+  003-agentic-harness-foundation)
+    copy_script_if_exists "start-base-uncontainerized-generated.sh"
+    copy_script_if_exists "stop-base-uncontainerized-generated.sh"
+    copy_script_if_exists "status-base-uncontainerized-generated.sh"
+    copy_script_if_exists "start-state-003-agentic-harness-foundation-generated.sh"
+    copy_script_if_exists "stop-state-003-agentic-harness-foundation-generated.sh"
+    copy_script_if_exists "status-state-003-agentic-harness-foundation-generated.sh"
+    copy_script_if_exists "test-state-003-agentic-harness-foundation.sh"
     ;;
-  004-postgres-database-replacement)
-    copy_script_if_exists "start-state-004-postgres-database-replacement-generated.sh"
-    copy_script_if_exists "stop-state-004-postgres-database-replacement-generated.sh"
-    copy_script_if_exists "status-state-004-postgres-database-replacement-generated.sh"
-    copy_script_if_exists "test-state-004-postgres-database-replacement.sh"
+  004-containerized-compose-runtime)
+    copy_script_if_exists "start-state-004-containerized-generated.sh"
+    copy_script_if_exists "stop-state-004-containerized-generated.sh"
+    copy_script_if_exists "status-state-004-containerized-generated.sh"
+    copy_script_if_exists "test-state-004-containerized.sh"
     ;;
-  005-messaging-nats-replacement)
-    copy_script_if_exists "start-state-005-messaging-nats-replacement-generated.sh"
-    copy_script_if_exists "stop-state-005-messaging-nats-replacement-generated.sh"
-    copy_script_if_exists "status-state-005-messaging-nats-replacement-generated.sh"
-    copy_script_if_exists "test-state-005-messaging-nats-replacement.sh"
+  005-postgres-database-replacement)
+    copy_script_if_exists "start-state-005-postgres-database-replacement-generated.sh"
+    copy_script_if_exists "stop-state-005-postgres-database-replacement-generated.sh"
+    copy_script_if_exists "status-state-005-postgres-database-replacement-generated.sh"
+    copy_script_if_exists "test-state-005-postgres-database-replacement.sh"
     ;;
-  006-observability-lgtm-compose)
-    copy_script_if_exists "start-state-006-observability-lgtm-compose-generated.sh"
-    copy_script_if_exists "stop-state-006-observability-lgtm-compose-generated.sh"
-    copy_script_if_exists "status-state-006-observability-lgtm-compose-generated.sh"
-    copy_script_if_exists "test-state-006-observability-lgtm-compose.sh"
+  006-messaging-nats-replacement)
+    copy_script_if_exists "start-state-006-messaging-nats-replacement-generated.sh"
+    copy_script_if_exists "stop-state-006-messaging-nats-replacement-generated.sh"
+    copy_script_if_exists "status-state-006-messaging-nats-replacement-generated.sh"
+    copy_script_if_exists "test-state-006-messaging-nats-replacement.sh"
     ;;
-  007-pricing-awareness-market-data)
-    copy_script_if_exists "start-state-007-pricing-awareness-market-data-generated.sh"
-    copy_script_if_exists "stop-state-007-pricing-awareness-market-data-generated.sh"
-    copy_script_if_exists "status-state-007-pricing-awareness-market-data-generated.sh"
-    copy_script_if_exists "test-state-007-pricing-awareness-market-data.sh"
+  007-observability-lgtm-compose)
+    copy_script_if_exists "start-state-007-observability-lgtm-compose-generated.sh"
+    copy_script_if_exists "stop-state-007-observability-lgtm-compose-generated.sh"
+    copy_script_if_exists "status-state-007-observability-lgtm-compose-generated.sh"
+    copy_script_if_exists "test-state-007-observability-lgtm-compose.sh"
     ;;
-  008-order-management-matcher)
-    copy_script_if_exists "start-state-008-order-management-matcher-generated.sh"
-    copy_script_if_exists "stop-state-008-order-management-matcher-generated.sh"
-    copy_script_if_exists "status-state-008-order-management-matcher-generated.sh"
-    copy_script_if_exists "test-state-008-order-management-matcher.sh"
+  008-pricing-awareness-market-data)
+    copy_script_if_exists "start-state-008-pricing-awareness-market-data-generated.sh"
+    copy_script_if_exists "stop-state-008-pricing-awareness-market-data-generated.sh"
+    copy_script_if_exists "status-state-008-pricing-awareness-market-data-generated.sh"
+    copy_script_if_exists "test-state-008-pricing-awareness-market-data.sh"
     ;;
-  009-kubernetes-runtime)
-    copy_script_if_exists "start-state-009-kubernetes-runtime-generated.sh"
-    copy_script_if_exists "stop-state-009-kubernetes-runtime-generated.sh"
-    copy_script_if_exists "status-state-009-kubernetes-runtime-generated.sh"
-    copy_script_if_exists "test-state-009-kubernetes-runtime.sh"
+  009-order-management-matcher)
+    copy_script_if_exists "start-state-009-order-management-matcher-generated.sh"
+    copy_script_if_exists "stop-state-009-order-management-matcher-generated.sh"
+    copy_script_if_exists "status-state-009-order-management-matcher-generated.sh"
+    copy_script_if_exists "test-state-009-order-management-matcher.sh"
     ;;
-  010-tilt-kubernetes-dev-loop)
-    copy_script_if_exists "start-state-009-kubernetes-runtime-generated.sh"
-    copy_script_if_exists "stop-state-009-kubernetes-runtime-generated.sh"
-    copy_script_if_exists "status-state-009-kubernetes-runtime-generated.sh"
-    copy_script_if_exists "start-state-010-tilt-kubernetes-dev-loop-generated.sh"
-    copy_script_if_exists "stop-state-010-tilt-kubernetes-dev-loop-generated.sh"
-    copy_script_if_exists "status-state-010-tilt-kubernetes-dev-loop-generated.sh"
-    copy_script_if_exists "test-state-010-tilt-kubernetes-dev-loop.sh"
+  010-kubernetes-runtime)
+    copy_script_if_exists "start-state-010-kubernetes-runtime-generated.sh"
+    copy_script_if_exists "stop-state-010-kubernetes-runtime-generated.sh"
+    copy_script_if_exists "status-state-010-kubernetes-runtime-generated.sh"
+    copy_script_if_exists "test-state-010-kubernetes-runtime.sh"
     ;;
-  011-platform-convergence-c3)
-    copy_script_if_exists "start-state-009-kubernetes-runtime-generated.sh"
-    copy_script_if_exists "stop-state-009-kubernetes-runtime-generated.sh"
-    copy_script_if_exists "status-state-009-kubernetes-runtime-generated.sh"
-    copy_script_if_exists "start-state-011-platform-convergence-c3-generated.sh"
-    copy_script_if_exists "stop-state-011-platform-convergence-c3-generated.sh"
-    copy_script_if_exists "status-state-011-platform-convergence-c3-generated.sh"
-    copy_script_if_exists "test-state-011-platform-convergence-c3.sh"
+  011-tilt-kubernetes-dev-loop)
+    copy_script_if_exists "start-state-010-kubernetes-runtime-generated.sh"
+    copy_script_if_exists "stop-state-010-kubernetes-runtime-generated.sh"
+    copy_script_if_exists "status-state-010-kubernetes-runtime-generated.sh"
+    copy_script_if_exists "start-state-011-tilt-kubernetes-dev-loop-generated.sh"
+    copy_script_if_exists "stop-state-011-tilt-kubernetes-dev-loop-generated.sh"
+    copy_script_if_exists "status-state-011-tilt-kubernetes-dev-loop-generated.sh"
+    copy_script_if_exists "test-state-011-tilt-kubernetes-dev-loop.sh"
     ;;
-  012-radius-kubernetes-platform)
-    copy_script_if_exists "start-state-009-kubernetes-runtime-generated.sh"
-    copy_script_if_exists "stop-state-009-kubernetes-runtime-generated.sh"
-    copy_script_if_exists "status-state-009-kubernetes-runtime-generated.sh"
-    copy_script_if_exists "start-state-012-radius-kubernetes-platform-generated.sh"
-    copy_script_if_exists "stop-state-012-radius-kubernetes-platform-generated.sh"
-    copy_script_if_exists "status-state-012-radius-kubernetes-platform-generated.sh"
-    copy_script_if_exists "test-state-012-radius-kubernetes-platform.sh"
+  012-platform-convergence-c3)
+    copy_script_if_exists "start-state-010-kubernetes-runtime-generated.sh"
+    copy_script_if_exists "stop-state-010-kubernetes-runtime-generated.sh"
+    copy_script_if_exists "status-state-010-kubernetes-runtime-generated.sh"
+    copy_script_if_exists "start-state-012-platform-convergence-c3-generated.sh"
+    copy_script_if_exists "stop-state-012-platform-convergence-c3-generated.sh"
+    copy_script_if_exists "status-state-012-platform-convergence-c3-generated.sh"
+    copy_script_if_exists "test-state-012-platform-convergence-c3.sh"
+    ;;
+  013-radius-kubernetes-platform)
+    copy_script_if_exists "start-state-010-kubernetes-runtime-generated.sh"
+    copy_script_if_exists "stop-state-010-kubernetes-runtime-generated.sh"
+    copy_script_if_exists "status-state-010-kubernetes-runtime-generated.sh"
+    copy_script_if_exists "start-state-013-radius-kubernetes-platform-generated.sh"
+    copy_script_if_exists "stop-state-013-radius-kubernetes-platform-generated.sh"
+    copy_script_if_exists "status-state-013-radius-kubernetes-platform-generated.sh"
+    copy_script_if_exists "test-state-013-radius-kubernetes-platform.sh"
     ;;
 esac
 
@@ -220,243 +229,267 @@ Status / stop:
 ```
 EOF
       ;;
-    003-containerized-compose-runtime)
+    003-agentic-harness-foundation)
       cat > "${TARGET_ROOT}/RUN_FROM_GENERATED.md" <<'EOF'
 # Run From Generated (State 003)
 
 Start:
 
 ```bash
-./scripts/start-state-003-containerized-generated.sh
+./scripts/start-state-003-agentic-harness-foundation-generated.sh
 ```
 
 Status / stop:
 
 ```bash
-./scripts/status-state-003-containerized-generated.sh
-./scripts/stop-state-003-containerized-generated.sh
+./scripts/status-state-003-agentic-harness-foundation-generated.sh
+./scripts/stop-state-003-agentic-harness-foundation-generated.sh
 ```
 
 Smoke test:
 
 ```bash
-./scripts/test-state-003-containerized.sh
+./scripts/test-state-003-agentic-harness-foundation.sh
 ```
 EOF
       ;;
-    004-postgres-database-replacement)
+    004-containerized-compose-runtime)
       cat > "${TARGET_ROOT}/RUN_FROM_GENERATED.md" <<'EOF'
 # Run From Generated (State 004)
 
 Start:
 
 ```bash
-./scripts/start-state-004-postgres-database-replacement-generated.sh
+./scripts/start-state-004-containerized-generated.sh
 ```
 
 Status / stop:
 
 ```bash
-./scripts/status-state-004-postgres-database-replacement-generated.sh
-./scripts/stop-state-004-postgres-database-replacement-generated.sh
+./scripts/status-state-004-containerized-generated.sh
+./scripts/stop-state-004-containerized-generated.sh
 ```
 
 Smoke test:
 
 ```bash
-./scripts/test-state-004-postgres-database-replacement.sh
+./scripts/test-state-004-containerized.sh
 ```
 EOF
       ;;
-    005-messaging-nats-replacement)
+    005-postgres-database-replacement)
       cat > "${TARGET_ROOT}/RUN_FROM_GENERATED.md" <<'EOF'
 # Run From Generated (State 005)
 
 Start:
 
 ```bash
-./scripts/start-state-005-messaging-nats-replacement-generated.sh
+./scripts/start-state-005-postgres-database-replacement-generated.sh
 ```
 
 Status / stop:
 
 ```bash
-./scripts/status-state-005-messaging-nats-replacement-generated.sh
-./scripts/stop-state-005-messaging-nats-replacement-generated.sh
+./scripts/status-state-005-postgres-database-replacement-generated.sh
+./scripts/stop-state-005-postgres-database-replacement-generated.sh
 ```
 
 Smoke test:
 
 ```bash
-./scripts/test-state-005-messaging-nats-replacement.sh
+./scripts/test-state-005-postgres-database-replacement.sh
 ```
 EOF
       ;;
-    006-observability-lgtm-compose)
+    006-messaging-nats-replacement)
       cat > "${TARGET_ROOT}/RUN_FROM_GENERATED.md" <<'EOF'
 # Run From Generated (State 006)
 
 Start:
 
 ```bash
-./scripts/start-state-006-observability-lgtm-compose-generated.sh
+./scripts/start-state-006-messaging-nats-replacement-generated.sh
 ```
 
 Status / stop:
 
 ```bash
-./scripts/status-state-006-observability-lgtm-compose-generated.sh
-./scripts/stop-state-006-observability-lgtm-compose-generated.sh
+./scripts/status-state-006-messaging-nats-replacement-generated.sh
+./scripts/stop-state-006-messaging-nats-replacement-generated.sh
 ```
 
 Smoke test:
 
 ```bash
-./scripts/test-state-006-observability-lgtm-compose.sh
+./scripts/test-state-006-messaging-nats-replacement.sh
 ```
 EOF
       ;;
-    007-pricing-awareness-market-data)
+    007-observability-lgtm-compose)
       cat > "${TARGET_ROOT}/RUN_FROM_GENERATED.md" <<'EOF'
 # Run From Generated (State 007)
 
 Start:
 
 ```bash
-./scripts/start-state-007-pricing-awareness-market-data-generated.sh
+./scripts/start-state-007-observability-lgtm-compose-generated.sh
 ```
 
 Status / stop:
 
 ```bash
-./scripts/status-state-007-pricing-awareness-market-data-generated.sh
-./scripts/stop-state-007-pricing-awareness-market-data-generated.sh
+./scripts/status-state-007-observability-lgtm-compose-generated.sh
+./scripts/stop-state-007-observability-lgtm-compose-generated.sh
 ```
 
 Smoke test:
 
 ```bash
-./scripts/test-state-007-pricing-awareness-market-data.sh
+./scripts/test-state-007-observability-lgtm-compose.sh
 ```
 EOF
       ;;
-    008-order-management-matcher)
+    008-pricing-awareness-market-data)
       cat > "${TARGET_ROOT}/RUN_FROM_GENERATED.md" <<'EOF'
 # Run From Generated (State 008)
 
 Start:
 
 ```bash
-./scripts/start-state-008-order-management-matcher-generated.sh
+./scripts/start-state-008-pricing-awareness-market-data-generated.sh
 ```
 
 Status / stop:
 
 ```bash
-./scripts/status-state-008-order-management-matcher-generated.sh
-./scripts/stop-state-008-order-management-matcher-generated.sh
+./scripts/status-state-008-pricing-awareness-market-data-generated.sh
+./scripts/stop-state-008-pricing-awareness-market-data-generated.sh
 ```
 
 Smoke test:
 
 ```bash
-./scripts/test-state-008-order-management-matcher.sh
+./scripts/test-state-008-pricing-awareness-market-data.sh
 ```
 EOF
       ;;
-    009-kubernetes-runtime)
+    009-order-management-matcher)
       cat > "${TARGET_ROOT}/RUN_FROM_GENERATED.md" <<'EOF'
 # Run From Generated (State 009)
 
 Start:
 
 ```bash
-./scripts/start-state-009-kubernetes-runtime-generated.sh
+./scripts/start-state-009-order-management-matcher-generated.sh
 ```
 
 Status / stop:
 
 ```bash
-./scripts/status-state-009-kubernetes-runtime-generated.sh
-./scripts/stop-state-009-kubernetes-runtime-generated.sh
+./scripts/status-state-009-order-management-matcher-generated.sh
+./scripts/stop-state-009-order-management-matcher-generated.sh
 ```
 
 Smoke test:
 
 ```bash
-./scripts/test-state-009-kubernetes-runtime.sh
+./scripts/test-state-009-order-management-matcher.sh
 ```
 EOF
       ;;
-    010-tilt-kubernetes-dev-loop)
+    010-kubernetes-runtime)
       cat > "${TARGET_ROOT}/RUN_FROM_GENERATED.md" <<'EOF'
 # Run From Generated (State 010)
 
 Start:
 
 ```bash
-./scripts/start-state-010-tilt-kubernetes-dev-loop-generated.sh
+./scripts/start-state-010-kubernetes-runtime-generated.sh
 ```
 
 Status / stop:
 
 ```bash
-./scripts/status-state-010-tilt-kubernetes-dev-loop-generated.sh
-./scripts/stop-state-010-tilt-kubernetes-dev-loop-generated.sh
+./scripts/status-state-010-kubernetes-runtime-generated.sh
+./scripts/stop-state-010-kubernetes-runtime-generated.sh
 ```
 
 Smoke test:
 
 ```bash
-./scripts/test-state-010-tilt-kubernetes-dev-loop.sh
+./scripts/test-state-010-kubernetes-runtime.sh
 ```
 EOF
       ;;
-    011-platform-convergence-c3)
+    011-tilt-kubernetes-dev-loop)
       cat > "${TARGET_ROOT}/RUN_FROM_GENERATED.md" <<'EOF'
 # Run From Generated (State 011)
 
 Start:
 
 ```bash
-./scripts/start-state-011-platform-convergence-c3-generated.sh
+./scripts/start-state-011-tilt-kubernetes-dev-loop-generated.sh
 ```
 
 Status / stop:
 
 ```bash
-./scripts/status-state-011-platform-convergence-c3-generated.sh
-./scripts/stop-state-011-platform-convergence-c3-generated.sh
+./scripts/status-state-011-tilt-kubernetes-dev-loop-generated.sh
+./scripts/stop-state-011-tilt-kubernetes-dev-loop-generated.sh
 ```
 
 Smoke test:
 
 ```bash
-./scripts/test-state-011-platform-convergence-c3.sh
+./scripts/test-state-011-tilt-kubernetes-dev-loop.sh
 ```
 EOF
       ;;
-    012-radius-kubernetes-platform)
+    012-platform-convergence-c3)
       cat > "${TARGET_ROOT}/RUN_FROM_GENERATED.md" <<'EOF'
 # Run From Generated (State 012)
 
 Start:
 
 ```bash
-./scripts/start-state-012-radius-kubernetes-platform-generated.sh
+./scripts/start-state-012-platform-convergence-c3-generated.sh
 ```
 
 Status / stop:
 
 ```bash
-./scripts/status-state-012-radius-kubernetes-platform-generated.sh
-./scripts/stop-state-012-radius-kubernetes-platform-generated.sh
+./scripts/status-state-012-platform-convergence-c3-generated.sh
+./scripts/stop-state-012-platform-convergence-c3-generated.sh
 ```
 
 Smoke test:
 
 ```bash
-./scripts/test-state-012-radius-kubernetes-platform.sh
+./scripts/test-state-012-platform-convergence-c3.sh
+```
+EOF
+      ;;
+    013-radius-kubernetes-platform)
+      cat > "${TARGET_ROOT}/RUN_FROM_GENERATED.md" <<'EOF'
+# Run From Generated (State 013)
+
+Start:
+
+```bash
+./scripts/start-state-013-radius-kubernetes-platform-generated.sh
+```
+
+Status / stop:
+
+```bash
+./scripts/status-state-013-radius-kubernetes-platform-generated.sh
+./scripts/stop-state-013-radius-kubernetes-platform-generated.sh
+```
+
+Smoke test:
+
+```bash
+./scripts/test-state-013-radius-kubernetes-platform.sh
 ```
 EOF
       ;;
@@ -470,6 +503,45 @@ EOF
   esac
 }
 
+write_generated_agentic_docs() {
+  local state_num="${STATE_ID%%-*}"
+  if [[ ! "${state_num}" =~ ^[0-9]+$ ]] || (( 10#${state_num} < 3 )); then
+    return
+  fi
+
+  cat > "${TARGET_ROOT}/AGENTS.md" <<EOF
+# AGENTS.md
+
+This generated codebase is a reproducible runtime snapshot for state \`${STATE_ID}\`.
+
+- Treat this snapshot as generated output; expect it to be replaced on regeneration.
+- Prototype and experiment locally here when needed.
+- Promote durable changes into upstream state packs and specs, not generated snapshots.
+- Use \`./scripts\` and \`./RUN_FROM_GENERATED.md\` as the runtime entrypoints.
+EOF
+
+  cat > "${TARGET_ROOT}/ARCHITECTURE.md" <<EOF
+# ARCHITECTURE.md
+
+This snapshot was generated from TraderX state \`${STATE_ID}\`.
+
+- Service/runtime topology is defined by the source state pack in the upstream repository.
+- This generated directory contains runnable artifacts, not the authoritative architecture source.
+- Rebuild this snapshot through the generation pipeline instead of manually editing generated files.
+EOF
+
+  cat > "${TARGET_ROOT}/CONTRIBUTING.md" <<EOF
+# CONTRIBUTING.md
+
+This directory is generated output.
+
+- Enhancement contributions should be made in upstream \`specs/\` state packs and generation pipeline artifacts.
+- Generated snapshots are outputs and are routinely replaced during regeneration.
+- Local edits here are useful for experimentation and debugging, then should be translated back into specs/state packs.
+EOF
+}
+
 write_generated_runbook
+write_generated_agentic_docs
 
 echo "[ok] installed generated runtime harness for ${STATE_ID} at ${SCRIPTS_DST}"

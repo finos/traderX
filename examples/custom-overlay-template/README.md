@@ -1,14 +1,29 @@
 # Custom Overlay Template (Bootstrap)
 
-This template is a generic starter for custom TraderX overlays.
+This template is the canonical starter for custom TraderX overlays.
 
-It intentionally includes only reference stubs for key contracts:
+It includes reference stubs for key contracts:
 
 - `overlay/transforms/apply-feature-example.sh`
+- `overlay/transforms/apply-managed-postgres-endpoint-example.sh`
+- `overlay/transforms/apply-internal-docs-banner-example.sh`
 - `overlay/runtime/env-loader.sh`
+- `overlay/profiles/custom-internal.example.yaml`
+- `overlay/catalog/sanctioned-learning-graph.example.yaml`
+- `overlay/docs/internal-learning-graph.example.md`
+- `overlay/docs/internal-docs-portal.example.md`
 - `pipeline/publish-state-branch.sh`
 
 Use these as patterns when implementing your own overlay-specific generation and publishing workflows.
+
+## Internal Docs + Sanctioned Graph Pattern
+
+The included example docs and profile files show how to:
+
+- suppress selected upstream states in controlled environments
+- define internal-only generated states (`custom-*`)
+- publish a sanctioned internal learning graph
+- add a persistent internal-distribution banner to an internal docs portal
 
 ## Docs Quality Checks (Optional)
 

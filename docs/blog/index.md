@@ -10,11 +10,11 @@ This blog captures the broader TraderX story over time: how the project started,
 ## Articles
 
 - [April 6, 2026: Convergence Milestone Releases (C0-C3)](/docs/blog/2026-04-06-convergence-milestone-releases)
-- [April 6, 2026: State 008 - Rudimentary Order Manager and Matcher](/docs/blog/2026-04-06-state-008-order-management-matcher)
-- [April 6, 2026: State 006 - Observability Baseline with LGTM](/docs/blog/2026-04-06-state-006-observability-baseline)
-- [March 31, 2026: State 007 - Pricing Awareness as a Functional Track](/docs/blog/2026-03-31-state-010-pricing-awareness-functional-track)
-- [March 31, 2026: State 004 - Replacing H2 with PostgreSQL](/docs/blog/2026-03-31-state-009-postgres-architecture-track)
-- [March 31, 2026: State 005 - Swapping Socket.IO for NATS](/docs/blog/2026-03-31-state-007-nats-architecture-track)
+- [April 6, 2026: State 009 - Rudimentary Order Manager and Matcher](/docs/blog/2026-04-06-state-009-order-management-matcher)
+- [April 6, 2026: State 007 - Observability Baseline with LGTM](/docs/blog/2026-04-06-state-007-observability-baseline)
+- [March 31, 2026: State 008 - Pricing Awareness as a Functional Track](/docs/blog/2026-03-31-state-011-pricing-awareness-functional-track)
+- [March 31, 2026: State 005 - Replacing H2 with PostgreSQL](/docs/blog/2026-03-31-state-010-postgres-architecture-track)
+- [March 31, 2026: State 006 - Swapping Socket.IO for NATS](/docs/blog/2026-03-31-state-007-nats-architecture-track)
 - [March 29, 2026: TraderX + GitHub SpecKit Migration (Technical Retrospective)](/docs/blog/2026-03-29-traderx-speckit-migration)
 - [September 2024: Platform Paths on Kubernetes and Radius](/docs/blog/2024-09-platform-paths-kubernetes-radius)
 - [March 2024: Docusaurus Portal and Project Storytelling](/docs/blog/2024-03-docs-portal-and-project-storytelling)

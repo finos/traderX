@@ -76,13 +76,13 @@ Stop:
 ./scripts/stop-state-002-edge-proxy-generated.sh
 ```
 
-## State 003 (Containerized Compose) Runtime
+## State 004 (Containerized Compose) Runtime
 
 Generate and start:
 
 ```bash
-bash pipeline/generate-state.sh 003-containerized-compose-runtime
-./scripts/start-state-003-containerized-generated.sh
+bash pipeline/generate-state.sh 004-containerized-compose-runtime
+./scripts/start-state-004-containerized-generated.sh
 ```
 
 Ingress/UI endpoint: `http://localhost:8080`
@@ -90,17 +90,17 @@ Ingress/UI endpoint: `http://localhost:8080`
 Status:
 
 ```bash
-./scripts/status-state-003-containerized-generated.sh
+./scripts/status-state-004-containerized-generated.sh
 ```
 
 Smoke test:
 
 ```bash
-./scripts/test-state-003-containerized.sh
+./scripts/test-state-004-containerized.sh
 ```
 
 Stop:
 
 ```bash
-./scripts/stop-state-003-containerized-generated.sh
+./scripts/stop-state-004-containerized-generated.sh
 ```

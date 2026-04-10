@@ -178,13 +178,13 @@ Run generated baseline stack:
 CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh
 ```
 
-Run generated containerized stack (state `003`):
+Run generated containerized stack (state `004`):
 
 ```bash
-./scripts/start-state-003-containerized-generated.sh
-./scripts/status-state-003-containerized-generated.sh
-./scripts/test-state-003-containerized.sh
-./scripts/stop-state-003-containerized-generated.sh
+./scripts/start-state-004-containerized-generated.sh
+./scripts/status-state-004-containerized-generated.sh
+./scripts/test-state-004-containerized.sh
+./scripts/stop-state-004-containerized-generated.sh
 ```
 
 Ingress endpoint: `http://localhost:8080`

@@ -10,12 +10,12 @@ mkdir -p "${TARGET_ROOT}/containerized-compose" "${TARGET_ROOT}/web-front-end/an
 touch "${TARGET_ROOT}/containerized-compose/docker-compose.yml"
 
 echo "[check] install harness into synthetic target-generated root"
-bash "${ROOT}/pipeline/install-generated-runtime-harness.sh" 003-containerized-compose-runtime "${TARGET_ROOT}"
+bash "${ROOT}/pipeline/install-generated-runtime-harness.sh" 004-containerized-compose-runtime "${TARGET_ROOT}"
 
 for required in \
-  "${TARGET_ROOT}/scripts/start-state-003-containerized-generated.sh" \
-  "${TARGET_ROOT}/scripts/stop-state-003-containerized-generated.sh" \
-  "${TARGET_ROOT}/scripts/status-state-003-containerized-generated.sh" \
+  "${TARGET_ROOT}/scripts/start-state-004-containerized-generated.sh" \
+  "${TARGET_ROOT}/scripts/stop-state-004-containerized-generated.sh" \
+  "${TARGET_ROOT}/scripts/status-state-004-containerized-generated.sh" \
   "${TARGET_ROOT}/scripts/README.runtime-harness.md" \
   "${TARGET_ROOT}/RUN_FROM_GENERATED.md"; do
   [[ -f "${required}" ]] || {
@@ -25,10 +25,10 @@ for required in \
 done
 
 echo "[check] local harness scripts are marked local + skip-generate"
-grep -q '^export TRADERX_LOCAL_RUNTIME_SCRIPT=1$' "${TARGET_ROOT}/scripts/start-state-003-containerized-generated.sh"
-grep -q '^export TRADERX_SKIP_GENERATE=1$' "${TARGET_ROOT}/scripts/start-state-003-containerized-generated.sh"
-grep -q 'TRADERX_GENERATED_ROOT="\$(cd "\$(dirname "\${BASH_SOURCE\[0\]}")/../../.." && pwd)"' "${TARGET_ROOT}/scripts/start-state-003-containerized-generated.sh"
-grep -q './scripts/start-state-003-containerized-generated.sh' "${TARGET_ROOT}/RUN_FROM_GENERATED.md"
+grep -q '^export TRADERX_LOCAL_RUNTIME_SCRIPT=1$' "${TARGET_ROOT}/scripts/start-state-004-containerized-generated.sh"
+grep -q '^export TRADERX_SKIP_GENERATE=1$' "${TARGET_ROOT}/scripts/start-state-004-containerized-generated.sh"
+grep -q 'TRADERX_GENERATED_ROOT="\$(cd "\$(dirname "\${BASH_SOURCE\[0\]}")/../../.." && pwd)"' "${TARGET_ROOT}/scripts/start-state-004-containerized-generated.sh"
+grep -q './scripts/start-state-004-containerized-generated.sh' "${TARGET_ROOT}/RUN_FROM_GENERATED.md"
 
 echo "[check] root wrapper forwards execution to local harness when present"
 cat > "${TARGET_ROOT}/scripts/status-base-uncontainerized-generated.sh" <<'EOF'
@@ -47,5 +47,21 @@ printf '%s\n' "${forward_output}" | grep -q "forwarded-to-local-runtime-harness"
   echo "[fail] root script did not forward to local runtime harness"
   exit 1
 }
+
+echo "[check] state 003 harness emits generated metadata docs"
+bash "${ROOT}/pipeline/install-generated-runtime-harness.sh" 003-agentic-harness-foundation "${TARGET_ROOT}"
+
+for required in \
+  "${TARGET_ROOT}/AGENTS.md" \
+  "${TARGET_ROOT}/ARCHITECTURE.md" \
+  "${TARGET_ROOT}/CONTRIBUTING.md"; do
+  [[ -f "${required}" ]] || {
+    echo "[fail] missing generated metadata artifact: ${required}"
+    exit 1
+  }
+done
+
+grep -q 'specs/' "${TARGET_ROOT}/CONTRIBUTING.md"
+grep -qi 'generated snapshots are outputs' "${TARGET_ROOT}/CONTRIBUTING.md"
 
 echo "[done] generated runtime harness checks passed"

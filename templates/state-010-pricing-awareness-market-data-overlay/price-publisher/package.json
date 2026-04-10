@@ -2,7 +2,7 @@
   "name": "price-publisher-specfirst",
   "version": "0.1.0",
   "private": true,
-  "description": "TraderX synthetic market price publisher for state 010",
+  "description": "TraderX synthetic market price publisher for state 011",
   "main": "src/main.js",
   "scripts": {
     "start": "node src/main.js"

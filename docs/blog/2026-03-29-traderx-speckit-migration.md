@@ -63,16 +63,16 @@ We chose to keep canonical spec authoring in the main renovation branch, and pub
 
 - `code/generated-state-001-baseline-uncontainerized-parity`
 - `code/generated-state-002-edge-proxy-uncontainerized`
-- `code/generated-state-003-containerized-compose-runtime`
-- `code/generated-state-004-postgres-database-replacement`
-- `code/generated-state-005-messaging-nats-replacement`
-- `code/generated-state-006-observability-lgtm-compose`
-- `code/generated-state-007-pricing-awareness-market-data`
-- `code/generated-state-008-order-management-matcher`
-- `code/generated-state-009-kubernetes-runtime`
-- `code/generated-state-010-tilt-kubernetes-dev-loop`
-- `code/generated-state-011-platform-convergence-c3`
-- `code/generated-state-012-radius-kubernetes-platform`
+- `code/generated-state-004-containerized-compose-runtime`
+- `code/generated-state-005-postgres-database-replacement`
+- `code/generated-state-006-messaging-nats-replacement`
+- `code/generated-state-007-observability-lgtm-compose`
+- `code/generated-state-008-pricing-awareness-market-data`
+- `code/generated-state-009-order-management-matcher`
+- `code/generated-state-010-kubernetes-runtime`
+- `code/generated-state-011-tilt-kubernetes-dev-loop`
+- `code/generated-state-012-platform-convergence-c3`
+- `code/generated-state-013-radius-kubernetes-platform`
 
 This gave us a useful split:
 

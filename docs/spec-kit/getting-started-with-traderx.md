@@ -13,7 +13,6 @@ TraderX has multiple generated codebases representing different learning states,
 - See the progression and visual graph: [Learning Paths](/docs/learning-paths)
 - For private overlay customization: [Customizing TraderX](/docs/spec-kit/customizing-traderx)
 - Canonical overlay starter template: `examples/custom-overlay-template/`
-- Optional policy/demo scenario pack: `examples/corporate-overlay-template/`
 
 If you want to run demos quickly, use the generated state branches listed below.
 
@@ -21,16 +20,16 @@ If you want to run demos quickly, use the generated state branches listed below.
 
 - [code/generated-state-001-baseline-uncontainerized-parity](https://github.com/finos/traderX/tree/code/generated-state-001-baseline-uncontainerized-parity)
 - [code/generated-state-002-edge-proxy-uncontainerized](https://github.com/finos/traderX/tree/code/generated-state-002-edge-proxy-uncontainerized)
-- [code/generated-state-003-containerized-compose-runtime](https://github.com/finos/traderX/tree/code/generated-state-003-containerized-compose-runtime)
-- [code/generated-state-004-postgres-database-replacement](https://github.com/finos/traderX/tree/code/generated-state-004-postgres-database-replacement)
-- [code/generated-state-005-messaging-nats-replacement](https://github.com/finos/traderX/tree/code/generated-state-005-messaging-nats-replacement)
-- [code/generated-state-006-observability-lgtm-compose](https://github.com/finos/traderX/tree/code/generated-state-006-observability-lgtm-compose)
-- [code/generated-state-007-pricing-awareness-market-data](https://github.com/finos/traderX/tree/code/generated-state-007-pricing-awareness-market-data)
-- [code/generated-state-008-order-management-matcher](https://github.com/finos/traderX/tree/code/generated-state-008-order-management-matcher)
-- [code/generated-state-009-kubernetes-runtime](https://github.com/finos/traderX/tree/code/generated-state-009-kubernetes-runtime)
-- [code/generated-state-010-tilt-kubernetes-dev-loop](https://github.com/finos/traderX/tree/code/generated-state-010-tilt-kubernetes-dev-loop)
-- [code/generated-state-011-platform-convergence-c3](https://github.com/finos/traderX/tree/code/generated-state-011-platform-convergence-c3)
-- [code/generated-state-012-radius-kubernetes-platform](https://github.com/finos/traderX/tree/code/generated-state-012-radius-kubernetes-platform)
+- [code/generated-state-004-containerized-compose-runtime](https://github.com/finos/traderX/tree/code/generated-state-004-containerized-compose-runtime)
+- [code/generated-state-005-postgres-database-replacement](https://github.com/finos/traderX/tree/code/generated-state-005-postgres-database-replacement)
+- [code/generated-state-006-messaging-nats-replacement](https://github.com/finos/traderX/tree/code/generated-state-006-messaging-nats-replacement)
+- [code/generated-state-007-observability-lgtm-compose](https://github.com/finos/traderX/tree/code/generated-state-007-observability-lgtm-compose)
+- [code/generated-state-008-pricing-awareness-market-data](https://github.com/finos/traderX/tree/code/generated-state-008-pricing-awareness-market-data)
+- [code/generated-state-009-order-management-matcher](https://github.com/finos/traderX/tree/code/generated-state-009-order-management-matcher)
+- [code/generated-state-010-kubernetes-runtime](https://github.com/finos/traderX/tree/code/generated-state-010-kubernetes-runtime)
+- [code/generated-state-011-tilt-kubernetes-dev-loop](https://github.com/finos/traderX/tree/code/generated-state-011-tilt-kubernetes-dev-loop)
+- [code/generated-state-012-platform-convergence-c3](https://github.com/finos/traderX/tree/code/generated-state-012-platform-convergence-c3)
+- [code/generated-state-013-radius-kubernetes-platform](https://github.com/finos/traderX/tree/code/generated-state-013-radius-kubernetes-platform)
 
 ## Why This Works
 
@@ -61,5 +60,5 @@ If your organization needs private runtime constraints, internal-only states, or
 1. Start with the canonical overlay starter under `examples/custom-overlay-template/`.
 2. Create a separate corporate overlay repository (do not fork TraderX for corporate-only deltas).
 3. Add TraderX as a pinned submodule dependency.
-4. Optionally layer selected scenario assets from `examples/corporate-overlay-template/` (policy/demo examples).
+4. Tailor the included profile, transform, and internal-docs examples to your environment policy.
 5. Publish an internal docs portal that includes only your sanctioned internal learning graph branches.

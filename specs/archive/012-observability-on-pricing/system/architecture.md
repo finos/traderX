@@ -10,7 +10,7 @@ Pricing-aware TraderX runtime with LGTM observability and pricing-path probe cov
 ```mermaid
 flowchart LR
   developer["Developer"]
-  pricing_runtime["TraderX Pricing Runtime (State 010)"]
+  pricing_runtime["TraderX Pricing Runtime (State 011)"]
   obs_runtime["Observability Runtime"]
   ingress["NGINX Ingress"]
   pricing_services["Pricing Services"]
@@ -41,7 +41,7 @@ flowchart LR
 | Node | Kind | Label | Notes |
 | --- | --- | --- | --- |
 | `developer` | actor | Developer | Local developer using this state. |
-| `pricing_runtime` | boundary | TraderX Pricing Runtime (State 010) | Pricing-aware app services with NATS and price publisher. |
+| `pricing_runtime` | boundary | TraderX Pricing Runtime (State 011) | Pricing-aware app services with NATS and price publisher. |
 | `obs_runtime` | boundary | Observability Runtime | LGTM + OTel stack for metrics/logs/traces. |
 | `ingress` | service | NGINX Ingress | Edge entrypoint for UI and APIs. |
 | `pricing_services` | service | Pricing Services | Trade service, trade processor, position service, price publisher. |

@@ -4,11 +4,11 @@ index 0000000..d56b18c
 --- /dev/null
 +++ b/observability-on-pricing/README.md
 @@ -0,0 +1,25 @@
-+## TraderX State 012 Runtime
++## TraderX State 013 Runtime
 +
 +This directory defines the compose runtime for:
 +
-+- `007-pricing-awareness-market-data`
++- `008-pricing-awareness-market-data`
 +
 +It extends state `010` (pricing awareness) with:
 +
@@ -320,7 +320,7 @@ index 0000000..fe7c5cb
 +{
 +  "id": null,
 +  "uid": "traderx-obs-012-pricing",
-+  "title": "TraderX Pricing + Observability (State 012)",
++  "title": "TraderX Pricing + Observability (State 013)",
 +  "tags": ["traderx", "state-012", "pricing", "observability"],
 +  "timezone": "browser",
 +  "schemaVersion": 39,

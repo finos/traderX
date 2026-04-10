@@ -1,6 +1,6 @@
-# Smoke Tests: 007-pricing-awareness-market-data
+# Smoke Tests: 008-pricing-awareness-market-data
 
-- Primary smoke script: `scripts/test-state-007-pricing-awareness-market-data.sh`
+- Primary smoke script: `scripts/test-state-008-pricing-awareness-market-data.sh`
 
 Implemented smoke checks:
 

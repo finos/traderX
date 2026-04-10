@@ -8,7 +8,7 @@ title: "State 002: Edge Proxy Uncontainerized"
 
 - Previous state(s): [001-baseline-uncontainerized-parity](/docs/learning/state-001-baseline-uncontainerized-parity)
 - Dotted-line parent(s): none
-- Next state(s): [003-containerized-compose-runtime](/docs/learning/state-003-containerized-compose-runtime)
+- Next state(s): [003-agentic-harness-foundation](/docs/learning/state-003-agentic-harness-foundation)
 
 ## Convergence Metadata
 

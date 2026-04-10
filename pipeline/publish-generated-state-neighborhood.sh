@@ -15,8 +15,8 @@ sections stay current:
 - all immediate next states
 
 Examples:
-  bash pipeline/publish-generated-state-neighborhood.sh 007-pricing-awareness-market-data
-  bash pipeline/publish-generated-state-neighborhood.sh 007-pricing-awareness-market-data --push
+  bash pipeline/publish-generated-state-neighborhood.sh 008-pricing-awareness-market-data
+  bash pipeline/publish-generated-state-neighborhood.sh 008-pricing-awareness-market-data --push
 EOF
 }
 

@@ -1,9 +1,9 @@
 # Feature Specification: Observability with LGTM on Pricing State
 
-**Feature Branch**: `007-pricing-awareness-market-data`  
+**Feature Branch**: `008-pricing-awareness-market-data`  
 **Created**: 2026-04-05  
 **Status**: Implemented  
-**Input**: Transition delta from `007-pricing-awareness-market-data`
+**Input**: Transition delta from `008-pricing-awareness-market-data`
 
 ## User Stories
 
@@ -25,6 +25,6 @@
 
 ## Success Criteria
 
-- SC-01201: `./scripts/start-state-007-pricing-awareness-market-data-generated.sh` starts app + observability stack successfully.
-- SC-01202: `./scripts/test-state-007-pricing-awareness-market-data.sh` validates observability endpoints, probe targets, and inherited pricing behavior.
+- SC-01201: `./scripts/start-state-008-pricing-awareness-market-data-generated.sh` starts app + observability stack successfully.
+- SC-01202: `./scripts/test-state-008-pricing-awareness-market-data.sh` validates observability endpoints, probe targets, and inherited pricing behavior.
 - SC-01203: Grafana dashboards are provisioned and available for pricing-aware runtime inspection.

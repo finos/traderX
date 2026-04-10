@@ -52,7 +52,7 @@ Example:
 {
   "id": "custom-001-example",
   "title": "Custom State 001 - Example",
-  "previous": ["003-containerized-compose-runtime"],
+  "previous": ["004-containerized-compose-runtime"],
   "generation": {
     "mode": "implemented"
   },
@@ -62,7 +62,7 @@ Example:
   "featurePack": "specs/custom-001-example",
   "overlayState": {
     "kind": "custom",
-    "extends": "003-containerized-compose-runtime"
+    "extends": "004-containerized-compose-runtime"
   }
 }
 ```
@@ -174,7 +174,7 @@ Example:
 
 ```bash
 TRADERX_GENERATED_ROOT="${OVERLAY_ROOT}/generated" \
-  bash "${OVERLAY_ROOT}/upstream/traderX/pipeline/generate-state.sh" 003-containerized-compose-runtime
+  bash "${OVERLAY_ROOT}/upstream/traderX/pipeline/generate-state.sh" 004-containerized-compose-runtime
 ```
 
 Default behavior remains unchanged when `TRADERX_GENERATED_ROOT` is unset (`upstream/traderX/generated`).

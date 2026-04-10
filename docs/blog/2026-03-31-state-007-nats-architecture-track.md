@@ -1,14 +1,14 @@
 ---
-title: "State 005: Swapping Socket.IO for NATS"
+title: "State 006: Swapping Socket.IO for NATS"
 date: 2026-03-31
-description: "TraderX state 005 moves from a brittle Socket.IO messaging layer to NATS, establishes the architecture-track messaging baseline, and shows why SpecKit accelerated delivery and documentation."
+description: "TraderX state 006 moves from a brittle Socket.IO messaging layer to NATS, establishes the architecture-track messaging baseline, and shows why SpecKit accelerated delivery and documentation."
 ---
 
-# State 005: Swapping Socket.IO for NATS
+# State 006: Swapping Socket.IO for NATS
 
 Published: **Tuesday, March 31, 2026**
 
-State `005-messaging-nats-replacement` is in place as the messaging architecture transition on top of `004-postgres-database-replacement`.
+State `006-messaging-nats-replacement` is in place as the messaging architecture transition on top of `005-postgres-database-replacement`.
 
 For a long time, TraderX used a deliberately simple messaging layer that was easy to run but increasingly brittle as we pushed toward more realistic multi-service evolution. The old Socket.IO-centric setup worked, but it forced us into awkward conventions for server-to-server eventing and created fragility when we wanted clearer protocol behavior.
 
@@ -25,9 +25,9 @@ This change keeps baseline user flows intact, but modernizes the transport layer
 Code and specs:
 
 - State spec pack: [/specs/messaging-nats-replacement](/specs/messaging-nats-replacement)
-- State learning guide: [/docs/learning/state-005-messaging-nats-replacement](/docs/learning/state-005-messaging-nats-replacement)
-- Generated code branch: [code/generated-state-005-messaging-nats-replacement](https://github.com/finos/traderX/tree/code/generated-state-005-messaging-nats-replacement)
-- Compare against parent state `004`: [generated-state 004...005](https://github.com/finos/traderX/compare/code%2Fgenerated-state-004-postgres-database-replacement...code%2Fgenerated-state-005-messaging-nats-replacement)
+- State learning guide: [/docs/learning/state-006-messaging-nats-replacement](/docs/learning/state-006-messaging-nats-replacement)
+- Generated code branch: [code/generated-state-006-messaging-nats-replacement](https://github.com/finos/traderX/tree/code/generated-state-006-messaging-nats-replacement)
+- Compare against parent state `004`: [generated-state 005...005](https://github.com/finos/traderX/compare/code%2Fgenerated-state-005-postgres-database-replacement...code%2Fgenerated-state-006-messaging-nats-replacement)
 
 ## Why NATS
 
@@ -41,7 +41,7 @@ We selected NATS because it is a better fit for this stage of TraderX evolution:
 
 The formal state-scoped rationale is captured in:
 
-- [ADR-005 Use NATS for State 005 Messaging Replacement](/docs/adr/005-state-005-use-nats-for-messaging-replacement)
+- [ADR-005 Use NATS for State 006 Messaging Replacement](/docs/adr/005-state-006-use-nats-for-messaging-replacement)
 
 ## Why This Was Easier With SpecKit
 

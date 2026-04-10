@@ -13,7 +13,7 @@ This repository follows a SpecKit-first, multi-state architecture. Agents should
 
 - `001-baseline-uncontainerized-parity`
 - `002-edge-proxy-uncontainerized`
-- `003-containerized-compose-runtime`
+- `004-containerized-compose-runtime`
 
 ## Learning Doc Front-Matter Contract
 
@@ -66,7 +66,6 @@ Agent operating rules for overlay workflows:
 - Keep upstream TraderX canonical; do not place environment-specific deltas in upstream state packs.
 - Prefer additive docs/spec updates and reusable templates over one-off generated output edits.
 - Prefer `examples/custom-overlay-template/` as the default starter.
-- Treat `examples/corporate-overlay-template/` as an optional scenario/example pack, not the canonical starter.
 - For docs-portal changes, run AFDocs checks against local preview and published URL; prioritize build/pipeline/plugin fixes before broad manual rewrites.
 - Do not hand-edit generated artifacts as a persistent solution.
 - Preserve generated-state branch invariant: one snapshot commit per branch (reset to base + force-push).

@@ -2,7 +2,7 @@
 
 ## Scope
 
-This state introduces no business data model changes relative to `007-pricing-awareness-market-data`.
+This state introduces no business data model changes relative to `008-pricing-awareness-market-data`.
 
 ## Entity Changes
 

@@ -1,8 +1,8 @@
-# Implementation Plan: 007-pricing-awareness-market-data
+# Implementation Plan: 008-pricing-awareness-market-data
 
 ## Scope
 
-- Transition from `007-pricing-awareness-market-data` to `007-pricing-awareness-market-data`.
+- Transition from `008-pricing-awareness-market-data` to `008-pricing-awareness-market-data`.
 - Track focus: `nonfunctional`.
 - Define requirement deltas and generation/test hooks.
 
@@ -12,12 +12,12 @@
 2. Contract deltas in `contracts/`.
 3. Supporting artifacts: `research.md`, `data-model.md`, `quickstart.md`.
 4. Architecture and topology deltas in `system/`.
-5. Generation hook implementation in `pipeline/generate-state-007-pricing-awareness-market-data.sh`.
-6. Smoke test implementation in `scripts/test-state-007-pricing-awareness-market-data.sh`.
+5. Generation hook implementation in `pipeline/generate-state-008-pricing-awareness-market-data.sh`.
+6. Smoke test implementation in `scripts/test-state-008-pricing-awareness-market-data.sh`.
 
 ## Exit Criteria
 
 - Spec and tasks are complete and reviewed.
 - Generation hook produces expected artifacts.
 - Smoke tests pass for this state.
-- State can be published to `code/generated-state-007-pricing-awareness-market-data`.
+- State can be published to `code/generated-state-008-pricing-awareness-market-data`.

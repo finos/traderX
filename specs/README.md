@@ -9,16 +9,16 @@ This repository now uses the GitHub Spec Kit canonical structure at repo root:
 
 - `001-baseline-uncontainerized-parity`
 - `002-edge-proxy-uncontainerized`
-- `003-containerized-compose-runtime`
-- `004-postgres-database-replacement`
-- `005-messaging-nats-replacement`
-- `006-observability-lgtm-compose`
-- `007-pricing-awareness-market-data`
-- `008-order-management-matcher`
-- `009-kubernetes-runtime`
-- `010-tilt-kubernetes-dev-loop`
-- `011-platform-convergence-c3`
-- `012-radius-kubernetes-platform`
+- `004-containerized-compose-runtime`
+- `005-postgres-database-replacement`
+- `006-messaging-nats-replacement`
+- `007-observability-lgtm-compose`
+- `008-pricing-awareness-market-data`
+- `009-order-management-matcher`
+- `010-kubernetes-runtime`
+- `011-tilt-kubernetes-dev-loop`
+- `012-platform-convergence-c3`
+- `013-radius-kubernetes-platform`
 
 ## Transitional Note
 

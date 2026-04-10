@@ -1,7 +1,7 @@
 {
   "title": "Observability with LGTM on Pricing State",
-  "stateId": "007-pricing-awareness-market-data",
-  "parentState": "007-pricing-awareness-market-data",
+  "stateId": "008-pricing-awareness-market-data",
+  "parentState": "008-pricing-awareness-market-data",
   "description": "Pricing-aware TraderX runtime with LGTM observability and pricing-path probe coverage.",
   "mermaidDirection": "LR",
   "nodes": [
@@ -13,7 +13,7 @@
     },
     {
       "id": "pricing_runtime",
-      "label": "TraderX Pricing Runtime (State 010)",
+      "label": "TraderX Pricing Runtime (State 011)",
       "kind": "boundary",
       "description": "Pricing-aware app services with NATS and price publisher."
     },

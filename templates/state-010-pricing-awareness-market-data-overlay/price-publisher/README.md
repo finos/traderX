@@ -1,4 +1,4 @@
-# Price Publisher (State 010)
+# Price Publisher (State 011)
 
 Publishes synthetic market prices to NATS subjects (`pricing.<TICKER>`) and exposes REST quote endpoints used by trade-service.
 
