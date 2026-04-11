@@ -7,6 +7,7 @@ import { Trade } from '../../model/trade.model';
 import { TradeFeedService } from 'main/app/service/trade-feed.service';
 
 @Component({
+    standalone: false,
     selector: 'app-trade-blotter',
     templateUrl: 'trade-blotter.component.html'
 })

@@ -10,6 +10,7 @@ import { PositionService } from '../service/position.service';
 import { TradeFeedService } from '../service/trade-feed.service';
 
 @Component({
+    standalone: false,
     selector: 'app-trade',
     templateUrl: './trade.component.html',
     styleUrls: ['./trade.component.scss']

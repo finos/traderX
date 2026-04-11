@@ -6,6 +6,7 @@ import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
 import { TradeFeedService } from 'main/app/service/trade-feed.service';
 
 @Component({
+    standalone: false,
   selector: 'app-trade-ticket',
   templateUrl: './trade-ticket.component.html',
   styleUrls: ['./trade-ticket.component.scss']

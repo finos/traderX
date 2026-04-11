@@ -7,6 +7,7 @@ import { Observable } from 'rxjs';
 import { TradeFeedService } from 'main/app/service/trade-feed.service';
 
 @Component({
+    standalone: false,
   selector: 'app-position-blotter',
   templateUrl: './position-blotter.component.html',
   styleUrls: ['./position-blotter.component.scss']
