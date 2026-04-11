@@ -106,6 +106,9 @@ ensure_gradle_security_overrides() {
       if ! rg -q "org\\.jetbrains\\.kotlin:kotlin-stdlib" "${gradle_file}"; then
         perl -0pi -e "s/(testImplementation 'org\\.springframework\\.boot:spring-boot-starter-test'\\n)/  implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.3.20'\\n\\n\$1/" "${gradle_file}"
       fi
+      if ! rg -q "org\\.apache\\.commons:commons-lang3:3\\.20\\.0" "${gradle_file}"; then
+        perl -0pi -e "s/(testImplementation 'org\\.springframework\\.boot:spring-boot-starter-test'\\n)/  implementation 'org.apache.commons:commons-lang3:3.20.0'\\n\\n\$1/" "${gradle_file}"
+      fi
       if ! rg -q "kotlin-stdlib-jdk7" "${gradle_file}"; then
         cat >> "${gradle_file}" <<'EOF'
 
