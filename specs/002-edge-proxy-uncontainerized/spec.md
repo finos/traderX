@@ -27,6 +27,7 @@
 - NFR-206: CVE suppression files used by scanning workflows (`.github/*-cve-ignore-list.xml`) SHALL be present in generated branches and updated when state dependency sets change.
 - NFR-207: CI workflow component coverage SHALL be derived from generated state component inventory, and SHALL remain complete for all applicable language/runtime components.
 - NFR-208: States `003+` SHALL inherit this generated-branch CI baseline unless a later state explicitly replaces it.
+- NFR-209: Every generated Node.js project (`package.json`) SHALL declare `"license": "Apache-2.0"`; new Node services introduced in later states MUST inherit this default unless an explicit state requirement overrides it.
 
 ## Success Criteria
 

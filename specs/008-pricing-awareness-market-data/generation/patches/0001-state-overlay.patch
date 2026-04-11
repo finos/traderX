@@ -357,6 +357,7 @@ index 0000000..5b47710
 +  "name": "price-publisher-specfirst",
 +  "version": "0.1.0",
 +  "private": true,
++  "license": "Apache-2.0",
 +  "description": "TraderX synthetic market price publisher for state 011",
 +  "main": "src/main.js",
 +  "scripts": {

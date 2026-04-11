@@ -27,6 +27,19 @@ These workflows must cover every applicable component in the generated state:
 
 Coverage must be derived from generated component manifests/catalog data, not a manually maintained static list.
 
+## Node License Requirement
+
+All generated Node.js projects must declare:
+
+```json
+"license": "Apache-2.0"
+```
+
+Policy:
+
+- Any new Node.js project introduced by a state transition must include this license field in its generated `package.json`.
+- License scanning workflows should fail when a generated Node.js project omits this declaration.
+
 ## CVE Suppression Contract
 
 Generated branches must carry the CVE suppression files used by security scanning:

@@ -131,4 +131,13 @@ grep -q 'ghcr.io/finos/traderx-c2' "${TARGET_ROOT}/runtime/ghcr/009-order-manage
   exit 1
 }
 
+echo "[check] template Node.js packages declare Apache-2.0"
+while IFS= read -r pkg; do
+  license="$(jq -r '.license // empty' "${pkg}")"
+  if [[ "${license}" != "Apache-2.0" ]]; then
+    echo "[fail] Node template package license must be Apache-2.0: ${pkg} (found: ${license:-<missing>})"
+    exit 1
+  fi
+done < <(find "${ROOT}/templates" -type d -name node_modules -prune -o -name package.json -print | sort)
+
 echo "[done] generated CI assets checks passed"
