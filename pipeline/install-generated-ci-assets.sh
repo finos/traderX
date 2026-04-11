@@ -266,7 +266,7 @@ EOF
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: security-node-${{ matrix.module-folder }}
+          name: security-node-${{ replace(matrix.module-folder, '/', '-') }}
           path: ${{ github.workspace }}/${{ matrix.module-folder }}-reports
 EOF
   fi
@@ -312,7 +312,7 @@ EOF
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: security-dotnet-${{ matrix.module-folder }}
+          name: security-dotnet-${{ replace(matrix.module-folder, '/', '-') }}
           path: ${{ github.workspace }}/${{ matrix.module-folder }}-reports
 EOF
   fi
@@ -350,6 +350,11 @@ EOF
           else
             gradle clean build --no-daemon
           fi
+      - name: Clear host Java env for dependency-check container
+        shell: bash
+        run: |
+          echo "JAVA_HOME=" >> "${GITHUB_ENV}"
+          echo "JAVA_HOME_21_X64=" >> "${GITHUB_ENV}"
       - name: Dependency check
         uses: dependency-check/Dependency-Check_Action@main
         with:
@@ -365,7 +370,7 @@ EOF
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: security-gradle-${{ matrix.module-folder }}
+          name: security-gradle-${{ replace(matrix.module-folder, '/', '-') }}
           path: ${{ github.workspace }}/${{ matrix.module-folder }}-reports
 EOF
   fi

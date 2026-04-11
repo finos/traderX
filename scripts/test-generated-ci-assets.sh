@@ -37,6 +37,26 @@ for required in \
   }
 done
 
+grep -q "security-node-\${{ replace(matrix.module-folder, '/', '-') }}" "${TARGET_ROOT}/.github/workflows/security.yml" || {
+  echo "[fail] security workflow should sanitize node artifact names"
+  exit 1
+}
+
+grep -q "security-dotnet-\${{ replace(matrix.module-folder, '/', '-') }}" "${TARGET_ROOT}/.github/workflows/security.yml" || {
+  echo "[fail] security workflow should sanitize dotnet artifact names"
+  exit 1
+}
+
+grep -q "security-gradle-\${{ replace(matrix.module-folder, '/', '-') }}" "${TARGET_ROOT}/.github/workflows/security.yml" || {
+  echo "[fail] security workflow should sanitize gradle artifact names"
+  exit 1
+}
+
+grep -q "Clear host Java env for dependency-check container" "${TARGET_ROOT}/.github/workflows/security.yml" || {
+  echo "[fail] security workflow should clear host JAVA_HOME before dependency-check"
+  exit 1
+}
+
 [[ ! -f "${TARGET_ROOT}/.github/workflows/build-and-publish.yml" ]] || {
   echo "[fail] state 002 should not generate convergence build-and-publish workflow"
   exit 1
