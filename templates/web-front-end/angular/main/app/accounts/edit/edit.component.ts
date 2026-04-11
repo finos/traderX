@@ -3,6 +3,7 @@ import { Account } from 'main/app/model/account.model';
 import { AccountService } from 'main/app/service/account.service';
 
 @Component({
+    standalone: false,
     selector: 'app-edit-account',
     templateUrl: 'edit.component.html',
     styleUrls: ['edit.component.scss']

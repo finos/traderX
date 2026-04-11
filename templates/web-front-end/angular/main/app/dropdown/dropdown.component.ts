@@ -3,6 +3,7 @@ import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
 let id = 0;
 
 @Component({
+    standalone: false,
     selector: 'app-ngx-dropdown',
     templateUrl: './dropdown.component.html'
 })

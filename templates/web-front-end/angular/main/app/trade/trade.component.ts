@@ -8,6 +8,7 @@ import { SymbolService } from '../service/symbols.service';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
 @Component({
+    standalone: false,
     selector: 'app-trade',
     templateUrl: './trade.component.html',
     styleUrls: ['./trade.component.scss']

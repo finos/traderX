@@ -10,6 +10,7 @@ import { AccountUser } from '../model/user.model';
 import { UserService } from '../service/user.service';
 
 @Component({
+    standalone: false,
     selector: 'app-account',
     templateUrl: 'account.component.html',
     styleUrls: ['account.component.scss']

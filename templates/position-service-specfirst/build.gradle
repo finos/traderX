@@ -20,6 +20,8 @@ dependencies {
   implementation 'org.springframework.boot:spring-boot-starter-jdbc'
   implementation 'com.h2database:h2:2.3.232'
   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.16'
+  implementation 'org.webjars:swagger-ui:5.32.2'
+  implementation 'org.apache.logging.log4j:log4j-api:2.25.4'
 
   implementation ('ch.qos.logback:logback-core:1.5.32') {
     because 'version brought in by spring boot 3.5.13 affected by CVE-2024-12798'

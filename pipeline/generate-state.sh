@@ -6,6 +6,9 @@ GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${ROOT}/generated}"
 STATE_ID="${1:-}"
 TARGET_ROOT="${GENERATED_ROOT}/code/target-generated"
 COMPONENTS_ROOT="${GENERATED_ROOT}/code/components"
+GEN_DEPTH="${TRADERX_GENERATION_DEPTH:-0}"
+GEN_DEPTH="$((GEN_DEPTH + 1))"
+export TRADERX_GENERATION_DEPTH="${GEN_DEPTH}"
 
 if [[ -z "${STATE_ID}" ]]; then
   echo "usage: bash pipeline/generate-state.sh <state-id>"
@@ -83,6 +86,15 @@ EOF
     fi
     ;;
 esac
+
+# Normalize security-sensitive dependency baselines after state composition.
+# Only run at the top-level invocation so intermediate parent snapshots remain
+# patch-compatible during recursive state generation.
+if (( GEN_DEPTH == 1 )); then
+  bash "${ROOT}/pipeline/normalize-generated-dependency-security.sh" "${STATE_ID}" "${TARGET_ROOT}"
+else
+  echo "[info] skipping dependency normalization for nested generation depth=${GEN_DEPTH} state=${STATE_ID}"
+fi
 
 # Install self-contained runtime scripts alongside the generated codebase.
 bash "${ROOT}/pipeline/install-generated-runtime-harness.sh" "${STATE_ID}" "${TARGET_ROOT}"

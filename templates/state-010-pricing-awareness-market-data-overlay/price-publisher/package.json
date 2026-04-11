@@ -9,7 +9,7 @@
     "start": "node src/main.js"
   },
   "dependencies": {
-    "express": "4.21.2",
+    "express": "4.22.1",
     "nats": "2.29.3",
     "yahoo-finance2": "2.13.3"
   }

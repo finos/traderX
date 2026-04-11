@@ -5,6 +5,7 @@ import { Component, OnDestroy } from '@angular/core';
 type ICellParams = ICellRendererParams & { clicked: (val: any) => void };
 
 @Component({
+    standalone: false,
   selector: 'app-btn-cell-renderer',
   template: `
       <button class="btn btn-sm btn-info" (click)="clickHandler()">Update</button>
