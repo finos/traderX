@@ -114,6 +114,14 @@ configurations.configureEach {
 }
 EOF
       fi
+      if ! rg -q "kotlin-stdlib-jdk8" "${gradle_file}"; then
+        cat >> "${gradle_file}" <<'EOF'
+
+configurations.configureEach {
+  exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+}
+EOF
+      fi
       ;;
   esac
 }
