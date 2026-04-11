@@ -249,6 +249,10 @@ EOF
       - name: Install production dependencies
         run: npm install --omit=dev
         working-directory: ${{ matrix.module_folder }}
+      - name: Prepare artifact name
+        shell: bash
+        run: |
+          echo "UPNAME=$(echo '${{ matrix.module_folder }}' | tr '/\\ ' '---' | tr -cd '[:alnum:]._-')" >> "${GITHUB_ENV}"
       - name: Dependency check
         uses: dependency-check/Dependency-Check_Action@main
         with:
@@ -262,10 +266,6 @@ EOF
             --nodePackageSkipDevDependencies
             --failOnCVSS 5
             --enableRetired
-      - name: Prepare artifact name
-        shell: bash
-        run: |
-          echo "UPNAME=$(echo '${{ matrix.module_folder }}' | tr '/\\ ' '---' | tr -cd '[:alnum:]._-')" >> "${GITHUB_ENV}"
       - name: Upload reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
@@ -301,6 +301,10 @@ EOF
       - name: Build project
         run: dotnet build --configuration Release
         working-directory: ${{ matrix.module_folder }}
+      - name: Prepare artifact name
+        shell: bash
+        run: |
+          echo "UPNAME=$(echo '${{ matrix.module_folder }}' | tr '/\\ ' '---' | tr -cd '[:alnum:]._-')" >> "${GITHUB_ENV}"
       - name: Dependency check
         uses: dependency-check/Dependency-Check_Action@main
         with:
@@ -312,10 +316,6 @@ EOF
             --suppression .github/dotnet-cve-ignore-list.xml
             --failOnCVSS 5
             --enableRetired
-      - name: Prepare artifact name
-        shell: bash
-        run: |
-          echo "UPNAME=$(echo '${{ matrix.module_folder }}' | tr '/\\ ' '---' | tr -cd '[:alnum:]._-')" >> "${GITHUB_ENV}"
       - name: Upload reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
@@ -358,6 +358,10 @@ EOF
           else
             gradle clean build --no-daemon
           fi
+      - name: Prepare artifact name
+        shell: bash
+        run: |
+          echo "UPNAME=$(echo '${{ matrix.module_folder }}' | tr '/\\ ' '---' | tr -cd '[:alnum:]._-')" >> "${GITHUB_ENV}"
       - name: Dependency check
         uses: dependency-check/Dependency-Check_Action@main
         env:
@@ -371,10 +375,6 @@ EOF
             --suppression .github/gradle-cve-ignore-list.xml
             --failOnCVSS 5
             --enableRetired
-      - name: Prepare artifact name
-        shell: bash
-        run: |
-          echo "UPNAME=$(echo '${{ matrix.module_folder }}' | tr '/\\ ' '---' | tr -cd '[:alnum:]._-')" >> "${GITHUB_ENV}"
       - name: Upload reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
