@@ -25,6 +25,10 @@ K8S_PROVIDER="${K8S_PROVIDER:-kind}"
 KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-}"
 MINIKUBE_PROFILE=""
 MINIKUBE_DRIVER="${MINIKUBE_DRIVER:-docker}"
+USE_PUBLISHED_IMAGES="${TRADERX_USE_PUBLISHED_IMAGES:-0}"
+PUBLISHED_REGISTRY="${TRADERX_PUBLISHED_REGISTRY:-ghcr.io/finos}"
+PUBLISHED_NAMESPACE="${TRADERX_PUBLISHED_NAMESPACE:-}"
+PUBLISHED_TAG="${TRADERX_PUBLISHED_TAG:-latest}"
 
 while (( "$#" )); do
   case "$1" in
@@ -39,6 +43,21 @@ while (( "$#" )); do
       ;;
     --skip-generate)
       SKIP_GENERATE=1
+      ;;
+    --use-published-images)
+      USE_PUBLISHED_IMAGES=1
+      ;;
+    --published-registry)
+      PUBLISHED_REGISTRY="${2:-}"
+      shift
+      ;;
+    --published-namespace)
+      PUBLISHED_NAMESPACE="${2:-}"
+      shift
+      ;;
+    --published-tag)
+      PUBLISHED_TAG="${2:-}"
+      shift
       ;;
     --provider)
       K8S_PROVIDER="${2:-}"
@@ -58,7 +77,7 @@ while (( "$#" )); do
       ;;
     *)
       echo "[error] unknown argument: $1"
-      echo "[hint] supported: --dry-run --skip-build --recreate-cluster --skip-generate --provider <kind|minikube> --cluster-name <name> --minikube-profile <name> --minikube-driver <name>"
+      echo "[hint] supported: --dry-run --skip-build --recreate-cluster --skip-generate --use-published-images --published-registry <registry> --published-namespace <namespace> --published-tag <tag> --provider <kind|minikube> --cluster-name <name> --minikube-profile <name> --minikube-driver <name>"
       exit 1
       ;;
   esac
@@ -67,6 +86,15 @@ done
 
 if [[ "${TRADERX_SKIP_GENERATE:-0}" == "1" ]]; then
   SKIP_GENERATE=1
+fi
+
+if (( USE_PUBLISHED_IMAGES == 1 )); then
+  SKIP_BUILD=1
+  if [[ -z "${PUBLISHED_NAMESPACE}" ]]; then
+    echo "[error] published image mode requires namespace"
+    echo "[hint] set --published-namespace <name> or TRADERX_PUBLISHED_NAMESPACE=<name>"
+    exit 1
+  fi
 fi
 
 if ! command -v jq >/dev/null 2>&1; then
@@ -139,7 +167,20 @@ if (( DRY_RUN == 1 )); then
   else
     echo "[dry-run] minikube status -p '${MINIKUBE_PROFILE}' || minikube start -p '${MINIKUBE_PROFILE}' --driver '${MINIKUBE_DRIVER}'"
   fi
-  if (( SKIP_BUILD == 0 )); then
+  if (( USE_PUBLISHED_IMAGES == 1 )); then
+    while IFS= read -r item; do
+      name="$(jq -r '.name' <<<"${item}")"
+      image="$(jq -r '.image' <<<"${item}")"
+      published_image="${PUBLISHED_REGISTRY}/${PUBLISHED_NAMESPACE}/${name}:${PUBLISHED_TAG}"
+      echo "[dry-run] docker pull ${published_image}  # ${name}"
+      echo "[dry-run] docker tag ${published_image} ${image}"
+      if [[ "${K8S_PROVIDER}" == "kind" ]]; then
+        echo "[dry-run] kind load docker-image ${image} --name ${cluster_name}"
+      else
+        echo "[dry-run] minikube image load ${image} -p ${MINIKUBE_PROFILE}"
+      fi
+    done < <(jq -c '.images[]' "${BUILD_PLAN}")
+  elif (( SKIP_BUILD == 0 )); then
     while IFS= read -r item; do
       name="$(jq -r '.name' <<<"${item}")"
       image="$(jq -r '.image' <<<"${item}")"
@@ -260,21 +301,26 @@ fi
 while IFS= read -r item; do
   name="$(jq -r '.name' <<<"${item}")"
   image="$(jq -r '.image' <<<"${item}")"
-  context_rel="$(jq -r '.context' <<<"${item}")"
-  dockerfile_rel="$(jq -r '.dockerfile' <<<"${item}")"
-  context_abs="${GENERATED_ROOT}/code/target-generated/${context_rel}"
-  dockerfile_abs="${context_abs}/${dockerfile_rel}"
+  if (( USE_PUBLISHED_IMAGES == 1 )); then
+    published_image="${PUBLISHED_REGISTRY}/${PUBLISHED_NAMESPACE}/${name}:${PUBLISHED_TAG}"
+    echo "[pull] ${name} <- ${published_image}"
+    docker pull "${published_image}"
+    docker tag "${published_image}" "${image}"
+  elif (( SKIP_BUILD == 0 )); then
+    context_rel="$(jq -r '.context' <<<"${item}")"
+    dockerfile_rel="$(jq -r '.dockerfile' <<<"${item}")"
+    context_abs="${GENERATED_ROOT}/code/target-generated/${context_rel}"
+    dockerfile_abs="${context_abs}/${dockerfile_rel}"
 
-  [[ -d "${context_abs}" ]] || {
-    echo "[error] build context not found for ${name}: ${context_abs}"
-    exit 1
-  }
-  [[ -f "${dockerfile_abs}" ]] || {
-    echo "[error] dockerfile not found for ${name}: ${dockerfile_abs}"
-    exit 1
-  }
+    [[ -d "${context_abs}" ]] || {
+      echo "[error] build context not found for ${name}: ${context_abs}"
+      exit 1
+    }
+    [[ -f "${dockerfile_abs}" ]] || {
+      echo "[error] dockerfile not found for ${name}: ${dockerfile_abs}"
+      exit 1
+    }
 
-  if (( SKIP_BUILD == 0 )); then
     echo "[build] ${name} -> ${image}"
     docker build -t "${image}" -f "${dockerfile_abs}" "${context_abs}"
   else
@@ -295,7 +341,9 @@ while IFS= read -r item; do
   fi
 done < <(jq -c '.images[]' "${BUILD_PLAN}")
 
-if (( SKIP_BUILD == 1 )); then
+if (( USE_PUBLISHED_IMAGES == 1 )); then
+  echo "[info] pulled and retagged published images from ${PUBLISHED_REGISTRY}/${PUBLISHED_NAMESPACE}:${PUBLISHED_TAG}"
+elif (( SKIP_BUILD == 1 )); then
   echo "[info] skipped docker build and loaded existing local images (--skip-build)"
 else
   echo "[info] built and loaded images"
@@ -350,6 +398,9 @@ wait_for_http "prometheus-ready" "http://localhost:${host_port}/prometheus/-/rea
 
 echo "[done] state 010 kubernetes runtime started"
 echo "[provider] ${K8S_PROVIDER}"
+if (( USE_PUBLISHED_IMAGES == 1 )); then
+  echo "[images] published namespace=${PUBLISHED_NAMESPACE} tag=${PUBLISHED_TAG}"
+fi
 echo "[ui] http://localhost:${host_port}"
 echo "[grafana] http://localhost:${host_port}/grafana (local login credentials)"
 echo "[prometheus] http://localhost:${host_port}/prometheus"

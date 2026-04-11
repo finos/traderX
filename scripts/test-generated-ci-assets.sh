@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TMP_DIR="$(mktemp -d /tmp/traderx-ci-assets.XXXXXX)"
+trap 'rm -rf "${TMP_DIR}"' EXIT
+
+TARGET_ROOT="${TMP_DIR}/generated/code/target-generated"
+mkdir -p "${TARGET_ROOT}"
+
+echo "[check] state 002 installs security/license workflows and suppression files"
+mkdir -p \
+  "${TARGET_ROOT}/reference-data" \
+  "${TARGET_ROOT}/web-front-end/angular" \
+  "${TARGET_ROOT}/account-service" \
+  "${TARGET_ROOT}/people-service" \
+  "${TARGET_ROOT}/ingress"
+touch \
+  "${TARGET_ROOT}/reference-data/package.json" \
+  "${TARGET_ROOT}/web-front-end/angular/package.json" \
+  "${TARGET_ROOT}/account-service/build.gradle" \
+  "${TARGET_ROOT}/people-service/people-service.csproj" \
+  "${TARGET_ROOT}/ingress/Dockerfile.compose"
+
+bash "${ROOT}/pipeline/install-generated-ci-assets.sh" 002-edge-proxy-uncontainerized "${TARGET_ROOT}"
+
+for required in \
+  "${TARGET_ROOT}/.github/workflows/security.yml" \
+  "${TARGET_ROOT}/.github/workflows/license-scanning-node.yml" \
+  "${TARGET_ROOT}/.github/gradle-cve-ignore-list.xml" \
+  "${TARGET_ROOT}/.github/node-cve-ignore-list.xml" \
+  "${TARGET_ROOT}/.github/dotnet-cve-ignore-list.xml" \
+  "${TARGET_ROOT}/ci/state-metadata.json"; do
+  [[ -f "${required}" ]] || {
+    echo "[fail] missing generated CI artifact: ${required}"
+    exit 1
+  }
+done
+
+[[ ! -f "${TARGET_ROOT}/.github/workflows/build-and-publish.yml" ]] || {
+  echo "[fail] state 002 should not generate convergence build-and-publish workflow"
+  exit 1
+}
+
+echo "[check] state 009 generates convergence workflows + GHCR run bundle"
+rm -rf "${TARGET_ROOT}"
+mkdir -p \
+  "${TARGET_ROOT}/reference-data" \
+  "${TARGET_ROOT}/web-front-end/angular" \
+  "${TARGET_ROOT}/order-matcher" \
+  "${TARGET_ROOT}/ingress" \
+  "${TARGET_ROOT}/order-management-matcher"
+touch \
+  "${TARGET_ROOT}/reference-data/package.json" \
+  "${TARGET_ROOT}/web-front-end/angular/package.json" \
+  "${TARGET_ROOT}/order-matcher/Dockerfile.compose" \
+  "${TARGET_ROOT}/ingress/Dockerfile.compose"
+cat > "${TARGET_ROOT}/order-management-matcher/docker-compose.yml" <<'EOF'
+name: traderx-state-009
+services:
+  reference-data:
+    build:
+      context: ../reference-data
+      dockerfile: Dockerfile.compose
+  web-front-end-angular:
+    build:
+      context: ../web-front-end/angular
+      dockerfile: Dockerfile.compose
+  ingress:
+    build:
+      context: ../ingress
+      dockerfile: Dockerfile.compose
+  database:
+    image: postgres:16-alpine
+volumes:
+  postgres_state_009_data: {}
+EOF
+
+bash "${ROOT}/pipeline/install-generated-ci-assets.sh" 009-order-management-matcher "${TARGET_ROOT}"
+
+for required in \
+  "${TARGET_ROOT}/.github/workflows/security.yml" \
+  "${TARGET_ROOT}/.github/workflows/license-scanning-node.yml" \
+  "${TARGET_ROOT}/.github/workflows/build-and-publish.yml" \
+  "${TARGET_ROOT}/runtime/ghcr/009-order-management-matcher/README.md" \
+  "${TARGET_ROOT}/runtime/ghcr/009-order-management-matcher/images.lock" \
+  "${TARGET_ROOT}/runtime/ghcr/009-order-management-matcher/docker-compose.ghcr.yml"; do
+  [[ -f "${required}" ]] || {
+    echo "[fail] missing convergence CI artifact: ${required}"
+    exit 1
+  }
+done
+
+grep -q 'IMAGE_NAMESPACE: traderx-c2' "${TARGET_ROOT}/.github/workflows/build-and-publish.yml" || {
+  echo "[fail] convergence namespace traderx-c2 not found in build-and-publish workflow"
+  exit 1
+}
+
+grep -q 'ghcr.io/finos/traderx-c2' "${TARGET_ROOT}/runtime/ghcr/009-order-management-matcher/images.lock" || {
+  echo "[fail] ghcr namespace mapping missing from images.lock"
+  exit 1
+}
+
+echo "[done] generated CI assets checks passed"
