@@ -175,6 +175,43 @@ if ! awk "BEGIN {exit !(${spring_metric_sample_count} > 0)}"; then
   exit 1
 fi
 
+echo "[check] promtail daemonset is available"
+kubectl rollout status daemonset/promtail -n "${NAMESPACE}" --timeout=180s >/dev/null
+
+echo "[check] grafana loki datasource has ingesting log streams"
+now_ms=$(($(date +%s) * 1000))
+from_ms=$((now_ms - 15 * 60 * 1000))
+loki_total_query_result="$(
+  curl -sS -u admin:admin -H 'Content-Type: application/json' -X POST "${INGRESS_URL}/grafana/api/ds/query" \
+    -d "{\"from\":\"${from_ms}\",\"to\":\"${now_ms}\",\"queries\":[{\"refId\":\"A\",\"datasource\":{\"uid\":\"loki\",\"type\":\"loki\"},\"expr\":\"sum(count_over_time({compose_project=\\\"traderx-state-009\\\"}[5m]))\",\"queryType\":\"range\",\"intervalMs\":1000,\"maxDataPoints\":500}]}"
+)"
+loki_total_query_error="$(echo "${loki_total_query_result}" | jq -r '.results.A.error // empty')"
+loki_total_last="$(echo "${loki_total_query_result}" | jq -r '.results.A.frames[0].data.values[1][-1] // "0"')"
+if [[ -n "${loki_total_query_error}" ]]; then
+  echo "[error] grafana loki query failed: ${loki_total_query_error}"
+  exit 1
+fi
+if ! awk "BEGIN {exit !(${loki_total_last} > 0)}"; then
+  echo "[error] expected non-empty Loki ingestion in last 5m, got ${loki_total_last}"
+  exit 1
+fi
+
+echo "[check] dashboard service filters have log content (nats/pipeline/control-plane)"
+loki_service_query_result="$(
+  curl -sS -u admin:admin -H 'Content-Type: application/json' -X POST "${INGRESS_URL}/grafana/api/ds/query" \
+    -d "{\"from\":\"${from_ms}\",\"to\":\"${now_ms}\",\"queries\":[{\"refId\":\"A\",\"datasource\":{\"uid\":\"loki\",\"type\":\"loki\"},\"expr\":\"sum(count_over_time({compose_project=\\\"traderx-state-009\\\",service=~\\\"nats-broker|trade-service|trade-processor|price-publisher|position-service|grafana|loki|tempo|otel-collector|prometheus|edge-proxy\\\"}[10m]))\",\"queryType\":\"range\",\"intervalMs\":1000,\"maxDataPoints\":500}]}"
+)"
+loki_service_query_error="$(echo "${loki_service_query_result}" | jq -r '.results.A.error // empty')"
+loki_service_last="$(echo "${loki_service_query_result}" | jq -r '.results.A.frames[0].data.values[1][-1] // "0"')"
+if [[ -n "${loki_service_query_error}" ]]; then
+  echo "[error] grafana loki service-filter query failed: ${loki_service_query_error}"
+  exit 1
+fi
+if ! awk "BEGIN {exit !(${loki_service_last} > 0)}"; then
+  echo "[error] expected non-empty service-filtered Loki logs for dashboard panels, got ${loki_service_last}"
+  exit 1
+fi
+
 echo "[check] state 010 ingress-routed service smoke suite"
 "${REPO_ROOT}/scripts/test-reference-data-overlay.sh" "${INGRESS_URL}" "${INGRESS_URL}/reference-data"
 "${REPO_ROOT}/scripts/test-account-service-overlay.sh" "${INGRESS_URL}" "${INGRESS_URL}/account-service"

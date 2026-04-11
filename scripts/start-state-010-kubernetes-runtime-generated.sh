@@ -173,6 +173,7 @@ if (( DRY_RUN == 1 )); then
   while IFS= read -r deployment; do
     echo "[dry-run] kubectl rollout restart deployment/${deployment} -n ${namespace}"
   done < <(jq -r '.deployments[]' "${BUILD_PLAN}")
+  echo "[dry-run] kubectl rollout restart daemonset/promtail -n ${namespace}  # if present"
   echo "[done] dry run complete for state 010"
   exit 0
 fi
@@ -308,8 +309,16 @@ while IFS= read -r deployment; do
   kubectl rollout restart "deployment/${deployment}" -n "${namespace}" >/dev/null
 done < <(jq -r '.deployments[]' "${BUILD_PLAN}")
 
+if kubectl get daemonset/promtail -n "${namespace}" >/dev/null 2>&1; then
+  echo "[restart] rolling daemonset/promtail to refresh mounted config"
+  kubectl rollout restart daemonset/promtail -n "${namespace}" >/dev/null
+fi
+
 echo "[wait] deployments available in namespace ${namespace}"
 kubectl wait --for=condition=Available deployment --all -n "${namespace}" --timeout=600s
+if kubectl get daemonset/promtail -n "${namespace}" >/dev/null 2>&1; then
+  kubectl rollout status daemonset/promtail -n "${namespace}" --timeout=300s >/dev/null
+fi
 
 if [[ "${K8S_PROVIDER}" == "minikube" ]]; then
   stop_minikube_port_forward

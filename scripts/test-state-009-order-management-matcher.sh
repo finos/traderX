@@ -384,4 +384,38 @@ printf '%s\n' "${admin_headers}" | grep -q "200" || {
   exit 1
 }
 
+echo "[check] grafana loki datasource has non-empty log streams in order-management runtime"
+now_ms=$(($(date +%s) * 1000))
+from_ms=$((now_ms - 15 * 60 * 1000))
+loki_total_query_result="$(
+  curl -sS -u admin:admin -H 'Content-Type: application/json' -X POST "http://localhost:${GRAFANA_PORT}/api/ds/query" \
+    -d "{\"from\":\"${from_ms}\",\"to\":\"${now_ms}\",\"queries\":[{\"refId\":\"A\",\"datasource\":{\"uid\":\"loki\",\"type\":\"loki\"},\"expr\":\"sum(count_over_time({compose_project=\\\"${COMPOSE_PROJECT_NAME}\\\"}[5m]))\",\"queryType\":\"range\",\"intervalMs\":1000,\"maxDataPoints\":500}]}"
+)"
+loki_total_query_error="$(echo "${loki_total_query_result}" | jq -r '.results.A.error // empty')"
+loki_total_last="$(echo "${loki_total_query_result}" | jq -r '.results.A.frames[0].data.values[1][-1] // "0"')"
+if [[ -n "${loki_total_query_error}" ]]; then
+  echo "[error] grafana loki query failed: ${loki_total_query_error}"
+  exit 1
+fi
+if ! awk "BEGIN {exit !(${loki_total_last} > 0)}"; then
+  echo "[error] expected non-empty Loki ingestion in last 5m, got ${loki_total_last}"
+  exit 1
+fi
+
+echo "[check] dashboard service-filtered logs are present (nats/pricing/control-plane/order)"
+loki_service_query_result="$(
+  curl -sS -u admin:admin -H 'Content-Type: application/json' -X POST "http://localhost:${GRAFANA_PORT}/api/ds/query" \
+    -d "{\"from\":\"${from_ms}\",\"to\":\"${now_ms}\",\"queries\":[{\"refId\":\"A\",\"datasource\":{\"uid\":\"loki\",\"type\":\"loki\"},\"expr\":\"sum(count_over_time({compose_project=\\\"${COMPOSE_PROJECT_NAME}\\\",service=~\\\"nats-broker|price-publisher|trade-service|trade-processor|position-service|order-matcher|web-front-end-angular|grafana|loki|tempo|otel-collector|prometheus|promtail\\\"}[10m]))\",\"queryType\":\"range\",\"intervalMs\":1000,\"maxDataPoints\":500}]}"
+)"
+loki_service_query_error="$(echo "${loki_service_query_result}" | jq -r '.results.A.error // empty')"
+loki_service_last="$(echo "${loki_service_query_result}" | jq -r '.results.A.frames[0].data.values[1][-1] // "0"')"
+if [[ -n "${loki_service_query_error}" ]]; then
+  echo "[error] grafana loki service-filter query failed: ${loki_service_query_error}"
+  exit 1
+fi
+if ! awk "BEGIN {exit !(${loki_service_last} > 0)}"; then
+  echo "[error] expected non-empty service-filtered Loki logs for dashboards, got ${loki_service_last}"
+  exit 1
+fi
+
 echo "[done] state 009 order-management observability smoke tests passed"

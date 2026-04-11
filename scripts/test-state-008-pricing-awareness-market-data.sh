@@ -288,6 +288,40 @@ process.on('exit', () => {
 });
 NODE
 
+echo "[check] grafana loki datasource has non-empty pricing/runtime log streams"
+now_ms=$(($(date +%s) * 1000))
+from_ms=$((now_ms - 15 * 60 * 1000))
+loki_total_query_result="$(
+  curl -sS -u admin:admin -H 'Content-Type: application/json' -X POST "http://localhost:${GRAFANA_PORT:-3001}/api/ds/query" \
+    -d "{\"from\":\"${from_ms}\",\"to\":\"${now_ms}\",\"queries\":[{\"refId\":\"A\",\"datasource\":{\"uid\":\"loki\",\"type\":\"loki\"},\"expr\":\"sum(count_over_time({compose_project=\\\"${COMPOSE_PROJECT_NAME}\\\"}[5m]))\",\"queryType\":\"range\",\"intervalMs\":1000,\"maxDataPoints\":500}]}"
+)"
+loki_total_query_error="$(echo "${loki_total_query_result}" | jq -r '.results.A.error // empty')"
+loki_total_last="$(echo "${loki_total_query_result}" | jq -r '.results.A.frames[0].data.values[1][-1] // "0"')"
+if [[ -n "${loki_total_query_error}" ]]; then
+  echo "[error] grafana loki query failed: ${loki_total_query_error}"
+  exit 1
+fi
+if ! awk "BEGIN {exit !(${loki_total_last} > 0)}"; then
+  echo "[error] expected non-empty Loki ingestion in last 5m, got ${loki_total_last}"
+  exit 1
+fi
+
+echo "[check] dashboard service-filtered pricing pipeline logs are present"
+loki_service_query_result="$(
+  curl -sS -u admin:admin -H 'Content-Type: application/json' -X POST "http://localhost:${GRAFANA_PORT:-3001}/api/ds/query" \
+    -d "{\"from\":\"${from_ms}\",\"to\":\"${now_ms}\",\"queries\":[{\"refId\":\"A\",\"datasource\":{\"uid\":\"loki\",\"type\":\"loki\"},\"expr\":\"sum(count_over_time({compose_project=\\\"${COMPOSE_PROJECT_NAME}\\\",service=~\\\"price-publisher|trade-service|trade-processor|position-service|nats-broker|web-front-end-angular\\\"}[10m]))\",\"queryType\":\"range\",\"intervalMs\":1000,\"maxDataPoints\":500}]}"
+)"
+loki_service_query_error="$(echo "${loki_service_query_result}" | jq -r '.results.A.error // empty')"
+loki_service_last="$(echo "${loki_service_query_result}" | jq -r '.results.A.frames[0].data.values[1][-1] // "0"')"
+if [[ -n "${loki_service_query_error}" ]]; then
+  echo "[error] grafana loki service-filter query failed: ${loki_service_query_error}"
+  exit 1
+fi
+if ! awk "BEGIN {exit !(${loki_service_last} > 0)}"; then
+  echo "[error] expected non-empty service-filtered Loki logs for pricing dashboards, got ${loki_service_last}"
+  exit 1
+fi
+
 echo "[check] ingress trade-service unknown ticker validation"
 status_code="$(curl -sS -o /tmp/traderx-state-008-trade.out -w "%{http_code}" \
   -H "Content-Type: application/json" \

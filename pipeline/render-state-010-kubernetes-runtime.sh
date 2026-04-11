@@ -19,6 +19,7 @@ OTEL_SOURCE="${OBS_SOURCE_DIR}/otel-collector/config.yaml"
 GRAFANA_DATASOURCES_SOURCE="${OBS_SOURCE_DIR}/grafana/provisioning/datasources/datasources.yaml"
 GRAFANA_DASHBOARD_PROVIDER_SOURCE="${OBS_SOURCE_DIR}/grafana/provisioning/dashboards/dashboards.yaml"
 GRAFANA_DASHBOARDS_DIR="${OBS_SOURCE_DIR}/grafana/dashboards"
+LOG_COMPOSE_PROJECT_LABEL="traderx-state-009"
 
 for required in \
   "${SPEC_JSON}" \
@@ -220,6 +221,43 @@ rm -f "${PROMETHEUS_RENDER_SOURCE}"
   echo "  config.yaml: |"
   sed 's/^/    /' "${LOKI_SOURCE}"
 } > "${MANIFEST_DIR}/observability-loki-configmap.yaml"
+
+cat > "${MANIFEST_DIR}/observability-promtail-configmap.yaml" <<EOF
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: observability-promtail-config
+  namespace: ${NAMESPACE}
+data:
+  config.yaml: |
+    server:
+      http_listen_port: 3101
+      grpc_listen_port: 0
+
+    positions:
+      filename: /run/promtail/positions.yaml
+
+    clients:
+      - url: http://loki:3100/loki/api/v1/push
+
+    scrape_configs:
+      - job_name: traderx-pod-logs
+        pipeline_stages:
+          - cri: {}
+          - regex:
+              source: filename
+              expression: '/var/log/pods/(?P<namespace>[^_]+)_(?P<pod>[^_]+)_(?P<pod_uid>[^/]+)/(?P<service>[^/]+)/.*'
+          - labels:
+              namespace:
+              pod:
+              service:
+        static_configs:
+          - targets: [localhost]
+            labels:
+              compose_project: ${LOG_COMPOSE_PROJECT_LABEL}
+              job: traderx-docker
+              __path__: /var/log/pods/${NAMESPACE}_*/*/*.log
+EOF
 
 {
   echo "apiVersion: v1"
@@ -604,6 +642,88 @@ spec:
       targetPort: 3100
 EOF
 
+cat > "${MANIFEST_DIR}/promtail-serviceaccount.yaml" <<EOF
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: promtail
+  namespace: ${NAMESPACE}
+EOF
+
+cat > "${MANIFEST_DIR}/promtail-clusterrole.yaml" <<'EOF'
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: promtail-traderx
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "nodes", "namespaces", "services"]
+    verbs: ["get", "list", "watch"]
+EOF
+
+cat > "${MANIFEST_DIR}/promtail-clusterrolebinding.yaml" <<EOF
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: promtail-traderx
+subjects:
+  - kind: ServiceAccount
+    name: promtail
+    namespace: ${NAMESPACE}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: promtail-traderx
+EOF
+
+cat > "${MANIFEST_DIR}/promtail-daemonset.yaml" <<EOF
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: promtail
+  namespace: ${NAMESPACE}
+  labels:
+    app: promtail
+spec:
+  selector:
+    matchLabels:
+      app: promtail
+  template:
+    metadata:
+      labels:
+        app: promtail
+    spec:
+      serviceAccountName: promtail
+      containers:
+        - name: promtail
+          image: grafana/promtail:2.9.8
+          imagePullPolicy: IfNotPresent
+          args: ["-config.file=/etc/promtail/config.yaml"]
+          ports:
+            - name: http
+              containerPort: 3101
+              protocol: TCP
+          volumeMounts:
+            - name: promtail-config
+              mountPath: /etc/promtail/config.yaml
+              subPath: config.yaml
+            - name: varlogpods
+              mountPath: /var/log/pods
+              readOnly: true
+            - name: run
+              mountPath: /run/promtail
+      volumes:
+        - name: promtail-config
+          configMap:
+            name: observability-promtail-config
+        - name: varlogpods
+          hostPath:
+            path: /var/log/pods
+            type: DirectoryOrCreate
+        - name: run
+          emptyDir: {}
+EOF
+
 cat > "${MANIFEST_DIR}/tempo-deployment.yaml" <<EOF
 apiVersion: apps/v1
 kind: Deployment
@@ -944,6 +1064,7 @@ EOF
   echo "  - nats-configmap.yaml"
   echo "  - observability-blackbox-configmap.yaml"
   echo "  - observability-loki-configmap.yaml"
+  echo "  - observability-promtail-configmap.yaml"
   echo "  - observability-tempo-configmap.yaml"
   echo "  - observability-otel-configmap.yaml"
   echo "  - observability-prometheus-configmap.yaml"
@@ -956,6 +1077,10 @@ EOF
   echo "  - blackbox-exporter-service.yaml"
   echo "  - loki-deployment.yaml"
   echo "  - loki-service.yaml"
+  echo "  - promtail-serviceaccount.yaml"
+  echo "  - promtail-clusterrole.yaml"
+  echo "  - promtail-clusterrolebinding.yaml"
+  echo "  - promtail-daemonset.yaml"
   echo "  - tempo-deployment.yaml"
   echo "  - tempo-service.yaml"
   echo "  - otel-collector-deployment.yaml"

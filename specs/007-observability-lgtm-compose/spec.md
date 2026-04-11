@@ -24,9 +24,11 @@
 - NFR-01104: Container logs are collected into Loki and queryable from Grafana.
 - NFR-01105: Observability stack availability endpoints are healthy before state startup is considered complete.
 - NFR-01106: Every service in this state that exposes Prometheus-compatible metrics MUST be scraped by Prometheus and represented in at least one provisioned Grafana dashboard.
+- NFR-01107: Smoke tests MUST validate non-empty Loki-backed dashboard content (runtime and service-filtered log queries), not only dashboard provisioning.
 
 ## Success Criteria
 
 - SC-01101: `./scripts/start-state-007-observability-lgtm-compose-generated.sh` brings up app + observability stack successfully.
 - SC-01102: `./scripts/test-state-007-observability-lgtm-compose.sh` validates observability endpoints, dashboard provisioning, and baseline functional flow.
+- SC-01104: Smoke checks fail if Grafana dashboards are present but Loki-backed panels have no ingesting log content.
 - SC-01103: `http://localhost:3001` shows provisioned TraderX dashboard(s) and connected datasources.

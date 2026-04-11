@@ -32,5 +32,6 @@ Document NFR changes introduced by this state.
 - Spring Boot actuator Prometheus metrics are scraped for all compatible JVM services in this state.
 - Prometheus-compatible metrics exposure is a required integration point: if a service supports it, scrape targets and dashboards must be updated in the same change.
 - Container logs are queryable in Grafana via Loki.
+- Smoke validation must verify Loki-backed dashboard data is non-empty for both total runtime streams and service-filtered panels (for example messaging, pricing pipeline, and control-plane views).
 - OTel Collector and Tempo are wired for trace ingestion to support future instrumentation growth.
 - Provisioned dashboards provide out-of-the-box visibility for service availability, latency, log throughput, and JVM/service metric health.
