@@ -37,28 +37,28 @@ for required in \
   }
 done
 
-grep -q "name: Sanitize artifact name" "${TARGET_ROOT}/.github/workflows/security.yml" || {
-  echo "[fail] security workflow should include artifact-name sanitization step"
+grep -q "name: Prepare artifact name" "${TARGET_ROOT}/.github/workflows/security.yml" || {
+  echo "[fail] security workflow should include artifact-name preparation step"
   exit 1
 }
 
-grep -q "security-node-\${{ steps.sanitize_artifact_name.outputs.value }}" "${TARGET_ROOT}/.github/workflows/security.yml" || {
+grep -q "security-node-\${{ env.UPNAME }}" "${TARGET_ROOT}/.github/workflows/security.yml" || {
   echo "[fail] security workflow should use sanitized node artifact names"
   exit 1
 }
 
-grep -q "security-dotnet-\${{ steps.sanitize_artifact_name.outputs.value }}" "${TARGET_ROOT}/.github/workflows/security.yml" || {
+grep -q "security-dotnet-\${{ env.UPNAME }}" "${TARGET_ROOT}/.github/workflows/security.yml" || {
   echo "[fail] security workflow should use sanitized dotnet artifact names"
   exit 1
 }
 
-grep -q "security-gradle-\${{ steps.sanitize_artifact_name.outputs.value }}" "${TARGET_ROOT}/.github/workflows/security.yml" || {
+grep -q "security-gradle-\${{ env.UPNAME }}" "${TARGET_ROOT}/.github/workflows/security.yml" || {
   echo "[fail] security workflow should use sanitized gradle artifact names"
   exit 1
 }
 
-grep -q "Clear host Java env for dependency-check container" "${TARGET_ROOT}/.github/workflows/security.yml" || {
-  echo "[fail] security workflow should clear host JAVA_HOME before dependency-check"
+grep -q "JAVA_HOME: /opt/jdk" "${TARGET_ROOT}/.github/workflows/security.yml" || {
+  echo "[fail] security workflow should set JAVA_HOME=/opt/jdk for dependency-check"
   exit 1
 }
 

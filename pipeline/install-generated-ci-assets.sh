@@ -228,12 +228,12 @@ EOF
     job_count=$((job_count + 1))
     cat >> "${file_path}" <<'EOF'
   node-modules-scan:
-    name: ${{ matrix.module-folder }}-node-scan
+    name: ${{ matrix.module_folder }}-node-scan
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        module-folder:
+        module_folder:
 EOF
     for module in "${node_modules[@]}"; do
       printf '          - %s\n' "${module}" >> "${file_path}"
@@ -248,33 +248,30 @@ EOF
           node-version: 20
       - name: Install production dependencies
         run: npm install --omit=dev
-        working-directory: ${{ matrix.module-folder }}
+        working-directory: ${{ matrix.module_folder }}
       - name: Dependency check
         uses: dependency-check/Dependency-Check_Action@main
         with:
-          project: ${{ matrix.module-folder }}
-          path: ${{ matrix.module-folder }}
+          project: ${{ matrix.module_folder }}
+          path: ${{ matrix.module_folder }}
           format: HTML
-          out: ${{ matrix.module-folder }}-reports
+          out: ${{ matrix.module_folder }}-reports
           args: >
             --suppression .github/node-cve-ignore-list.xml
             --nodeAuditSkipDevDependencies
             --nodePackageSkipDevDependencies
             --failOnCVSS 5
             --enableRetired
-      - name: Sanitize artifact name
-        id: sanitize_artifact_name
+      - name: Prepare artifact name
         shell: bash
         run: |
-          module_folder="${{ matrix.module-folder }}"
-          safe_name="$(printf '%s' "${module_folder}" | tr '/\\ ' '---' | tr -cd '[:alnum:]._-')"
-          echo "value=${safe_name}" >> "${GITHUB_OUTPUT}"
+          echo "UPNAME=$(echo '${{ matrix.module_folder }}' | tr '/\\ ' '---' | tr -cd '[:alnum:]._-')" >> "${GITHUB_ENV}"
       - name: Upload reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: security-node-${{ steps.sanitize_artifact_name.outputs.value }}
-          path: ${{ github.workspace }}/${{ matrix.module-folder }}-reports
+          name: security-node-${{ env.UPNAME }}
+          path: ${{ github.workspace }}/${{ matrix.module_folder }}-reports
 EOF
   fi
 
@@ -283,12 +280,12 @@ EOF
     cat >> "${file_path}" <<'EOF'
 
   dotnet-modules-scan:
-    name: ${{ matrix.module-folder }}-dotnet-scan
+    name: ${{ matrix.module_folder }}-dotnet-scan
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        module-folder:
+        module_folder:
 EOF
     for module in "${dotnet_modules[@]}"; do
       printf '          - %s\n' "${module}" >> "${file_path}"
@@ -303,31 +300,28 @@ EOF
           dotnet-version: 9.0.x
       - name: Build project
         run: dotnet build --configuration Release
-        working-directory: ${{ matrix.module-folder }}
+        working-directory: ${{ matrix.module_folder }}
       - name: Dependency check
         uses: dependency-check/Dependency-Check_Action@main
         with:
-          project: ${{ matrix.module-folder }}
-          path: ${{ matrix.module-folder }}
+          project: ${{ matrix.module_folder }}
+          path: ${{ matrix.module_folder }}
           format: HTML
-          out: ${{ matrix.module-folder }}-reports
+          out: ${{ matrix.module_folder }}-reports
           args: >
             --suppression .github/dotnet-cve-ignore-list.xml
             --failOnCVSS 5
             --enableRetired
-      - name: Sanitize artifact name
-        id: sanitize_artifact_name
+      - name: Prepare artifact name
         shell: bash
         run: |
-          module_folder="${{ matrix.module-folder }}"
-          safe_name="$(printf '%s' "${module_folder}" | tr '/\\ ' '---' | tr -cd '[:alnum:]._-')"
-          echo "value=${safe_name}" >> "${GITHUB_OUTPUT}"
+          echo "UPNAME=$(echo '${{ matrix.module_folder }}' | tr '/\\ ' '---' | tr -cd '[:alnum:]._-')" >> "${GITHUB_ENV}"
       - name: Upload reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: security-dotnet-${{ steps.sanitize_artifact_name.outputs.value }}
-          path: ${{ github.workspace }}/${{ matrix.module-folder }}-reports
+          name: security-dotnet-${{ env.UPNAME }}
+          path: ${{ github.workspace }}/${{ matrix.module_folder }}-reports
 EOF
   fi
 
@@ -336,12 +330,12 @@ EOF
     cat >> "${file_path}" <<'EOF'
 
   gradle-modules-scan:
-    name: ${{ matrix.module-folder }}-gradle-scan
+    name: ${{ matrix.module_folder }}-gradle-scan
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        module-folder:
+        module_folder:
 EOF
     for module in "${gradle_modules[@]}"; do
       printf '          - %s\n' "${module}" >> "${file_path}"
@@ -357,42 +351,36 @@ EOF
           java-version: 21
       - name: Build project
         shell: bash
-        working-directory: ${{ matrix.module-folder }}
+        working-directory: ${{ matrix.module_folder }}
         run: |
           if [[ -x ./gradlew ]]; then
             ./gradlew clean build --no-daemon
           else
             gradle clean build --no-daemon
           fi
-      - name: Clear host Java env for dependency-check container
-        shell: bash
-        run: |
-          echo "JAVA_HOME=" >> "${GITHUB_ENV}"
-          echo "JAVA_HOME_21_X64=" >> "${GITHUB_ENV}"
       - name: Dependency check
         uses: dependency-check/Dependency-Check_Action@main
+        env:
+          JAVA_HOME: /opt/jdk
         with:
-          project: ${{ matrix.module-folder }}
-          path: ${{ matrix.module-folder }}
+          project: ${{ matrix.module_folder }}
+          path: ${{ matrix.module_folder }}
           format: HTML
-          out: ${{ matrix.module-folder }}-reports
+          out: ${{ matrix.module_folder }}-reports
           args: >
             --suppression .github/gradle-cve-ignore-list.xml
             --failOnCVSS 5
             --enableRetired
-      - name: Sanitize artifact name
-        id: sanitize_artifact_name
+      - name: Prepare artifact name
         shell: bash
         run: |
-          module_folder="${{ matrix.module-folder }}"
-          safe_name="$(printf '%s' "${module_folder}" | tr '/\\ ' '---' | tr -cd '[:alnum:]._-')"
-          echo "value=${safe_name}" >> "${GITHUB_OUTPUT}"
+          echo "UPNAME=$(echo '${{ matrix.module_folder }}' | tr '/\\ ' '---' | tr -cd '[:alnum:]._-')" >> "${GITHUB_ENV}"
       - name: Upload reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: security-gradle-${{ steps.sanitize_artifact_name.outputs.value }}
-          path: ${{ github.workspace }}/${{ matrix.module-folder }}-reports
+          name: security-gradle-${{ env.UPNAME }}
+          path: ${{ github.workspace }}/${{ matrix.module_folder }}-reports
 EOF
   fi
 
@@ -473,7 +461,7 @@ EOF
     strategy:
       fail-fast: false
       matrix:
-        module-folder:
+        module_folder:
 EOF
   for module in "${node_modules[@]}"; do
     printf '          - %s\n' "${module}" >> "${file_path}"
@@ -487,12 +475,12 @@ EOF
           node-version: 20
       - name: Install production dependencies
         run: npm install --omit=dev
-        working-directory: ${{ matrix.module-folder }}
+        working-directory: ${{ matrix.module_folder }}
       - name: Install license validator
         run: npm install -g node-license-validator
       - name: Validate licenses
         run: node-license-validator . --allow-licenses Apache-2.0 MIT BSD-2-Clause BSD BSD-3-Clause Unlicense ISC
-        working-directory: ${{ matrix.module-folder }}
+        working-directory: ${{ matrix.module_folder }}
 EOF
 }
 
