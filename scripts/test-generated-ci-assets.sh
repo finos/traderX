@@ -37,18 +37,23 @@ for required in \
   }
 done
 
-grep -q "security-node-\${{ replace(matrix.module-folder, '/', '-') }}" "${TARGET_ROOT}/.github/workflows/security.yml" || {
-  echo "[fail] security workflow should sanitize node artifact names"
+grep -q "name: Sanitize artifact name" "${TARGET_ROOT}/.github/workflows/security.yml" || {
+  echo "[fail] security workflow should include artifact-name sanitization step"
   exit 1
 }
 
-grep -q "security-dotnet-\${{ replace(matrix.module-folder, '/', '-') }}" "${TARGET_ROOT}/.github/workflows/security.yml" || {
-  echo "[fail] security workflow should sanitize dotnet artifact names"
+grep -q "security-node-\${{ steps.sanitize_artifact_name.outputs.value }}" "${TARGET_ROOT}/.github/workflows/security.yml" || {
+  echo "[fail] security workflow should use sanitized node artifact names"
   exit 1
 }
 
-grep -q "security-gradle-\${{ replace(matrix.module-folder, '/', '-') }}" "${TARGET_ROOT}/.github/workflows/security.yml" || {
-  echo "[fail] security workflow should sanitize gradle artifact names"
+grep -q "security-dotnet-\${{ steps.sanitize_artifact_name.outputs.value }}" "${TARGET_ROOT}/.github/workflows/security.yml" || {
+  echo "[fail] security workflow should use sanitized dotnet artifact names"
+  exit 1
+}
+
+grep -q "security-gradle-\${{ steps.sanitize_artifact_name.outputs.value }}" "${TARGET_ROOT}/.github/workflows/security.yml" || {
+  echo "[fail] security workflow should use sanitized gradle artifact names"
   exit 1
 }
 

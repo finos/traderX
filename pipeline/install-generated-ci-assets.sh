@@ -262,11 +262,18 @@ EOF
             --nodePackageSkipDevDependencies
             --failOnCVSS 5
             --enableRetired
+      - name: Sanitize artifact name
+        id: sanitize_artifact_name
+        shell: bash
+        run: |
+          module_folder="${{ matrix.module-folder }}"
+          safe_name="$(printf '%s' "${module_folder}" | tr '/\\ ' '---' | tr -cd '[:alnum:]._-')"
+          echo "value=${safe_name}" >> "${GITHUB_OUTPUT}"
       - name: Upload reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: security-node-${{ replace(matrix.module-folder, '/', '-') }}
+          name: security-node-${{ steps.sanitize_artifact_name.outputs.value }}
           path: ${{ github.workspace }}/${{ matrix.module-folder }}-reports
 EOF
   fi
@@ -308,11 +315,18 @@ EOF
             --suppression .github/dotnet-cve-ignore-list.xml
             --failOnCVSS 5
             --enableRetired
+      - name: Sanitize artifact name
+        id: sanitize_artifact_name
+        shell: bash
+        run: |
+          module_folder="${{ matrix.module-folder }}"
+          safe_name="$(printf '%s' "${module_folder}" | tr '/\\ ' '---' | tr -cd '[:alnum:]._-')"
+          echo "value=${safe_name}" >> "${GITHUB_OUTPUT}"
       - name: Upload reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: security-dotnet-${{ replace(matrix.module-folder, '/', '-') }}
+          name: security-dotnet-${{ steps.sanitize_artifact_name.outputs.value }}
           path: ${{ github.workspace }}/${{ matrix.module-folder }}-reports
 EOF
   fi
@@ -366,11 +380,18 @@ EOF
             --suppression .github/gradle-cve-ignore-list.xml
             --failOnCVSS 5
             --enableRetired
+      - name: Sanitize artifact name
+        id: sanitize_artifact_name
+        shell: bash
+        run: |
+          module_folder="${{ matrix.module-folder }}"
+          safe_name="$(printf '%s' "${module_folder}" | tr '/\\ ' '---' | tr -cd '[:alnum:]._-')"
+          echo "value=${safe_name}" >> "${GITHUB_OUTPUT}"
       - name: Upload reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: security-gradle-${{ replace(matrix.module-folder, '/', '-') }}
+          name: security-gradle-${{ steps.sanitize_artifact_name.outputs.value }}
           path: ${{ github.workspace }}/${{ matrix.module-folder }}-reports
 EOF
   fi
