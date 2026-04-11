@@ -121,6 +121,11 @@ grep -q 'IMAGE_NAMESPACE: traderx-c2' "${TARGET_ROOT}/.github/workflows/build-an
   exit 1
 }
 
+grep -q 'GHCR_PUSH_TOKEN' "${TARGET_ROOT}/.github/workflows/build-and-publish.yml" || {
+  echo "[fail] build-and-publish workflow should support GHCR_PUSH_TOKEN fallback auth"
+  exit 1
+}
+
 grep -q 'ghcr.io/finos/traderx-c2' "${TARGET_ROOT}/runtime/ghcr/009-order-management-matcher/images.lock" || {
   echo "[fail] ghcr namespace mapping missing from images.lock"
   exit 1

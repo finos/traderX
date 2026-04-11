@@ -538,12 +538,22 @@ EOF
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: GHCR auth mode
+        run: |
+          if [[ -n "${{ secrets.GHCR_PUSH_TOKEN }}" ]]; then
+            echo "Using GHCR_PUSH_TOKEN secret for package publish."
+          else
+            echo "Using GITHUB_TOKEN for package publish."
+            echo "If publish fails with write_package, either:"
+            echo "1) enable package write for Actions in repo/org settings, or"
+            echo "2) set GHCR_PUSH_TOKEN (packages:write) and GHCR_PUSH_USERNAME secrets."
+          fi
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ secrets.GHCR_PUSH_USERNAME != '' && secrets.GHCR_PUSH_USERNAME || github.actor }}
+          password: ${{ secrets.GHCR_PUSH_TOKEN != '' && secrets.GHCR_PUSH_TOKEN || secrets.GITHUB_TOKEN }}
       - name: Build and publish image
         uses: docker/build-push-action@v6
         with:
