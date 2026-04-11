@@ -18,6 +18,8 @@ Document NFR changes introduced by this state.
 - No auth/RBAC hardening introduced in this state; admin view remains local-dev demonstration scope.
 - Operational actions (cancel/force-fill) must be auditable via structured logs and traceable order IDs.
 - Order data must remain durable across order-matcher process/container restarts while the shared database remains available.
+- As convergence level `C2`, this state requires container build/publish CI with namespace `ghcr.io/finos/traderx-c2/<component>`.
+- Generated artifacts must include a GHCR run bundle so users can run the `C2` environment from published images.
 
 ## Performance / Scalability
 

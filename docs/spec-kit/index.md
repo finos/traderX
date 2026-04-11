@@ -37,6 +37,7 @@ bash pipeline/state-playbook.sh --state <state-id> --publish-neighborhood --push
    - `/docs/spec-kit/spec-kit-workflow`
 4. Understand generated-code branch publishing:
    - `/docs/spec-kit/generated-state-branches`
+   - `/docs/spec-kit/generated-state-ci`
 5. Follow patch-set implementation workflow:
    - `/docs/spec-kit/patchset-authoring`
 6. Browse state-specific architecture and flow docs:

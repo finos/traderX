@@ -23,12 +23,17 @@
 - NFR-202: Runtime SHALL remain uncontainerized in this state.
 - NFR-203: State generation SHALL remain deterministic from spec inputs.
 - NFR-204: State SHALL pass conformance, smoke, and docs validation before release tagging.
+- NFR-205: Generated state branches from `002+` SHALL include dependency security scanning and Node.js license scanning workflows appropriate to the components present in the generated codebase.
+- NFR-206: CVE suppression files used by scanning workflows (`.github/*-cve-ignore-list.xml`) SHALL be present in generated branches and updated when state dependency sets change.
+- NFR-207: CI workflow component coverage SHALL be derived from generated state component inventory, and SHALL remain complete for all applicable language/runtime components.
+- NFR-208: States `003+` SHALL inherit this generated-branch CI baseline unless a later state explicitly replaces it.
 
 ## Success Criteria
 
 - SC-201: UI works end-to-end through the edge endpoint for baseline flows.
 - SC-202: No contract drift relative to approved contracts unless explicitly updated in this pack.
 - SC-203: Generated snapshot is tagged and linked to validation evidence.
+- SC-204: Generated snapshots from this state lineage contain required CI workflow files and scanner suppression files with component-complete coverage.
 
 ## Generation + Runtime Entry Points
 

@@ -91,6 +91,22 @@ bash pipeline/speckit/compile-all-component-manifests.sh
 ./pipeline/verify-spec-coverage.sh
 ```
 
+## Generated-State CI Preflight
+
+For generated-code branch publish, run local workflow preflight in addition to state smoke tests:
+
+```bash
+actionlint
+act -W .github/workflows/security.yml
+act -W .github/workflows/license-scanning-node.yml
+
+# required for convergence states C1+
+act -W .github/workflows/build-and-publish.yml
+```
+
+If `act` parity is incomplete for a workflow, run the underlying scanner/build scripts directly so local checks still mirror CI intent.
+See: [`/docs/spec-kit/generated-state-ci`](/docs/spec-kit/generated-state-ci)
+
 ## Docusaurus CI Compatibility
 
 When changing Docusaurus, docs plugins, or website build configuration:

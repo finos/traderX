@@ -13,6 +13,8 @@ This state preserves C3 convergence semantics on top of state `011`.
 
 - No baseline authn/authz changes introduced.
 - Local dev-only orchestration should remain isolated from production deployment definitions.
+- As convergence level `C3`, this state requires container build/publish CI with namespace `ghcr.io/finos/traderx-c3/<component>`.
+- Generated artifacts must include a GHCR run bundle so users can run the `C3` environment from published images.
 
 ## Performance / Scalability
 

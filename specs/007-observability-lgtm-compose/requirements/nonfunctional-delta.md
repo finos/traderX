@@ -20,6 +20,8 @@ Document NFR changes introduced by this state.
 
 - No authentication hardening added in this state; Grafana uses local development credentials by default.
 - State is intended for local learning environments, not production deployment.
+- As convergence level `C1`, this state requires container build/publish CI with namespace `ghcr.io/finos/traderx-c1/<component>`.
+- Generated artifacts must include a GHCR run bundle so users can run the `C1` environment from published images.
 
 ## Performance / Scalability
 

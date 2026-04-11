@@ -54,6 +54,7 @@ flowchart LR
 - `catalog/state-catalog.json` must carry convergence metadata.
 - `system/convergence-rationale.md` must exist and be updated when convergence state content/metadata changes.
 - CI gates must pass before publish.
+- Convergence states `C1+` must include image build/publish CI and GHCR run-bundle artifacts (see `/docs/spec-kit/generated-state-ci`).
 
 ## Reference Commands
 

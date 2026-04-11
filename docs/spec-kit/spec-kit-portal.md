@@ -25,6 +25,7 @@ The portal publishes three repository sources:
 - `.specify` constitution and templates: `/specify/memory/constitution`
 - Generation operator guide: `/docs/spec-kit/spec-kit-generation-guide`
 - Generated-state branch model: `/docs/spec-kit/generated-state-branches`
+- Generated-state CI policy: `/docs/spec-kit/generated-state-ci`
 - Learning-path visuals: `/docs/learning-paths`
 
 ## Official GitHub Spec Kit

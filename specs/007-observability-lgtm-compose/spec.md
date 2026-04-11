@@ -25,6 +25,9 @@
 - NFR-01105: Observability stack availability endpoints are healthy before state startup is considered complete.
 - NFR-01106: Every service in this state that exposes Prometheus-compatible metrics MUST be scraped by Prometheus and represented in at least one provisioned Grafana dashboard.
 - NFR-01107: Smoke tests MUST validate non-empty Loki-backed dashboard content (runtime and service-filtered log queries), not only dashboard provisioning.
+- NFR-01108: As convergence level `C1`, generated state branches MUST include `.github/workflows/build-and-publish.yml` for container image publication.
+- NFR-01109: `C1` image publication namespace MUST use `ghcr.io/finos/traderx-c1/<component>` with immutable commit-SHA tags plus `latest`.
+- NFR-01110: A generated GHCR run bundle (manifest/config README) MUST be available so this state can run from published images without local source builds.
 
 ## Success Criteria
 
@@ -32,3 +35,4 @@
 - SC-01102: `./scripts/test-state-007-observability-lgtm-compose.sh` validates observability endpoints, dashboard provisioning, and baseline functional flow.
 - SC-01104: Smoke checks fail if Grafana dashboards are present but Loki-backed panels have no ingesting log content.
 - SC-01103: `http://localhost:3001` shows provisioned TraderX dashboard(s) and connected datasources.
+- SC-01105: Generated branch artifacts include build/publish workflow and `C1` GHCR run-bundle assets.

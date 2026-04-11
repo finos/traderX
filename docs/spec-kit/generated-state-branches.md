@@ -126,6 +126,20 @@ Required rule:
 2. Runtime migrations (for example Compose to Kubernetes) must carry inherited capabilities forward unless an explicit requirement says otherwise.
 3. Smoke tests for downstream states should include inherited capability checks so regressions are detected during publish.
 
+## CI Invariant -- Required Generated Workflows
+
+Generated-state branches must carry CI workflows that match the state's technology surface.
+
+- States `002+` must include security and license scanning workflows.
+- Coverage must include all applicable generated components (Java/.NET/Node/containerized).
+- CVE suppression files used by the scans must be present and versioned with the generated state.
+
+Convergence states `C1+` must also include container image build/publish workflows and a generated run bundle that references published images.
+
+Canonical policy and local preflight guidance:
+
+- `/docs/spec-kit/generated-state-ci`
+
 ## How To Add A New State
 
 1. Scaffold the feature pack:

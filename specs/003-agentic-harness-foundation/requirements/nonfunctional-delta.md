@@ -9,6 +9,7 @@ Parent state: `002-edge-proxy-uncontainerized`
 ## Security / Compliance
 
 - Contribution policy reduces risk of untracked upstream drift by directing enhancements to spec-first source paths.
+- Generated-branch CI baseline from state `002` remains required (`security.yml`, `license-scanning-node.yml`, and CVE suppression files aligned to component/dependency changes).
 
 ## Performance / Scalability
 

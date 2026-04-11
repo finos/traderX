@@ -36,6 +36,9 @@
 - NFR-01306: Architecture updates are encoded in `system/architecture.model.json`.
 - NFR-01307: Order matcher runtime uses Java 21 + Spring Boot for consistency with existing TraderX JVM services and shared operational patterns.
 - NFR-01308: Every service in this state that exposes Prometheus-compatible metrics MUST be scraped by Prometheus and represented in provisioned Grafana dashboards.
+- NFR-01309: As convergence level `C2`, generated state branches MUST include `.github/workflows/build-and-publish.yml` for container image publication.
+- NFR-01310: `C2` image publication namespace MUST use `ghcr.io/finos/traderx-c2/<component>` with immutable commit-SHA tags plus `latest`.
+- NFR-01311: Generated artifacts MUST include a GHCR run bundle for running this state from published images.
 
 ## Success Criteria
 
@@ -47,3 +50,4 @@
 - SC-01306: Smoke checks validate observability for order components, including open/unfilled order gauges.
 - SC-01307: Grafana dashboards are provisioned for order book health and matcher throughput/latency.
 - SC-01308: Generated snapshot branch and tag strategy are defined in state catalog.
+- SC-01309: Generated branch artifacts include `C2` build/publish workflow and GHCR run-bundle assets.

@@ -40,6 +40,23 @@ Convergence context is represented separately via `isConvergence`, `convergenceL
 - Do not use dotted-line parents for non-convergence states.
 - Keep `previous` single-parent for publish lineage.
 
+## CI + Artifact Publishing Policy
+
+Convergence states from `C1+` must include:
+
+- container build/publish workflow (`.github/workflows/build-and-publish.yml`)
+- generated run bundle artifacts for consuming GHCR images directly
+
+GHCR image namespaces are convergence-level scoped:
+
+- `C1`: `ghcr.io/finos/traderx-c1/<component>`
+- `C2`: `ghcr.io/finos/traderx-c2/<component>`
+- `C3`: `ghcr.io/finos/traderx-c3/<component>`
+
+Use immutable commit-SHA tags plus a moving `latest` tag per namespace/component.
+
+Reference: `/docs/spec-kit/generated-state-ci`
+
 ## Canonical Sources
 
 - State metadata: `catalog/state-catalog.json`

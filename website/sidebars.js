@@ -52,6 +52,7 @@ module.exports = {
             'spec-kit/state-docs',
             'spec-kit/convergence-states',
             'spec-kit/generated-state-branches',
+            'spec-kit/generated-state-ci',
             'spec-kit/run-generated-overlays',
           ],
         },
