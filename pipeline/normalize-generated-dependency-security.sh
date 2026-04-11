@@ -106,8 +106,75 @@ ensure_gradle_security_overrides() {
       if ! rg -q "org\\.jetbrains\\.kotlin:kotlin-stdlib" "${gradle_file}"; then
         perl -0pi -e "s/(testImplementation 'org\\.springframework\\.boot:spring-boot-starter-test'\\n)/  implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.3.20'\\n\\n\$1/" "${gradle_file}"
       fi
+      if ! rg -q "kotlin-stdlib-jdk7" "${gradle_file}"; then
+        cat >> "${gradle_file}" <<'EOF'
+
+configurations.configureEach {
+  exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
+}
+EOF
+      fi
       ;;
   esac
+}
+
+ensure_java_compose_build_baseline() {
+  local dockerfile="$1"
+  [[ -f "${dockerfile}" ]] || return 0
+
+  if rg -q "^FROM eclipse-temurin:21-jdk AS build" "${dockerfile}"; then
+    perl -0pi -e 's/^FROM eclipse-temurin:21-jdk AS build$/FROM gradle:8.13-jdk21 AS build/m' "${dockerfile}"
+  fi
+
+  if rg -q "target=/root/\\.gradle" "${dockerfile}"; then
+    perl -0pi -e 's#target=/root/\.gradle#target=/home/gradle/.gradle#g' "${dockerfile}"
+  fi
+
+  if rg -q "\\./gradlew --no-daemon clean bootJar" "${dockerfile}"; then
+    perl -0pi -e 's/chmod \+x gradlew && \.\/gradlew --no-daemon clean bootJar/gradle --no-daemon clean bootJar/g' "${dockerfile}"
+  fi
+}
+
+ensure_order_matcher_test_baseline() {
+  local order_matcher_root="${TARGET_ROOT}/order-matcher"
+  local test_file="${order_matcher_root}/src/test/java/finos/traderx/ordermatcher/OrderMatcherApplicationTests.java"
+  local test_resource_dir="${order_matcher_root}/src/test/resources"
+  local test_properties="${test_resource_dir}/application-test.properties"
+  local gradle_file="${order_matcher_root}/build.gradle"
+
+  [[ -d "${order_matcher_root}" ]] || return 0
+
+  mkdir -p "$(dirname "${test_file}")"
+  cat > "${test_file}" <<'EOF'
+package finos.traderx.ordermatcher;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+
+@SpringBootTest
+@ActiveProfiles("test")
+class OrderMatcherApplicationTests {
+    @Test
+    void contextLoads() {
+    }
+}
+EOF
+
+  mkdir -p "${test_resource_dir}"
+  cat > "${test_properties}" <<'EOF'
+spring.datasource.url=jdbc:h2:mem:ordermatcher;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
+spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+spring.jpa.hibernate.ddl-auto=create-drop
+order.matcher.seed-enabled=false
+EOF
+
+  if [[ -f "${gradle_file}" ]] && ! rg -q "testRuntimeOnly 'com\\.h2database:h2'" "${gradle_file}"; then
+    perl -0pi -e "s/(testImplementation 'org\\.springframework\\.boot:spring-boot-starter-test'\\n)/\$1  testRuntimeOnly 'com.h2database:h2'\\n/" "${gradle_file}"
+  fi
 }
 
 ensure_web_frontend_dependency_baseline
@@ -122,5 +189,16 @@ for gradle_file in \
   "${TARGET_ROOT}/order-matcher/build.gradle"; do
   ensure_gradle_security_overrides "${gradle_file}"
 done
+
+for dockerfile in \
+  "${TARGET_ROOT}/account-service/Dockerfile.compose" \
+  "${TARGET_ROOT}/position-service/Dockerfile.compose" \
+  "${TARGET_ROOT}/trade-service/Dockerfile.compose" \
+  "${TARGET_ROOT}/trade-processor/Dockerfile.compose" \
+  "${TARGET_ROOT}/order-matcher/Dockerfile.compose"; do
+  ensure_java_compose_build_baseline "${dockerfile}"
+done
+
+ensure_order_matcher_test_baseline
 
 echo "[ok] normalized generated dependency security baseline for ${STATE_ID}"
