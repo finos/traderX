@@ -566,8 +566,8 @@ index 4457aa1..724f8d8 100644
 +++ b/trade-processor/build.gradle
 @@ -20,6 +20,7 @@ dependencies {
    implementation 'org.springframework.boot:spring-boot-starter-web'
-   implementation 'org.postgresql:postgresql:42.7.4'
-   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
+   implementation 'org.postgresql:postgresql:42.7.10'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.16'
 +  implementation 'io.nats:jnats:2.20.5'
  
    implementation('org.json:json:20240303') {
@@ -956,7 +956,7 @@ index 506bd2f..4869f35 100644
 @@ -24,6 +24,7 @@ dependencies {
    implementation 'org.springframework.boot:spring-boot-starter-web'
    implementation 'com.h2database:h2:2.3.232'
-   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.16'
 +  implementation 'io.nats:jnats:2.20.5'
  
    implementation('org.json:json:20240303') {

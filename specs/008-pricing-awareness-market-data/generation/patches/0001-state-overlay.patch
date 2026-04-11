@@ -352,7 +352,7 @@ new file mode 100644
 index 0000000..5b47710
 --- /dev/null
 +++ b/price-publisher/package.json
-@@ -0,0 +1,15 @@
+@@ -0,0 +1,16 @@
 +{
 +  "name": "price-publisher-specfirst",
 +  "version": "0.1.0",

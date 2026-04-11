@@ -7,10 +7,10 @@ index bb39efe..7fcf3b3 100644
    implementation 'org.springframework.boot:spring-boot-starter-web'
    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 -  implementation 'com.h2database:h2:2.3.232'
-+  implementation 'org.postgresql:postgresql:42.7.4'
-   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
++  implementation 'org.postgresql:postgresql:42.7.10'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.16'
  
-   implementation ('ch.qos.logback:logback-core:1.5.18') {
+   implementation ('ch.qos.logback:logback-core:1.5.32') {
 diff --git a/account-service/src/main/java/finos/traderx/accountservice/repository/AccountRepository.java b/account-service/src/main/java/finos/traderx/accountservice/repository/AccountRepository.java
 index dc66544..22d0aac 100644
 --- a/account-service/src/main/java/finos/traderx/accountservice/repository/AccountRepository.java
@@ -51,10 +51,10 @@ index 9cc048d..5c75760 100644
    implementation 'org.springframework.boot:spring-boot-starter-web'
    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 -  implementation 'com.h2database:h2:2.3.232'
-+  implementation 'org.postgresql:postgresql:42.7.4'
-   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
++  implementation 'org.postgresql:postgresql:42.7.10'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.16'
  
-   implementation ('ch.qos.logback:logback-core:1.5.18') {
+   implementation ('ch.qos.logback:logback-core:1.5.32') {
 diff --git a/position-service/src/main/resources/application.properties b/position-service/src/main/resources/application.properties
 index 908d7f3..8e4ca07 100644
 --- a/position-service/src/main/resources/application.properties
@@ -512,8 +512,8 @@ index 2e6b43a..4457aa1 100644
    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
    implementation 'org.springframework.boot:spring-boot-starter-web'
 -  implementation 'com.h2database:h2:2.3.232'
-+  implementation 'org.postgresql:postgresql:42.7.4'
-   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
++  implementation 'org.postgresql:postgresql:42.7.10'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.16'
  
    implementation('org.json:json:20240303') {
 diff --git a/trade-processor/src/main/resources/application.properties b/trade-processor/src/main/resources/application.properties

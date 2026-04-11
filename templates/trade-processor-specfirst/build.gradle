@@ -1,6 +1,6 @@
 plugins {
   id 'java'
-  id 'org.springframework.boot' version '3.5.3'
+  id 'org.springframework.boot' version '3.5.13'
   id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -19,7 +19,7 @@ dependencies {
   implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
   implementation 'org.springframework.boot:spring-boot-starter-web'
   implementation 'com.h2database:h2:2.3.232'
-  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
+  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.16'
 
   implementation('org.json:json:20240303') {
     because 'previous versions are affected by multiple CVE'
@@ -28,10 +28,10 @@ dependencies {
     exclude group: 'org.json', module: 'json'
   }
   implementation 'com.squareup.okhttp3:okhttp:4.12.0'
-  implementation ('ch.qos.logback:logback-core:1.5.18') {
-    because 'version brought in by spring boot 3.5.3 affected by CVE-2024-12798'
+  implementation ('ch.qos.logback:logback-core:1.5.32') {
+    because 'version brought in by spring boot 3.5.13 affected by CVE-2024-12798'
   }
-  implementation 'ch.qos.logback:logback-classic:1.5.18'
+  implementation 'ch.qos.logback:logback-classic:1.5.32'
   implementation 'org.apache.commons:commons-lang3:3.18.0'
 
   testImplementation 'org.springframework.boot:spring-boot-starter-test'
