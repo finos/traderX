@@ -269,22 +269,22 @@ snapshot_keep_paths_for_state() {
       printf '%s\n' "${CORE_COMPONENT_DIRS[@]}"
       ;;
   002-edge-proxy-uncontainerized)
-    printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "edge-proxy"
+    printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "edge-proxy" ".github"
     ;;
   003-agentic-harness-foundation)
-    printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "edge-proxy"
+    printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "edge-proxy" ".github"
     ;;
   004-containerized-compose-runtime)
-    printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "containerized-compose" "ingress"
+    printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "containerized-compose" "ingress" ".github"
     ;;
     010-kubernetes-runtime)
-      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime"
+      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" ".github"
       ;;
     013-radius-kubernetes-platform)
-      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "radius-kubernetes-platform"
+      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "radius-kubernetes-platform" ".github"
       ;;
     011-tilt-kubernetes-dev-loop)
-      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "tilt-kubernetes-dev-loop"
+      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "tilt-kubernetes-dev-loop" ".github"
       ;;
     *)
       find "${SNAPSHOT_DIR}" -mindepth 1 -maxdepth 1 -exec basename {} \;
