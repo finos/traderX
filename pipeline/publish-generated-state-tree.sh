@@ -65,14 +65,22 @@ published=()
 publish_one() {
   local state_id="$1"
   echo "[state] publishing ${state_id}"
-  local branch_args=()
+  local -a branch_args=()
   if (( SKIP_COMPILE_PREFLIGHT == 1 )); then
     branch_args+=(--skip-compile-preflight)
   fi
   if (( PUSH == 1 )); then
-    bash "${ROOT}/pipeline/publish-generated-state-branch.sh" "${state_id}" "${branch_args[@]}" --push
+    if (( ${#branch_args[@]} > 0 )); then
+      bash "${ROOT}/pipeline/publish-generated-state-branch.sh" "${state_id}" "${branch_args[@]}" --push
+    else
+      bash "${ROOT}/pipeline/publish-generated-state-branch.sh" "${state_id}" --push
+    fi
   else
-    bash "${ROOT}/pipeline/publish-generated-state-branch.sh" "${state_id}" "${branch_args[@]}"
+    if (( ${#branch_args[@]} > 0 )); then
+      bash "${ROOT}/pipeline/publish-generated-state-branch.sh" "${state_id}" "${branch_args[@]}"
+    else
+      bash "${ROOT}/pipeline/publish-generated-state-branch.sh" "${state_id}"
+    fi
   fi
   published+=("${state_id}")
 }

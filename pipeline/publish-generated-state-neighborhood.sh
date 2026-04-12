@@ -105,14 +105,22 @@ echo "[info] publishing neighborhood for ${STATE_ID}: ${deduped[*]}"
 
 for id in "${deduped[@]}"; do
   echo "[state] ${id}"
-  branch_args=()
+  declare -a branch_args=()
   if (( SKIP_COMPILE_PREFLIGHT == 1 )); then
     branch_args+=(--skip-compile-preflight)
   fi
   if (( PUSH == 1 )); then
-    bash "${ROOT}/pipeline/publish-generated-state-branch.sh" "${id}" "${branch_args[@]}" --push
+    if (( ${#branch_args[@]} > 0 )); then
+      bash "${ROOT}/pipeline/publish-generated-state-branch.sh" "${id}" "${branch_args[@]}" --push
+    else
+      bash "${ROOT}/pipeline/publish-generated-state-branch.sh" "${id}" --push
+    fi
   else
-    bash "${ROOT}/pipeline/publish-generated-state-branch.sh" "${id}" "${branch_args[@]}"
+    if (( ${#branch_args[@]} > 0 )); then
+      bash "${ROOT}/pipeline/publish-generated-state-branch.sh" "${id}" "${branch_args[@]}"
+    else
+      bash "${ROOT}/pipeline/publish-generated-state-branch.sh" "${id}"
+    fi
   fi
 done
 
