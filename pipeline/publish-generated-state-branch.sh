@@ -8,11 +8,12 @@ GENERATED_ROOT_BRANCH="${GENERATED_ROOT_BRANCH:-code/generated-state-root}"
 
 usage() {
   cat <<'EOF'
-usage: bash pipeline/publish-generated-state-branch.sh <state-id> [--branch <branch-name>] [--push]
+usage: bash pipeline/publish-generated-state-branch.sh <state-id> [--branch <branch-name>] [--push] [--skip-compile-preflight]
 
 Examples:
   bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity
   bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --push
+  bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --skip-compile-preflight
   bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --branch code/generated-state-001-baseline-uncontainerized-parity
 EOF
 }
@@ -31,6 +32,7 @@ shift || true
 
 BRANCH_OVERRIDE=""
 PUSH=0
+SKIP_COMPILE_PREFLIGHT="${TRADERX_SKIP_COMPILE_PREFLIGHT:-0}"
 
 while (( "$#" )); do
   case "$1" in
@@ -44,6 +46,10 @@ while (( "$#" )); do
       ;;
     --push)
       PUSH=1
+      shift
+      ;;
+    --skip-compile-preflight)
+      SKIP_COMPILE_PREFLIGHT=1
       shift
       ;;
     --help|-h)
@@ -182,6 +188,13 @@ esac
 # target-generated during dry-run. Without this refresh, workflow target
 # discovery may emit "no targets" stubs.
 bash "${ROOT}/pipeline/install-generated-ci-assets.sh" "${STATE_ID}" "${GENERATED_ROOT}/code/target-generated"
+
+if [[ "${SKIP_COMPILE_PREFLIGHT}" == "1" ]]; then
+  echo "[warn] skipping generated compile preflight (--skip-compile-preflight)"
+else
+  echo "[step] run generated compile preflight"
+  bash "${ROOT}/pipeline/preflight-generated-ci.sh" "${GENERATED_ROOT}/code/target-generated"
+fi
 
 SNAPSHOT_ROOT="${GENERATED_ROOT}/code/target-generated"
 if [[ ! -d "${SNAPSHOT_ROOT}" ]]; then

@@ -14095,6 +14095,7 @@ index 0000000..276c117
 +import { UserService } from '../service/user.service';
 +
 +@Component({
++    standalone: false,
 +    selector: 'app-account',
 +    templateUrl: 'account.component.html',
 +    styleUrls: ['account.component.scss']
@@ -14238,6 +14239,7 @@ index 0000000..7f5d154
 +type ICellParams = ICellRendererParams & { clicked: (val: any) => void };
 +
 +@Component({
++    standalone: false,
 +  selector: 'app-btn-cell-renderer',
 +  template: `
 +      <button class="btn btn-sm btn-info" (click)="clickHandler()">Update</button>
@@ -14397,6 +14399,7 @@ index 0000000..82c3271
 +import { AccountService } from 'main/app/service/account.service';
 +
 +@Component({
++    standalone: false,
 +    selector: 'app-edit-account',
 +    templateUrl: 'edit.component.html',
 +    styleUrls: ['edit.component.scss']
@@ -14480,6 +14483,7 @@ index 0000000..8b0554b
 +import { map, noop, Observable, Observer, of, switchMap, tap } from 'rxjs';
 +
 +@Component({
++    standalone: false,
 +    selector: 'app-assign-user',
 +    templateUrl: 'assign-user.component.html'
 +})
@@ -14565,6 +14569,7 @@ index 0000000..ef9c238
 +import { map, noop, Observable, Observer, of, switchMap, tap } from 'rxjs';
 +
 +@Component({
++    standalone: false,
 +    selector: 'app-assign-user',
 +    templateUrl: 'assign-user.component.html'
 +})
@@ -14689,6 +14694,7 @@ index 0000000..265b8c1
 +import { ThemeService } from './service/theme.service';
 +
 +@Component({
++    standalone: false,
 +    selector: 'app-root',
 +    templateUrl: './app.component.html',
 +    styleUrls: ['./app.component.scss']
@@ -14752,6 +14758,7 @@ index 0000000..8013a11
 +let id = 0;
 +
 +@Component({
++    standalone: false,
 +    selector: 'app-ngx-dropdown',
 +    templateUrl: './dropdown.component.html'
 +})
@@ -14875,6 +14882,7 @@ index 0000000..f57fefb
 +import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 +
 +@Component({
++    standalone: false,
 +  selector: 'app-header',
 +  templateUrl: './header.component.html',
 +  styleUrls: ['./header.component.scss']
@@ -14983,6 +14991,7 @@ index 0000000..6aad13e
 +import { Component } from '@angular/core';
 +
 +@Component({
++    standalone: false,
 +    selector: 'app-page-not-found',
 +    template: '<h2>Page not found</h2>'
 +})
@@ -15562,6 +15571,7 @@ index 0000000..099d340
 +import { TradeFeedService } from 'main/app/service/trade-feed.service';
 +
 +@Component({
++    standalone: false,
 +  selector: 'app-position-blotter',
 +  templateUrl: './position-blotter.component.html',
 +  styleUrls: ['./position-blotter.component.scss']
@@ -15864,6 +15874,7 @@ index 0000000..920a65c
 +import { TradeFeedService } from 'main/app/service/trade-feed.service';
 +
 +@Component({
++    standalone: false,
 +    selector: 'app-trade-blotter',
 +    templateUrl: 'trade-blotter.component.html'
 +})
@@ -16245,6 +16256,7 @@ index 0000000..205d157
 +import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
 +
 +@Component({
++    standalone: false,
 +  selector: 'app-trade-ticket',
 +  templateUrl: './trade-ticket.component.html',
 +  styleUrls: ['./trade-ticket.component.scss']
@@ -16507,6 +16519,7 @@ index 0000000..9ece8e4
 +import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 +
 +@Component({
++    standalone: false,
 +    selector: 'app-trade',
 +    templateUrl: './trade.component.html',
 +    styleUrls: ['./trade.component.scss']

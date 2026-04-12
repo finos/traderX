@@ -56,6 +56,10 @@ From a clean working tree:
 bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --push
 ```
 
+By default, publish now runs a compile preflight gate before commit/push
+(`pipeline/preflight-generated-ci.sh` against `generated/code/target-generated`).
+Use `--skip-compile-preflight` only for explicit override cases.
+
 When adding or updating a state, publish the lineage neighborhood so adjacent
 branches get refreshed lineage/compare links:
 

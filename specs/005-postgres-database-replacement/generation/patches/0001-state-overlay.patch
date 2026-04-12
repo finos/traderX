@@ -257,9 +257,7 @@ diff --git a/account-service/src/main/resources/application.properties b/account
 index b33d8a4..eedd70d 100644
 --- a/account-service/src/main/resources/application.properties
 +++ b/account-service/src/main/resources/application.properties
-@@ -1,9 +1,9 @@
- server.port=${ACCOUNT_SERVICE_PORT:18088}
- 
+@@ -4,7 +4,7 @@
 -spring.datasource.url=jdbc:h2:tcp://${DATABASE_TCP_HOST:localhost}:${DATABASE_TCP_PORT:18082}/${DATABASE_NAME:traderx};CASE_INSENSITIVE_IDENTIFIERS=TRUE
 -spring.datasource.driverClassName=org.h2.Driver
 -spring.datasource.username=${DATABASE_DBUSER:sa}
@@ -305,9 +303,7 @@ diff --git a/position-service/src/main/resources/application.properties b/positi
 index 908d7f3..8e4ca07 100644
 --- a/position-service/src/main/resources/application.properties
 +++ b/position-service/src/main/resources/application.properties
-@@ -1,9 +1,9 @@
- server.port=${POSITION_SERVICE_PORT:18090}
- 
+@@ -4,7 +4,7 @@
 -spring.datasource.url=jdbc:h2:tcp://${DATABASE_TCP_HOST:localhost}:${DATABASE_TCP_PORT:18082}/${DATABASE_NAME:traderx};CASE_INSENSITIVE_IDENTIFIERS=TRUE
 -spring.datasource.driverClassName=org.h2.Driver
 -spring.datasource.username=${DATABASE_DBUSER:sa}
@@ -940,9 +936,7 @@ diff --git a/trade-processor/src/main/resources/application.properties b/trade-p
 index 300e3c9..b56e35a 100644
 --- a/trade-processor/src/main/resources/application.properties
 +++ b/trade-processor/src/main/resources/application.properties
-@@ -1,12 +1,12 @@
- server.port=${TRADE_PROCESSOR_SERVICE_PORT:18091}
- 
+@@ -4,10 +4,10 @@
 -spring.datasource.url=jdbc:h2:tcp://${DATABASE_TCP_HOST:localhost}:${DATABASE_TCP_PORT:18082}/${DATABASE_NAME:traderx};CASE_INSENSITIVE_IDENTIFIERS=TRUE
 -spring.datasource.driverClassName=org.h2.Driver
 -spring.datasource.username=${DATABASE_DBUSER:sa}

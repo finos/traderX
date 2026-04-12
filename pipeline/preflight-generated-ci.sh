@@ -31,6 +31,10 @@ run_actionlint() {
 }
 
 run_node_preflight() {
+  if ! command -v npm >/dev/null 2>&1; then
+    echo "[fail] npm not found"
+    exit 1
+  fi
   node_modules=()
   while IFS= read -r module; do
     [[ -z "${module}" ]] && continue
@@ -44,7 +48,12 @@ run_node_preflight() {
     echo "[info] node preflight: ${module}"
     (
       cd "${TARGET_ROOT}/${module}"
-      npm install --omit=dev
+      if [[ -f package-lock.json ]]; then
+        npm ci
+      else
+        npm install
+      fi
+      npm run build --if-present
     )
   done
 }

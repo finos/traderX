@@ -6,7 +6,7 @@ CATALOG="${ROOT}/catalog/state-catalog.json"
 
 usage() {
   cat <<'EOF'
-usage: bash pipeline/publish-generated-state-neighborhood.sh <state-id> [--push]
+usage: bash pipeline/publish-generated-state-neighborhood.sh <state-id> [--push] [--skip-compile-preflight]
 
 Publishes a state and its immediate lineage neighbors so generated README lineage
 sections stay current:
@@ -22,6 +22,7 @@ EOF
 
 STATE_ID=""
 PUSH=0
+SKIP_COMPILE_PREFLIGHT=0
 while (( "$#" )); do
   case "$1" in
     --help|-h)
@@ -30,6 +31,10 @@ while (( "$#" )); do
       ;;
     --push)
       PUSH=1
+      shift
+      ;;
+    --skip-compile-preflight)
+      SKIP_COMPILE_PREFLIGHT=1
       shift
       ;;
     -*)
@@ -100,10 +105,14 @@ echo "[info] publishing neighborhood for ${STATE_ID}: ${deduped[*]}"
 
 for id in "${deduped[@]}"; do
   echo "[state] ${id}"
+  branch_args=()
+  if (( SKIP_COMPILE_PREFLIGHT == 1 )); then
+    branch_args+=(--skip-compile-preflight)
+  fi
   if (( PUSH == 1 )); then
-    bash "${ROOT}/pipeline/publish-generated-state-branch.sh" "${id}" --push
+    bash "${ROOT}/pipeline/publish-generated-state-branch.sh" "${id}" "${branch_args[@]}" --push
   else
-    bash "${ROOT}/pipeline/publish-generated-state-branch.sh" "${id}"
+    bash "${ROOT}/pipeline/publish-generated-state-branch.sh" "${id}" "${branch_args[@]}"
   fi
 done
 

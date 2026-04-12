@@ -102,7 +102,8 @@ bash pipeline/speckit/compile-all-component-manifests.sh
 
 ## Generated-State CI Preflight
 
-For generated-code branch publish, run local workflow preflight in addition to state smoke tests:
+For generated-code branch publish, local workflow preflight is executed by default by
+`pipeline/publish-generated-state-branch.sh`. Run it manually when you need a standalone check:
 
 ```bash
 bash pipeline/preflight-generated-ci.sh generated/code/target-generated

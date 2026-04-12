@@ -29,6 +29,7 @@
 - NFR-208: States `003+` SHALL inherit this generated-branch CI baseline unless a later state explicitly replaces it.
 - NFR-209: Every generated Node.js project (`package.json`) SHALL declare `"license": "Apache-2.0"`; new Node services introduced in later states MUST inherit this default unless an explicit state requirement overrides it.
 - NFR-210: The edge proxy implementation SHALL forward standard ingress headers (`X-Forwarded-For`, `X-Forwarded-Host`, `X-Forwarded-Proto`, and `X-Forwarded-Prefix` for prefixed routes) to upstream services.
+- NFR-211: Generated-state publish flows SHALL require successful compile preflight for all generated modules declared in state metadata (Node.js, Gradle, .NET where present) before commit/push.
 
 ## Success Criteria
 
@@ -36,6 +37,7 @@
 - SC-202: No contract drift relative to approved contracts unless explicitly updated in this pack.
 - SC-203: Generated snapshot is tagged and linked to validation evidence.
 - SC-204: Generated snapshots from this state lineage contain required CI workflow files and scanner suppression files with component-complete coverage.
+- SC-205: Generated-state publish fails prior to commit/push when compile preflight fails for any generated module in scope.
 
 ## Generation + Runtime Entry Points
 

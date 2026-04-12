@@ -3437,6 +3437,7 @@ index 205d157..47eff3e 100644
 +import { TradeFeedService } from 'main/app/service/trade-feed.service';
  
  @Component({
+     standalone: false,
    selector: 'app-trade-ticket',
    templateUrl: './trade-ticket.component.html',
    styleUrls: ['./trade-ticket.component.scss']
@@ -3621,6 +3622,7 @@ index 9ece8e4..8313ba5 100644
 +import { TradeFeedService } from '../service/trade-feed.service';
  
  @Component({
+     standalone: false,
      selector: 'app-trade',
      templateUrl: './trade.component.html',
      styleUrls: ['./trade.component.scss']

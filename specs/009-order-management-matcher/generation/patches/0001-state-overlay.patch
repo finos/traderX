@@ -4184,6 +4184,7 @@ index 0000000..f0cb1a6
 +};
 +
 +@Component({
++    standalone: false,
 +    selector: 'app-order-admin',
 +    templateUrl: './order-admin.component.html',
 +    styleUrls: ['./order-admin.component.scss']
@@ -4637,6 +4638,7 @@ index 0000000..d085900
 +};
 +
 +@Component({
++  standalone: false,
 +  selector: 'app-order-blotter',
 +  templateUrl: './order-blotter.component.html'
 +})
@@ -5013,6 +5015,7 @@ index 0000000..42c4459
 +import { OrderCreateRequest } from 'main/app/model/order.model';
 +
 +@Component({
++  standalone: false,
 +  selector: 'app-order-ticket',
 +  templateUrl: './order-ticket.component.html',
 +  styleUrls: ['./order-ticket.component.scss']
@@ -5233,7 +5236,7 @@ diff --git a/web-front-end/angular/main/app/trade/trade.component.ts b/web-front
 index 8313ba5..51af249 100644
 --- a/web-front-end/angular/main/app/trade/trade.component.ts
 +++ b/web-front-end/angular/main/app/trade/trade.component.ts
-@@ -8,6 +8,8 @@ import { SymbolService } from '../service/symbols.service';
+@@ -8,7 +8,9 @@ import { SymbolService } from '../service/symbols.service';
  import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
  import { PositionService } from '../service/position.service';
  import { TradeFeedService } from '../service/trade-feed.service';
@@ -5241,6 +5244,7 @@ index 8313ba5..51af249 100644
 +import { OrderCreateRequest } from '../model/order.model';
  
  @Component({
+     standalone: false,
      selector: 'app-trade',
 @@ -27,6 +29,8 @@ export class TradeComponent implements OnInit, OnDestroy {
      stocks: Stock[] = [];

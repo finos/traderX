@@ -29,6 +29,7 @@
 - NFR-00306: Gradle wrapper assets (`gradlew`, `gradlew.bat`, `gradle/wrapper/**`) MUST be template-owned baseline artifacts and must not be maintained in state patchsets.
 - NFR-00307: State patchsets MUST exclude build/restored byproducts (`.gradle/**`, `build/**`, `target/**`, `bin/**`, `obj/**`, `dist/**`, `coverage/**`, `node_modules/**`) so patches remain authored deltas only.
 - NFR-00308: Default generated-branch build/test CI MUST be hermetic and runnable without external runtime services; database-backed tests in default test suites MUST use in-memory/embedded databases (or equivalent local isolated test engines). External-database validation is permitted only in explicitly named integration profiles/jobs separate from default build/test gates.
+- NFR-00309: Generated-state publish flows MUST run module compilation preflight across generated Node.js, Gradle, and .NET modules and MUST fail before commit/push when preflight fails. Any bypass MUST be explicit and operator-invoked.
 
 ## Success Criteria
 
@@ -36,3 +37,4 @@
 - SC-00302: `scripts/test-state-003-agentic-harness-foundation.sh` passes and confirms parity with state `002` behavior.
 - SC-00303: `pipeline/install-generated-runtime-harness.sh` applies harness files for `003+` states.
 - SC-00304: A second concurrent invocation of `pipeline/generate-state.sh` against the same shared output root fails fast with a lock error instead of writing partial output.
+- SC-00305: Publishing a generated state branch fails before commit/push when generated module compilation preflight fails.

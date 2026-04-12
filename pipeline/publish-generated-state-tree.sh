@@ -6,7 +6,7 @@ CATALOG="${ROOT}/catalog/state-catalog.json"
 
 usage() {
   cat <<'EOF'
-usage: bash pipeline/publish-generated-state-tree.sh [--push]
+usage: bash pipeline/publish-generated-state-tree.sh [--push] [--skip-compile-preflight]
 
 Publishes all implemented generated-state branches in topological order derived
 from catalog/state-catalog.json state.previous relationships.
@@ -18,10 +18,15 @@ EOF
 }
 
 PUSH=0
+SKIP_COMPILE_PREFLIGHT=0
 while (( "$#" )); do
   case "$1" in
     --push)
       PUSH=1
+      shift
+      ;;
+    --skip-compile-preflight)
+      SKIP_COMPILE_PREFLIGHT=1
       shift
       ;;
     --help|-h)
@@ -60,10 +65,14 @@ published=()
 publish_one() {
   local state_id="$1"
   echo "[state] publishing ${state_id}"
+  local branch_args=()
+  if (( SKIP_COMPILE_PREFLIGHT == 1 )); then
+    branch_args+=(--skip-compile-preflight)
+  fi
   if (( PUSH == 1 )); then
-    bash "${ROOT}/pipeline/publish-generated-state-branch.sh" "${state_id}" --push
+    bash "${ROOT}/pipeline/publish-generated-state-branch.sh" "${state_id}" "${branch_args[@]}" --push
   else
-    bash "${ROOT}/pipeline/publish-generated-state-branch.sh" "${state_id}"
+    bash "${ROOT}/pipeline/publish-generated-state-branch.sh" "${state_id}" "${branch_args[@]}"
   fi
   published+=("${state_id}")
 }

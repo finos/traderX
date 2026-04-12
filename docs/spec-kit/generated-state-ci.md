@@ -185,7 +185,10 @@ Minimum bundle artifacts:
 
 ## Local CI Preflight Before Publish
 
-Before publishing generated branches, run local CI preflight checks:
+Generated branch publish runs CI preflight by default via
+`pipeline/publish-generated-state-branch.sh`.
+
+Run the same checks manually when validating outside publish flow:
 
 ```bash
 # generated state preflight (workflow lint + module install/build checks)
