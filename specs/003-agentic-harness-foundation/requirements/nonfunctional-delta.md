@@ -22,5 +22,6 @@ Parent state: `002-edge-proxy-uncontainerized`
 - Generation lock behavior must fail fast on concurrent shared-root runs to prevent partial/corrupt output snapshots.
 - Generated Node lockfiles must stay synchronized with current generated `package.json` content; refresh lockfiles only when manifests change or lockfiles are missing/invalid.
 - Generated Gradle modules must receive wrapper assets from the canonical template baseline so wrapper version changes are centralized and inherited across all states.
+- Default generated-branch build/test CI must be hermetic: tests in default suites must not require external databases or network services. Database-backed default tests must use in-memory/embedded engines; external database validation belongs in explicit integration test profiles/jobs.
 - For any downstream jump-point state that materializes full runtime module files (rather than directly reusing template paths), patch-owned files must preserve inherited base-template dependency/security controls unless an explicit state requirement declares a divergence.
 - State patch capture must exclude build/restored output directories (`.gradle`, `build`, `target`, `bin`, `obj`, `dist`, `coverage`, `node_modules`) so generated-state diffs stay minimal and reproducible.

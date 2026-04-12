@@ -53,6 +53,17 @@ Policy:
 - State patchsets should include lockfile deltas when state changes affect Node manifests.
 - Generated-branch publish is blocked if Node manifests and lockfiles are inconsistent.
 
+## Hermetic Default Test Policy
+
+Default build/test CI must not depend on external runtime services.
+
+Policy:
+
+- Generated branch default build/test jobs must run hermetically on CI runners without requiring external databases, brokers, or network endpoints.
+- Database-backed tests in default suites must use in-memory/embedded engines (or equivalent isolated local test engines).
+- External runtime validation (for example real PostgreSQL or broker integration) must run in explicitly named integration profiles/jobs separate from default build/test gates.
+- State deltas introducing new database-backed modules must include test profile/config updates that preserve this policy.
+
 ## CVE Suppression Contract
 
 Generated branches must carry the CVE suppression files used by security scanning:

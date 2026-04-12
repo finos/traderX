@@ -28,6 +28,7 @@
 - NFR-00305: Node dependency lockfiles (`package-lock.json`) in generated outputs MUST remain synchronized with each module's current `package.json`; generation should refresh lockfiles only when manifests change or lockfiles are missing/invalid.
 - NFR-00306: Gradle wrapper assets (`gradlew`, `gradlew.bat`, `gradle/wrapper/**`) MUST be template-owned baseline artifacts and must not be maintained in state patchsets.
 - NFR-00307: State patchsets MUST exclude build/restored byproducts (`.gradle/**`, `build/**`, `target/**`, `bin/**`, `obj/**`, `dist/**`, `coverage/**`, `node_modules/**`) so patches remain authored deltas only.
+- NFR-00308: Default generated-branch build/test CI MUST be hermetic and runnable without external runtime services; database-backed tests in default test suites MUST use in-memory/embedded databases (or equivalent local isolated test engines). External-database validation is permitted only in explicitly named integration profiles/jobs separate from default build/test gates.
 
 ## Success Criteria
 
