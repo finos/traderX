@@ -372,8 +372,7 @@ EOF
       - name: Dependency check
         uses: dependency-check/Dependency-Check_Action@main
         env:
-          JAVA_HOME: ""
-          JAVA_HOME_21_X64: ""
+          JAVA_HOME: /opt/jdk
         with:
           project: ${{ matrix.module_folder }}
           path: ${{ matrix.module_folder }}
