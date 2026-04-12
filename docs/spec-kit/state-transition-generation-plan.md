@@ -16,6 +16,12 @@ This plan defines how TraderX evolves through numbered states with explicit conv
 - If no explicit conflict/replacement/deprecation is declared, generation, runtime scripts, smoke tests, and docs must keep inherited capabilities intact.
 - Validation should verify inherited capabilities in downstream states to prevent accidental feature loss during runtime transitions.
 
+## Containerization Boundary
+
+- States `001-003` are pre-container states: published generated branches should not include Docker/Compose artifacts.
+- Container build workflows begin at `004+`.
+- Only convergence states (`C0+`) publish container images.
+
 ## Transition Mechanics
 
 1. Update target state pack (`spec.md`, `plan.md`, `tasks.md`, `system/**`).

@@ -28,6 +28,11 @@ if (( 10#${state_num} < 2 )); then
   exit 0
 fi
 
+enable_container_ci=0
+if (( 10#${state_num} >= 4 )); then
+  enable_container_ci=1
+fi
+
 if [[ ! -f "${CATALOG}" ]]; then
   echo "[fail] missing state catalog: ${CATALOG}"
   exit 1
@@ -130,6 +135,11 @@ discover_docker_entries() {
   local out_file="$1"
   : > "${out_file}"
 
+  # Container build CI starts at state 004 onward.
+  if (( enable_container_ci == 0 )); then
+    return
+  fi
+
   while IFS= read -r dockerfile; do
     [[ -z "${dockerfile}" ]] && continue
     rel="${dockerfile#${TARGET_ROOT}/}"
@@ -214,10 +224,18 @@ on:
       - '**/package.json'
       - '**/package-lock.json'
       - '**/*.csproj'
-      - '**/Dockerfile'
-      - '**/Dockerfile.compose'
       - '.github/*-cve-ignore-list.xml'
       - '.github/workflows/security.yml'
+EOF
+
+  if ((${#docker_entries[@]} > 0)); then
+    {
+      echo "      - '**/Dockerfile'"
+      echo "      - '**/Dockerfile.compose'"
+    } >> "${file_path}"
+  fi
+
+  cat >> "${file_path}" <<'EOF'
 
 jobs:
 EOF

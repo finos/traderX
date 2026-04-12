@@ -9,8 +9,9 @@ This document defines the CI contract for generated TraderX code branches.
 ## Scope
 
 - Security and license CI is required for all generated states from `002+`.
-- Container image build validation CI is required for any generated state that includes buildable container images.
-- Container image build/publish CI is required for convergence states from `C0+`.
+- States `001-003` are pre-container states and should not carry Docker/Compose artifacts in published generated snapshots.
+- Container image build validation CI starts at state `004+` for states that include buildable container images.
+- Container image build/publish CI is required only for convergence states from `C0+`.
 
 ## Required CI For States `002+`
 
@@ -145,6 +146,7 @@ Policy:
 - Build all detected container images for validation.
 - Do **not** publish images to GHCR.
 - Do not generate GHCR runtime bundles for non-convergence states.
+- This policy applies from state `004+` onward; pre-container states (`001-003`) must not emit container build workflows.
 
 ## GHCR Namespace Policy For Convergence States
 

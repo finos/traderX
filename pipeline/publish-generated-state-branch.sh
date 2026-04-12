@@ -342,6 +342,18 @@ prune_snapshot_for_state() {
 
 prune_snapshot_for_state
 
+strip_precontainer_docker_artifacts() {
+  if (( 10#${state_num} >= 4 )); then
+    return
+  fi
+
+  find "${SNAPSHOT_DIR}" -type f \
+    \( -name 'Dockerfile' -o -name 'Dockerfile.compose' -o -name 'docker-compose.yml' -o -name 'docker-compose.*.yml' \) \
+    -delete
+}
+
+strip_precontainer_docker_artifacts
+
 remove_snapshot_transient_artifacts() {
   local transient_dirs=(
     "node_modules"
