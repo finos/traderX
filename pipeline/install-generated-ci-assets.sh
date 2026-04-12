@@ -130,6 +130,13 @@ discover_docker_entries() {
   local out_file="$1"
   : > "${out_file}"
 
+  # Container image scanning is only required for convergence/containerized states.
+  # Non-convergence states can carry Dockerfiles for future transitions but do not
+  # guarantee buildable container contexts in isolation.
+  if [[ "${is_convergence}" != "true" ]]; then
+    return
+  fi
+
   while IFS= read -r dockerfile; do
     [[ -z "${dockerfile}" ]] && continue
     rel="${dockerfile#${TARGET_ROOT}/}"
@@ -364,6 +371,9 @@ EOF
           echo "UPNAME=$(echo '${{ matrix.module_folder }}' | tr '/\\ ' '---' | tr -cd '[:alnum:]._-')" >> "${GITHUB_ENV}"
       - name: Dependency check
         uses: dependency-check/Dependency-Check_Action@main
+        env:
+          JAVA_HOME: ""
+          JAVA_HOME_21_X64: ""
         with:
           project: ${{ matrix.module_folder }}
           path: ${{ matrix.module_folder }}

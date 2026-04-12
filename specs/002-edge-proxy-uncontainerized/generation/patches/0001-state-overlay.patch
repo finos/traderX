@@ -76,6 +76,7 @@ index 0000000..996407e
 +  "version": "1.0.0",
 +  "private": true,
 +  "description": "Spec-first generated edge proxy for TraderX state 002",
++  "license": "Apache-2.0",
 +  "main": "src/server.js",
 +  "scripts": {
 +    "start": "node src/server.js"
