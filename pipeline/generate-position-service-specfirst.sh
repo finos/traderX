@@ -92,6 +92,7 @@ EOF
 
 cat <<EOF > "${TARGET}/src/main/resources/application.properties"
 server.port=\${${POSITION_SERVICE_PORT_ENV}:${DEFAULT_PORT}}
+server.forward-headers-strategy=framework
 
 spring.datasource.url=jdbc:h2:tcp://\${${DATABASE_TCP_HOST_ENV}:localhost}:\${${DATABASE_TCP_PORT_ENV}:18082}/\${${DATABASE_NAME_ENV}:traderx};CASE_INSENSITIVE_IDENTIFIERS=TRUE
 spring.datasource.driverClassName=org.h2.Driver
@@ -100,6 +101,7 @@ spring.datasource.password=\${${DATABASE_DBPASS_ENV}:sa}
 spring.threads.virtual.enabled=true
 
 server.max-http-request-header-size=1000000
+springdoc.swagger-ui.disable-swagger-default-url=true
 EOF
 
 cat <<EOF > "${TARGET}/Dockerfile"

@@ -1160,8 +1160,14 @@ index 0000000..2c84a14
 +      target: route.target,
 +      changeOrigin: true,
 +      ws: Boolean(route.ws),
++      xfwd: true,
 +      pathRewrite: buildPathRewrite(route.prefix, route.rewritePrefix),
-+      logLevel: process.env.EDGE_PROXY_LOG_LEVEL || 'warn'
++      logLevel: process.env.EDGE_PROXY_LOG_LEVEL || 'warn',
++      on: {
++        proxyReq: (proxyReq) => {
++          proxyReq.setHeader('X-Forwarded-Prefix', route.prefix);
++        }
++      }
 +    }));
 +  }
 +
@@ -1170,6 +1176,7 @@ index 0000000..2c84a14
 +    target: webTarget,
 +    changeOrigin: true,
 +    ws: true,
++    xfwd: true,
 +    logLevel: process.env.EDGE_PROXY_LOG_LEVEL || 'warn'
 +  }));
 +  return { app, port };

@@ -97,6 +97,7 @@ EOF
 
 cat <<EOF > "${TARGET}/src/main/resources/application.properties"
 server.port=\${${TRADE_PROCESSOR_SERVICE_PORT_ENV}:${DEFAULT_PORT}}
+server.forward-headers-strategy=framework
 
 spring.datasource.url=jdbc:h2:tcp://\${${DATABASE_TCP_HOST_ENV}:localhost}:\${${DATABASE_TCP_PORT_ENV}:18082}/\${${DATABASE_NAME_ENV}:traderx};CASE_INSENSITIVE_IDENTIFIERS=TRUE
 spring.datasource.driverClassName=org.h2.Driver
@@ -112,6 +113,7 @@ trade.feed.address=\${${TRADE_FEED_ADDRESS_ENV}:http://\${${TRADE_FEED_HOST_ENV}
 
 # To avoid "Request header is too large" when application is backed by oidc proxy.
 server.max-http-request-header-size=1000000
+springdoc.swagger-ui.disable-swagger-default-url=true
 
 logging.level.org.hibernate.SQL=DEBUG
 logging.level.org.hibernate.type.descriptor.sql.BasicBinder=DEBUG

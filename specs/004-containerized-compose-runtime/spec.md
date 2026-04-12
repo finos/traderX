@@ -27,6 +27,7 @@
 - NFR-306: As convergence level `C0`, generated state branches MUST include `.github/workflows/build-and-publish.yml` for container image publication.
 - NFR-307: `C0` image publication namespace MUST use `ghcr.io/finos/traderx-c0/<component>` with immutable commit-SHA tags plus `latest`.
 - NFR-308: Generated artifacts MUST include a GHCR run bundle for running this state from published images.
+- NFR-309: NGINX ingress routes SHALL forward standard ingress headers (`X-Forwarded-For`, `X-Forwarded-Host`, `X-Forwarded-Proto`, and route-specific `X-Forwarded-Prefix`) to upstream services.
 
 ## Success Criteria
 

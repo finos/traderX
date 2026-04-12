@@ -89,6 +89,7 @@ EOF
 
 cat <<EOF > "${TARGET}/src/main/resources/application.properties"
 server.port=\${${ACCOUNT_SERVICE_PORT_ENV}:${DEFAULT_PORT}}
+server.forward-headers-strategy=framework
 
 spring.datasource.url=jdbc:h2:tcp://\${${DATABASE_TCP_HOST_ENV}:localhost}:\${DATABASE_TCP_PORT:18082}/\${DATABASE_NAME:traderx};CASE_INSENSITIVE_IDENTIFIERS=TRUE
 spring.datasource.driverClassName=org.h2.Driver
@@ -99,6 +100,7 @@ spring.threads.virtual.enabled=true
 people.service.url=\${${PEOPLE_SERVICE_URL_ENV}:http://\${${PEOPLE_SERVICE_HOST_ENV}:localhost}:18089}
 
 server.max-http-request-header-size=1000000
+springdoc.swagger-ui.disable-swagger-default-url=true
 EOF
 
 cat <<EOF > "${TARGET}/Dockerfile"

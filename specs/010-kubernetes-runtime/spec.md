@@ -25,6 +25,7 @@
 - NFR-404: Generated images SHALL be built from generated component source and loaded into the target cluster.
 - NFR-405: Runtime topology and architecture SHALL be machine-documented in `system/runtime-topology.md` and `system/architecture.model.json`.
 - NFR-406: Observability capabilities inherited from state `009-order-management-matcher` (Prometheus scrape coverage, provisioned Grafana dashboards, and LGTM control-plane services) SHALL remain available through Kubernetes runtime entrypoints.
+- NFR-407: NGINX edge routes SHALL forward standard ingress headers (`X-Forwarded-For`, `X-Forwarded-Host`, `X-Forwarded-Proto`, and route-specific `X-Forwarded-Prefix`) to upstream services.
 
 ## Success Criteria
 

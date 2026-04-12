@@ -1274,6 +1274,7 @@ index 0000000..b33d8a4
 +++ b/account-service/src/main/resources/application.properties
 @@ -0,0 +1,11 @@
 +server.port=${ACCOUNT_SERVICE_PORT:18088}
++server.forward-headers-strategy=framework
 +
 +spring.datasource.url=jdbc:h2:tcp://${DATABASE_TCP_HOST:localhost}:${DATABASE_TCP_PORT:18082}/${DATABASE_NAME:traderx};CASE_INSENSITIVE_IDENTIFIERS=TRUE
 +spring.datasource.driverClassName=org.h2.Driver
@@ -1284,6 +1285,7 @@ index 0000000..b33d8a4
 +people.service.url=${PEOPLE_SERVICE_URL:http://${PEOPLE_SERVICE_HOST:localhost}:18089}
 +
 +server.max-http-request-header-size=1000000
++springdoc.swagger-ui.disable-swagger-default-url=true
 diff --git a/account-service/src/main/resources/test-application.properties b/account-service/src/main/resources/test-application.properties
 new file mode 100644
 index 0000000..a00ff18
@@ -1976,22 +1978,47 @@ index 0000000..fbe8473
 +    }
 +
 +    location /people-service/ {
++        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
++        proxy_set_header Host $http_host;
++        proxy_set_header X-Forwarded-Host $http_host;
++        proxy_set_header X-Forwarded-Proto $scheme;
++        proxy_set_header X-Forwarded-Prefix /people-service;
 +        proxy_pass ${PEOPLE_SERVICE_URL};
 +    }
 +
 +    location /account-service/ {
++        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
++        proxy_set_header Host $http_host;
++        proxy_set_header X-Forwarded-Host $http_host;
++        proxy_set_header X-Forwarded-Proto $scheme;
++        proxy_set_header X-Forwarded-Prefix /account-service;
 +        proxy_pass ${ACCOUNT_SERVICE_URL};
 +    }
 +
 +    location /position-service/ {
++        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
++        proxy_set_header Host $http_host;
++        proxy_set_header X-Forwarded-Host $http_host;
++        proxy_set_header X-Forwarded-Proto $scheme;
++        proxy_set_header X-Forwarded-Prefix /position-service;
 +        proxy_pass ${POSITION_SERVICE_URL};
 +    }
 +
 +    location /trade-service/ {
++        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
++        proxy_set_header Host $http_host;
++        proxy_set_header X-Forwarded-Host $http_host;
++        proxy_set_header X-Forwarded-Proto $scheme;
++        proxy_set_header X-Forwarded-Prefix /trade-service;
 +        proxy_pass ${TRADE_SERVICE_URL};
 +    }
 +
 +    location /trade-processor/ {
++        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
++        proxy_set_header Host $http_host;
++        proxy_set_header X-Forwarded-Host $http_host;
++        proxy_set_header X-Forwarded-Proto $scheme;
++        proxy_set_header X-Forwarded-Prefix /trade-processor;
 +        proxy_pass ${TRADE_PROCESSOR_URL};
 +    }
 +
@@ -3339,6 +3366,7 @@ index 0000000..908d7f3
 +++ b/position-service/src/main/resources/application.properties
 @@ -0,0 +1,9 @@
 +server.port=${POSITION_SERVICE_PORT:18090}
++server.forward-headers-strategy=framework
 +
 +spring.datasource.url=jdbc:h2:tcp://${DATABASE_TCP_HOST:localhost}:${DATABASE_TCP_PORT:18082}/${DATABASE_NAME:traderx};CASE_INSENSITIVE_IDENTIFIERS=TRUE
 +spring.datasource.driverClassName=org.h2.Driver
@@ -3347,6 +3375,7 @@ index 0000000..908d7f3
 +spring.threads.virtual.enabled=true
 +
 +server.max-http-request-header-size=1000000
++springdoc.swagger-ui.disable-swagger-default-url=true
 diff --git a/position-service/src/main/resources/test-application.properties b/position-service/src/main/resources/test-application.properties
 new file mode 100644
 index 0000000..45268a9
@@ -12560,6 +12589,7 @@ index 0000000..300e3c9
 +++ b/trade-processor/src/main/resources/application.properties
 @@ -0,0 +1,19 @@
 +server.port=${TRADE_PROCESSOR_SERVICE_PORT:18091}
++server.forward-headers-strategy=framework
 +
 +spring.datasource.url=jdbc:h2:tcp://${DATABASE_TCP_HOST:localhost}:${DATABASE_TCP_PORT:18082}/${DATABASE_NAME:traderx};CASE_INSENSITIVE_IDENTIFIERS=TRUE
 +spring.datasource.driverClassName=org.h2.Driver
@@ -12575,6 +12605,7 @@ index 0000000..300e3c9
 +
 +# To avoid "Request header is too large" when application is backed by oidc proxy.
 +server.max-http-request-header-size=1000000
++springdoc.swagger-ui.disable-swagger-default-url=true
 +
 +logging.level.org.hibernate.SQL=DEBUG
 +logging.level.org.hibernate.type.descriptor.sql.BasicBinder=DEBUG
@@ -13493,6 +13524,7 @@ index 0000000..2640da4
 +++ b/trade-service/src/main/resources/application.properties
 @@ -0,0 +1,13 @@
 +server.port=${TRADING_SERVICE_PORT:18092}
++server.forward-headers-strategy=framework
 +spring.threads.virtual.enabled=true
 +
 +people.service.url=${PEOPLE_SERVICE_URL:http://${PEOPLE_SERVICE_HOST:localhost}:18089}
@@ -13503,6 +13535,7 @@ index 0000000..2640da4
 +
 +# To avoid "Request header is too large" when application is backed by oidc proxy.
 +server.max-http-request-header-size=1000000
++springdoc.swagger-ui.disable-swagger-default-url=true
 +
 +logging.level.root=info
 diff --git a/trade-service/src/main/test/java/finos/traderx/tradeservice/TradeServiceApplicationTests.java b/trade-service/src/main/test/java/finos/traderx/tradeservice/TradeServiceApplicationTests.java

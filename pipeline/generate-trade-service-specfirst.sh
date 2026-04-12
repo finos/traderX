@@ -101,6 +101,7 @@ EOF
 
 cat <<EOF > "${TARGET}/src/main/resources/application.properties"
 server.port=\${${TRADING_SERVICE_PORT_ENV}:${DEFAULT_PORT}}
+server.forward-headers-strategy=framework
 spring.threads.virtual.enabled=true
 
 people.service.url=\${${PEOPLE_SERVICE_URL_ENV}:http://\${${PEOPLE_SERVICE_HOST_ENV}:localhost}:18089}
@@ -111,6 +112,7 @@ trade.feed.address=\${${TRADE_FEED_ADDRESS_ENV}:http://\${${TRADE_FEED_HOST_ENV}
 
 # To avoid "Request header is too large" when application is backed by oidc proxy.
 server.max-http-request-header-size=1000000
+springdoc.swagger-ui.disable-swagger-default-url=true
 
 logging.level.root=info
 EOF
