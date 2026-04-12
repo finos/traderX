@@ -12,5 +12,8 @@
     "express": "4.22.1",
     "nats": "2.29.3",
     "yahoo-finance2": "2.13.3"
+  },
+  "overrides": {
+    "qs": "6.15.1"
   }
 }

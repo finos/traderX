@@ -9,7 +9,7 @@ This document defines the CI contract for generated TraderX code branches.
 ## Scope
 
 - Security and license CI is required for all generated states from `002+`.
-- Container image build/publish CI is required for convergence states from `C1+`.
+- Container image build/publish CI is required for convergence states from `C0+`.
 
 ## Required CI For States `002+`
 
@@ -54,9 +54,26 @@ Policy:
 - Allow state-specific suppression deltas when dependency sets diverge.
 - When a state changes dependencies, update scanner coverage and suppression files in the same change.
 
-## Convergence CI For `C1+`
+## Dependency Source-Of-Truth Contract
 
-Each convergence state from `C1+` must include:
+Version policy changes must be landed in generator sources, not as ad-hoc generated-output edits.
+
+- Baseline runtime/dependency versions belong in `templates/**`.
+- State-specific version deltas belong in `specs/<state>/generation/patches/*.patch`.
+- Post-generation mutation scripts are not allowed in steady-state; generation must be reproducible directly from templates and state patchsets.
+
+Preflight gates:
+
+```bash
+bash pipeline/validate-template-version-consistency.sh
+
+# verifies dependency key versions are consistent across generated state branches
+bash pipeline/validate-generated-branch-dependency-consistency.sh
+```
+
+## Convergence CI For `C0+`
+
+Each convergence state from `C0+` must include:
 
 - `.github/workflows/build-and-publish.yml`
 
@@ -66,6 +83,7 @@ The workflow must build and publish all containerized components present in that
 
 Use convergence-level namespaces (not numeric state ids):
 
+- `C0`: `ghcr.io/finos/traderx-c0/<component>`
 - `C1`: `ghcr.io/finos/traderx-c1/<component>`
 - `C2`: `ghcr.io/finos/traderx-c2/<component>`
 - `C3`: `ghcr.io/finos/traderx-c3/<component>`
@@ -75,9 +93,9 @@ Each image publish must include:
 - immutable tag: commit SHA
 - moving tag: `latest`
 
-## State Run Bundle Requirement For `C1+`
+## State Run Bundle Requirement For `C0+`
 
-Each convergence state from `C1+` must publish a generated run bundle for consuming GHCR images without local source builds.
+Each convergence state from `C0+` must publish a generated run bundle for consuming GHCR images without local source builds.
 
 Minimum bundle artifacts:
 
@@ -97,7 +115,7 @@ actionlint
 act -W .github/workflows/security.yml
 act -W .github/workflows/license-scanning-node.yml
 
-# required for convergence states C1+
+# required for convergence states C0+
 act -W .github/workflows/build-and-publish.yml
 ```
 

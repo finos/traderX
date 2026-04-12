@@ -78,12 +78,20 @@ When implementing a new state delta with an LLM:
 5. Update `specs/<state>/generation/generation-hook.md` with parent, patch path, and refresh commands.
 6. Do not introduce or keep large file-payload heredoc generators for derived states.
 
+## Generation Concurrency
+
+Run generation sequentially by default. `pipeline/generate-state.sh` writes to shared output roots (`generated/code/target-generated`, `generated/code/components`), so parallel invocations can race.
+
+Use isolated `TRADERX_GENERATED_ROOT` directories only when intentionally running multiple generation sessions in separate workspaces.
+
 ## Validation Commands
 
 ```bash
 bash pipeline/refresh-state-docs.sh --check
 bash pipeline/validate-state-doc-consistency.sh
 bash pipeline/validate-state-pack-artifacts.sh
+bash pipeline/validate-template-version-consistency.sh
+bash pipeline/validate-generated-branch-dependency-consistency.sh
 ./pipeline/speckit/validate-speckit-readiness.sh
 ./pipeline/speckit/verify-spec-expressiveness.sh
 bash pipeline/speckit/compile-all-component-manifests.sh
@@ -100,7 +108,7 @@ actionlint
 act -W .github/workflows/security.yml
 act -W .github/workflows/license-scanning-node.yml
 
-# required for convergence states C1+
+# required for convergence states C0+
 act -W .github/workflows/build-and-publish.yml
 ```
 

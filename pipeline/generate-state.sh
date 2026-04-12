@@ -16,6 +16,26 @@ if [[ -z "${STATE_ID}" ]]; then
   exit 1
 fi
 
+# Top-level generation must run exclusively because state generation writes to
+# shared output roots by default (`generated/code/target-generated` and
+# `generated/code/components`).
+if (( GEN_DEPTH == 1 )); then
+  LOCK_ROOT="${GENERATED_ROOT}/.locks"
+  LOCK_DIR="${LOCK_ROOT}/generate-state.lock"
+  mkdir -p "${LOCK_ROOT}"
+  if ! mkdir "${LOCK_DIR}" 2>/dev/null; then
+    echo "[fail] concurrent generation is not supported with shared target directories"
+    echo "[hint] wait for the active generation process to complete, then retry"
+    echo "[hint] lock path: ${LOCK_DIR}"
+    exit 1
+  fi
+
+  release_generation_lock() {
+    rmdir "${LOCK_DIR}" 2>/dev/null || true
+  }
+  trap release_generation_lock EXIT INT TERM
+fi
+
 clean_target_root() {
   local attempts=6
   local delay=1
@@ -63,11 +83,11 @@ case "${STATE_ID}" in
   001-baseline-uncontainerized-parity)
     bash "${ROOT}/pipeline/generate-from-spec.sh"
     bash "${ROOT}/pipeline/generate-state-architecture-doc.sh" "${STATE_ID}"
-    cat <<'EOF'
+    cat <<'EOT'
 [summary] state=001-baseline-uncontainerized-parity
 [summary] impacted-components=database,reference-data,trade-feed,people-service,account-service,position-service,trade-processor,trade-service,web-front-end-angular
 [summary] runtime-entrypoint=./scripts/start-base-uncontainerized-generated.sh
-EOF
+EOT
     ;;
   002-edge-proxy-uncontainerized)
     bash "${ROOT}/pipeline/generate-state-002-edge-proxy-uncontainerized.sh"
@@ -86,15 +106,6 @@ EOF
     fi
     ;;
 esac
-
-# Normalize security-sensitive dependency baselines after state composition.
-# Only run at the top-level invocation so intermediate parent snapshots remain
-# patch-compatible during recursive state generation.
-if (( GEN_DEPTH == 1 )); then
-  bash "${ROOT}/pipeline/normalize-generated-dependency-security.sh" "${STATE_ID}" "${TARGET_ROOT}"
-else
-  echo "[info] skipping dependency normalization for nested generation depth=${GEN_DEPTH} state=${STATE_ID}"
-fi
 
 # Install self-contained runtime scripts alongside the generated codebase.
 bash "${ROOT}/pipeline/install-generated-runtime-harness.sh" "${STATE_ID}" "${TARGET_ROOT}"

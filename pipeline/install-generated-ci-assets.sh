@@ -44,7 +44,7 @@ convergence_level="$(jq -r '.convergenceLevel // "none"' <<<"${state_entry}")"
 convergence_level_lc="$(printf '%s' "${convergence_level}" | tr '[:upper:]' '[:lower:]')"
 convergence_namespace=""
 case "${convergence_level}" in
-  C1|C2|C3)
+  C0|C1|C2|C3)
     convergence_namespace="traderx-${convergence_level_lc}"
     ;;
 esac

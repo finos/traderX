@@ -24,9 +24,13 @@
 - NFR-303: Container networking and service discovery SHALL be deterministic and documented.
 - NFR-304: Generated containerized artifacts SHALL be produced from specs and validated before release tagging.
 - NFR-305: Browser ingress in this state SHALL use NGINX reverse-proxy configuration generated from spec artifacts.
+- NFR-306: As convergence level `C0`, generated state branches MUST include `.github/workflows/build-and-publish.yml` for container image publication.
+- NFR-307: `C0` image publication namespace MUST use `ghcr.io/finos/traderx-c0/<component>` with immutable commit-SHA tags plus `latest`.
+- NFR-308: Generated artifacts MUST include a GHCR run bundle for running this state from published images.
 
 ## Success Criteria
 
 - SC-301: Containerized stack starts with one documented command path.
 - SC-302: Smoke/conformance checks pass against containerized state.
 - SC-303: Generated snapshot tag published with linked validation evidence.
+- SC-304: Generated branch artifacts include `C0` build/publish workflow and GHCR run-bundle assets.

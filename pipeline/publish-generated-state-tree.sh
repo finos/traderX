@@ -115,4 +115,7 @@ if [[ "${#remaining[@]}" -gt 0 ]]; then
   exit 1
 fi
 
+echo "[step] validate generated dependency consistency across published state branches"
+bash "${ROOT}/pipeline/validate-generated-branch-dependency-consistency.sh"
+
 echo "[done] published generated-state tree (${#published[@]} states)"

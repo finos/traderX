@@ -9,6 +9,12 @@ This repository follows a SpecKit-first, multi-state architecture. Agents should
 - Contracts and architecture docs are generated from state-local spec artifacts.
 - Learning graph index lives at `docs/learning-paths/index.md`.
 
+## Generation Concurrency Rule
+
+- Run state generation sequentially; do not run `pipeline/generate-state.sh` for multiple states in parallel by default.
+- Default generation writes to shared targets (`generated/code/target-generated` and `generated/code/components`), so parallel runs can race and corrupt outputs.
+- Use separate `TRADERX_GENERATED_ROOT` values only when intentional isolated workspaces are required.
+
 ## Active State IDs
 
 - `001-baseline-uncontainerized-parity`

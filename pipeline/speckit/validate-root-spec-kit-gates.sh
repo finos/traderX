@@ -93,5 +93,6 @@ if [[ -d "${TRADERSPEC_ROOT}/speckit/contracts" ]]; then
 fi
 
 bash "${REPO_ROOT}/pipeline/validate-state-doc-consistency.sh"
+bash "${REPO_ROOT}/pipeline/validate-template-version-consistency.sh"
 
 echo "[ok] root Spec Kit quality gates passed (feature=${FEATURE_ID}, branch=${branch_name})"

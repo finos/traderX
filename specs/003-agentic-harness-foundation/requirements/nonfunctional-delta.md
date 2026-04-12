@@ -5,6 +5,7 @@ Parent state: `002-edge-proxy-uncontainerized`
 ## Runtime / Operations
 
 - Runtime startup, stop, and status behavior remain equivalent to state `002`.
+- Generation runs that target the default shared output root (`generated/**`) must execute sequentially; parallel runs require distinct `TRADERX_GENERATED_ROOT` values per run.
 
 ## Security / Compliance
 
@@ -18,3 +19,4 @@ Parent state: `002-edge-proxy-uncontainerized`
 ## Reliability / Observability
 
 - Idempotent harness generation avoids drift between repeated generation runs.
+- Generation lock behavior must fail fast on concurrent shared-root runs to prevent partial/corrupt output snapshots.

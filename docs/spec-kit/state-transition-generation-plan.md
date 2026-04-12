@@ -25,6 +25,13 @@ This plan defines how TraderX evolves through numbered states with explicit conv
 5. Run state smoke tests + global gates.
 6. Publish code snapshot branch.
 
+## Generation Concurrency Invariant
+
+- Default generation is sequential. The pipeline writes to shared roots under `generated/**`, so parallel runs targeting the same root are a race condition.
+- `pipeline/generate-state.sh` enforces this with a top-level generation lock and fails fast on concurrent shared-root invocations.
+- Parallel generation is allowed only when each run uses a distinct `TRADERX_GENERATED_ROOT` (for example separate workspaces or CI job sandboxes).
+- This invariant applies to upstream and overlay pipelines that mirror upstream generation behavior.
+
 ## Current Convergence-First Model
 
 ```mermaid
@@ -54,7 +61,7 @@ flowchart LR
 - `catalog/state-catalog.json` must carry convergence metadata.
 - `system/convergence-rationale.md` must exist and be updated when convergence state content/metadata changes.
 - CI gates must pass before publish.
-- Convergence states `C1+` must include image build/publish CI and GHCR run-bundle artifacts (see `/docs/spec-kit/generated-state-ci`).
+- Convergence states `C0+` must include image build/publish CI and GHCR run-bundle artifacts (see `/docs/spec-kit/generated-state-ci`).
 
 ## Reference Commands
 

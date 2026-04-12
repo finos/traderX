@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 STATE_ID="004-containerized-compose-runtime"
-PARENT_STATE_ID="002-edge-proxy-uncontainerized"
+PARENT_STATE_ID="003-agentic-harness-foundation"
 
 echo "[info] generating parent state ${PARENT_STATE_ID} for ${STATE_ID}"
 bash "${ROOT}/pipeline/generate-state.sh" "${PARENT_STATE_ID}"

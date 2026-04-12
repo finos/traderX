@@ -42,13 +42,14 @@ Convergence context is represented separately via `isConvergence`, `convergenceL
 
 ## CI + Artifact Publishing Policy
 
-Convergence states from `C1+` must include:
+Convergence states from `C0+` must include:
 
 - container build/publish workflow (`.github/workflows/build-and-publish.yml`)
 - generated run bundle artifacts for consuming GHCR images directly
 
 GHCR image namespaces are convergence-level scoped:
 
+- `C0`: `ghcr.io/finos/traderx-c0/<component>`
 - `C1`: `ghcr.io/finos/traderx-c1/<component>`
 - `C2`: `ghcr.io/finos/traderx-c2/<component>`
 - `C3`: `ghcr.io/finos/traderx-c3/<component>`

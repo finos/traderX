@@ -22,6 +22,7 @@ done
 
 [[ -f "${CSV}" ]] || { echo "[missing-spec] ${CSV}"; exit 1; }
 "${ROOT}/pipeline/speckit/validate-speckit-readiness.sh"
+"${ROOT}/pipeline/validate-template-version-consistency.sh"
 
 row=0
 services=0

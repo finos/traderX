@@ -134,11 +134,27 @@ Generated-state branches must carry CI workflows that match the state's technolo
 - Coverage must include all applicable generated components (Java/.NET/Node/containerized).
 - CVE suppression files used by the scans must be present and versioned with the generated state.
 
-Convergence states `C1+` must also include container image build/publish workflows and a generated run bundle that references published images.
+Convergence states `C0+` must also include container image build/publish workflows and a generated run bundle that references published images.
 
 Canonical policy and local preflight guidance:
 
 - `/docs/spec-kit/generated-state-ci`
+
+## Template Invariant -- Source Of Truth Lives In Templates/Patchsets
+
+Dependency/runtime version changes must be maintained in canonical generator sources, not as post-generation edits.
+
+Required rule:
+
+1. Baseline component defaults are maintained in `templates/**` (for example Java `build.gradle`, Gradle wrapper, and shared runtime/library versions).
+2. Derived state deviations are maintained in state patchsets under `specs/<state>/generation/patches/*.patch`.
+3. Post-generation mutation scripts are not allowed in steady-state generation; canonical templates and patchsets must fully define output content.
+4. Version consistency checks must pass before publish:
+
+```bash
+bash pipeline/validate-template-version-consistency.sh
+bash pipeline/validate-generated-branch-dependency-consistency.sh
+```
 
 ## How To Add A New State
 

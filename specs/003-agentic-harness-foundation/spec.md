@@ -24,9 +24,11 @@
 - NFR-00301: Harness artifact generation is deterministic and idempotent for repeated state generation runs.
 - NFR-00302: Harness files must be concise and avoid duplicating existing generated runbook content.
 - NFR-00303: States from `003` onward inherit the harness contract unless explicitly overridden.
+- NFR-00304: State generation MUST run sequentially when using the default shared output root (`generated/**`) to avoid race conditions; parallel generation is only permitted when each run uses an isolated `TRADERX_GENERATED_ROOT`.
 
 ## Success Criteria
 
 - SC-00301: `bash pipeline/generate-state.sh 003-agentic-harness-foundation` produces a runnable output with the three harness files in target root.
 - SC-00302: `scripts/test-state-003-agentic-harness-foundation.sh` passes and confirms parity with state `002` behavior.
 - SC-00303: `pipeline/install-generated-runtime-harness.sh` applies harness files for `003+` states.
+- SC-00304: A second concurrent invocation of `pipeline/generate-state.sh` against the same shared output root fails fast with a lock error instead of writing partial output.
