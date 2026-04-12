@@ -49,7 +49,7 @@ module.exports = {
   markdown: {
     mermaid: true,
   },
-  themes: ['@docusaurus/theme-mermaid', 'docusaurus-theme-openapi-docs'],
+  themes: ['@docusaurus/theme-mermaid'],
   themeConfig: {
     announcementBar: {
       id: 'agentic-renovation-disclaimer',
@@ -72,7 +72,6 @@ module.exports = {
         {to: '/docs/spec-kit/state-docs', label: 'State Docs', position: 'right'},
         {to: '/docs/adr', label: 'ADRs', position: 'right'},
         {to: '/docs/learning', label: 'Learning', position: 'right'},
-        {to: '/api', label: 'API Explorer (001)', position: 'right'},
         {type: 'search', position: 'right'},
         {
           href: 'https://github.com/finos/',
@@ -115,10 +114,6 @@ module.exports = {
             {
               label: 'Specs',
               to: '/specs',
-            },
-            {
-              label: 'API Explorer (001)',
-              to: '/api',
             }
           ]
         },
@@ -217,68 +212,6 @@ module.exports = {
         sidebarPath: require.resolve('./traderspec-specify.sidebars.js'),
         include: ['memory/**/*.md'],
         editUrl: 'https://github.com/finos/traderX/edit/main/.specify/',
-      },
-    ],
-    [
-      '@docusaurus/plugin-content-docs',
-      {
-        id: 'traderspec-api',
-        path: '../generated/api-docs',
-        routeBasePath: 'api',
-        sidebarPath: require.resolve('./traderspec-api.sidebars.js'),
-        docItemComponent: '@theme/ApiItem',
-        editUrl: 'https://github.com/finos/traderX/edit/main/specs/001-baseline-uncontainerized-parity/contracts/',
-      },
-    ],
-    [
-      'docusaurus-plugin-openapi-docs',
-      {
-        id: 'traderspec-openapi',
-        docsPluginId: 'traderspec-api',
-        config: {
-          'account-service': {
-            specPath: '../specs/001-baseline-uncontainerized-parity/contracts/account-service/openapi.yaml',
-            outputDir: '../generated/api-docs/account-service',
-            sidebarOptions: {
-              groupPathsBy: 'tag',
-            },
-          },
-          'people-service': {
-            specPath: '../specs/001-baseline-uncontainerized-parity/contracts/people-service/openapi.yaml',
-            outputDir: '../generated/api-docs/people-service',
-            sidebarOptions: {
-              groupPathsBy: 'tag',
-            },
-          },
-          'position-service': {
-            specPath: '../specs/001-baseline-uncontainerized-parity/contracts/position-service/openapi.yaml',
-            outputDir: '../generated/api-docs/position-service',
-            sidebarOptions: {
-              groupPathsBy: 'tag',
-            },
-          },
-          'reference-data': {
-            specPath: '../specs/001-baseline-uncontainerized-parity/contracts/reference-data/openapi.yaml',
-            outputDir: '../generated/api-docs/reference-data',
-            sidebarOptions: {
-              groupPathsBy: 'tag',
-            },
-          },
-          'trade-processor': {
-            specPath: '../specs/001-baseline-uncontainerized-parity/contracts/trade-processor/openapi.yaml',
-            outputDir: '../generated/api-docs/trade-processor',
-            sidebarOptions: {
-              groupPathsBy: 'tag',
-            },
-          },
-          'trade-service': {
-            specPath: '../specs/001-baseline-uncontainerized-parity/contracts/trade-service/openapi.yaml',
-            outputDir: '../generated/api-docs/trade-service',
-            sidebarOptions: {
-              groupPathsBy: 'tag',
-            },
-          },
-        },
       },
     ],
     mermaidZoomClientPlugin,

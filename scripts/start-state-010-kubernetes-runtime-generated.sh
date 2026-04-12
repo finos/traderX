@@ -402,5 +402,6 @@ if (( USE_PUBLISHED_IMAGES == 1 )); then
   echo "[images] published namespace=${PUBLISHED_NAMESPACE} tag=${PUBLISHED_TAG}"
 fi
 echo "[ui] http://localhost:${host_port}"
+echo "[api-explorer] http://localhost:${host_port}/api/docs"
 echo "[grafana] http://localhost:${host_port}/grafana (local login credentials)"
 echo "[prometheus] http://localhost:${host_port}/prometheus"

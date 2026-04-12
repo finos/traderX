@@ -2381,11 +2381,8 @@ index 0000000..f2e8875
 +
 +var app = builder.Build();
 +
-+if (app.Environment.IsDevelopment())
-+{
-+    app.UseSwagger();
-+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "PeopleService.WebApi v1"));
-+}
++app.UseSwagger();
++app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "PeopleService.WebApi v1"));
 +
 +app.UseCors("baseline-cors");
 +app.UseAuthorization();

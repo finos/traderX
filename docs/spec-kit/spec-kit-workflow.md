@@ -33,7 +33,7 @@ Browse in docs:
 - `/specs/baseline-uncontainerized-parity/system/architecture`
 - `/docs/spec-kit/state-docs`
 - `/docs/learning`
-- `/api`
+- runtime API explorer route: `/api/docs` (via running state ingress/edge)
 - `/specify`
 
 ## Input Evidence For Requirements
@@ -229,12 +229,12 @@ bash pipeline/speckit/run-full-parity-validation.sh
 
 ## API Explorer
 
-`npm --prefix website run start` and `npm --prefix website run build` now generate OpenAPI docs on demand.
+API explorer generation is runtime-centric and decoupled from the docs portal.
 
-To regenerate explicitly:
+It is installed during state generation by:
 
 ```bash
-npm --prefix website run gen:api-docs
+bash pipeline/install-generated-api-explorer.sh <state-id>
 ```
 
 ## Compare Generation Output

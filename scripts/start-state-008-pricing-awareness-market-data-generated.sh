@@ -107,3 +107,4 @@ wait_for_http "ingress-ui" "http://localhost:8080" || exit 1
 
 echo "[done] state 008 pricing-awareness runtime started"
 echo "[ui] http://localhost:8080"
+echo "[api-explorer] http://localhost:8080/api/docs"

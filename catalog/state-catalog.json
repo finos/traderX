@@ -1,5 +1,57 @@
 {
   "version": "1.0.0",
+  "apiCatalog": {
+    "mountPath": "/api/docs",
+    "services": [
+      {
+        "id": "account-service",
+        "name": "Account Service",
+        "detectPath": "account-service",
+        "runtimeSpecPath": "/account-service/v3/api-docs",
+        "contractPath": "specs/001-baseline-uncontainerized-parity/contracts/account-service/openapi.yaml"
+      },
+      {
+        "id": "people-service",
+        "name": "People Service",
+        "detectPath": "people-service",
+        "runtimeSpecPath": "/people-service/swagger/v1/swagger.json",
+        "contractPath": "specs/001-baseline-uncontainerized-parity/contracts/people-service/openapi.yaml"
+      },
+      {
+        "id": "position-service",
+        "name": "Position Service",
+        "detectPath": "position-service",
+        "runtimeSpecPath": "/position-service/v3/api-docs",
+        "contractPath": "specs/001-baseline-uncontainerized-parity/contracts/position-service/openapi.yaml"
+      },
+      {
+        "id": "reference-data",
+        "name": "Reference Data",
+        "detectPath": "reference-data",
+        "contractPath": "specs/001-baseline-uncontainerized-parity/contracts/reference-data/openapi.yaml"
+      },
+      {
+        "id": "trade-processor",
+        "name": "Trade Processor",
+        "detectPath": "trade-processor",
+        "runtimeSpecPath": "/trade-processor/v3/api-docs",
+        "contractPath": "specs/001-baseline-uncontainerized-parity/contracts/trade-processor/openapi.yaml"
+      },
+      {
+        "id": "trade-service",
+        "name": "Trade Service",
+        "detectPath": "trade-service",
+        "runtimeSpecPath": "/trade-service/v3/api-docs",
+        "contractPath": "specs/001-baseline-uncontainerized-parity/contracts/trade-service/openapi.yaml"
+      },
+      {
+        "id": "order-matcher",
+        "name": "Order Matcher",
+        "detectPath": "order-matcher",
+        "runtimeSpecPath": "/order-matcher/v3/api-docs"
+      }
+    ]
+  },
   "docs": {
     "apiExplorer": {
       "activeStateId": "001-baseline-uncontainerized-parity"

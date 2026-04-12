@@ -16,6 +16,7 @@
 
 - FR-301: Baseline flows F1-F6 SHALL remain behaviorally compatible in containerized runtime.
 - FR-302: State SHALL expose documented runtime entrypoints for UI and APIs in container mode.
+- FR-303: Ingress runtime SHALL expose a standalone API explorer at `/api/docs`, backed by state API metadata and service OpenAPI specs.
 
 ## Non-Functional Requirements
 
@@ -28,6 +29,7 @@
 - NFR-307: `C0` image publication namespace MUST use `ghcr.io/finos/traderx-c0/<component>` with immutable commit-SHA tags plus `latest`.
 - NFR-308: Generated artifacts MUST include a GHCR run bundle for running this state from published images.
 - NFR-309: NGINX ingress routes SHALL forward standard ingress headers (`X-Forwarded-For`, `X-Forwarded-Host`, `X-Forwarded-Proto`, and route-specific `X-Forwarded-Prefix`) to upstream services.
+- NFR-310: API explorer "Try it out" requests in ingress/containerized states SHALL honor service path prefixes (for example `/order-matcher`, `/people-service`) and MUST NOT fallback to root-relative service paths.
 
 ## Success Criteria
 
@@ -35,3 +37,4 @@
 - SC-302: Smoke/conformance checks pass against containerized state.
 - SC-303: Generated snapshot tag published with linked validation evidence.
 - SC-304: Generated branch artifacts include `C0` build/publish workflow and GHCR run-bundle assets.
+- SC-305: After state startup, API explorer is reachable at `http://localhost:8080/api/docs` and interactive requests route through prefixed service paths.

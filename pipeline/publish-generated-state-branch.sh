@@ -977,6 +977,7 @@ EOF
     002-edge-proxy-uncontainerized|003-agentic-harness-foundation)
       cat <<'EOF'
 - UI (edge): `http://localhost:18080`
+- API explorer (edge): `http://localhost:18080/api/docs`
 - Trade service Swagger (edge): `http://localhost:18080/trade-service/swagger-ui.html`
 - Account service Swagger (edge): `http://localhost:18080/account-service/swagger-ui/index.html`
 EOF
@@ -984,6 +985,7 @@ EOF
     004-containerized-compose-runtime|005-postgres-database-replacement|006-messaging-nats-replacement|008-pricing-awareness-market-data)
       cat <<'EOF'
 - UI (ingress): `http://localhost:8080`
+- API explorer (ingress): `http://localhost:8080/api/docs`
 - Trade service Swagger: `http://localhost:18092/swagger-ui.html`
 - Account service API sample: `http://localhost:18088/account/22214`
 - Position service health: `http://localhost:18090/health/alive`
@@ -992,6 +994,7 @@ EOF
     007-observability-lgtm-compose)
       cat <<'EOF'
 - UI (ingress): `http://localhost:8080`
+- API explorer (ingress): `http://localhost:8080/api/docs`
 - Grafana: `http://localhost:3001` (local login credentials)
 - Prometheus: `http://localhost:9090`
 - Loki: `http://localhost:3100`
@@ -1001,6 +1004,7 @@ EOF
     009-order-management-matcher)
       cat <<'EOF'
 - UI (ingress): `http://localhost:8080`
+- API explorer (ingress): `http://localhost:8080/api/docs`
 - Grafana: `http://localhost:3001` (local login credentials)
 - Prometheus: `http://localhost:9090`
 - Order matcher health: `http://localhost:18110/health`
@@ -1010,6 +1014,7 @@ EOF
     010-kubernetes-runtime|011-tilt-kubernetes-dev-loop|012-platform-convergence-c3|013-radius-kubernetes-platform)
       cat <<'EOF'
 - UI (ingress): `http://localhost:8080`
+- API explorer (ingress): `http://localhost:8080/api/docs`
 - Trade page: `http://localhost:8080/trade`
 - Account service route: `http://localhost:8080/account-service/account/22214`
 - Position service route: `http://localhost:8080/position-service/positions/22214`
@@ -1018,6 +1023,26 @@ EOF
     *)
       cat <<'EOF'
 - Use `./scripts/status-*.sh` for this state to print active endpoint URLs.
+EOF
+      ;;
+  esac
+}
+
+api_explorer_markdown() {
+  case "${STATE_ID}" in
+    001-baseline-uncontainerized-parity)
+      cat <<'EOF'
+- Not available in this state (no edge/ingress API explorer mount).
+EOF
+      ;;
+    002-edge-proxy-uncontainerized|003-agentic-harness-foundation)
+      cat <<'EOF'
+- API explorer (edge): `http://localhost:18080/api/docs`
+EOF
+      ;;
+    *)
+      cat <<'EOF'
+- API explorer (ingress): `http://localhost:8080/api/docs`
 EOF
       ;;
   esac
@@ -1197,6 +1222,7 @@ fi
 docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" up -d --build
 echo "[done] state 004 containerized compose runtime started"
 echo "[ui] http://localhost:8080"
+echo "[api-explorer] http://localhost:8080/api/docs"
 EOF
 
   cat > "${SNAPSHOT_DIR}/scripts/stop-state-004-containerized-generated.sh" <<'EOF'
@@ -1412,6 +1438,7 @@ fi
 echo "[done] state 010 kubernetes runtime started"
 echo "[provider] ${K8S_PROVIDER}"
 echo "[ui] http://localhost:${host_port}"
+echo "[api-explorer] http://localhost:${host_port}/api/docs"
 EOF
 
   cat > "${SNAPSHOT_DIR}/scripts/stop-state-010-kubernetes-runtime-generated.sh" <<'EOF'
@@ -1667,6 +1694,7 @@ CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-state-002-edge-proxy
 
 Endpoints:
 - Browser entrypoint (edge proxy): `http://localhost:18080`
+- API explorer (edge proxy): `http://localhost:18080/api/docs`
 - Angular direct dev server: `http://localhost:18093`
 - Edge proxy health: `http://localhost:18080/health`
 
@@ -1697,6 +1725,7 @@ CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-state-003-agentic-ha
 
 Endpoints:
 - Browser entrypoint (edge proxy): `http://localhost:18080`
+- API explorer (edge proxy): `http://localhost:18080/api/docs`
 - Angular direct dev server: `http://localhost:18093`
 - Edge proxy health: `http://localhost:18080/health`
 
@@ -1728,6 +1757,7 @@ Start:
 
 Endpoints:
 - UI / ingress: `http://localhost:8080`
+- API explorer (ingress): `http://localhost:8080/api/docs`
 - Ingress health: `http://localhost:8080/health`
 
 Status / stop:
@@ -1758,6 +1788,7 @@ Start:
 
 Endpoints:
 - UI / edge: `http://localhost:8080`
+- API explorer (edge): `http://localhost:8080/api/docs`
 - Edge health: `http://localhost:8080/health`
 - Grafana: `http://localhost:8080/grafana` (local login credentials)
 - Prometheus: `http://localhost:8080/prometheus`
@@ -1788,6 +1819,7 @@ Start baseline runtime (inherited from state 010):
 
 Inherited runtime endpoints:
 - UI / edge: `http://localhost:8080`
+- API explorer (edge): `http://localhost:8080/api/docs`
 - Grafana: `http://localhost:8080/grafana` (local login credentials)
 - Prometheus: `http://localhost:8080/prometheus`
 
@@ -1823,6 +1855,7 @@ Start baseline runtime (inherited from state 010):
 
 Inherited runtime endpoints:
 - UI / edge: `http://localhost:8080`
+- API explorer (edge): `http://localhost:8080/api/docs`
 - Grafana: `http://localhost:8080/grafana` (local login credentials)
 - Prometheus: `http://localhost:8080/prometheus`
 
@@ -1853,6 +1886,7 @@ Start:
 
 Endpoints:
 - UI / ingress: `http://localhost:8080`
+- API explorer (ingress): `http://localhost:8080/api/docs`
 - Ingress health: `http://localhost:8080/health`
 - NATS monitor: `http://localhost:8222/varz`
 
@@ -1879,6 +1913,7 @@ Start:
 
 Endpoints:
 - UI / ingress: `http://localhost:8080`
+- API explorer (ingress): `http://localhost:8080/api/docs`
 - Ingress health: `http://localhost:8080/health`
 - PostgreSQL: `localhost:18083`
 
@@ -1905,6 +1940,7 @@ Start:
 
 Endpoints:
 - UI / ingress: `http://localhost:8080`
+- API explorer (ingress): `http://localhost:8080/api/docs`
 - Ingress health: `http://localhost:8080/health`
 - NATS monitor: `http://localhost:8222/varz`
 - Price publisher: `http://localhost:18100/prices`
@@ -2271,6 +2307,10 @@ $(render_convergence_mermaid)
 ## Runtime Guidance
 
 $(runtime_guidance_markdown)
+
+## API Explorer
+
+$(api_explorer_markdown)
 
 ## Interactive URLs
 

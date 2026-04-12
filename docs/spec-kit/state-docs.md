@@ -29,10 +29,10 @@ For progression context, see [Visual Learning Paths](/docs/learning-paths).
 
 ## API Explorer by State
 
-- Current API explorer route: [/api](/api)
+- Runtime API explorer route: `/api/docs`
 - Current scope: `001-baseline-uncontainerized-parity`
 - Source contracts: `specs/001-baseline-uncontainerized-parity/contracts/**/openapi.yaml`
-- Future plan: add per-state API explorer selectors as additional state contract sets are published.
+- Runtime metadata source: `catalog/state-catalog.json` → `apiCatalog`
 
 ## How This Page Is Maintained
 

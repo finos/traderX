@@ -89,8 +89,8 @@ module.exports = {
         },
         {
           type: 'link',
-          label: 'Spec API Explorer',
-          href: '/api',
+          label: 'Standalone API Explorer',
+          href: '/docs/spec-kit/api-explorer',
         },
       ],
     },

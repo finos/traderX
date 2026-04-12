@@ -125,6 +125,14 @@ else
 fi
 
 # Install self-contained runtime scripts alongside the generated codebase.
+# API explorer install mutates runtime ingress/proxy configs, so avoid applying
+# it during nested parent-state generation where later patchsets may expect the
+# pre-install file shape.
+if (( GEN_DEPTH == 1 )) || [[ "${TRADERX_INSTALL_API_EXPLORER_IN_NESTED_GENERATION:-0}" == "1" ]]; then
+  bash "${ROOT}/pipeline/install-generated-api-explorer.sh" "${STATE_ID}" "${TARGET_ROOT}" "${COMPONENTS_ROOT}"
+else
+  echo "[info] nested generation depth=${GEN_DEPTH}; skipping API explorer install"
+fi
 bash "${ROOT}/pipeline/install-generated-runtime-harness.sh" "${STATE_ID}" "${TARGET_ROOT}"
 bash "${ROOT}/pipeline/install-generated-ci-assets.sh" "${STATE_ID}" "${TARGET_ROOT}"
 

@@ -20,7 +20,7 @@ The portal publishes three repository sources:
 - Baseline feature pack: `/specs/baseline-uncontainerized-parity`
 - State docs map (flows + architecture): `/docs/spec-kit/state-docs`
 - Learning guides for generated code states: `/docs/learning`
-- OpenAPI API Explorer: `/api`
+- OpenAPI API Explorer (runtime): `/api/docs` (served by running state ingress/edge)
 - Project ADRs: `/docs/adr`
 - `.specify` constitution and templates: `/specify/memory/constitution`
 - Generation operator guide: `/docs/spec-kit/spec-kit-generation-guide`

@@ -87,7 +87,7 @@ Live routes (Docusaurus):
 - `/docs/learning-paths`
 - `/specs`
 - `/specify`
-- `/api`
+- runtime API explorer: `/api/docs` (via running generated state ingress/edge)
 
 ## Contributing
 

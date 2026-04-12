@@ -16,6 +16,7 @@
 - FR-201: The state SHALL expose a single browser-facing edge endpoint for baseline UI traffic.
 - FR-202: The edge SHALL route requests to existing backend services without changing current API contracts.
 - FR-203: Existing baseline end-to-end flows F1-F6 SHALL remain behaviorally compatible.
+- FR-204: The edge endpoint SHALL expose a standalone API explorer at `/api/docs`, backed by state API metadata and service OpenAPI specs.
 
 ## Non-Functional Requirements
 
@@ -30,6 +31,7 @@
 - NFR-209: Every generated Node.js project (`package.json`) SHALL declare `"license": "Apache-2.0"`; new Node services introduced in later states MUST inherit this default unless an explicit state requirement overrides it.
 - NFR-210: The edge proxy implementation SHALL forward standard ingress headers (`X-Forwarded-For`, `X-Forwarded-Host`, `X-Forwarded-Proto`, and `X-Forwarded-Prefix` for prefixed routes) to upstream services.
 - NFR-211: Generated-state publish flows SHALL require successful compile preflight for all generated modules declared in state metadata (Node.js, Gradle, .NET where present) before commit/push.
+- NFR-212: API explorer "Try it out" requests in edge-proxy states SHALL honor service path prefixes (for example `/order-matcher`, `/people-service`) and MUST NOT fallback to root-relative service paths.
 
 ## Success Criteria
 
@@ -38,6 +40,7 @@
 - SC-203: Generated snapshot is tagged and linked to validation evidence.
 - SC-204: Generated snapshots from this state lineage contain required CI workflow files and scanner suppression files with component-complete coverage.
 - SC-205: Generated-state publish fails prior to commit/push when compile preflight fails for any generated module in scope.
+- SC-206: After state startup, API explorer is reachable at `http://localhost:18080/api/docs` and interactive requests route through prefixed service paths.
 
 ## Generation + Runtime Entry Points
 

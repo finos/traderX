@@ -515,6 +515,7 @@ EOF
     002-edge-proxy-uncontainerized|003-agentic-harness-foundation)
       cat <<'EOF'
 - UI (edge): `http://localhost:18080`
+- API explorer (edge): `http://localhost:18080/api/docs`
 - Trade service Swagger (edge): `http://localhost:18080/trade-service/swagger-ui.html`
 - Account service Swagger (edge): `http://localhost:18080/account-service/swagger-ui/index.html`
 EOF
@@ -522,6 +523,7 @@ EOF
     004-containerized-compose-runtime|005-postgres-database-replacement|006-messaging-nats-replacement|008-pricing-awareness-market-data)
       cat <<'EOF'
 - UI (ingress): `http://localhost:8080`
+- API explorer (ingress): `http://localhost:8080/api/docs`
 - Trade service Swagger: `http://localhost:18092/swagger-ui.html`
 - Account service API sample: `http://localhost:18088/account/22214`
 - Position service health: `http://localhost:18090/health/alive`
@@ -530,6 +532,7 @@ EOF
     007-observability-lgtm-compose)
       cat <<'EOF'
 - UI (ingress): `http://localhost:8080`
+- API explorer (ingress): `http://localhost:8080/api/docs`
 - Grafana: `http://localhost:3001` (local login credentials)
 - Prometheus: `http://localhost:9090`
 - Loki: `http://localhost:3100`
@@ -539,6 +542,7 @@ EOF
     009-order-management-matcher)
       cat <<'EOF'
 - UI (ingress): `http://localhost:8080`
+- API explorer (ingress): `http://localhost:8080/api/docs`
 - Grafana: `http://localhost:3001` (local login credentials)
 - Prometheus: `http://localhost:9090`
 - Order matcher health: `http://localhost:18110/health`
@@ -548,6 +552,7 @@ EOF
     010-kubernetes-runtime|011-tilt-kubernetes-dev-loop|012-platform-convergence-c3|013-radius-kubernetes-platform)
       cat <<'EOF'
 - UI (ingress): `http://localhost:8080`
+- API explorer (ingress): `http://localhost:8080/api/docs`
 - Trade page: `http://localhost:8080/trade`
 - Account service route: `http://localhost:8080/account-service/account/22214`
 - Position service route: `http://localhost:8080/position-service/positions/22214`

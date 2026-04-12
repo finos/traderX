@@ -121,4 +121,5 @@ bash "${REPO_ROOT}/scripts/star-grafana-traderx-dashboards.sh" \
 
 echo "[done] state 009 order-management runtime started"
 echo "[ui] http://localhost:8080"
+echo "[api-explorer] http://localhost:8080/api/docs"
 echo "[grafana] http://localhost:${GRAFANA_PORT} (local login credentials)"

@@ -522,10 +522,10 @@ ${rows.join('\n')}
 
 ## API Explorer by State
 
-- Current API explorer route: [/api](/api)
+- Runtime API explorer route: \`/api/docs\`
 - Current scope: \`${activeApiState.id}\`
 - Source contracts: \`${activeApiContractsRoot}\`
-- Future plan: add per-state API explorer selectors as additional state contract sets are published.
+- Runtime metadata source: \`catalog/state-catalog.json\` → \`apiCatalog\`
 
 ## How This Page Is Maintained
 

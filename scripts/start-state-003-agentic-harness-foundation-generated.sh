@@ -79,6 +79,7 @@ for ((i=1; i<=attempts; i++)); do
   if nc -z localhost "${EDGE_PROXY_PORT}" >/dev/null 2>&1; then
     echo "[ready] edge-proxy on :${EDGE_PROXY_PORT}"
     echo "[ui] http://localhost:${EDGE_PROXY_PORT}"
+    echo "[api-explorer] http://localhost:${EDGE_PROXY_PORT}/api/docs"
     exit 0
   fi
   sleep 1

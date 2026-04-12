@@ -4,43 +4,32 @@ title: API Explorer
 
 # API Explorer
 
-TraderX now publishes interactive API reference docs in Docusaurus from the canonical OpenAPI contracts.
+TraderX provides a standalone runtime API explorer mounted at `/api/docs`.
 
-The explorer is intentionally state-scoped. Today it represents the baseline contracts in `001-baseline-uncontainerized-parity`.
+The explorer is decoupled from the docs portal codebase and is generated into each runtime output by:
+
+- `pipeline/install-generated-api-explorer.sh`
+
+The explorer UI is static Swagger UI and the service list/spec URLs are metadata-driven from:
+
+- `catalog/state-catalog.json` → `apiCatalog`
 
 ## Browse
 
-- Explorer landing page: `/api` (state scope from `catalog/state-catalog.json`)
-- Source contracts: `specs/001-baseline-uncontainerized-parity/contracts/**/openapi.yaml`
+- Runtime route: `/api/docs`
+- Runtime catalog URL: `/api/docs/catalog.json`
+- Runtime static contracts: `/api/docs/contracts/*.yaml`
 
-## Regenerate API Docs
+## Usage
 
-API docs are generated on demand when running docs start/build:
-
-```bash
-npm --prefix website run start
-npm --prefix website run build
-```
-
-Manual explicit regeneration is also available:
+Generate and start a state runtime:
 
 ```bash
-npm --prefix website run gen:api-docs
+bash pipeline/generate-state.sh <state-id>
+./scripts/start-state-<state-id>-generated.sh
 ```
 
-Generated API docs are written to `generated/api-docs/**` and treated as ephemeral output.
+Then open:
 
-The `/api` landing page is generated from:
-
-- `catalog/state-catalog.json` (active state scope)
-- `generated/api-docs/**` (service docs output)
-
-## Plugin Stack
-
-- `docusaurus-plugin-openapi-docs`
-- `docusaurus-theme-openapi-docs`
-
-Configured in:
-
-- `website/docusaurus.config.js`
-- `website/traderspec-api.sidebars.js`
+- `http://localhost:18080/api/docs` for edge-proxy states (`002`, `003`)
+- `http://localhost:8080/api/docs` for ingress/containerized/Kubernetes states (`004+`)
