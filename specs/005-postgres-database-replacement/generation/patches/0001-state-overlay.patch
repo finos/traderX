@@ -1,3 +1,60 @@
+diff --git a/.github/workflows/security.yml b/.github/workflows/security.yml
+index e5859c2..11a01ab 100644
+--- a/.github/workflows/security.yml
++++ b/.github/workflows/security.yml
+@@ -151,52 +151,3 @@ jobs:
+         with:
+           name: security-gradle-${{ env.UPNAME }}-${{ github.run_id }}-${{ github.run_attempt }}
+           path: ${{ github.workspace }}/${{ matrix.module_folder }}-reports
+-
+-  docker-image-scan:
+-    name: ${{ matrix.image_name }}-docker-scan
+-    runs-on: ubuntu-latest
+-    strategy:
+-      fail-fast: false
+-      matrix:
+-        include:
+-          - directory: account-service
+-            dockerfile: Dockerfile.compose
+-            image_name: account-service
+-          - directory: database
+-            dockerfile: Dockerfile.compose
+-            image_name: database
+-          - directory: ingress
+-            dockerfile: Dockerfile.compose
+-            image_name: ingress
+-          - directory: people-service
+-            dockerfile: Dockerfile.compose
+-            image_name: people-service
+-          - directory: position-service
+-            dockerfile: Dockerfile.compose
+-            image_name: position-service
+-          - directory: reference-data
+-            dockerfile: Dockerfile.compose
+-            image_name: reference-data
+-          - directory: trade-feed
+-            dockerfile: Dockerfile.compose
+-            image_name: trade-feed
+-          - directory: trade-processor
+-            dockerfile: Dockerfile.compose
+-            image_name: trade-processor
+-          - directory: trade-service
+-            dockerfile: Dockerfile.compose
+-            image_name: trade-service
+-          - directory: web-front-end/angular
+-            dockerfile: Dockerfile.compose
+-            image_name: web-front-end-angular
+-    steps:
+-      - uses: actions/checkout@v4
+-      - name: Set up Docker Buildx
+-        uses: docker/setup-buildx-action@v3
+-      - name: Build image for scan
+-        run: docker build -f "${{ matrix.directory }}/${{ matrix.dockerfile }}" -t "traderx-security/${{ matrix.image_name }}:scan" "${{ matrix.directory }}"
+-      - name: Scan image for vulnerabilities
+-        uses: crazy-max/ghaction-container-scan@v3
+-        with:
+-          image: traderx-security/${{ matrix.image_name }}:scan
+-          severity: HIGH
 diff --git a/AGENTS.md b/AGENTS.md
 index c6e65de..2190bce 100644
 --- a/AGENTS.md
@@ -108,7 +165,7 @@ index b33d8a4..eedd70d 100644
  
  people.service.url=${PEOPLE_SERVICE_URL:http://${PEOPLE_SERVICE_HOST:localhost}:18089}
 diff --git a/ci/state-metadata.json b/ci/state-metadata.json
-index e787c7b..0835b4c 100644
+index e787c7b..0811caf 100644
 --- a/ci/state-metadata.json
 +++ b/ci/state-metadata.json
 @@ -1,8 +1,8 @@
@@ -124,6 +181,65 @@ index e787c7b..0835b4c 100644
    "modules": {
      "node": [
        "reference-data",
+@@ -19,57 +19,6 @@
+     "dotnet": [
+       "people-service/PeopleService.WebApi"
+     ],
+-    "docker": [
+-      {
+-        "directory": "account-service",
+-        "dockerfile": "Dockerfile.compose",
+-        "imageName": "account-service"
+-      },
+-      {
+-        "directory": "database",
+-        "dockerfile": "Dockerfile.compose",
+-        "imageName": "database"
+-      },
+-      {
+-        "directory": "ingress",
+-        "dockerfile": "Dockerfile.compose",
+-        "imageName": "ingress"
+-      },
+-      {
+-        "directory": "people-service",
+-        "dockerfile": "Dockerfile.compose",
+-        "imageName": "people-service"
+-      },
+-      {
+-        "directory": "position-service",
+-        "dockerfile": "Dockerfile.compose",
+-        "imageName": "position-service"
+-      },
+-      {
+-        "directory": "reference-data",
+-        "dockerfile": "Dockerfile.compose",
+-        "imageName": "reference-data"
+-      },
+-      {
+-        "directory": "trade-feed",
+-        "dockerfile": "Dockerfile.compose",
+-        "imageName": "trade-feed"
+-      },
+-      {
+-        "directory": "trade-processor",
+-        "dockerfile": "Dockerfile.compose",
+-        "imageName": "trade-processor"
+-      },
+-      {
+-        "directory": "trade-service",
+-        "dockerfile": "Dockerfile.compose",
+-        "imageName": "trade-service"
+-      },
+-      {
+-        "directory": "web-front-end/angular",
+-        "dockerfile": "Dockerfile.compose",
+-        "imageName": "web-front-end-angular"
+-      }
+-    ]
++    "docker": []
+   }
+ }
 diff --git a/position-service/build.gradle b/position-service/build.gradle
 index 060d4f8..cddccee 100644
 --- a/position-service/build.gradle
