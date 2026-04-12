@@ -380,9 +380,11 @@ index 4e1f33f..4d09879 100644
  ## Interactive URLs
  
 -- UI (edge): `http://localhost:18080`
+-- API explorer (edge): `http://localhost:18080/api/docs`
 -- Trade service Swagger (edge): `http://localhost:18080/trade-service/swagger-ui.html`
 -- Account service Swagger (edge): `http://localhost:18080/account-service/swagger-ui/index.html`
 +- UI (ingress): `http://localhost:8080`
++- API explorer (ingress): `http://localhost:8080/api/docs`
 +- Trade service Swagger: `http://localhost:18092/swagger-ui.html`
 +- Account service API sample: `http://localhost:18088/account/22214`
 +- Position service health: `http://localhost:18090/health/alive`
@@ -9159,6 +9161,7 @@ index 549ca5a..0000000
 -  if nc -z localhost "${EDGE_PROXY_PORT}" >/dev/null 2>&1; then
 -    echo "[ready] edge-proxy on :${EDGE_PROXY_PORT}"
 -    echo "[ui] http://localhost:${EDGE_PROXY_PORT}"
+-    echo "[api-explorer] http://localhost:${EDGE_PROXY_PORT}/api/docs"
 -    exit 0
 -  fi
 -  sleep 1

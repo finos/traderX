@@ -136,6 +136,7 @@ index f397f9c..6bcf525 100644
  ## Interactive URLs
  
  - UI (ingress): `http://localhost:8080`
+-- API explorer (ingress): `http://localhost:8080/api/docs`
 -- Grafana: `http://localhost:3001` (local login credentials)
 -- Prometheus: `http://localhost:9090`
 -- Order matcher health: `http://localhost:18110/health`
@@ -4540,6 +4541,7 @@ index 06c3ff6..0000000
 -
 -echo "[done] state 009 order-management runtime started"
 -echo "[ui] http://localhost:8080"
+-echo "[api-explorer] http://localhost:8080/api/docs"
 -echo "[grafana] http://localhost:${GRAFANA_PORT} (local login credentials)"
 diff --git a/scripts/start-state-010-kubernetes-runtime-generated.sh b/scripts/start-state-010-kubernetes-runtime-generated.sh
 new file mode 100755

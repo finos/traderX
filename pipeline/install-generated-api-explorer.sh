@@ -472,6 +472,8 @@ ensure_kubernetes_explorer() {
   local base_dir="${TARGET_ROOT}/kubernetes-runtime/manifests/base"
   local edge_proxy_conf="${base_dir}/edge-proxy-configmap.yaml"
   local kustomization_file="${base_dir}/kustomization.yaml"
+  local build_plan_file="${TARGET_ROOT}/kubernetes-runtime/build-plan.json"
+  local explorer_image="traderx-api-explorer:local"
 
   if [[ ! -d "${base_dir}" || ! -f "${edge_proxy_conf}" || ! -f "${kustomization_file}" ]]; then
     return 0
@@ -480,47 +482,14 @@ ensure_kubernetes_explorer() {
   local cm_file="${base_dir}/api-explorer-configmap.yaml"
   local deploy_file="${base_dir}/api-explorer-deployment.yaml"
   local svc_file="${base_dir}/api-explorer-service.yaml"
+  local explorer_dockerfile="${EXPLORER_ROOT}/Dockerfile"
 
-  {
-    echo "apiVersion: v1"
-    echo "kind: ConfigMap"
-    echo "metadata:"
-    echo "  name: api-explorer-config"
-    echo "  namespace: traderx"
-    echo "data:"
-
-    echo "  index.html: |"
-    sed 's/^/    /' "${EXPLORER_ROOT}/index.html"
-    echo "  catalog.json: |"
-    sed 's/^/    /' "${EXPLORER_ROOT}/catalog.json"
-
-    shopt -s nullglob
-    for contract_file in "${CONTRACTS_ROOT}"/*.yaml; do
-      local basename
-      basename="$(basename "${contract_file}")"
-      local key="contract-${basename}"
-      echo "  ${key}: |"
-      sed 's/^/    /' "${contract_file}"
-    done
-    shopt -u nullglob
-  } > "${cm_file}"
-
-  local items_block
-  items_block="$(mktemp)"
-  {
-    echo "            - key: index.html"
-    echo "              path: index.html"
-    echo "            - key: catalog.json"
-    echo "              path: catalog.json"
-    shopt -s nullglob
-    for contract_file in "${CONTRACTS_ROOT}"/*.yaml; do
-      local basename
-      basename="$(basename "${contract_file}")"
-      echo "            - key: contract-${basename}"
-      echo "              path: contracts/${basename}"
-    done
-    shopt -u nullglob
-  } > "${items_block}"
+  cat > "${explorer_dockerfile}" <<'EOF'
+FROM nginx:1.27-alpine
+COPY . /usr/share/nginx/html/api/docs/
+EOF
+  rm -f "${EXPLORER_ROOT}/.dockerignore"
+  rm -f "${cm_file}"
 
   {
     echo "apiVersion: apps/v1"
@@ -542,22 +511,12 @@ ensure_kubernetes_explorer() {
     echo "    spec:"
     echo "      containers:"
     echo "        - name: api-explorer"
-    echo "          image: nginx:1.27-alpine"
+    echo "          image: ${explorer_image}"
+    echo "          imagePullPolicy: IfNotPresent"
     echo "          ports:"
     echo "            - containerPort: 80"
     echo "              name: http"
-    echo "          volumeMounts:"
-    echo "            - name: api-explorer-config"
-    echo "              mountPath: /usr/share/nginx/html/api/docs"
-    echo "              readOnly: true"
-    echo "      volumes:"
-    echo "        - name: api-explorer-config"
-    echo "          configMap:"
-    echo "            name: api-explorer-config"
-    echo "            items:"
-    cat "${items_block}"
   } > "${deploy_file}"
-  rm -f "${items_block}"
 
   cat > "${svc_file}" <<'EOF'
 apiVersion: v1
@@ -606,12 +565,35 @@ EOF
     mv "${tmp_file}" "${edge_proxy_conf}"
   fi
 
-  if ! rg -q 'api-explorer-configmap.yaml' "${kustomization_file}"; then
+  if ! rg -q 'api-explorer-deployment.yaml' "${kustomization_file}"; then
     cat >> "${kustomization_file}" <<'EOF'
-  - api-explorer-configmap.yaml
   - api-explorer-deployment.yaml
   - api-explorer-service.yaml
 EOF
+  fi
+  perl -0pi -e 's#^\s*-\s*api-explorer-configmap\.yaml\s*\n##mg' "${kustomization_file}"
+
+  if [[ -f "${build_plan_file}" ]]; then
+    local tmp_plan
+    tmp_plan="$(mktemp)"
+    jq '
+      .images = (
+        (.images // [])
+        | map(select(.name != "api-explorer"))
+        + [{
+          "name": "api-explorer",
+          "image": "traderx-api-explorer:local",
+          "context": "api-explorer",
+          "dockerfile": "Dockerfile"
+        }]
+      )
+      | .deployments = (
+        (.deployments // [])
+        | map(select(. != "api-explorer"))
+        + ["api-explorer"]
+      )
+    ' "${build_plan_file}" > "${tmp_plan}"
+    mv "${tmp_plan}" "${build_plan_file}"
   fi
 
   echo "[ok] installed standalone API explorer into Kubernetes manifests"

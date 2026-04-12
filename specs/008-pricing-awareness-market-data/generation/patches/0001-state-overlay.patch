@@ -251,6 +251,7 @@ index aad8aff..c2bbf69 100644
  ## Interactive URLs
  
  - UI (ingress): `http://localhost:8080`
+-- API explorer (ingress): `http://localhost:8080/api/docs`
 -- Grafana: `http://localhost:3001` (local login credentials)
 -- Prometheus: `http://localhost:9090`
 -- Loki: `http://localhost:3100`
@@ -2278,6 +2279,7 @@ index 69f1fb3..f092e90 100755
 -echo "[done] state 007 observability runtime started"
 +echo "[done] state 008 pricing-awareness runtime started"
  echo "[ui] http://localhost:8080"
+-echo "[api-explorer] http://localhost:8080/api/docs"
 -echo "[grafana] http://localhost:${GRAFANA_PORT} (local login credentials)"
 diff --git a/scripts/status-state-007-observability-lgtm-compose-generated.sh b/scripts/status-state-008-pricing-awareness-market-data-generated.sh
 similarity index 65%
