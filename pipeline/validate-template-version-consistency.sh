@@ -60,6 +60,25 @@ while IFS= read -r file; do
 done < <(find "${TEMPLATES_ROOT}" -path '*/gradle/wrapper/gradle-wrapper.properties' -type f -print | sort)
 [[ "${#wrapper_files[@]}" -gt 0 ]] || fail "no Gradle wrapper properties found under ${TEMPLATES_ROOT}"
 
+canonical_wrapper_root="${TEMPLATES_ROOT}/gradle-wrapper"
+[[ -d "${canonical_wrapper_root}" ]] || fail "missing canonical wrapper template directory: ${canonical_wrapper_root}"
+
+canonical_wrapper_files=(
+  "gradlew"
+  "gradlew.bat"
+  "gradle/wrapper/gradle-wrapper.jar"
+  "gradle/wrapper/gradle-wrapper.properties"
+)
+
+sha256_file() {
+  local file="$1"
+  shasum -a 256 "${file}" | awk '{print $1}'
+}
+
+for rel in "${canonical_wrapper_files[@]}"; do
+  [[ -f "${canonical_wrapper_root}/${rel}" ]] || fail "missing canonical wrapper file: ${canonical_wrapper_root}/${rel}"
+done
+
 boot_versions=""
 dep_mgmt_versions=""
 java_majors=""
@@ -105,6 +124,20 @@ unique_wrapper_versions="$(printf '%s\n' "${wrapper_versions}" | collect_unique)
 if [[ "$(printf '%s\n' "${unique_wrapper_versions}" | count_words)" -ne 1 ]]; then
   fail "inconsistent Gradle wrapper versions across templates: ${unique_wrapper_versions}"
 fi
+
+while IFS= read -r gradle_file; do
+  module_dir="$(dirname "${gradle_file}")"
+  for rel in "${canonical_wrapper_files[@]}"; do
+    module_file="${module_dir}/${rel}"
+    [[ -f "${module_file}" ]] || fail "missing wrapper file in template module ${module_dir}: ${rel}"
+
+    canonical_hash="$(sha256_file "${canonical_wrapper_root}/${rel}")"
+    module_hash="$(sha256_file "${module_file}")"
+    if [[ "${canonical_hash}" != "${module_hash}" ]]; then
+      fail "wrapper file drift detected in ${module_dir}: ${rel} differs from templates/gradle-wrapper baseline"
+    fi
+  done
+done < <(find "${TEMPLATES_ROOT}" -maxdepth 2 -type f -name build.gradle -print | sort)
 
 shared_dependencies=(
   "org.springdoc:springdoc-openapi-starter-webmvc-ui"

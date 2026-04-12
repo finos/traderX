@@ -20,3 +20,6 @@ Parent state: `002-edge-proxy-uncontainerized`
 
 - Idempotent harness generation avoids drift between repeated generation runs.
 - Generation lock behavior must fail fast on concurrent shared-root runs to prevent partial/corrupt output snapshots.
+- Generated Node lockfiles must be refreshed from current generated `package.json` content on each generation run to prevent stale dependency resolution drift across states.
+- Generated Gradle modules must receive wrapper assets from the canonical template baseline so wrapper version changes are centralized and inherited across all states.
+- State patch capture must exclude build/restored output directories (`.gradle`, `build`, `target`, `bin`, `obj`, `dist`, `coverage`, `node_modules`) so generated-state diffs stay minimal and reproducible.

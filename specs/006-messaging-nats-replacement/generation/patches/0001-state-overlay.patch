@@ -1,6 +1,126 @@
+diff --git a/.github/workflows/license-scanning-node.yml b/.github/workflows/license-scanning-node.yml
+index 91e5754..f43eb9f 100644
+--- a/.github/workflows/license-scanning-node.yml
++++ b/.github/workflows/license-scanning-node.yml
+@@ -16,7 +16,6 @@ jobs:
+       matrix:
+         module_folder:
+           - reference-data
+-          - trade-feed
+           - web-front-end/angular
+     steps:
+       - uses: actions/checkout@v4
+diff --git a/.github/workflows/security.yml b/.github/workflows/security.yml
+index 8b33b7f..81388ff 100644
+--- a/.github/workflows/security.yml
++++ b/.github/workflows/security.yml
+@@ -23,7 +23,6 @@ jobs:
+       matrix:
+         module_folder:
+           - reference-data
+-          - trade-feed
+           - web-front-end/angular
+     steps:
+       - name: Checkout
+@@ -175,9 +174,6 @@ jobs:
+           - directory: reference-data
+             dockerfile: Dockerfile.compose
+             image_name: reference-data
+-          - directory: trade-feed
+-            dockerfile: Dockerfile.compose
+-            image_name: trade-feed
+           - directory: trade-processor
+             dockerfile: Dockerfile.compose
+             image_name: trade-processor
+diff --git a/AGENTS.md b/AGENTS.md
+index 2190bce..58f577d 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -1,6 +1,6 @@
+ # AGENTS.md
+ 
+-This generated codebase is a reproducible runtime snapshot for state `005-postgres-database-replacement`.
++This generated codebase is a reproducible runtime snapshot for state `006-messaging-nats-replacement`.
+ 
+ - Treat this snapshot as generated output; expect it to be replaced on regeneration.
+ - Prototype and experiment locally here when needed.
+diff --git a/ARCHITECTURE.md b/ARCHITECTURE.md
+index 0e81a6c..45d73a8 100644
+--- a/ARCHITECTURE.md
++++ b/ARCHITECTURE.md
+@@ -1,6 +1,6 @@
+ # ARCHITECTURE.md
+ 
+-This snapshot was generated from TraderX state `005-postgres-database-replacement`.
++This snapshot was generated from TraderX state `006-messaging-nats-replacement`.
+ 
+ - Service/runtime topology is defined by the source state pack in the upstream repository.
+ - This generated directory contains runnable artifacts, not the authoritative architecture source.
+diff --git a/RUN_FROM_GENERATED.md b/RUN_FROM_GENERATED.md
+index 90a3a4c..bcde254 100644
+--- a/RUN_FROM_GENERATED.md
++++ b/RUN_FROM_GENERATED.md
+@@ -1,22 +1,22 @@
+-# Run From Generated (State 005)
++# Run From Generated (State 006)
+ 
+ Start:
+ 
+ ```bash
+-./scripts/start-state-005-postgres-database-replacement-generated.sh
++./scripts/start-state-006-messaging-nats-replacement-generated.sh
+ ```
+ 
+ Status / stop:
+ 
+ ```bash
+-./scripts/status-state-005-postgres-database-replacement-generated.sh
+-./scripts/stop-state-005-postgres-database-replacement-generated.sh
++./scripts/status-state-006-messaging-nats-replacement-generated.sh
++./scripts/stop-state-006-messaging-nats-replacement-generated.sh
+ ```
+ 
+ Smoke test:
+ 
+ ```bash
+-./scripts/test-state-005-postgres-database-replacement.sh
++./scripts/test-state-006-messaging-nats-replacement.sh
+ ```
+ 
+ ## Interactive URLs
+diff --git a/ci/state-metadata.json b/ci/state-metadata.json
+index 0835b4c..1175300 100644
+--- a/ci/state-metadata.json
++++ b/ci/state-metadata.json
+@@ -1,12 +1,11 @@
+ {
+-  "stateId": "005-postgres-database-replacement",
++  "stateId": "006-messaging-nats-replacement",
+   "isConvergence": false,
+   "convergenceLevel": "none",
+   "convergenceNamespace": "",
+   "modules": {
+     "node": [
+       "reference-data",
+-      "trade-feed",
+       "web-front-end/angular"
+     ],
+     "gradle": [
+@@ -50,11 +49,6 @@
+         "dockerfile": "Dockerfile.compose",
+         "imageName": "reference-data"
+       },
+-      {
+-        "directory": "trade-feed",
+-        "dockerfile": "Dockerfile.compose",
+-        "imageName": "trade-feed"
+-      },
+       {
+         "directory": "trade-processor",
+         "dockerfile": "Dockerfile.compose",
 diff --git a/containerized-compose/README.md b/containerized-compose/README.md
 deleted file mode 100644
-index 6204449..0000000
+index ea0a7f0..0000000
 --- a/containerized-compose/README.md
 +++ /dev/null
 @@ -1,16 +0,0 @@
@@ -20,6 +140,14 @@ index 6204449..0000000
 -Ingress UI:
 -
 -- `http://localhost:8080`
+diff --git a/generated/code/components/trade-feed-specfirst b/generated/code/components/trade-feed-specfirst
+deleted file mode 120000
+index 3c57f86..0000000
+--- a/generated/code/components/trade-feed-specfirst
++++ /dev/null
+@@ -1 +0,0 @@
+-../../../trade-feed
+\ No newline at end of file
 diff --git a/ingress/nginx.traderx.conf.template b/ingress/nginx.traderx.conf.template
 index fbe8473..f881206 100644
 --- a/ingress/nginx.traderx.conf.template
@@ -67,7 +195,7 @@ index fbe8473..f881206 100644
  }
 diff --git a/messaging-nats-replacement/README.md b/messaging-nats-replacement/README.md
 new file mode 100644
-index 0000000..5d13f67
+index 0000000..d9896f5
 --- /dev/null
 +++ b/messaging-nats-replacement/README.md
 @@ -0,0 +1,17 @@
@@ -285,6 +413,132 @@ index 0000000..d194d1f
 +  port: 8081
 +  no_tls: true
 +}
+diff --git a/scripts/README.runtime-harness.md b/scripts/README.runtime-harness.md
+index 8a93957..e807587 100644
+--- a/scripts/README.runtime-harness.md
++++ b/scripts/README.runtime-harness.md
+@@ -1,6 +1,6 @@
+ # Generated Runtime Harness
+ 
+-This directory is generated for state: 005-postgres-database-replacement
++This directory is generated for state: 006-messaging-nats-replacement
+ 
+ - Scripts in this folder are local-runtime wrappers for the generated codebase.
+ - They are designed to run without invoking root pipeline generation.
+diff --git a/scripts/start-state-005-postgres-database-replacement-generated.sh b/scripts/start-state-006-messaging-nats-replacement-generated.sh
+similarity index 87%
+rename from scripts/start-state-005-postgres-database-replacement-generated.sh
+rename to scripts/start-state-006-messaging-nats-replacement-generated.sh
+index d0d6062..16a2718 100755
+--- a/scripts/start-state-005-postgres-database-replacement-generated.sh
++++ b/scripts/start-state-006-messaging-nats-replacement-generated.sh
+@@ -17,9 +17,9 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
+     exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+   fi
+ fi
+-STATE_ID="005-postgres-database-replacement"
+-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-005}"
+-COMPOSE_DIR="${GENERATED_ROOT}/code/target-generated/postgres-database-replacement"
++STATE_ID="006-messaging-nats-replacement"
++COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-006}"
++COMPOSE_DIR="${GENERATED_ROOT}/code/target-generated/messaging-nats-replacement"
+ COMPOSE_FILE="${COMPOSE_DIR}/docker-compose.yml"
+ DRY_RUN=0
+ 
+@@ -65,7 +65,7 @@ fi
+ 
+ if (( DRY_RUN == 1 )); then
+   echo "[dry-run] docker compose -f ${COMPOSE_FILE} --project-name ${COMPOSE_PROJECT_NAME} up -d --build"
+-  echo "[done] dry run complete for state 005"
++  echo "[done] dry run complete for state 006"
+   exit 0
+ fi
+ 
+@@ -104,11 +104,12 @@ wait_for_http() {
+ 
+ wait_for_postgres || exit 1
+ wait_for_http "reference-data" "http://localhost:18085/stocks" || exit 1
++wait_for_http "nats-monitor" "http://localhost:8222/varz" || exit 1
+ wait_for_http "account-service" "http://localhost:18088/account/22214" || exit 1
+-wait_for_http "position-service" "http://localhost:18090/positions/22214" || exit 1
++wait_for_http "position-service" "http://localhost:18090/health/alive" || exit 1
+ wait_for_http "trade-service" "http://localhost:18092/swagger-ui.html" || exit 1
+ wait_for_http "ingress" "http://localhost:8080/health" || exit 1
+ wait_for_http "ingress-ui" "http://localhost:8080" || exit 1
+ 
+-echo "[done] state 005 postgres-database runtime started"
++echo "[done] state 006 messaging-nats runtime started"
+ echo "[ui] http://localhost:8080"
+diff --git a/scripts/status-state-005-postgres-database-replacement-generated.sh b/scripts/status-state-006-messaging-nats-replacement-generated.sh
+similarity index 73%
+rename from scripts/status-state-005-postgres-database-replacement-generated.sh
+rename to scripts/status-state-006-messaging-nats-replacement-generated.sh
+index 340ee63..9676d35 100755
+--- a/scripts/status-state-005-postgres-database-replacement-generated.sh
++++ b/scripts/status-state-006-messaging-nats-replacement-generated.sh
+@@ -17,8 +17,8 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
+     exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+   fi
+ fi
+-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-005}"
+-COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/postgres-database-replacement/docker-compose.yml"
++COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-006}"
++COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/messaging-nats-replacement/docker-compose.yml"
+ 
+ if ! command -v docker >/dev/null 2>&1; then
+   echo "[error] docker command not found"
+@@ -27,7 +27,7 @@ fi
+ 
+ if [[ ! -f "${COMPOSE_FILE}" ]]; then
+   echo "[info] compose file not found: ${COMPOSE_FILE}"
+-  echo "[hint] run: bash pipeline/generate-state.sh 005-postgres-database-replacement"
++  echo "[hint] run: bash pipeline/generate-state.sh 006-messaging-nats-replacement"
+   exit 0
+ fi
+ 
+@@ -49,16 +49,10 @@ for target in \
+   "reference-data|http://localhost:18085/stocks" \
+   "account-service|http://localhost:18088/account/22214" \
+   "position-service|http://localhost:18090/health/alive" \
+-  "trade-service|http://localhost:18092/swagger-ui.html"; do
++  "trade-service|http://localhost:18092/swagger-ui.html" \
++  "nats-monitor|http://localhost:8222/varz"; do
+   name="${target%%|*}"
+   url="${target#*|}"
+   code="$(http_code_for "${url}")"
+   printf "%-24s %-8s %s\n" "${name}" "${code:-000}" "${url}"
+ done
+-
+-postgres_ready="no"
+-if docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" exec -T database \
+-  pg_isready -U traderx -d traderx >/dev/null 2>&1; then
+-  postgres_ready="yes"
+-fi
+-printf "%-24s %-8s %s\n" "postgres-ready" "${postgres_ready}" "localhost:18083 -> database:5432"
+diff --git a/scripts/stop-state-005-postgres-database-replacement-generated.sh b/scripts/stop-state-006-messaging-nats-replacement-generated.sh
+similarity index 81%
+rename from scripts/stop-state-005-postgres-database-replacement-generated.sh
+rename to scripts/stop-state-006-messaging-nats-replacement-generated.sh
+index 175164c..5ef01d0 100755
+--- a/scripts/stop-state-005-postgres-database-replacement-generated.sh
++++ b/scripts/stop-state-006-messaging-nats-replacement-generated.sh
+@@ -17,8 +17,8 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
+     exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+   fi
+ fi
+-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-005}"
+-COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/postgres-database-replacement/docker-compose.yml"
++COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-006}"
++COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/messaging-nats-replacement/docker-compose.yml"
+ 
+ if ! command -v docker >/dev/null 2>&1; then
+   echo "[error] docker command not found"
+@@ -31,4 +31,4 @@ if [[ ! -f "${COMPOSE_FILE}" ]]; then
+ fi
+ 
+ docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" down --remove-orphans
+-echo "[done] state 005 postgres-database runtime stopped"
++echo "[done] state 006 messaging-nats runtime stopped"
 diff --git a/trade-feed/Dockerfile.compose b/trade-feed/Dockerfile.compose
 deleted file mode 100644
 index 79db742..0000000
@@ -541,7 +795,7 @@ index ea23c90..0000000
 -});
 diff --git a/trade-feed/package.json b/trade-feed/package.json
 deleted file mode 100644
-index 0355908..0000000
+index d9ef000..0000000
 --- a/trade-feed/package.json
 +++ /dev/null
 @@ -1,15 +0,0 @@
@@ -561,13 +815,13 @@ index 0355908..0000000
 -  }
 -}
 diff --git a/trade-processor/build.gradle b/trade-processor/build.gradle
-index 4457aa1..724f8d8 100644
+index 4f39c99..affa9e1 100644
 --- a/trade-processor/build.gradle
 +++ b/trade-processor/build.gradle
 @@ -20,6 +20,7 @@ dependencies {
    implementation 'org.springframework.boot:spring-boot-starter-web'
    implementation 'org.postgresql:postgresql:42.7.10'
-   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.16'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
 +  implementation 'io.nats:jnats:2.20.5'
  
    implementation('org.json:json:20240303') {
@@ -950,13 +1204,13 @@ index b56e35a..a11e2e7 100644
  # To avoid "Request header is too large" when application is backed by oidc proxy.
  server.max-http-request-header-size=1000000
 diff --git a/trade-service/build.gradle b/trade-service/build.gradle
-index 506bd2f..4869f35 100644
+index 4705022..a58de5d 100644
 --- a/trade-service/build.gradle
 +++ b/trade-service/build.gradle
 @@ -24,6 +24,7 @@ dependencies {
    implementation 'org.springframework.boot:spring-boot-starter-web'
    implementation 'com.h2database:h2:2.3.232'
-   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.16'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
 +  implementation 'io.nats:jnats:2.20.5'
  
    implementation('org.json:json:20240303') {
@@ -1411,24 +1665,19 @@ index 1ef4b81..f15d8f2 100644
      }
  }
 diff --git a/web-front-end/angular/main/environments/environment.local.ts b/web-front-end/angular/main/environments/environment.local.ts
-index 2c08cc2..1632313 100644
+index 2c08cc2..9b2052e 100644
 --- a/web-front-end/angular/main/environments/environment.local.ts
 +++ b/web-front-end/angular/main/environments/environment.local.ts
-@@ -1,10 +1,9 @@
+@@ -1,4 +1,3 @@
 -// State 002 overlay: route browser traffic through edge proxy endpoint.
  export const environment = {
      production:         false,
--    accountUrl:         `//${window.location.host}/account-service`,
--    refrenceDataUrl:    `//${window.location.host}/reference-data`,
--    tradesUrl:          `//${window.location.host}/trade-service/trade/`,
--    positionsUrl:       `//${window.location.host}/position-service`,
--    peopleUrl:          `//${window.location.host}/people-service`,
+     accountUrl:         `//${window.location.host}/account-service`,
+@@ -6,5 +5,5 @@ export const environment = {
+     tradesUrl:          `//${window.location.host}/trade-service/trade/`,
+     positionsUrl:       `//${window.location.host}/position-service`,
+     peopleUrl:          `//${window.location.host}/people-service`,
 -    tradeFeedUrl:       `//${window.location.host}`
-+    accountUrl:         `//${window.location.host}/account-service`,
-+    refrenceDataUrl:    `//${window.location.host}/reference-data`,
-+    tradesUrl:          `//${window.location.host}/trade-service/trade/`,
-+    positionsUrl:       `//${window.location.host}/position-service`,
-+    peopleUrl:          `//${window.location.host}/people-service`,
 +    tradeFeedUrl:       `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/nats-ws`
  };
 diff --git a/web-front-end/angular/main/environments/environment.prod.ts b/web-front-end/angular/main/environments/environment.prod.ts
@@ -1443,23 +1692,18 @@ index 9d15bb8..b884df5 100644
 +    tradeFeedUrl:       `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/nats-ws`
  };
 diff --git a/web-front-end/angular/main/environments/environment.ts b/web-front-end/angular/main/environments/environment.ts
-index 2c08cc2..1632313 100644
+index 2c08cc2..9b2052e 100644
 --- a/web-front-end/angular/main/environments/environment.ts
 +++ b/web-front-end/angular/main/environments/environment.ts
-@@ -1,10 +1,9 @@
+@@ -1,4 +1,3 @@
 -// State 002 overlay: route browser traffic through edge proxy endpoint.
  export const environment = {
      production:         false,
--    accountUrl:         `//${window.location.host}/account-service`,
--    refrenceDataUrl:    `//${window.location.host}/reference-data`,
--    tradesUrl:          `//${window.location.host}/trade-service/trade/`,
--    positionsUrl:       `//${window.location.host}/position-service`,
--    peopleUrl:          `//${window.location.host}/people-service`,
+     accountUrl:         `//${window.location.host}/account-service`,
+@@ -6,5 +5,5 @@ export const environment = {
+     tradesUrl:          `//${window.location.host}/trade-service/trade/`,
+     positionsUrl:       `//${window.location.host}/position-service`,
+     peopleUrl:          `//${window.location.host}/people-service`,
 -    tradeFeedUrl:       `//${window.location.host}`
-+    accountUrl:         `//${window.location.host}/account-service`,
-+    refrenceDataUrl:    `//${window.location.host}/reference-data`,
-+    tradesUrl:          `//${window.location.host}/trade-service/trade/`,
-+    positionsUrl:       `//${window.location.host}/position-service`,
-+    peopleUrl:          `//${window.location.host}/people-service`,
 +    tradeFeedUrl:       `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/nats-ws`
  };

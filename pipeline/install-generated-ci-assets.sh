@@ -270,7 +270,7 @@ EOF
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: security-node-${{ env.UPNAME }}
+          name: security-node-${{ env.UPNAME }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ github.workspace }}/${{ matrix.module_folder }}-reports
 EOF
   fi
@@ -320,7 +320,7 @@ EOF
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: security-dotnet-${{ env.UPNAME }}
+          name: security-dotnet-${{ env.UPNAME }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ github.workspace }}/${{ matrix.module_folder }}-reports
 EOF
   fi
@@ -364,8 +364,6 @@ EOF
           echo "UPNAME=$(echo '${{ matrix.module_folder }}' | tr '/\\ ' '---' | tr -cd '[:alnum:]._-')" >> "${GITHUB_ENV}"
       - name: Dependency check
         uses: dependency-check/Dependency-Check_Action@main
-        env:
-          JAVA_HOME: /opt/jdk
         with:
           project: ${{ matrix.module_folder }}
           path: ${{ matrix.module_folder }}
@@ -379,7 +377,7 @@ EOF
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: security-gradle-${{ env.UPNAME }}
+          name: security-gradle-${{ env.UPNAME }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ github.workspace }}/${{ matrix.module_folder }}-reports
 EOF
   fi

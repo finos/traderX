@@ -107,6 +107,23 @@ EOT
     ;;
 esac
 
+# Keep Gradle wrapper assets canonical and template-owned across all generated
+# modules so wrapper changes are centralized and not patch-owned.
+bash "${ROOT}/pipeline/sync-gradle-wrapper-assets.sh" "${COMPONENTS_ROOT}"
+bash "${ROOT}/pipeline/sync-gradle-wrapper-assets.sh" "${TARGET_ROOT}"
+
+# Regenerate Node lockfiles in generated output so lock snapshots are always
+# produced from current package manifests during generation. Skip nested parent
+# generation calls to avoid repeated lockfile churn while traversing lineage.
+if [[ "${TRADERX_SKIP_LOCKFILE_REFRESH:-0}" == "1" ]]; then
+  echo "[info] TRADERX_SKIP_LOCKFILE_REFRESH=1; skipping lockfile refresh"
+elif (( GEN_DEPTH == 1 )) || [[ "${TRADERX_REFRESH_LOCKFILES_IN_NESTED_GENERATION:-0}" == "1" ]]; then
+  bash "${ROOT}/pipeline/refresh-generated-node-lockfiles.sh" "${COMPONENTS_ROOT}"
+  bash "${ROOT}/pipeline/refresh-generated-node-lockfiles.sh" "${TARGET_ROOT}"
+else
+  echo "[info] nested generation depth=${GEN_DEPTH}; skipping lockfile refresh"
+fi
+
 # Install self-contained runtime scripts alongside the generated codebase.
 bash "${ROOT}/pipeline/install-generated-runtime-harness.sh" "${STATE_ID}" "${TARGET_ROOT}"
 bash "${ROOT}/pipeline/install-generated-ci-assets.sh" "${STATE_ID}" "${TARGET_ROOT}"

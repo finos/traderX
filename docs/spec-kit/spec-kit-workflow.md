@@ -77,6 +77,7 @@ When implementing a new state delta with an LLM:
 4. Keep state hook as parent-generation + `apply-state-patchset.sh` only.
 5. Update `specs/<state>/generation/generation-hook.md` with parent, patch path, and refresh commands.
 6. Do not introduce or keep large file-payload heredoc generators for derived states.
+7. Keep patch payloads clean: exclude build/restored artifacts (`.gradle`, `build`, `target`, `bin`, `obj`, `dist`, `coverage`, `node_modules`) and template-owned wrapper/lockfile artifacts.
 
 ## Generation Concurrency
 
@@ -104,6 +105,9 @@ bash pipeline/speckit/compile-all-component-manifests.sh
 For generated-code branch publish, run local workflow preflight in addition to state smoke tests:
 
 ```bash
+bash pipeline/preflight-generated-ci.sh generated/code/target-generated
+
+# optional direct workflow lint
 actionlint
 act -W .github/workflows/security.yml
 act -W .github/workflows/license-scanning-node.yml

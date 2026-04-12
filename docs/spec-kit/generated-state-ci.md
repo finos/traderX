@@ -40,6 +40,17 @@ Policy:
 - Any new Node.js project introduced by a state transition must include this license field in its generated `package.json`.
 - License scanning workflows should fail when a generated Node.js project omits this declaration.
 
+## Node Lockfile Generation Policy
+
+Node lockfiles are generated artifacts, not manually curated patch payload.
+
+Policy:
+
+- Generated Node projects must include a `package-lock.json` produced during state generation.
+- Lockfiles must be regenerated from each generated module's current `package.json` during generation (for example, `npm install --package-lock-only`).
+- State patchsets should avoid persisting stale lockfile payload; lockfiles must be treated as derived output so dependency updates in parent states flow forward cleanly.
+- Generated-branch publish is blocked if Node manifests and lockfiles are inconsistent.
+
 ## CVE Suppression Contract
 
 Generated branches must carry the CVE suppression files used by security scanning:
@@ -61,6 +72,38 @@ Version policy changes must be landed in generator sources, not as ad-hoc genera
 - Baseline runtime/dependency versions belong in `templates/**`.
 - State-specific version deltas belong in `specs/<state>/generation/patches/*.patch`.
 - Post-generation mutation scripts are not allowed in steady-state; generation must be reproducible directly from templates and state patchsets.
+
+## Gradle Wrapper Ownership Policy
+
+Gradle wrapper assets are baseline template artifacts, not state patch artifacts.
+
+Policy:
+
+- Canonical wrapper files live in `templates/gradle-wrapper/`:
+  - `gradlew`
+  - `gradlew.bat`
+  - `gradle/wrapper/gradle-wrapper.jar`
+  - `gradle/wrapper/gradle-wrapper.properties`
+- Generated Gradle modules must receive wrapper assets from this canonical baseline during generation.
+- State patchsets must not carry wrapper binary/script/properties diffs; wrapper version updates are made once in templates and inherited by all states.
+
+## Patch Hygiene Ownership Policy
+
+State patchsets must contain authored state deltas only, not local build byproducts.
+
+Policy:
+
+- Do not include compiled/restored output directories in state patch payloads:
+  - `.gradle/**`
+  - `build/**`
+  - `target/**`
+  - `bin/**`
+  - `obj/**`
+  - `dist/**`
+  - `coverage/**`
+  - `node_modules/**`
+- Do not include dependency lockfiles as patch-owned payload (`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`).
+- Build/restored artifacts must be produced by generation/runtime/build commands, never maintained by state patch files.
 
 Preflight gates:
 
@@ -108,7 +151,10 @@ Minimum bundle artifacts:
 Before publishing generated branches, run local CI preflight checks:
 
 ```bash
-# workflow lint
+# generated state preflight (workflow lint + module install/build checks)
+bash pipeline/preflight-generated-ci.sh generated/code/target-generated
+
+# workflow lint only
 actionlint
 
 # workflow smoke execution (best-effort parity with GitHub-hosted runners)
@@ -117,6 +163,16 @@ act -W .github/workflows/license-scanning-node.yml
 
 # required for convergence states C0+
 act -W .github/workflows/build-and-publish.yml
+```
+
+If `actionlint` is not installed locally, install it first:
+
+```bash
+# macOS (Homebrew)
+brew install actionlint
+
+# Linux (Go)
+go install github.com/rhysd/actionlint/cmd/actionlint@latest
 ```
 
 Also run the underlying scan/build commands directly via project scripts where available, so local and CI behavior stay aligned.

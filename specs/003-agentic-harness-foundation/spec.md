@@ -25,6 +25,9 @@
 - NFR-00302: Harness files must be concise and avoid duplicating existing generated runbook content.
 - NFR-00303: States from `003` onward inherit the harness contract unless explicitly overridden.
 - NFR-00304: State generation MUST run sequentially when using the default shared output root (`generated/**`) to avoid race conditions; parallel generation is only permitted when each run uses an isolated `TRADERX_GENERATED_ROOT`.
+- NFR-00305: Node dependency lockfiles (`package-lock.json`) in generated outputs MUST be regenerated from current generated manifests during generation time, and must not be treated as manually maintained patch artifacts.
+- NFR-00306: Gradle wrapper assets (`gradlew`, `gradlew.bat`, `gradle/wrapper/**`) MUST be template-owned baseline artifacts and must not be maintained in state patchsets.
+- NFR-00307: State patchsets MUST exclude build/restored byproducts (`.gradle/**`, `build/**`, `target/**`, `bin/**`, `obj/**`, `dist/**`, `coverage/**`, `node_modules/**`) so patches remain authored deltas only.
 
 ## Success Criteria
 

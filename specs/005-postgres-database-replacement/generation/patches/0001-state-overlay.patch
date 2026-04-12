@@ -1,5 +1,70 @@
+diff --git a/AGENTS.md b/AGENTS.md
+index c6e65de..2190bce 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -1,6 +1,6 @@
+ # AGENTS.md
+ 
+-This generated codebase is a reproducible runtime snapshot for state `004-containerized-compose-runtime`.
++This generated codebase is a reproducible runtime snapshot for state `005-postgres-database-replacement`.
+ 
+ - Treat this snapshot as generated output; expect it to be replaced on regeneration.
+ - Prototype and experiment locally here when needed.
+diff --git a/ARCHITECTURE.md b/ARCHITECTURE.md
+index 9cece80..0e81a6c 100644
+--- a/ARCHITECTURE.md
++++ b/ARCHITECTURE.md
+@@ -1,6 +1,6 @@
+ # ARCHITECTURE.md
+ 
+-This snapshot was generated from TraderX state `004-containerized-compose-runtime`.
++This snapshot was generated from TraderX state `005-postgres-database-replacement`.
+ 
+ - Service/runtime topology is defined by the source state pack in the upstream repository.
+ - This generated directory contains runnable artifacts, not the authoritative architecture source.
+diff --git a/RUN_FROM_GENERATED.md b/RUN_FROM_GENERATED.md
+index 4d09879..90a3a4c 100644
+--- a/RUN_FROM_GENERATED.md
++++ b/RUN_FROM_GENERATED.md
+@@ -1,22 +1,22 @@
+-# Run From Generated (State 004)
++# Run From Generated (State 005)
+ 
+ Start:
+ 
+ ```bash
+-./scripts/start-state-004-containerized-generated.sh
++./scripts/start-state-005-postgres-database-replacement-generated.sh
+ ```
+ 
+ Status / stop:
+ 
+ ```bash
+-./scripts/status-state-004-containerized-generated.sh
+-./scripts/stop-state-004-containerized-generated.sh
++./scripts/status-state-005-postgres-database-replacement-generated.sh
++./scripts/stop-state-005-postgres-database-replacement-generated.sh
+ ```
+ 
+ Smoke test:
+ 
+ ```bash
+-./scripts/test-state-004-containerized.sh
++./scripts/test-state-005-postgres-database-replacement.sh
+ ```
+ 
+ ## Interactive URLs
+@@ -25,8 +25,3 @@ Smoke test:
+ - Trade service Swagger: `http://localhost:18092/swagger-ui.html`
+ - Account service API sample: `http://localhost:18088/account/22214`
+ - Position service health: `http://localhost:18090/health/alive`
+-
+-## GHCR Run Bundle
+-
+-- See: `./runtime/ghcr/004-containerized-compose-runtime/README.md`
+-- Image map: `./runtime/ghcr/004-containerized-compose-runtime/images.lock`
 diff --git a/account-service/build.gradle b/account-service/build.gradle
-index bb39efe..7fcf3b3 100644
+index 7c23724..5edadfd 100644
 --- a/account-service/build.gradle
 +++ b/account-service/build.gradle
 @@ -18,7 +18,7 @@ repositories {
@@ -8,7 +73,7 @@ index bb39efe..7fcf3b3 100644
    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 -  implementation 'com.h2database:h2:2.3.232'
 +  implementation 'org.postgresql:postgresql:42.7.10'
-   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.16'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
  
    implementation ('ch.qos.logback:logback-core:1.5.32') {
 diff --git a/account-service/src/main/java/finos/traderx/accountservice/repository/AccountRepository.java b/account-service/src/main/java/finos/traderx/accountservice/repository/AccountRepository.java
@@ -42,8 +107,25 @@ index b33d8a4..eedd70d 100644
  spring.threads.virtual.enabled=true
  
  people.service.url=${PEOPLE_SERVICE_URL:http://${PEOPLE_SERVICE_HOST:localhost}:18089}
+diff --git a/ci/state-metadata.json b/ci/state-metadata.json
+index e787c7b..0835b4c 100644
+--- a/ci/state-metadata.json
++++ b/ci/state-metadata.json
+@@ -1,8 +1,8 @@
+ {
+-  "stateId": "004-containerized-compose-runtime",
+-  "isConvergence": true,
+-  "convergenceLevel": "C0",
+-  "convergenceNamespace": "traderx-c0",
++  "stateId": "005-postgres-database-replacement",
++  "isConvergence": false,
++  "convergenceLevel": "none",
++  "convergenceNamespace": "",
+   "modules": {
+     "node": [
+       "reference-data",
 diff --git a/position-service/build.gradle b/position-service/build.gradle
-index 9cc048d..5c75760 100644
+index 060d4f8..cddccee 100644
 --- a/position-service/build.gradle
 +++ b/position-service/build.gradle
 @@ -18,7 +18,7 @@ repositories {
@@ -52,7 +134,7 @@ index 9cc048d..5c75760 100644
    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 -  implementation 'com.h2database:h2:2.3.232'
 +  implementation 'org.postgresql:postgresql:42.7.10'
-   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.16'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
  
    implementation ('ch.qos.logback:logback-core:1.5.32') {
 diff --git a/position-service/src/main/resources/application.properties b/position-service/src/main/resources/application.properties
@@ -75,7 +157,7 @@ index 908d7f3..8e4ca07 100644
  server.max-http-request-header-size=1000000
 diff --git a/postgres-database-replacement/README.md b/postgres-database-replacement/README.md
 new file mode 100644
-index 0000000..b5d12f6
+index 0000000..b0226e1
 --- /dev/null
 +++ b/postgres-database-replacement/README.md
 @@ -0,0 +1,30 @@
@@ -376,7 +458,7 @@ index 0000000..18ac6a9
 +INSERT INTO positions (accountid, security, updated, quantity) VALUES (52355, 'BAC', NOW(), -2400);
 diff --git a/postgres-database-replacement/spec-source/contract-delta.md b/postgres-database-replacement/spec-source/contract-delta.md
 new file mode 100644
-index 0000000..ae06917
+index 0000000..d4fda5e
 --- /dev/null
 +++ b/postgres-database-replacement/spec-source/contract-delta.md
 @@ -0,0 +1,17 @@
@@ -399,7 +481,7 @@ index 0000000..ae06917
 +- Account sequence semantics are preserved using PostgreSQL `accounts_seq`.
 diff --git a/postgres-database-replacement/spec-source/functional-delta.md b/postgres-database-replacement/spec-source/functional-delta.md
 new file mode 100644
-index 0000000..56221af
+index 0000000..5715d44
 --- /dev/null
 +++ b/postgres-database-replacement/spec-source/functional-delta.md
 @@ -0,0 +1,28 @@
@@ -433,7 +515,7 @@ index 0000000..56221af
 +- `F4` realtime blotter updates: unchanged behavior, writes/reads occur against PostgreSQL.
 diff --git a/postgres-database-replacement/spec-source/nonfunctional-delta.md b/postgres-database-replacement/spec-source/nonfunctional-delta.md
 new file mode 100644
-index 0000000..3b01c78
+index 0000000..9ae4d03
 --- /dev/null
 +++ b/postgres-database-replacement/spec-source/nonfunctional-delta.md
 @@ -0,0 +1,24 @@
@@ -463,7 +545,7 @@ index 0000000..3b01c78
 +- Smoke checks validate baseline data load and service compatibility against PostgreSQL.
 diff --git a/postgres-database-replacement/spec-source/spec.md b/postgres-database-replacement/spec-source/spec.md
 new file mode 100644
-index 0000000..47c25d5
+index 0000000..1f327db
 --- /dev/null
 +++ b/postgres-database-replacement/spec-source/spec.md
 @@ -0,0 +1,36 @@
@@ -503,8 +585,182 @@ index 0000000..47c25d5
 +- SC-903: `scripts/test-state-005-postgres-database-replacement.sh` passes core smoke checks.
 +- SC-904: State catalog points to `code/generated-state-005-postgres-database-replacement`.
 +- SC-905: ADR for database engine choice is published and linked from state artifacts.
+diff --git a/runtime/ghcr/004-containerized-compose-runtime/README.md b/runtime/ghcr/004-containerized-compose-runtime/README.md
+deleted file mode 100644
+index f0e8c31..0000000
+--- a/runtime/ghcr/004-containerized-compose-runtime/README.md
++++ /dev/null
+@@ -1,12 +0,0 @@
+-# GHCR Run Bundle (004-containerized-compose-runtime)
+-
+-This convergence state does not use a compose runtime bundle. Use published images with the generated start script:
+-
+-```bash
+-TRADERX_USE_PUBLISHED_IMAGES=1 \
+-TRADERX_PUBLISHED_NAMESPACE=traderx-c0 \
+-TRADERX_PUBLISHED_TAG=latest \
+-./scripts/start-state-004-containerized-compose-runtime-generated.sh --skip-build
+-```
+-
+-The start script will pull published images from `ghcr.io/finos/traderx-c0`, retag them to local expected names, and continue normal cluster startup.
+diff --git a/runtime/ghcr/004-containerized-compose-runtime/images.lock b/runtime/ghcr/004-containerized-compose-runtime/images.lock
+deleted file mode 100644
+index 1a64d75..0000000
+--- a/runtime/ghcr/004-containerized-compose-runtime/images.lock
++++ /dev/null
+@@ -1,11 +0,0 @@
+-# GHCR image map for 004-containerized-compose-runtime
+-account-service=ghcr.io/finos/traderx-c0/account-service:latest
+-database=ghcr.io/finos/traderx-c0/database:latest
+-ingress=ghcr.io/finos/traderx-c0/ingress:latest
+-people-service=ghcr.io/finos/traderx-c0/people-service:latest
+-position-service=ghcr.io/finos/traderx-c0/position-service:latest
+-reference-data=ghcr.io/finos/traderx-c0/reference-data:latest
+-trade-feed=ghcr.io/finos/traderx-c0/trade-feed:latest
+-trade-processor=ghcr.io/finos/traderx-c0/trade-processor:latest
+-trade-service=ghcr.io/finos/traderx-c0/trade-service:latest
+-web-front-end-angular=ghcr.io/finos/traderx-c0/web-front-end-angular:latest
+diff --git a/scripts/README.runtime-harness.md b/scripts/README.runtime-harness.md
+index ad9fe78..8a93957 100644
+--- a/scripts/README.runtime-harness.md
++++ b/scripts/README.runtime-harness.md
+@@ -1,6 +1,6 @@
+ # Generated Runtime Harness
+ 
+-This directory is generated for state: 004-containerized-compose-runtime
++This directory is generated for state: 005-postgres-database-replacement
+ 
+ - Scripts in this folder are local-runtime wrappers for the generated codebase.
+ - They are designed to run without invoking root pipeline generation.
+diff --git a/scripts/start-state-004-containerized-generated.sh b/scripts/start-state-005-postgres-database-replacement-generated.sh
+similarity index 78%
+rename from scripts/start-state-004-containerized-generated.sh
+rename to scripts/start-state-005-postgres-database-replacement-generated.sh
+index afeeb97..d0d6062 100755
+--- a/scripts/start-state-004-containerized-generated.sh
++++ b/scripts/start-state-005-postgres-database-replacement-generated.sh
+@@ -17,9 +17,9 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
+     exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+   fi
+ fi
+-STATE_ID="004-containerized-compose-runtime"
+-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-004}"
+-COMPOSE_DIR="${GENERATED_ROOT}/code/target-generated/containerized-compose"
++STATE_ID="005-postgres-database-replacement"
++COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-005}"
++COMPOSE_DIR="${GENERATED_ROOT}/code/target-generated/postgres-database-replacement"
+ COMPOSE_FILE="${COMPOSE_DIR}/docker-compose.yml"
+ DRY_RUN=0
+ 
+@@ -65,12 +65,27 @@ fi
+ 
+ if (( DRY_RUN == 1 )); then
+   echo "[dry-run] docker compose -f ${COMPOSE_FILE} --project-name ${COMPOSE_PROJECT_NAME} up -d --build"
+-  echo "[done] dry run complete for state 004"
++  echo "[done] dry run complete for state 005"
+   exit 0
+ fi
+ 
+ docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" up -d --build
+ 
++wait_for_postgres() {
++  local attempts=90
++  local i
++  for ((i=1; i<=attempts; i++)); do
++    if docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" exec -T database \
++      pg_isready -U traderx -d traderx >/dev/null 2>&1; then
++      echo "[ready] postgres database"
++      return 0
++    fi
++    sleep 2
++  done
++  echo "[error] timeout waiting for postgres readiness"
++  return 1
++}
++
+ wait_for_http() {
+   local name="$1"
+   local url="$2"
+@@ -87,7 +102,7 @@ wait_for_http() {
+   return 1
+ }
+ 
+-wait_for_http "database-web" "http://localhost:18084" || exit 1
++wait_for_postgres || exit 1
+ wait_for_http "reference-data" "http://localhost:18085/stocks" || exit 1
+ wait_for_http "account-service" "http://localhost:18088/account/22214" || exit 1
+ wait_for_http "position-service" "http://localhost:18090/positions/22214" || exit 1
+@@ -95,5 +110,5 @@ wait_for_http "trade-service" "http://localhost:18092/swagger-ui.html" || exit 1
+ wait_for_http "ingress" "http://localhost:8080/health" || exit 1
+ wait_for_http "ingress-ui" "http://localhost:8080" || exit 1
+ 
+-echo "[done] state 004 containerized compose runtime started"
++echo "[done] state 005 postgres-database runtime started"
+ echo "[ui] http://localhost:8080"
+diff --git a/scripts/status-state-004-containerized-generated.sh b/scripts/status-state-005-postgres-database-replacement-generated.sh
+similarity index 76%
+rename from scripts/status-state-004-containerized-generated.sh
+rename to scripts/status-state-005-postgres-database-replacement-generated.sh
+index 6bbe0c0..340ee63 100755
+--- a/scripts/status-state-004-containerized-generated.sh
++++ b/scripts/status-state-005-postgres-database-replacement-generated.sh
+@@ -17,8 +17,8 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
+     exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+   fi
+ fi
+-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-004}"
+-COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/containerized-compose/docker-compose.yml"
++COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-005}"
++COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/postgres-database-replacement/docker-compose.yml"
+ 
+ if ! command -v docker >/dev/null 2>&1; then
+   echo "[error] docker command not found"
+@@ -27,7 +27,7 @@ fi
+ 
+ if [[ ! -f "${COMPOSE_FILE}" ]]; then
+   echo "[info] compose file not found: ${COMPOSE_FILE}"
+-  echo "[hint] run: bash pipeline/generate-state.sh 004-containerized-compose-runtime"
++  echo "[hint] run: bash pipeline/generate-state.sh 005-postgres-database-replacement"
+   exit 0
+ fi
+ 
+@@ -55,3 +55,10 @@ for target in \
+   code="$(http_code_for "${url}")"
+   printf "%-24s %-8s %s\n" "${name}" "${code:-000}" "${url}"
+ done
++
++postgres_ready="no"
++if docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" exec -T database \
++  pg_isready -U traderx -d traderx >/dev/null 2>&1; then
++  postgres_ready="yes"
++fi
++printf "%-24s %-8s %s\n" "postgres-ready" "${postgres_ready}" "localhost:18083 -> database:5432"
+diff --git a/scripts/stop-state-004-containerized-generated.sh b/scripts/stop-state-005-postgres-database-replacement-generated.sh
+similarity index 81%
+rename from scripts/stop-state-004-containerized-generated.sh
+rename to scripts/stop-state-005-postgres-database-replacement-generated.sh
+index 8523373..175164c 100755
+--- a/scripts/stop-state-004-containerized-generated.sh
++++ b/scripts/stop-state-005-postgres-database-replacement-generated.sh
+@@ -17,8 +17,8 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
+     exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+   fi
+ fi
+-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-004}"
+-COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/containerized-compose/docker-compose.yml"
++COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-005}"
++COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/postgres-database-replacement/docker-compose.yml"
+ 
+ if ! command -v docker >/dev/null 2>&1; then
+   echo "[error] docker command not found"
+@@ -31,4 +31,4 @@ if [[ ! -f "${COMPOSE_FILE}" ]]; then
+ fi
+ 
+ docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" down --remove-orphans
+-echo "[done] state 004 containerized compose runtime stopped"
++echo "[done] state 005 postgres-database runtime stopped"
 diff --git a/trade-processor/build.gradle b/trade-processor/build.gradle
-index 2e6b43a..4457aa1 100644
+index f9a0618..4f39c99 100644
 --- a/trade-processor/build.gradle
 +++ b/trade-processor/build.gradle
 @@ -18,7 +18,7 @@ repositories {
@@ -513,7 +769,7 @@ index 2e6b43a..4457aa1 100644
    implementation 'org.springframework.boot:spring-boot-starter-web'
 -  implementation 'com.h2database:h2:2.3.232'
 +  implementation 'org.postgresql:postgresql:42.7.10'
-   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.16'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
  
    implementation('org.json:json:20240303') {
 diff --git a/trade-processor/src/main/resources/application.properties b/trade-processor/src/main/resources/application.properties
