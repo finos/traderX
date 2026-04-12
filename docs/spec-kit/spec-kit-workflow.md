@@ -77,7 +77,7 @@ When implementing a new state delta with an LLM:
 4. Keep state hook as parent-generation + `apply-state-patchset.sh` only.
 5. Update `specs/<state>/generation/generation-hook.md` with parent, patch path, and refresh commands.
 6. Do not introduce or keep large file-payload heredoc generators for derived states.
-7. Keep patch payloads clean: exclude build/restored artifacts (`.gradle`, `build`, `target`, `bin`, `obj`, `dist`, `coverage`, `node_modules`) and template-owned wrapper/lockfile artifacts.
+7. Keep patch payloads clean: exclude build/restored artifacts (`.gradle`, `build`, `target`, `bin`, `obj`, `dist`, `coverage`, `node_modules`) and template-owned wrapper artifacts; include lockfile deltas only when Node manifests change.
 
 ## Generation Concurrency
 

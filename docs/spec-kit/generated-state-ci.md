@@ -44,13 +44,13 @@ Policy:
 
 ## Node Lockfile Generation Policy
 
-Node lockfiles are generated artifacts, not manually curated patch payload.
+Node lockfiles are source-controlled generated artifacts and part of state lineage.
 
 Policy:
 
-- Generated Node projects must include a `package-lock.json` produced during state generation.
-- Lockfiles must be regenerated from each generated module's current `package.json` during generation (for example, `npm install --package-lock-only`).
-- State patchsets should avoid persisting stale lockfile payload; lockfiles must be treated as derived output so dependency updates in parent states flow forward cleanly.
+- Generated Node projects must include a `package-lock.json`.
+- Lockfiles must be refreshed only when the corresponding `package.json` changes, or when lockfiles are missing/invalid.
+- State patchsets should include lockfile deltas when state changes affect Node manifests.
 - Generated-branch publish is blocked if Node manifests and lockfiles are inconsistent.
 
 ## CVE Suppression Contract
@@ -115,7 +115,7 @@ Policy:
   - `dist/**`
   - `coverage/**`
   - `node_modules/**`
-- Do not include dependency lockfiles as patch-owned payload (`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`).
+- Keep dependency lockfiles consistent with their manifests; include lockfile deltas in patchsets when manifests change.
 - Build/restored artifacts must be produced by generation/runtime/build commands, never maintained by state patch files.
 
 Preflight gates:

@@ -66,7 +66,6 @@ RSYNC_EXCLUDES=(
   "--exclude=dist/**"
   "--exclude=coverage"
   "--exclude=coverage/**"
-  "--exclude=package-lock.json"
   "--exclude=yarn.lock"
   "--exclude=pnpm-lock.yaml"
   "--exclude=gradlew"
@@ -79,7 +78,7 @@ RSYNC_EXCLUDES=(
 )
 
 echo "[info] generating parent state ${PARENT_STATE_ID}"
-TRADERX_SKIP_LOCKFILE_REFRESH=1 bash "${ROOT}/pipeline/generate-state.sh" "${PARENT_STATE_ID}"
+bash "${ROOT}/pipeline/generate-state.sh" "${PARENT_STATE_ID}"
 if [[ ! -d "${TARGET_PATH}" ]]; then
   echo "[fail] target path does not exist after parent generation: ${TARGET_PATH}"
   exit 1
@@ -88,7 +87,7 @@ mkdir -p "${PARENT_SNAPSHOT}"
 rsync -a --delete "${RSYNC_EXCLUDES[@]}" "${TARGET_PATH}/" "${PARENT_SNAPSHOT}/"
 
 echo "[info] generating child state ${STATE_ID}"
-TRADERX_SKIP_LOCKFILE_REFRESH=1 bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
 if [[ ! -d "${TARGET_PATH}" ]]; then
   echo "[fail] target path does not exist after child generation: ${TARGET_PATH}"
   exit 1

@@ -1,16 +1,274 @@
+diff --git a/.github/workflows/build-and-publish.yml b/.github/workflows/build-and-publish.yml
+new file mode 100644
+index 0000000..b25548d
+--- /dev/null
++++ b/.github/workflows/build-and-publish.yml
+@@ -0,0 +1,83 @@
++name: Build and Publish Application Images
++
++on:
++  workflow_dispatch:
++  push:
++    branches:
++      - code/generated-state-*
++
++env:
++  GHCR_ORG: ghcr.io/finos
++  IMAGE_NAMESPACE: traderx-c1
++
++jobs:
++  build-ghcr:
++    name: Build and push ${{ matrix.image_name }}
++    runs-on: ubuntu-latest
++    permissions:
++      contents: read
++      packages: write
++    strategy:
++      fail-fast: false
++      matrix:
++        include:
++          - directory: account-service
++            dockerfile: Dockerfile.compose
++            image_name: account-service
++          - directory: database
++            dockerfile: Dockerfile.compose
++            image_name: database
++          - directory: ingress
++            dockerfile: Dockerfile.compose
++            image_name: ingress
++          - directory: people-service
++            dockerfile: Dockerfile.compose
++            image_name: people-service
++          - directory: position-service
++            dockerfile: Dockerfile.compose
++            image_name: position-service
++          - directory: reference-data
++            dockerfile: Dockerfile.compose
++            image_name: reference-data
++          - directory: trade-processor
++            dockerfile: Dockerfile.compose
++            image_name: trade-processor
++          - directory: trade-service
++            dockerfile: Dockerfile.compose
++            image_name: trade-service
++          - directory: web-front-end/angular
++            dockerfile: Dockerfile.compose
++            image_name: web-front-end-angular
++    steps:
++      - name: Checkout code
++        uses: actions/checkout@v4
++      - name: GHCR auth mode
++        run: |
++          if [[ -n "${{ secrets.GHCR_PUSH_TOKEN }}" ]]; then
++            echo "Using GHCR_PUSH_TOKEN secret for package publish."
++          else
++            echo "Using GITHUB_TOKEN for package publish."
++            echo "If publish fails with write_package, either:"
++            echo "1) enable package write for Actions in repo/org settings, or"
++            echo "2) set GHCR_PUSH_TOKEN (packages:write) and GHCR_PUSH_USERNAME secrets."
++          fi
++      - name: Login to GitHub Container Registry
++        uses: docker/login-action@v3
++        with:
++          registry: ghcr.io
++          username: ${{ secrets.GHCR_PUSH_USERNAME != '' && secrets.GHCR_PUSH_USERNAME || github.actor }}
++          password: ${{ secrets.GHCR_PUSH_TOKEN != '' && secrets.GHCR_PUSH_TOKEN || secrets.GITHUB_TOKEN }}
++      - name: Build and publish image
++        uses: docker/build-push-action@v6
++        with:
++          context: ${{ matrix.directory }}
++          file: ${{ matrix.directory }}/${{ matrix.dockerfile }}
++          push: ${{ github.event_name == 'push' }}
++          tags: |
++            ${{ env.GHCR_ORG }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image_name }}:${{ github.sha }}
++            ${{ env.GHCR_ORG }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image_name }}:latest
++      - name: Scan published image
++        uses: crazy-max/ghaction-container-scan@v3
++        with:
++          image: ${{ env.GHCR_ORG }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image_name }}:${{ github.sha }}
++          severity: HIGH
+diff --git a/.github/workflows/build-container-images.yml b/.github/workflows/build-container-images.yml
+deleted file mode 100644
+index 12ced54..0000000
+--- a/.github/workflows/build-container-images.yml
++++ /dev/null
+@@ -1,63 +0,0 @@
+-name: Build Container Images (No Publish)
+-
+-on:
+-  workflow_dispatch:
+-  push:
+-    branches:
+-      - code/generated-state-*
+-    paths:
+-      - '**/Dockerfile'
+-      - '**/Dockerfile.compose'
+-      - '.github/workflows/build-container-images.yml'
+-
+-jobs:
+-  build-container-images:
+-    name: Build ${{ matrix.image_name }}
+-    runs-on: ubuntu-latest
+-    strategy:
+-      fail-fast: false
+-      matrix:
+-        include:
+-          - directory: account-service
+-            dockerfile: Dockerfile.compose
+-            image_name: account-service
+-          - directory: database
+-            dockerfile: Dockerfile.compose
+-            image_name: database
+-          - directory: ingress
+-            dockerfile: Dockerfile.compose
+-            image_name: ingress
+-          - directory: people-service
+-            dockerfile: Dockerfile.compose
+-            image_name: people-service
+-          - directory: position-service
+-            dockerfile: Dockerfile.compose
+-            image_name: position-service
+-          - directory: reference-data
+-            dockerfile: Dockerfile.compose
+-            image_name: reference-data
+-          - directory: trade-processor
+-            dockerfile: Dockerfile.compose
+-            image_name: trade-processor
+-          - directory: trade-service
+-            dockerfile: Dockerfile.compose
+-            image_name: trade-service
+-          - directory: web-front-end/angular
+-            dockerfile: Dockerfile.compose
+-            image_name: web-front-end-angular
+-    steps:
+-      - name: Checkout code
+-        uses: actions/checkout@v4
+-      - name: Set up Docker Buildx
+-        uses: docker/setup-buildx-action@v3
+-      - name: Build image (no publish)
+-        run: |
+-          docker build \
+-            -f "${{ matrix.directory }}/${{ matrix.dockerfile }}" \
+-            -t "traderx-local/${{ matrix.image_name }}:${{ github.sha }}" \
+-            "${{ matrix.directory }}"
+-      - name: Scan built image
+-        uses: crazy-max/ghaction-container-scan@v3
+-        with:
+-          image: traderx-local/${{ matrix.image_name }}:${{ github.sha }}
+-          severity: HIGH
+diff --git a/AGENTS.md b/AGENTS.md
+index 58f577d..67e21a2 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -1,6 +1,6 @@
+ # AGENTS.md
+ 
+-This generated codebase is a reproducible runtime snapshot for state `006-messaging-nats-replacement`.
++This generated codebase is a reproducible runtime snapshot for state `007-observability-lgtm-compose`.
+ 
+ - Treat this snapshot as generated output; expect it to be replaced on regeneration.
+ - Prototype and experiment locally here when needed.
+diff --git a/ARCHITECTURE.md b/ARCHITECTURE.md
+index 45d73a8..3874849 100644
+--- a/ARCHITECTURE.md
++++ b/ARCHITECTURE.md
+@@ -1,6 +1,6 @@
+ # ARCHITECTURE.md
+ 
+-This snapshot was generated from TraderX state `006-messaging-nats-replacement`.
++This snapshot was generated from TraderX state `007-observability-lgtm-compose`.
+ 
+ - Service/runtime topology is defined by the source state pack in the upstream repository.
+ - This generated directory contains runnable artifacts, not the authoritative architecture source.
+diff --git a/RUN_FROM_GENERATED.md b/RUN_FROM_GENERATED.md
+index bcde254..aad8aff 100644
+--- a/RUN_FROM_GENERATED.md
++++ b/RUN_FROM_GENERATED.md
+@@ -1,27 +1,33 @@
+-# Run From Generated (State 006)
++# Run From Generated (State 007)
+ 
+ Start:
+ 
+ ```bash
+-./scripts/start-state-006-messaging-nats-replacement-generated.sh
++./scripts/start-state-007-observability-lgtm-compose-generated.sh
+ ```
+ 
+ Status / stop:
+ 
+ ```bash
+-./scripts/status-state-006-messaging-nats-replacement-generated.sh
+-./scripts/stop-state-006-messaging-nats-replacement-generated.sh
++./scripts/status-state-007-observability-lgtm-compose-generated.sh
++./scripts/stop-state-007-observability-lgtm-compose-generated.sh
+ ```
+ 
+ Smoke test:
+ 
+ ```bash
+-./scripts/test-state-006-messaging-nats-replacement.sh
++./scripts/test-state-007-observability-lgtm-compose.sh
+ ```
+ 
+ ## Interactive URLs
+ 
+ - UI (ingress): `http://localhost:8080`
+-- Trade service Swagger: `http://localhost:18092/swagger-ui.html`
+-- Account service API sample: `http://localhost:18088/account/22214`
+-- Position service health: `http://localhost:18090/health/alive`
++- Grafana: `http://localhost:3001` (local login credentials)
++- Prometheus: `http://localhost:9090`
++- Loki: `http://localhost:3100`
++- Tempo: `http://localhost:3200`
++
++## GHCR Run Bundle
++
++- See: `./runtime/ghcr/007-observability-lgtm-compose/README.md`
++- Image map: `./runtime/ghcr/007-observability-lgtm-compose/images.lock`
+diff --git a/account-service/build.gradle b/account-service/build.gradle
+index 5edadfd..13f4ced 100644
+--- a/account-service/build.gradle
++++ b/account-service/build.gradle
+@@ -17,6 +17,8 @@ repositories {
+ 
+ dependencies {
+   implementation 'org.springframework.boot:spring-boot-starter-web'
++  implementation 'org.springframework.boot:spring-boot-starter-actuator'
++  runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+   implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+   implementation 'org.postgresql:postgresql:42.7.10'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
+diff --git a/ci/state-metadata.json b/ci/state-metadata.json
+index 1175300..e8e9aef 100644
+--- a/ci/state-metadata.json
++++ b/ci/state-metadata.json
+@@ -1,8 +1,8 @@
+ {
+-  "stateId": "006-messaging-nats-replacement",
+-  "isConvergence": false,
+-  "convergenceLevel": "none",
+-  "convergenceNamespace": "",
++  "stateId": "007-observability-lgtm-compose",
++  "isConvergence": true,
++  "convergenceLevel": "C1",
++  "convergenceNamespace": "traderx-c1",
+   "modules": {
+     "node": [
+       "reference-data",
 diff --git a/observability-lgtm-compose/README.md b/observability-lgtm-compose/README.md
 new file mode 100644
-index 0000000..b16dd7c
+index 0000000..ed8d38d
 --- /dev/null
 +++ b/observability-lgtm-compose/README.md
-@@ -0,0 +1,24 @@
-+## TraderX State 012 Runtime
+@@ -0,0 +1,26 @@
++## TraderX State 007 Runtime
 +
 +This directory defines the compose runtime for:
 +
 +- `007-observability-lgtm-compose`
 +
-+It extends the state `003` containerized stack with:
++It extends the containerized stack with:
 +
 +- OpenTelemetry Collector
 +- Prometheus
@@ -19,22 +277,24 @@ index 0000000..b16dd7c
 +- Tempo
 +- Promtail
 +- Blackbox Exporter
++- Spring Boot actuator metric scraping (`/actuator/prometheus`) where available
++- Provisioned Spring dashboards for request/latency, JVM health, and SLI trend visibility
 +
 +Primary endpoints:
 +
 +- TraderX UI: `http://localhost:8080`
-+- Grafana: `http://localhost:3001` (`admin` / `admin`)
++- Grafana: `http://localhost:3001` (local login credentials)
 +- Prometheus: `http://localhost:9090`
 +- Loki: `http://localhost:3100`
 +- Tempo: `http://localhost:3200`
 +- OTel Collector health: `http://localhost:13133`
 diff --git a/observability-lgtm-compose/docker-compose.yml b/observability-lgtm-compose/docker-compose.yml
 new file mode 100644
-index 0000000..20aa0c2
+index 0000000..050098d
 --- /dev/null
 +++ b/observability-lgtm-compose/docker-compose.yml
-@@ -0,0 +1,250 @@
-+name: traderx-state-011
+@@ -0,0 +1,268 @@
++name: traderx-state-007
 +
 +services:
 +  database:
@@ -61,6 +321,9 @@ index 0000000..20aa0c2
 +    environment:
 +      REFERENCE_DATA_SERVICE_PORT: "18085"
 +      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
++      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
++      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
 +    ports:
 +      - "18085:18085"
 +    depends_on:
@@ -83,6 +346,9 @@ index 0000000..20aa0c2
 +    environment:
 +      PEOPLE_SERVICE_PORT: "18089"
 +      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
++      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
++      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
 +    ports:
 +      - "18089:18089"
 +
@@ -99,6 +365,9 @@ index 0000000..20aa0c2
 +      DATABASE_DBPASS: "traderx"
 +      PEOPLE_SERVICE_HOST: "people-service"
 +      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
++      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
++      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
 +    ports:
 +      - "18088:18088"
 +    depends_on:
@@ -119,6 +388,9 @@ index 0000000..20aa0c2
 +      DATABASE_DBUSER: "traderx"
 +      DATABASE_DBPASS: "traderx"
 +      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
++      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
++      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
 +    ports:
 +      - "18090:18090"
 +    depends_on:
@@ -138,6 +410,9 @@ index 0000000..20aa0c2
 +      DATABASE_DBPASS: "traderx"
 +      NATS_BROKER_HOST: "nats-broker"
 +      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
++      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
++      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
 +    ports:
 +      - "18091:18091"
 +    depends_on:
@@ -157,6 +432,9 @@ index 0000000..20aa0c2
 +      PEOPLE_SERVICE_HOST: "people-service"
 +      NATS_BROKER_HOST: "nats-broker"
 +      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
++      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
++      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
 +    ports:
 +      - "18092:18092"
 +    depends_on:
@@ -298,7 +576,7 @@ index 0000000..981da60
 +      preferred_ip_protocol: "ip4"
 diff --git a/observability-lgtm-compose/observability/grafana/dashboards/traderx-logs-errors.json b/observability-lgtm-compose/observability/grafana/dashboards/traderx-logs-errors.json
 new file mode 100644
-index 0000000..96e1157
+index 0000000..7322a5d
 --- /dev/null
 +++ b/observability-lgtm-compose/observability/grafana/dashboards/traderx-logs-errors.json
 @@ -0,0 +1,158 @@
@@ -329,7 +607,7 @@ index 0000000..96e1157
 +      },
 +      "targets": [
 +        {
-+          "expr": "sum by (service) (rate({compose_project=\"traderx-state-011\",service=~\"$service\"}[1m]))",
++          "expr": "sum by (service) (rate({compose_project=\"traderx-state-007\",service=~\"$service\"}[1m]))",
 +          "refId": "A"
 +        }
 +      ],
@@ -361,7 +639,7 @@ index 0000000..96e1157
 +      },
 +      "targets": [
 +        {
-+          "expr": "sum by (service) (rate({compose_project=\"traderx-state-011\",service=~\"$service\"} |~ \"(?i)(error|warn|exception|fail)\" [1m]))",
++          "expr": "sum by (service) (rate({compose_project=\"traderx-state-007\",service=~\"$service\"} |~ \"(?i)(error|warn|exception|fail)\" [1m]))",
 +          "refId": "A"
 +        }
 +      ],
@@ -388,7 +666,7 @@ index 0000000..96e1157
 +      },
 +      "targets": [
 +        {
-+          "expr": "{compose_project=\"traderx-state-011\",service=~\"$service\"}",
++          "expr": "{compose_project=\"traderx-state-007\",service=~\"$service\"}",
 +          "refId": "A"
 +        }
 +      ],
@@ -415,7 +693,7 @@ index 0000000..96e1157
 +      },
 +      "targets": [
 +        {
-+          "expr": "{compose_project=\"traderx-state-011\",service=~\"$service\"} |~ \"(?i)(error|warn|exception|fail)\"",
++          "expr": "{compose_project=\"traderx-state-007\",service=~\"$service\"} |~ \"(?i)(error|warn|exception|fail)\"",
 +          "refId": "A"
 +        }
 +      ],
@@ -447,7 +725,7 @@ index 0000000..96e1157
 +        "label": "Service",
 +        "multi": true,
 +        "name": "service",
-+        "query": "label_values({compose_project=\"traderx-state-011\"}, service)",
++        "query": "label_values({compose_project=\"traderx-state-007\"}, service)",
 +        "type": "query"
 +      }
 +    ]
@@ -462,7 +740,7 @@ index 0000000..96e1157
 +}
 diff --git a/observability-lgtm-compose/observability/grafana/dashboards/traderx-observability-control-plane.json b/observability-lgtm-compose/observability/grafana/dashboards/traderx-observability-control-plane.json
 new file mode 100644
-index 0000000..111bb6b
+index 0000000..317449a
 --- /dev/null
 +++ b/observability-lgtm-compose/observability/grafana/dashboards/traderx-observability-control-plane.json
 @@ -0,0 +1,268 @@
@@ -692,7 +970,7 @@ index 0000000..111bb6b
 +      },
 +      "targets": [
 +        {
-+          "expr": "{compose_project=\"traderx-state-011\",service=~\"grafana|loki|tempo|otel-collector|prometheus|promtail\"}",
++          "expr": "{compose_project=\"traderx-state-007\",service=~\"grafana|loki|tempo|otel-collector|prometheus|promtail\"}",
 +          "refId": "A"
 +        }
 +      ],
@@ -736,7 +1014,7 @@ index 0000000..111bb6b
 +}
 diff --git a/observability-lgtm-compose/observability/grafana/dashboards/traderx-overview.json b/observability-lgtm-compose/observability/grafana/dashboards/traderx-overview.json
 new file mode 100644
-index 0000000..adfec01
+index 0000000..655096a
 --- /dev/null
 +++ b/observability-lgtm-compose/observability/grafana/dashboards/traderx-overview.json
 @@ -0,0 +1,128 @@
@@ -1172,6 +1450,202 @@ index 0000000..678e98b
 +  "title": "TraderX Runtime Health",
 +  "uid": "traderx-runtime-health"
 +}
+diff --git a/observability-lgtm-compose/observability/grafana/dashboards/traderx-spring-actuator-overview.json b/observability-lgtm-compose/observability/grafana/dashboards/traderx-spring-actuator-overview.json
+new file mode 100644
+index 0000000..56a48c6
+--- /dev/null
++++ b/observability-lgtm-compose/observability/grafana/dashboards/traderx-spring-actuator-overview.json
+@@ -0,0 +1,76 @@
++{
++  "uid": "traderx-spring-actuator-overview",
++  "title": "TraderX Spring Actuator Overview",
++  "schemaVersion": 39,
++  "refresh": "10s",
++  "tags": ["traderx", "spring", "prometheus", "provisioned"],
++  "time": { "from": "now-30m", "to": "now" },
++  "templating": {
++    "list": [
++      {
++        "name": "instance",
++        "type": "query",
++        "label": "Instance",
++        "datasource": { "type": "prometheus", "uid": "prometheus" },
++        "query": "label_values(up{job=\"traderx-spring-boot-actuator\"}, instance)",
++        "includeAll": true,
++        "multi": true,
++        "current": { "text": "All", "value": ["$__all"] }
++      }
++    ]
++  },
++  "panels": [
++    {
++      "id": 1,
++      "type": "timeseries",
++      "title": "HTTP Request Rate (req/s)",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
++      "targets": [
++        { "refId": "A", "expr": "sum by (instance) (rate(http_server_requests_seconds_count{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}[5m]))" }
++      ]
++    },
++    {
++      "id": 2,
++      "type": "timeseries",
++      "title": "HTTP p95 Latency (s)",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
++      "targets": [
++        { "refId": "A", "expr": "histogram_quantile(0.95, sum by (instance, le) (rate(http_server_requests_seconds_bucket{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}[5m])))" }
++      ]
++    },
++    {
++      "id": 3,
++      "type": "timeseries",
++      "title": "JVM Heap Used (bytes)",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
++      "targets": [
++        { "refId": "A", "expr": "sum by (instance) (jvm_memory_used_bytes{job=\"traderx-spring-boot-actuator\",area=\"heap\",instance=~\"$instance\"})" }
++      ]
++    },
++    {
++      "id": 4,
++      "type": "stat",
++      "title": "Actuator Targets Up",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
++      "targets": [
++        { "refId": "A", "expr": "sum(up{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"})" }
++      ],
++      "fieldConfig": {
++        "defaults": {
++          "min": 0,
++          "thresholds": {
++            "mode": "absolute",
++            "steps": [
++              { "color": "red", "value": null },
++              { "color": "green", "value": 1 }
++            ]
++          }
++        }
++      }
++    }
++  ]
++}
+diff --git a/observability-lgtm-compose/observability/grafana/dashboards/traderx-spring-service-sli.json b/observability-lgtm-compose/observability/grafana/dashboards/traderx-spring-service-sli.json
+new file mode 100644
+index 0000000..233af92
+--- /dev/null
++++ b/observability-lgtm-compose/observability/grafana/dashboards/traderx-spring-service-sli.json
+@@ -0,0 +1,108 @@
++{
++  "uid": "traderx-spring-service-sli",
++  "title": "TraderX Spring Service SLI",
++  "schemaVersion": 39,
++  "refresh": "10s",
++  "tags": ["traderx", "spring", "sli", "prometheus", "provisioned"],
++  "time": { "from": "now-30m", "to": "now" },
++  "templating": {
++    "list": [
++      {
++        "name": "instance",
++        "type": "query",
++        "label": "Instance",
++        "datasource": { "type": "prometheus", "uid": "prometheus" },
++        "query": "label_values(up{job=\"traderx-spring-boot-actuator\"}, instance)",
++        "includeAll": true,
++        "multi": true,
++        "current": { "text": "All", "value": ["$__all"] }
++      }
++    ]
++  },
++  "panels": [
++    {
++      "id": 1,
++      "type": "stat",
++      "title": "Scrape Target Availability Ratio",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "sum(up{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}) / clamp_min(count(up{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}), 1)"
++        }
++      ],
++      "fieldConfig": {
++        "defaults": {
++          "min": 0,
++          "max": 1,
++          "unit": "percentunit",
++          "thresholds": {
++            "mode": "absolute",
++            "steps": [
++              { "color": "red", "value": null },
++              { "color": "yellow", "value": 0.9 },
++              { "color": "green", "value": 1.0 }
++            ]
++          }
++        }
++      }
++    },
++    {
++      "id": 2,
++      "type": "timeseries",
++      "title": "HTTP 5xx Rate (req/s)",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 6, "w": 18, "x": 6, "y": 0 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "sum by (instance) (rate(http_server_requests_seconds_count{job=\"traderx-spring-boot-actuator\",status=~\"5..\",instance=~\"$instance\"}[5m]))"
++        }
++      ],
++      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
++    },
++    {
++      "id": 3,
++      "type": "timeseries",
++      "title": "Process CPU Usage (%)",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "100 * max by (instance) (process_cpu_usage{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"})"
++        }
++      ],
++      "fieldConfig": { "defaults": { "unit": "percent", "min": 0 } }
++    },
++    {
++      "id": 4,
++      "type": "timeseries",
++      "title": "GC Pause p95 (s)",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "histogram_quantile(0.95, sum by (instance, le) (rate(jvm_gc_pause_seconds_bucket{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}[5m])))"
++        }
++      ],
++      "fieldConfig": { "defaults": { "unit": "s" } }
++    },
++    {
++      "id": 5,
++      "type": "timeseries",
++      "title": "Live Threads",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 14 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "max by (instance) (jvm_threads_live_threads{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"})"
++        }
++      ],
++      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
++    }
++  ]
++}
 diff --git a/observability-lgtm-compose/observability/grafana/provisioning/dashboards/dashboards.yaml b/observability-lgtm-compose/observability/grafana/provisioning/dashboards/dashboards.yaml
 new file mode 100644
 index 0000000..74cc9a0
@@ -1304,10 +1778,10 @@ index 0000000..18604ee
 +      exporters: [prometheus, logging]
 diff --git a/observability-lgtm-compose/observability/prometheus/prometheus.yml b/observability-lgtm-compose/observability/prometheus/prometheus.yml
 new file mode 100644
-index 0000000..4115332
+index 0000000..ddd3733
 --- /dev/null
 +++ b/observability-lgtm-compose/observability/prometheus/prometheus.yml
-@@ -0,0 +1,41 @@
+@@ -0,0 +1,46 @@
 +global:
 +  scrape_interval: 15s
 +  evaluation_interval: 15s
@@ -1324,6 +1798,11 @@ index 0000000..4115332
 +  - job_name: blackbox-exporter
 +    static_configs:
 +      - targets: ["blackbox-exporter:9115"]
++
++  - job_name: traderx-spring-boot-actuator
++    metrics_path: /actuator/prometheus
++    static_configs:
++      - targets: ["account-service:18088", "position-service:18090", "trade-processor:18091", "trade-service:18092"]
 +
 +  - job_name: traderx-http-probe
 +    metrics_path: /probe
@@ -1410,3 +1889,342 @@ index 0000000..0ac9f9f
 +    backend: local
 +    local:
 +      path: /tmp/tempo/traces
+diff --git a/position-service/build.gradle b/position-service/build.gradle
+index cddccee..f0681d0 100644
+--- a/position-service/build.gradle
++++ b/position-service/build.gradle
+@@ -17,6 +17,8 @@ repositories {
+ 
+ dependencies {
+   implementation 'org.springframework.boot:spring-boot-starter-web'
++  implementation 'org.springframework.boot:spring-boot-starter-actuator'
++  runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+   implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+   implementation 'org.postgresql:postgresql:42.7.10'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
+diff --git a/runtime/ghcr/007-observability-lgtm-compose/.env.example b/runtime/ghcr/007-observability-lgtm-compose/.env.example
+new file mode 100644
+index 0000000..91355af
+--- /dev/null
++++ b/runtime/ghcr/007-observability-lgtm-compose/.env.example
+@@ -0,0 +1 @@
++TRADERX_IMAGE_TAG=latest
+diff --git a/runtime/ghcr/007-observability-lgtm-compose/README.md b/runtime/ghcr/007-observability-lgtm-compose/README.md
+new file mode 100644
+index 0000000..833535f
+--- /dev/null
++++ b/runtime/ghcr/007-observability-lgtm-compose/README.md
+@@ -0,0 +1,24 @@
++# GHCR Run Bundle (007-observability-lgtm-compose)
++
++Run this state directly from published GHCR images.
++
++1. Optionally set a specific tag:
++
++```bash
++export TRADERX_IMAGE_TAG=latest
++```
++
++2. Pull and start:
++
++```bash
++docker compose -f runtime/ghcr/007-observability-lgtm-compose/docker-compose.ghcr.yml pull
++docker compose -f runtime/ghcr/007-observability-lgtm-compose/docker-compose.ghcr.yml up -d
++```
++
++3. Stop:
++
++```bash
++docker compose -f runtime/ghcr/007-observability-lgtm-compose/docker-compose.ghcr.yml down
++```
++
++This bundle overlays `observability-lgtm-compose/docker-compose.yml` and replaces buildable app services with GHCR images under `ghcr.io/finos/traderx-c1`.
+diff --git a/runtime/ghcr/007-observability-lgtm-compose/docker-compose.ghcr.yml b/runtime/ghcr/007-observability-lgtm-compose/docker-compose.ghcr.yml
+new file mode 100644
+index 0000000..0895f69
+--- /dev/null
++++ b/runtime/ghcr/007-observability-lgtm-compose/docker-compose.ghcr.yml
+@@ -0,0 +1,90 @@
++name: traderx-007-observability-lgtm-compose-ghcr
++
++services:
++  database:
++    extends:
++      file: ../../../observability-lgtm-compose/docker-compose.yml
++      service: database
++  reference-data:
++    extends:
++      file: ../../../observability-lgtm-compose/docker-compose.yml
++      service: reference-data
++    image: ghcr.io/finos/traderx-c1/reference-data:${TRADERX_IMAGE_TAG:-latest}
++    build: null
++  nats-broker:
++    extends:
++      file: ../../../observability-lgtm-compose/docker-compose.yml
++      service: nats-broker
++  people-service:
++    extends:
++      file: ../../../observability-lgtm-compose/docker-compose.yml
++      service: people-service
++    image: ghcr.io/finos/traderx-c1/people-service:${TRADERX_IMAGE_TAG:-latest}
++    build: null
++  account-service:
++    extends:
++      file: ../../../observability-lgtm-compose/docker-compose.yml
++      service: account-service
++    image: ghcr.io/finos/traderx-c1/account-service:${TRADERX_IMAGE_TAG:-latest}
++    build: null
++  position-service:
++    extends:
++      file: ../../../observability-lgtm-compose/docker-compose.yml
++      service: position-service
++    image: ghcr.io/finos/traderx-c1/position-service:${TRADERX_IMAGE_TAG:-latest}
++    build: null
++  trade-processor:
++    extends:
++      file: ../../../observability-lgtm-compose/docker-compose.yml
++      service: trade-processor
++    image: ghcr.io/finos/traderx-c1/trade-processor:${TRADERX_IMAGE_TAG:-latest}
++    build: null
++  trade-service:
++    extends:
++      file: ../../../observability-lgtm-compose/docker-compose.yml
++      service: trade-service
++    image: ghcr.io/finos/traderx-c1/trade-service:${TRADERX_IMAGE_TAG:-latest}
++    build: null
++  web-front-end-angular:
++    extends:
++      file: ../../../observability-lgtm-compose/docker-compose.yml
++      service: web-front-end-angular
++    image: ghcr.io/finos/traderx-c1/web-front-end-angular:${TRADERX_IMAGE_TAG:-latest}
++    build: null
++  ingress:
++    extends:
++      file: ../../../observability-lgtm-compose/docker-compose.yml
++      service: ingress
++    image: ghcr.io/finos/traderx-c1/ingress:${TRADERX_IMAGE_TAG:-latest}
++    build: null
++  otel-collector:
++    extends:
++      file: ../../../observability-lgtm-compose/docker-compose.yml
++      service: otel-collector
++  blackbox-exporter:
++    extends:
++      file: ../../../observability-lgtm-compose/docker-compose.yml
++      service: blackbox-exporter
++  prometheus:
++    extends:
++      file: ../../../observability-lgtm-compose/docker-compose.yml
++      service: prometheus
++  loki:
++    extends:
++      file: ../../../observability-lgtm-compose/docker-compose.yml
++      service: loki
++  promtail:
++    extends:
++      file: ../../../observability-lgtm-compose/docker-compose.yml
++      service: promtail
++  tempo:
++    extends:
++      file: ../../../observability-lgtm-compose/docker-compose.yml
++      service: tempo
++  grafana:
++    extends:
++      file: ../../../observability-lgtm-compose/docker-compose.yml
++      service: grafana
++
++volumes:
++  postgres_state_009_data: {}
+diff --git a/runtime/ghcr/007-observability-lgtm-compose/images.lock b/runtime/ghcr/007-observability-lgtm-compose/images.lock
+new file mode 100644
+index 0000000..16d96f4
+--- /dev/null
++++ b/runtime/ghcr/007-observability-lgtm-compose/images.lock
+@@ -0,0 +1,10 @@
++# GHCR image map for 007-observability-lgtm-compose
++account-service=ghcr.io/finos/traderx-c1/account-service:latest
++database=ghcr.io/finos/traderx-c1/database:latest
++ingress=ghcr.io/finos/traderx-c1/ingress:latest
++people-service=ghcr.io/finos/traderx-c1/people-service:latest
++position-service=ghcr.io/finos/traderx-c1/position-service:latest
++reference-data=ghcr.io/finos/traderx-c1/reference-data:latest
++trade-processor=ghcr.io/finos/traderx-c1/trade-processor:latest
++trade-service=ghcr.io/finos/traderx-c1/trade-service:latest
++web-front-end-angular=ghcr.io/finos/traderx-c1/web-front-end-angular:latest
+diff --git a/scripts/README.runtime-harness.md b/scripts/README.runtime-harness.md
+index e807587..7481a36 100644
+--- a/scripts/README.runtime-harness.md
++++ b/scripts/README.runtime-harness.md
+@@ -1,6 +1,6 @@
+ # Generated Runtime Harness
+ 
+-This directory is generated for state: 006-messaging-nats-replacement
++This directory is generated for state: 007-observability-lgtm-compose
+ 
+ - Scripts in this folder are local-runtime wrappers for the generated codebase.
+ - They are designed to run without invoking root pipeline generation.
+diff --git a/scripts/start-state-006-messaging-nats-replacement-generated.sh b/scripts/start-state-007-observability-lgtm-compose-generated.sh
+similarity index 74%
+rename from scripts/start-state-006-messaging-nats-replacement-generated.sh
+rename to scripts/start-state-007-observability-lgtm-compose-generated.sh
+index 16a2718..69f1fb3 100755
+--- a/scripts/start-state-006-messaging-nats-replacement-generated.sh
++++ b/scripts/start-state-007-observability-lgtm-compose-generated.sh
+@@ -17,9 +17,10 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
+     exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+   fi
+ fi
+-STATE_ID="006-messaging-nats-replacement"
+-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-006}"
+-COMPOSE_DIR="${GENERATED_ROOT}/code/target-generated/messaging-nats-replacement"
++STATE_ID="007-observability-lgtm-compose"
++COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-007}"
++GRAFANA_PORT="${GRAFANA_PORT:-3001}"
++COMPOSE_DIR="${GENERATED_ROOT}/code/target-generated/observability-lgtm-compose"
+ COMPOSE_FILE="${COMPOSE_DIR}/docker-compose.yml"
+ DRY_RUN=0
+ 
+@@ -65,7 +66,7 @@ fi
+ 
+ if (( DRY_RUN == 1 )); then
+   echo "[dry-run] docker compose -f ${COMPOSE_FILE} --project-name ${COMPOSE_PROJECT_NAME} up -d --build"
+-  echo "[done] dry run complete for state 006"
++  echo "[done] dry run complete for state 007"
+   exit 0
+ fi
+ 
+@@ -104,12 +105,20 @@ wait_for_http() {
+ 
+ wait_for_postgres || exit 1
+ wait_for_http "reference-data" "http://localhost:18085/stocks" || exit 1
+-wait_for_http "nats-monitor" "http://localhost:8222/varz" || exit 1
+-wait_for_http "account-service" "http://localhost:18088/account/22214" || exit 1
+-wait_for_http "position-service" "http://localhost:18090/health/alive" || exit 1
+-wait_for_http "trade-service" "http://localhost:18092/swagger-ui.html" || exit 1
+ wait_for_http "ingress" "http://localhost:8080/health" || exit 1
+-wait_for_http "ingress-ui" "http://localhost:8080" || exit 1
++wait_for_http "grafana" "http://localhost:${GRAFANA_PORT}/api/health" || exit 1
++wait_for_http "prometheus" "http://localhost:9090/-/ready" || exit 1
++wait_for_http "loki" "http://localhost:3100/ready" || exit 1
++wait_for_http "tempo" "http://localhost:3200/ready" || exit 1
++wait_for_http "otel-collector-health" "http://localhost:13133/" || exit 1
+ 
+-echo "[done] state 006 messaging-nats runtime started"
++bash "${REPO_ROOT}/scripts/star-grafana-traderx-dashboards.sh" \
++  "http://localhost:${GRAFANA_PORT}" \
++  "admin" \
++  "admin" \
++  "TraderX" \
++  "traderx-obs-006-overview" || true
++
++echo "[done] state 007 observability runtime started"
+ echo "[ui] http://localhost:8080"
++echo "[grafana] http://localhost:${GRAFANA_PORT} (local login credentials)"
+diff --git a/scripts/status-state-006-messaging-nats-replacement-generated.sh b/scripts/status-state-007-observability-lgtm-compose-generated.sh
+similarity index 65%
+rename from scripts/status-state-006-messaging-nats-replacement-generated.sh
+rename to scripts/status-state-007-observability-lgtm-compose-generated.sh
+index 9676d35..60b84ee 100755
+--- a/scripts/status-state-006-messaging-nats-replacement-generated.sh
++++ b/scripts/status-state-007-observability-lgtm-compose-generated.sh
+@@ -17,8 +17,9 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
+     exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+   fi
+ fi
+-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-006}"
+-COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/messaging-nats-replacement/docker-compose.yml"
++COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-007}"
++GRAFANA_PORT="${GRAFANA_PORT:-3001}"
++COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/observability-lgtm-compose/docker-compose.yml"
+ 
+ if ! command -v docker >/dev/null 2>&1; then
+   echo "[error] docker command not found"
+@@ -27,7 +28,7 @@ fi
+ 
+ if [[ ! -f "${COMPOSE_FILE}" ]]; then
+   echo "[info] compose file not found: ${COMPOSE_FILE}"
+-  echo "[hint] run: bash pipeline/generate-state.sh 006-messaging-nats-replacement"
++  echo "[hint] run: bash pipeline/generate-state.sh 007-observability-lgtm-compose"
+   exit 0
+ fi
+ 
+@@ -39,20 +40,23 @@ http_code_for() {
+   curl -sS -o /dev/null -w "%{http_code}" "${url}" 2>/dev/null || true
+ }
+ 
+-printf "\n%-24s %-8s %s\n" "endpoint" "http" "url"
+-printf "%-24s %-8s %s\n" "------------------------" "--------" "---"
++printf "\n%-28s %-8s %s\n" "endpoint" "http" "url"
++printf "%-28s %-8s %s\n" "----------------------------" "--------" "---"
+ 
+ for target in \
+   "ingress-health|http://localhost:8080/health" \
+   "ingress-ui|http://localhost:8080/" \
+-  "angular-ui|http://localhost:18093/" \
++  "grafana|http://localhost:${GRAFANA_PORT}/api/health" \
++  "prometheus|http://localhost:9090/-/ready" \
++  "loki|http://localhost:3100/ready" \
++  "tempo|http://localhost:3200/ready" \
++  "otel-collector|http://localhost:13133/" \
+   "reference-data|http://localhost:18085/stocks" \
+   "account-service|http://localhost:18088/account/22214" \
+   "position-service|http://localhost:18090/health/alive" \
+-  "trade-service|http://localhost:18092/swagger-ui.html" \
+-  "nats-monitor|http://localhost:8222/varz"; do
++  "trade-service|http://localhost:18092/swagger-ui.html"; do
+   name="${target%%|*}"
+   url="${target#*|}"
+   code="$(http_code_for "${url}")"
+-  printf "%-24s %-8s %s\n" "${name}" "${code:-000}" "${url}"
++  printf "%-28s %-8s %s\n" "${name}" "${code:-000}" "${url}"
+ done
+diff --git a/scripts/stop-state-006-messaging-nats-replacement-generated.sh b/scripts/stop-state-007-observability-lgtm-compose-generated.sh
+similarity index 81%
+rename from scripts/stop-state-006-messaging-nats-replacement-generated.sh
+rename to scripts/stop-state-007-observability-lgtm-compose-generated.sh
+index 5ef01d0..993202c 100755
+--- a/scripts/stop-state-006-messaging-nats-replacement-generated.sh
++++ b/scripts/stop-state-007-observability-lgtm-compose-generated.sh
+@@ -17,8 +17,8 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
+     exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+   fi
+ fi
+-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-006}"
+-COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/messaging-nats-replacement/docker-compose.yml"
++COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-007}"
++COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/observability-lgtm-compose/docker-compose.yml"
+ 
+ if ! command -v docker >/dev/null 2>&1; then
+   echo "[error] docker command not found"
+@@ -31,4 +31,4 @@ if [[ ! -f "${COMPOSE_FILE}" ]]; then
+ fi
+ 
+ docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" down --remove-orphans
+-echo "[done] state 006 messaging-nats runtime stopped"
++echo "[done] state 007 observability runtime stopped"
+diff --git a/trade-processor/build.gradle b/trade-processor/build.gradle
+index 48ea8b4..2747525 100644
+--- a/trade-processor/build.gradle
++++ b/trade-processor/build.gradle
+@@ -18,6 +18,8 @@ repositories {
+ dependencies {
+   implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+   implementation 'org.springframework.boot:spring-boot-starter-web'
++  implementation 'org.springframework.boot:spring-boot-starter-actuator'
++  runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+   implementation 'org.postgresql:postgresql:42.7.10'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
+   implementation 'io.nats:jnats:2.20.5'
+diff --git a/trade-service/build.gradle b/trade-service/build.gradle
+index d7a9ae1..5540073 100644
+--- a/trade-service/build.gradle
++++ b/trade-service/build.gradle
+@@ -22,6 +22,8 @@ configurations.all {
+ dependencies {
+   implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+   implementation 'org.springframework.boot:spring-boot-starter-web'
++  implementation 'org.springframework.boot:spring-boot-starter-actuator'
++  runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+   implementation 'com.h2database:h2:2.3.232'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
+   implementation 'io.nats:jnats:2.20.5'

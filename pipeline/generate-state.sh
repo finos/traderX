@@ -112,9 +112,9 @@ esac
 bash "${ROOT}/pipeline/sync-gradle-wrapper-assets.sh" "${COMPONENTS_ROOT}"
 bash "${ROOT}/pipeline/sync-gradle-wrapper-assets.sh" "${TARGET_ROOT}"
 
-# Regenerate Node lockfiles in generated output so lock snapshots are always
-# produced from current package manifests during generation. Skip nested parent
-# generation calls to avoid repeated lockfile churn while traversing lineage.
+# Synchronize Node lockfiles against generated manifests. Lockfiles are refreshed
+# only when package manifests change (or when missing/invalid), and otherwise
+# left intact to avoid unnecessary regeneration churn.
 if [[ "${TRADERX_SKIP_LOCKFILE_REFRESH:-0}" == "1" ]]; then
   echo "[info] TRADERX_SKIP_LOCKFILE_REFRESH=1; skipping lockfile refresh"
 elif (( GEN_DEPTH == 1 )) || [[ "${TRADERX_REFRESH_LOCKFILES_IN_NESTED_GENERATION:-0}" == "1" ]]; then

@@ -1,3 +1,17 @@
+diff --git a/.github/workflows/build-container-images.yml b/.github/workflows/build-container-images.yml
+index 4701a72..12ced54 100644
+--- a/.github/workflows/build-container-images.yml
++++ b/.github/workflows/build-container-images.yml
+@@ -36,9 +36,6 @@ jobs:
+           - directory: reference-data
+             dockerfile: Dockerfile.compose
+             image_name: reference-data
+-          - directory: trade-feed
+-            dockerfile: Dockerfile.compose
+-            image_name: trade-feed
+           - directory: trade-processor
+             dockerfile: Dockerfile.compose
+             image_name: trade-processor
 diff --git a/.github/workflows/license-scanning-node.yml b/.github/workflows/license-scanning-node.yml
 index 91e5754..f43eb9f 100644
 --- a/.github/workflows/license-scanning-node.yml
@@ -11,7 +25,7 @@ index 91e5754..f43eb9f 100644
      steps:
        - uses: actions/checkout@v4
 diff --git a/.github/workflows/security.yml b/.github/workflows/security.yml
-index 8b33b7f..81388ff 100644
+index c9594c9..3eb407b 100644
 --- a/.github/workflows/security.yml
 +++ b/.github/workflows/security.yml
 @@ -23,7 +23,6 @@ jobs:
@@ -22,7 +36,7 @@ index 8b33b7f..81388ff 100644
            - web-front-end/angular
      steps:
        - name: Checkout
-@@ -175,9 +174,6 @@ jobs:
+@@ -177,9 +176,6 @@ jobs:
            - directory: reference-data
              dockerfile: Dockerfile.compose
              image_name: reference-data
@@ -140,14 +154,6 @@ index ea0a7f0..0000000
 -Ingress UI:
 -
 -- `http://localhost:8080`
-diff --git a/generated/code/components/trade-feed-specfirst b/generated/code/components/trade-feed-specfirst
-deleted file mode 120000
-index 3c57f86..0000000
---- a/generated/code/components/trade-feed-specfirst
-+++ /dev/null
-@@ -1 +0,0 @@
--../../../trade-feed
-\ No newline at end of file
 diff --git a/ingress/nginx.traderx.conf.template b/ingress/nginx.traderx.conf.template
 index fbe8473..f881206 100644
 --- a/ingress/nginx.traderx.conf.template
@@ -815,7 +821,7 @@ index d9ef000..0000000
 -  }
 -}
 diff --git a/trade-processor/build.gradle b/trade-processor/build.gradle
-index 4f39c99..affa9e1 100644
+index b3a7648..48ea8b4 100644
 --- a/trade-processor/build.gradle
 +++ b/trade-processor/build.gradle
 @@ -20,6 +20,7 @@ dependencies {
@@ -1204,7 +1210,7 @@ index b56e35a..a11e2e7 100644
  # To avoid "Request header is too large" when application is backed by oidc proxy.
  server.max-http-request-header-size=1000000
 diff --git a/trade-service/build.gradle b/trade-service/build.gradle
-index 4705022..a58de5d 100644
+index 5693071..d7a9ae1 100644
 --- a/trade-service/build.gradle
 +++ b/trade-service/build.gradle
 @@ -24,6 +24,7 @@ dependencies {

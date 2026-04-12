@@ -1,15 +1,28 @@
-diff --git a/.github/workflows/security.yml b/.github/workflows/security.yml
-index e5859c2..11a01ab 100644
---- a/.github/workflows/security.yml
-+++ b/.github/workflows/security.yml
-@@ -151,52 +151,3 @@ jobs:
-         with:
-           name: security-gradle-${{ env.UPNAME }}-${{ github.run_id }}-${{ github.run_attempt }}
-           path: ${{ github.workspace }}/${{ matrix.module_folder }}-reports
+diff --git a/.github/workflows/build-and-publish.yml b/.github/workflows/build-and-publish.yml
+deleted file mode 100644
+index e719c7a..0000000
+--- a/.github/workflows/build-and-publish.yml
++++ /dev/null
+@@ -1,86 +0,0 @@
+-name: Build and Publish Application Images
 -
--  docker-image-scan:
--    name: ${{ matrix.image_name }}-docker-scan
+-on:
+-  workflow_dispatch:
+-  push:
+-    branches:
+-      - code/generated-state-*
+-
+-env:
+-  GHCR_ORG: ghcr.io/finos
+-  IMAGE_NAMESPACE: traderx-c0
+-
+-jobs:
+-  build-ghcr:
+-    name: Build and push ${{ matrix.image_name }}
 -    runs-on: ubuntu-latest
+-    permissions:
+-      contents: read
+-      packages: write
 -    strategy:
 -      fail-fast: false
 -      matrix:
@@ -45,16 +58,110 @@ index e5859c2..11a01ab 100644
 -            dockerfile: Dockerfile.compose
 -            image_name: web-front-end-angular
 -    steps:
--      - uses: actions/checkout@v4
--      - name: Set up Docker Buildx
--        uses: docker/setup-buildx-action@v3
--      - name: Build image for scan
--        run: docker build -f "${{ matrix.directory }}/${{ matrix.dockerfile }}" -t "traderx-security/${{ matrix.image_name }}:scan" "${{ matrix.directory }}"
--      - name: Scan image for vulnerabilities
+-      - name: Checkout code
+-        uses: actions/checkout@v4
+-      - name: GHCR auth mode
+-        run: |
+-          if [[ -n "${{ secrets.GHCR_PUSH_TOKEN }}" ]]; then
+-            echo "Using GHCR_PUSH_TOKEN secret for package publish."
+-          else
+-            echo "Using GITHUB_TOKEN for package publish."
+-            echo "If publish fails with write_package, either:"
+-            echo "1) enable package write for Actions in repo/org settings, or"
+-            echo "2) set GHCR_PUSH_TOKEN (packages:write) and GHCR_PUSH_USERNAME secrets."
+-          fi
+-      - name: Login to GitHub Container Registry
+-        uses: docker/login-action@v3
+-        with:
+-          registry: ghcr.io
+-          username: ${{ secrets.GHCR_PUSH_USERNAME != '' && secrets.GHCR_PUSH_USERNAME || github.actor }}
+-          password: ${{ secrets.GHCR_PUSH_TOKEN != '' && secrets.GHCR_PUSH_TOKEN || secrets.GITHUB_TOKEN }}
+-      - name: Build and publish image
+-        uses: docker/build-push-action@v6
+-        with:
+-          context: ${{ matrix.directory }}
+-          file: ${{ matrix.directory }}/${{ matrix.dockerfile }}
+-          push: ${{ github.event_name == 'push' }}
+-          tags: |
+-            ${{ env.GHCR_ORG }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image_name }}:${{ github.sha }}
+-            ${{ env.GHCR_ORG }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image_name }}:latest
+-      - name: Scan published image
 -        uses: crazy-max/ghaction-container-scan@v3
 -        with:
--          image: traderx-security/${{ matrix.image_name }}:scan
+-          image: ${{ env.GHCR_ORG }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image_name }}:${{ github.sha }}
 -          severity: HIGH
+diff --git a/.github/workflows/build-container-images.yml b/.github/workflows/build-container-images.yml
+new file mode 100644
+index 0000000..4701a72
+--- /dev/null
++++ b/.github/workflows/build-container-images.yml
+@@ -0,0 +1,66 @@
++name: Build Container Images (No Publish)
++
++on:
++  workflow_dispatch:
++  push:
++    branches:
++      - code/generated-state-*
++    paths:
++      - '**/Dockerfile'
++      - '**/Dockerfile.compose'
++      - '.github/workflows/build-container-images.yml'
++
++jobs:
++  build-container-images:
++    name: Build ${{ matrix.image_name }}
++    runs-on: ubuntu-latest
++    strategy:
++      fail-fast: false
++      matrix:
++        include:
++          - directory: account-service
++            dockerfile: Dockerfile.compose
++            image_name: account-service
++          - directory: database
++            dockerfile: Dockerfile.compose
++            image_name: database
++          - directory: ingress
++            dockerfile: Dockerfile.compose
++            image_name: ingress
++          - directory: people-service
++            dockerfile: Dockerfile.compose
++            image_name: people-service
++          - directory: position-service
++            dockerfile: Dockerfile.compose
++            image_name: position-service
++          - directory: reference-data
++            dockerfile: Dockerfile.compose
++            image_name: reference-data
++          - directory: trade-feed
++            dockerfile: Dockerfile.compose
++            image_name: trade-feed
++          - directory: trade-processor
++            dockerfile: Dockerfile.compose
++            image_name: trade-processor
++          - directory: trade-service
++            dockerfile: Dockerfile.compose
++            image_name: trade-service
++          - directory: web-front-end/angular
++            dockerfile: Dockerfile.compose
++            image_name: web-front-end-angular
++    steps:
++      - name: Checkout code
++        uses: actions/checkout@v4
++      - name: Set up Docker Buildx
++        uses: docker/setup-buildx-action@v3
++      - name: Build image (no publish)
++        run: |
++          docker build \
++            -f "${{ matrix.directory }}/${{ matrix.dockerfile }}" \
++            -t "traderx-local/${{ matrix.image_name }}:${{ github.sha }}" \
++            "${{ matrix.directory }}"
++      - name: Scan built image
++        uses: crazy-max/ghaction-container-scan@v3
++        with:
++          image: traderx-local/${{ matrix.image_name }}:${{ github.sha }}
++          severity: HIGH
 diff --git a/AGENTS.md b/AGENTS.md
 index c6e65de..2190bce 100644
 --- a/AGENTS.md
@@ -165,7 +272,7 @@ index b33d8a4..eedd70d 100644
  
  people.service.url=${PEOPLE_SERVICE_URL:http://${PEOPLE_SERVICE_HOST:localhost}:18089}
 diff --git a/ci/state-metadata.json b/ci/state-metadata.json
-index e787c7b..0811caf 100644
+index e787c7b..0835b4c 100644
 --- a/ci/state-metadata.json
 +++ b/ci/state-metadata.json
 @@ -1,8 +1,8 @@
@@ -181,65 +288,6 @@ index e787c7b..0811caf 100644
    "modules": {
      "node": [
        "reference-data",
-@@ -19,57 +19,6 @@
-     "dotnet": [
-       "people-service/PeopleService.WebApi"
-     ],
--    "docker": [
--      {
--        "directory": "account-service",
--        "dockerfile": "Dockerfile.compose",
--        "imageName": "account-service"
--      },
--      {
--        "directory": "database",
--        "dockerfile": "Dockerfile.compose",
--        "imageName": "database"
--      },
--      {
--        "directory": "ingress",
--        "dockerfile": "Dockerfile.compose",
--        "imageName": "ingress"
--      },
--      {
--        "directory": "people-service",
--        "dockerfile": "Dockerfile.compose",
--        "imageName": "people-service"
--      },
--      {
--        "directory": "position-service",
--        "dockerfile": "Dockerfile.compose",
--        "imageName": "position-service"
--      },
--      {
--        "directory": "reference-data",
--        "dockerfile": "Dockerfile.compose",
--        "imageName": "reference-data"
--      },
--      {
--        "directory": "trade-feed",
--        "dockerfile": "Dockerfile.compose",
--        "imageName": "trade-feed"
--      },
--      {
--        "directory": "trade-processor",
--        "dockerfile": "Dockerfile.compose",
--        "imageName": "trade-processor"
--      },
--      {
--        "directory": "trade-service",
--        "dockerfile": "Dockerfile.compose",
--        "imageName": "trade-service"
--      },
--      {
--        "directory": "web-front-end/angular",
--        "dockerfile": "Dockerfile.compose",
--        "imageName": "web-front-end-angular"
--      }
--    ]
-+    "docker": []
-   }
- }
 diff --git a/position-service/build.gradle b/position-service/build.gradle
 index 060d4f8..cddccee 100644
 --- a/position-service/build.gradle

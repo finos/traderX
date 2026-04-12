@@ -1,10 +1,179 @@
+diff --git a/.github/workflows/build-and-publish.yml b/.github/workflows/build-container-images.yml
+similarity index 50%
+rename from .github/workflows/build-and-publish.yml
+rename to .github/workflows/build-container-images.yml
+index 9dc69a9..58ae4e4 100644
+--- a/.github/workflows/build-and-publish.yml
++++ b/.github/workflows/build-container-images.yml
+@@ -1,22 +1,19 @@
+-name: Build and Publish Application Images
++name: Build Container Images (No Publish)
+ 
+ on:
+   workflow_dispatch:
+   push:
+     branches:
+       - code/generated-state-*
+-
+-env:
+-  GHCR_ORG: ghcr.io/finos
+-  IMAGE_NAMESPACE: traderx-c2
++    paths:
++      - '**/Dockerfile'
++      - '**/Dockerfile.compose'
++      - '.github/workflows/build-container-images.yml'
+ 
+ jobs:
+-  build-ghcr:
+-    name: Build and push ${{ matrix.image_name }}
++  build-container-images:
++    name: Build ${{ matrix.image_name }}
+     runs-on: ubuntu-latest
+-    permissions:
+-      contents: read
+-      packages: write
+     strategy:
+       fail-fast: false
+       matrix:
+@@ -57,33 +54,16 @@ jobs:
+     steps:
+       - name: Checkout code
+         uses: actions/checkout@v4
+-      - name: GHCR auth mode
++      - name: Set up Docker Buildx
++        uses: docker/setup-buildx-action@v3
++      - name: Build image (no publish)
+         run: |
+-          if [[ -n "${{ secrets.GHCR_PUSH_TOKEN }}" ]]; then
+-            echo "Using GHCR_PUSH_TOKEN secret for package publish."
+-          else
+-            echo "Using GITHUB_TOKEN for package publish."
+-            echo "If publish fails with write_package, either:"
+-            echo "1) enable package write for Actions in repo/org settings, or"
+-            echo "2) set GHCR_PUSH_TOKEN (packages:write) and GHCR_PUSH_USERNAME secrets."
+-          fi
+-      - name: Login to GitHub Container Registry
+-        uses: docker/login-action@v3
+-        with:
+-          registry: ghcr.io
+-          username: ${{ secrets.GHCR_PUSH_USERNAME != '' && secrets.GHCR_PUSH_USERNAME || github.actor }}
+-          password: ${{ secrets.GHCR_PUSH_TOKEN != '' && secrets.GHCR_PUSH_TOKEN || secrets.GITHUB_TOKEN }}
+-      - name: Build and publish image
+-        uses: docker/build-push-action@v6
+-        with:
+-          context: ${{ matrix.directory }}
+-          file: ${{ matrix.directory }}/${{ matrix.dockerfile }}
+-          push: ${{ github.event_name == 'push' }}
+-          tags: |
+-            ${{ env.GHCR_ORG }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image_name }}:${{ github.sha }}
+-            ${{ env.GHCR_ORG }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image_name }}:latest
+-      - name: Scan published image
++          docker build \
++            -f "${{ matrix.directory }}/${{ matrix.dockerfile }}" \
++            -t "traderx-local/${{ matrix.image_name }}:${{ github.sha }}" \
++            "${{ matrix.directory }}"
++      - name: Scan built image
+         uses: crazy-max/ghaction-container-scan@v3
+         with:
+-          image: ${{ env.GHCR_ORG }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image_name }}:${{ github.sha }}
++          image: traderx-local/${{ matrix.image_name }}:${{ github.sha }}
+           severity: HIGH
+diff --git a/AGENTS.md b/AGENTS.md
+index 491b34e..0cc0db1 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -1,6 +1,6 @@
+ # AGENTS.md
+ 
+-This generated codebase is a reproducible runtime snapshot for state `009-order-management-matcher`.
++This generated codebase is a reproducible runtime snapshot for state `010-kubernetes-runtime`.
+ 
+ - Treat this snapshot as generated output; expect it to be replaced on regeneration.
+ - Prototype and experiment locally here when needed.
+diff --git a/ARCHITECTURE.md b/ARCHITECTURE.md
+index 7b5ea7f..611cc3e 100644
+--- a/ARCHITECTURE.md
++++ b/ARCHITECTURE.md
+@@ -1,6 +1,6 @@
+ # ARCHITECTURE.md
+ 
+-This snapshot was generated from TraderX state `009-order-management-matcher`.
++This snapshot was generated from TraderX state `010-kubernetes-runtime`.
+ 
+ - Service/runtime topology is defined by the source state pack in the upstream repository.
+ - This generated directory contains runnable artifacts, not the authoritative architecture source.
+diff --git a/RUN_FROM_GENERATED.md b/RUN_FROM_GENERATED.md
+index f397f9c..6bcf525 100644
+--- a/RUN_FROM_GENERATED.md
++++ b/RUN_FROM_GENERATED.md
+@@ -1,33 +1,29 @@
+-# Run From Generated (State 009)
++# Run From Generated (State 010)
+ 
+ Start:
+ 
+ ```bash
+-./scripts/start-state-009-order-management-matcher-generated.sh
++./scripts/start-state-010-kubernetes-runtime-generated.sh
+ ```
+ 
+ Status / stop:
+ 
+ ```bash
+-./scripts/status-state-009-order-management-matcher-generated.sh
+-./scripts/stop-state-009-order-management-matcher-generated.sh
++./scripts/status-state-010-kubernetes-runtime-generated.sh
++./scripts/stop-state-010-kubernetes-runtime-generated.sh
+ ```
+ 
+ Smoke test:
+ 
+ ```bash
+-./scripts/test-state-009-order-management-matcher.sh
++./scripts/test-state-010-kubernetes-runtime.sh
+ ```
+ 
+ ## Interactive URLs
+ 
+ - UI (ingress): `http://localhost:8080`
+-- Grafana: `http://localhost:3001` (local login credentials)
+-- Prometheus: `http://localhost:9090`
+-- Order matcher health: `http://localhost:18110/health`
+-- Order matcher metrics: `http://localhost:18110/metrics`
+-
+-## GHCR Run Bundle
+-
+-- See: `./runtime/ghcr/009-order-management-matcher/README.md`
+-- Image map: `./runtime/ghcr/009-order-management-matcher/images.lock`
++- Trade page: `http://localhost:8080/trade`
++- Account service route: `http://localhost:8080/account-service/account/22214`
++- Position service route: `http://localhost:8080/position-service/positions/22214`
++- Grafana (ingress): `http://localhost:8080/grafana` (local login credentials)
++- Prometheus (ingress): `http://localhost:8080/prometheus`
+diff --git a/ci/state-metadata.json b/ci/state-metadata.json
+index 6e929e5..321cba6 100644
+--- a/ci/state-metadata.json
++++ b/ci/state-metadata.json
+@@ -1,8 +1,8 @@
+ {
+-  "stateId": "009-order-management-matcher",
+-  "isConvergence": true,
+-  "convergenceLevel": "C2",
+-  "convergenceNamespace": "traderx-c2",
++  "stateId": "010-kubernetes-runtime",
++  "isConvergence": false,
++  "convergenceLevel": "none",
++  "convergenceNamespace": "",
+   "modules": {
+     "node": [
+       "price-publisher",
 diff --git a/kubernetes-runtime/README.md b/kubernetes-runtime/README.md
 new file mode 100644
-index 0000000..d6bac51
+index 0000000..b0bfb1c
 --- /dev/null
 +++ b/kubernetes-runtime/README.md
-@@ -0,0 +1,18 @@
-+# State 005 Kubernetes Runtime Artifacts
+@@ -0,0 +1,19 @@
++# State 010 Kubernetes Runtime Artifacts
 +
 +Generated from:
 +
@@ -16,6 +185,7 @@ index 0000000..d6bac51
 +- Kind cluster config: `kind/cluster-config.yaml`
 +- K8s manifests: `manifests/base`
 +- Image build plan: `build-plan.json`
++- Observability assets: Prometheus + Grafana + Loki + Tempo + OpenTelemetry + blackbox exporter
 +
 +Run:
 +
@@ -24,94 +194,103 @@ index 0000000..d6bac51
 +```
 diff --git a/kubernetes-runtime/build-plan.json b/kubernetes-runtime/build-plan.json
 new file mode 100644
-index 0000000..fff4b72
+index 0000000..ba42b5a
 --- /dev/null
 +++ b/kubernetes-runtime/build-plan.json
-@@ -0,0 +1,76 @@
+@@ -0,0 +1,84 @@
 +{
 +  "stateId": "010-kubernetes-runtime",
 +  "namespace": "traderx",
-+  "kindClusterName": "traderx-state-004",
++  "kindClusterName": "traderx-state-010",
 +  "hostPort": 8080,
 +  "nodePort": 30080,
 +  "edgeService": "edge-proxy",
 +  "images": [
 +    {
-+      "name": "database",
-+      "image": "traderx/database:state004",
-+      "context": "database",
-+      "dockerfile": "Dockerfile.compose"
-+    },
-+    {
 +      "name": "reference-data",
-+      "image": "traderx/reference-data:state004",
++      "image": "traderx/reference-data:state009",
 +      "context": "reference-data",
 +      "dockerfile": "Dockerfile.compose"
 +    },
 +    {
-+      "name": "trade-feed",
-+      "image": "traderx/trade-feed:state004",
-+      "context": "trade-feed",
-+      "dockerfile": "Dockerfile.compose"
-+    },
-+    {
 +      "name": "people-service",
-+      "image": "traderx/people-service:state004",
++      "image": "traderx/people-service:state009",
 +      "context": "people-service",
 +      "dockerfile": "Dockerfile.compose"
 +    },
 +    {
 +      "name": "account-service",
-+      "image": "traderx/account-service:state004",
++      "image": "traderx/account-service:state009",
 +      "context": "account-service",
 +      "dockerfile": "Dockerfile.compose"
 +    },
 +    {
 +      "name": "position-service",
-+      "image": "traderx/position-service:state004",
++      "image": "traderx/position-service:state009",
 +      "context": "position-service",
 +      "dockerfile": "Dockerfile.compose"
 +    },
 +    {
 +      "name": "trade-processor",
-+      "image": "traderx/trade-processor:state004",
++      "image": "traderx/trade-processor:state009",
 +      "context": "trade-processor",
 +      "dockerfile": "Dockerfile.compose"
 +    },
 +    {
 +      "name": "trade-service",
-+      "image": "traderx/trade-service:state004",
++      "image": "traderx/trade-service:state009",
 +      "context": "trade-service",
 +      "dockerfile": "Dockerfile.compose"
 +    },
 +    {
++      "name": "price-publisher",
++      "image": "traderx/price-publisher:state009",
++      "context": "price-publisher",
++      "dockerfile": "Dockerfile.compose"
++    },
++    {
++      "name": "order-matcher",
++      "image": "traderx/order-matcher:state009",
++      "context": "order-matcher",
++      "dockerfile": "Dockerfile.compose"
++    },
++    {
 +      "name": "web-front-end-angular",
-+      "image": "traderx/web-front-end-angular:state004",
++      "image": "traderx/web-front-end-angular:state009",
 +      "context": "web-front-end/angular",
 +      "dockerfile": "Dockerfile.compose"
 +    }
 +  ],
 +  "deployments": [
 +    "database",
++    "nats-broker",
 +    "reference-data",
-+    "trade-feed",
 +    "people-service",
 +    "account-service",
 +    "position-service",
 +    "trade-processor",
 +    "trade-service",
++    "price-publisher",
++    "order-matcher",
 +    "web-front-end-angular",
-+    "edge-proxy"
++    "edge-proxy",
++    "blackbox-exporter",
++    "loki",
++    "tempo",
++    "otel-collector",
++    "prometheus",
++    "grafana"
 +  ]
 +}
 diff --git a/kubernetes-runtime/kind/cluster-config.yaml b/kubernetes-runtime/kind/cluster-config.yaml
 new file mode 100644
-index 0000000..8a0a138
+index 0000000..b61c2ae
 --- /dev/null
 +++ b/kubernetes-runtime/kind/cluster-config.yaml
-@@ -0,0 +1,8 @@
+@@ -0,0 +1,9 @@
 +kind: Cluster
 +apiVersion: kind.x-k8s.io/v1alpha4
++name: traderx-state-010
 +nodes:
 +  - role: control-plane
 +    extraPortMappings:
@@ -120,10 +299,10 @@ index 0000000..8a0a138
 +        protocol: TCP
 diff --git a/kubernetes-runtime/manifests/base/account-service-deployment.yaml b/kubernetes-runtime/manifests/base/account-service-deployment.yaml
 new file mode 100644
-index 0000000..c2d44a6
+index 0000000..8410a2e
 --- /dev/null
 +++ b/kubernetes-runtime/manifests/base/account-service-deployment.yaml
-@@ -0,0 +1,36 @@
+@@ -0,0 +1,48 @@
 +apiVersion: apps/v1
 +kind: Deployment
 +metadata:
@@ -143,7 +322,7 @@ index 0000000..c2d44a6
 +    spec:
 +      containers:
 +        - name: account-service
-+          image: traderx/account-service:state004
++          image: traderx/account-service:state009
 +          imagePullPolicy: IfNotPresent
 +          ports:
 +            - name: http
@@ -152,14 +331,26 @@ index 0000000..c2d44a6
 +          env:
 +            - name: ACCOUNT_SERVICE_PORT
 +              value: "18088"
-+            - name: DATABASE_TCP_HOST
++            - name: DATABASE_PG_HOST
 +              value: "database"
-+            - name: DATABASE_TCP_PORT
-+              value: "18082"
++            - name: DATABASE_PG_PORT
++              value: "5432"
++            - name: DATABASE_NAME
++              value: "traderx"
++            - name: DATABASE_DBUSER
++              value: "traderx"
++            - name: DATABASE_DBPASS
++              value: "traderx"
 +            - name: PEOPLE_SERVICE_HOST
 +              value: "people-service"
 +            - name: CORS_ALLOWED_ORIGINS
 +              value: "http://localhost:8080"
++            - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
++              value: "health,prometheus,info"
++            - name: MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED
++              value: "true"
++            - name: MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED
++              value: "true"
 diff --git a/kubernetes-runtime/manifests/base/account-service-service.yaml b/kubernetes-runtime/manifests/base/account-service-service.yaml
 new file mode 100644
 index 0000000..ef50739
@@ -182,12 +373,74 @@ index 0000000..ef50739
 +      protocol: TCP
 +      port: 18088
 +      targetPort: 18088
+diff --git a/kubernetes-runtime/manifests/base/blackbox-exporter-deployment.yaml b/kubernetes-runtime/manifests/base/blackbox-exporter-deployment.yaml
+new file mode 100644
+index 0000000..8b5350a
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/blackbox-exporter-deployment.yaml
+@@ -0,0 +1,34 @@
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: blackbox-exporter
++  namespace: traderx
++  labels:
++    app: blackbox-exporter
++spec:
++  replicas: 1
++  selector:
++    matchLabels:
++      app: blackbox-exporter
++  template:
++    metadata:
++      labels:
++        app: blackbox-exporter
++    spec:
++      containers:
++        - name: blackbox-exporter
++          image: prom/blackbox-exporter:v0.25.0
++          imagePullPolicy: IfNotPresent
++          args: ["--config.file=/etc/blackbox_exporter/config.yml"]
++          ports:
++            - name: http
++              containerPort: 9115
++              protocol: TCP
++          volumeMounts:
++            - name: blackbox-config
++              mountPath: /etc/blackbox_exporter/config.yml
++              subPath: blackbox.yml
++      volumes:
++        - name: blackbox-config
++          configMap:
++            name: observability-blackbox-config
+diff --git a/kubernetes-runtime/manifests/base/blackbox-exporter-service.yaml b/kubernetes-runtime/manifests/base/blackbox-exporter-service.yaml
+new file mode 100644
+index 0000000..a81f772
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/blackbox-exporter-service.yaml
+@@ -0,0 +1,16 @@
++apiVersion: v1
++kind: Service
++metadata:
++  name: blackbox-exporter
++  namespace: traderx
++  labels:
++    app: blackbox-exporter
++spec:
++  type: ClusterIP
++  selector:
++    app: blackbox-exporter
++  ports:
++    - name: http
++      protocol: TCP
++      port: 9115
++      targetPort: 9115
 diff --git a/kubernetes-runtime/manifests/base/database-deployment.yaml b/kubernetes-runtime/manifests/base/database-deployment.yaml
 new file mode 100644
-index 0000000..37d5f28
+index 0000000..fcce3ec
 --- /dev/null
 +++ b/kubernetes-runtime/manifests/base/database-deployment.yaml
-@@ -0,0 +1,40 @@
+@@ -0,0 +1,54 @@
 +apiVersion: apps/v1
 +kind: Deployment
 +metadata:
@@ -207,33 +460,139 @@ index 0000000..37d5f28
 +    spec:
 +      containers:
 +        - name: database
-+          image: traderx/database:state004
++          image: postgres:16-alpine
 +          imagePullPolicy: IfNotPresent
 +          ports:
-+            - name: tcp
-+              containerPort: 18082
-+              protocol: TCP
 +            - name: pg
-+              containerPort: 18083
-+              protocol: TCP
-+            - name: web
-+              containerPort: 18084
++              containerPort: 5432
 +              protocol: TCP
 +          env:
-+            - name: DATABASE_TCP_PORT
-+              value: "18082"
-+            - name: DATABASE_PG_PORT
-+              value: "18083"
-+            - name: DATABASE_WEB_PORT
-+              value: "18084"
-+            - name: DATABASE_WEB_HOSTNAMES
-+              value: "localhost,database,edge-proxy"
++            - name: POSTGRES_DB
++              value: "traderx"
++            - name: POSTGRES_USER
++              value: "traderx"
++            - name: POSTGRES_PASSWORD
++              value: "traderx"
++          volumeMounts:
++            - name: db-data
++              mountPath: /var/lib/postgresql/data
++            - name: database-init-sql
++              mountPath: /docker-entrypoint-initdb.d/001-initialSchema.sql
++              subPath: 001-initialSchema.sql
++          readinessProbe:
++            exec:
++              command: ["sh", "-c", "pg_isready -U traderx -d traderx"]
++            initialDelaySeconds: 5
++            periodSeconds: 5
++          livenessProbe:
++            exec:
++              command: ["sh", "-c", "pg_isready -U traderx -d traderx"]
++            initialDelaySeconds: 10
++            periodSeconds: 10
++      volumes:
++        - name: db-data
++          emptyDir: {}
++        - name: database-init-sql
++          configMap:
++            name: database-init-sql
+diff --git a/kubernetes-runtime/manifests/base/database-init-configmap.yaml b/kubernetes-runtime/manifests/base/database-init-configmap.yaml
+new file mode 100644
+index 0000000..be8e4e2
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/database-init-configmap.yaml
+@@ -0,0 +1,86 @@
++apiVersion: v1
++kind: ConfigMap
++metadata:
++  name: database-init-sql
++  namespace: traderx
++data:
++  001-initialSchema.sql: |
++    DROP TABLE IF EXISTS trades;
++    DROP TABLE IF EXISTS accountusers;
++    DROP TABLE IF EXISTS positions;
++    DROP TABLE IF EXISTS accounts;
++    DROP SEQUENCE IF EXISTS accounts_seq;
++    
++    CREATE TABLE accounts (
++      id INTEGER PRIMARY KEY,
++      displayname VARCHAR(50)
++    );
++    
++    CREATE TABLE accountusers (
++      accountid INTEGER NOT NULL,
++      username VARCHAR(15) NOT NULL,
++      PRIMARY KEY (accountid, username),
++      FOREIGN KEY (accountid) REFERENCES accounts(id)
++    );
++    
++    CREATE TABLE positions (
++      accountid INTEGER,
++      security VARCHAR(15),
++      updated TIMESTAMP,
++      quantity INTEGER,
++      averagecostbasis DECIMAL(18,3),
++      PRIMARY KEY (accountid, security),
++      FOREIGN KEY (accountid) REFERENCES accounts(id)
++    );
++    
++    CREATE TABLE trades (
++      id VARCHAR(50) PRIMARY KEY,
++      accountid INTEGER REFERENCES accounts(id),
++      created TIMESTAMP,
++      updated TIMESTAMP,
++      security VARCHAR(15),
++      side VARCHAR(10) CHECK (side in ('Buy', 'Sell')),
++      quantity INTEGER CHECK (quantity > 0),
++      price DECIMAL(18,3),
++      state VARCHAR(20) CHECK (state in ('New', 'Processing', 'Settled', 'Cancelled'))
++    );
++    
++    CREATE SEQUENCE accounts_seq START WITH 65000 INCREMENT BY 1;
++    
++    INSERT INTO accounts (id, displayname) VALUES (22214, 'Test Account 20');
++    INSERT INTO accounts (id, displayname) VALUES (11413, 'Private Clients Fund TTXX');
++    INSERT INTO accounts (id, displayname) VALUES (42422, 'Algo Execution Partners');
++    INSERT INTO accounts (id, displayname) VALUES (52355, 'Big Corporate Fund');
++    INSERT INTO accounts (id, displayname) VALUES (62654, 'Hedge Fund TXY1');
++    INSERT INTO accounts (id, displayname) VALUES (10031, 'Internal Trading Book');
++    INSERT INTO accounts (id, displayname) VALUES (44044, 'Trading Account 1');
++    
++    INSERT INTO accountusers (accountid, username) VALUES (22214, 'user01');
++    INSERT INTO accountusers (accountid, username) VALUES (22214, 'user03');
++    INSERT INTO accountusers (accountid, username) VALUES (22214, 'user09');
++    INSERT INTO accountusers (accountid, username) VALUES (22214, 'user05');
++    INSERT INTO accountusers (accountid, username) VALUES (22214, 'user07');
++    INSERT INTO accountusers (accountid, username) VALUES (62654, 'user09');
++    INSERT INTO accountusers (accountid, username) VALUES (62654, 'user05');
++    INSERT INTO accountusers (accountid, username) VALUES (62654, 'user07');
++    INSERT INTO accountusers (accountid, username) VALUES (62654, 'user01');
++    INSERT INTO accountusers (accountid, username) VALUES (10031, 'user01');
++    INSERT INTO accountusers (accountid, username) VALUES (10031, 'user03');
++    INSERT INTO accountusers (accountid, username) VALUES (10031, 'user09');
++    INSERT INTO accountusers (accountid, username) VALUES (44044, 'user09');
++    INSERT INTO accountusers (accountid, username) VALUES (44044, 'user05');
++    INSERT INTO accountusers (accountid, username) VALUES (44044, 'user07');
++    INSERT INTO accountusers (accountid, username) VALUES (44044, 'user04');
++    INSERT INTO accountusers (accountid, username) VALUES (44044, 'user01');
++    INSERT INTO accountusers (accountid, username) VALUES (44044, 'user06');
++    
++    INSERT INTO trades (id, created, updated, security, side, quantity, price, state, accountid) VALUES ('TRADE-22214-AABBCC', NOW(), NOW(), 'IBM', 'Sell', 100, 136.250, 'Settled', 22214);
++    INSERT INTO trades (id, created, updated, security, side, quantity, price, state, accountid) VALUES ('TRADE-22214-DDEEFF', NOW(), NOW(), 'MS', 'Buy', 1000, 95.125, 'Settled', 22214);
++    INSERT INTO trades (id, created, updated, security, side, quantity, price, state, accountid) VALUES ('TRADE-22214-GGHHII', NOW(), NOW(), 'C', 'Sell', 2000, 57.500, 'Settled', 22214);
++    
++    INSERT INTO positions (accountid, security, updated, quantity, averagecostbasis) VALUES (22214, 'MS', NOW(), 1000, 95.125);
++    INSERT INTO positions (accountid, security, updated, quantity, averagecostbasis) VALUES (22214, 'IBM', NOW(), -100, 136.250);
++    INSERT INTO positions (accountid, security, updated, quantity, averagecostbasis) VALUES (22214, 'C', NOW(), -2000, 57.500);
++    
++    INSERT INTO trades (id, created, updated, security, side, quantity, price, state, accountid) VALUES ('TRADE-52355-AABBCC', NOW(), NOW(), 'BAC', 'Sell', 2400, 41.125, 'Settled', 52355);
++    INSERT INTO positions (accountid, security, updated, quantity, averagecostbasis) VALUES (52355, 'BAC', NOW(), -2400, 41.125);
 diff --git a/kubernetes-runtime/manifests/base/database-service.yaml b/kubernetes-runtime/manifests/base/database-service.yaml
 new file mode 100644
-index 0000000..ec9297b
+index 0000000..ac90acf
 --- /dev/null
 +++ b/kubernetes-runtime/manifests/base/database-service.yaml
-@@ -0,0 +1,24 @@
+@@ -0,0 +1,16 @@
 +apiVersion: v1
 +kind: Service
 +metadata:
@@ -246,24 +605,16 @@ index 0000000..ec9297b
 +  selector:
 +    app: database
 +  ports:
-+    - name: tcp
-+      protocol: TCP
-+      port: 18082
-+      targetPort: 18082
 +    - name: pg
 +      protocol: TCP
-+      port: 18083
-+      targetPort: 18083
-+    - name: web
-+      protocol: TCP
-+      port: 18084
-+      targetPort: 18084
++      port: 5432
++      targetPort: 5432
 diff --git a/kubernetes-runtime/manifests/base/edge-proxy-configmap.yaml b/kubernetes-runtime/manifests/base/edge-proxy-configmap.yaml
 new file mode 100644
-index 0000000..7ac15f9
+index 0000000..0f45bff
 --- /dev/null
 +++ b/kubernetes-runtime/manifests/base/edge-proxy-configmap.yaml
-@@ -0,0 +1,73 @@
+@@ -0,0 +1,85 @@
 +apiVersion: v1
 +kind: ConfigMap
 +metadata:
@@ -280,10 +631,6 @@ index 0000000..7ac15f9
 +            return 200 "ok\n";
 +        }
 +    
-+        location /db-web/ {
-+            proxy_pass http://database:18084/;
-+        }
-+    
 +        location /reference-data/ {
 +            proxy_pass http://reference-data:18085/;
 +        }
@@ -295,22 +642,12 @@ index 0000000..7ac15f9
 +            proxy_set_header Connection "upgrade";
 +        }
 +    
-+        location /trade-feed/ {
-+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-+            proxy_set_header Host $http_host;
-+            proxy_pass http://trade-feed:18086/;
++        location /nats-ws {
++            proxy_pass http://nats-broker:8081;
 +            proxy_http_version 1.1;
 +            proxy_set_header Upgrade $http_upgrade;
 +            proxy_set_header Connection "upgrade";
-+        }
-+    
-+        location /socket.io/ {
-+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 +            proxy_set_header Host $http_host;
-+            proxy_pass http://trade-feed:18086/socket.io/;
-+            proxy_http_version 1.1;
-+            proxy_set_header Upgrade $http_upgrade;
-+            proxy_set_header Connection "upgrade";
 +        }
 +    
 +        location /people-service/ {
@@ -333,8 +670,34 @@ index 0000000..7ac15f9
 +            proxy_pass http://trade-processor:18091/;
 +        }
 +    
++        location /price-publisher/ {
++            proxy_pass http://price-publisher:18100/;
++        }
++    
++        location /order-matcher/ {
++            proxy_pass http://order-matcher:18110/;
++        }
++    
++        location /grafana/ {
++            proxy_pass http://grafana:3000;
++            proxy_http_version 1.1;
++            proxy_set_header Host $http_host;
++            proxy_set_header X-Forwarded-Proto $scheme;
++            proxy_set_header X-Forwarded-Prefix /grafana;
++        }
++    
++        location /prometheus/ {
++            proxy_pass http://prometheus:9090;
++            proxy_http_version 1.1;
++            proxy_set_header Host $http_host;
++            proxy_set_header X-Forwarded-Proto $scheme;
++        }
++    
 +        location / {
 +            proxy_pass http://web-front-end-angular:18093/;
++            proxy_http_version 1.1;
++            proxy_set_header Upgrade $http_upgrade;
++            proxy_set_header Connection "upgrade";
 +        }
 +    }
 diff --git a/kubernetes-runtime/manifests/base/edge-proxy-deployment.yaml b/kubernetes-runtime/manifests/base/edge-proxy-deployment.yaml
@@ -411,26 +774,150 @@ index 0000000..3e582f3
 +      port: 8080
 +      targetPort: 8080
 +      nodePort: 30080
+diff --git a/kubernetes-runtime/manifests/base/grafana-deployment.yaml b/kubernetes-runtime/manifests/base/grafana-deployment.yaml
+new file mode 100644
+index 0000000..6d875ab
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/grafana-deployment.yaml
+@@ -0,0 +1,69 @@
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: grafana
++  namespace: traderx
++  labels:
++    app: grafana
++spec:
++  replicas: 1
++  selector:
++    matchLabels:
++      app: grafana
++  template:
++    metadata:
++      labels:
++        app: grafana
++    spec:
++      containers:
++        - name: grafana
++          image: grafana/grafana:11.1.0
++          imagePullPolicy: IfNotPresent
++          env:
++            - name: GF_SECURITY_ADMIN_USER
++              value: "admin"
++            - name: GF_SECURITY_ADMIN_PASSWORD
++              value: "admin"
++            - name: GF_USERS_ALLOW_SIGN_UP
++              value: "false"
++            - name: GF_AUTH_ANONYMOUS_ENABLED
++              value: "false"
++            - name: GF_SERVER_ROOT_URL
++              value: "%(protocol)s://%(domain)s/grafana/"
++            - name: GF_SERVER_SERVE_FROM_SUB_PATH
++              value: "true"
++          ports:
++            - name: http
++              containerPort: 3000
++              protocol: TCP
++          readinessProbe:
++            httpGet:
++              path: /api/health
++              port: 3000
++            initialDelaySeconds: 5
++            periodSeconds: 5
++          livenessProbe:
++            httpGet:
++              path: /api/health
++              port: 3000
++            initialDelaySeconds: 10
++            periodSeconds: 10
++          volumeMounts:
++            - name: grafana-datasources
++              mountPath: /etc/grafana/provisioning/datasources/datasources.yaml
++              subPath: datasources.yaml
++            - name: grafana-dashboard-providers
++              mountPath: /etc/grafana/provisioning/dashboards/dashboards.yaml
++              subPath: dashboards.yaml
++            - name: grafana-dashboards
++              mountPath: /var/lib/grafana/dashboards
++      volumes:
++        - name: grafana-datasources
++          configMap:
++            name: observability-grafana-datasources
++        - name: grafana-dashboard-providers
++          configMap:
++            name: observability-grafana-dashboard-providers
++        - name: grafana-dashboards
++          configMap:
++            name: observability-grafana-dashboards
+diff --git a/kubernetes-runtime/manifests/base/grafana-service.yaml b/kubernetes-runtime/manifests/base/grafana-service.yaml
+new file mode 100644
+index 0000000..1698d74
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/grafana-service.yaml
+@@ -0,0 +1,16 @@
++apiVersion: v1
++kind: Service
++metadata:
++  name: grafana
++  namespace: traderx
++  labels:
++    app: grafana
++spec:
++  type: ClusterIP
++  selector:
++    app: grafana
++  ports:
++    - name: http
++      protocol: TCP
++      port: 3000
++      targetPort: 3000
 diff --git a/kubernetes-runtime/manifests/base/kustomization.yaml b/kubernetes-runtime/manifests/base/kustomization.yaml
 new file mode 100644
-index 0000000..b5eebd4
+index 0000000..faf866c
 --- /dev/null
 +++ b/kubernetes-runtime/manifests/base/kustomization.yaml
-@@ -0,0 +1,26 @@
+@@ -0,0 +1,57 @@
 +apiVersion: kustomize.config.k8s.io/v1beta1
 +kind: Kustomization
 +namespace: traderx
 +resources:
 +  - namespace.yaml
 +  - edge-proxy-configmap.yaml
++  - database-init-configmap.yaml
++  - nats-configmap.yaml
++  - observability-blackbox-configmap.yaml
++  - observability-loki-configmap.yaml
++  - observability-promtail-configmap.yaml
++  - observability-tempo-configmap.yaml
++  - observability-otel-configmap.yaml
++  - observability-prometheus-configmap.yaml
++  - observability-grafana-datasources-configmap.yaml
++  - observability-grafana-dashboard-providers-configmap.yaml
++  - observability-grafana-dashboards-configmap.yaml
 +  - edge-proxy-deployment.yaml
 +  - edge-proxy-service.yaml
++  - blackbox-exporter-deployment.yaml
++  - blackbox-exporter-service.yaml
++  - loki-deployment.yaml
++  - loki-service.yaml
++  - promtail-serviceaccount.yaml
++  - promtail-clusterrole.yaml
++  - promtail-clusterrolebinding.yaml
++  - promtail-daemonset.yaml
++  - tempo-deployment.yaml
++  - tempo-service.yaml
++  - otel-collector-deployment.yaml
++  - otel-collector-service.yaml
++  - prometheus-deployment.yaml
++  - prometheus-service.yaml
++  - grafana-deployment.yaml
++  - grafana-service.yaml
 +  - database-deployment.yaml
 +  - database-service.yaml
++  - nats-broker-deployment.yaml
++  - nats-broker-service.yaml
 +  - reference-data-deployment.yaml
 +  - reference-data-service.yaml
-+  - trade-feed-deployment.yaml
-+  - trade-feed-service.yaml
 +  - people-service-deployment.yaml
 +  - people-service-service.yaml
 +  - account-service-deployment.yaml
@@ -441,8 +928,86 @@ index 0000000..b5eebd4
 +  - trade-processor-service.yaml
 +  - trade-service-deployment.yaml
 +  - trade-service-service.yaml
++  - price-publisher-deployment.yaml
++  - price-publisher-service.yaml
++  - order-matcher-deployment.yaml
++  - order-matcher-service.yaml
 +  - web-front-end-angular-deployment.yaml
 +  - web-front-end-angular-service.yaml
+diff --git a/kubernetes-runtime/manifests/base/loki-deployment.yaml b/kubernetes-runtime/manifests/base/loki-deployment.yaml
+new file mode 100644
+index 0000000..94a7acd
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/loki-deployment.yaml
+@@ -0,0 +1,46 @@
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: loki
++  namespace: traderx
++  labels:
++    app: loki
++spec:
++  replicas: 1
++  selector:
++    matchLabels:
++      app: loki
++  template:
++    metadata:
++      labels:
++        app: loki
++    spec:
++      containers:
++        - name: loki
++          image: grafana/loki:2.9.8
++          imagePullPolicy: IfNotPresent
++          args: ["-config.file=/etc/loki/config.yaml"]
++          ports:
++            - name: http
++              containerPort: 3100
++              protocol: TCP
++          readinessProbe:
++            httpGet:
++              path: /ready
++              port: 3100
++            initialDelaySeconds: 5
++            periodSeconds: 5
++          livenessProbe:
++            httpGet:
++              path: /ready
++              port: 3100
++            initialDelaySeconds: 10
++            periodSeconds: 10
++          volumeMounts:
++            - name: loki-config
++              mountPath: /etc/loki/config.yaml
++              subPath: config.yaml
++      volumes:
++        - name: loki-config
++          configMap:
++            name: observability-loki-config
+diff --git a/kubernetes-runtime/manifests/base/loki-service.yaml b/kubernetes-runtime/manifests/base/loki-service.yaml
+new file mode 100644
+index 0000000..0624ed6
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/loki-service.yaml
+@@ -0,0 +1,16 @@
++apiVersion: v1
++kind: Service
++metadata:
++  name: loki
++  namespace: traderx
++  labels:
++    app: loki
++spec:
++  type: ClusterIP
++  selector:
++    app: loki
++  ports:
++    - name: http
++      protocol: TCP
++      port: 3100
++      targetPort: 3100
 diff --git a/kubernetes-runtime/manifests/base/namespace.yaml b/kubernetes-runtime/manifests/base/namespace.yaml
 new file mode 100644
 index 0000000..282aa6b
@@ -453,9 +1018,1990 @@ index 0000000..282aa6b
 +kind: Namespace
 +metadata:
 +  name: traderx
+diff --git a/kubernetes-runtime/manifests/base/nats-broker-deployment.yaml b/kubernetes-runtime/manifests/base/nats-broker-deployment.yaml
+new file mode 100644
+index 0000000..e73ec97
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/nats-broker-deployment.yaml
+@@ -0,0 +1,40 @@
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: nats-broker
++  namespace: traderx
++  labels:
++    app: nats-broker
++spec:
++  replicas: 1
++  selector:
++    matchLabels:
++      app: nats-broker
++  template:
++    metadata:
++      labels:
++        app: nats-broker
++    spec:
++      containers:
++        - name: nats-broker
++          image: nats:2.10-alpine
++          imagePullPolicy: IfNotPresent
++          ports:
++            - name: client
++              containerPort: 4222
++              protocol: TCP
++            - name: monitor
++              containerPort: 8222
++              protocol: TCP
++            - name: ws
++              containerPort: 8081
++              protocol: TCP
++          args: ["-c", "/etc/nats/nats.conf"]
++          volumeMounts:
++            - name: nats-config
++              mountPath: /etc/nats/nats.conf
++              subPath: nats.conf
++      volumes:
++        - name: nats-config
++          configMap:
++            name: nats-config
+diff --git a/kubernetes-runtime/manifests/base/nats-broker-service.yaml b/kubernetes-runtime/manifests/base/nats-broker-service.yaml
+new file mode 100644
+index 0000000..68541c5
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/nats-broker-service.yaml
+@@ -0,0 +1,24 @@
++apiVersion: v1
++kind: Service
++metadata:
++  name: nats-broker
++  namespace: traderx
++  labels:
++    app: nats-broker
++spec:
++  type: ClusterIP
++  selector:
++    app: nats-broker
++  ports:
++    - name: client
++      protocol: TCP
++      port: 4222
++      targetPort: 4222
++    - name: monitor
++      protocol: TCP
++      port: 8222
++      targetPort: 8222
++    - name: ws
++      protocol: TCP
++      port: 8081
++      targetPort: 8081
+diff --git a/kubernetes-runtime/manifests/base/nats-configmap.yaml b/kubernetes-runtime/manifests/base/nats-configmap.yaml
+new file mode 100644
+index 0000000..c1e82c3
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/nats-configmap.yaml
+@@ -0,0 +1,14 @@
++apiVersion: v1
++kind: ConfigMap
++metadata:
++  name: nats-config
++  namespace: traderx
++data:
++  nats.conf: |
++    port: 4222
++    http: 8222
++    
++    websocket {
++      port: 8081
++      no_tls: true
++    }
+diff --git a/kubernetes-runtime/manifests/base/observability-blackbox-configmap.yaml b/kubernetes-runtime/manifests/base/observability-blackbox-configmap.yaml
+new file mode 100644
+index 0000000..9701fd2
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/observability-blackbox-configmap.yaml
+@@ -0,0 +1,13 @@
++apiVersion: v1
++kind: ConfigMap
++metadata:
++  name: observability-blackbox-config
++  namespace: traderx
++data:
++  blackbox.yml: |
++    modules:
++      http_2xx:
++        prober: http
++        timeout: 5s
++        http:
++          preferred_ip_protocol: "ip4"
+diff --git a/kubernetes-runtime/manifests/base/observability-grafana-dashboard-providers-configmap.yaml b/kubernetes-runtime/manifests/base/observability-grafana-dashboard-providers-configmap.yaml
+new file mode 100644
+index 0000000..7637e07
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/observability-grafana-dashboard-providers-configmap.yaml
+@@ -0,0 +1,18 @@
++apiVersion: v1
++kind: ConfigMap
++metadata:
++  name: observability-grafana-dashboard-providers
++  namespace: traderx
++data:
++  dashboards.yaml: |
++    apiVersion: 1
++    
++    providers:
++      - name: TraderX Dashboards
++        orgId: 1
++        folder: TraderX
++        type: file
++        disableDeletion: false
++        updateIntervalSeconds: 30
++        options:
++          path: /var/lib/grafana/dashboards
+diff --git a/kubernetes-runtime/manifests/base/observability-grafana-dashboards-configmap.yaml b/kubernetes-runtime/manifests/base/observability-grafana-dashboards-configmap.yaml
+new file mode 100644
+index 0000000..7b87e12
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/observability-grafana-dashboards-configmap.yaml
+@@ -0,0 +1,1371 @@
++apiVersion: v1
++kind: ConfigMap
++metadata:
++  name: observability-grafana-dashboards
++  namespace: traderx
++data:
++  traderx-logs-errors.json: |
++    {
++      "panels": [
++        {
++          "datasource": {
++            "type": "loki",
++            "uid": "loki"
++          },
++          "fieldConfig": {
++            "defaults": {
++              "unit": "lines/s"
++            }
++          },
++          "gridPos": {
++            "h": 8,
++            "w": 12,
++            "x": 0,
++            "y": 0
++          },
++          "id": 1,
++          "options": {
++            "legend": {
++              "displayMode": "table",
++              "placement": "bottom"
++            }
++          },
++          "targets": [
++            {
++              "expr": "sum by (service) (rate({compose_project=\"traderx-state-009\",service=~\"$service\"}[1m]))",
++              "refId": "A"
++            }
++          ],
++          "title": "Log Throughput by Service",
++          "type": "timeseries"
++        },
++        {
++          "datasource": {
++            "type": "loki",
++            "uid": "loki"
++          },
++          "fieldConfig": {
++            "defaults": {
++              "unit": "lines/s"
++            }
++          },
++          "gridPos": {
++            "h": 8,
++            "w": 12,
++            "x": 12,
++            "y": 0
++          },
++          "id": 2,
++          "options": {
++            "legend": {
++              "displayMode": "table",
++              "placement": "bottom"
++            }
++          },
++          "targets": [
++            {
++              "expr": "sum by (service) (rate({compose_project=\"traderx-state-009\",service=~\"$service\"} |~ \"(?i)(error|warn|exception|fail)\" [1m]))",
++              "refId": "A"
++            }
++          ],
++          "title": "Error/Warn Throughput by Service",
++          "type": "timeseries"
++        },
++        {
++          "datasource": {
++            "type": "loki",
++            "uid": "loki"
++          },
++          "gridPos": {
++            "h": 10,
++            "w": 24,
++            "x": 0,
++            "y": 8
++          },
++          "id": 3,
++          "options": {
++            "enableLogDetails": true,
++            "showLabels": true,
++            "showTime": true,
++            "wrapLogMessage": true
++          },
++          "targets": [
++            {
++              "expr": "{compose_project=\"traderx-state-009\",service=~\"$service\"}",
++              "refId": "A"
++            }
++          ],
++          "title": "Live Logs (Selected Services)",
++          "type": "logs"
++        },
++        {
++          "datasource": {
++            "type": "loki",
++            "uid": "loki"
++          },
++          "gridPos": {
++            "h": 10,
++            "w": 24,
++            "x": 0,
++            "y": 18
++          },
++          "id": 4,
++          "options": {
++            "enableLogDetails": true,
++            "showLabels": true,
++            "showTime": true,
++            "wrapLogMessage": true
++          },
++          "targets": [
++            {
++              "expr": "{compose_project=\"traderx-state-009\",service=~\"$service\"} |~ \"(?i)(error|warn|exception|fail)\"",
++              "refId": "A"
++            }
++          ],
++          "title": "Error Focus",
++          "type": "logs"
++        }
++      ],
++      "refresh": "10s",
++      "schemaVersion": 39,
++      "tags": [
++        "traderx",
++        "logs",
++        "provisioned"
++      ],
++      "templating": {
++        "list": [
++          {
++            "current": {
++              "text": "All",
++              "value": [
++                "$__all"
++              ]
++            },
++            "datasource": {
++              "type": "loki",
++              "uid": "loki"
++            },
++            "includeAll": true,
++            "label": "Service",
++            "multi": true,
++            "name": "service",
++            "query": "label_values({compose_project=\"traderx-state-009\"}, service)",
++            "type": "query"
++          }
++        ]
++      },
++      "time": {
++        "from": "now-30m",
++        "to": "now"
++      },
++      "timezone": "browser",
++      "title": "TraderX Logs & Errors",
++      "uid": "traderx-logs-errors"
++    }
++  traderx-nats-messaging-overview.json: |
++    {
++      "id": null,
++      "uid": "traderx-nats-messaging-overview",
++      "title": "TraderX NATS Messaging Overview",
++      "tags": ["traderx", "state-012", "nats", "messaging", "provisioned"],
++      "timezone": "browser",
++      "schemaVersion": 39,
++      "version": 1,
++      "refresh": "10s",
++      "time": { "from": "now-30m", "to": "now" },
++      "panels": [
++        {"id": 1, "type": "stat", "title": "NATS Monitor Endpoint", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 }, "targets": [{ "refId": "A", "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://nats-broker:8222/varz\"})" }], "fieldConfig": {"defaults": {"min": 0, "max": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}}},
++        {"id": 2, "type": "stat", "title": "Ingress NATS-WS Route", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 }, "targets": [{ "refId": "A", "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://ingress:8080/nats-ws\"})" }], "fieldConfig": {"defaults": {"min": 0, "max": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "orange", "value": null}, {"color": "green", "value": 1}]}}}},
++        {"id": 3, "type": "timeseries", "title": "NATS + Gateway Endpoint Latency", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 }, "targets": [{ "refId": "A", "expr": "probe_duration_seconds{job=\"traderx-http-probe\",instance=~\"http://nats-broker:8222/varz|http://ingress:8080/nats-ws\"}" }], "fieldConfig": {"defaults": {"unit": "s", "decimals": 3}}, "options": {"legend": {"displayMode": "table", "placement": "bottom"}}},
++        {"id": 4, "type": "timeseries", "title": "NATS + Messaging Service Log Throughput", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 }, "targets": [{ "refId": "A", "expr": "sum by (service) (rate({compose_project=\"traderx-state-009\",service=~\"nats-broker|trade-service|trade-processor|web-front-end-angular\"}[1m]))" }], "fieldConfig": {"defaults": {"unit": "lines/s"}}, "options": {"legend": {"displayMode": "table", "placement": "bottom"}}},
++        {"id": 5, "type": "logs", "title": "NATS Broker Logs", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 }, "targets": [{ "refId": "A", "expr": "{compose_project=\"traderx-state-009\",service=\"nats-broker\"}" }], "options": {"showLabels": true, "showTime": true, "wrapLogMessage": true, "enableLogDetails": true}},
++        {"id": 6, "type": "logs", "title": "Messaging Errors (Trade/Processor/Web)", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 }, "targets": [{ "refId": "A", "expr": "{compose_project=\"traderx-state-009\",service=~\"trade-service|trade-processor|web-front-end-angular\"} |~ \"(?i)(error|warn|exception|fail|nats|websocket)\"" }], "options": {"showLabels": true, "showTime": true, "wrapLogMessage": true, "enableLogDetails": true}}
++      ]
++    }
++  traderx-observability-control-plane.json: |
++    {
++      "panels": [
++        {
++          "datasource": {
++            "type": "prometheus",
++            "uid": "prometheus"
++          },
++          "fieldConfig": {
++            "defaults": {
++              "max": 1,
++              "min": 0,
++              "thresholds": {
++                "mode": "absolute",
++                "steps": [
++                  {
++                    "color": "red",
++                    "value": null
++                  },
++                  {
++                    "color": "green",
++                    "value": 1
++                  }
++                ]
++              }
++            }
++          },
++          "gridPos": {
++            "h": 4,
++            "w": 6,
++            "x": 0,
++            "y": 0
++          },
++          "id": 1,
++          "targets": [
++            {
++              "expr": "up{job=\"prometheus\"}",
++              "refId": "A"
++            }
++          ],
++          "title": "Prometheus Up",
++          "type": "stat"
++        },
++        {
++          "datasource": {
++            "type": "prometheus",
++            "uid": "prometheus"
++          },
++          "fieldConfig": {
++            "defaults": {
++              "unit": "none"
++            }
++          },
++          "gridPos": {
++            "h": 4,
++            "w": 6,
++            "x": 6,
++            "y": 0
++          },
++          "id": 2,
++          "targets": [
++            {
++              "expr": "sum(up{job=\"otel-collector\"})",
++              "refId": "A"
++            }
++          ],
++          "title": "OTel Collector Targets Up",
++          "type": "stat"
++        },
++        {
++          "datasource": {
++            "type": "prometheus",
++            "uid": "prometheus"
++          },
++          "fieldConfig": {
++            "defaults": {
++              "max": 1,
++              "min": 0,
++              "thresholds": {
++                "mode": "absolute",
++                "steps": [
++                  {
++                    "color": "red",
++                    "value": null
++                  },
++                  {
++                    "color": "green",
++                    "value": 1
++                  }
++                ]
++              }
++            }
++          },
++          "gridPos": {
++            "h": 4,
++            "w": 6,
++            "x": 12,
++            "y": 0
++          },
++          "id": 3,
++          "targets": [
++            {
++              "expr": "up{job=\"blackbox-exporter\"}",
++              "refId": "A"
++            }
++          ],
++          "title": "Blackbox Exporter Up",
++          "type": "stat"
++        },
++        {
++          "datasource": {
++            "type": "prometheus",
++            "uid": "prometheus"
++          },
++          "fieldConfig": {
++            "defaults": {
++              "unit": "none"
++            }
++          },
++          "gridPos": {
++            "h": 4,
++            "w": 6,
++            "x": 18,
++            "y": 0
++          },
++          "id": 4,
++          "targets": [
++            {
++              "expr": "sum(otelcol_exporter_queue_size)",
++              "refId": "A"
++            }
++          ],
++          "title": "OTel Exporter Queue Size",
++          "type": "stat"
++        },
++        {
++          "datasource": {
++            "type": "prometheus",
++            "uid": "prometheus"
++          },
++          "fieldConfig": {
++            "defaults": {
++              "unit": "bytes"
++            }
++          },
++          "gridPos": {
++            "h": 8,
++            "w": 12,
++            "x": 0,
++            "y": 4
++          },
++          "id": 5,
++          "options": {
++            "legend": {
++              "displayMode": "table",
++              "placement": "bottom"
++            }
++          },
++          "targets": [
++            {
++              "expr": "process_resident_memory_bytes{job=~\"prometheus|blackbox-exporter\"}",
++              "refId": "A"
++            },
++            {
++              "expr": "otelcol_process_memory_rss",
++              "refId": "B"
++            }
++          ],
++          "title": "Observability Process RSS",
++          "type": "timeseries"
++        },
++        {
++          "datasource": {
++            "type": "prometheus",
++            "uid": "prometheus"
++          },
++          "fieldConfig": {
++            "defaults": {
++              "unit": "none"
++            }
++          },
++          "gridPos": {
++            "h": 8,
++            "w": 12,
++            "x": 12,
++            "y": 4
++          },
++          "id": 6,
++          "options": {
++            "legend": {
++              "displayMode": "table",
++              "placement": "bottom"
++            }
++          },
++          "targets": [
++            {
++              "expr": "otelcol_exporter_queue_size",
++              "refId": "A"
++            },
++            {
++              "expr": "otelcol_exporter_queue_capacity",
++              "refId": "B"
++            }
++          ],
++          "title": "OTel Exporter Queue (size/capacity)",
++          "type": "timeseries"
++        },
++        {
++          "datasource": {
++            "type": "loki",
++            "uid": "loki"
++          },
++          "gridPos": {
++            "h": 10,
++            "w": 24,
++            "x": 0,
++            "y": 12
++          },
++          "id": 7,
++          "options": {
++            "enableLogDetails": true,
++            "showLabels": true,
++            "showTime": true,
++            "wrapLogMessage": true
++          },
++          "targets": [
++            {
++              "expr": "{compose_project=\"traderx-state-009\",service=~\"grafana|loki|tempo|otel-collector|prometheus|promtail\"}",
++              "refId": "A"
++            }
++          ],
++          "title": "Control Plane Logs (Grafana/Loki/Tempo/OTel/Prometheus)",
++          "type": "logs"
++        },
++        {
++          "datasource": {
++            "type": "prometheus",
++            "uid": "prometheus"
++          },
++          "gridPos": {
++            "h": 6,
++            "w": 24,
++            "x": 0,
++            "y": 22
++          },
++          "id": 8,
++          "options": {
++            "content": "### Tempo is wired and ready\n- Data source: **Tempo**\n- Open Explore with Tempo selected and run TraceQL search: `{}`\n- In this base state, spans appear once services emit OTLP traces (current stack is ready for that next step).",
++            "mode": "markdown"
++          },
++          "title": "Tempo / Trace Exploration",
++          "type": "text"
++        }
++      ],
++      "refresh": "10s",
++      "schemaVersion": 39,
++      "tags": [
++        "traderx",
++        "observability",
++        "provisioned"
++      ],
++      "time": {
++        "from": "now-30m",
++        "to": "now"
++      },
++      "timezone": "browser",
++      "title": "TraderX Observability Control Plane",
++      "uid": "traderx-obs-control-plane"
++    }
++  traderx-order-management-observability.json: |
++    {
++      "id": null,
++      "uid": "traderx-order-management-observability",
++      "title": "TraderX Order Management Observability",
++      "tags": [
++        "traderx",
++        "state-013",
++        "orders",
++        "provisioned"
++      ],
++      "timezone": "browser",
++      "schemaVersion": 39,
++      "version": 1,
++      "refresh": "10s",
++      "time": {
++        "from": "now-30m",
++        "to": "now"
++      },
++      "panels": [
++        {
++          "id": 1,
++          "type": "stat",
++          "title": "Open Orders",
++          "datasource": {
++            "type": "prometheus",
++            "uid": "prometheus"
++          },
++          "gridPos": {
++            "h": 4,
++            "w": 6,
++            "x": 0,
++            "y": 0
++          },
++          "targets": [
++            {
++              "refId": "A",
++              "expr": "max(traderx_orders_open_total)"
++            }
++          ]
++        },
++        {
++          "id": 2,
++          "type": "stat",
++          "title": "Unfilled Orders",
++          "datasource": {
++            "type": "prometheus",
++            "uid": "prometheus"
++          },
++          "gridPos": {
++            "h": 4,
++            "w": 6,
++            "x": 6,
++            "y": 0
++          },
++          "targets": [
++            {
++              "refId": "A",
++              "expr": "max(traderx_orders_unfilled_total)"
++            }
++          ]
++        },
++        {
++          "id": 3,
++          "type": "timeseries",
++          "title": "Order Events by Type",
++          "datasource": {
++            "type": "prometheus",
++            "uid": "prometheus"
++          },
++          "gridPos": {
++            "h": 8,
++            "w": 12,
++            "x": 0,
++            "y": 4
++          },
++          "targets": [
++            {
++              "refId": "A",
++              "expr": "sum by (event) (rate(traderx_order_events_total[5m]))"
++            }
++          ],
++          "options": {
++            "legend": {
++              "displayMode": "table",
++              "placement": "bottom"
++            }
++          }
++        },
++        {
++          "id": 4,
++          "type": "timeseries",
++          "title": "Matcher p95 Latency (5m)",
++          "datasource": {
++            "type": "prometheus",
++            "uid": "prometheus"
++          },
++          "gridPos": {
++            "h": 8,
++            "w": 12,
++            "x": 12,
++            "y": 4
++          },
++          "targets": [
++            {
++              "refId": "A",
++              "expr": "histogram_quantile(0.95, sum(rate(traderx_order_match_latency_seconds_bucket[5m])) by (le))"
++            }
++          ],
++          "fieldConfig": {
++            "defaults": {
++              "unit": "s",
++              "decimals": 3
++            }
++          }
++        },
++        {
++          "id": 5,
++          "type": "timeseries",
++          "title": "Pending Orders by Side",
++          "datasource": {
++            "type": "prometheus",
++            "uid": "prometheus"
++          },
++          "gridPos": {
++            "h": 8,
++            "w": 12,
++            "x": 0,
++            "y": 12
++          },
++          "targets": [
++            {
++              "refId": "A",
++              "expr": "traderx_orders_pending_by_side"
++            }
++          ],
++          "options": {
++            "legend": {
++              "displayMode": "table",
++              "placement": "bottom"
++            }
++          }
++        },
++        {
++          "id": 6,
++          "type": "logs",
++          "title": "Order Matcher Logs",
++          "datasource": {
++            "type": "loki",
++            "uid": "loki"
++          },
++          "gridPos": {
++            "h": 8,
++            "w": 12,
++            "x": 12,
++            "y": 12
++          },
++          "targets": [
++            {
++              "refId": "A",
++              "expr": "{compose_project=\"traderx-state-009\",service=\"order-matcher\"}"
++            }
++          ],
++          "options": {
++            "showLabels": true,
++            "showTime": true,
++            "wrapLogMessage": true,
++            "enableLogDetails": true
++          }
++        }
++      ]
++    }
++  traderx-order-matcher-sli.json: |
++    {
++      "uid": "traderx-order-matcher-sli",
++      "title": "TraderX Order Matcher SLI",
++      "schemaVersion": 39,
++      "refresh": "10s",
++      "tags": ["traderx", "orders", "matcher", "prometheus", "provisioned"],
++      "time": { "from": "now-30m", "to": "now" },
++      "panels": [
++        {
++          "id": 1,
++          "type": "stat",
++          "title": "Open Orders",
++          "datasource": { "type": "prometheus", "uid": "prometheus" },
++          "gridPos": { "h": 5, "w": 6, "x": 0, "y": 0 },
++          "targets": [{ "refId": "A", "expr": "max(traderx_orders_open_total)" }]
++        },
++        {
++          "id": 2,
++          "type": "stat",
++          "title": "Unfilled Orders",
++          "datasource": { "type": "prometheus", "uid": "prometheus" },
++          "gridPos": { "h": 5, "w": 6, "x": 6, "y": 0 },
++          "targets": [{ "refId": "A", "expr": "max(traderx_orders_unfilled_total)" }]
++        },
++        {
++          "id": 3,
++          "type": "stat",
++          "title": "Order Matcher Actuator Up",
++          "datasource": { "type": "prometheus", "uid": "prometheus" },
++          "gridPos": { "h": 5, "w": 6, "x": 12, "y": 0 },
++          "targets": [{ "refId": "A", "expr": "max(up{job=\"traderx-spring-boot-actuator\",instance=~\".*order-matcher.*\"})" }],
++          "fieldConfig": {
++            "defaults": {
++              "min": 0,
++              "max": 1,
++              "thresholds": {
++                "mode": "absolute",
++                "steps": [
++                  { "color": "red", "value": null },
++                  { "color": "green", "value": 1 }
++                ]
++              }
++            }
++          }
++        },
++        {
++          "id": 4,
++          "type": "stat",
++          "title": "Order Matcher HTTP p95 (s)",
++          "datasource": { "type": "prometheus", "uid": "prometheus" },
++          "gridPos": { "h": 5, "w": 6, "x": 18, "y": 0 },
++          "targets": [
++            {
++              "refId": "A",
++              "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"traderx-spring-boot-actuator\",instance=~\".*order-matcher.*\"}[5m])))"
++            }
++          ],
++          "fieldConfig": { "defaults": { "unit": "s" } }
++        },
++        {
++          "id": 5,
++          "type": "timeseries",
++          "title": "Order Event Rate (5m)",
++          "datasource": { "type": "prometheus", "uid": "prometheus" },
++          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 5 },
++          "targets": [
++            { "refId": "A", "expr": "sum by (event) (rate(traderx_order_events_total[5m]))" }
++          ],
++          "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
++        },
++        {
++          "id": 6,
++          "type": "timeseries",
++          "title": "Matcher Latency p95 (s)",
++          "datasource": { "type": "prometheus", "uid": "prometheus" },
++          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 5 },
++          "targets": [
++            {
++              "refId": "A",
++              "expr": "histogram_quantile(0.95, sum by (le) (rate(traderx_order_match_latency_seconds_bucket[5m])))"
++            }
++          ],
++          "fieldConfig": { "defaults": { "unit": "s" } }
++        }
++      ]
++    }
++  traderx-pricing-observability.json: |
++    {
++      "id": null,
++      "uid": "traderx-obs-012-pricing",
++      "title": "TraderX Pricing + Observability (State 013)",
++      "tags": ["traderx", "state-012", "pricing", "observability"],
++      "timezone": "browser",
++      "schemaVersion": 39,
++      "version": 1,
++      "refresh": "10s",
++      "time": {
++        "from": "now-30m",
++        "to": "now"
++      },
++      "panels": [
++        {
++          "id": 1,
++          "type": "timeseries",
++          "title": "Endpoint Probe Success",
++          "datasource": {
++            "type": "prometheus",
++            "uid": "prometheus"
++          },
++          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
++          "targets": [
++            {
++              "refId": "A",
++              "expr": "probe_success{job=\"traderx-http-probe\"}",
++              "legendFormat": "{{instance}}"
++            }
++          ]
++        },
++        {
++          "id": 2,
++          "type": "timeseries",
++          "title": "Probe P95 Latency (seconds)",
++          "datasource": {
++            "type": "prometheus",
++            "uid": "prometheus"
++          },
++          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
++          "targets": [
++            {
++              "refId": "A",
++              "expr": "histogram_quantile(0.95, sum by (le, instance) (rate(probe_duration_seconds_bucket{job=\"traderx-http-probe\"}[5m])))",
++              "legendFormat": "{{instance}}"
++            }
++          ]
++        },
++        {
++          "id": 3,
++          "type": "stat",
++          "title": "Price Publisher Availability",
++          "datasource": {
++            "type": "prometheus",
++            "uid": "prometheus"
++          },
++          "gridPos": { "h": 6, "w": 8, "x": 0, "y": 8 },
++          "targets": [
++            {
++              "refId": "A",
++              "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://price-publisher:18100/health\"})"
++            }
++          ],
++          "options": {
++            "reduceOptions": {
++              "calcs": ["lastNotNull"],
++              "fields": "",
++              "values": false
++            }
++          }
++        },
++        {
++          "id": 4,
++          "type": "stat",
++          "title": "NATS Monitor Availability",
++          "datasource": {
++            "type": "prometheus",
++            "uid": "prometheus"
++          },
++          "gridPos": { "h": 6, "w": 8, "x": 8, "y": 8 },
++          "targets": [
++            {
++              "refId": "A",
++              "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://nats-broker:8222/varz\"})"
++            }
++          ],
++          "options": {
++            "reduceOptions": {
++              "calcs": ["lastNotNull"],
++              "fields": "",
++              "values": false
++            }
++          }
++        },
++        {
++          "id": 5,
++          "type": "table",
++          "title": "Latest HTTP Status by Endpoint",
++          "datasource": {
++            "type": "prometheus",
++            "uid": "prometheus"
++          },
++          "gridPos": { "h": 6, "w": 8, "x": 16, "y": 8 },
++          "targets": [
++            {
++              "refId": "A",
++              "expr": "max by (instance) (probe_http_status_code{job=\"traderx-http-probe\"})",
++              "format": "table",
++              "instant": true
++            }
++          ]
++        },
++        {
++          "id": 6,
++          "type": "timeseries",
++          "title": "Container Log Throughput (lines / 5m)",
++          "datasource": {
++            "type": "loki",
++            "uid": "loki"
++          },
++          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 14 },
++          "targets": [
++            {
++              "refId": "A",
++              "expr": "sum by (service) (count_over_time({job=\"traderx-docker\", service=~\".+\"}[5m]))"
++            }
++          ]
++        },
++        {
++          "id": 7,
++          "type": "logs",
++          "title": "Price Publisher / Trade Logs",
++          "datasource": {
++            "type": "loki",
++            "uid": "loki"
++          },
++          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 14 },
++          "targets": [
++            {
++              "refId": "A",
++              "expr": "{job=\"traderx-docker\", service=~\"price-publisher|trade-service|trade-processor\"}"
++            }
++          ],
++          "options": {
++            "showLabels": true,
++            "showTime": true,
++            "sortOrder": "Descending"
++          }
++        }
++      ]
++    }
++  traderx-pricing-pipeline-health.json: |
++    {
++      "id": null,
++      "uid": "traderx-pricing-pipeline-health",
++      "title": "TraderX Pricing Pipeline Health",
++      "tags": ["traderx", "state-012", "pricing", "nats", "provisioned"],
++      "timezone": "browser",
++      "schemaVersion": 39,
++      "version": 1,
++      "refresh": "10s",
++      "time": { "from": "now-30m", "to": "now" },
++      "panels": [
++        {"id": 1, "type": "stat", "title": "Price Publisher Health", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 }, "targets": [{ "refId": "A", "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://price-publisher:18100/health\"})" }], "fieldConfig": {"defaults": {"min": 0, "max": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}}},
++        {"id": 2, "type": "stat", "title": "NATS Monitor Health", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 }, "targets": [{ "refId": "A", "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://nats-broker:8222/varz\"})" }], "fieldConfig": {"defaults": {"min": 0, "max": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}}},
++        {"id": 3, "type": "stat", "title": "Pricing Endpoint p95 (5m)", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 }, "targets": [{ "refId": "A", "expr": "quantile_over_time(0.95, probe_duration_seconds{job=\"traderx-http-probe\",instance=\"http://price-publisher:18100/prices/IBM\"}[5m])" }], "fieldConfig": {"defaults": {"unit": "s", "decimals": 3}}},
++        {"id": 4, "type": "stat", "title": "Trade API p95 (5m)", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 }, "targets": [{ "refId": "A", "expr": "quantile_over_time(0.95, probe_duration_seconds{job=\"traderx-http-probe\",instance=\"http://trade-service:18092/swagger-ui.html\"}[5m])" }], "fieldConfig": {"defaults": {"unit": "s", "decimals": 3}}},
++        {"id": 5, "type": "timeseries", "title": "Pricing + Trade Endpoints Success", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 }, "targets": [{ "refId": "A", "expr": "probe_success{job=\"traderx-http-probe\",instance=~\"http://price-publisher:18100/.*|http://trade-service:18092/.*|http://trade-processor:18091/health\"}" }], "fieldConfig": {"defaults": {"min": 0, "max": 1}}, "options": {"legend": {"displayMode": "table", "placement": "bottom"}}},
++        {"id": 6, "type": "timeseries", "title": "Pricing Pipeline Log Throughput", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 }, "targets": [{ "refId": "A", "expr": "sum by (service) (rate({compose_project=\"traderx-state-009\",service=~\"price-publisher|trade-service|trade-processor|position-service\"}[1m]))" }], "fieldConfig": {"defaults": {"unit": "lines/s"}}, "options": {"legend": {"displayMode": "table", "placement": "bottom"}}},
++        {"id": 7, "type": "logs", "title": "Pipeline Logs (Price / Trade / Position)", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 10, "w": 24, "x": 0, "y": 12 }, "targets": [{ "refId": "A", "expr": "{compose_project=\"traderx-state-009\",service=~\"price-publisher|trade-service|trade-processor|position-service\"}" }], "options": {"showLabels": true, "showTime": true, "wrapLogMessage": true, "enableLogDetails": true}}
++      ]
++    }
++  traderx-runtime-health.json: |
++    {
++      "panels": [
++        {
++          "datasource": {
++            "type": "prometheus",
++            "uid": "prometheus"
++          },
++          "fieldConfig": {
++            "defaults": {
++              "decimals": 2,
++              "thresholds": {
++                "mode": "absolute",
++                "steps": [
++                  {
++                    "color": "red",
++                    "value": null
++                  },
++                  {
++                    "color": "orange",
++                    "value": 95
++                  },
++                  {
++                    "color": "green",
++                    "value": 99
++                  }
++                ]
++              },
++              "unit": "percent"
++            }
++          },
++          "gridPos": {
++            "h": 4,
++            "w": 6,
++            "x": 0,
++            "y": 0
++          },
++          "id": 1,
++          "targets": [
++            {
++              "expr": "100 * avg_over_time(probe_success{job=\"traderx-http-probe\"}[5m])",
++              "refId": "A"
++            }
++          ],
++          "title": "Endpoint Availability % (5m)",
++          "type": "stat"
++        },
++        {
++          "datasource": {
++            "type": "prometheus",
++            "uid": "prometheus"
++          },
++          "fieldConfig": {
++            "defaults": {
++              "thresholds": {
++                "mode": "absolute",
++                "steps": [
++                  {
++                    "color": "green",
++                    "value": null
++                  },
++                  {
++                    "color": "red",
++                    "value": 1
++                  }
++                ]
++              },
++              "unit": "none"
++            }
++          },
++          "gridPos": {
++            "h": 4,
++            "w": 6,
++            "x": 6,
++            "y": 0
++          },
++          "id": 2,
++          "targets": [
++            {
++              "expr": "count(probe_success{job=\"traderx-http-probe\"} == 0)",
++              "refId": "A"
++            }
++          ],
++          "title": "Failing Endpoints (now)",
++          "type": "stat"
++        },
++        {
++          "datasource": {
++            "type": "prometheus",
++            "uid": "prometheus"
++          },
++          "fieldConfig": {
++            "defaults": {
++              "unit": "none"
++            }
++          },
++          "gridPos": {
++            "h": 4,
++            "w": 6,
++            "x": 12,
++            "y": 0
++          },
++          "id": 3,
++          "targets": [
++            {
++              "expr": "count(probe_success{job=\"traderx-http-probe\"})",
++              "refId": "A"
++            }
++          ],
++          "title": "Monitored Endpoints",
++          "type": "stat"
++        },
++        {
++          "datasource": {
++            "type": "prometheus",
++            "uid": "prometheus"
++          },
++          "fieldConfig": {
++            "defaults": {
++              "decimals": 3,
++              "thresholds": {
++                "mode": "absolute",
++                "steps": [
++                  {
++                    "color": "green",
++                    "value": null
++                  },
++                  {
++                    "color": "orange",
++                    "value": 0.5
++                  },
++                  {
++                    "color": "red",
++                    "value": 1.5
++                  }
++                ]
++              },
++              "unit": "s"
++            }
++          },
++          "gridPos": {
++            "h": 4,
++            "w": 6,
++            "x": 18,
++            "y": 0
++          },
++          "id": 4,
++          "targets": [
++            {
++              "expr": "quantile_over_time(0.95, probe_duration_seconds{job=\"traderx-http-probe\"}[5m])",
++              "refId": "A"
++            }
++          ],
++          "title": "Probe p95 Latency (5m)",
++          "type": "stat"
++        },
++        {
++          "datasource": {
++            "type": "prometheus",
++            "uid": "prometheus"
++          },
++          "fieldConfig": {
++            "defaults": {
++              "max": 1,
++              "min": 0
++            }
++          },
++          "gridPos": {
++            "h": 8,
++            "w": 12,
++            "x": 0,
++            "y": 4
++          },
++          "id": 5,
++          "options": {
++            "legend": {
++              "displayMode": "table",
++              "placement": "bottom"
++            }
++          },
++          "targets": [
++            {
++              "expr": "probe_success{job=\"traderx-http-probe\"}",
++              "refId": "A"
++            }
++          ],
++          "title": "Endpoint Up/Down by Target",
++          "type": "timeseries"
++        },
++        {
++          "datasource": {
++            "type": "prometheus",
++            "uid": "prometheus"
++          },
++          "fieldConfig": {
++            "defaults": {
++              "decimals": 3,
++              "unit": "s"
++            }
++          },
++          "gridPos": {
++            "h": 8,
++            "w": 12,
++            "x": 12,
++            "y": 4
++          },
++          "id": 6,
++          "options": {
++            "legend": {
++              "displayMode": "table",
++              "placement": "bottom"
++            }
++          },
++          "targets": [
++            {
++              "expr": "probe_duration_seconds{job=\"traderx-http-probe\"}",
++              "refId": "A"
++            }
++          ],
++          "title": "Probe Duration by Target",
++          "type": "timeseries"
++        },
++        {
++          "datasource": {
++            "type": "prometheus",
++            "uid": "prometheus"
++          },
++          "gridPos": {
++            "h": 8,
++            "w": 12,
++            "x": 0,
++            "y": 12
++          },
++          "id": 7,
++          "options": {
++            "showHeader": true
++          },
++          "targets": [
++            {
++              "expr": "probe_success{job=\"traderx-http-probe\"}",
++              "instant": true,
++              "refId": "A"
++            }
++          ],
++          "title": "Current Endpoint Status",
++          "type": "table"
++        },
++        {
++          "datasource": {
++            "type": "prometheus",
++            "uid": "prometheus"
++          },
++          "fieldConfig": {
++            "defaults": {
++              "unit": "none"
++            }
++          },
++          "gridPos": {
++            "h": 8,
++            "w": 12,
++            "x": 12,
++            "y": 12
++          },
++          "id": 8,
++          "options": {
++            "legend": {
++              "displayMode": "table",
++              "placement": "bottom"
++            }
++          },
++          "targets": [
++            {
++              "expr": "otelcol_exporter_queue_size",
++              "refId": "A"
++            },
++            {
++              "expr": "otelcol_exporter_queue_capacity",
++              "refId": "B"
++            }
++          ],
++          "title": "Collector Queue Size",
++          "type": "timeseries"
++        }
++      ],
++      "refresh": "10s",
++      "schemaVersion": 39,
++      "tags": [
++        "traderx",
++        "runtime",
++        "provisioned"
++      ],
++      "time": {
++        "from": "now-30m",
++        "to": "now"
++      },
++      "timezone": "browser",
++      "title": "TraderX Runtime Health",
++      "uid": "traderx-runtime-health"
++    }
++  traderx-spring-actuator-overview.json: |
++    {
++      "uid": "traderx-spring-actuator-overview",
++      "title": "TraderX Spring Actuator Overview",
++      "schemaVersion": 39,
++      "refresh": "10s",
++      "tags": ["traderx", "spring", "prometheus", "provisioned"],
++      "time": { "from": "now-30m", "to": "now" },
++      "templating": {
++        "list": [
++          {
++            "name": "instance",
++            "type": "query",
++            "label": "Instance",
++            "datasource": { "type": "prometheus", "uid": "prometheus" },
++            "query": "label_values(up{job=\"traderx-spring-boot-actuator\"}, instance)",
++            "includeAll": true,
++            "multi": true,
++            "current": { "text": "All", "value": ["$__all"] }
++          }
++        ]
++      },
++      "panels": [
++        {
++          "id": 1,
++          "type": "timeseries",
++          "title": "HTTP Request Rate (req/s)",
++          "datasource": { "type": "prometheus", "uid": "prometheus" },
++          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
++          "targets": [
++            { "refId": "A", "expr": "sum by (instance) (rate(http_server_requests_seconds_count{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}[5m]))" }
++          ]
++        },
++        {
++          "id": 2,
++          "type": "timeseries",
++          "title": "HTTP p95 Latency (s)",
++          "datasource": { "type": "prometheus", "uid": "prometheus" },
++          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
++          "targets": [
++            { "refId": "A", "expr": "histogram_quantile(0.95, sum by (instance, le) (rate(http_server_requests_seconds_bucket{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}[5m])))" }
++          ]
++        },
++        {
++          "id": 3,
++          "type": "timeseries",
++          "title": "JVM Heap Used (bytes)",
++          "datasource": { "type": "prometheus", "uid": "prometheus" },
++          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
++          "targets": [
++            { "refId": "A", "expr": "sum by (instance) (jvm_memory_used_bytes{job=\"traderx-spring-boot-actuator\",area=\"heap\",instance=~\"$instance\"})" }
++          ]
++        },
++        {
++          "id": 4,
++          "type": "stat",
++          "title": "Actuator Targets Up",
++          "datasource": { "type": "prometheus", "uid": "prometheus" },
++          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
++          "targets": [
++            { "refId": "A", "expr": "sum(up{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"})" }
++          ],
++          "fieldConfig": {
++            "defaults": {
++              "min": 0,
++              "thresholds": {
++                "mode": "absolute",
++                "steps": [
++                  { "color": "red", "value": null },
++                  { "color": "green", "value": 1 }
++                ]
++              }
++            }
++          }
++        }
++      ]
++    }
++  traderx-spring-service-sli.json: |
++    {
++      "uid": "traderx-spring-service-sli",
++      "title": "TraderX Spring Service SLI",
++      "schemaVersion": 39,
++      "refresh": "10s",
++      "tags": ["traderx", "spring", "sli", "prometheus", "provisioned"],
++      "time": { "from": "now-30m", "to": "now" },
++      "templating": {
++        "list": [
++          {
++            "name": "instance",
++            "type": "query",
++            "label": "Instance",
++            "datasource": { "type": "prometheus", "uid": "prometheus" },
++            "query": "label_values(up{job=\"traderx-spring-boot-actuator\"}, instance)",
++            "includeAll": true,
++            "multi": true,
++            "current": { "text": "All", "value": ["$__all"] }
++          }
++        ]
++      },
++      "panels": [
++        {
++          "id": 1,
++          "type": "stat",
++          "title": "Scrape Target Availability Ratio",
++          "datasource": { "type": "prometheus", "uid": "prometheus" },
++          "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
++          "targets": [
++            {
++              "refId": "A",
++              "expr": "sum(up{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}) / clamp_min(count(up{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}), 1)"
++            }
++          ],
++          "fieldConfig": {
++            "defaults": {
++              "min": 0,
++              "max": 1,
++              "unit": "percentunit",
++              "thresholds": {
++                "mode": "absolute",
++                "steps": [
++                  { "color": "red", "value": null },
++                  { "color": "yellow", "value": 0.9 },
++                  { "color": "green", "value": 1.0 }
++                ]
++              }
++            }
++          }
++        },
++        {
++          "id": 2,
++          "type": "timeseries",
++          "title": "HTTP 5xx Rate (req/s)",
++          "datasource": { "type": "prometheus", "uid": "prometheus" },
++          "gridPos": { "h": 6, "w": 18, "x": 6, "y": 0 },
++          "targets": [
++            {
++              "refId": "A",
++              "expr": "sum by (instance) (rate(http_server_requests_seconds_count{job=\"traderx-spring-boot-actuator\",status=~\"5..\",instance=~\"$instance\"}[5m]))"
++            }
++          ],
++          "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
++        },
++        {
++          "id": 3,
++          "type": "timeseries",
++          "title": "Process CPU Usage (%)",
++          "datasource": { "type": "prometheus", "uid": "prometheus" },
++          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
++          "targets": [
++            {
++              "refId": "A",
++              "expr": "100 * max by (instance) (process_cpu_usage{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"})"
++            }
++          ],
++          "fieldConfig": { "defaults": { "unit": "percent", "min": 0 } }
++        },
++        {
++          "id": 4,
++          "type": "timeseries",
++          "title": "GC Pause p95 (s)",
++          "datasource": { "type": "prometheus", "uid": "prometheus" },
++          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
++          "targets": [
++            {
++              "refId": "A",
++              "expr": "histogram_quantile(0.95, sum by (instance, le) (rate(jvm_gc_pause_seconds_bucket{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}[5m])))"
++            }
++          ],
++          "fieldConfig": { "defaults": { "unit": "s" } }
++        },
++        {
++          "id": 5,
++          "type": "timeseries",
++          "title": "Live Threads",
++          "datasource": { "type": "prometheus", "uid": "prometheus" },
++          "gridPos": { "h": 8, "w": 24, "x": 0, "y": 14 },
++          "targets": [
++            {
++              "refId": "A",
++              "expr": "max by (instance) (jvm_threads_live_threads{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"})"
++            }
++          ],
++          "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
++        }
++      ]
++    }
+diff --git a/kubernetes-runtime/manifests/base/observability-grafana-datasources-configmap.yaml b/kubernetes-runtime/manifests/base/observability-grafana-datasources-configmap.yaml
+new file mode 100644
+index 0000000..5a53a0e
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/observability-grafana-datasources-configmap.yaml
+@@ -0,0 +1,34 @@
++apiVersion: v1
++kind: ConfigMap
++metadata:
++  name: observability-grafana-datasources
++  namespace: traderx
++data:
++  datasources.yaml: |
++    apiVersion: 1
++    
++    datasources:
++      - name: Prometheus
++        uid: prometheus
++        type: prometheus
++        access: proxy
++        url: http://prometheus:9090/prometheus
++        isDefault: true
++    
++      - name: Loki
++        uid: loki
++        type: loki
++        access: proxy
++        url: http://loki:3100
++    
++      - name: Tempo
++        uid: tempo
++        type: tempo
++        access: proxy
++        url: http://tempo:3200
++        jsonData:
++          httpMethod: GET
++          tracesToLogs:
++            datasourceUid: loki
++          serviceMap:
++            datasourceUid: prometheus
+diff --git a/kubernetes-runtime/manifests/base/observability-loki-configmap.yaml b/kubernetes-runtime/manifests/base/observability-loki-configmap.yaml
+new file mode 100644
+index 0000000..856496a
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/observability-loki-configmap.yaml
+@@ -0,0 +1,38 @@
++apiVersion: v1
++kind: ConfigMap
++metadata:
++  name: observability-loki-config
++  namespace: traderx
++data:
++  config.yaml: |
++    auth_enabled: false
++    
++    server:
++      http_listen_port: 3100
++      grpc_listen_port: 9096
++    
++    common:
++      path_prefix: /tmp/loki
++      storage:
++        filesystem:
++          chunks_directory: /tmp/loki/chunks
++          rules_directory: /tmp/loki/rules
++      replication_factor: 1
++      ring:
++        kvstore:
++          store: inmemory
++    
++    schema_config:
++      configs:
++        - from: "2024-01-01"
++          store: tsdb
++          object_store: filesystem
++          schema: v13
++          index:
++            prefix: index_
++            period: 24h
++    
++    limits_config:
++      allow_structured_metadata: false
++      reject_old_samples: true
++      reject_old_samples_max_age: 168h
+diff --git a/kubernetes-runtime/manifests/base/observability-otel-configmap.yaml b/kubernetes-runtime/manifests/base/observability-otel-configmap.yaml
+new file mode 100644
+index 0000000..e0c76ee
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/observability-otel-configmap.yaml
+@@ -0,0 +1,44 @@
++apiVersion: v1
++kind: ConfigMap
++metadata:
++  name: observability-otel-collector-config
++  namespace: traderx
++data:
++  config.yaml: |
++    extensions:
++      health_check:
++        endpoint: 0.0.0.0:13133
++    
++    receivers:
++      otlp:
++        protocols:
++          grpc:
++            endpoint: 0.0.0.0:4317
++          http:
++            endpoint: 0.0.0.0:4318
++    
++    processors:
++      batch:
++        timeout: 1s
++    
++    exporters:
++      logging:
++        verbosity: normal
++      prometheus:
++        endpoint: 0.0.0.0:8889
++      otlp/tempo:
++        endpoint: tempo:4317
++        tls:
++          insecure: true
++    
++    service:
++      extensions: [health_check]
++      pipelines:
++        traces:
++          receivers: [otlp]
++          processors: [batch]
++          exporters: [otlp/tempo, logging]
++        metrics:
++          receivers: [otlp]
++          processors: [batch]
++          exporters: [prometheus, logging]
+diff --git a/kubernetes-runtime/manifests/base/observability-prometheus-configmap.yaml b/kubernetes-runtime/manifests/base/observability-prometheus-configmap.yaml
+new file mode 100644
+index 0000000..79c96d3
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/observability-prometheus-configmap.yaml
+@@ -0,0 +1,64 @@
++apiVersion: v1
++kind: ConfigMap
++metadata:
++  name: observability-prometheus-config
++  namespace: traderx
++data:
++  prometheus.yml: |
++    global:
++      scrape_interval: 15s
++      evaluation_interval: 15s
++    
++    scrape_configs:
++      - job_name: prometheus
++        metrics_path: /prometheus/metrics
++        static_configs:
++          - targets: ["prometheus:9090"]
++    
++      - job_name: otel-collector
++        static_configs:
++          - targets: ["otel-collector:8888", "otel-collector:8889", "otel-collector:13133"]
++    
++      - job_name: blackbox-exporter
++        static_configs:
++          - targets: ["blackbox-exporter:9115"]
++    
++      - job_name: traderx-spring-boot-actuator
++        metrics_path: /actuator/prometheus
++        static_configs:
++          - targets: ["account-service:18088", "position-service:18090", "trade-processor:18091", "trade-service:18092", "order-matcher:18110"]
++    
++      - job_name: traderx-http-probe
++        metrics_path: /probe
++        params:
++          module: [http_2xx]
++        static_configs:
++          - targets:
++              - http://edge-proxy:8080/health
++              - http://edge-proxy:8080/
++              - http://database:18084/
++              - http://reference-data:18085/stocks
++              - http://price-publisher:18100/health
++              - http://price-publisher:18100/prices/IBM
++              - http://account-service:18088/account/22214
++              - http://people-service:18089/swagger
++              - http://position-service:18090/health/alive
++              - http://trade-processor:18091/health
++              - http://trade-service:18092/swagger-ui.html
++              - http://web-front-end-angular:18093/
++              - http://nats-broker:8222/varz
++              - http://order-matcher:18110/health
++              - http://order-matcher:18110/orders/open-count
++        relabel_configs:
++          - source_labels: [__address__]
++            target_label: __param_target
++          - source_labels: [__param_target]
++            target_label: instance
++          - target_label: __address__
++            replacement: blackbox-exporter:9115
++    
++    
++      - job_name: order-matcher
++        metrics_path: /metrics
++        static_configs:
++          - targets: ["order-matcher:18110"]
+diff --git a/kubernetes-runtime/manifests/base/observability-promtail-configmap.yaml b/kubernetes-runtime/manifests/base/observability-promtail-configmap.yaml
+new file mode 100644
+index 0000000..576da7e
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/observability-promtail-configmap.yaml
+@@ -0,0 +1,34 @@
++apiVersion: v1
++kind: ConfigMap
++metadata:
++  name: observability-promtail-config
++  namespace: traderx
++data:
++  config.yaml: |
++    server:
++      http_listen_port: 3101
++      grpc_listen_port: 0
++
++    positions:
++      filename: /run/promtail/positions.yaml
++
++    clients:
++      - url: http://loki:3100/loki/api/v1/push
++
++    scrape_configs:
++      - job_name: traderx-pod-logs
++        pipeline_stages:
++          - cri: {}
++          - regex:
++              source: filename
++              expression: '/var/log/pods/(?P<namespace>[^_]+)_(?P<pod>[^_]+)_(?P<pod_uid>[^/]+)/(?P<service>[^/]+)/.*'
++          - labels:
++              namespace:
++              pod:
++              service:
++        static_configs:
++          - targets: [localhost]
++            labels:
++              compose_project: traderx-state-009
++              job: traderx-docker
++              __path__: /var/log/pods/traderx_*/*/*.log
+diff --git a/kubernetes-runtime/manifests/base/observability-tempo-configmap.yaml b/kubernetes-runtime/manifests/base/observability-tempo-configmap.yaml
+new file mode 100644
+index 0000000..cfe0108
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/observability-tempo-configmap.yaml
+@@ -0,0 +1,31 @@
++apiVersion: v1
++kind: ConfigMap
++metadata:
++  name: observability-tempo-config
++  namespace: traderx
++data:
++  config.yaml: |
++    server:
++      http_listen_port: 3200
++    
++    distributor:
++      receivers:
++        otlp:
++          protocols:
++            grpc:
++              endpoint: 0.0.0.0:4317
++            http:
++              endpoint: 0.0.0.0:4318
++    
++    ingester:
++      max_block_duration: 5m
++    
++    compactor:
++      compaction:
++        block_retention: 24h
++    
++    storage:
++      trace:
++        backend: local
++        local:
++          path: /tmp/tempo/traces
+diff --git a/kubernetes-runtime/manifests/base/order-matcher-deployment.yaml b/kubernetes-runtime/manifests/base/order-matcher-deployment.yaml
+new file mode 100644
+index 0000000..1418658
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/order-matcher-deployment.yaml
+@@ -0,0 +1,54 @@
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: order-matcher
++  namespace: traderx
++  labels:
++    app: order-matcher
++spec:
++  replicas: 1
++  selector:
++    matchLabels:
++      app: order-matcher
++  template:
++    metadata:
++      labels:
++        app: order-matcher
++    spec:
++      containers:
++        - name: order-matcher
++          image: traderx/order-matcher:state009
++          imagePullPolicy: IfNotPresent
++          ports:
++            - name: http
++              containerPort: 18110
++              protocol: TCP
++          env:
++            - name: ORDER_MATCHER_PORT
++              value: "18110"
++            - name: DATABASE_PG_HOST
++              value: "database"
++            - name: DATABASE_PG_PORT
++              value: "5432"
++            - name: DATABASE_NAME
++              value: "traderx"
++            - name: DATABASE_DBUSER
++              value: "traderx"
++            - name: DATABASE_DBPASS
++              value: "traderx"
++            - name: CORS_ALLOWED_ORIGINS
++              value: "http://localhost:8080"
++            - name: PRICE_SERVICE_URL
++              value: "http://price-publisher:18100"
++            - name: TRADE_SERVICE_URL
++              value: "http://trade-service:18092/trade/"
++            - name: ORDER_MATCHER_TICK_MS
++              value: "1000"
++            - name: ORDER_FILL_FULL_THRESHOLD
++              value: "1000"
++            - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
++              value: "health,prometheus,info"
++            - name: MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED
++              value: "true"
++            - name: MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED
++              value: "true"
+diff --git a/kubernetes-runtime/manifests/base/order-matcher-service.yaml b/kubernetes-runtime/manifests/base/order-matcher-service.yaml
+new file mode 100644
+index 0000000..95f0067
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/order-matcher-service.yaml
+@@ -0,0 +1,16 @@
++apiVersion: v1
++kind: Service
++metadata:
++  name: order-matcher
++  namespace: traderx
++  labels:
++    app: order-matcher
++spec:
++  type: ClusterIP
++  selector:
++    app: order-matcher
++  ports:
++    - name: http
++      protocol: TCP
++      port: 18110
++      targetPort: 18110
+diff --git a/kubernetes-runtime/manifests/base/otel-collector-deployment.yaml b/kubernetes-runtime/manifests/base/otel-collector-deployment.yaml
+new file mode 100644
+index 0000000..db47562
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/otel-collector-deployment.yaml
+@@ -0,0 +1,58 @@
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: otel-collector
++  namespace: traderx
++  labels:
++    app: otel-collector
++spec:
++  replicas: 1
++  selector:
++    matchLabels:
++      app: otel-collector
++  template:
++    metadata:
++      labels:
++        app: otel-collector
++    spec:
++      containers:
++        - name: otel-collector
++          image: otel/opentelemetry-collector-contrib:0.103.1
++          imagePullPolicy: IfNotPresent
++          args: ["--config=/etc/otelcol-contrib/config.yaml"]
++          ports:
++            - name: otlp-grpc
++              containerPort: 4317
++              protocol: TCP
++            - name: otlp-http
++              containerPort: 4318
++              protocol: TCP
++            - name: prometheus
++              containerPort: 8889
++              protocol: TCP
++            - name: metrics
++              containerPort: 8888
++              protocol: TCP
++            - name: health
++              containerPort: 13133
++              protocol: TCP
++          readinessProbe:
++            httpGet:
++              path: /
++              port: 13133
++            initialDelaySeconds: 5
++            periodSeconds: 5
++          livenessProbe:
++            httpGet:
++              path: /
++              port: 13133
++            initialDelaySeconds: 10
++            periodSeconds: 10
++          volumeMounts:
++            - name: otel-config
++              mountPath: /etc/otelcol-contrib/config.yaml
++              subPath: config.yaml
++      volumes:
++        - name: otel-config
++          configMap:
++            name: observability-otel-collector-config
+diff --git a/kubernetes-runtime/manifests/base/otel-collector-service.yaml b/kubernetes-runtime/manifests/base/otel-collector-service.yaml
+new file mode 100644
+index 0000000..c723702
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/otel-collector-service.yaml
+@@ -0,0 +1,32 @@
++apiVersion: v1
++kind: Service
++metadata:
++  name: otel-collector
++  namespace: traderx
++  labels:
++    app: otel-collector
++spec:
++  type: ClusterIP
++  selector:
++    app: otel-collector
++  ports:
++    - name: otlp-grpc
++      protocol: TCP
++      port: 4317
++      targetPort: 4317
++    - name: otlp-http
++      protocol: TCP
++      port: 4318
++      targetPort: 4318
++    - name: metrics
++      protocol: TCP
++      port: 8888
++      targetPort: 8888
++    - name: prometheus
++      protocol: TCP
++      port: 8889
++      targetPort: 8889
++    - name: health
++      protocol: TCP
++      port: 13133
++      targetPort: 13133
 diff --git a/kubernetes-runtime/manifests/base/people-service-deployment.yaml b/kubernetes-runtime/manifests/base/people-service-deployment.yaml
 new file mode 100644
-index 0000000..8f7508c
+index 0000000..bfdbcaf
 --- /dev/null
 +++ b/kubernetes-runtime/manifests/base/people-service-deployment.yaml
 @@ -0,0 +1,30 @@
@@ -478,7 +3024,7 @@ index 0000000..8f7508c
 +    spec:
 +      containers:
 +        - name: people-service
-+          image: traderx/people-service:state004
++          image: traderx/people-service:state009
 +          imagePullPolicy: IfNotPresent
 +          ports:
 +            - name: http
@@ -513,10 +3059,10 @@ index 0000000..73149cb
 +      targetPort: 18089
 diff --git a/kubernetes-runtime/manifests/base/position-service-deployment.yaml b/kubernetes-runtime/manifests/base/position-service-deployment.yaml
 new file mode 100644
-index 0000000..2191425
+index 0000000..60fbc71
 --- /dev/null
 +++ b/kubernetes-runtime/manifests/base/position-service-deployment.yaml
-@@ -0,0 +1,34 @@
+@@ -0,0 +1,46 @@
 +apiVersion: apps/v1
 +kind: Deployment
 +metadata:
@@ -536,7 +3082,7 @@ index 0000000..2191425
 +    spec:
 +      containers:
 +        - name: position-service
-+          image: traderx/position-service:state004
++          image: traderx/position-service:state009
 +          imagePullPolicy: IfNotPresent
 +          ports:
 +            - name: http
@@ -545,12 +3091,24 @@ index 0000000..2191425
 +          env:
 +            - name: POSITION_SERVICE_PORT
 +              value: "18090"
-+            - name: DATABASE_TCP_HOST
++            - name: DATABASE_PG_HOST
 +              value: "database"
-+            - name: DATABASE_TCP_PORT
-+              value: "18082"
++            - name: DATABASE_PG_PORT
++              value: "5432"
++            - name: DATABASE_NAME
++              value: "traderx"
++            - name: DATABASE_DBUSER
++              value: "traderx"
++            - name: DATABASE_DBPASS
++              value: "traderx"
 +            - name: CORS_ALLOWED_ORIGINS
 +              value: "http://localhost:8080"
++            - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
++              value: "health,prometheus,info"
++            - name: MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED
++              value: "true"
++            - name: MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED
++              value: "true"
 diff --git a/kubernetes-runtime/manifests/base/position-service-service.yaml b/kubernetes-runtime/manifests/base/position-service-service.yaml
 new file mode 100644
 index 0000000..3294520
@@ -573,12 +3131,246 @@ index 0000000..3294520
 +      protocol: TCP
 +      port: 18090
 +      targetPort: 18090
+diff --git a/kubernetes-runtime/manifests/base/price-publisher-deployment.yaml b/kubernetes-runtime/manifests/base/price-publisher-deployment.yaml
+new file mode 100644
+index 0000000..06025bd
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/price-publisher-deployment.yaml
+@@ -0,0 +1,34 @@
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: price-publisher
++  namespace: traderx
++  labels:
++    app: price-publisher
++spec:
++  replicas: 1
++  selector:
++    matchLabels:
++      app: price-publisher
++  template:
++    metadata:
++      labels:
++        app: price-publisher
++    spec:
++      containers:
++        - name: price-publisher
++          image: traderx/price-publisher:state009
++          imagePullPolicy: IfNotPresent
++          ports:
++            - name: http
++              containerPort: 18100
++              protocol: TCP
++          env:
++            - name: PRICE_PUBLISHER_PORT
++              value: "18100"
++            - name: NATS_BROKER_HOST
++              value: "nats-broker"
++            - name: PRICE_BOOTSTRAP_MODE
++              value: "snapshot"
++            - name: PRICE_TICKERS
++              value: "AAPL,MSFT,AMZN,GOOGL,META,NVDA,TSLA,IBM,BAC,C,JPM,GS,MS,UBS,DB,COF,DFS,FNMA,FIS,FNF"
+diff --git a/kubernetes-runtime/manifests/base/price-publisher-service.yaml b/kubernetes-runtime/manifests/base/price-publisher-service.yaml
+new file mode 100644
+index 0000000..93ab3be
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/price-publisher-service.yaml
+@@ -0,0 +1,16 @@
++apiVersion: v1
++kind: Service
++metadata:
++  name: price-publisher
++  namespace: traderx
++  labels:
++    app: price-publisher
++spec:
++  type: ClusterIP
++  selector:
++    app: price-publisher
++  ports:
++    - name: http
++      protocol: TCP
++      port: 18100
++      targetPort: 18100
+diff --git a/kubernetes-runtime/manifests/base/prometheus-deployment.yaml b/kubernetes-runtime/manifests/base/prometheus-deployment.yaml
+new file mode 100644
+index 0000000..ee1f3dd
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/prometheus-deployment.yaml
+@@ -0,0 +1,50 @@
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: prometheus
++  namespace: traderx
++  labels:
++    app: prometheus
++spec:
++  replicas: 1
++  selector:
++    matchLabels:
++      app: prometheus
++  template:
++    metadata:
++      labels:
++        app: prometheus
++    spec:
++      containers:
++        - name: prometheus
++          image: prom/prometheus:v2.53.2
++          imagePullPolicy: IfNotPresent
++          args:
++            - --config.file=/etc/prometheus/prometheus.yml
++            - --web.enable-lifecycle
++            - --web.route-prefix=/prometheus
++            - --web.external-url=/prometheus
++          ports:
++            - name: http
++              containerPort: 9090
++              protocol: TCP
++          readinessProbe:
++            httpGet:
++              path: /prometheus/-/ready
++              port: 9090
++            initialDelaySeconds: 5
++            periodSeconds: 5
++          livenessProbe:
++            httpGet:
++              path: /prometheus/-/healthy
++              port: 9090
++            initialDelaySeconds: 10
++            periodSeconds: 10
++          volumeMounts:
++            - name: prometheus-config
++              mountPath: /etc/prometheus/prometheus.yml
++              subPath: prometheus.yml
++      volumes:
++        - name: prometheus-config
++          configMap:
++            name: observability-prometheus-config
+diff --git a/kubernetes-runtime/manifests/base/prometheus-service.yaml b/kubernetes-runtime/manifests/base/prometheus-service.yaml
+new file mode 100644
+index 0000000..327a147
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/prometheus-service.yaml
+@@ -0,0 +1,16 @@
++apiVersion: v1
++kind: Service
++metadata:
++  name: prometheus
++  namespace: traderx
++  labels:
++    app: prometheus
++spec:
++  type: ClusterIP
++  selector:
++    app: prometheus
++  ports:
++    - name: http
++      protocol: TCP
++      port: 9090
++      targetPort: 9090
+diff --git a/kubernetes-runtime/manifests/base/promtail-clusterrole.yaml b/kubernetes-runtime/manifests/base/promtail-clusterrole.yaml
+new file mode 100644
+index 0000000..1cdbbcf
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/promtail-clusterrole.yaml
+@@ -0,0 +1,8 @@
++apiVersion: rbac.authorization.k8s.io/v1
++kind: ClusterRole
++metadata:
++  name: promtail-traderx
++rules:
++  - apiGroups: [""]
++    resources: ["pods", "nodes", "namespaces", "services"]
++    verbs: ["get", "list", "watch"]
+diff --git a/kubernetes-runtime/manifests/base/promtail-clusterrolebinding.yaml b/kubernetes-runtime/manifests/base/promtail-clusterrolebinding.yaml
+new file mode 100644
+index 0000000..0f58c47
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/promtail-clusterrolebinding.yaml
+@@ -0,0 +1,12 @@
++apiVersion: rbac.authorization.k8s.io/v1
++kind: ClusterRoleBinding
++metadata:
++  name: promtail-traderx
++subjects:
++  - kind: ServiceAccount
++    name: promtail
++    namespace: traderx
++roleRef:
++  apiGroup: rbac.authorization.k8s.io
++  kind: ClusterRole
++  name: promtail-traderx
+diff --git a/kubernetes-runtime/manifests/base/promtail-daemonset.yaml b/kubernetes-runtime/manifests/base/promtail-daemonset.yaml
+new file mode 100644
+index 0000000..5bcb004
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/promtail-daemonset.yaml
+@@ -0,0 +1,45 @@
++apiVersion: apps/v1
++kind: DaemonSet
++metadata:
++  name: promtail
++  namespace: traderx
++  labels:
++    app: promtail
++spec:
++  selector:
++    matchLabels:
++      app: promtail
++  template:
++    metadata:
++      labels:
++        app: promtail
++    spec:
++      serviceAccountName: promtail
++      containers:
++        - name: promtail
++          image: grafana/promtail:2.9.8
++          imagePullPolicy: IfNotPresent
++          args: ["-config.file=/etc/promtail/config.yaml"]
++          ports:
++            - name: http
++              containerPort: 3101
++              protocol: TCP
++          volumeMounts:
++            - name: promtail-config
++              mountPath: /etc/promtail/config.yaml
++              subPath: config.yaml
++            - name: varlogpods
++              mountPath: /var/log/pods
++              readOnly: true
++            - name: run
++              mountPath: /run/promtail
++      volumes:
++        - name: promtail-config
++          configMap:
++            name: observability-promtail-config
++        - name: varlogpods
++          hostPath:
++            path: /var/log/pods
++            type: DirectoryOrCreate
++        - name: run
++          emptyDir: {}
+diff --git a/kubernetes-runtime/manifests/base/promtail-serviceaccount.yaml b/kubernetes-runtime/manifests/base/promtail-serviceaccount.yaml
+new file mode 100644
+index 0000000..a2eabcc
+--- /dev/null
++++ b/kubernetes-runtime/manifests/base/promtail-serviceaccount.yaml
+@@ -0,0 +1,5 @@
++apiVersion: v1
++kind: ServiceAccount
++metadata:
++  name: promtail
++  namespace: traderx
 diff --git a/kubernetes-runtime/manifests/base/reference-data-deployment.yaml b/kubernetes-runtime/manifests/base/reference-data-deployment.yaml
 new file mode 100644
-index 0000000..8010ee5
+index 0000000..f065f48
 --- /dev/null
 +++ b/kubernetes-runtime/manifests/base/reference-data-deployment.yaml
-@@ -0,0 +1,30 @@
+@@ -0,0 +1,32 @@
 +apiVersion: apps/v1
 +kind: Deployment
 +metadata:
@@ -598,7 +3390,7 @@ index 0000000..8010ee5
 +    spec:
 +      containers:
 +        - name: reference-data
-+          image: traderx/reference-data:state004
++          image: traderx/reference-data:state009
 +          imagePullPolicy: IfNotPresent
 +          ports:
 +            - name: http
@@ -609,6 +3401,8 @@ index 0000000..8010ee5
 +              value: "18085"
 +            - name: CORS_ALLOWED_ORIGINS
 +              value: "http://localhost:8080"
++            - name: REFERENCE_DATA_SUPPORTED_TICKERS
++              value: "AAPL,MSFT,AMZN,GOOGL,META,NVDA,TSLA,IBM,BAC,C,JPM,GS,MS,UBS,DB,COF,DFS,FNMA,FIS,FNF"
 diff --git a/kubernetes-runtime/manifests/base/reference-data-service.yaml b/kubernetes-runtime/manifests/base/reference-data-service.yaml
 new file mode 100644
 index 0000000..ad7cd44
@@ -631,70 +3425,88 @@ index 0000000..ad7cd44
 +      protocol: TCP
 +      port: 18085
 +      targetPort: 18085
-diff --git a/kubernetes-runtime/manifests/base/trade-feed-deployment.yaml b/kubernetes-runtime/manifests/base/trade-feed-deployment.yaml
+diff --git a/kubernetes-runtime/manifests/base/tempo-deployment.yaml b/kubernetes-runtime/manifests/base/tempo-deployment.yaml
 new file mode 100644
-index 0000000..fdeaa1b
+index 0000000..48e80b3
 --- /dev/null
-+++ b/kubernetes-runtime/manifests/base/trade-feed-deployment.yaml
-@@ -0,0 +1,30 @@
++++ b/kubernetes-runtime/manifests/base/tempo-deployment.yaml
+@@ -0,0 +1,40 @@
 +apiVersion: apps/v1
 +kind: Deployment
 +metadata:
-+  name: trade-feed
++  name: tempo
 +  namespace: traderx
 +  labels:
-+    app: trade-feed
++    app: tempo
 +spec:
 +  replicas: 1
 +  selector:
 +    matchLabels:
-+      app: trade-feed
++      app: tempo
 +  template:
 +    metadata:
 +      labels:
-+        app: trade-feed
++        app: tempo
 +    spec:
 +      containers:
-+        - name: trade-feed
-+          image: traderx/trade-feed:state004
++        - name: tempo
++          image: grafana/tempo:2.5.0
 +          imagePullPolicy: IfNotPresent
++          args: ["-config.file=/etc/tempo/config.yaml"]
 +          ports:
 +            - name: http
-+              containerPort: 18086
++              containerPort: 3200
 +              protocol: TCP
-+          env:
-+            - name: TRADE_FEED_PORT
-+              value: "18086"
-+            - name: CORS_ALLOWED_ORIGINS
-+              value: "http://localhost:8080"
-diff --git a/kubernetes-runtime/manifests/base/trade-feed-service.yaml b/kubernetes-runtime/manifests/base/trade-feed-service.yaml
++            - name: otlp-grpc
++              containerPort: 4317
++              protocol: TCP
++            - name: otlp-http
++              containerPort: 4318
++              protocol: TCP
++          volumeMounts:
++            - name: tempo-config
++              mountPath: /etc/tempo/config.yaml
++              subPath: config.yaml
++      volumes:
++        - name: tempo-config
++          configMap:
++            name: observability-tempo-config
+diff --git a/kubernetes-runtime/manifests/base/tempo-service.yaml b/kubernetes-runtime/manifests/base/tempo-service.yaml
 new file mode 100644
-index 0000000..1ec0a1f
+index 0000000..f5e897d
 --- /dev/null
-+++ b/kubernetes-runtime/manifests/base/trade-feed-service.yaml
-@@ -0,0 +1,16 @@
++++ b/kubernetes-runtime/manifests/base/tempo-service.yaml
+@@ -0,0 +1,24 @@
 +apiVersion: v1
 +kind: Service
 +metadata:
-+  name: trade-feed
++  name: tempo
 +  namespace: traderx
 +  labels:
-+    app: trade-feed
++    app: tempo
 +spec:
 +  type: ClusterIP
 +  selector:
-+    app: trade-feed
++    app: tempo
 +  ports:
 +    - name: http
 +      protocol: TCP
-+      port: 18086
-+      targetPort: 18086
++      port: 3200
++      targetPort: 3200
++    - name: otlp-grpc
++      protocol: TCP
++      port: 4317
++      targetPort: 4317
++    - name: otlp-http
++      protocol: TCP
++      port: 4318
++      targetPort: 4318
 diff --git a/kubernetes-runtime/manifests/base/trade-processor-deployment.yaml b/kubernetes-runtime/manifests/base/trade-processor-deployment.yaml
 new file mode 100644
-index 0000000..e665f76
+index 0000000..5ecfb18
 --- /dev/null
 +++ b/kubernetes-runtime/manifests/base/trade-processor-deployment.yaml
-@@ -0,0 +1,36 @@
+@@ -0,0 +1,48 @@
 +apiVersion: apps/v1
 +kind: Deployment
 +metadata:
@@ -714,7 +3526,7 @@ index 0000000..e665f76
 +    spec:
 +      containers:
 +        - name: trade-processor
-+          image: traderx/trade-processor:state004
++          image: traderx/trade-processor:state009
 +          imagePullPolicy: IfNotPresent
 +          ports:
 +            - name: http
@@ -723,14 +3535,26 @@ index 0000000..e665f76
 +          env:
 +            - name: TRADE_PROCESSOR_SERVICE_PORT
 +              value: "18091"
-+            - name: DATABASE_TCP_HOST
++            - name: DATABASE_PG_HOST
 +              value: "database"
-+            - name: DATABASE_TCP_PORT
-+              value: "18082"
-+            - name: TRADE_FEED_HOST
-+              value: "trade-feed"
++            - name: DATABASE_PG_PORT
++              value: "5432"
++            - name: DATABASE_NAME
++              value: "traderx"
++            - name: DATABASE_DBUSER
++              value: "traderx"
++            - name: DATABASE_DBPASS
++              value: "traderx"
++            - name: NATS_BROKER_HOST
++              value: "nats-broker"
 +            - name: CORS_ALLOWED_ORIGINS
 +              value: "http://localhost:8080"
++            - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
++              value: "health,prometheus,info"
++            - name: MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED
++              value: "true"
++            - name: MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED
++              value: "true"
 diff --git a/kubernetes-runtime/manifests/base/trade-processor-service.yaml b/kubernetes-runtime/manifests/base/trade-processor-service.yaml
 new file mode 100644
 index 0000000..8b6514a
@@ -755,10 +3579,10 @@ index 0000000..8b6514a
 +      targetPort: 18091
 diff --git a/kubernetes-runtime/manifests/base/trade-service-deployment.yaml b/kubernetes-runtime/manifests/base/trade-service-deployment.yaml
 new file mode 100644
-index 0000000..a759dce
+index 0000000..f2e4474
 --- /dev/null
 +++ b/kubernetes-runtime/manifests/base/trade-service-deployment.yaml
-@@ -0,0 +1,38 @@
+@@ -0,0 +1,46 @@
 +apiVersion: apps/v1
 +kind: Deployment
 +metadata:
@@ -778,7 +3602,7 @@ index 0000000..a759dce
 +    spec:
 +      containers:
 +        - name: trade-service
-+          image: traderx/trade-service:state004
++          image: traderx/trade-service:state009
 +          imagePullPolicy: IfNotPresent
 +          ports:
 +            - name: http
@@ -793,10 +3617,18 @@ index 0000000..a759dce
 +              value: "reference-data"
 +            - name: PEOPLE_SERVICE_HOST
 +              value: "people-service"
-+            - name: TRADE_FEED_HOST
-+              value: "trade-feed"
++            - name: NATS_BROKER_HOST
++              value: "nats-broker"
++            - name: PRICE_SERVICE_HOST
++              value: "price-publisher"
 +            - name: CORS_ALLOWED_ORIGINS
 +              value: "http://localhost:8080"
++            - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
++              value: "health,prometheus,info"
++            - name: MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED
++              value: "true"
++            - name: MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED
++              value: "true"
 diff --git a/kubernetes-runtime/manifests/base/trade-service-service.yaml b/kubernetes-runtime/manifests/base/trade-service-service.yaml
 new file mode 100644
 index 0000000..5a8fffd
@@ -821,7 +3653,7 @@ index 0000000..5a8fffd
 +      targetPort: 18092
 diff --git a/kubernetes-runtime/manifests/base/web-front-end-angular-deployment.yaml b/kubernetes-runtime/manifests/base/web-front-end-angular-deployment.yaml
 new file mode 100644
-index 0000000..2ab085b
+index 0000000..1788269
 --- /dev/null
 +++ b/kubernetes-runtime/manifests/base/web-front-end-angular-deployment.yaml
 @@ -0,0 +1,28 @@
@@ -844,7 +3676,7 @@ index 0000000..2ab085b
 +    spec:
 +      containers:
 +        - name: web-front-end-angular
-+          image: traderx/web-front-end-angular:state004
++          image: traderx/web-front-end-angular:state009
 +          imagePullPolicy: IfNotPresent
 +          ports:
 +            - name: http
@@ -877,15 +3709,15 @@ index 0000000..908d33e
 +      targetPort: 18093
 diff --git a/kubernetes-runtime/spec-source/kubernetes-runtime.spec.json b/kubernetes-runtime/spec-source/kubernetes-runtime.spec.json
 new file mode 100644
-index 0000000..fb694f1
+index 0000000..d754fc9
 --- /dev/null
 +++ b/kubernetes-runtime/spec-source/kubernetes-runtime.spec.json
-@@ -0,0 +1,313 @@
+@@ -0,0 +1,432 @@
 +{
 +  "runtime": {
 +    "namespace": "traderx",
 +    "kind": {
-+      "clusterName": "traderx-state-004",
++      "clusterName": "traderx-state-010",
 +      "hostPort": 8080,
 +      "nodePort": 30080
 +    },
@@ -898,51 +3730,56 @@ index 0000000..fb694f1
 +  "components": [
 +    {
 +      "name": "database",
-+      "image": "traderx/database:state004",
++      "image": "postgres:16-alpine",
 +      "replicas": 1,
-+      "build": {
-+        "context": "database",
-+        "dockerfile": "Dockerfile.compose"
-+      },
 +      "ports": [
 +        {
-+          "name": "tcp",
-+          "containerPort": 18082,
-+          "servicePort": 18082
-+        },
-+        {
 +          "name": "pg",
-+          "containerPort": 18083,
-+          "servicePort": 18083
-+        },
-+        {
-+          "name": "web",
-+          "containerPort": 18084,
-+          "servicePort": 18084
++          "containerPort": 5432,
++          "servicePort": 5432
 +        }
 +      ],
 +      "env": [
 +        {
-+          "name": "DATABASE_TCP_PORT",
-+          "value": "18082"
++          "name": "POSTGRES_DB",
++          "value": "traderx"
 +        },
 +        {
-+          "name": "DATABASE_PG_PORT",
-+          "value": "18083"
++          "name": "POSTGRES_USER",
++          "value": "traderx"
 +        },
 +        {
-+          "name": "DATABASE_WEB_PORT",
-+          "value": "18084"
-+        },
-+        {
-+          "name": "DATABASE_WEB_HOSTNAMES",
-+          "value": "localhost,database,edge-proxy"
++          "name": "POSTGRES_PASSWORD",
++          "value": "traderx"
 +        }
 +      ]
 +    },
 +    {
++      "name": "nats-broker",
++      "image": "nats:2.10-alpine",
++      "replicas": 1,
++      "ports": [
++        {
++          "name": "client",
++          "containerPort": 4222,
++          "servicePort": 4222
++        },
++        {
++          "name": "monitor",
++          "containerPort": 8222,
++          "servicePort": 8222
++        },
++        {
++          "name": "ws",
++          "containerPort": 8081,
++          "servicePort": 8081
++        }
++      ],
++      "env": []
++    },
++    {
 +      "name": "reference-data",
-+      "image": "traderx/reference-data:state004",
++      "image": "traderx/reference-data:state009",
 +      "replicas": 1,
 +      "build": {
 +        "context": "reference-data",
@@ -963,38 +3800,16 @@ index 0000000..fb694f1
 +        {
 +          "name": "CORS_ALLOWED_ORIGINS",
 +          "value": "http://localhost:8080"
-+        }
-+      ]
-+    },
-+    {
-+      "name": "trade-feed",
-+      "image": "traderx/trade-feed:state004",
-+      "replicas": 1,
-+      "build": {
-+        "context": "trade-feed",
-+        "dockerfile": "Dockerfile.compose"
-+      },
-+      "ports": [
-+        {
-+          "name": "http",
-+          "containerPort": 18086,
-+          "servicePort": 18086
-+        }
-+      ],
-+      "env": [
-+        {
-+          "name": "TRADE_FEED_PORT",
-+          "value": "18086"
 +        },
 +        {
-+          "name": "CORS_ALLOWED_ORIGINS",
-+          "value": "http://localhost:8080"
++          "name": "REFERENCE_DATA_SUPPORTED_TICKERS",
++          "value": "AAPL,MSFT,AMZN,GOOGL,META,NVDA,TSLA,IBM,BAC,C,JPM,GS,MS,UBS,DB,COF,DFS,FNMA,FIS,FNF"
 +        }
 +      ]
 +    },
 +    {
 +      "name": "people-service",
-+      "image": "traderx/people-service:state004",
++      "image": "traderx/people-service:state009",
 +      "replicas": 1,
 +      "build": {
 +        "context": "people-service",
@@ -1020,7 +3835,7 @@ index 0000000..fb694f1
 +    },
 +    {
 +      "name": "account-service",
-+      "image": "traderx/account-service:state004",
++      "image": "traderx/account-service:state009",
 +      "replicas": 1,
 +      "build": {
 +        "context": "account-service",
@@ -1039,12 +3854,24 @@ index 0000000..fb694f1
 +          "value": "18088"
 +        },
 +        {
-+          "name": "DATABASE_TCP_HOST",
++          "name": "DATABASE_PG_HOST",
 +          "value": "database"
 +        },
 +        {
-+          "name": "DATABASE_TCP_PORT",
-+          "value": "18082"
++          "name": "DATABASE_PG_PORT",
++          "value": "5432"
++        },
++        {
++          "name": "DATABASE_NAME",
++          "value": "traderx"
++        },
++        {
++          "name": "DATABASE_DBUSER",
++          "value": "traderx"
++        },
++        {
++          "name": "DATABASE_DBPASS",
++          "value": "traderx"
 +        },
 +        {
 +          "name": "PEOPLE_SERVICE_HOST",
@@ -1058,7 +3885,7 @@ index 0000000..fb694f1
 +    },
 +    {
 +      "name": "position-service",
-+      "image": "traderx/position-service:state004",
++      "image": "traderx/position-service:state009",
 +      "replicas": 1,
 +      "build": {
 +        "context": "position-service",
@@ -1077,12 +3904,24 @@ index 0000000..fb694f1
 +          "value": "18090"
 +        },
 +        {
-+          "name": "DATABASE_TCP_HOST",
++          "name": "DATABASE_PG_HOST",
 +          "value": "database"
 +        },
 +        {
-+          "name": "DATABASE_TCP_PORT",
-+          "value": "18082"
++          "name": "DATABASE_PG_PORT",
++          "value": "5432"
++        },
++        {
++          "name": "DATABASE_NAME",
++          "value": "traderx"
++        },
++        {
++          "name": "DATABASE_DBUSER",
++          "value": "traderx"
++        },
++        {
++          "name": "DATABASE_DBPASS",
++          "value": "traderx"
 +        },
 +        {
 +          "name": "CORS_ALLOWED_ORIGINS",
@@ -1092,7 +3931,7 @@ index 0000000..fb694f1
 +    },
 +    {
 +      "name": "trade-processor",
-+      "image": "traderx/trade-processor:state004",
++      "image": "traderx/trade-processor:state009",
 +      "replicas": 1,
 +      "build": {
 +        "context": "trade-processor",
@@ -1111,16 +3950,28 @@ index 0000000..fb694f1
 +          "value": "18091"
 +        },
 +        {
-+          "name": "DATABASE_TCP_HOST",
++          "name": "DATABASE_PG_HOST",
 +          "value": "database"
 +        },
 +        {
-+          "name": "DATABASE_TCP_PORT",
-+          "value": "18082"
++          "name": "DATABASE_PG_PORT",
++          "value": "5432"
 +        },
 +        {
-+          "name": "TRADE_FEED_HOST",
-+          "value": "trade-feed"
++          "name": "DATABASE_NAME",
++          "value": "traderx"
++        },
++        {
++          "name": "DATABASE_DBUSER",
++          "value": "traderx"
++        },
++        {
++          "name": "DATABASE_DBPASS",
++          "value": "traderx"
++        },
++        {
++          "name": "NATS_BROKER_HOST",
++          "value": "nats-broker"
 +        },
 +        {
 +          "name": "CORS_ALLOWED_ORIGINS",
@@ -1130,7 +3981,7 @@ index 0000000..fb694f1
 +    },
 +    {
 +      "name": "trade-service",
-+      "image": "traderx/trade-service:state004",
++      "image": "traderx/trade-service:state009",
 +      "replicas": 1,
 +      "build": {
 +        "context": "trade-service",
@@ -1161,8 +4012,12 @@ index 0000000..fb694f1
 +          "value": "people-service"
 +        },
 +        {
-+          "name": "TRADE_FEED_HOST",
-+          "value": "trade-feed"
++          "name": "NATS_BROKER_HOST",
++          "value": "nats-broker"
++        },
++        {
++          "name": "PRICE_SERVICE_HOST",
++          "value": "price-publisher"
 +        },
 +        {
 +          "name": "CORS_ALLOWED_ORIGINS",
@@ -1171,8 +4026,104 @@ index 0000000..fb694f1
 +      ]
 +    },
 +    {
++      "name": "price-publisher",
++      "image": "traderx/price-publisher:state009",
++      "replicas": 1,
++      "build": {
++        "context": "price-publisher",
++        "dockerfile": "Dockerfile.compose"
++      },
++      "ports": [
++        {
++          "name": "http",
++          "containerPort": 18100,
++          "servicePort": 18100
++        }
++      ],
++      "env": [
++        {
++          "name": "PRICE_PUBLISHER_PORT",
++          "value": "18100"
++        },
++        {
++          "name": "NATS_BROKER_HOST",
++          "value": "nats-broker"
++        },
++        {
++          "name": "PRICE_BOOTSTRAP_MODE",
++          "value": "snapshot"
++        },
++        {
++          "name": "PRICE_TICKERS",
++          "value": "AAPL,MSFT,AMZN,GOOGL,META,NVDA,TSLA,IBM,BAC,C,JPM,GS,MS,UBS,DB,COF,DFS,FNMA,FIS,FNF"
++        }
++      ]
++    },
++    {
++      "name": "order-matcher",
++      "image": "traderx/order-matcher:state009",
++      "replicas": 1,
++      "build": {
++        "context": "order-matcher",
++        "dockerfile": "Dockerfile.compose"
++      },
++      "ports": [
++        {
++          "name": "http",
++          "containerPort": 18110,
++          "servicePort": 18110
++        }
++      ],
++      "env": [
++        {
++          "name": "ORDER_MATCHER_PORT",
++          "value": "18110"
++        },
++        {
++          "name": "DATABASE_PG_HOST",
++          "value": "database"
++        },
++        {
++          "name": "DATABASE_PG_PORT",
++          "value": "5432"
++        },
++        {
++          "name": "DATABASE_NAME",
++          "value": "traderx"
++        },
++        {
++          "name": "DATABASE_DBUSER",
++          "value": "traderx"
++        },
++        {
++          "name": "DATABASE_DBPASS",
++          "value": "traderx"
++        },
++        {
++          "name": "CORS_ALLOWED_ORIGINS",
++          "value": "http://localhost:8080"
++        },
++        {
++          "name": "PRICE_SERVICE_URL",
++          "value": "http://price-publisher:18100"
++        },
++        {
++          "name": "TRADE_SERVICE_URL",
++          "value": "http://trade-service:18092/trade/"
++        },
++        {
++          "name": "ORDER_MATCHER_TICK_MS",
++          "value": "1000"
++        },
++        {
++          "name": "ORDER_FILL_FULL_THRESHOLD",
++          "value": "1000"
++        }
++      ]
++    },
++    {
 +      "name": "web-front-end-angular",
-+      "image": "traderx/web-front-end-angular:state004",
++      "image": "traderx/web-front-end-angular:state009",
 +      "replicas": 1,
 +      "build": {
 +        "context": "web-front-end/angular",
@@ -1196,10 +4147,10 @@ index 0000000..fb694f1
 +}
 diff --git a/kubernetes-runtime/spec-source/nginx-edge.conf b/kubernetes-runtime/spec-source/nginx-edge.conf
 new file mode 100644
-index 0000000..2f4123c
+index 0000000..d933122
 --- /dev/null
 +++ b/kubernetes-runtime/spec-source/nginx-edge.conf
-@@ -0,0 +1,66 @@
+@@ -0,0 +1,78 @@
 +server {
 +    listen 8080;
 +    server_name localhost;
@@ -1207,10 +4158,6 @@ index 0000000..2f4123c
 +    location = /health {
 +        add_header Content-Type text/plain;
 +        return 200 "ok\n";
-+    }
-+
-+    location /db-web/ {
-+        proxy_pass http://database:18084/;
 +    }
 +
 +    location /reference-data/ {
@@ -1224,22 +4171,12 @@ index 0000000..2f4123c
 +        proxy_set_header Connection "upgrade";
 +    }
 +
-+    location /trade-feed/ {
-+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-+        proxy_set_header Host $http_host;
-+        proxy_pass http://trade-feed:18086/;
++    location /nats-ws {
++        proxy_pass http://nats-broker:8081;
 +        proxy_http_version 1.1;
 +        proxy_set_header Upgrade $http_upgrade;
 +        proxy_set_header Connection "upgrade";
-+    }
-+
-+    location /socket.io/ {
-+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 +        proxy_set_header Host $http_host;
-+        proxy_pass http://trade-feed:18086/socket.io/;
-+        proxy_http_version 1.1;
-+        proxy_set_header Upgrade $http_upgrade;
-+        proxy_set_header Connection "upgrade";
 +    }
 +
 +    location /people-service/ {
@@ -1262,7 +4199,1216 @@ index 0000000..2f4123c
 +        proxy_pass http://trade-processor:18091/;
 +    }
 +
++    location /price-publisher/ {
++        proxy_pass http://price-publisher:18100/;
++    }
++
++    location /order-matcher/ {
++        proxy_pass http://order-matcher:18110/;
++    }
++
++    location /grafana/ {
++        proxy_pass http://grafana:3000;
++        proxy_http_version 1.1;
++        proxy_set_header Host $http_host;
++        proxy_set_header X-Forwarded-Proto $scheme;
++        proxy_set_header X-Forwarded-Prefix /grafana;
++    }
++
++    location /prometheus/ {
++        proxy_pass http://prometheus:9090;
++        proxy_http_version 1.1;
++        proxy_set_header Host $http_host;
++        proxy_set_header X-Forwarded-Proto $scheme;
++    }
++
 +    location / {
 +        proxy_pass http://web-front-end-angular:18093/;
++        proxy_http_version 1.1;
++        proxy_set_header Upgrade $http_upgrade;
++        proxy_set_header Connection "upgrade";
 +    }
 +}
+diff --git a/runtime/ghcr/009-order-management-matcher/.env.example b/runtime/ghcr/009-order-management-matcher/.env.example
+deleted file mode 100644
+index 91355af..0000000
+--- a/runtime/ghcr/009-order-management-matcher/.env.example
++++ /dev/null
+@@ -1 +0,0 @@
+-TRADERX_IMAGE_TAG=latest
+diff --git a/runtime/ghcr/009-order-management-matcher/README.md b/runtime/ghcr/009-order-management-matcher/README.md
+deleted file mode 100644
+index 070ed22..0000000
+--- a/runtime/ghcr/009-order-management-matcher/README.md
++++ /dev/null
+@@ -1,24 +0,0 @@
+-# GHCR Run Bundle (009-order-management-matcher)
+-
+-Run this state directly from published GHCR images.
+-
+-1. Optionally set a specific tag:
+-
+-```bash
+-export TRADERX_IMAGE_TAG=latest
+-```
+-
+-2. Pull and start:
+-
+-```bash
+-docker compose -f runtime/ghcr/009-order-management-matcher/docker-compose.ghcr.yml pull
+-docker compose -f runtime/ghcr/009-order-management-matcher/docker-compose.ghcr.yml up -d
+-```
+-
+-3. Stop:
+-
+-```bash
+-docker compose -f runtime/ghcr/009-order-management-matcher/docker-compose.ghcr.yml down
+-```
+-
+-This bundle overlays `order-management-matcher/docker-compose.yml` and replaces buildable app services with GHCR images under `ghcr.io/finos/traderx-c2`.
+diff --git a/runtime/ghcr/009-order-management-matcher/docker-compose.ghcr.yml b/runtime/ghcr/009-order-management-matcher/docker-compose.ghcr.yml
+deleted file mode 100644
+index d45fbd4..0000000
+--- a/runtime/ghcr/009-order-management-matcher/docker-compose.ghcr.yml
++++ /dev/null
+@@ -1,102 +0,0 @@
+-name: traderx-009-order-management-matcher-ghcr
+-
+-services:
+-  database:
+-    extends:
+-      file: ../../../order-management-matcher/docker-compose.yml
+-      service: database
+-  reference-data:
+-    extends:
+-      file: ../../../order-management-matcher/docker-compose.yml
+-      service: reference-data
+-    image: ghcr.io/finos/traderx-c2/reference-data:${TRADERX_IMAGE_TAG:-latest}
+-    build: null
+-  nats-broker:
+-    extends:
+-      file: ../../../order-management-matcher/docker-compose.yml
+-      service: nats-broker
+-  price-publisher:
+-    extends:
+-      file: ../../../order-management-matcher/docker-compose.yml
+-      service: price-publisher
+-    image: ghcr.io/finos/traderx-c2/price-publisher:${TRADERX_IMAGE_TAG:-latest}
+-    build: null
+-  people-service:
+-    extends:
+-      file: ../../../order-management-matcher/docker-compose.yml
+-      service: people-service
+-    image: ghcr.io/finos/traderx-c2/people-service:${TRADERX_IMAGE_TAG:-latest}
+-    build: null
+-  account-service:
+-    extends:
+-      file: ../../../order-management-matcher/docker-compose.yml
+-      service: account-service
+-    image: ghcr.io/finos/traderx-c2/account-service:${TRADERX_IMAGE_TAG:-latest}
+-    build: null
+-  position-service:
+-    extends:
+-      file: ../../../order-management-matcher/docker-compose.yml
+-      service: position-service
+-    image: ghcr.io/finos/traderx-c2/position-service:${TRADERX_IMAGE_TAG:-latest}
+-    build: null
+-  trade-processor:
+-    extends:
+-      file: ../../../order-management-matcher/docker-compose.yml
+-      service: trade-processor
+-    image: ghcr.io/finos/traderx-c2/trade-processor:${TRADERX_IMAGE_TAG:-latest}
+-    build: null
+-  trade-service:
+-    extends:
+-      file: ../../../order-management-matcher/docker-compose.yml
+-      service: trade-service
+-    image: ghcr.io/finos/traderx-c2/trade-service:${TRADERX_IMAGE_TAG:-latest}
+-    build: null
+-  web-front-end-angular:
+-    extends:
+-      file: ../../../order-management-matcher/docker-compose.yml
+-      service: web-front-end-angular
+-    image: ghcr.io/finos/traderx-c2/web-front-end-angular:${TRADERX_IMAGE_TAG:-latest}
+-    build: null
+-  order-matcher:
+-    extends:
+-      file: ../../../order-management-matcher/docker-compose.yml
+-      service: order-matcher
+-    image: ghcr.io/finos/traderx-c2/order-matcher:${TRADERX_IMAGE_TAG:-latest}
+-    build: null
+-  ingress:
+-    extends:
+-      file: ../../../order-management-matcher/docker-compose.yml
+-      service: ingress
+-    image: ghcr.io/finos/traderx-c2/ingress:${TRADERX_IMAGE_TAG:-latest}
+-    build: null
+-  otel-collector:
+-    extends:
+-      file: ../../../order-management-matcher/docker-compose.yml
+-      service: otel-collector
+-  blackbox-exporter:
+-    extends:
+-      file: ../../../order-management-matcher/docker-compose.yml
+-      service: blackbox-exporter
+-  prometheus:
+-    extends:
+-      file: ../../../order-management-matcher/docker-compose.yml
+-      service: prometheus
+-  loki:
+-    extends:
+-      file: ../../../order-management-matcher/docker-compose.yml
+-      service: loki
+-  promtail:
+-    extends:
+-      file: ../../../order-management-matcher/docker-compose.yml
+-      service: promtail
+-  tempo:
+-    extends:
+-      file: ../../../order-management-matcher/docker-compose.yml
+-      service: tempo
+-  grafana:
+-    extends:
+-      file: ../../../order-management-matcher/docker-compose.yml
+-      service: grafana
+-
+-volumes:
+-  postgres_state_009_data: {}
+diff --git a/runtime/ghcr/009-order-management-matcher/images.lock b/runtime/ghcr/009-order-management-matcher/images.lock
+deleted file mode 100644
+index 8408758..0000000
+--- a/runtime/ghcr/009-order-management-matcher/images.lock
++++ /dev/null
+@@ -1,12 +0,0 @@
+-# GHCR image map for 009-order-management-matcher
+-account-service=ghcr.io/finos/traderx-c2/account-service:latest
+-database=ghcr.io/finos/traderx-c2/database:latest
+-ingress=ghcr.io/finos/traderx-c2/ingress:latest
+-order-matcher=ghcr.io/finos/traderx-c2/order-matcher:latest
+-people-service=ghcr.io/finos/traderx-c2/people-service:latest
+-position-service=ghcr.io/finos/traderx-c2/position-service:latest
+-price-publisher=ghcr.io/finos/traderx-c2/price-publisher:latest
+-reference-data=ghcr.io/finos/traderx-c2/reference-data:latest
+-trade-processor=ghcr.io/finos/traderx-c2/trade-processor:latest
+-trade-service=ghcr.io/finos/traderx-c2/trade-service:latest
+-web-front-end-angular=ghcr.io/finos/traderx-c2/web-front-end-angular:latest
+diff --git a/scripts/README.runtime-harness.md b/scripts/README.runtime-harness.md
+index 22e0cdb..e6643bc 100644
+--- a/scripts/README.runtime-harness.md
++++ b/scripts/README.runtime-harness.md
+@@ -1,6 +1,6 @@
+ # Generated Runtime Harness
+ 
+-This directory is generated for state: 009-order-management-matcher
++This directory is generated for state: 010-kubernetes-runtime
+ 
+ - Scripts in this folder are local-runtime wrappers for the generated codebase.
+ - They are designed to run without invoking root pipeline generation.
+diff --git a/scripts/start-state-009-order-management-matcher-generated.sh b/scripts/start-state-009-order-management-matcher-generated.sh
+deleted file mode 100755
+index 06c3ff6..0000000
+--- a/scripts/start-state-009-order-management-matcher-generated.sh
++++ /dev/null
+@@ -1,131 +0,0 @@
+-#!/usr/bin/env bash
+-set -euo pipefail
+-
+-export TRADERX_LOCAL_RUNTIME_SCRIPT=1
+-export TRADERX_SKIP_GENERATE=1
+-if [[ -z "${TRADERX_GENERATED_ROOT:-}" ]]; then
+-  TRADERX_GENERATED_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+-  export TRADERX_GENERATED_ROOT
+-fi
+-
+-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+-GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
+-
+-if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
+-  LOCAL_RUNTIME_SCRIPT="${GENERATED_ROOT}/code/target-generated/scripts/$(basename "${BASH_SOURCE[0]}")"
+-  if [[ -x "${LOCAL_RUNTIME_SCRIPT}" ]]; then
+-    exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+-  fi
+-fi
+-STATE_ID="009-order-management-matcher"
+-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-009}"
+-GRAFANA_PORT="${GRAFANA_PORT:-3001}"
+-COMPOSE_DIR="${GENERATED_ROOT}/code/target-generated/order-management-matcher"
+-COMPOSE_FILE="${COMPOSE_DIR}/docker-compose.yml"
+-DRY_RUN=0
+-
+-while (( "$#" )); do
+-  case "$1" in
+-    --dry-run)
+-      DRY_RUN=1
+-      ;;
+-    *)
+-      echo "[error] unknown argument: $1"
+-      echo "[hint] supported: --dry-run"
+-      exit 1
+-      ;;
+-  esac
+-  shift
+-done
+-
+-if ! command -v docker >/dev/null 2>&1; then
+-  echo "[error] docker command not found"
+-  exit 1
+-fi
+-
+-if ! docker compose version >/dev/null 2>&1; then
+-  echo "[error] docker compose plugin is required"
+-  exit 1
+-fi
+-
+-if [[ -z "${DOCKER_BUILDKIT:-}" ]]; then
+-  export DOCKER_BUILDKIT=1
+-  echo "[info] DOCKER_BUILDKIT not set; defaulting to 1 for Docker cache mounts"
+-fi
+-
+-if [[ "${TRADERX_SKIP_GENERATE:-0}" != "1" ]]; then
+-  bash "${REPO_ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+-else
+-  echo "[info] skipping state generation for ${STATE_ID} (TRADERX_SKIP_GENERATE=1)"
+-fi
+-
+-[[ -f "${COMPOSE_FILE}" ]] || {
+-  echo "[error] compose file not found: ${COMPOSE_FILE}"
+-  exit 1
+-}
+-
+-if (( DRY_RUN == 1 )); then
+-  echo "[dry-run] docker compose -f ${COMPOSE_FILE} --project-name ${COMPOSE_PROJECT_NAME} up -d --build"
+-  echo "[done] dry run complete for state 009"
+-  exit 0
+-fi
+-
+-docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" up -d --build
+-
+-# Grafana only provisions file-based dashboards on startup.
+-# Restart once after compose up so updated generated dashboards are always loaded.
+-docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" restart grafana >/dev/null 2>&1 || true
+-
+-wait_for_postgres() {
+-  local attempts=90
+-  local i
+-  for ((i=1; i<=attempts; i++)); do
+-    if docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" exec -T database \
+-      pg_isready -U traderx -d traderx >/dev/null 2>&1; then
+-      echo "[ready] postgres database"
+-      return 0
+-    fi
+-    sleep 2
+-  done
+-  echo "[error] timeout waiting for postgres readiness"
+-  return 1
+-}
+-
+-wait_for_http() {
+-  local name="$1"
+-  local url="$2"
+-  local attempts=90
+-  local i
+-  for ((i=1; i<=attempts; i++)); do
+-    if curl -fsS "${url}" >/dev/null 2>&1; then
+-      echo "[ready] ${name} ${url}"
+-      return 0
+-    fi
+-    sleep 2
+-  done
+-  echo "[error] timeout waiting for ${name} at ${url}"
+-  return 1
+-}
+-
+-wait_for_postgres || exit 1
+-wait_for_http "reference-data" "http://localhost:18085/stocks" || exit 1
+-wait_for_http "nats-monitor" "http://localhost:8222/varz" || exit 1
+-wait_for_http "price-publisher" "http://localhost:18100/health" || exit 1
+-wait_for_http "order-matcher-health" "http://localhost:18110/health" || exit 1
+-wait_for_http "ingress" "http://localhost:8080/health" || exit 1
+-wait_for_http "grafana" "http://localhost:${GRAFANA_PORT}/api/health" || exit 1
+-wait_for_http "prometheus" "http://localhost:9090/-/ready" || exit 1
+-wait_for_http "loki" "http://localhost:3100/ready" || exit 1
+-wait_for_http "tempo" "http://localhost:3200/ready" || exit 1
+-wait_for_http "otel-collector-health" "http://localhost:13133/" || exit 1
+-
+-bash "${REPO_ROOT}/scripts/star-grafana-traderx-dashboards.sh" \
+-  "http://localhost:${GRAFANA_PORT}" \
+-  "admin" \
+-  "admin" \
+-  "TraderX" \
+-  "traderx-obs-008-order-management" || true
+-
+-echo "[done] state 009 order-management runtime started"
+-echo "[ui] http://localhost:8080"
+-echo "[grafana] http://localhost:${GRAFANA_PORT} (local login credentials)"
+diff --git a/scripts/start-state-010-kubernetes-runtime-generated.sh b/scripts/start-state-010-kubernetes-runtime-generated.sh
+new file mode 100755
+index 0000000..0ab1b76
+--- /dev/null
++++ b/scripts/start-state-010-kubernetes-runtime-generated.sh
+@@ -0,0 +1,413 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++export TRADERX_LOCAL_RUNTIME_SCRIPT=1
++export TRADERX_SKIP_GENERATE=1
++if [[ -z "${TRADERX_GENERATED_ROOT:-}" ]]; then
++  TRADERX_GENERATED_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
++  export TRADERX_GENERATED_ROOT
++fi
++
++REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
++GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
++
++if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
++  LOCAL_RUNTIME_SCRIPT="${GENERATED_ROOT}/code/target-generated/scripts/$(basename "${BASH_SOURCE[0]}")"
++  if [[ -x "${LOCAL_RUNTIME_SCRIPT}" ]]; then
++    exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
++  fi
++fi
++STATE_ID="010-kubernetes-runtime"
++STATE_DIR="${GENERATED_ROOT}/code/target-generated/kubernetes-runtime"
++BUILD_PLAN="${STATE_DIR}/build-plan.json"
++KUSTOMIZE_DIR="${STATE_DIR}/manifests/base"
++KIND_CONFIG="${STATE_DIR}/kind/cluster-config.yaml"
++RUN_DIR="${STATE_DIR}/.run/state-010-kubernetes-runtime"
++
++DRY_RUN=0
++SKIP_BUILD=0
++RECREATE_CLUSTER=0
++SKIP_GENERATE=0
++K8S_PROVIDER="${K8S_PROVIDER:-kind}"
++KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-}"
++MINIKUBE_PROFILE=""
++MINIKUBE_DRIVER="${MINIKUBE_DRIVER:-docker}"
++USE_PUBLISHED_IMAGES="${TRADERX_USE_PUBLISHED_IMAGES:-0}"
++PUBLISHED_REGISTRY="${TRADERX_PUBLISHED_REGISTRY:-ghcr.io/finos}"
++PUBLISHED_NAMESPACE="${TRADERX_PUBLISHED_NAMESPACE:-}"
++PUBLISHED_TAG="${TRADERX_PUBLISHED_TAG:-latest}"
++
++while (( "$#" )); do
++  case "$1" in
++    --dry-run)
++      DRY_RUN=1
++      ;;
++    --skip-build)
++      SKIP_BUILD=1
++      ;;
++    --recreate-cluster)
++      RECREATE_CLUSTER=1
++      ;;
++    --skip-generate)
++      SKIP_GENERATE=1
++      ;;
++    --use-published-images)
++      USE_PUBLISHED_IMAGES=1
++      ;;
++    --published-registry)
++      PUBLISHED_REGISTRY="${2:-}"
++      shift
++      ;;
++    --published-namespace)
++      PUBLISHED_NAMESPACE="${2:-}"
++      shift
++      ;;
++    --published-tag)
++      PUBLISHED_TAG="${2:-}"
++      shift
++      ;;
++    --provider)
++      K8S_PROVIDER="${2:-}"
++      shift
++      ;;
++    --cluster-name)
++      KIND_CLUSTER_NAME="${2:-}"
++      shift
++      ;;
++    --minikube-profile)
++      MINIKUBE_PROFILE="${2:-}"
++      shift
++      ;;
++    --minikube-driver)
++      MINIKUBE_DRIVER="${2:-}"
++      shift
++      ;;
++    *)
++      echo "[error] unknown argument: $1"
++      echo "[hint] supported: --dry-run --skip-build --recreate-cluster --skip-generate --use-published-images --published-registry <registry> --published-namespace <namespace> --published-tag <tag> --provider <kind|minikube> --cluster-name <name> --minikube-profile <name> --minikube-driver <name>"
++      exit 1
++      ;;
++  esac
++  shift
++done
++
++if [[ "${TRADERX_SKIP_GENERATE:-0}" == "1" ]]; then
++  SKIP_GENERATE=1
++fi
++
++if (( USE_PUBLISHED_IMAGES == 1 )); then
++  SKIP_BUILD=1
++  if [[ -z "${PUBLISHED_NAMESPACE}" ]]; then
++    echo "[error] published image mode requires namespace"
++    echo "[hint] set --published-namespace <name> or TRADERX_PUBLISHED_NAMESPACE=<name>"
++    exit 1
++  fi
++fi
++
++if ! command -v jq >/dev/null 2>&1; then
++  echo "[error] required command not found: jq"
++  exit 1
++fi
++
++if (( SKIP_GENERATE == 0 )); then
++  bash "${REPO_ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
++else
++  echo "[info] skipping state generation for ${STATE_ID} (--skip-generate)"
++fi
++
++[[ -f "${BUILD_PLAN}" ]] || {
++  echo "[error] missing build plan: ${BUILD_PLAN}"
++  exit 1
++}
++
++[[ -f "${KIND_CONFIG}" ]] || {
++  echo "[error] missing kind config: ${KIND_CONFIG}"
++  exit 1
++}
++
++[[ -d "${KUSTOMIZE_DIR}" ]] || {
++  echo "[error] missing kustomize dir: ${KUSTOMIZE_DIR}"
++  exit 1
++}
++
++cluster_name="$(jq -r '.kindClusterName' "${BUILD_PLAN}")"
++namespace="$(jq -r '.namespace' "${BUILD_PLAN}")"
++host_port="$(jq -r '.hostPort' "${BUILD_PLAN}")"
++edge_service="$(jq -r '.edgeService' "${BUILD_PLAN}")"
++
++if [[ -n "${KIND_CLUSTER_NAME}" ]]; then
++  cluster_name="${KIND_CLUSTER_NAME}"
++fi
++
++if [[ -z "${MINIKUBE_PROFILE}" ]]; then
++  MINIKUBE_PROFILE="${cluster_name}"
++fi
++
++case "${K8S_PROVIDER}" in
++  kind|minikube)
++    ;;
++  *)
++    echo "[error] unsupported provider: ${K8S_PROVIDER}"
++    echo "[hint] supported providers: kind, minikube"
++    exit 1
++    ;;
++esac
++
++mkdir -p "${RUN_DIR}"
++PORT_FORWARD_PID_FILE="${RUN_DIR}/minikube-port-forward.pid"
++PORT_FORWARD_LOG_FILE="${RUN_DIR}/minikube-port-forward.log"
++
++stop_minikube_port_forward() {
++  if [[ -f "${PORT_FORWARD_PID_FILE}" ]]; then
++    pid="$(cat "${PORT_FORWARD_PID_FILE}")"
++    if kill -0 "${pid}" >/dev/null 2>&1; then
++      echo "[stop] minikube edge port-forward (pid ${pid})"
++      kill "${pid}" >/dev/null 2>&1 || true
++    fi
++    rm -f "${PORT_FORWARD_PID_FILE}"
++  fi
++}
++
++if (( DRY_RUN == 1 )); then
++  if [[ "${K8S_PROVIDER}" == "kind" ]]; then
++    echo "[dry-run] kind get clusters | grep -Fx '${cluster_name}' || kind create cluster --name '${cluster_name}' --config '${KIND_CONFIG}'"
++  else
++    echo "[dry-run] minikube status -p '${MINIKUBE_PROFILE}' || minikube start -p '${MINIKUBE_PROFILE}' --driver '${MINIKUBE_DRIVER}'"
++  fi
++  if (( USE_PUBLISHED_IMAGES == 1 )); then
++    while IFS= read -r item; do
++      name="$(jq -r '.name' <<<"${item}")"
++      image="$(jq -r '.image' <<<"${item}")"
++      published_image="${PUBLISHED_REGISTRY}/${PUBLISHED_NAMESPACE}/${name}:${PUBLISHED_TAG}"
++      echo "[dry-run] docker pull ${published_image}  # ${name}"
++      echo "[dry-run] docker tag ${published_image} ${image}"
++      if [[ "${K8S_PROVIDER}" == "kind" ]]; then
++        echo "[dry-run] kind load docker-image ${image} --name ${cluster_name}"
++      else
++        echo "[dry-run] minikube image load ${image} -p ${MINIKUBE_PROFILE}"
++      fi
++    done < <(jq -c '.images[]' "${BUILD_PLAN}")
++  elif (( SKIP_BUILD == 0 )); then
++    while IFS= read -r item; do
++      name="$(jq -r '.name' <<<"${item}")"
++      image="$(jq -r '.image' <<<"${item}")"
++      context_rel="$(jq -r '.context' <<<"${item}")"
++      dockerfile_rel="$(jq -r '.dockerfile' <<<"${item}")"
++      echo "[dry-run] docker build -t ${image} -f ${GENERATED_ROOT}/code/target-generated/${context_rel}/${dockerfile_rel} ${GENERATED_ROOT}/code/target-generated/${context_rel}  # ${name}"
++      if [[ "${K8S_PROVIDER}" == "kind" ]]; then
++        echo "[dry-run] kind load docker-image ${image} --name ${cluster_name}"
++      else
++        echo "[dry-run] minikube image load ${image} -p ${MINIKUBE_PROFILE}"
++      fi
++    done < <(jq -c '.images[]' "${BUILD_PLAN}")
++  else
++    echo "[dry-run] skipping docker build (--skip-build); will load existing local images into cluster"
++    while IFS= read -r item; do
++      image="$(jq -r '.image' <<<"${item}")"
++      if [[ "${K8S_PROVIDER}" == "kind" ]]; then
++        echo "[dry-run] kind load docker-image ${image} --name ${cluster_name}"
++      else
++        echo "[dry-run] minikube image load ${image} -p ${MINIKUBE_PROFILE}"
++      fi
++    done < <(jq -c '.images[]' "${BUILD_PLAN}")
++  fi
++  if [[ "${K8S_PROVIDER}" == "kind" ]]; then
++    echo "[dry-run] kubectl config use-context kind-${cluster_name}"
++  else
++    echo "[dry-run] kubectl config use-context ${MINIKUBE_PROFILE}  # falls back to minikube context if needed"
++    echo "[dry-run] kubectl -n ${namespace} port-forward svc/${edge_service} ${host_port}:8080"
++  fi
++  echo "[dry-run] kubectl apply -k ${KUSTOMIZE_DIR}"
++  while IFS= read -r deployment; do
++    echo "[dry-run] kubectl rollout restart deployment/${deployment} -n ${namespace}"
++  done < <(jq -r '.deployments[]' "${BUILD_PLAN}")
++  echo "[dry-run] kubectl rollout restart daemonset/promtail -n ${namespace}  # if present"
++  echo "[done] dry run complete for state 010"
++  exit 0
++fi
++
++for cmd in docker kubectl; do
++  if ! command -v "${cmd}" >/dev/null 2>&1; then
++    echo "[error] required command not found: ${cmd}"
++    exit 1
++  fi
++done
++
++if [[ -z "${DOCKER_BUILDKIT:-}" ]]; then
++  export DOCKER_BUILDKIT=1
++  echo "[info] DOCKER_BUILDKIT not set; defaulting to 1 for Docker cache mounts"
++fi
++
++if [[ "${K8S_PROVIDER}" == "kind" ]]; then
++  if ! command -v kind >/dev/null 2>&1; then
++    echo "[error] required command not found: kind"
++    exit 1
++  fi
++
++  cluster_exists=0
++  if kind get clusters | grep -Fx "${cluster_name}" >/dev/null 2>&1; then
++    cluster_exists=1
++  fi
++
++  cluster_running=0
++  if (( cluster_exists == 1 )); then
++    if docker ps --format '{{.Names}}' | grep -Fx "${cluster_name}-control-plane" >/dev/null 2>&1; then
++      cluster_running=1
++    fi
++  fi
++
++  if (( cluster_exists == 1 && cluster_running == 0 )); then
++    echo "[info] kind cluster entry exists but control-plane is not running; recreating ${cluster_name}"
++    kind delete cluster --name "${cluster_name}" >/dev/null 2>&1 || true
++    cluster_exists=0
++  fi
++
++  if (( cluster_exists == 1 && RECREATE_CLUSTER == 1 )); then
++    echo "[info] deleting existing cluster ${cluster_name} (--recreate-cluster)"
++    kind delete cluster --name "${cluster_name}"
++    cluster_exists=0
++  fi
++
++  if (( cluster_exists == 0 )); then
++    echo "[start] creating kind cluster ${cluster_name}"
++    kind create cluster --name "${cluster_name}" --config "${KIND_CONFIG}"
++  else
++    echo "[info] using existing kind cluster ${cluster_name}"
++  fi
++
++  kubectl config use-context "kind-${cluster_name}" >/dev/null
++else
++  if ! command -v minikube >/dev/null 2>&1; then
++    echo "[error] required command not found: minikube"
++    exit 1
++  fi
++
++  minikube_running=0
++  if minikube status -p "${MINIKUBE_PROFILE}" >/dev/null 2>&1; then
++    minikube_running=1
++  fi
++
++  if (( minikube_running == 1 && RECREATE_CLUSTER == 1 )); then
++    echo "[info] deleting existing minikube profile ${MINIKUBE_PROFILE} (--recreate-cluster)"
++    minikube delete -p "${MINIKUBE_PROFILE}" >/dev/null
++    minikube_running=0
++  fi
++
++  if (( minikube_running == 0 )); then
++    echo "[start] starting minikube profile ${MINIKUBE_PROFILE}"
++    minikube start -p "${MINIKUBE_PROFILE}" --driver "${MINIKUBE_DRIVER}"
++  else
++    echo "[info] using existing minikube profile ${MINIKUBE_PROFILE}"
++  fi
++
++  if ! kubectl config use-context "${MINIKUBE_PROFILE}" >/dev/null 2>&1; then
++    kubectl config use-context "minikube" >/dev/null
++  fi
++fi
++
++while IFS= read -r item; do
++  name="$(jq -r '.name' <<<"${item}")"
++  image="$(jq -r '.image' <<<"${item}")"
++  if (( USE_PUBLISHED_IMAGES == 1 )); then
++    published_image="${PUBLISHED_REGISTRY}/${PUBLISHED_NAMESPACE}/${name}:${PUBLISHED_TAG}"
++    echo "[pull] ${name} <- ${published_image}"
++    docker pull "${published_image}"
++    docker tag "${published_image}" "${image}"
++  elif (( SKIP_BUILD == 0 )); then
++    context_rel="$(jq -r '.context' <<<"${item}")"
++    dockerfile_rel="$(jq -r '.dockerfile' <<<"${item}")"
++    context_abs="${GENERATED_ROOT}/code/target-generated/${context_rel}"
++    dockerfile_abs="${context_abs}/${dockerfile_rel}"
++
++    [[ -d "${context_abs}" ]] || {
++      echo "[error] build context not found for ${name}: ${context_abs}"
++      exit 1
++    }
++    [[ -f "${dockerfile_abs}" ]] || {
++      echo "[error] dockerfile not found for ${name}: ${dockerfile_abs}"
++      exit 1
++    }
++
++    echo "[build] ${name} -> ${image}"
++    docker build -t "${image}" -f "${dockerfile_abs}" "${context_abs}"
++  else
++    docker image inspect "${image}" >/dev/null 2>&1 || {
++      echo "[error] --skip-build was set, but local image is missing: ${image}"
++      echo "[hint] rerun without --skip-build to build images first."
++      exit 1
++    }
++    echo "[reuse] using local image ${image} (--skip-build)"
++  fi
++
++  if [[ "${K8S_PROVIDER}" == "kind" ]]; then
++    echo "[load] ${image} into kind/${cluster_name}"
++    kind load docker-image "${image}" --name "${cluster_name}"
++  else
++    echo "[load] ${image} into minikube/${MINIKUBE_PROFILE}"
++    minikube image load "${image}" -p "${MINIKUBE_PROFILE}" >/dev/null
++  fi
++done < <(jq -c '.images[]' "${BUILD_PLAN}")
++
++if (( USE_PUBLISHED_IMAGES == 1 )); then
++  echo "[info] pulled and retagged published images from ${PUBLISHED_REGISTRY}/${PUBLISHED_NAMESPACE}:${PUBLISHED_TAG}"
++elif (( SKIP_BUILD == 1 )); then
++  echo "[info] skipped docker build and loaded existing local images (--skip-build)"
++else
++  echo "[info] built and loaded images"
++fi
++
++echo "[apply] kubernetes manifests"
++kubectl apply -k "${KUSTOMIZE_DIR}"
++
++echo "[restart] rolling deployments to pick freshly loaded images"
++while IFS= read -r deployment; do
++  kubectl rollout restart "deployment/${deployment}" -n "${namespace}" >/dev/null
++done < <(jq -r '.deployments[]' "${BUILD_PLAN}")
++
++if kubectl get daemonset/promtail -n "${namespace}" >/dev/null 2>&1; then
++  echo "[restart] rolling daemonset/promtail to refresh mounted config"
++  kubectl rollout restart daemonset/promtail -n "${namespace}" >/dev/null
++fi
++
++echo "[wait] deployments available in namespace ${namespace}"
++kubectl wait --for=condition=Available deployment --all -n "${namespace}" --timeout=600s
++if kubectl get daemonset/promtail -n "${namespace}" >/dev/null 2>&1; then
++  kubectl rollout status daemonset/promtail -n "${namespace}" --timeout=300s >/dev/null
++fi
++
++if [[ "${K8S_PROVIDER}" == "minikube" ]]; then
++  stop_minikube_port_forward
++  echo "[start] edge service port-forward localhost:${host_port} -> ${edge_service}:8080"
++  nohup kubectl -n "${namespace}" port-forward "svc/${edge_service}" "${host_port}:8080" >"${PORT_FORWARD_LOG_FILE}" 2>&1 &
++  echo "$!" > "${PORT_FORWARD_PID_FILE}"
++fi
++
++wait_for_http() {
++  local name="$1"
++  local url="$2"
++  local attempts=90
++  local i
++  for ((i=1; i<=attempts; i++)); do
++    if curl -fsS "${url}" >/dev/null 2>&1; then
++      echo "[ready] ${name} ${url}"
++      return 0
++    fi
++    sleep 2
++  done
++  echo "[error] timeout waiting for ${name} at ${url}"
++  return 1
++}
++
++wait_for_http "edge-health" "http://localhost:${host_port}/health"
++wait_for_http "edge-ui" "http://localhost:${host_port}/"
++wait_for_http "grafana-health" "http://localhost:${host_port}/grafana/api/health"
++wait_for_http "prometheus-ready" "http://localhost:${host_port}/prometheus/-/ready"
++
++echo "[done] state 010 kubernetes runtime started"
++echo "[provider] ${K8S_PROVIDER}"
++if (( USE_PUBLISHED_IMAGES == 1 )); then
++  echo "[images] published namespace=${PUBLISHED_NAMESPACE} tag=${PUBLISHED_TAG}"
++fi
++echo "[ui] http://localhost:${host_port}"
++echo "[grafana] http://localhost:${host_port}/grafana (local login credentials)"
++echo "[prometheus] http://localhost:${host_port}/prometheus"
+diff --git a/scripts/status-state-009-order-management-matcher-generated.sh b/scripts/status-state-009-order-management-matcher-generated.sh
+deleted file mode 100755
+index db391bb..0000000
+--- a/scripts/status-state-009-order-management-matcher-generated.sh
++++ /dev/null
+@@ -1,64 +0,0 @@
+-#!/usr/bin/env bash
+-set -euo pipefail
+-
+-export TRADERX_LOCAL_RUNTIME_SCRIPT=1
+-export TRADERX_SKIP_GENERATE=1
+-if [[ -z "${TRADERX_GENERATED_ROOT:-}" ]]; then
+-  TRADERX_GENERATED_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+-  export TRADERX_GENERATED_ROOT
+-fi
+-
+-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+-GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
+-
+-if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
+-  LOCAL_RUNTIME_SCRIPT="${GENERATED_ROOT}/code/target-generated/scripts/$(basename "${BASH_SOURCE[0]}")"
+-  if [[ -x "${LOCAL_RUNTIME_SCRIPT}" ]]; then
+-    exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+-  fi
+-fi
+-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-009}"
+-GRAFANA_PORT="${GRAFANA_PORT:-3001}"
+-COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/order-management-matcher/docker-compose.yml"
+-
+-if ! command -v docker >/dev/null 2>&1; then
+-  echo "[error] docker command not found"
+-  exit 1
+-fi
+-
+-if [[ ! -f "${COMPOSE_FILE}" ]]; then
+-  echo "[info] compose file not found: ${COMPOSE_FILE}"
+-  echo "[hint] run: bash pipeline/generate-state.sh 009-order-management-matcher"
+-  exit 0
+-fi
+-
+-echo "[info] compose project: ${COMPOSE_PROJECT_NAME}"
+-docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" ps
+-
+-http_code_for() {
+-  local url="$1"
+-  curl -sS -o /dev/null -w "%{http_code}" "${url}" 2>/dev/null || true
+-}
+-
+-printf "\n%-30s %-8s %s\n" "endpoint" "http" "url"
+-printf "%-30s %-8s %s\n" "------------------------------" "--------" "---"
+-
+-for target in \
+-  "ingress-health|http://localhost:8080/health" \
+-  "ingress-ui|http://localhost:8080/" \
+-  "order-matcher-health|http://localhost:18110/health" \
+-  "order-matcher-metrics|http://localhost:18110/metrics" \
+-  "price-publisher|http://localhost:18100/health" \
+-  "nats-monitor|http://localhost:8222/varz" \
+-  "grafana|http://localhost:${GRAFANA_PORT}/api/health" \
+-  "prometheus|http://localhost:9090/-/ready" \
+-  "loki|http://localhost:3100/ready" \
+-  "tempo|http://localhost:3200/ready" \
+-  "otel-collector|http://localhost:13133/" \
+-  "trade-service|http://localhost:18092/swagger-ui.html" \
+-  "position-service|http://localhost:18090/health/alive"; do
+-  name="${target%%|*}"
+-  url="${target#*|}"
+-  code="$(http_code_for "${url}")"
+-  printf "%-30s %-8s %s\n" "${name}" "${code:-000}" "${url}"
+-done
+diff --git a/scripts/status-state-010-kubernetes-runtime-generated.sh b/scripts/status-state-010-kubernetes-runtime-generated.sh
+new file mode 100755
+index 0000000..46fac98
+--- /dev/null
++++ b/scripts/status-state-010-kubernetes-runtime-generated.sh
+@@ -0,0 +1,156 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++export TRADERX_LOCAL_RUNTIME_SCRIPT=1
++export TRADERX_SKIP_GENERATE=1
++if [[ -z "${TRADERX_GENERATED_ROOT:-}" ]]; then
++  TRADERX_GENERATED_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
++  export TRADERX_GENERATED_ROOT
++fi
++
++REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
++GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
++
++if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
++  LOCAL_RUNTIME_SCRIPT="${GENERATED_ROOT}/code/target-generated/scripts/$(basename "${BASH_SOURCE[0]}")"
++  if [[ -x "${LOCAL_RUNTIME_SCRIPT}" ]]; then
++    exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
++  fi
++fi
++BUILD_PLAN="${GENERATED_ROOT}/code/target-generated/kubernetes-runtime/build-plan.json"
++SPEC_FILE="${REPO_ROOT}/specs/010-kubernetes-runtime/system/kubernetes-runtime.spec.json"
++RUN_DIR="${GENERATED_ROOT}/code/target-generated/kubernetes-runtime/.run/state-010-kubernetes-runtime"
++K8S_PROVIDER="${K8S_PROVIDER:-kind}"
++KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-}"
++MINIKUBE_PROFILE=""
++
++while (( "$#" )); do
++  case "$1" in
++    --provider)
++      K8S_PROVIDER="${2:-}"
++      shift
++      ;;
++    --cluster-name)
++      KIND_CLUSTER_NAME="${2:-}"
++      shift
++      ;;
++    --minikube-profile)
++      MINIKUBE_PROFILE="${2:-}"
++      shift
++      ;;
++    *)
++      echo "[error] unknown argument: $1"
++      echo "[hint] supported: --provider <kind|minikube> --cluster-name <name> --minikube-profile <name>"
++      exit 1
++      ;;
++  esac
++  shift
++done
++
++if ! command -v kubectl >/dev/null 2>&1; then
++  echo "[error] kubectl command not found"
++  exit 1
++fi
++
++if [[ -f "${BUILD_PLAN}" ]]; then
++  cluster_name="$(jq -r '.kindClusterName' "${BUILD_PLAN}")"
++  namespace="$(jq -r '.namespace' "${BUILD_PLAN}")"
++  host_port="$(jq -r '.hostPort' "${BUILD_PLAN}")"
++else
++  cluster_name="$(jq -r '.runtime.kind.clusterName' "${SPEC_FILE}")"
++  namespace="$(jq -r '.runtime.namespace' "${SPEC_FILE}")"
++  host_port="$(jq -r '.runtime.kind.hostPort' "${SPEC_FILE}")"
++fi
++
++if [[ -n "${KIND_CLUSTER_NAME}" ]]; then
++  cluster_name="${KIND_CLUSTER_NAME}"
++fi
++
++if [[ -z "${MINIKUBE_PROFILE}" ]]; then
++  MINIKUBE_PROFILE="${cluster_name}"
++fi
++
++case "${K8S_PROVIDER}" in
++  kind)
++    if ! command -v kind >/dev/null 2>&1; then
++      echo "[error] kind command not found"
++      exit 1
++    fi
++    if ! kind get clusters | grep -Fx "${cluster_name}" >/dev/null 2>&1; then
++      echo "[info] kind cluster not found: ${cluster_name}"
++      exit 0
++    fi
++    kubectl config use-context "kind-${cluster_name}" >/dev/null
++    echo "[info] provider: kind"
++    echo "[info] cluster: ${cluster_name}"
++    ;;
++  minikube)
++    if ! command -v minikube >/dev/null 2>&1; then
++      echo "[error] minikube command not found"
++      exit 1
++    fi
++    if ! minikube status -p "${MINIKUBE_PROFILE}" >/dev/null 2>&1; then
++      echo "[info] minikube profile not running: ${MINIKUBE_PROFILE}"
++      exit 0
++    fi
++    if ! kubectl config use-context "${MINIKUBE_PROFILE}" >/dev/null 2>&1; then
++      kubectl config use-context "minikube" >/dev/null
++    fi
++    echo "[info] provider: minikube"
++    echo "[info] profile: ${MINIKUBE_PROFILE}"
++    ;;
++  *)
++    echo "[error] unsupported provider: ${K8S_PROVIDER}"
++    echo "[hint] supported providers: kind, minikube"
++    exit 1
++    ;;
++esac
++
++echo "[info] namespace: ${namespace}"
++
++echo
++echo "[status] deployments"
++kubectl get deployments -n "${namespace}" || true
++
++echo
++echo "[status] pods"
++kubectl get pods -n "${namespace}" || true
++
++echo
++echo "[status] services"
++kubectl get services -n "${namespace}" || true
++
++http_code_for() {
++  local url="$1"
++  curl -sS -o /dev/null -w "%{http_code}" "${url}" 2>/dev/null || true
++}
++
++echo
++printf "%-20s %-8s %s\n" "endpoint" "http" "url"
++printf "%-20s %-8s %s\n" "--------------------" "--------" "---"
++for target in \
++  "edge-health|http://localhost:${host_port}/health" \
++  "edge-ui|http://localhost:${host_port}/" \
++  "grafana|http://localhost:${host_port}/grafana/api/health" \
++  "prometheus|http://localhost:${host_port}/prometheus/-/ready" \
++  "account|http://localhost:${host_port}/account-service/account/22214" \
++  "reference-data|http://localhost:${host_port}/reference-data/stocks"; do
++  name="${target%%|*}"
++  url="${target#*|}"
++  code="$(http_code_for "${url}")"
++  printf "%-20s %-8s %s\n" "${name}" "${code:-000}" "${url}"
++done
++
++if [[ "${K8S_PROVIDER}" == "minikube" ]]; then
++  pid="-"
++  running="no"
++  pid_file="${RUN_DIR}/minikube-port-forward.pid"
++  if [[ -f "${pid_file}" ]]; then
++    pid="$(cat "${pid_file}")"
++    if kill -0 "${pid}" >/dev/null 2>&1; then
++      running="yes"
++    fi
++  fi
++  echo
++  printf "%-20s %-10s %-8s\n" "minikube-port-forward" "${pid}" "${running}"
++fi
+diff --git a/scripts/stop-state-009-order-management-matcher-generated.sh b/scripts/stop-state-009-order-management-matcher-generated.sh
+deleted file mode 100755
+index 10c4ff3..0000000
+--- a/scripts/stop-state-009-order-management-matcher-generated.sh
++++ /dev/null
+@@ -1,34 +0,0 @@
+-#!/usr/bin/env bash
+-set -euo pipefail
+-
+-export TRADERX_LOCAL_RUNTIME_SCRIPT=1
+-export TRADERX_SKIP_GENERATE=1
+-if [[ -z "${TRADERX_GENERATED_ROOT:-}" ]]; then
+-  TRADERX_GENERATED_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+-  export TRADERX_GENERATED_ROOT
+-fi
+-
+-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+-GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
+-
+-if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
+-  LOCAL_RUNTIME_SCRIPT="${GENERATED_ROOT}/code/target-generated/scripts/$(basename "${BASH_SOURCE[0]}")"
+-  if [[ -x "${LOCAL_RUNTIME_SCRIPT}" ]]; then
+-    exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+-  fi
+-fi
+-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-009}"
+-COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/order-management-matcher/docker-compose.yml"
+-
+-if ! command -v docker >/dev/null 2>&1; then
+-  echo "[error] docker command not found"
+-  exit 1
+-fi
+-
+-if [[ ! -f "${COMPOSE_FILE}" ]]; then
+-  echo "[info] compose file not found; nothing to stop: ${COMPOSE_FILE}"
+-  exit 0
+-fi
+-
+-docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" down --remove-orphans
+-echo "[done] state 009 order-management runtime stopped"
+diff --git a/scripts/stop-state-010-kubernetes-runtime-generated.sh b/scripts/stop-state-010-kubernetes-runtime-generated.sh
+new file mode 100755
+index 0000000..065809b
+--- /dev/null
++++ b/scripts/stop-state-010-kubernetes-runtime-generated.sh
+@@ -0,0 +1,132 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++export TRADERX_LOCAL_RUNTIME_SCRIPT=1
++export TRADERX_SKIP_GENERATE=1
++if [[ -z "${TRADERX_GENERATED_ROOT:-}" ]]; then
++  TRADERX_GENERATED_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
++  export TRADERX_GENERATED_ROOT
++fi
++
++REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
++GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
++
++if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
++  LOCAL_RUNTIME_SCRIPT="${GENERATED_ROOT}/code/target-generated/scripts/$(basename "${BASH_SOURCE[0]}")"
++  if [[ -x "${LOCAL_RUNTIME_SCRIPT}" ]]; then
++    exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
++  fi
++fi
++BUILD_PLAN="${GENERATED_ROOT}/code/target-generated/kubernetes-runtime/build-plan.json"
++SPEC_FILE="${REPO_ROOT}/specs/010-kubernetes-runtime/system/kubernetes-runtime.spec.json"
++RUN_DIR="${GENERATED_ROOT}/code/target-generated/kubernetes-runtime/.run/state-010-kubernetes-runtime"
++
++DELETE_CLUSTER=0
++K8S_PROVIDER="${K8S_PROVIDER:-kind}"
++KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-}"
++MINIKUBE_PROFILE=""
++
++while (( "$#" )); do
++  case "$1" in
++    --delete-cluster)
++      DELETE_CLUSTER=1
++      ;;
++    --provider)
++      K8S_PROVIDER="${2:-}"
++      shift
++      ;;
++    --cluster-name)
++      KIND_CLUSTER_NAME="${2:-}"
++      shift
++      ;;
++    --minikube-profile)
++      MINIKUBE_PROFILE="${2:-}"
++      shift
++      ;;
++    *)
++      echo "[error] unknown argument: $1"
++      echo "[hint] supported: --delete-cluster --provider <kind|minikube> --cluster-name <name> --minikube-profile <name>"
++      exit 1
++      ;;
++  esac
++  shift
++done
++
++if ! command -v kubectl >/dev/null 2>&1; then
++  echo "[error] kubectl command not found"
++  exit 1
++fi
++
++if [[ -f "${BUILD_PLAN}" ]]; then
++  cluster_name="$(jq -r '.kindClusterName' "${BUILD_PLAN}")"
++  namespace="$(jq -r '.namespace' "${BUILD_PLAN}")"
++else
++  cluster_name="$(jq -r '.runtime.kind.clusterName' "${SPEC_FILE}")"
++  namespace="$(jq -r '.runtime.namespace' "${SPEC_FILE}")"
++fi
++
++if [[ -n "${KIND_CLUSTER_NAME}" ]]; then
++  cluster_name="${KIND_CLUSTER_NAME}"
++fi
++
++if [[ -z "${MINIKUBE_PROFILE}" ]]; then
++  MINIKUBE_PROFILE="${cluster_name}"
++fi
++
++PORT_FORWARD_PID_FILE="${RUN_DIR}/minikube-port-forward.pid"
++if [[ -f "${PORT_FORWARD_PID_FILE}" ]]; then
++  pid="$(cat "${PORT_FORWARD_PID_FILE}")"
++  if kill -0 "${pid}" >/dev/null 2>&1; then
++    echo "[stop] minikube edge port-forward (pid ${pid})"
++    kill "${pid}" >/dev/null 2>&1 || true
++  fi
++  rm -f "${PORT_FORWARD_PID_FILE}"
++fi
++
++case "${K8S_PROVIDER}" in
++  kind)
++    if ! command -v kind >/dev/null 2>&1; then
++      echo "[error] kind command not found"
++      exit 1
++    fi
++    if kind get clusters | grep -Fx "${cluster_name}" >/dev/null 2>&1; then
++      kubectl config use-context "kind-${cluster_name}" >/dev/null 2>&1 || true
++      echo "[stop] deleting namespace ${namespace}"
++      kubectl delete namespace "${namespace}" --ignore-not-found=true >/dev/null 2>&1 || true
++    else
++      echo "[info] kind cluster not present: ${cluster_name}"
++    fi
++
++    if (( DELETE_CLUSTER == 1 )); then
++      echo "[stop] deleting kind cluster ${cluster_name}"
++      kind delete cluster --name "${cluster_name}"
++    fi
++    ;;
++  minikube)
++    if ! command -v minikube >/dev/null 2>&1; then
++      echo "[error] minikube command not found"
++      exit 1
++    fi
++    if minikube status -p "${MINIKUBE_PROFILE}" >/dev/null 2>&1; then
++      if ! kubectl config use-context "${MINIKUBE_PROFILE}" >/dev/null 2>&1; then
++        kubectl config use-context "minikube" >/dev/null 2>&1 || true
++      fi
++      echo "[stop] deleting namespace ${namespace}"
++      kubectl delete namespace "${namespace}" --ignore-not-found=true >/dev/null 2>&1 || true
++    else
++      echo "[info] minikube profile not running: ${MINIKUBE_PROFILE}"
++    fi
++
++    if (( DELETE_CLUSTER == 1 )); then
++      echo "[stop] deleting minikube profile ${MINIKUBE_PROFILE}"
++      minikube delete -p "${MINIKUBE_PROFILE}" >/dev/null || true
++    fi
++    ;;
++  *)
++    echo "[error] unsupported provider: ${K8S_PROVIDER}"
++    echo "[hint] supported providers: kind, minikube"
++    exit 1
++    ;;
++esac
++
++echo "[done] state 010 stop sequence complete"
+diff --git a/web-front-end/angular/main/environments/environment.prod.ts b/web-front-end/angular/main/environments/environment.prod.ts
+index e462b21..e0a8e63 100644
+--- a/web-front-end/angular/main/environments/environment.prod.ts
++++ b/web-front-end/angular/main/environments/environment.prod.ts
+@@ -1,10 +1,10 @@
+ export const environment = {
+     production:         true,
+-    accountUrl:         `//${window.location.host}/account-service`,
+-    refrenceDataUrl:    `//${window.location.host}/reference-data`,
+-    tradesUrl:          `//${window.location.host}/trade-service/trade/`,
+-    positionsUrl:       `//${window.location.host}/position-service`,
+-    peopleUrl:          `//${window.location.host}/people-service`,
+-    orderMatcherUrl:    `//${window.location.host}/order-matcher`,
++    accountUrl:         `/account-service`,
++    refrenceDataUrl:    `/reference-data`,
++    tradesUrl:          `/trade-service/trade/`,
++    positionsUrl:       `/position-service`,
++    peopleUrl:          `/people-service`,
++    orderMatcherUrl:    `/order-matcher`,
+     tradeFeedUrl:       `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/nats-ws`
+ };
+diff --git a/web-front-end/angular/main/environments/environment.ts b/web-front-end/angular/main/environments/environment.ts
+index db263f8..036ee0a 100644
+--- a/web-front-end/angular/main/environments/environment.ts
++++ b/web-front-end/angular/main/environments/environment.ts
+@@ -1,10 +1,10 @@
+ export const environment = {
+     production:         false,
+-    accountUrl:         `//${window.location.host}/account-service`,
+-    refrenceDataUrl:    `//${window.location.host}/reference-data`,
+-    tradesUrl:          `//${window.location.host}/trade-service/trade/`,
+-    positionsUrl:       `//${window.location.host}/position-service`,
+-    peopleUrl:          `//${window.location.host}/people-service`,
+-    orderMatcherUrl:    `//${window.location.host}/order-matcher`,
++    accountUrl:         `/account-service`,
++    refrenceDataUrl:    `/reference-data`,
++    tradesUrl:          `/trade-service/trade/`,
++    positionsUrl:       `/position-service`,
++    peopleUrl:          `/people-service`,
++    orderMatcherUrl:    `/order-matcher`,
+     tradeFeedUrl:       `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/nats-ws`
+ };
