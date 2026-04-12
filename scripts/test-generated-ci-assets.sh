@@ -70,12 +70,14 @@ grep -q "JAVA_HOME: /opt/jdk" "${TARGET_ROOT}/.github/workflows/security.yml" ||
 echo "[check] state 009 generates convergence workflows + GHCR run bundle"
 rm -rf "${TARGET_ROOT}"
 mkdir -p \
+  "${TARGET_ROOT}/api-explorer" \
   "${TARGET_ROOT}/reference-data" \
   "${TARGET_ROOT}/web-front-end/angular" \
   "${TARGET_ROOT}/order-matcher" \
   "${TARGET_ROOT}/ingress" \
   "${TARGET_ROOT}/order-management-matcher"
 touch \
+  "${TARGET_ROOT}/api-explorer/Dockerfile" \
   "${TARGET_ROOT}/reference-data/package.json" \
   "${TARGET_ROOT}/web-front-end/angular/package.json" \
   "${TARGET_ROOT}/order-matcher/Dockerfile.compose" \
@@ -125,6 +127,11 @@ grep -q 'GHCR_PUSH_TOKEN' "${TARGET_ROOT}/.github/workflows/build-and-publish.ym
   echo "[fail] build-and-publish workflow should support GHCR_PUSH_TOKEN fallback auth"
   exit 1
 }
+
+if grep -q 'directory: api-explorer' "${TARGET_ROOT}/.github/workflows/build-and-publish.yml"; then
+  echo "[fail] api-explorer should not be included in generated container CI matrix"
+  exit 1
+fi
 
 grep -q 'ghcr.io/finos/traderx-c2' "${TARGET_ROOT}/runtime/ghcr/009-order-management-matcher/images.lock" || {
   echo "[fail] ghcr namespace mapping missing from images.lock"

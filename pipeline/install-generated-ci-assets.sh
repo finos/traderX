@@ -131,6 +131,18 @@ docker_dir_exists() {
   grep -q "^${dir}|" "${entries_file}" >/dev/null 2>&1
 }
 
+skip_docker_ci_dir() {
+  local dir="$1"
+  case "${dir}" in
+    api-explorer)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
 discover_docker_entries() {
   local out_file="$1"
   : > "${out_file}"
@@ -145,6 +157,7 @@ discover_docker_entries() {
     rel="${dockerfile#${TARGET_ROOT}/}"
     dir="$(dirname "${rel}")"
     is_ignored_dir "${dir}" && continue
+    skip_docker_ci_dir "${dir}" && continue
     image_name="$(printf '%s' "${dir}" | tr '/' '-')"
     printf '%s|%s|%s\n' "${dir}" "$(basename "${dockerfile}")" "${image_name}" >> "${out_file}"
   done < <(find "${TARGET_ROOT}" -type f -name Dockerfile.compose | sort)
@@ -154,6 +167,7 @@ discover_docker_entries() {
     rel="${dockerfile#${TARGET_ROOT}/}"
     dir="$(dirname "${rel}")"
     is_ignored_dir "${dir}" && continue
+    skip_docker_ci_dir "${dir}" && continue
     if docker_dir_exists "${dir}" "${out_file}"; then
       continue
     fi
