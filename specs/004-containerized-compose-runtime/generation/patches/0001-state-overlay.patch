@@ -17735,28 +17735,28 @@ index 0000000..82c680d
 +      "version": "0.0.0",
 +      "license": "Apache-2.0",
 +      "dependencies": {
-+        "@angular/animations": "^18.2.12",
-+        "@angular/common": "^18.2.12",
-+        "@angular/compiler": "^18.2.12",
-+        "@angular/core": "^18.2.12",
-+        "@angular/forms": "^18.2.12",
-+        "@angular/platform-browser": "^18.2.12",
-+        "@angular/platform-browser-dynamic": "^18.2.12",
-+        "@angular/router": "^18.2.12",
++        "@angular/animations": "^19.2.20",
++        "@angular/common": "^19.2.20",
++        "@angular/compiler": "^19.2.20",
++        "@angular/core": "^19.2.20",
++        "@angular/forms": "^19.2.20",
++        "@angular/platform-browser": "^19.2.20",
++        "@angular/platform-browser-dynamic": "^19.2.20",
++        "@angular/router": "^19.2.20",
 +        "ag-grid-angular": "^32.2.1",
 +        "ag-grid-community": "^32.2.1",
-+        "bootstrap": "^5.3.3",
-+        "ngx-bootstrap": "^18.0.2",
++        "bootstrap": "^5.3.8",
++        "ngx-bootstrap": "^19.0.2",
 +        "rxjs": "^7.8.1",
 +        "socket.io-client": "^4.8.3",
 +        "tslib": "^2.7.0",
-+        "zone.js": "^0.14.10"
++        "zone.js": "^0.15.0"
 +      },
 +      "devDependencies": {
-+        "@angular-devkit/build-angular": "^18.2.12",
-+        "@angular/cli": "^18.2.12",
-+        "@angular/compiler-cli": "^18.2.12",
-+        "@angular/language-service": "^18.2.12",
++        "@angular-devkit/build-angular": "^19.2.20",
++        "@angular/cli": "^19.2.20",
++        "@angular/compiler-cli": "^19.2.20",
++        "@angular/language-service": "^19.2.20",
 +        "@faker-js/faker": "^9.0.3",
 +        "@types/jasmine": "^5.1.4",
 +        "@types/node": "^22.9.0",
@@ -17772,7 +17772,7 @@ index 0000000..82c680d
 +        "puppeteer": "^23.8.0",
 +        "serve-handler": "^6.1.5",
 +        "ts-node": "^10.9.2",
-+        "typescript": "~5.5.4"
++        "typescript": "~5.8.2"
 +      }
 +    },
 +    "node_modules/@ampproject/remapping": {
@@ -33406,28 +33406,28 @@ index 0000000..c4ae3f5
 +  "private": true,
 +  "license": "Apache-2.0",
 +  "dependencies": {
-+    "@angular/animations": "^18.2.12",
-+    "@angular/common": "^18.2.12",
-+    "@angular/compiler": "^18.2.12",
-+    "@angular/core": "^18.2.12",
-+    "@angular/forms": "^18.2.12",
-+    "@angular/platform-browser": "^18.2.12",
-+    "@angular/platform-browser-dynamic": "^18.2.12",
-+    "@angular/router": "^18.2.12",
++    "@angular/animations": "^19.2.20",
++    "@angular/common": "^19.2.20",
++    "@angular/compiler": "^19.2.20",
++    "@angular/core": "^19.2.20",
++    "@angular/forms": "^19.2.20",
++    "@angular/platform-browser": "^19.2.20",
++    "@angular/platform-browser-dynamic": "^19.2.20",
++    "@angular/router": "^19.2.20",
 +    "ag-grid-angular": "^32.2.1",
 +    "ag-grid-community": "^32.2.1",
-+    "bootstrap": "^5.3.3",
-+    "ngx-bootstrap": "^18.0.2",
++    "bootstrap": "^5.3.8",
++    "ngx-bootstrap": "^19.0.2",
 +    "rxjs": "^7.8.1",
 +    "socket.io-client": "^4.8.3",
 +    "tslib": "^2.7.0",
-+    "zone.js": "^0.14.10"
++    "zone.js": "^0.15.0"
 +  },
 +  "devDependencies": {
-+    "@angular-devkit/build-angular": "^18.2.12",
-+    "@angular/cli": "^18.2.12",
-+    "@angular/compiler-cli": "^18.2.12",
-+    "@angular/language-service": "^18.2.12",
++    "@angular-devkit/build-angular": "^19.2.20",
++    "@angular/cli": "^19.2.20",
++    "@angular/compiler-cli": "^19.2.20",
++    "@angular/language-service": "^19.2.20",
 +    "@faker-js/faker": "^9.0.3",
 +    "@types/jasmine": "^5.1.4",
 +    "@types/node": "^22.9.0",
@@ -33443,7 +33443,7 @@ index 0000000..c4ae3f5
 +    "puppeteer": "^23.8.0",
 +    "serve-handler": "^6.1.5",
 +    "ts-node": "^10.9.2",
-+    "typescript": "~5.5.4"
++    "typescript": "~5.8.2"
 +  }
 +}
 diff --git a/web-front-end/angular/prettier.config.js b/web-front-end/angular/prettier.config.js
