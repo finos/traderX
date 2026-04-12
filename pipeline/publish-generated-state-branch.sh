@@ -172,6 +172,12 @@ case "${STATE_ID}" in
     ;;
 esac
 
+# Recompute CI assets after runtime dry-run because some states (notably
+# uncontainerized 002/003 lineage) materialize runnable component layout into
+# target-generated during dry-run. Without this refresh, workflow target
+# discovery may emit "no targets" stubs.
+bash "${ROOT}/pipeline/install-generated-ci-assets.sh" "${STATE_ID}" "${GENERATED_ROOT}/code/target-generated"
+
 SNAPSHOT_ROOT="${GENERATED_ROOT}/code/target-generated"
 if [[ ! -d "${SNAPSHOT_ROOT}" ]]; then
   echo "[fail] missing generated target directory: ${SNAPSHOT_ROOT}"
