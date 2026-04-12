@@ -55,6 +55,13 @@ Run baseline runtime for this state:
 ./scripts/start-state-011-tilt-kubernetes-dev-loop-generated.sh --provider kind
 ```
 
+Primary endpoints (inherited from state 010 runtime):
+
+- TraderX UI: `http://localhost:8080`
+- API Explorer: `http://localhost:8080/api/docs`
+- Grafana: `http://localhost:8080/grafana` (admin/admin)
+- Prometheus: `http://localhost:8080/prometheus`
+
 Run state smoke tests:
 
 ```bash

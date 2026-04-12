@@ -221,7 +221,7 @@ diff --git a/RUN_FROM_GENERATED.md b/RUN_FROM_GENERATED.md
 index aad8aff..c2bbf69 100644
 --- a/RUN_FROM_GENERATED.md
 +++ b/RUN_FROM_GENERATED.md
-@@ -1,33 +1,27 @@
+@@ -1,35 +1,27 @@
 -# Run From Generated (State 007)
 +# Run From Generated (State 008)
  
@@ -252,7 +252,8 @@ index aad8aff..c2bbf69 100644
  
  - UI (ingress): `http://localhost:8080`
 -- API explorer (ingress): `http://localhost:8080/api/docs`
--- Grafana: `http://localhost:3001` (local login credentials)
+-- Grafana (ingress): `http://localhost:8080/grafana` (admin/admin)
+-- Grafana (direct): `http://localhost:3001`
 -- Prometheus: `http://localhost:9090`
 -- Loki: `http://localhost:3100`
 -- Tempo: `http://localhost:3200`

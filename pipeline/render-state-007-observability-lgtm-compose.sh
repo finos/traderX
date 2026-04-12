@@ -268,7 +268,8 @@ It extends the containerized stack with:
 Primary endpoints:
 
 - TraderX UI: `http://localhost:8080`
-- Grafana: `http://localhost:3001` (local login credentials)
+- Grafana (via ingress): `http://localhost:8080/grafana` (admin/admin)
+- Grafana (direct): `http://localhost:3001`
 - Prometheus: `http://localhost:9090`
 - Loki: `http://localhost:3100`
 - Tempo: `http://localhost:3200`

@@ -95,6 +95,13 @@ Run:
 ```bash
 ./scripts/start-state-010-kubernetes-runtime-generated.sh
 ```
+
+Primary endpoints:
+
+- TraderX UI: `http://localhost:8080`
+- API Explorer: `http://localhost:8080/api/docs`
+- Grafana: `http://localhost:8080/grafana` (admin/admin)
+- Prometheus: `http://localhost:8080/prometheus`
 EOF
 
 jq '{

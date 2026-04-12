@@ -533,7 +533,8 @@ EOF
       cat <<'EOF'
 - UI (ingress): `http://localhost:8080`
 - API explorer (ingress): `http://localhost:8080/api/docs`
-- Grafana: `http://localhost:3001` (local login credentials)
+- Grafana (ingress): `http://localhost:8080/grafana` (admin/admin)
+- Grafana (direct): `http://localhost:3001`
 - Prometheus: `http://localhost:9090`
 - Loki: `http://localhost:3100`
 - Tempo: `http://localhost:3200`
@@ -543,7 +544,8 @@ EOF
       cat <<'EOF'
 - UI (ingress): `http://localhost:8080`
 - API explorer (ingress): `http://localhost:8080/api/docs`
-- Grafana: `http://localhost:3001` (local login credentials)
+- Grafana (ingress): `http://localhost:8080/grafana` (admin/admin)
+- Grafana (direct): `http://localhost:3001`
 - Prometheus: `http://localhost:9090`
 - Order matcher health: `http://localhost:18110/health`
 - Order matcher metrics: `http://localhost:18110/metrics`
@@ -556,7 +558,7 @@ EOF
 - Trade page: `http://localhost:8080/trade`
 - Account service route: `http://localhost:8080/account-service/account/22214`
 - Position service route: `http://localhost:8080/position-service/positions/22214`
-- Grafana (ingress): `http://localhost:8080/grafana` (local login credentials)
+- Grafana (ingress): `http://localhost:8080/grafana` (admin/admin)
 - Prometheus (ingress): `http://localhost:8080/prometheus`
 EOF
       ;;
