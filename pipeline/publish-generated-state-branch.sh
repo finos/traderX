@@ -192,8 +192,17 @@ bash "${ROOT}/pipeline/install-generated-ci-assets.sh" "${STATE_ID}" "${GENERATE
 if [[ "${SKIP_COMPILE_PREFLIGHT}" == "1" ]]; then
   echo "[warn] skipping generated compile preflight (--skip-compile-preflight)"
 else
-  echo "[step] run generated compile preflight"
-  bash "${ROOT}/pipeline/preflight-generated-ci.sh" "${GENERATED_ROOT}/code/target-generated"
+  CI_METADATA="${GENERATED_ROOT}/code/target-generated/ci/state-metadata.json"
+  if [[ -f "${CI_METADATA}" ]]; then
+    echo "[step] run generated compile preflight"
+    bash "${ROOT}/pipeline/preflight-generated-ci.sh" "${GENERATED_ROOT}/code/target-generated"
+  elif [[ "${state_num}" -lt 2 ]]; then
+    echo "[info] compile preflight metadata unavailable for ${STATE_ID}; skipping for legacy pre-CI state"
+  else
+    echo "[fail] missing compile preflight metadata: ${CI_METADATA}"
+    echo "[hint] ensure CI assets were installed during state generation"
+    exit 1
+  fi
 fi
 
 SNAPSHOT_ROOT="${GENERATED_ROOT}/code/target-generated"
