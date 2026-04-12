@@ -5584,7 +5584,7 @@ new file mode 100644
 index 0000000..f9a0618
 --- /dev/null
 +++ b/trade-processor/build.gradle
-@@ -0,0 +1,43 @@
+@@ -0,0 +1,48 @@
 +plugins {
 +  id 'java'
 +  id 'org.springframework.boot' version '3.5.13'
@@ -5611,6 +5611,7 @@ index 0000000..f9a0618
 +  implementation('org.json:json:20240303') {
 +    because 'previous versions are affected by multiple CVE'
 +  }
++  implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.3.20'
 +  implementation('io.socket:socket.io-client:2.1.2') {
 +    exclude group: 'org.json', module: 'json'
 +  }
@@ -5627,6 +5628,11 @@ index 0000000..f9a0618
 +
 +tasks.withType(Test).configureEach {
 +  useJUnitPlatform()
++}
++
++configurations.configureEach {
++  exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
++  exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
 +}
 diff --git a/trade-processor/openapi.yaml b/trade-processor/openapi.yaml
 new file mode 100644
@@ -6976,7 +6982,7 @@ new file mode 100644
 index 0000000..4705022
 --- /dev/null
 +++ b/trade-service/build.gradle
-@@ -0,0 +1,47 @@
+@@ -0,0 +1,52 @@
 +plugins {
 +  id 'java'
 +  id 'org.springframework.boot' version '3.5.13'
@@ -7007,6 +7013,7 @@ index 0000000..4705022
 +  implementation('org.json:json:20240303') {
 +    because 'previous versions are affected by multiple CVE'
 +  }
++  implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.3.20'
 +  implementation('io.socket:socket.io-client:2.1.2') {
 +    exclude group: 'org.json', module: 'json'
 +  }
@@ -7023,6 +7030,11 @@ index 0000000..4705022
 +
 +tasks.withType(Test).configureEach {
 +  useJUnitPlatform()
++}
++
++configurations.configureEach {
++  exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
++  exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
 +}
 diff --git a/trade-service/openapi.yaml b/trade-service/openapi.yaml
 new file mode 100644

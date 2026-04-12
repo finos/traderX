@@ -73,6 +73,17 @@ Version policy changes must be landed in generator sources, not as ad-hoc genera
 - State-specific version deltas belong in `specs/<state>/generation/patches/*.patch`.
 - Post-generation mutation scripts are not allowed in steady-state; generation must be reproducible directly from templates and state patchsets.
 
+## Jump-Point Overlay Parity Contract
+
+When a state first materializes full runtime files that no longer point directly at `templates/**` (for example, root-level module `build.gradle` files in a convergence jump-point), that state must preserve inherited base-template policy unless an explicit state requirement overrides it.
+
+Policy:
+
+- Generic dependency/security/runtime controls remain owned by base templates.
+- Jump-point state patchsets must not silently drop inherited template controls (dependency pins, exclusion blocks, plugin/runtime version guards).
+- If a base template policy changes, maintainers must re-evaluate the nearest jump-point state patchset and propagate required parity updates.
+- Any intentional divergence must be explicitly documented in the state FR/NFR deltas.
+
 ## Gradle Wrapper Ownership Policy
 
 Gradle wrapper assets are baseline template artifacts, not state patch artifacts.
