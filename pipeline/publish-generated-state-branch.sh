@@ -22,6 +22,11 @@ if [[ -z "${STATE_ID}" ]]; then
   usage
   exit 1
 fi
+state_num="${STATE_ID%%-*}"
+if [[ ! "${state_num}" =~ ^[0-9]+$ ]]; then
+  echo "[fail] invalid state id format: ${STATE_ID}"
+  exit 1
+fi
 shift || true
 
 BRANCH_OVERRIDE=""
