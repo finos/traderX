@@ -9,6 +9,7 @@ This document defines the CI contract for generated TraderX code branches.
 ## Scope
 
 - Security and license CI is required for all generated states from `002+`.
+- Container image build validation CI is required for any generated state that includes buildable container images.
 - Container image build/publish CI is required for convergence states from `C0+`.
 
 ## Required CI For States `002+`
@@ -133,6 +134,18 @@ Each convergence state from `C0+` must include:
 
 The workflow must build and publish all containerized components present in that convergence state to GHCR.
 
+## Non-Convergence Container CI
+
+For non-convergence states that include containerized components, generated branches must include:
+
+- `.github/workflows/build-container-images.yml`
+
+Policy:
+
+- Build all detected container images for validation.
+- Do **not** publish images to GHCR.
+- Do not generate GHCR runtime bundles for non-convergence states.
+
 ## GHCR Namespace Policy For Convergence States
 
 Use convergence-level namespaces (not numeric state ids):
@@ -174,6 +187,9 @@ act -W .github/workflows/license-scanning-node.yml
 
 # required for convergence states C0+
 act -W .github/workflows/build-and-publish.yml
+
+# required for non-convergence states with containers
+act -W .github/workflows/build-container-images.yml
 ```
 
 If `actionlint` is not installed locally, install it first:

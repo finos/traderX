@@ -130,13 +130,6 @@ discover_docker_entries() {
   local out_file="$1"
   : > "${out_file}"
 
-  # Container image scanning is only required for convergence/containerized states.
-  # Non-convergence states can carry Dockerfiles for future transitions but do not
-  # guarantee buildable container contexts in isolation.
-  if [[ "${is_convergence}" != "true" ]]; then
-    return
-  fi
-
   while IFS= read -r dockerfile; do
     [[ -z "${dockerfile}" ]] && continue
     rel="${dockerfile#${TARGET_ROOT}/}"
@@ -566,6 +559,60 @@ EOF
 EOF
 }
 
+write_build_only_workflow() {
+  local file_path="$1"
+  cat > "${file_path}" <<'EOF'
+name: Build Container Images (No Publish)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - code/generated-state-*
+    paths:
+      - '**/Dockerfile'
+      - '**/Dockerfile.compose'
+      - '.github/workflows/build-container-images.yml'
+
+jobs:
+  build-container-images:
+    name: Build ${{ matrix.image_name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+EOF
+
+  for entry in "${docker_entries[@]}"; do
+    directory="$(cut -d'|' -f1 <<<"${entry}")"
+    dockerfile="$(cut -d'|' -f2 <<<"${entry}")"
+    image_name="$(cut -d'|' -f3 <<<"${entry}")"
+    printf '          - directory: %s\n' "${directory}" >> "${file_path}"
+    printf '            dockerfile: %s\n' "${dockerfile}" >> "${file_path}"
+    printf '            image_name: %s\n' "${image_name}" >> "${file_path}"
+  done
+
+  cat >> "${file_path}" <<'EOF'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build image (no publish)
+        run: |
+          docker build \
+            -f "${{ matrix.directory }}/${{ matrix.dockerfile }}" \
+            -t "traderx-local/${{ matrix.image_name }}:${{ github.sha }}" \
+            "${{ matrix.directory }}"
+      - name: Scan built image
+        uses: crazy-max/ghaction-container-scan@v3
+        with:
+          image: traderx-local/${{ matrix.image_name }}:${{ github.sha }}
+          severity: HIGH
+EOF
+}
+
 json_array_from_lines() {
   local lines_file="$1"
   jq -Rsc 'split("\n") | map(select(length > 0))' < "${lines_file}"
@@ -611,6 +658,10 @@ jq -n \
 
 write_security_workflow "${TARGET_ROOT}/.github/workflows/security.yml"
 write_license_workflow "${TARGET_ROOT}/.github/workflows/license-scanning-node.yml"
+
+# Prevent inherited workflow leakage across state lineage.
+rm -f "${TARGET_ROOT}/.github/workflows/build-and-publish.yml"
+rm -f "${TARGET_ROOT}/.github/workflows/build-container-images.yml"
 
 write_compose_ghcr_bundle() {
   local bundle_dir="$1"
@@ -780,9 +831,13 @@ The start script will pull published images from \`ghcr.io/finos/${namespace}\`,
 EOF
 }
 
-if [[ -n "${convergence_namespace}" && "${is_convergence}" == "true" && ${#docker_entries[@]} -gt 0 ]]; then
-  write_build_publish_workflow "${TARGET_ROOT}/.github/workflows/build-and-publish.yml" "${convergence_namespace}"
-  write_ghcr_run_bundle "${convergence_namespace}"
+if ((${#docker_entries[@]} > 0)); then
+  if [[ -n "${convergence_namespace}" && "${is_convergence}" == "true" ]]; then
+    write_build_publish_workflow "${TARGET_ROOT}/.github/workflows/build-and-publish.yml" "${convergence_namespace}"
+    write_ghcr_run_bundle "${convergence_namespace}"
+  else
+    write_build_only_workflow "${TARGET_ROOT}/.github/workflows/build-container-images.yml"
+  fi
 fi
 
 if [[ -f "${TARGET_ROOT}/RUN_FROM_GENERATED.md" && -f "${TARGET_ROOT}/runtime/ghcr/${STATE_ID}/README.md" ]]; then
