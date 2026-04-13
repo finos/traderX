@@ -5420,3 +5420,71 @@ index 9b2052e..db263f8 100644
 +    orderMatcherUrl:    `//${window.location.host}/order-matcher`,
      tradeFeedUrl:       `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/nats-ws`
  };
+diff --git a/database/initialSchema.sql b/database/initialSchema.sql
+index d568f5e..7a4d25f 100644
+--- a/database/initialSchema.sql
++++ b/database/initialSchema.sql
+@@ -1,4 +1,5 @@
+ Drop Table Trades IF EXISTS;
++Drop Table OrderBook IF EXISTS;
+ Drop Table AccountUsers IF EXISTS;
+ Drop Table Positions IF EXISTS;
+ Drop Table Accounts IF EXISTS;
+@@ -29,6 +30,22 @@ CREATE TABLE Trades (
+ );
+ Alter Table Trades Add Foreign Key (AccountID) references Accounts(ID);
+ 
++CREATE TABLE OrderBook (
++  OrderId VARCHAR(32) PRIMARY KEY,
++  AccountId INTEGER NOT NULL,
++  Security VARCHAR(16) NOT NULL,
++  Side VARCHAR(16) check (Side in ('Buy','Sell')),
++  Quantity INTEGER NOT NULL check (Quantity > 0),
++  RemainingQuantity INTEGER NOT NULL check (RemainingQuantity >= 0),
++  LimitPrice DECIMAL(18,3) NOT NULL,
++  Status VARCHAR(24) check (Status in ('NEW', 'PARTIALLY_FILLED', 'FILLED', 'CANCELED', 'REJECTED')),
++  CreatedAt TIMESTAMP NOT NULL,
++  UpdatedAt TIMESTAMP NOT NULL,
++  LastExecutionPrice DECIMAL(18,3),
++  LastFillQuantity INTEGER
++);
++CREATE INDEX idx_orderbook_status ON OrderBook(Status);
++CREATE INDEX idx_orderbook_updatedat ON OrderBook(UpdatedAt);
++
+ CREATE SEQUENCE ACCOUNTS_SEQ start with 65000 INCREMENT BY 1;
+ 
+ INSERT into Accounts (ID, DisplayName) VALUES (22214, 'Test Account 20');
+diff --git a/postgres-database-replacement/postgres-init/initialSchema.sql b/postgres-database-replacement/postgres-init/initialSchema.sql
+index bb0f4e7..f255e07 100644
+--- a/postgres-database-replacement/postgres-init/initialSchema.sql
++++ b/postgres-database-replacement/postgres-init/initialSchema.sql
+@@ -1,4 +1,5 @@
+ DROP TABLE IF EXISTS trades;
++DROP TABLE IF EXISTS orderbook;
+ DROP TABLE IF EXISTS accountusers;
+ DROP TABLE IF EXISTS positions;
+ DROP TABLE IF EXISTS accounts;
+@@ -33,6 +34,22 @@ CREATE TABLE trades (
+   state VARCHAR(20) CHECK (state in ('New', 'Processing', 'Settled', 'Cancelled'))
+ );
+ 
++CREATE TABLE orderbook (
++  orderid VARCHAR(32) PRIMARY KEY,
++  accountid INTEGER NOT NULL,
++  security VARCHAR(16) NOT NULL,
++  side VARCHAR(16) CHECK (side in ('Buy', 'Sell')),
++  quantity INTEGER NOT NULL CHECK (quantity > 0),
++  remainingquantity INTEGER NOT NULL CHECK (remainingquantity >= 0),
++  limitprice DECIMAL(18,3) NOT NULL,
++  status VARCHAR(24) CHECK (status in ('NEW', 'PARTIALLY_FILLED', 'FILLED', 'CANCELED', 'REJECTED')),
++  createdat TIMESTAMP NOT NULL,
++  updatedat TIMESTAMP NOT NULL,
++  lastexecutionprice DECIMAL(18,3),
++  lastfillquantity INTEGER
++);
++CREATE INDEX idx_orderbook_status ON orderbook(status);
++CREATE INDEX idx_orderbook_updatedat ON orderbook(updatedat);
++
+ CREATE SEQUENCE accounts_seq START WITH 65000 INCREMENT BY 1;
+ 
+ INSERT INTO accounts (id, displayname) VALUES (22214, 'Test Account 20');

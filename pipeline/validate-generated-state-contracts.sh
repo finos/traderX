@@ -22,29 +22,43 @@ else
 fi
 
 if [[ -d "${TARGET_ROOT}/order-matcher" ]]; then
-  schema_file="${TARGET_ROOT}/database/initialSchema.sql"
-  if [[ ! -f "${schema_file}" ]]; then
-    echo "[fail] order-matcher contract violation: missing database schema file ${schema_file}"
+  schema_files=()
+  postgres_schema_file="${TARGET_ROOT}/postgres-database-replacement/postgres-init/initialSchema.sql"
+  h2_schema_file="${TARGET_ROOT}/database/initialSchema.sql"
+  if [[ -f "${postgres_schema_file}" ]]; then
+    schema_files+=("${postgres_schema_file}")
+  fi
+  if [[ -f "${h2_schema_file}" ]]; then
+    schema_files+=("${h2_schema_file}")
+  fi
+
+  if [[ "${#schema_files[@]}" -eq 0 ]]; then
+    echo "[fail] order-matcher contract violation: no schema files found for order-matcher validation"
+    echo "[hint] expected one of:"
+    echo "       - ${postgres_schema_file}"
+    echo "       - ${h2_schema_file}"
     exit 1
   fi
 
-  if ! rg -qi 'create[[:space:]]+table[[:space:]]+orderbook' "${schema_file}"; then
-    echo "[fail] order-matcher contract violation: OrderBook table missing from ${schema_file}"
-    echo "[hint] generated states that include order-matcher must seed OrderBook deterministically"
-    exit 1
-  fi
+  for schema_file in "${schema_files[@]}"; do
+    if ! rg -qi 'create[[:space:]]+table[[:space:]]+orderbook' "${schema_file}"; then
+      echo "[fail] order-matcher contract violation: OrderBook table missing from ${schema_file}"
+      echo "[hint] generated states that include order-matcher must seed OrderBook deterministically"
+      exit 1
+    fi
 
-  if ! rg -q 'OrderId' "${schema_file}"; then
-    echo "[fail] order-matcher contract violation: OrderBook.OrderId column missing from ${schema_file}"
-    exit 1
-  fi
+    if ! rg -qi '\borderid\b' "${schema_file}"; then
+      echo "[fail] order-matcher contract violation: OrderBook.orderId column missing from ${schema_file}"
+      exit 1
+    fi
 
-  if ! rg -q 'Status' "${schema_file}"; then
-    echo "[fail] order-matcher contract violation: OrderBook.Status column missing from ${schema_file}"
-    exit 1
-  fi
+    if ! rg -qi '\bstatus[[:space:]]+varchar' "${schema_file}"; then
+      echo "[fail] order-matcher contract violation: OrderBook.status column missing from ${schema_file}"
+      exit 1
+    fi
+  done
 
-  echo "[ok] order-matcher schema contract validated (OrderBook present)"
+  echo "[ok] order-matcher schema contract validated (OrderBook present in ${#schema_files[@]} schema file(s))"
 else
   echo "[info] order-matcher not present; skipping order schema contract check"
 fi
