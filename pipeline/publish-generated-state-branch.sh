@@ -188,6 +188,7 @@ esac
 # target-generated during dry-run. Without this refresh, workflow target
 # discovery may emit "no targets" stubs.
 bash "${ROOT}/pipeline/install-generated-ci-assets.sh" "${STATE_ID}" "${GENERATED_ROOT}/code/target-generated"
+bash "${ROOT}/pipeline/validate-generated-state-contracts.sh" "${GENERATED_ROOT}/code/target-generated"
 
 if [[ "${SKIP_COMPILE_PREFLIGHT}" == "1" ]]; then
   echo "[warn] skipping generated compile preflight (--skip-compile-preflight)"

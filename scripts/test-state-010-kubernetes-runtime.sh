@@ -83,6 +83,28 @@ printf '%s\n' "${account_headers}" | grep -Eq "HTTP/1\\.[01] 200" || {
   exit 1
 }
 
+echo "[check] order matcher ingress health and listing endpoints"
+order_health_headers="$(curl -sS -i "${INGRESS_URL}/order-matcher/health" | sed -n '1,25p')"
+echo "${order_health_headers}"
+printf '%s\n' "${order_health_headers}" | grep -Eq "HTTP/1\\.[01] 200" || {
+  echo "[error] expected HTTP 200 from ${INGRESS_URL}/order-matcher/health"
+  exit 1
+}
+
+order_listing_payload="$(curl -sS -w '\n%{http_code}' "${INGRESS_URL}/order-matcher/orders?status=open")"
+order_listing_http="$(echo "${order_listing_payload}" | tail -n1)"
+order_listing_body="$(echo "${order_listing_payload}" | sed '$d')"
+if [[ "${order_listing_http}" != "200" ]]; then
+  echo "[error] expected HTTP 200 from ${INGRESS_URL}/order-matcher/orders?status=open, got ${order_listing_http}"
+  echo "${order_listing_body}"
+  exit 1
+fi
+echo "${order_listing_body}" | jq -e 'if type=="array" then . else empty end' >/dev/null || {
+  echo "[error] expected order-matcher list response to be a JSON array"
+  echo "${order_listing_body}"
+  exit 1
+}
+
 echo "[check] observability ingress routes"
 grafana_headers="$(curl -sS -i "${INGRESS_URL}/grafana/api/health" | sed -n '1,25p')"
 echo "${grafana_headers}"

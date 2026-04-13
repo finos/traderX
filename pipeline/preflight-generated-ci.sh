@@ -105,6 +105,7 @@ run_dotnet_preflight() {
 }
 
 run_actionlint
+bash "${ROOT}/pipeline/validate-generated-state-contracts.sh" "${TARGET_ROOT}"
 run_node_preflight
 run_gradle_preflight
 run_dotnet_preflight

@@ -138,6 +138,29 @@ grep -q 'ghcr.io/finos/traderx-c2' "${TARGET_ROOT}/runtime/ghcr/009-order-manage
   exit 1
 }
 
+echo "[check] generated-state contract validation guards order-matcher schema"
+mkdir -p "${TARGET_ROOT}/order-matcher" "${TARGET_ROOT}/database" "${TARGET_ROOT}/ci"
+cat > "${TARGET_ROOT}/ci/state-metadata.json" <<'EOF'
+{
+  "stateId": "009-order-management-matcher"
+}
+EOF
+cat > "${TARGET_ROOT}/database/initialSchema.sql" <<'EOF'
+CREATE TABLE Accounts (ID INTEGER PRIMARY KEY);
+EOF
+if bash "${ROOT}/pipeline/validate-generated-state-contracts.sh" "${TARGET_ROOT}" >/dev/null 2>&1; then
+  echo "[fail] contract validator should fail when OrderBook table is missing"
+  exit 1
+fi
+cat > "${TARGET_ROOT}/database/initialSchema.sql" <<'EOF'
+CREATE TABLE Accounts (ID INTEGER PRIMARY KEY);
+CREATE TABLE OrderBook (
+  OrderId VARCHAR(32) PRIMARY KEY,
+  Status VARCHAR(24)
+);
+EOF
+bash "${ROOT}/pipeline/validate-generated-state-contracts.sh" "${TARGET_ROOT}" >/dev/null
+
 echo "[check] template Node.js packages declare Apache-2.0"
 while IFS= read -r pkg; do
   license="$(jq -r '.license // empty' "${pkg}")"

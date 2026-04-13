@@ -1,4 +1,5 @@
 Drop Table Trades IF EXISTS;
+Drop Table OrderBook IF EXISTS;
 Drop Table AccountUsers IF EXISTS;
 Drop Table Positions IF EXISTS;
 Drop Table Accounts IF EXISTS;
@@ -22,6 +23,23 @@ CREATE TABLE Trades (
   State VARCHAR(20) check (State in ('New', 'Processing', 'Settled', 'Cancelled'))
 );
 Alter Table Trades Add Foreign Key (AccountID) references Accounts(ID);
+
+CREATE TABLE OrderBook (
+  OrderId VARCHAR(32) PRIMARY KEY,
+  AccountId INTEGER NOT NULL,
+  Security VARCHAR(16) NOT NULL,
+  Side VARCHAR(16) check (Side in ('Buy','Sell')),
+  Quantity INTEGER NOT NULL check (Quantity > 0),
+  RemainingQuantity INTEGER NOT NULL check (RemainingQuantity >= 0),
+  LimitPrice DECIMAL(18,3) NOT NULL,
+  Status VARCHAR(24) check (Status in ('NEW', 'PARTIALLY_FILLED', 'FILLED', 'CANCELED', 'REJECTED')),
+  CreatedAt TIMESTAMP NOT NULL,
+  UpdatedAt TIMESTAMP NOT NULL,
+  LastExecutionPrice DECIMAL(18,3),
+  LastFillQuantity INTEGER
+);
+CREATE INDEX idx_orderbook_status ON OrderBook(Status);
+CREATE INDEX idx_orderbook_updatedat ON OrderBook(UpdatedAt);
 
 CREATE SEQUENCE ACCOUNTS_SEQ start with 65000 INCREMENT BY 1;
 

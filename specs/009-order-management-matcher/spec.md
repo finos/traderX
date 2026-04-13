@@ -39,6 +39,8 @@
 - NFR-01309: As convergence level `C2`, generated state branches MUST include `.github/workflows/build-and-publish.yml` for container image publication.
 - NFR-01310: `C2` image publication namespace MUST use `ghcr.io/finos/traderx-c2/<component>` with immutable commit-SHA tags plus `latest`.
 - NFR-01311: Generated artifacts MUST include a GHCR run bundle for running this state from published images.
+- NFR-01312: Generator output MUST deterministically include `database/initialSchema.sql` with an `OrderBook` table definition whenever `order-matcher` is present in generated state artifacts.
+- NFR-01313: Generated-state publish gates MUST fail if `order-matcher` is present and the generated database schema contract for `OrderBook` is missing.
 
 ## Success Criteria
 
@@ -51,3 +53,4 @@
 - SC-01307: Grafana dashboards are provisioned for order book health and matcher throughput/latency.
 - SC-01308: Generated snapshot branch and tag strategy are defined in state catalog.
 - SC-01309: Generated branch artifacts include `C2` build/publish workflow and GHCR run-bundle assets.
+- SC-01310: `pipeline/validate-generated-state-contracts.sh` fails on generated snapshots that include `order-matcher` without `OrderBook` schema and passes when the contract is present.
