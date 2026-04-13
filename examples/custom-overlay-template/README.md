@@ -10,6 +10,7 @@ It includes reference stubs for key contracts:
 - `overlay/runtime/env-loader.sh`
 - `overlay/profiles/custom-internal.example.yaml`
 - `overlay/catalog/sanctioned-learning-graph.example.yaml`
+- `overlay/catalog/learning-graph-diagram.example.md`
 - `overlay/docs/internal-learning-graph.example.md`
 - `overlay/docs/internal-docs-portal.example.md`
 - `pipeline/publish-state-branch.sh`
@@ -23,6 +24,7 @@ The included example docs and profile files show how to:
 - suppress selected upstream states in controlled environments
 - define internal-only generated states (`custom-*`)
 - publish a sanctioned internal learning graph
+- implement a required convergence diagram and state-to-artifact table in `docs/learning/index.md`
 - add a persistent internal-distribution banner to an internal docs portal
 
 ## Docs Quality Checks (Optional)

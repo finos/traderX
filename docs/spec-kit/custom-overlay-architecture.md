@@ -32,6 +32,14 @@ traderx-overlay/
   docs/                            # overlay documentation
 ```
 
+## Required Overlay Repository Artifacts
+
+An overlay repository must include these required deliverables:
+
+- `catalog/state-catalog.json` - overlay state catalog with explicit lineage and publish metadata
+- `specs/` - overlay spec packs for overlay-owned states
+- `docs/learning/index.md` - overlay learning-path index; must contain the Mermaid convergence graph and state-to-artifact table per `/docs/spec-kit/corporate-environments-guide#overlay-learning-graph-required`
+
 ## Overlay State Catalog Contract
 
 Overlay state catalogs should keep state ids explicit, preserve lineage, and declare generation/publish metadata as first-class fields.

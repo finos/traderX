@@ -109,6 +109,37 @@ For docs-platform upgrade safety (Docusaurus/plugins/Webpack), follow:
 
 - `/docs/spec-kit/spec-kit-workflow#docusaurus-ci-compatibility`
 
+## Overlay Learning Graph (required)
+
+Every corporate overlay implementation must maintain a learning-path index page at `docs/learning/index.md` (or an equivalent path documented in the overlay repository) that includes:
+
+- a Mermaid `flowchart TB` showing both upstream FINOS states used by the overlay and the overlay's own state chain
+- a state-to-artifact table directly beneath the diagram with these required columns:
+  `State | Learning Guide | Spec Pack | Generated Branch | Diff vs Previous | Runnable`
+
+Required node classes and semantics:
+
+- `upstream`: FINOS canonical state shown for context; not owned by the overlay
+- `anchor`: overlay baseline that mirrors an upstream state but adds no runnable changes
+- `runnable`: first overlay state that is fully runnable as a standalone stack
+- `feature`: subsequent overlay states that add a capability on top of the prior state
+
+Required upstream styling and link behavior:
+
+- upstream FINOS nodes must use class `upstream`
+- class `upstream` must be defined as:
+  `fill:#fff8e1,stroke:#f57f17,stroke-width:1px,stroke-dasharray:5 5`
+- every upstream node must include a Mermaid `click` target to the public FINOS learning guide for that state
+
+Convergence rule:
+
+- when an overlay state intentionally converges with (matches functional surface of) an upstream FINOS state, the diagram must include a dotted convergence edge with this syntax:
+  `UpstreamNode -.->|converges| OverlayNode`
+
+The overlay template includes a starter example:
+
+- `examples/custom-overlay-template/overlay/catalog/learning-graph-diagram.example.md`
+
 ## Upstream Sync Workflow
 
 1. Update submodule pin to a tested upstream commit.
