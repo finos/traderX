@@ -97,6 +97,39 @@ As a trader/operations user, I need reliable security lookup and human-readable 
 1. **Given** trade ticket security input, **When** user types, **Then** typeahead uses combined ticker/company matching and browser autocomplete is disabled.
 2. **Given** account users list is rendered, **When** people-service lookup succeeds, **Then** full names are shown (with username fallback on lookup error).
 
+---
+
+### User Story 7 - State-Aware Header + About Experience (Priority: P2)
+
+As a learner, I need the header and About page to clearly identify which TraderX state I am running and where it came from.
+
+**Why this priority**: State identity and lineage are core learning outcomes in this repository and reduce confusion when switching generated snapshots.
+
+**Independent Test**: Run UI smoke contract checks that verify header title content, About navigation, and About metadata bindings.
+
+**Acceptance Scenarios**:
+
+1. **Given** the UI header is rendered, **When** logo/title area is visible, **Then** title text is `TraderX Sample Trading App (001-baseline-uncontainerized-parity)`.
+2. **Given** the top navigation is rendered, **When** user selects `About`, **Then** an About page is shown with state id, generated timestamp, source branch, and previous-state lineage details.
+3. **Given** the About page is shown, **When** metadata is rendered, **Then** each previous state entry includes its publish branch and a short feature summary sentence derived from state catalog metadata.
+4. **Given** the About page is shown, **When** user wants contract exploration, **Then** a link to the API explorer is available.
+
+---
+
+### User Story 8 - Runtime State Detection Before Startup (Priority: P2)
+
+As a developer, I need startup commands to report what state is currently generated so I can decide whether to regenerate before running.
+
+**Why this priority**: Generated outputs share mutable directories; silent state mismatches are a common source of debugging confusion.
+
+**Independent Test**: Run state start scripts against matched and mismatched generated outputs and verify detection and guidance messages.
+
+**Acceptance Scenarios**:
+
+1. **Given** runtime start script is invoked, **When** generated state metadata does not match expected state, **Then** script reports expected/current state ids and guidance for regenerate vs clean rebuild.
+2. **Given** a forward state mismatch is detected, **When** developer opts into auto-regeneration, **Then** script can regenerate expected state before continuing.
+3. **Given** state metadata matches expected state, **When** startup begins, **Then** script reports match and continues with normal startup flow.
+
 ### Edge Cases
 
 - Unknown ticker must return `404` and no new trade publish.
@@ -129,6 +162,11 @@ As a trader/operations user, I need reliable security lookup and human-readable 
 - **FR-017**: The UI MUST disable trade-ticket creation while `All Accounts` is selected and provide explanatory feedback.
 - **FR-018**: Trade ticket security lookup MUST use combined ticker/company typeahead matching with browser autocomplete disabled.
 - **FR-019**: Account-user administration view MUST display people-service `fullName` values (with username fallback).
+- **FR-020**: The top-bar application title next to the upper-left logo MUST render as `TraderX Sample Trading App (<state-id>)`, where `<state-id>` is the active generated state id.
+- **FR-021**: The top navigation MUST include an `About` tab/link that routes to an About page for the active state.
+- **FR-022**: The About page MUST render: active state id, generation timestamp, source generated-state branch, and prior-state lineage entries including previous-state branch links and short feature summary sentences.
+- **FR-023**: The About page MUST include a direct link to the state API explorer.
+- **FR-024**: About-page lineage metadata MUST be dynamically derived from repository state metadata artifacts (at minimum `catalog/state-catalog.json` plus generated state metadata).
 
 ### Non-Functional Requirements
 
@@ -140,6 +178,8 @@ As a trader/operations user, I need reliable security lookup and human-readable 
 - **NFR-006 (Deterministic Generation)**: Re-running generation from unchanged specs MUST produce stable output with no unexpected drift.
 - **NFR-007 (Traceable Derivation)**: Every major generated component behavior MUST map to plain-English requirement statements and to technical constraints (ports/env/contracts/dependencies).
 - **NFR-008 (Responsive Blotters)**: Trade and position blotters MUST preserve readability across viewport sizes via side-by-side wrapping layout with minimum pane width constraints.
+- **NFR-009 (Runtime State Detection)**: State runtime/start scripts MUST detect the currently generated state id before startup and emit explicit guidance for mismatch handling (including clean-rebuild guidance when moving backwards in lineage).
+- **NFR-010 (Optional Auto-Regeneration)**: Runtime/start scripts MUST support an explicit opt-in mode to auto-regenerate the expected state before startup when mismatch is detected.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -168,6 +208,9 @@ As a trader/operations user, I need reliable security lookup and human-readable 
 - **SC-011**: `All Accounts` mode is available, loads cross-account blotters, and disables ticket creation.
 - **SC-012**: Security input typeahead uses combined ticker/company labels and suppresses browser autocomplete behavior.
 - **SC-013**: Account-user grid displays full names resolved from people-service (or username fallback when lookup fails).
+- **SC-014**: UI smoke checks verify header title format includes active state id and `About` navigation is present.
+- **SC-015**: UI smoke checks verify About page renders state id, generation timestamp, source branch, prior-state lineage summaries, and API explorer link.
+- **SC-016**: Runtime startup scripts demonstrate state-mismatch detection output for matched and mismatched generated outputs, including optional regenerate mode.
 
 ## Assumptions
 
@@ -175,3 +218,4 @@ As a trader/operations user, I need reliable security lookup and human-readable 
 - Angular frontend is the active UI baseline.
 - Local toolchains are available (`node`, `npm`, `java`, `gradle`, `dotnet`).
 - Current component behavior in `system/end-to-end-flows.md`, `system/architecture.md`, and root `README.md` is the intended baseline target.
+- `catalog/state-catalog.json` and generated `ci/state-metadata.json` are available inputs for state-aware UI metadata rendering.

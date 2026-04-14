@@ -16,3 +16,6 @@ Implemented architecture artifacts:
 - `system/architecture.model.json` + generated `system/architecture.md`
 - `system/runtime-topology.md`
 - `system/docker-compose.spec.yaml`
+- `scripts/start-state-004-containerized-generated.sh`
+- `scripts/test-state-004-containerized.sh`
+- `tests/smoke/README.md`

@@ -37,6 +37,7 @@ fi
 
 # Local helper lib used by some runtime tests.
 cp "${SCRIPTS_SRC}/lib/resolve-socketio-client-path.sh" "${SCRIPTS_DST}/lib/"
+cp "${SCRIPTS_SRC}/lib/generated-state-detection.sh" "${SCRIPTS_DST}/lib/"
 
 copy_script_if_exists() {
   local name="$1"
@@ -156,6 +157,7 @@ for script in "${SCRIPTS_DST}"/*.sh; do
   chmod +x "${script}"
 done
 chmod +x "${SCRIPTS_DST}/lib/resolve-socketio-client-path.sh"
+chmod +x "${SCRIPTS_DST}/lib/generated-state-detection.sh"
 
 # Recreate component-compat symlinks used by uncontainerized/edge scripts.
 link_component() {

@@ -55,3 +55,15 @@ description: "Tasks for root-level Spec Kit simple app baseline adoption"
 - [ ] T021 Define retirement checklist for duplicate legacy spec docs once root feature packs are complete.
 - [x] T022 Add semantic compare gate execution to root quickstart and migration evidence flow.
 - [x] T023 Define acceptance threshold policy for differences (allowed: docs/spec metadata only; blocked: source/runtime/contracts).
+
+## Phase 8: User Story 7 - State-Aware Header + About (P2)
+
+- [ ] T024 [US7] Add FR/NFR traceability entries for state-aware header title and About page metadata requirements.
+- [ ] T025 [US7] Define About-page metadata contract (state id, generated timestamp, source branch, prior-state lineage + summary sentence, API explorer link) sourced from state catalog + generated metadata.
+- [ ] T026 [US7] Add/update UI smoke contract checks for header title format and About navigation/metadata rendering.
+
+## Phase 9: User Story 8 - Runtime State Detection (P2)
+
+- [ ] T027 [US8] Add generated-state detection behavior to runtime start scripts with expected/current state diagnostics.
+- [ ] T028 [US8] Add optional auto-regeneration mode for state mismatch with explicit opt-in.
+- [ ] T029 [US8] Add smoke checks that exercise matched/mismatched state detection outcomes and document backward-lineage clean-rebuild guidance.

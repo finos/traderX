@@ -21,3 +21,5 @@ Implemented artifacts:
 - `pipeline/generate-state-002-edge-proxy-uncontainerized.sh`
 - `specs/002-edge-proxy-uncontainerized/generation/patches/*.patch`
 - `scripts/start-state-002-edge-proxy-generated.sh`
+- `scripts/test-state-002-edge-proxy.sh`
+- `tests/smoke/README.md`

@@ -11,6 +11,7 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
   fi
 fi
 TARGET="${GENERATED_ROOT}/code/target-generated"
+EXPECTED_STATE="002-edge-proxy-uncontainerized"
 RUN_DIR="${TARGET}/.run/state-002-edge-proxy"
 EDGE_COMPONENT_DIR="${GENERATED_ROOT}/code/components/edge-proxy-specfirst"
 EDGE_TARGET_DIR="${TARGET}/edge-proxy"
@@ -38,9 +39,9 @@ done
 }
 
 if (( DRY_RUN == 1 )); then
-  "${REPO_ROOT}/scripts/start-base-uncontainerized-generated.sh" --dry-run
+  TRADERX_EXPECTED_STATE_ID="${EXPECTED_STATE}" "${REPO_ROOT}/scripts/start-base-uncontainerized-generated.sh" --dry-run
 else
-  "${REPO_ROOT}/scripts/start-base-uncontainerized-generated.sh"
+  TRADERX_EXPECTED_STATE_ID="${EXPECTED_STATE}" "${REPO_ROOT}/scripts/start-base-uncontainerized-generated.sh"
 fi
 
 mkdir -p "${RUN_DIR}/logs" "${RUN_DIR}/pids"

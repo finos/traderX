@@ -16,6 +16,7 @@ for required in \
   "${TARGET_ROOT}/scripts/start-state-004-containerized-generated.sh" \
   "${TARGET_ROOT}/scripts/stop-state-004-containerized-generated.sh" \
   "${TARGET_ROOT}/scripts/status-state-004-containerized-generated.sh" \
+  "${TARGET_ROOT}/scripts/lib/generated-state-detection.sh" \
   "${TARGET_ROOT}/scripts/README.runtime-harness.md" \
   "${TARGET_ROOT}/RUN_FROM_GENERATED.md"; do
   [[ -f "${required}" ]] || {

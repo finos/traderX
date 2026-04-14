@@ -11,6 +11,7 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
   fi
 fi
 TARGET="${GENERATED_ROOT}/code/target-generated"
+EXPECTED_STATE="${TRADERX_EXPECTED_STATE_ID:-001-baseline-uncontainerized-parity}"
 SPEC="${REPO_ROOT}/catalog/base-uncontainerized-processes.csv"
 RUN_DIR="${TARGET}/.run/base-uncontainerized"
 TOOL_CACHE_DIR="${RUN_DIR}/tool-cache"
@@ -38,6 +39,9 @@ while (( "$#" )); do
   esac
   shift
 done
+
+source "${REPO_ROOT}/scripts/lib/generated-state-detection.sh"
+traderx_ensure_generated_state "${EXPECTED_STATE}" "${REPO_ROOT}" "${GENERATED_ROOT}"
 
 prepare_generated_base_layout() {
   local generated_paths=(

@@ -7,3 +7,7 @@
 - [ ] T205 Execute conformance and smoke checks for impacted baseline flows.
 - [x] T205a Add state-002 smoke test script (`scripts/test-state-002-edge-proxy.sh`).
 - [ ] T206 Publish generated snapshot tag with evidence links.
+- [ ] T207 Add/verify edge-routed GUI state-awareness requirements inherited from state `001` (header + About metadata + API explorer link).
+- [ ] T208 Add state `Status` page requirements and edge-health data contract in system artifacts.
+- [ ] T209 Extend smoke coverage to assert About metadata rendering and Status-page uptime/health visibility through edge endpoint.
+- [ ] T210 Add startup/runtime state-mismatch detection checks for state `002` scripts (match, mismatch, opt-in regeneration path).

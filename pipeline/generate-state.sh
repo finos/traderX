@@ -133,6 +133,7 @@ if (( GEN_DEPTH == 1 )) || [[ "${TRADERX_INSTALL_API_EXPLORER_IN_NESTED_GENERATI
 else
   echo "[info] nested generation depth=${GEN_DEPTH}; skipping API explorer install"
 fi
+bash "${ROOT}/pipeline/install-generated-ui-state-metadata.sh" "${STATE_ID}" "${TARGET_ROOT}" "${COMPONENTS_ROOT}"
 bash "${ROOT}/pipeline/install-generated-runtime-harness.sh" "${STATE_ID}" "${TARGET_ROOT}"
 bash "${ROOT}/pipeline/install-generated-ci-assets.sh" "${STATE_ID}" "${TARGET_ROOT}"
 

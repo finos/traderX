@@ -1,0 +1,15 @@
+{
+  "stateId": "001-baseline-uncontainerized-parity",
+  "stateTitle": "Simple App - Base Uncontainerized App",
+  "stateTrack": "prelude",
+  "generatedAtUtc": "",
+  "sourceBranch": "code/generated-state-001-baseline-uncontainerized-parity",
+  "sourceBranchUrl": "",
+  "lineageLinkUrl": "",
+  "apiExplorerUrl": "/api/docs",
+  "features": {
+    "statusPage": false
+  },
+  "previousStates": [],
+  "statusChecks": []
+}

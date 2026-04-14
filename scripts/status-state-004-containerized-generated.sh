@@ -12,6 +12,14 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
 fi
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-004}"
 COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/containerized-compose/docker-compose.yml"
+source "${REPO_ROOT}/scripts/lib/generated-state-detection.sh"
+
+current_generated_state="$(traderx_read_generated_state_id "${GENERATED_ROOT}" || true)"
+if [[ -n "${current_generated_state}" ]]; then
+  echo "[info] generated output state: ${current_generated_state}"
+else
+  echo "[warn] generated output state is unknown (missing ci/state-metadata.json)"
+fi
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "[error] docker command not found"

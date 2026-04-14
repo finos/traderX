@@ -1,3 +1,70 @@
 .navbar-brand {
     font-size: 15px;
 }
+
+.top-bar-content {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: space-between;
+}
+
+.brand-group {
+    align-items: center;
+    display: flex;
+    gap: 0.65rem;
+    min-width: 0;
+}
+
+.app-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.system-group {
+    align-items: center;
+    display: flex;
+    gap: 0.6rem;
+    margin-left: auto;
+}
+
+.system-dropdown-toggle {
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    min-width: 6.25rem;
+}
+
+.system-dropdown .dropdown-menu {
+    min-width: 12rem;
+}
+
+.system-dropdown .dropdown-item.active {
+    background-color: rgba(13, 110, 253, 0.15);
+    color: #0a58ca;
+}
+
+.finos-logo {
+    display: block;
+}
+
+.functional-tabs {
+    padding-inline: 0.75rem;
+}
+
+@media (max-width: 768px) {
+    .app-title {
+        font-size: 1.05rem;
+    }
+
+    .system-group {
+        justify-content: flex-end;
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .finos-logo {
+        margin-left: auto;
+    }
+}

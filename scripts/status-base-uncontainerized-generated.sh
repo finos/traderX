@@ -13,6 +13,14 @@ fi
 TARGET="${GENERATED_ROOT}/code/target-generated"
 RUN_DIR="${TARGET}/.run/base-uncontainerized"
 SPEC="${REPO_ROOT}/catalog/base-uncontainerized-processes.csv"
+source "${REPO_ROOT}/scripts/lib/generated-state-detection.sh"
+
+current_generated_state="$(traderx_read_generated_state_id "${GENERATED_ROOT}" || true)"
+if [[ -n "${current_generated_state}" ]]; then
+  echo "[info] generated output state: ${current_generated_state}"
+else
+  echo "[warn] generated output state is unknown (missing ci/state-metadata.json)"
+fi
 
 printf "%-24s %-10s %-8s %-12s\n" "process" "pid" "running" "port-open"
 printf "%-24s %-10s %-8s %-12s\n" "------------------------" "----------" "--------" "------------"

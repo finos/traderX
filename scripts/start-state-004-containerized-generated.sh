@@ -14,6 +14,8 @@ STATE_ID="004-containerized-compose-runtime"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-004}"
 COMPOSE_DIR="${GENERATED_ROOT}/code/target-generated/containerized-compose"
 COMPOSE_FILE="${COMPOSE_DIR}/docker-compose.yml"
+WEB_COMPONENT_DIR="${GENERATED_ROOT}/code/components/web-front-end-angular-specfirst"
+WEB_TARGET_DIR="${GENERATED_ROOT}/code/target-generated/web-front-end/angular"
 DRY_RUN=0
 
 while (( "$#" )); do
@@ -29,6 +31,8 @@ while (( "$#" )); do
   esac
   shift
 done
+
+source "${REPO_ROOT}/scripts/lib/generated-state-detection.sh"
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "[error] docker command not found"
@@ -46,10 +50,43 @@ if [[ -z "${DOCKER_BUILDKIT:-}" ]]; then
 fi
 
 if [[ "${TRADERX_SKIP_GENERATE:-0}" != "1" ]]; then
+  traderx_report_generated_state "${STATE_ID}" "${GENERATED_ROOT}" || true
   bash "${REPO_ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
 else
   echo "[info] skipping state generation for ${STATE_ID} (TRADERX_SKIP_GENERATE=1)"
+  traderx_ensure_generated_state "${STATE_ID}" "${REPO_ROOT}" "${GENERATED_ROOT}"
 fi
+
+sync_state_aware_web_ui() {
+  if [[ ! -d "${WEB_COMPONENT_DIR}" || ! -d "${WEB_TARGET_DIR}" ]]; then
+    return 0
+  fi
+
+  local rel
+  for rel in \
+    "main/app/about" \
+    "main/app/status" \
+    "main/app/model/state-ui-metadata.model.ts" \
+    "main/app/service/state-metadata.service.ts" \
+    "main/app/header/header.component.ts" \
+    "main/app/header/header.component.html" \
+    "main/app/header/header.component.scss" \
+    "main/app/routing.ts" \
+    "main/assets/state-ui.json"; do
+    if [[ -d "${WEB_COMPONENT_DIR}/${rel}" ]]; then
+      rm -rf "${WEB_TARGET_DIR:?}/${rel}"
+      mkdir -p "${WEB_TARGET_DIR}/${rel}"
+      cp -R "${WEB_COMPONENT_DIR}/${rel}/." "${WEB_TARGET_DIR}/${rel}/"
+    elif [[ -f "${WEB_COMPONENT_DIR}/${rel}" ]]; then
+      mkdir -p "$(dirname "${WEB_TARGET_DIR}/${rel}")"
+      cp "${WEB_COMPONENT_DIR}/${rel}" "${WEB_TARGET_DIR}/${rel}"
+    fi
+  done
+
+  echo "[info] synced state-aware About/Status UI sources into containerized web target"
+}
+
+sync_state_aware_web_ui
 
 [[ -f "${COMPOSE_FILE}" ]] || {
   echo "[error] compose file not found: ${COMPOSE_FILE}"

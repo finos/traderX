@@ -6,6 +6,7 @@ ORIGIN="${2:-http://localhost:8080}"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-004}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
+EXPECTED_STATE="004-containerized-compose-runtime"
 
 if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
   LOCAL_RUNTIME_SCRIPT="${GENERATED_ROOT}/code/target-generated/scripts/$(basename "${BASH_SOURCE[0]}")"
@@ -14,6 +15,13 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
   fi
 fi
 COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/containerized-compose/docker-compose.yml"
+source "${REPO_ROOT}/scripts/lib/generated-state-detection.sh"
+
+echo "[check] generated output state metadata"
+traderx_report_generated_state "${EXPECTED_STATE}" "${GENERATED_ROOT}" >/dev/null || {
+  echo "[error] generated output does not match expected state ${EXPECTED_STATE}"
+  exit 1
+}
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "[error] docker command not found"
@@ -98,5 +106,6 @@ echo "[check] baseline service smoke suite in containerized runtime"
 "${REPO_ROOT}/scripts/test-trade-service-overlay.sh" "${ORIGIN}" "http://localhost:18092" "http://localhost:18090"
 "${REPO_ROOT}/scripts/test-realtime-account-stream-overlay.sh" "http://localhost:18092" "${INGRESS_URL}" "22214"
 "${REPO_ROOT}/scripts/test-web-angular-overlay.sh" "${INGRESS_URL}"
+"${REPO_ROOT}/scripts/test-web-angular-baseline-ux-contract.sh" "${GENERATED_ROOT}/code/target-generated/web-front-end/angular"
 
 echo "[done] state 004 containerized compose smoke tests passed"

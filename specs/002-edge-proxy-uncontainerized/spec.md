@@ -10,6 +10,8 @@
 - As a developer, I want browser traffic to flow through one edge endpoint so local setup is simpler.
 - As a developer, I want backend services to keep existing contracts while edge routing is introduced.
 - As a maintainer, I want this state to remain generated from specs with full parity checks.
+- As a learner, I want state-aware header/About UX carried from state `001` and visible through the edge endpoint.
+- As a learner, I want a `Status` page that shows service uptime/health through the edge runtime.
 
 ## Functional Requirements
 
@@ -17,6 +19,10 @@
 - FR-202: The edge SHALL route requests to existing backend services without changing current API contracts.
 - FR-203: Existing baseline end-to-end flows F1-F6 SHALL remain behaviorally compatible.
 - FR-204: The edge endpoint SHALL expose a standalone API explorer at `/api/docs`, backed by state API metadata and service OpenAPI specs.
+- FR-205: GUI state-awareness requirements from state `001` (header title with state id + About page metadata/linkage/API explorer link) SHALL be preserved in this state.
+- FR-206: GUI top navigation SHALL include a `Status` tab/link in this state and later states in this lineage unless explicitly superseded.
+- FR-207: The `Status` page SHALL render uptime/health status for each runtime service participating in this state.
+- FR-208: Status-page service status data SHALL be obtained through edge-accessible health/status sources so the page works from the single edge endpoint.
 
 ## Non-Functional Requirements
 
@@ -32,6 +38,9 @@
 - NFR-210: The edge proxy implementation SHALL forward standard ingress headers (`X-Forwarded-For`, `X-Forwarded-Host`, `X-Forwarded-Proto`, and `X-Forwarded-Prefix` for prefixed routes) to upstream services.
 - NFR-211: Generated-state publish flows SHALL require successful compile preflight for all generated modules declared in state metadata (Node.js, Gradle, .NET where present) before commit/push.
 - NFR-212: API explorer "Try it out" requests in edge-proxy states SHALL honor service path prefixes (for example `/order-matcher`, `/people-service`) and MUST NOT fallback to root-relative service paths.
+- NFR-213: Runtime/start scripts for this state SHALL detect and report currently generated state id versus expected state id before startup.
+- NFR-214: On state mismatch, runtime/start scripts SHALL provide explicit guidance for forward-regeneration versus backward clean rebuild decisions.
+- NFR-215: Runtime/start scripts SHALL support an explicit opt-in mode to auto-regenerate expected state before startup.
 
 ## Success Criteria
 
@@ -41,6 +50,9 @@
 - SC-204: Generated snapshots from this state lineage contain required CI workflow files and scanner suppression files with component-complete coverage.
 - SC-205: Generated-state publish fails prior to commit/push when compile preflight fails for any generated module in scope.
 - SC-206: After state startup, API explorer is reachable at `http://localhost:18080/api/docs` and interactive requests route through prefixed service paths.
+- SC-207: Edge-routed UI smoke tests verify header title includes `002-edge-proxy-uncontainerized`, `About` page metadata renders expected lineage/source fields, and API explorer link is available.
+- SC-208: Edge-routed UI smoke tests verify `Status` page is reachable and shows per-service uptime/health entries for this state.
+- SC-209: Startup script smoke checks verify generated-state detection messaging for both match and mismatch cases, including opt-in auto-regeneration flow.
 
 ## Generation + Runtime Entry Points
 

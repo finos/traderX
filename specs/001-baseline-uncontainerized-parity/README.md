@@ -12,6 +12,7 @@ This is the canonical root Spec Kit feature pack for the TraderX simple base app
 - `system/**` - normalized system requirements/story/traceability artifacts used by generation pipelines, including generated architecture docs from `system/architecture.model.json`
 - `components/**` - per-component requirement coverage
 - `conformance/**` - generated per-component conformance packs
+- `tests/smoke/**` - state smoke-test coverage expectations
 
 ## Validation
 

@@ -25,6 +25,14 @@ TRADE_TICKET_HTML="${WEB_ROOT}/main/app/trade/trade-ticket/trade-ticket.componen
 TRADE_BLOTTER_TS="${WEB_ROOT}/main/app/trade/trade-blotter/trade-blotter.component.ts"
 POSITION_BLOTTER_TS="${WEB_ROOT}/main/app/trade/position-blotter/position-blotter.component.ts"
 ACCOUNT_TS="${WEB_ROOT}/main/app/accounts/account.component.ts"
+ROUTING_TS="${WEB_ROOT}/main/app/routing.ts"
+HEADER_TS="${WEB_ROOT}/main/app/header/header.component.ts"
+HEADER_HTML="${WEB_ROOT}/main/app/header/header.component.html"
+ABOUT_TS="${WEB_ROOT}/main/app/about/about.component.ts"
+ABOUT_HTML="${WEB_ROOT}/main/app/about/about.component.html"
+STATUS_TS="${WEB_ROOT}/main/app/status/status.component.ts"
+STATUS_HTML="${WEB_ROOT}/main/app/status/status.component.html"
+STATE_UI_JSON="${WEB_ROOT}/main/assets/state-ui.json"
 
 require_pattern() {
   local file="$1"
@@ -70,5 +78,41 @@ require_pattern "${ACCOUNT_TS}" "this\\.userService\\.getUser\\(accountUser\\.us
 echo "[check] responsive blotter layout contract"
 require_pattern "${TRADE_SCSS}" "flex-wrap: wrap;" "expected wrapping blotter layout"
 require_pattern "${TRADE_SCSS}" "min-width: 700px;" "expected minimum blotter width guardrail"
+
+echo "[check] state-aware header + about/status routing contract"
+require_pattern "${HEADER_TS}" "TraderX Sample Trading App" "expected state-aware title formatter in header component"
+require_pattern "${HEADER_HTML}" "class=\"system-group\"" "expected right-aligned system group in top bar"
+require_pattern "${HEADER_TS}" "isSystemMenuOpen" "expected internal System dropdown state in header component"
+require_pattern "${HEADER_HTML}" '\(click\)="toggleSystemMenu\(\$event\)"' "expected Angular-driven System dropdown toggle"
+require_pattern "${HEADER_HTML}" "\\[href\\]=\"metadata\\.apiExplorerUrl\"" "expected API explorer link in System dropdown"
+require_pattern "${HEADER_HTML}" "routerLink=\"/about\"" "expected About link in System dropdown"
+require_pattern "${HEADER_HTML}" "routerLink=\"/status\"" "expected Status link in System dropdown"
+require_pattern "${HEADER_HTML}" "class=\"finos-logo\"" "expected FINOS logo anchored at right side"
+require_pattern "${HEADER_HTML}" "class=\"nav nav-tabs mt-3 functional-tabs\"" "expected separate functional tab row"
+require_pattern "${ROUTING_TS}" "path: 'about'" "expected about route registration"
+require_pattern "${ROUTING_TS}" "path: 'status'" "expected status route registration"
+require_pattern "${ABOUT_HTML}" "Open lineage map" "expected lineage link in about page"
+require_pattern "${ABOUT_HTML}" "Open API explorer|Open API Explorer|Open API explorer" "expected API explorer link in about page"
+require_pattern "${STATUS_TS}" "statusChecks" "expected status checks metadata wiring"
+require_pattern "${STATUS_HTML}" "Service Status" "expected status page heading"
+
+echo "[check] generated UI metadata contract"
+if [[ ! -f "${STATE_UI_JSON}" ]]; then
+  echo "[error] missing generated UI metadata file: ${STATE_UI_JSON}"
+  exit 1
+fi
+if command -v jq >/dev/null 2>&1; then
+  state_id="$(jq -r '.stateId // empty' "${STATE_UI_JSON}")"
+  generated_at="$(jq -r '.generatedAtUtc // empty' "${STATE_UI_JSON}")"
+  source_branch="$(jq -r '.sourceBranch // empty' "${STATE_UI_JSON}")"
+  if [[ -z "${state_id}" || -z "${generated_at}" || -z "${source_branch}" ]]; then
+    echo "[error] UI metadata missing required fields (stateId/generatedAtUtc/sourceBranch)"
+    exit 1
+  fi
+else
+  require_pattern "${STATE_UI_JSON}" "\"stateId\"" "expected stateId in ui metadata"
+  require_pattern "${STATE_UI_JSON}" "\"generatedAtUtc\"" "expected generatedAtUtc in ui metadata"
+  require_pattern "${STATE_UI_JSON}" "\"sourceBranch\"" "expected sourceBranch in ui metadata"
+fi
 
 echo "[done] web-front-end-angular baseline UX contract checks passed"
