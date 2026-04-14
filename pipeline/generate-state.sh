@@ -42,7 +42,13 @@ clean_target_root() {
   local i
 
   for ((i=1; i<=attempts; i++)); do
-    rm -rf "${TARGET_ROOT}" && break || true
+    if [[ -d "${TARGET_ROOT}" ]]; then
+      # Preserve runtime state/cache in .run while ensuring all generated
+      # component/layout directories are refreshed for this generation pass.
+      find "${TARGET_ROOT}" -maxdepth 1 -mindepth 1 ! -name '.run' -exec rm -rf {} + && break || true
+    else
+      mkdir -p "${TARGET_ROOT}" && break || true
+    fi
     if (( i == attempts )); then
       echo "[fail] unable to clean target root after ${attempts} attempts: ${TARGET_ROOT}"
       echo "[hint] stop active state runtimes, then retry."
