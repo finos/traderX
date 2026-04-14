@@ -21,6 +21,8 @@
 - FR-01304: State adds an account-scoped orders blotter in the trader UI (tabbed with the trade blotter context) for viewing and canceling open orders.
 - FR-01305: State adds an order admin view in the web UI (`Admin` tab) for cross-account inspection plus `cancel` and `force-fill` actions.
 - FR-01306: Order submission, cancellation, and force-fill flows are exposed through order APIs and are propagated in realtime via messaging subjects.
+- FR-01311: Order matcher publishes order lifecycle updates to `/accounts/{accountId}/orders` (account scope) and `/orders` (all accounts) for every persisted transition (`NEW`, `PARTIALLY_FILLED`, `FILLED`, `CANCELED`, `REJECTED`).
+- FR-01312: Published order events use the same payload contract as order REST responses so UI consumers can apply updates without an immediate follow-up HTTP fetch.
 - FR-01308: Order data is persisted in the shared database so active orders survive order-matcher service restarts.
 - FR-01309: On every matcher tick, in-the-money orders are auto-filled with this policy: remaining `< 1000` fills fully, otherwise fills half (rounded up).
 - FR-01310: Any order fill (auto-fill or force-fill) must submit a trade through trade-service so trade history and account positions are updated via the existing trade pipeline.
@@ -41,6 +43,7 @@
 - NFR-01311: Generated artifacts MUST include a GHCR run bundle for running this state from published images.
 - NFR-01312: Generator output MUST deterministically include `database/initialSchema.sql` with an `OrderBook` table definition whenever `order-matcher` is present in generated state artifacts.
 - NFR-01313: Generated-state publish gates MUST fail if `order-matcher` is present and the generated database schema contract for `OrderBook` is missing.
+- NFR-01314: Order-facing UI views (`trade` order blotter, admin order view) MUST use messaging-bus push subscriptions for live updates and MUST NOT run periodic background polling loops against `GET /orders`.
 
 ## Success Criteria
 
@@ -54,3 +57,4 @@
 - SC-01308: Generated snapshot branch and tag strategy are defined in state catalog.
 - SC-01309: Generated branch artifacts include `C2` build/publish workflow and GHCR run-bundle assets.
 - SC-01310: `pipeline/validate-generated-state-contracts.sh` fails on generated snapshots that include `order-matcher` without `OrderBook` schema and passes when the contract is present.
+- SC-01311: Smoke checks validate that open-order views update in real time on create/auto-fill/cancel/force-fill via `/accounts/{accountId}/orders` and `/orders`, without periodic `GET /orders` polling traffic.

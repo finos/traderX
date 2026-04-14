@@ -296,10 +296,10 @@ index 46d12e9..6e929e5 100644
          "directory": "people-service",
          "dockerfile": "Dockerfile.compose",
 diff --git a/ingress/nginx.traderx.conf.template b/ingress/nginx.traderx.conf.template
-index 64b3ad9..33bcfc0 100644
+index e5c93d1..473983b 100644
 --- a/ingress/nginx.traderx.conf.template
 +++ b/ingress/nginx.traderx.conf.template
-@@ -54,6 +54,10 @@ server {
+@@ -78,6 +78,10 @@ server {
          proxy_pass ${PRICE_PUBLISHER_URL};
      }
  
@@ -2502,6 +2502,14 @@ index 0000000..641b0bc
 +  runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 +  runtimeOnly 'org.postgresql:postgresql:42.7.10'
 +  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
++  implementation('org.json:json:20240303') {
++    because 'previous versions are affected by multiple CVE'
++  }
++  implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.3.20'
++  implementation('io.socket:socket.io-client:2.1.2') {
++    exclude group: 'org.json', module: 'json'
++  }
++  implementation 'com.squareup.okhttp3:okhttp:4.12.0'
 +  implementation ('ch.qos.logback:logback-core:1.5.32') {
 +    because 'version brought in by spring boot 3.5.13 affected by CVE-2024-12798'
 +  }
@@ -2515,6 +2523,11 @@ index 0000000..641b0bc
 +
 +tasks.withType(Test).configureEach {
 +  useJUnitPlatform()
++}
++
++configurations.configureEach {
++  exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
++  exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
 +}
 diff --git a/order-matcher/openapi.yaml b/order-matcher/openapi.yaml
 new file mode 100644
@@ -2884,10 +2897,10 @@ index 0000000..d9e7871
 +
 diff --git a/order-matcher/src/main/java/finos/traderx/ordermatcher/controller/OrderController.java b/order-matcher/src/main/java/finos/traderx/ordermatcher/controller/OrderController.java
 new file mode 100644
-index 0000000..f5f791f
+index 0000000..04f1d46
 --- /dev/null
 +++ b/order-matcher/src/main/java/finos/traderx/ordermatcher/controller/OrderController.java
-@@ -0,0 +1,56 @@
+@@ -0,0 +1,61 @@
 +package finos.traderx.ordermatcher.controller;
 +
 +import finos.traderx.ordermatcher.api.OrderCreateRequest;
@@ -2930,20 +2943,25 @@ index 0000000..f5f791f
 +    @PostMapping("/orders")
 +    @ResponseStatus(HttpStatus.CREATED)
 +    public OrderResponse createOrder(@RequestBody OrderCreateRequest request) {
-+        return orderMatcherService.createOrder(request);
++        OrderResponse response = orderMatcherService.createOrder(request);
++        orderMatcherService.publishOrderUpdate(response);
++        return response;
 +    }
 +
 +    @PostMapping("/orders/{orderId}/cancel")
 +    public OrderResponse cancelOrder(@PathVariable("orderId") String orderId) {
-+        return orderMatcherService.cancelOrder(orderId);
++        OrderResponse response = orderMatcherService.cancelOrder(orderId);
++        orderMatcherService.publishOrderUpdate(response);
++        return response;
 +    }
 +
 +    @PostMapping("/orders/{orderId}/force-fill")
 +    public OrderResponse forceFillOrder(@PathVariable("orderId") String orderId) {
-+        return orderMatcherService.forceFillOrder(orderId);
++        OrderResponse response = orderMatcherService.forceFillOrder(orderId);
++        orderMatcherService.publishOrderUpdate(response);
++        return response;
 +    }
 +}
-+
 diff --git a/order-matcher/src/main/java/finos/traderx/ordermatcher/controller/SystemController.java b/order-matcher/src/main/java/finos/traderx/ordermatcher/controller/SystemController.java
 new file mode 100644
 index 0000000..a96a882
@@ -3227,12 +3245,14 @@ index 0000000..5ed181f
 +
 diff --git a/order-matcher/src/main/java/finos/traderx/ordermatcher/service/OrderMatcherService.java b/order-matcher/src/main/java/finos/traderx/ordermatcher/service/OrderMatcherService.java
 new file mode 100644
-index 0000000..f3d51a2
+index 0000000..1cfb826
 --- /dev/null
 +++ b/order-matcher/src/main/java/finos/traderx/ordermatcher/service/OrderMatcherService.java
-@@ -0,0 +1,498 @@
+@@ -0,0 +1,525 @@
 +package finos.traderx.ordermatcher.service;
 +
++import finos.traderx.messaging.PubSubException;
++import finos.traderx.messaging.Publisher;
 +import finos.traderx.ordermatcher.api.OpenCountResponse;
 +import finos.traderx.ordermatcher.api.OrderCreateRequest;
 +import finos.traderx.ordermatcher.api.OrderResponse;
@@ -3240,6 +3260,8 @@ index 0000000..f3d51a2
 +import finos.traderx.ordermatcher.model.OrderSide;
 +import finos.traderx.ordermatcher.model.OrderStatus;
 +import finos.traderx.ordermatcher.repository.OrderRepository;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
 +import org.springframework.beans.factory.annotation.Value;
 +import org.springframework.http.ResponseEntity;
 +import org.springframework.scheduling.annotation.Scheduled;
@@ -3274,11 +3296,14 @@ index 0000000..f3d51a2
 +
 +@Service
 +public class OrderMatcherService {
++    private static final Logger log = LoggerFactory.getLogger(OrderMatcherService.class);
 +    private static final String APP_NAME = "traderx-order-matcher";
 +    private static final Pattern ORDER_ID_PATTERN = Pattern.compile("^ord-013-(\\d{4,})$");
++    private static final String ALL_ORDERS_TOPIC = "/orders";
 +    private static final Set<OrderStatus> OPEN_STATUSES = Set.of(OrderStatus.NEW, OrderStatus.PARTIALLY_FILLED);
 +
 +    private final OrderRepository orderRepository;
++    private final Publisher<OrderResponse> orderPublisher;
 +    private final RestTemplate restTemplate;
 +    private final boolean seedEnabled;
 +    private final String priceServiceUrl;
@@ -3299,6 +3324,7 @@ index 0000000..f3d51a2
 +
 +    public OrderMatcherService(
 +        OrderRepository orderRepository,
++        Publisher<OrderResponse> orderPublisher,
 +        RestTemplate restTemplate,
 +        @Value("${order.matcher.seed-enabled:true}") boolean seedEnabled,
 +        @Value("${order.matcher.price-service-url:http://price-publisher:18100}") String priceServiceUrl,
@@ -3307,6 +3333,7 @@ index 0000000..f3d51a2
 +        @Value("${order.matcher.fill-full-threshold:1000}") int fillFullThreshold
 +    ) {
 +        this.orderRepository = orderRepository;
++        this.orderPublisher = orderPublisher;
 +        this.restTemplate = restTemplate;
 +        this.seedEnabled = seedEnabled;
 +        this.priceServiceUrl = trimTrailingSlash(priceServiceUrl);
@@ -3522,10 +3549,28 @@ index 0000000..f3d51a2
 +            }
 +            applyFill(liveOrder, fillQty, marketPrice, false);
 +            orderRepository.save(liveOrder);
++            publishOrderUpdate(liveOrder);
 +            autoFillSuccess.incrementAndGet();
 +        } finally {
 +            orderMutationLock.unlock();
 +        }
++    }
++
++    public void publishOrderUpdate(OrderResponse order) {
++        if (order == null || order.getAccountId() == null) {
++            return;
++        }
++        String accountTopic = "/accounts/" + order.getAccountId() + "/orders";
++        try {
++            orderPublisher.publish(accountTopic, order);
++            orderPublisher.publish(ALL_ORDERS_TOPIC, order);
++        } catch (PubSubException ex) {
++            log.warn("Unable to publish order update for {} on {}/{}", order.getOrderId(), accountTopic, ALL_ORDERS_TOPIC, ex);
++        }
++    }
++
++    private void publishOrderUpdate(OrderRecord order) {
++        publishOrderUpdate(OrderResponse.from(order, lastPrices.get(order.getSecurity())));
 +    }
 +
 +    private void applyFill(OrderRecord order, int fillQty, BigDecimal executionPrice, boolean forceFill) {
@@ -3731,10 +3776,10 @@ index 0000000..f3d51a2
 +}
 diff --git a/order-matcher/src/main/resources/application.properties b/order-matcher/src/main/resources/application.properties
 new file mode 100644
-index 0000000..7999334
+index 0000000..6d9b921
 --- /dev/null
 +++ b/order-matcher/src/main/resources/application.properties
-@@ -0,0 +1,22 @@
+@@ -0,0 +1,23 @@
 +server.port=${ORDER_MATCHER_PORT:18110}
 +
 +spring.datasource.url=jdbc:postgresql://${DATABASE_PG_HOST:localhost}:${DATABASE_PG_PORT:5432}/${DATABASE_NAME:traderx}
@@ -3752,6 +3797,7 @@ index 0000000..7999334
 +order.matcher.tick-ms=${ORDER_MATCHER_TICK_MS:1000}
 +order.matcher.fill-full-threshold=${ORDER_FILL_FULL_THRESHOLD:1000}
 +order.matcher.seed-enabled=${ORDER_MATCHER_SEED_ENABLED:true}
++trade.feed.address=${TRADE_FEED_ADDRESS:http://${TRADE_FEED_HOST:localhost}:18086}
 +
 +# To avoid "Request header is too large" when application is backed by oidc proxy.
 +server.max-http-request-header-size=1000000
@@ -4168,13 +4214,12 @@ index 0000000..43c9cf7
 +}
 diff --git a/web-front-end/angular/main/app/admin/order-admin.component.ts b/web-front-end/angular/main/app/admin/order-admin.component.ts
 new file mode 100644
-index 0000000..f0cb1a6
+index 0000000..133578b
 --- /dev/null
 +++ b/web-front-end/angular/main/app/admin/order-admin.component.ts
-@@ -0,0 +1,289 @@
+@@ -0,0 +1,330 @@
 +import { CellClickedEvent, ColDef, GetRowIdParams, GridApi, GridReadyEvent } from 'ag-grid-community';
 +import { Component, OnDestroy, OnInit } from '@angular/core';
-+import { interval, Subscription } from 'rxjs';
 +import { OrderRecord } from '../model/order.model';
 +import { PriceTick } from '../model/trade.model';
 +import { OrderAdminService } from '../service/order-admin.service';
@@ -4199,8 +4244,8 @@ index 0000000..f0cb1a6
 +    totalRemainingQuantity = 0;
 +    actionMessage?: { type: 'success' | 'danger'; text: string };
 +    private readonly marketPriceByTicker = new Map<string, number>();
-+    private pollSub?: Subscription;
-+    private priceUnsubscribeFn?: Function;
++    private orderUnsubscribeFn?: () => void;
++    private priceUnsubscribeFn?: () => void;
 +
 +    columnDefs: ColDef<OrderRow>[] = [
 +        { headerName: 'ORDER ID', field: 'orderId' },
@@ -4265,14 +4310,16 @@ index 0000000..f0cb1a6
 +
 +    ngOnInit(): void {
 +        this.reloadOpenOrders();
-+        this.pollSub = interval(5000).subscribe(() => this.reloadOpenOrders());
++        this.orderUnsubscribeFn = this.orderAdminService.subscribe('/orders', (order: OrderRecord) => {
++            this.applyOrderUpdate(order);
++        });
 +        this.priceUnsubscribeFn = this.tradeFeed.subscribe('pricing.*', (tick: PriceTick) => {
 +            this.applyPriceTick(tick);
 +        });
 +    }
 +
 +    ngOnDestroy(): void {
-+        this.pollSub?.unsubscribe();
++        this.orderUnsubscribeFn?.();
 +        this.priceUnsubscribeFn?.();
 +    }
 +
@@ -4290,7 +4337,6 @@ index 0000000..f0cb1a6
 +            this.orderAdminService.cancelOrder(orderId).subscribe({
 +                next: (res) => {
 +                    this.actionMessage = { type: 'success', text: `Canceled ${res.orderId}` };
-+                    this.reloadOpenOrders();
 +                },
 +                error: () => {
 +                    this.actionMessage = { type: 'danger', text: `Failed to cancel ${orderId}` };
@@ -4302,7 +4348,6 @@ index 0000000..f0cb1a6
 +            this.orderAdminService.forceFillOrder(orderId).subscribe({
 +                next: (res) => {
 +                    this.actionMessage = { type: 'success', text: `Force-filled ${res.orderId}` };
-+                    this.reloadOpenOrders();
 +                },
 +                error: () => {
 +                    this.actionMessage = { type: 'danger', text: `Failed to force-fill ${orderId}` };
@@ -4322,6 +4367,35 @@ index 0000000..f0cb1a6
 +            this.setGridRowData(rows);
 +            this.updateSummary(rows);
 +        });
++    }
++
++    private applyOrderUpdate(order: OrderRecord): void {
++        if (!order?.orderId) {
++            return;
++        }
++        const terminal = this.isTerminalStatus(order.status);
++        if (terminal) {
++            const filtered = this.rows.filter((row) => row.orderId !== order.orderId);
++            if (filtered.length === this.rows.length) {
++                return;
++            }
++            this.rows = filtered;
++            this.setGridRowData(filtered);
++            this.updateSummary(filtered);
++            return;
++        }
++        const updatedRow = this.withLivePricing(order);
++        const existingIndex = this.rows.findIndex((row) => row.orderId === order.orderId);
++        const nextRows = [...this.rows];
++        if (existingIndex >= 0) {
++            nextRows[existingIndex] = updatedRow;
++        } else {
++            nextRows.unshift(updatedRow);
++        }
++        nextRows.sort((a, b) => this.toEpochMs(b.updatedAt) - this.toEpochMs(a.updatedAt));
++        this.rows = nextRows;
++        this.setGridRowData(nextRows);
++        this.updateSummary(nextRows);
 +    }
 +
 +    private applyPriceTick(tick: PriceTick) {
@@ -4359,6 +4433,18 @@ index 0000000..f0cb1a6
 +        this.openOrderCount = rows.length;
 +        this.unfilledOrderCount = rows.filter((row) => Number(row.remainingQuantity ?? 0) > 0).length;
 +        this.totalRemainingQuantity = rows.reduce((sum, row) => sum + Number(row.remainingQuantity ?? 0), 0);
++    }
++
++    private isTerminalStatus(status: string | undefined): boolean {
++        return status === 'FILLED' || status === 'CANCELED' || status === 'REJECTED';
++    }
++
++    private toEpochMs(value: string | Date | undefined): number {
++        if (!value) {
++            return 0;
++        }
++        const ts = new Date(value).getTime();
++        return Number.isFinite(ts) ? ts : 0;
 +    }
 +
 +    private setGridRowData(rows: OrderRow[]) {
@@ -4552,16 +4638,17 @@ index 39d4aab..b36d8e1 100644
  ];
 diff --git a/web-front-end/angular/main/app/service/order-admin.service.ts b/web-front-end/angular/main/app/service/order-admin.service.ts
 new file mode 100644
-index 0000000..4039dec
+index 0000000..b9dc36b
 --- /dev/null
 +++ b/web-front-end/angular/main/app/service/order-admin.service.ts
-@@ -0,0 +1,45 @@
+@@ -0,0 +1,51 @@
 +import { Injectable } from '@angular/core';
 +import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 +import { Observable, throwError } from 'rxjs';
 +import { catchError } from 'rxjs/operators';
 +import { environment } from 'main/environments/environment';
 +import { OrderRecord, OrderCreateRequest } from '../model/order.model';
++import { TradeFeedService } from './trade-feed.service';
 +
 +@Injectable({
 +    providedIn: 'root'
@@ -4569,7 +4656,8 @@ index 0000000..4039dec
 +export class OrderAdminService {
 +    private readonly ordersUrl = `${environment.orderMatcherUrl}/orders`;
 +
-+    constructor(private http: HttpClient) {}
++    constructor(private http: HttpClient,
++                private tradeFeed: TradeFeedService) {}
 +
 +    getOpenOrders(accountId?: number): Observable<OrderRecord[]> {
 +        const query = accountId != null ? `?status=open&accountId=${accountId}` : '?status=open';
@@ -4596,6 +4684,10 @@ index 0000000..4039dec
 +        );
 +    }
 +
++    subscribe(topic: string, callback: (order: OrderRecord) => void): () => void {
++        return this.tradeFeed.subscribe(topic, callback);
++    }
++
 +    private handleError(error: HttpErrorResponse) {
 +        console.error(error);
 +        return throwError(() => error);
@@ -4620,10 +4712,10 @@ index 0000000..a00d20c
 +</ag-grid-angular>
 diff --git a/web-front-end/angular/main/app/trade/order-blotter/order-blotter.component.ts b/web-front-end/angular/main/app/trade/order-blotter/order-blotter.component.ts
 new file mode 100644
-index 0000000..d085900
+index 0000000..62cf0a4
 --- /dev/null
 +++ b/web-front-end/angular/main/app/trade/order-blotter/order-blotter.component.ts
-@@ -0,0 +1,290 @@
+@@ -0,0 +1,341 @@
 +import { CellClickedEvent, ColDef, GetRowIdParams, GridApi, GridReadyEvent } from 'ag-grid-community';
 +import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 +import { Account } from 'main/app/model/account.model';
@@ -4631,7 +4723,6 @@ index 0000000..d085900
 +import { PriceTick } from 'main/app/model/trade.model';
 +import { OrderAdminService } from 'main/app/service/order-admin.service';
 +import { TradeFeedService } from 'main/app/service/trade-feed.service';
-+import { Subscription, interval } from 'rxjs';
 +
 +type OrderRow = OrderRecord & {
 +  marketPrice?: number;
@@ -4651,8 +4742,8 @@ index 0000000..d085900
 +
 +  rows: OrderRow[] = [];
 +  gridApi?: GridApi<OrderRow>;
-+  private pollSub?: Subscription;
-+  private priceUnsubscribeFn?: Function;
++  private orderUnsubscribeFn?: () => void;
++  private priceUnsubscribeFn?: () => void;
 +  private readonly marketPriceByTicker = new Map<string, number>();
 +
 +  private readonly baseColumns: ColDef<OrderRow>[] = [
@@ -4719,7 +4810,7 @@ index 0000000..d085900
 +  }
 +
 +  ngOnDestroy(): void {
-+    this.pollSub?.unsubscribe();
++    this.orderUnsubscribeFn?.();
 +    this.priceUnsubscribeFn?.();
 +  }
 +
@@ -4737,7 +4828,7 @@ index 0000000..d085900
 +    if (!orderId) {
 +      return;
 +    }
-+    this.orderAdminService.cancelOrder(orderId).subscribe(() => this.reloadOpenOrders());
++    this.orderAdminService.cancelOrder(orderId).subscribe();
 +  }
 +
 +  getRowId(params: GetRowIdParams<OrderRow>): string {
@@ -4745,12 +4836,21 @@ index 0000000..d085900
 +  }
 +
 +  private startScope(): void {
-+    this.pollSub?.unsubscribe();
++    this.orderUnsubscribeFn?.();
 +    this.priceUnsubscribeFn?.();
 +    this.marketPriceByTicker.clear();
 +
++    const accountId = this.allAccountsMode ? undefined : this.account?.id;
++    if (!this.allAccountsMode && (!accountId || accountId <= 0)) {
++      this.rows = [];
++      this.setGridRowData([]);
++      return;
++    }
 +    this.reloadOpenOrders();
-+    this.pollSub = interval(5000).subscribe(() => this.reloadOpenOrders());
++    const topic = this.allAccountsMode ? '/orders' : `/accounts/${accountId}/orders`;
++    this.orderUnsubscribeFn = this.orderAdminService.subscribe(topic, (order: OrderRecord) => {
++      this.applyOrderUpdate(order);
++    });
 +    this.priceUnsubscribeFn = this.tradeFeed.subscribe('pricing.*', (tick: PriceTick) => this.applyPriceTick(tick));
 +  }
 +
@@ -4765,6 +4865,36 @@ index 0000000..d085900
 +      this.rows = (orders ?? []).map((order) => this.withLivePricing(order));
 +      this.setGridRowData(this.rows);
 +    });
++  }
++
++  private applyOrderUpdate(order: OrderRecord): void {
++    if (!order?.orderId) {
++      return;
++    }
++    const selectedAccountId = this.account?.id;
++    if (!this.allAccountsMode && selectedAccountId && order.accountId !== selectedAccountId) {
++      return;
++    }
++    if (this.isTerminalStatus(order.status)) {
++      const filtered = this.rows.filter((row) => row.orderId !== order.orderId);
++      if (filtered.length === this.rows.length) {
++        return;
++      }
++      this.rows = filtered;
++      this.setGridRowData(filtered);
++      return;
++    }
++    const updatedRow = this.withLivePricing(order);
++    const existingIndex = this.rows.findIndex((row) => row.orderId === order.orderId);
++    const nextRows = [...this.rows];
++    if (existingIndex >= 0) {
++      nextRows[existingIndex] = updatedRow;
++    } else {
++      nextRows.unshift(updatedRow);
++    }
++    nextRows.sort((a, b) => this.toEpochMs(b.updatedAt) - this.toEpochMs(a.updatedAt));
++    this.rows = nextRows;
++    this.setGridRowData(nextRows);
 +  }
 +
 +  private applyPriceTick(tick: PriceTick): void {
@@ -4812,6 +4942,18 @@ index 0000000..d085900
 +    } else if (typeof (this.gridApi as any).setColumnDefs === 'function') {
 +      (this.gridApi as any).setColumnDefs(this.columnDefs);
 +    }
++  }
++
++  private isTerminalStatus(status: string | undefined): boolean {
++    return status === 'FILLED' || status === 'CANCELED' || status === 'REJECTED';
++  }
++
++  private toEpochMs(value: string | Date | undefined): number {
++    if (!value) {
++      return 0;
++    }
++    const ts = new Date(value).getTime();
++    return Number.isFinite(ts) ? ts : 0;
 +  }
 +
 +  private setGridRowData(rows: OrderRow[]): void {
@@ -5488,3 +5630,273 @@ index bb0f4e7..f255e07 100644
  CREATE SEQUENCE accounts_seq START WITH 65000 INCREMENT BY 1;
  
  INSERT INTO accounts (id, displayname) VALUES (22214, 'Test Account 20');
+diff --git a/order-matcher/src/main/java/finos/traderx/messaging/Envelope.java b/order-matcher/src/main/java/finos/traderx/messaging/Envelope.java
+new file mode 100644
+index 0000000..825a702
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/messaging/Envelope.java
+@@ -0,0 +1,11 @@
++package finos.traderx.messaging;
++
++import java.util.Date;
++
++public interface Envelope<T> {
++  String getType();
++  String getTopic();
++  T getPayload();
++  Date getDate();
++  String getFrom();
++}
+diff --git a/order-matcher/src/main/java/finos/traderx/messaging/PubSubException.java b/order-matcher/src/main/java/finos/traderx/messaging/PubSubException.java
+new file mode 100644
+index 0000000..760db57
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/messaging/PubSubException.java
+@@ -0,0 +1,16 @@
++package finos.traderx.messaging;
++
++public class PubSubException extends Exception {
++
++  public PubSubException(String message) {
++    super(message);
++  }
++
++  public PubSubException(String message, Throwable throwable) {
++    super(message, throwable);
++  }
++
++  public PubSubException(Throwable throwable) {
++    super(throwable);
++  }
++}
+diff --git a/order-matcher/src/main/java/finos/traderx/messaging/Publisher.java b/order-matcher/src/main/java/finos/traderx/messaging/Publisher.java
+new file mode 100644
+index 0000000..7044c86
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/messaging/Publisher.java
+@@ -0,0 +1,9 @@
++package finos.traderx.messaging;
++
++public interface Publisher<T> {
++  void publish(T message) throws PubSubException;
++  void publish(String topic, T message) throws PubSubException;
++  boolean isConnected();
++  void connect() throws PubSubException;
++  void disconnect() throws PubSubException;
++}
+diff --git a/order-matcher/src/main/java/finos/traderx/messaging/socketio/SocketIOEnvelope.java b/order-matcher/src/main/java/finos/traderx/messaging/socketio/SocketIOEnvelope.java
+new file mode 100644
+index 0000000..b538b56
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/messaging/socketio/SocketIOEnvelope.java
+@@ -0,0 +1,61 @@
++package finos.traderx.messaging.socketio;
++
++import finos.traderx.messaging.Envelope;
++import java.util.Date;
++
++public class SocketIOEnvelope<T> implements Envelope<T> {
++  private String topic;
++  private T payload;
++  private Date date = new Date();
++  private String from;
++  private String type;
++
++  public SocketIOEnvelope() {}
++
++  public SocketIOEnvelope(String topic, T payload) {
++    this.payload = payload;
++    this.topic = topic;
++    this.type = payload.getClass().getSimpleName();
++  }
++
++  public void setType(String type) {
++    this.type = type;
++  }
++
++  public void setPayload(T payload) {
++    this.payload = payload;
++  }
++
++  public void setTopic(String topic) {
++    this.topic = topic;
++  }
++
++  public void setFrom(String from) {
++    this.from = from;
++  }
++
++  @Override
++  public String getType() {
++    return type;
++  }
++
++  @Override
++  public String getTopic() {
++    return topic;
++  }
++
++  @Override
++  public T getPayload() {
++    return payload;
++  }
++
++  @Override
++  public Date getDate() {
++    return date;
++  }
++
++  @Override
++  public String getFrom() {
++    return from;
++  }
++}
+diff --git a/order-matcher/src/main/java/finos/traderx/messaging/socketio/SocketIOJSONPublisher.java b/order-matcher/src/main/java/finos/traderx/messaging/socketio/SocketIOJSONPublisher.java
+new file mode 100644
+index 0000000..84125bd
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/messaging/socketio/SocketIOJSONPublisher.java
+@@ -0,0 +1,116 @@
++package finos.traderx.messaging.socketio;
++
++import com.fasterxml.jackson.annotation.JsonInclude;
++import com.fasterxml.jackson.databind.ObjectMapper;
++import finos.traderx.messaging.PubSubException;
++import finos.traderx.messaging.Publisher;
++import io.socket.client.IO;
++import io.socket.client.Socket;
++import io.socket.emitter.Emitter;
++import java.net.URI;
++import org.json.JSONObject;
++import org.slf4j.LoggerFactory;
++import org.springframework.beans.factory.InitializingBean;
++
++public abstract class SocketIOJSONPublisher<T> implements Publisher<T>, InitializingBean {
++  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
++      .setSerializationInclusion(JsonInclude.Include.NON_NULL);
++
++  protected IO.Options getIOOptions() {
++    return new IO.Options();
++  }
++
++  org.slf4j.Logger log = LoggerFactory.getLogger(this.getClass().getName());
++
++  boolean connected = false;
++  Socket socket;
++  String socketAddress = "http://localhost:3000";
++  String topic = "/default";
++
++  public void setSocketAddress(String addr) {
++    socketAddress = addr;
++  }
++
++  public void setTopic(String topic) {
++    this.topic = topic;
++  }
++
++  @Override
++  public boolean isConnected() {
++    return connected;
++  }
++
++  @Override
++  public void publish(T message) throws PubSubException {
++    publish(topic, message);
++  }
++
++  @Override
++  public void publish(String topic, T message) throws PubSubException {
++    if (!isConnected()) {
++      throw new PubSubException("Cannot send %s on topic %s - not connected".formatted(message, topic));
++    }
++    try {
++      SocketIOEnvelope<T> envelope = new SocketIOEnvelope<>(topic, message);
++      String msgString = OBJECT_MAPPER.writerFor(SocketIOEnvelope.class).writeValueAsString(envelope);
++      JSONObject obj = new JSONObject(msgString);
++      log.debug("PUBLISH->{}", obj);
++      socket.emit("publish", obj);
++    } catch (Exception x) {
++      throw new PubSubException("Unable to publish on topic " + topic, x);
++    }
++  }
++
++  @Override
++  public void disconnect() throws PubSubException {
++    if (socket != null && isConnected()) {
++      socket.disconnect();
++    }
++    socket = null;
++  }
++
++  @Override
++  public void connect() throws PubSubException {
++    if (socket != null) {
++      socket.disconnect();
++    }
++    try {
++      socket = internalConnect(URI.create(socketAddress));
++    } catch (Exception x) {
++      throw new PubSubException("Cannot socket connection at " + socketAddress, x);
++    }
++  }
++
++  protected Socket internalConnect(URI uri) throws Exception {
++    return IO.socket(uri, getIOOptions());
++  }
++
++  @Override
++  public void afterPropertiesSet() throws Exception {
++    connect();
++    socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
++      @Override
++      public void call(Object... args) {
++        SocketIOJSONPublisher.this.connected = true;
++        log.info("Socket Connected {}", args);
++      }
++    });
++
++    socket.on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
++      @Override
++      public void call(Object... args) {
++        SocketIOJSONPublisher.this.connected = false;
++        log.info("Socket Disconnected {}", args);
++      }
++    });
++
++    socket.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
++      @Override
++      public void call(Object... args) {
++        SocketIOJSONPublisher.this.connected = false;
++        log.info("Connection Error {}", args);
++      }
++    });
++    socket.connect();
++  }
++}
+diff --git a/order-matcher/src/main/java/finos/traderx/ordermatcher/config/PubSubConfig.java b/order-matcher/src/main/java/finos/traderx/ordermatcher/config/PubSubConfig.java
+new file mode 100644
+index 0000000..8cc4445
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/ordermatcher/config/PubSubConfig.java
+@@ -0,0 +1,21 @@
++package finos.traderx.ordermatcher.config;
++
++import finos.traderx.messaging.Publisher;
++import finos.traderx.messaging.socketio.SocketIOJSONPublisher;
++import finos.traderx.ordermatcher.api.OrderResponse;
++import org.springframework.beans.factory.annotation.Value;
++import org.springframework.context.annotation.Bean;
++import org.springframework.context.annotation.Configuration;
++
++@Configuration
++public class PubSubConfig {
++    @Value("${trade.feed.address}")
++    private String tradeFeedAddress;
++
++    @Bean
++    public Publisher<OrderResponse> orderPublisher() {
++        SocketIOJSONPublisher<OrderResponse> publisher = new SocketIOJSONPublisher<>() {};
++        publisher.setSocketAddress(tradeFeedAddress);
++        return publisher;
++    }
++}

@@ -18,6 +18,10 @@ Planned smoke checks:
   - cancel open order via user action endpoint
 - Admin journey checks:
   - force-fill open order via admin endpoint
+- Realtime push checks:
+  - `/accounts/{accountId}/orders` and `/orders` receive order lifecycle events (create/cancel/fill)
+  - force-fill generates account-scoped trade + position stream updates
+  - no order polling loops (`interval`/`setInterval`) remain in Angular order views
 - Matching journey checks:
   - in-the-money order is auto-filled on matcher ticks using quantity policy (`<1000 => full`, `>=1000 => half`)
   - filled order is visible in trades and updates positions for the affected account

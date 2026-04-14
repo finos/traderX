@@ -155,6 +155,37 @@ echo "[info] order-matcher actuator metric sample count=${order_matcher_http_sam
 echo "[check] ingress remains healthy"
 curl -fsS "${INGRESS_URL}/health" >/dev/null
 
+echo "[check] realtime order/trade/position websocket streams"
+"${REPO_ROOT}/scripts/test-realtime-order-stream-overlay.sh" "${INGRESS_URL}" "22214" "44044"
+
+echo "[check] frontend order views use push updates (no polling regressions)"
+ORDER_UI_ROOT="${GENERATED_ROOT}/code/target-generated/web-front-end/angular/main/app"
+ORDER_BLOTTER_FILE="${ORDER_UI_ROOT}/trade/order-blotter/order-blotter.component.ts"
+ORDER_ADMIN_FILE="${ORDER_UI_ROOT}/admin/order-admin.component.ts"
+ORDER_ADMIN_SERVICE_FILE="${ORDER_UI_ROOT}/service/order-admin.service.ts"
+for file in "${ORDER_BLOTTER_FILE}" "${ORDER_ADMIN_FILE}" "${ORDER_ADMIN_SERVICE_FILE}"; do
+  if [[ ! -f "${file}" ]]; then
+    echo "[error] expected order UI file not found: ${file}"
+    exit 1
+  fi
+done
+if rg -n 'interval\(|setInterval\(' "${ORDER_BLOTTER_FILE}" "${ORDER_ADMIN_FILE}" >/dev/null; then
+  echo "[error] polling detected in order UI components; expected websocket push subscriptions"
+  exit 1
+fi
+rg -q '/accounts/\\$\\{accountId\\}/orders|/orders' "${ORDER_BLOTTER_FILE}" || {
+  echo "[error] expected order-blotter to subscribe to order realtime topic"
+  exit 1
+}
+rg -q '/orders' "${ORDER_ADMIN_FILE}" || {
+  echo "[error] expected order-admin to subscribe to /orders realtime topic"
+  exit 1
+}
+rg -q 'subscribe\(topic' "${ORDER_ADMIN_SERVICE_FILE}" || {
+  echo "[error] expected order-admin service to expose realtime subscribe(topic, callback)"
+  exit 1
+}
+
 echo "[check] order admin API through ingress"
 orders_payload="$(curl -fsS "${INGRESS_URL}/order-matcher/orders?status=open")"
 echo "${orders_payload}" | jq '.[0]' >/dev/null
