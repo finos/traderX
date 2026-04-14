@@ -65,18 +65,13 @@ prepare_generated_base_layout() {
     fi
   done
 
+  # Full wipe of target-generated (preserving .run/ which holds pids/logs/tool-cache).
+  # This guarantees no stale component directories from other states are present,
+  # regardless of which states were generated before this one.
+  if [[ -d "${TARGET}" ]]; then
+    find "${TARGET}" -maxdepth 1 -mindepth 1 ! -name '.run' -exec rm -rf {} +
+  fi
   mkdir -p "${TARGET}" "${TARGET}/web-front-end"
-
-  # Keep runtime cache/state under .run intact and only refresh component workdirs.
-  rm -rf "${TARGET}/reference-data"
-  rm -rf "${TARGET}/database"
-  rm -rf "${TARGET}/people-service"
-  rm -rf "${TARGET}/account-service"
-  rm -rf "${TARGET}/position-service"
-  rm -rf "${TARGET}/trade-feed"
-  rm -rf "${TARGET}/trade-processor"
-  rm -rf "${TARGET}/trade-service"
-  rm -rf "${TARGET}/web-front-end/angular"
 
   cp -R "${REFERENCE_DATA_SPECFIRST}" "${TARGET}/reference-data"
   cp -R "${DATABASE_SPECFIRST}" "${TARGET}/database"
