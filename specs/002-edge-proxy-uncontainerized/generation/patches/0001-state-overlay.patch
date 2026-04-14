@@ -1092,7 +1092,7 @@ new file mode 100644
 index 0000000..f44ff2e
 --- /dev/null
 +++ b/edge-proxy-specfirst/package.json
-@@ -0,0 +1,15 @@
+@@ -0,0 +1,16 @@
 +{
 +  "name": "traderx-edge-proxy-specfirst",
 +  "version": "1.0.0",
@@ -1105,6 +1105,7 @@ index 0000000..f44ff2e
 +  },
 +  "dependencies": {
 +    "express": "^5.2.1",
++    "follow-redirects": "^1.16.0",
 +    "http-proxy-middleware": "^3.0.3"
 +  }
 +}
