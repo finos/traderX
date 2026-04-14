@@ -3,11 +3,15 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
+SOURCE_REPO_ROOT="${TRADERX_SOURCE_REPO_ROOT:-${REPO_ROOT}}"
 
 if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
   LOCAL_RUNTIME_SCRIPT="${GENERATED_ROOT}/code/target-generated/scripts/$(basename "${BASH_SOURCE[0]}")"
   if [[ -x "${LOCAL_RUNTIME_SCRIPT}" ]]; then
-    exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+    TRADERX_LOCAL_RUNTIME_SCRIPT=1 \
+    TRADERX_GENERATED_ROOT="${GENERATED_ROOT}" \
+    TRADERX_SOURCE_REPO_ROOT="${SOURCE_REPO_ROOT}" \
+      exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
   fi
 fi
 TARGET="${GENERATED_ROOT}/code/target-generated"
@@ -39,9 +43,15 @@ done
 }
 
 if (( DRY_RUN == 1 )); then
-  TRADERX_EXPECTED_STATE_ID="${EXPECTED_STATE}" "${REPO_ROOT}/scripts/start-base-uncontainerized-generated.sh" --dry-run
+  TRADERX_EXPECTED_STATE_ID="${EXPECTED_STATE}" \
+  TRADERX_GENERATED_ROOT="${GENERATED_ROOT}" \
+  TRADERX_SOURCE_REPO_ROOT="${SOURCE_REPO_ROOT}" \
+    "${REPO_ROOT}/scripts/start-base-uncontainerized-generated.sh" --dry-run
 else
-  TRADERX_EXPECTED_STATE_ID="${EXPECTED_STATE}" "${REPO_ROOT}/scripts/start-base-uncontainerized-generated.sh"
+  TRADERX_EXPECTED_STATE_ID="${EXPECTED_STATE}" \
+  TRADERX_GENERATED_ROOT="${GENERATED_ROOT}" \
+  TRADERX_SOURCE_REPO_ROOT="${SOURCE_REPO_ROOT}" \
+    "${REPO_ROOT}/scripts/start-base-uncontainerized-generated.sh"
 fi
 
 mkdir -p "${RUN_DIR}/logs" "${RUN_DIR}/pids"
