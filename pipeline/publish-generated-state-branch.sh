@@ -283,6 +283,42 @@ CORE_COMPONENT_DIRS=(
   "web-front-end"
 )
 
+NATS_COMPONENT_DIRS=(
+  "account-service"
+  "database"
+  "people-service"
+  "position-service"
+  "reference-data"
+  "trade-processor"
+  "trade-service"
+  "web-front-end"
+)
+
+PRICING_COMPONENT_DIRS=(
+  "account-service"
+  "database"
+  "people-service"
+  "position-service"
+  "price-publisher"
+  "reference-data"
+  "trade-processor"
+  "trade-service"
+  "web-front-end"
+)
+
+ORDER_COMPONENT_DIRS=(
+  "account-service"
+  "database"
+  "order-matcher"
+  "people-service"
+  "position-service"
+  "price-publisher"
+  "reference-data"
+  "trade-processor"
+  "trade-service"
+  "web-front-end"
+)
+
 C2_COMPONENT_DIRS=(
   "account-service"
   "database"
@@ -309,16 +345,34 @@ snapshot_keep_paths_for_state() {
     printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "edge-proxy" ".github"
     ;;
   004-containerized-compose-runtime)
-    printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "containerized-compose" "ingress" ".github"
+    printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "containerized-compose" "ingress" ".github" "runtime"
+    ;;
+  005-postgres-database-replacement)
+    printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "containerized-compose" "ingress" "postgres-database-replacement" ".github"
+    ;;
+  006-messaging-nats-replacement)
+    printf '%s\n' "${NATS_COMPONENT_DIRS[@]}" "ingress" "messaging-nats-replacement" "postgres-database-replacement" ".github"
+    ;;
+  007-observability-lgtm-compose)
+    printf '%s\n' "${NATS_COMPONENT_DIRS[@]}" "ingress" "messaging-nats-replacement" "observability-lgtm-compose" "postgres-database-replacement" ".github" "runtime"
+    ;;
+  008-pricing-awareness-market-data)
+    printf '%s\n' "${PRICING_COMPONENT_DIRS[@]}" "ingress" "pricing-awareness-market-data" "postgres-database-replacement" ".github"
+    ;;
+  009-order-management-matcher)
+    printf '%s\n' "${ORDER_COMPONENT_DIRS[@]}" "ingress" "order-management-matcher" "postgres-database-replacement" ".github" "runtime"
     ;;
     010-kubernetes-runtime)
       printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" ".github"
       ;;
-    013-radius-kubernetes-platform)
-      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "radius-kubernetes-platform" ".github"
-      ;;
     011-tilt-kubernetes-dev-loop)
       printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "tilt-kubernetes-dev-loop" ".github"
+      ;;
+    012-platform-convergence-c3)
+      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "tilt-kubernetes-dev-loop" ".github" "runtime"
+      ;;
+    013-radius-kubernetes-platform)
+      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "radius-kubernetes-platform" ".github"
       ;;
     *)
       find "${SNAPSHOT_DIR}" -mindepth 1 -maxdepth 1 -exec basename {} \;
@@ -1876,6 +1930,71 @@ tilt up
 ```
 EOF
       ;;
+    012-platform-convergence-c3)
+      cat > "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
+# Run From Clone
+
+Prerequisites:
+- Docker
+- kubectl
+- jq
+- Kind (default) or Minikube
+- Tilt (optional, for interactive dev loop)
+
+Start convergence runtime:
+
+```bash
+./scripts/start-state-012-platform-convergence-c3-generated.sh
+```
+
+Inherited runtime endpoints:
+- UI / edge: `http://localhost:8080`
+- API explorer (edge): `http://localhost:8080/api/docs`
+- Grafana: `http://localhost:8080/grafana` (admin/admin)
+- Prometheus: `http://localhost:8080/prometheus`
+
+State 012 artifact pack:
+- `tilt-kubernetes-dev-loop/tilt/Tiltfile`
+- `tilt-kubernetes-dev-loop/tilt/tilt-settings.json`
+
+Status / stop:
+
+```bash
+./scripts/status-state-012-platform-convergence-c3-generated.sh
+./scripts/stop-state-012-platform-convergence-c3-generated.sh
+```
+EOF
+      ;;
+    007-observability-lgtm-compose)
+      cat > "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
+# Run From Clone
+
+Prerequisites:
+- Docker Desktop (or Docker Engine + Compose plugin)
+
+Start:
+
+```bash
+./scripts/start-state-007-observability-lgtm-compose-generated.sh
+```
+
+Endpoints:
+- UI / ingress: `http://localhost:8080`
+- API explorer (ingress): `http://localhost:8080/api/docs`
+- Ingress health: `http://localhost:8080/health`
+- Grafana: `http://localhost:3001`
+- Prometheus: `http://localhost:9090`
+- Loki: `http://localhost:3100`
+- Tempo: `http://localhost:3200`
+
+Status / stop:
+
+```bash
+./scripts/status-state-007-observability-lgtm-compose-generated.sh
+./scripts/stop-state-007-observability-lgtm-compose-generated.sh
+```
+EOF
+      ;;
     006-messaging-nats-replacement)
       cat > "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
 # Run From Clone
@@ -1927,6 +2046,35 @@ Status / stop:
 ```bash
 ./scripts/status-state-005-postgres-database-replacement-generated.sh
 ./scripts/stop-state-005-postgres-database-replacement-generated.sh
+```
+EOF
+      ;;
+    009-order-management-matcher)
+      cat > "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
+# Run From Clone
+
+Prerequisites:
+- Docker Desktop (or Docker Engine + Compose plugin)
+
+Start:
+
+```bash
+./scripts/start-state-009-order-management-matcher-generated.sh
+```
+
+Endpoints:
+- UI / ingress: `http://localhost:8080`
+- API explorer (ingress): `http://localhost:8080/api/docs`
+- Ingress health: `http://localhost:8080/health`
+- Order matcher health: `http://localhost:18110/health`
+- Grafana: `http://localhost:3001`
+- Prometheus: `http://localhost:9090`
+
+Status / stop:
+
+```bash
+./scripts/status-state-009-order-management-matcher-generated.sh
+./scripts/stop-state-009-order-management-matcher-generated.sh
 ```
 EOF
       ;;
@@ -2357,17 +2505,15 @@ case "${STATE_ID}" in
   004-containerized-compose-runtime)
     install_containerized_clone_harness
     ;;
-  006-messaging-nats-replacement)
+  005-postgres-database-replacement|006-messaging-nats-replacement|007-observability-lgtm-compose|008-pricing-awareness-market-data|009-order-management-matcher)
     install_state_compose_clone_harness "${STATE_ID}"
     ;;
-  005-postgres-database-replacement)
-    install_state_compose_clone_harness "${STATE_ID}"
-    ;;
-  008-pricing-awareness-market-data)
-    install_state_compose_clone_harness "${STATE_ID}"
-    ;;
-  010-kubernetes-runtime|013-radius-kubernetes-platform|011-tilt-kubernetes-dev-loop)
+  010-kubernetes-runtime)
     install_kubernetes_clone_harness
+    ;;
+  011-tilt-kubernetes-dev-loop|012-platform-convergence-c3|013-radius-kubernetes-platform)
+    install_kubernetes_clone_harness
+    install_state_compose_clone_harness "${STATE_ID}"
     ;;
 esac
 

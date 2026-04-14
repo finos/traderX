@@ -41,6 +41,7 @@
 - NFR-213: Runtime/start scripts for this state SHALL detect and report currently generated state id versus expected state id before startup.
 - NFR-214: On state mismatch, runtime/start scripts SHALL provide explicit guidance for forward-regeneration versus backward clean rebuild decisions.
 - NFR-215: Runtime/start scripts SHALL support an explicit opt-in mode to auto-regenerate expected state before startup.
+- NFR-216: Generated-state snapshot pruning and generated CI module discovery SHALL be state-scoped; components not in the active state's runtime inventory (for example legacy Node edge-proxy in `004+` states) MUST be excluded unless explicitly reintroduced by a later approved state spec.
 
 ## Success Criteria
 
@@ -53,6 +54,7 @@
 - SC-207: Edge-routed UI smoke tests verify header title includes `002-edge-proxy-uncontainerized`, `About` page metadata renders expected lineage/source fields, and API explorer link is available.
 - SC-208: Edge-routed UI smoke tests verify `Status` page is reachable and shows per-service uptime/health entries for this state.
 - SC-209: Startup script smoke checks verify generated-state detection messaging for both match and mismatch cases, including opt-in auto-regeneration flow.
+- SC-210: Publishing snapshots and generated CI metadata for states `004+` excludes the Node `edge-proxy` module unless a later state spec explicitly restores it.
 
 ## Generation + Runtime Entry Points
 

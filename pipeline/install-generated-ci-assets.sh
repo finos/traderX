@@ -59,6 +59,7 @@ gradle_modules=()
 dotnet_modules=()
 docker_entries=()
 compose_file_rel=""
+state_allowed_roots=()
 
 temp_dir="$(mktemp -d /tmp/traderx-generated-ci.XXXXXX)"
 trap 'rm -rf "${temp_dir}"' EXIT
@@ -73,6 +74,119 @@ is_ignored_dir() {
       return 1
       ;;
   esac
+}
+
+CORE_COMPONENT_DIRS=(
+  "account-service"
+  "database"
+  "people-service"
+  "position-service"
+  "reference-data"
+  "trade-feed"
+  "trade-processor"
+  "trade-service"
+  "web-front-end"
+)
+
+NATS_COMPONENT_DIRS=(
+  "account-service"
+  "database"
+  "people-service"
+  "position-service"
+  "reference-data"
+  "trade-processor"
+  "trade-service"
+  "web-front-end"
+)
+
+PRICING_COMPONENT_DIRS=(
+  "account-service"
+  "database"
+  "people-service"
+  "position-service"
+  "price-publisher"
+  "reference-data"
+  "trade-processor"
+  "trade-service"
+  "web-front-end"
+)
+
+ORDER_COMPONENT_DIRS=(
+  "account-service"
+  "database"
+  "order-matcher"
+  "people-service"
+  "position-service"
+  "price-publisher"
+  "reference-data"
+  "trade-processor"
+  "trade-service"
+  "web-front-end"
+)
+
+C2_COMPONENT_DIRS=(
+  "account-service"
+  "database"
+  "ingress"
+  "order-matcher"
+  "people-service"
+  "position-service"
+  "price-publisher"
+  "reference-data"
+  "trade-processor"
+  "trade-service"
+  "web-front-end"
+)
+
+case "${STATE_ID}" in
+  001-baseline-uncontainerized-parity)
+    state_allowed_roots=("${CORE_COMPONENT_DIRS[@]}")
+    ;;
+  002-edge-proxy-uncontainerized|003-agentic-harness-foundation)
+    state_allowed_roots=("${CORE_COMPONENT_DIRS[@]}" "edge-proxy")
+    ;;
+  004-containerized-compose-runtime)
+    state_allowed_roots=("${CORE_COMPONENT_DIRS[@]}" "containerized-compose" "ingress")
+    ;;
+  005-postgres-database-replacement)
+    state_allowed_roots=("${CORE_COMPONENT_DIRS[@]}" "containerized-compose" "ingress" "postgres-database-replacement")
+    ;;
+  006-messaging-nats-replacement)
+    state_allowed_roots=("${NATS_COMPONENT_DIRS[@]}" "ingress" "messaging-nats-replacement" "postgres-database-replacement")
+    ;;
+  007-observability-lgtm-compose)
+    state_allowed_roots=("${NATS_COMPONENT_DIRS[@]}" "ingress" "messaging-nats-replacement" "observability-lgtm-compose" "postgres-database-replacement")
+    ;;
+  008-pricing-awareness-market-data)
+    state_allowed_roots=("${PRICING_COMPONENT_DIRS[@]}" "ingress" "pricing-awareness-market-data" "postgres-database-replacement")
+    ;;
+  009-order-management-matcher)
+    state_allowed_roots=("${ORDER_COMPONENT_DIRS[@]}" "ingress" "order-management-matcher" "postgres-database-replacement")
+    ;;
+  010-kubernetes-runtime)
+    state_allowed_roots=("${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime")
+    ;;
+  011-tilt-kubernetes-dev-loop|012-platform-convergence-c3)
+    state_allowed_roots=("${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "tilt-kubernetes-dev-loop")
+    ;;
+  013-radius-kubernetes-platform)
+    state_allowed_roots=("${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "radius-kubernetes-platform")
+    ;;
+esac
+
+state_allows_dir() {
+  local rel="$1"
+  if ((${#state_allowed_roots[@]} == 0)); then
+    return 0
+  fi
+  local top_level="${rel%%/*}"
+  local allowed
+  for allowed in "${state_allowed_roots[@]}"; do
+    if [[ "${top_level}" == "${allowed}" ]]; then
+      return 0
+    fi
+  done
+  return 1
 }
 
 add_unique_line() {
@@ -94,6 +208,7 @@ discover_node_modules() {
     rel="${package_json#${TARGET_ROOT}/}"
     dir="$(dirname "${rel}")"
     is_ignored_dir "${dir}" && continue
+    state_allows_dir "${dir}" || continue
     add_unique_line "${out_file}" "${dir}"
   done < <(find "${TARGET_ROOT}" -type f -name package.json -not -path '*/node_modules/*' | sort)
   sort -u -o "${out_file}" "${out_file}"
@@ -107,6 +222,7 @@ discover_gradle_modules() {
     rel="${gradle_file#${TARGET_ROOT}/}"
     dir="$(dirname "${rel}")"
     is_ignored_dir "${dir}" && continue
+    state_allows_dir "${dir}" || continue
     add_unique_line "${out_file}" "${dir}"
   done < <(find "${TARGET_ROOT}" -type f \( -name build.gradle -o -name build.gradle.kts \) | sort)
   sort -u -o "${out_file}" "${out_file}"
@@ -120,6 +236,7 @@ discover_dotnet_modules() {
     rel="${csproj_file#${TARGET_ROOT}/}"
     dir="$(dirname "${rel}")"
     is_ignored_dir "${dir}" && continue
+    state_allows_dir "${dir}" || continue
     add_unique_line "${out_file}" "${dir}"
   done < <(find "${TARGET_ROOT}" -type f -name '*.csproj' | sort)
   sort -u -o "${out_file}" "${out_file}"
@@ -157,6 +274,7 @@ discover_docker_entries() {
     rel="${dockerfile#${TARGET_ROOT}/}"
     dir="$(dirname "${rel}")"
     is_ignored_dir "${dir}" && continue
+    state_allows_dir "${dir}" || continue
     skip_docker_ci_dir "${dir}" && continue
     image_name="$(printf '%s' "${dir}" | tr '/' '-')"
     printf '%s|%s|%s\n' "${dir}" "$(basename "${dockerfile}")" "${image_name}" >> "${out_file}"
@@ -167,6 +285,7 @@ discover_docker_entries() {
     rel="${dockerfile#${TARGET_ROOT}/}"
     dir="$(dirname "${rel}")"
     is_ignored_dir "${dir}" && continue
+    state_allows_dir "${dir}" || continue
     skip_docker_ci_dir "${dir}" && continue
     if docker_dir_exists "${dir}" "${out_file}"; then
       continue
