@@ -7,12 +7,17 @@ GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
 if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
   LOCAL_RUNTIME_SCRIPT="${GENERATED_ROOT}/code/target-generated/scripts/$(basename "${BASH_SOURCE[0]}")"
   if [[ -x "${LOCAL_RUNTIME_SCRIPT}" ]]; then
-    exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+    TRADERX_LOCAL_RUNTIME_SCRIPT=1 \
+    TRADERX_GENERATED_ROOT="${GENERATED_ROOT}" \
+    TRADERX_SOURCE_REPO_ROOT="${REPO_ROOT}" \
+      exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
   fi
 fi
 TARGET="${GENERATED_ROOT}/code/target-generated"
 EXPECTED_STATE="${TRADERX_EXPECTED_STATE_ID:-001-baseline-uncontainerized-parity}"
-SPEC="${REPO_ROOT}/catalog/base-uncontainerized-processes.csv"
+SOURCE_REPO_ROOT="${TRADERX_SOURCE_REPO_ROOT:-${REPO_ROOT}}"
+SPEC_SOURCE="${SOURCE_REPO_ROOT}/catalog/base-uncontainerized-processes.csv"
+SPEC="${TARGET}/catalog/base-uncontainerized-processes.csv"
 RUN_DIR="${TARGET}/.run/base-uncontainerized"
 TOOL_CACHE_DIR="${RUN_DIR}/tool-cache"
 REFERENCE_DATA_SPECFIRST="${GENERATED_ROOT}/code/components/reference-data-specfirst"
@@ -71,7 +76,13 @@ prepare_generated_base_layout() {
   if [[ -d "${TARGET}" ]]; then
     find "${TARGET}" -maxdepth 1 -mindepth 1 ! -name '.run' -exec rm -rf {} +
   fi
-  mkdir -p "${TARGET}" "${TARGET}/web-front-end"
+  mkdir -p "${TARGET}" "${TARGET}/web-front-end" "${TARGET}/catalog"
+
+  if [[ ! -f "${SPEC_SOURCE}" ]]; then
+    echo "[error] missing startup spec source: ${SPEC_SOURCE}"
+    exit 1
+  fi
+  cp "${SPEC_SOURCE}" "${SPEC}"
 
   cp -R "${REFERENCE_DATA_SPECFIRST}" "${TARGET}/reference-data"
   cp -R "${DATABASE_SPECFIRST}" "${TARGET}/database"
