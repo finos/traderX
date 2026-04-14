@@ -1,6 +1,8 @@
 // This is for running everything off of the local machine, connecting 
 // to each service by its port number, not behind an aggregator/gateway
-export const environment = {
+import { Environment } from './environment.interface';
+
+export const environment: Environment = {
     production:         false,
     accountUrl:         `//${window.location.hostname}:18088`,
     refrenceDataUrl:    `//${window.location.hostname}:18085`,
