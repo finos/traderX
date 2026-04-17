@@ -61,7 +61,7 @@ flowchart TB
   S010_kubernetes_runtime --> S011_tilt_kubernetes_dev_loop
   S011_tilt_kubernetes_dev_loop --> S012_platform_convergence_c3
   S012_platform_convergence_c3 --> S013_radius_kubernetes_platform
-  S012_platform_convergence_c3 -.-> S014_fdc3_intent_interoperability
+  S012_platform_convergence_c3 --> S014_fdc3_intent_interoperability
   S009_order_management_matcher -.-> S012_platform_convergence_c3
   click S001_baseline_uncontainerized_parity href "/specs/baseline-uncontainerized-parity" "Open State 001 Spec Pack"
   click S002_edge_proxy_uncontainerized href "/specs/edge-proxy-uncontainerized" "Open State 002 Spec Pack"
@@ -145,7 +145,7 @@ flowchart TB
   S010_kubernetes_runtime --> S011_tilt_kubernetes_dev_loop
   S011_tilt_kubernetes_dev_loop --> S012_platform_convergence_c3
   S012_platform_convergence_c3 --> S013_radius_kubernetes_platform
-  S012_platform_convergence_c3 -.-> S014_fdc3_intent_interoperability
+  S012_platform_convergence_c3 --> S014_fdc3_intent_interoperability
   S009_order_management_matcher -.-> S012_platform_convergence_c3
   classDef convergence fill:#d7f5dd,stroke:#2e7d32,stroke-width:2px
 ```

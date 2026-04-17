@@ -364,7 +364,7 @@
     {
       "id": "014-fdc3-intent-interoperability",
       "title": "FDC3 Intent Interoperability on C3",
-      "status": "planned",
+      "status": "implemented",
       "track": "functional",
       "convergenceLevel": "none",
       "isConvergence": false,
@@ -375,7 +375,7 @@
         "012-platform-convergence-c3"
       ],
       "generation": {
-        "mode": "planned",
+        "mode": "implemented",
         "entrypoint": "bash pipeline/generate-state.sh 014-fdc3-intent-interoperability",
         "runtime": "./scripts/start-state-014-fdc3-intent-interoperability-generated.sh"
       },
