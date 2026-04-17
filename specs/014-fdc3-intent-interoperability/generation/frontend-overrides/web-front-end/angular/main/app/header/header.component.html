@@ -1,0 +1,27 @@
+<header class="header-shell">
+    <nav class="navbar navbar-expand-lg bg-body-tertiary text-bg-primary header-nav" data-bs-theme="dark">
+        <div class="container-fluid">
+            <img class="header-brand-logo" src="assets/img/traderx-apple-touch-icon.png" />
+            <div class="header-title">FINOS | TraderX Sample Application</div>
+            <img class="finos-logo" src="assets/img/FINOS_Icon_White.png" />
+        </div>
+    </nav>
+
+    <ul class="nav nav-tabs header-tabs">
+        <li class="nav-item">
+            <a class="nav-link" routerLink="/trade" routerLinkActive="active">Trade</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" routerLink="/account" routerLinkActive="active">Account</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" routerLink="/admin" routerLinkActive="active">Admin</a>
+        </li>
+        <li class="nav-item header-fdc3-slot">
+            <div class="header-fdc3-pill" [ngClass]="fdc3AgentAvailable ? 'header-fdc3-pill-connected' : 'header-fdc3-pill-disconnected'">
+                <span class="header-fdc3-label">FDC3</span>
+                <span class="header-fdc3-message" [title]="fdc3StatusMessage">{{ fdc3StatusMessage }}</span>
+            </div>
+        </li>
+    </ul>
+</header>

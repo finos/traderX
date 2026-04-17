@@ -146,6 +146,19 @@ case "${STATE_ID}" in
     copy_script_if_exists "status-state-013-radius-kubernetes-platform-generated.sh"
     copy_script_if_exists "test-state-013-radius-kubernetes-platform.sh"
     ;;
+  014-fdc3-intent-interoperability)
+    copy_script_if_exists "start-state-010-kubernetes-runtime-generated.sh"
+    copy_script_if_exists "stop-state-010-kubernetes-runtime-generated.sh"
+    copy_script_if_exists "status-state-010-kubernetes-runtime-generated.sh"
+    copy_script_if_exists "start-state-012-platform-convergence-c3-generated.sh"
+    copy_script_if_exists "stop-state-012-platform-convergence-c3-generated.sh"
+    copy_script_if_exists "status-state-012-platform-convergence-c3-generated.sh"
+    copy_script_if_exists "start-state-014-fdc3-intent-interoperability-generated.sh"
+    copy_script_if_exists "stop-state-014-fdc3-intent-interoperability-generated.sh"
+    copy_script_if_exists "status-state-014-fdc3-intent-interoperability-generated.sh"
+    copy_script_if_exists "test-state-012-platform-convergence-c3.sh"
+    copy_script_if_exists "test-state-014-fdc3-intent-interoperability.sh"
+    ;;
 esac
 
 # Mark copied scripts as local-runtime scripts and disable re-generation there.
@@ -495,6 +508,36 @@ Smoke test:
 ```
 EOF
       ;;
+    014-fdc3-intent-interoperability)
+      cat > "${TARGET_ROOT}/RUN_FROM_GENERATED.md" <<'EOF'
+# Run From Generated (State 014)
+
+Start baseline C3 runtime:
+
+```bash
+./scripts/start-state-014-fdc3-intent-interoperability-generated.sh
+```
+
+Start C3 + Sail sidecar:
+
+```bash
+./scripts/start-state-014-fdc3-intent-interoperability-generated.sh --with-sail
+```
+
+Status / stop:
+
+```bash
+./scripts/status-state-014-fdc3-intent-interoperability-generated.sh --with-sail
+./scripts/stop-state-014-fdc3-intent-interoperability-generated.sh --with-sail
+```
+
+Smoke test:
+
+```bash
+./scripts/test-state-014-fdc3-intent-interoperability.sh http://localhost:8080 http://localhost:8090
+```
+EOF
+      ;;
     *)
       cat > "${TARGET_ROOT}/RUN_FROM_GENERATED.md" <<'EOF'
 # Run From Generated
@@ -562,6 +605,18 @@ EOF
 - Position service route: `http://localhost:8080/position-service/positions/22214`
 - Grafana (ingress): `http://localhost:8080/grafana` (admin/admin)
 - Prometheus (ingress): `http://localhost:8080/prometheus`
+EOF
+      ;;
+    014-fdc3-intent-interoperability)
+      cat <<'EOF'
+- UI (ingress): `http://localhost:8080`
+- API explorer (ingress): `http://localhost:8080/api/docs`
+- Trade page: `http://localhost:8080/trade`
+- Account service route: `http://localhost:8080/account-service/account/22214`
+- Position service route: `http://localhost:8080/position-service/positions/22214`
+- Grafana (ingress): `http://localhost:8080/grafana` (admin/admin)
+- Prometheus (ingress): `http://localhost:8080/prometheus`
+- Sail sidecar UI: `http://localhost:8090`
 EOF
       ;;
     *)

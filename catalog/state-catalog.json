@@ -360,6 +360,29 @@
         "branch": "code/generated-state-013-radius-kubernetes-platform",
         "tag": "generated/013-radius-kubernetes-platform/v1"
       }
+    },
+    {
+      "id": "014-fdc3-intent-interoperability",
+      "title": "FDC3 Intent Interoperability on C3",
+      "status": "planned",
+      "track": "functional",
+      "convergenceLevel": "none",
+      "isConvergence": false,
+      "dottedParents": [],
+      "primaryLineageRole": "canonical",
+      "featurePack": "specs/014-fdc3-intent-interoperability",
+      "previous": [
+        "012-platform-convergence-c3"
+      ],
+      "generation": {
+        "mode": "planned",
+        "entrypoint": "bash pipeline/generate-state.sh 014-fdc3-intent-interoperability",
+        "runtime": "./scripts/start-state-014-fdc3-intent-interoperability-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-014-fdc3-intent-interoperability",
+        "tag": "generated/014-fdc3-intent-interoperability/v1"
+      }
     }
   ]
 }

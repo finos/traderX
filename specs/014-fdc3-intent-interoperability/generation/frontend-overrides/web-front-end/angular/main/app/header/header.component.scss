@@ -1,0 +1,108 @@
+:host {
+    display: block;
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    background: var(--bs-body-bg, #ffffff);
+}
+
+.header-shell {
+    border-bottom: 1px solid rgba(15, 23, 42, 0.12);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+}
+
+.header-nav {
+    min-height: 64px;
+}
+
+.header-brand-logo {
+    width: 50px;
+}
+
+.header-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.finos-logo {
+    width: 30px;
+}
+
+.header-tabs {
+    display: flex;
+    align-items: center;
+    margin-top: 0 !important;
+    padding: 0 0.75rem;
+    background: var(--bs-body-bg, #ffffff);
+}
+
+.header-fdc3-slot {
+    margin-left: auto;
+    padding: 0.2rem 0;
+}
+
+.header-fdc3-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    max-width: min(56vw, 520px);
+    padding: 0.2rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid rgba(15, 23, 42, 0.18);
+    line-height: 1.1;
+    font-size: 0.78rem;
+}
+
+.header-fdc3-label {
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.header-fdc3-message {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.header-fdc3-pill-connected {
+    background: rgba(25, 135, 84, 0.12);
+    color: #14532d;
+}
+
+.header-fdc3-pill-disconnected {
+    background: rgba(255, 193, 7, 0.18);
+    color: #7c2d12;
+}
+
+@media (max-width: 768px) {
+    .header-title {
+        font-size: 1rem;
+    }
+
+    .header-brand-logo {
+        width: 38px;
+    }
+
+    .finos-logo {
+        width: 24px;
+    }
+
+    .header-tabs {
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+
+    .header-fdc3-slot {
+        margin-left: 0;
+        width: 100%;
+        padding-bottom: 0.35rem;
+    }
+
+    .header-fdc3-pill {
+        display: flex;
+        max-width: none;
+        width: 100%;
+    }
+}

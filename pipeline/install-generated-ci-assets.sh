@@ -172,6 +172,9 @@ case "${STATE_ID}" in
   013-radius-kubernetes-platform)
     state_allowed_roots=("${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "radius-kubernetes-platform")
     ;;
+  014-fdc3-intent-interoperability)
+    state_allowed_roots=("${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "tilt-kubernetes-dev-loop" "fdc3-intent-interoperability")
+    ;;
 esac
 
 state_allows_dir() {

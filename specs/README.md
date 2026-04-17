@@ -20,6 +20,7 @@ This repository now uses the GitHub Spec Kit canonical structure at repo root:
 - `011-tilt-kubernetes-dev-loop`
 - `012-platform-convergence-c3`
 - `013-radius-kubernetes-platform`
+- `014-fdc3-intent-interoperability`
 
 ## References
 

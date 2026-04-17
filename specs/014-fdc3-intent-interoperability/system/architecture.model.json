@@ -1,0 +1,148 @@
+{
+  "title": "FDC3 Intent Interoperability on C3",
+  "stateId": "014-fdc3-intent-interoperability",
+  "description": "State 014 layers FDC3 context and intent interoperability onto the C3 TraderX runtime and adds a local Sail sidecar demo environment.",
+  "inheritsFrom": "012-platform-convergence-c3",
+  "flowDoc": "../001-baseline-uncontainerized-parity/system/end-to-end-flows.md",
+  "entrypoints": [
+    {
+      "name": "traderx-ui",
+      "url": "http://localhost:8080"
+    },
+    {
+      "name": "sail-ui",
+      "url": "http://localhost:8090"
+    }
+  ],
+  "mermaidDirection": "LR",
+  "nodes": [
+    {
+      "id": "trader",
+      "label": "Trader",
+      "kind": "actor",
+      "description": "User interacting with TraderX blotters and tickets."
+    },
+    {
+      "id": "traderxUi",
+      "label": "TraderX Angular UI",
+      "kind": "service",
+      "description": "Trade/order/position views plus FDC3 integration adapter."
+    },
+    {
+      "id": "traderxIngress",
+      "label": "TraderX Ingress",
+      "kind": "gateway",
+      "description": "NGINX ingress for TraderX UI/API traffic."
+    },
+    {
+      "id": "sailSidecar",
+      "label": "Sail Sidecar",
+      "kind": "service",
+      "description": "Local Sail desktop-agent runtime hosted outside TraderX ingress."
+    },
+    {
+      "id": "sailDirectory",
+      "label": "Sail App Directory Profile",
+      "kind": "component",
+      "description": "Seeded app-directory records for TraderX and demo apps."
+    },
+    {
+      "id": "demoApps",
+      "label": "Demo FDC3 Apps",
+      "kind": "service",
+      "description": "Chart/quote/workbench apps participating in ticker workflows."
+    },
+    {
+      "id": "orderApi",
+      "label": "Order Matcher API",
+      "kind": "service",
+      "description": "Order listing and lifecycle endpoints used by order flows."
+    },
+    {
+      "id": "tradeApi",
+      "label": "Trade Service API",
+      "kind": "service",
+      "description": "Trade creation/query endpoints used by trade ticket flows."
+    },
+    {
+      "id": "positionApi",
+      "label": "Position Service API",
+      "kind": "service",
+      "description": "Position/blotter data source for symbol-selected rows."
+    },
+    {
+      "id": "nats",
+      "label": "NATS Broker",
+      "kind": "service",
+      "description": "Realtime ticker and lifecycle updates via websocket gateway."
+    }
+  ],
+  "edges": [
+    {
+      "from": "trader",
+      "to": "traderxUi",
+      "label": "Selects blotter rows and launches tickets"
+    },
+    {
+      "from": "trader",
+      "to": "sailSidecar",
+      "label": "Uses Sail app launcher/resolver"
+    },
+    {
+      "from": "sailDirectory",
+      "to": "sailSidecar",
+      "label": "Provides app/intents/context metadata"
+    },
+    {
+      "from": "sailSidecar",
+      "to": "traderxUi",
+      "label": "Routes contexts/intents to TraderX"
+    },
+    {
+      "from": "traderxUi",
+      "to": "sailSidecar",
+      "label": "Broadcasts fdc3.instrument and raises intents"
+    },
+    {
+      "from": "sailSidecar",
+      "to": "demoApps",
+      "label": "Hosts/resolves demo app workflows"
+    },
+    {
+      "from": "demoApps",
+      "to": "sailSidecar",
+      "label": "Raises ticket-launch and view intents"
+    },
+    {
+      "from": "traderxUi",
+      "to": "traderxIngress",
+      "label": "Uses existing UI/API routes"
+    },
+    {
+      "from": "traderxIngress",
+      "to": "tradeApi",
+      "label": "Trade ticket workflows"
+    },
+    {
+      "from": "traderxIngress",
+      "to": "orderApi",
+      "label": "Order ticket and order blotter workflows"
+    },
+    {
+      "from": "traderxIngress",
+      "to": "positionApi",
+      "label": "Position blotter queries"
+    },
+    {
+      "from": "traderxUi",
+      "to": "nats",
+      "label": "Receives realtime pricing/order updates via nats-ws"
+    }
+  ],
+  "notes": [
+    "FDC3 integration is additive and frontend-scoped.",
+    "No backend API or schema changes are required for core interoperability behavior.",
+    "Sail sidecar is intentionally outside TraderX ingress to keep concerns separated.",
+    "Degraded mode preserves baseline workflows when DesktopAgent is unavailable."
+  ]
+}

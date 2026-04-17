@@ -32,6 +32,7 @@ tracks:
     states:
       - 008-pricing-awareness-market-data
       - 009-order-management-matcher
+      - 014-fdc3-intent-interoperability
   nonfunctional:
     description: "Non-functional overlays (observability, resilience, operations)."
     states:
@@ -139,3 +140,10 @@ stateCatalog:
     isConvergence: false
     lineageRole: optional
     spec: specs/013-radius-kubernetes-platform/spec.md
+  - id: 014-fdc3-intent-interoperability
+    previous:
+      - 012-platform-convergence-c3
+    convergenceLevel: none
+    isConvergence: false
+    lineageRole: canonical
+    spec: specs/014-fdc3-intent-interoperability/spec.md
