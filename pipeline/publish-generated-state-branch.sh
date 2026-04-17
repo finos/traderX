@@ -1222,6 +1222,208 @@ link_snapshot_component() {
   ln -sfn "../../../${component_rel}" "${SNAPSHOT_DIR}/generated/code/components/${component_name}-specfirst"
 }
 
+extract_script_dependencies_from_file() {
+  local script_path="$1"
+  [[ -f "${script_path}" ]] || return 0
+  sed -nE 's#.*\/scripts\/([A-Za-z0-9._-]+\.sh).*#\1#p' "${script_path}" | sort -u
+}
+
+COPIED_SNAPSHOT_SCRIPTS=""
+copy_snapshot_script_with_deps() {
+  local script_name="$1"
+  [[ -n "${script_name}" ]] || return 0
+
+  if [[ "${COPIED_SNAPSHOT_SCRIPTS}" == *"|${script_name}|"* ]]; then
+    return 0
+  fi
+  COPIED_SNAPSHOT_SCRIPTS="${COPIED_SNAPSHOT_SCRIPTS}|${script_name}|"
+
+  local snapshot_script="${SNAPSHOT_DIR}/scripts/${script_name}"
+  local source_script=""
+  if [[ -f "${snapshot_script}" ]]; then
+    source_script="${snapshot_script}"
+  elif [[ -f "${ROOT}/scripts/${script_name}" ]]; then
+    mkdir -p "${SNAPSHOT_DIR}/scripts"
+    cp "${ROOT}/scripts/${script_name}" "${snapshot_script}"
+    chmod +x "${snapshot_script}" 2>/dev/null || true
+    source_script="${snapshot_script}"
+  else
+    return 0
+  fi
+
+  local dep
+  while IFS= read -r dep; do
+    [[ -n "${dep}" ]] || continue
+    [[ "${dep}" == "${script_name}" ]] && continue
+    copy_snapshot_script_with_deps "${dep}"
+  done < <(extract_script_dependencies_from_file "${source_script}")
+}
+
+resolve_primary_script_for_action() {
+  local action="$1"
+  local candidate=""
+  case "${action}" in
+    start|stop|status)
+      candidate="scripts/${action}-state-${STATE_ID}-generated.sh"
+      ;;
+    test)
+      candidate="scripts/test-state-${STATE_ID}.sh"
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+
+  if [[ -f "${SNAPSHOT_DIR}/${candidate}" ]]; then
+    printf '%s\n' "${candidate}"
+    return 0
+  fi
+
+  case "${action}" in
+    start)
+      candidate="scripts/start-base-uncontainerized-generated.sh"
+      ;;
+    stop)
+      candidate="scripts/stop-base-uncontainerized-generated.sh"
+      ;;
+    status)
+      candidate="scripts/status-base-uncontainerized-generated.sh"
+      ;;
+    test)
+      candidate=""
+      ;;
+  esac
+
+  if [[ -n "${candidate}" && -f "${SNAPSHOT_DIR}/${candidate}" ]]; then
+    printf '%s\n' "${candidate}"
+    return 0
+  fi
+  return 1
+}
+
+collect_snapshot_script_dependency_closure() {
+  local root_script_name="$1"
+  local queue=("${root_script_name}")
+  local seen=""
+  local current dep
+
+  while ((${#queue[@]} > 0)); do
+    current="${queue[0]}"
+    queue=("${queue[@]:1}")
+
+    if [[ "${seen}" == *"|${current}|"* ]]; then
+      continue
+    fi
+    seen="${seen}|${current}|"
+    printf '%s\n' "${current}"
+
+    if [[ ! -f "${SNAPSHOT_DIR}/scripts/${current}" ]]; then
+      continue
+    fi
+
+    while IFS= read -r dep; do
+      [[ -n "${dep}" ]] || continue
+      [[ -f "${SNAPSHOT_DIR}/scripts/${dep}" ]] || continue
+      queue+=("${dep}")
+    done < <(extract_script_dependencies_from_file "${SNAPSHOT_DIR}/scripts/${current}")
+  done
+}
+
+write_env_wrapper_script() {
+  local wrapper_name="$1"
+  local action="$2"
+  local target_script="$3"
+  local wrapper_path="${SNAPSHOT_DIR}/${wrapper_name}"
+  local target_script_name="${target_script#scripts/}"
+
+  local flow_lines=""
+  local dep_count=0
+  local dep_script
+  while IFS= read -r dep_script; do
+    [[ -n "${dep_script}" ]] || continue
+    dep_count=$((dep_count + 1))
+    flow_lines="${flow_lines}#  - scripts/${dep_script}\n"
+  done < <(collect_snapshot_script_dependency_closure "${target_script_name}")
+
+  {
+    printf '%s\n' '#!/usr/bin/env bash'
+    printf '%s\n' 'set -euo pipefail'
+    printf '%s\n\n' 'ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"'
+    printf '%s\n' "# Wrapper purpose: stable, state-local ${action} entrypoint."
+    printf '%s\n' '# This may delegate across multiple numbered state scripts to maximize reuse.'
+    if (( dep_count > 1 )); then
+      printf '%s\n' '# Execution flow:'
+      printf '%b' "${flow_lines}"
+    else
+      printf '%s\n' "# Execution flow: scripts/${target_script_name}"
+    fi
+    printf '\nexec "${ROOT}/%s" "$@"\n' "${target_script}"
+  } > "${wrapper_path}"
+  chmod +x "${wrapper_path}"
+}
+
+write_test_env_wrapper_without_target() {
+  local wrapper_path="${SNAPSHOT_DIR}/test-env.sh"
+  cat > "${wrapper_path}" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+echo "[info] no state-specific test entrypoint was detected for this snapshot."
+if [[ -d "${ROOT}/scripts" ]]; then
+  echo "[hint] available test scripts:"
+  ls "${ROOT}/scripts"/test-state-*.sh 2>/dev/null || true
+fi
+exit 2
+EOF
+  chmod +x "${wrapper_path}"
+}
+
+write_env_entrypoint_wrappers() {
+  local start_target stop_target status_target test_target
+
+  start_target="$(resolve_primary_script_for_action start || true)"
+  stop_target="$(resolve_primary_script_for_action stop || true)"
+  status_target="$(resolve_primary_script_for_action status || true)"
+  test_target="$(resolve_primary_script_for_action test || true)"
+
+  if [[ -z "${start_target}" || -z "${stop_target}" || -z "${status_target}" ]]; then
+    echo "[fail] missing mandatory runtime scripts for env wrappers in ${STATE_ID}"
+    echo "[hint] expected start/stop/status scripts under snapshot scripts/"
+    exit 1
+  fi
+
+  write_env_wrapper_script "start-env.sh" "start" "${start_target}"
+  write_env_wrapper_script "stop-env.sh" "stop" "${stop_target}"
+  write_env_wrapper_script "status-env.sh" "status" "${status_target}"
+
+  if [[ -n "${test_target}" ]]; then
+    write_env_wrapper_script "test-env.sh" "test" "${test_target}"
+  else
+    write_test_env_wrapper_without_target
+  fi
+}
+
+assert_snapshot_clone_entrypoints() {
+  local required_exec
+  for required_exec in start-env.sh stop-env.sh status-env.sh test-env.sh; do
+    if [[ ! -x "${SNAPSHOT_DIR}/${required_exec}" ]]; then
+      echo "[fail] missing executable wrapper: ${required_exec}"
+      exit 1
+    fi
+  done
+
+  if [[ ! -f "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" ]]; then
+    echo "[fail] missing RUN_FROM_CLONE.md in snapshot"
+    exit 1
+  fi
+
+  if rg -q "No state-specific clone runtime instructions were generated" "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md"; then
+    echo "[fail] clone runbook placeholder detected for ${STATE_ID}; add explicit instructions"
+    exit 1
+  fi
+}
+
 install_uncontainerized_clone_harness() {
   mkdir -p \
     "${SNAPSHOT_DIR}/scripts" \
@@ -1345,6 +1547,7 @@ EOF
 install_state_compose_clone_harness() {
   local state_id="$1"
   mkdir -p "${SNAPSHOT_DIR}/scripts"
+  COPIED_SNAPSHOT_SCRIPTS=""
 
   local script_name
   for script_name in \
@@ -1352,9 +1555,7 @@ install_state_compose_clone_harness() {
     "stop-state-${state_id}-generated.sh" \
     "status-state-${state_id}-generated.sh" \
     "test-state-${state_id}.sh"; do
-    if [[ -f "${ROOT}/scripts/${script_name}" ]]; then
-      cp "${ROOT}/scripts/${script_name}" "${SNAPSHOT_DIR}/scripts/"
-    fi
+    copy_snapshot_script_with_deps "${script_name}"
   done
 }
 
@@ -1984,6 +2185,48 @@ Status / stop:
 ```
 EOF
       ;;
+    014-fdc3-intent-interoperability)
+      cat > "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
+# Run From Clone
+
+Prerequisites:
+- Docker
+- kubectl
+- jq
+- Kind (default) or Minikube
+- Docker Compose plugin (required for optional Sail sidecar mode)
+
+Start TraderX runtime (state 014 wrapper):
+
+```bash
+./start-env.sh --provider kind
+```
+
+Start TraderX + Sail sidecar demo mode:
+
+```bash
+./start-env.sh --provider kind --with-sail
+```
+
+Endpoints:
+- UI / edge: `http://localhost:8080`
+- API explorer (edge): `http://localhost:8080/api/docs`
+- Sail UI (when `--with-sail`): `http://localhost:8090`
+
+Status / stop:
+
+```bash
+./status-env.sh --provider kind
+./stop-env.sh --provider kind
+```
+
+Functional smoke test:
+
+```bash
+./test-env.sh
+```
+EOF
+      ;;
     007-observability-lgtm-compose)
       cat > "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
 # Run From Clone
@@ -2133,6 +2376,22 @@ No state-specific clone runtime instructions were generated for this snapshot.
 EOF
       ;;
   esac
+
+  cat >> "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
+
+## Stable Entrypoints
+
+Use root wrappers for this generated branch:
+
+```bash
+./start-env.sh   # start this state runtime
+./status-env.sh  # runtime health/status
+./stop-env.sh    # stop runtime
+./test-env.sh    # state smoke/validation
+```
+
+Wrappers intentionally delegate to numbered state scripts to maximize reuse while keeping clone-first commands stable.
+EOF
 }
 
 write_snapshot_learning_docs() {
@@ -2599,9 +2858,15 @@ case "${STATE_ID}" in
     install_kubernetes_clone_harness
     install_state_compose_clone_harness "${STATE_ID}"
     ;;
+  014-fdc3-intent-interoperability)
+    install_kubernetes_clone_harness
+    install_state_compose_clone_harness "${STATE_ID}"
+    ;;
 esac
 
+write_env_entrypoint_wrappers
 write_clone_runbook
+assert_snapshot_clone_entrypoints
 write_snapshot_learning_docs
 write_snapshot_agentic_docs
 write_learning_guide

@@ -283,6 +283,27 @@ validate_state_entries() {
     exit 1
   fi
 
+  local required_clone_entries=(
+    "scripts"
+    "RUN_FROM_CLONE.md"
+    "start-env.sh"
+    "stop-env.sh"
+    "status-env.sh"
+    "test-env.sh"
+  )
+  local missing_clone_entries=()
+  local required_entry
+  for required_entry in "${required_clone_entries[@]}"; do
+    if ! path_in_list "${required_entry}" "${entries[@]}"; then
+      missing_clone_entries+=("${required_entry}")
+    fi
+  done
+  if [[ "${#missing_clone_entries[@]}" -gt 0 ]]; then
+    echo "[fail] state ${state_id} missing required clone/runtime entrypoints:"
+    printf '  - %s\n' "${missing_clone_entries[@]}"
+    exit 1
+  fi
+
   local state_num="${state_id%%-*}"
   if [[ "${state_num}" =~ ^[0-9]+$ ]] && (( 10#${state_num} >= 6 )); then
     if path_in_list "trade-feed" "${entries[@]}"; then
