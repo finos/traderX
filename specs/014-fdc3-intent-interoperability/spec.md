@@ -31,6 +31,7 @@
   - tab `One`: chart + pricing + ticket-launch controls (`TraderX.CreateTradeTicket` and `TraderX.CreateOrderTicket`)
   - tab `Two`: news-oriented view.
 - FR-01414: The feature pack and generated state README must include an explicit operator demo script with ordered steps and expected outcomes for the two-tab layout.
+- FR-01415: Documentation navigation for this implemented state must include its learning guide (`/docs/learning/state-014-fdc3-intent-interoperability`) in the left-hand Learning Paths sidebar.
 
 ## Non-Functional Requirements
 
@@ -46,6 +47,7 @@
 - NFR-01410: TraderX interoperability payloads must remain canonical and bare (`fdc3.instrument.id.ticker` only) with no Sail-widget-specific exchange aliasing in TraderX UI code.
 - NFR-01411: Any widget-specific compatibility logic needed for Sail demo interoperability (for example exchange qualification or symbol format mapping for TradingView widgets) must be implemented as generated Sail-side patchwork assets applied pre-build/startup, and tracked as temporary technical debt for replacement by future CDM-native symbology.
 - NFR-01412: Because DesktopAgent callback behavior can be inconsistent in current Sail demo environments, TraderX may use a bounded context-sync fallback (for example active-channel `getCurrentContext` polling + dedupe) to preserve deterministic ticket-launch behavior. This fallback must be isolated, documented as technical debt, and removable when robust Sail event delivery is available.
+- NFR-01413: Root SpecKit quality gates must fail if any implemented state is missing either a generated-branch reference in getting-started docs or a Learning Paths sidebar navigation entry.
 
 ## Technical Debt Register
 
@@ -61,3 +63,4 @@
 - SC-01405: Regression tests show no breakage in baseline trade/order/position behavior when FDC3 agent is unavailable.
 - SC-01406: State smoke test path is implemented (`scripts/test-state-014-fdc3-intent-interoperability.sh`) and includes FDC3-specific assertions.
 - SC-01407: Local demo mode can launch TraderX + Sail + demo apps and execute the end-to-end script without manual app-directory editing.
+- SC-01408: Root SpecKit quality gates pass with state `014-fdc3-intent-interoperability` registered in the Learning Paths sidebar and getting-started generated-branch list.

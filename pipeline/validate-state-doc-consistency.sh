@@ -5,6 +5,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CATALOG="${ROOT}/catalog/state-catalog.json"
 SPECS_README="${ROOT}/specs/README.md"
 GETTING_STARTED="${ROOT}/docs/spec-kit/getting-started-with-traderx.md"
+SIDEBARS="${ROOT}/website/sidebars.js"
 
 fail() {
   echo "[fail] $*"
@@ -19,6 +20,7 @@ require_file() {
 require_file "${CATALOG}"
 require_file "${SPECS_README}"
 require_file "${GETTING_STARTED}"
+require_file "${SIDEBARS}"
 
 all_ids=()
 while IFS= read -r line; do
@@ -111,6 +113,11 @@ for id in "${implemented_ids[@]}"; do
   branch_ref="code/generated-state-${id}"
   if ! grep -q "${branch_ref}" "${GETTING_STARTED}"; then
     fail "missing generated branch link in getting-started doc: ${branch_ref}"
+  fi
+
+  learning_sidebar_ref="learning/state-${id}"
+  if ! grep -q "${learning_sidebar_ref}" "${SIDEBARS}"; then
+    fail "missing Learning Paths sidebar entry for implemented state: ${learning_sidebar_ref}"
   fi
 done
 

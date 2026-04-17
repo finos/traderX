@@ -112,6 +112,7 @@ module.exports = {
         'learning/state-011-tilt-kubernetes-dev-loop',
         'learning/state-012-platform-convergence-c3',
         'learning/state-013-radius-kubernetes-platform',
+        'learning/state-014-fdc3-intent-interoperability',
         'learning-paths/index',
         'spec-kit/spec-kit-learning-path-strategy',
         'spec-kit/state-transition-generation-plan',
