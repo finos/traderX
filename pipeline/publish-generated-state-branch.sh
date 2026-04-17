@@ -1261,6 +1261,7 @@ copy_snapshot_script_with_deps() {
 
 resolve_primary_script_for_action() {
   local action="$1"
+  local state_num="${STATE_ID%%-*}"
   local candidate=""
   case "${action}" in
     start|stop|status)
@@ -1275,6 +1276,22 @@ resolve_primary_script_for_action() {
   esac
 
   if [[ -f "${SNAPSHOT_DIR}/${candidate}" ]]; then
+    printf '%s\n' "${candidate}"
+    return 0
+  fi
+
+  # Some generated runtime scripts intentionally use shortened numeric prefixes
+  # (e.g. 004 -> start-state-004-containerized-generated.sh). Fall back to the
+  # first matching state-number-prefixed script for the requested action.
+  case "${action}" in
+    start|stop|status)
+      candidate="$(find "${SNAPSHOT_DIR}/scripts" -maxdepth 1 -type f -name "${action}-state-${state_num}-*-generated.sh" -print | sed "s#^${SNAPSHOT_DIR}/##" | sort | head -n 1 || true)"
+      ;;
+    test)
+      candidate="$(find "${SNAPSHOT_DIR}/scripts" -maxdepth 1 -type f -name "test-state-${state_num}-*.sh" -print | sed "s#^${SNAPSHOT_DIR}/##" | sort | head -n 1 || true)"
+      ;;
+  esac
+  if [[ -n "${candidate}" && -f "${SNAPSHOT_DIR}/${candidate}" ]]; then
     printf '%s\n' "${candidate}"
     return 0
   fi
