@@ -100,7 +100,6 @@ spring.threads.virtual.enabled=true
 people.service.url=\${${PEOPLE_SERVICE_URL_ENV}:http://\${${PEOPLE_SERVICE_HOST_ENV}:localhost}:18089}
 
 server.max-http-request-header-size=1000000
-springdoc.swagger-ui.disable-swagger-default-url=true
 EOF
 
 cat <<EOF > "${TARGET}/Dockerfile"

@@ -118,7 +118,7 @@ const statusChecks = proxyMode
       { id: 'account-service', name: 'Account Service', url: '/account-service/account/22214', expectedStatuses: [200] },
       { id: 'reference-data', name: 'Reference Data', url: '/reference-data/stocks', expectedStatuses: [200] },
       { id: 'position-service', name: 'Position Service', url: '/position-service/health/alive', expectedStatuses: [200] },
-      { id: 'trade-service', name: 'Trade Service', url: '/trade-service/swagger-ui.html', expectedStatuses: [200] },
+      { id: 'trade-service', name: 'Trade Service', url: '/trade-service/v3/api-docs', expectedStatuses: [200] },
       { id: 'people-service', name: 'People Service', url: '/people-service/People/GetPerson?LogonId=user01', expectedStatuses: [200] },
       { id: 'trade-feed', name: 'Trade Feed', url: '/socket.io/?EIO=4&transport=polling', expectedStatuses: [200] },
     ]
@@ -126,7 +126,7 @@ const statusChecks = proxyMode
       { id: 'account-service', name: 'Account Service', url: `${baseOrigin}:18088/account/22214`, expectedStatuses: [200] },
       { id: 'reference-data', name: 'Reference Data', url: `${baseOrigin}:18085/stocks`, expectedStatuses: [200] },
       { id: 'position-service', name: 'Position Service', url: `${baseOrigin}:18090/health/alive`, expectedStatuses: [200] },
-      { id: 'trade-service', name: 'Trade Service', url: `${baseOrigin}:18092/swagger-ui.html`, expectedStatuses: [200] },
+      { id: 'trade-service', name: 'Trade Service', url: `${baseOrigin}:18092/v3/api-docs`, expectedStatuses: [200] },
       { id: 'people-service', name: 'People Service', url: `${baseOrigin}:18089/People/GetPerson?LogonId=user01`, expectedStatuses: [200] },
       { id: 'trade-feed', name: 'Trade Feed', url: `${baseOrigin}:18086/socket.io/?EIO=4&transport=polling`, expectedStatuses: [200] },
     ];

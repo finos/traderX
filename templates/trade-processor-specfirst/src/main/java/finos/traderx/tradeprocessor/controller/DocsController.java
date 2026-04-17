@@ -8,6 +8,6 @@ public class DocsController {
 
   @RequestMapping("/")
   public String index() {
-    return "redirect:swagger-ui.html";
+    return "redirect:/v3/api-docs";
   }
 }

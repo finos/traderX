@@ -48,7 +48,7 @@ for target in \
   "loki|http://localhost:3100/ready" \
   "tempo|http://localhost:3200/ready" \
   "otel-collector|http://localhost:13133/" \
-  "trade-service|http://localhost:18092/swagger-ui.html" \
+  "trade-service|http://localhost:18092/v3/api-docs" \
   "position-service|http://localhost:18090/health/alive"; do
   name="${target%%|*}"
   url="${target#*|}"

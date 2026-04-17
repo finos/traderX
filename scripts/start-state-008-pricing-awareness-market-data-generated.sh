@@ -101,7 +101,7 @@ wait_for_http "nats-monitor" "http://localhost:8222/varz" || exit 1
 wait_for_http "price-publisher" "http://localhost:18100/health" || exit 1
 wait_for_http "account-service" "http://localhost:18088/account/22214" || exit 1
 wait_for_http "position-service" "http://localhost:18090/health/alive" || exit 1
-wait_for_http "trade-service" "http://localhost:18092/swagger-ui.html" || exit 1
+wait_for_http "trade-service" "http://localhost:18092/v3/api-docs" || exit 1
 wait_for_http "ingress" "http://localhost:8080/health" || exit 1
 wait_for_http "ingress-ui" "http://localhost:8080" || exit 1
 

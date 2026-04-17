@@ -144,7 +144,7 @@ done
 echo "[check] warm representative business endpoints so http_server metrics are non-empty"
 curl -sS "${INGRESS_URL}/account-service/account/22214" >/dev/null
 curl -sS "${INGRESS_URL}/position-service/positions/22214" >/dev/null
-curl -sS "${INGRESS_URL}/trade-service/swagger-ui.html" >/dev/null
+curl -sS "${INGRESS_URL}/trade-service/v3/api-docs" >/dev/null
 curl -sS "${INGRESS_URL}/trade-processor/health" >/dev/null
 
 echo "[check] prometheus spring actuator metric families are queryable"

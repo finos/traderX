@@ -26,7 +26,7 @@ const DEFAULT_STATUS_CHECKS: StatusCheckDefinition[] = [
     {
         id: 'trade-service',
         name: 'Trade Service',
-        url: `${window.location.protocol}//${window.location.hostname}:18092/swagger-ui.html`,
+        url: `${window.location.protocol}//${window.location.hostname}:18092/v3/api-docs`,
         expectedStatuses: [200]
     },
     {

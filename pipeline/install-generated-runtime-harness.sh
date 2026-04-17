@@ -553,23 +553,23 @@ generated_runtime_urls_markdown() {
     001-baseline-uncontainerized-parity)
       cat <<'EOF'
 - UI: `http://localhost:18093`
-- Trade service Swagger: `http://localhost:18092/swagger-ui.html`
-- Account service Swagger: `http://localhost:18088/swagger-ui/index.html`
+- Trade service Swagger: `http://localhost:18092/v3/api-docs`
+- Account service Swagger: `http://localhost:18088/v3/api-docs`
 EOF
       ;;
     002-edge-proxy-uncontainerized|003-agentic-harness-foundation)
       cat <<'EOF'
 - UI (edge): `http://localhost:18080`
 - API explorer (edge): `http://localhost:18080/api/docs`
-- Trade service Swagger (edge): `http://localhost:18080/trade-service/swagger-ui.html`
-- Account service Swagger (edge): `http://localhost:18080/account-service/swagger-ui/index.html`
+- Trade service Swagger (edge): `http://localhost:18080/trade-service/v3/api-docs`
+- Account service Swagger (edge): `http://localhost:18080/account-service/v3/api-docs`
 EOF
       ;;
     004-containerized-compose-runtime|005-postgres-database-replacement|006-messaging-nats-replacement|008-pricing-awareness-market-data)
       cat <<'EOF'
 - UI (ingress): `http://localhost:8080`
 - API explorer (ingress): `http://localhost:8080/api/docs`
-- Trade service Swagger: `http://localhost:18092/swagger-ui.html`
+- Trade service Swagger: `http://localhost:18092/v3/api-docs`
 - Account service API sample: `http://localhost:18088/account/22214`
 - Position service health: `http://localhost:18090/health/alive`
 EOF

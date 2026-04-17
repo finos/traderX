@@ -42,7 +42,7 @@ for target in \
   "reference-data|http://localhost:18085/stocks" \
   "account-service|http://localhost:18088/account/22214" \
   "position-service|http://localhost:18090/health/alive" \
-  "trade-service|http://localhost:18092/swagger-ui.html" \
+  "trade-service|http://localhost:18092/v3/api-docs" \
   "nats-monitor|http://localhost:8222/varz"; do
   name="${target%%|*}"
   url="${target#*|}"

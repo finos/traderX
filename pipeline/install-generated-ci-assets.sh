@@ -529,6 +529,7 @@ EOF
             --suppression .github/gradle-cve-ignore-list.xml
             --failOnCVSS 5
             --enableRetired
+            --disableCentral
       - name: Upload reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v4

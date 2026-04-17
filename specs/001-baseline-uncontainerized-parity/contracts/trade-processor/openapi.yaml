@@ -14,7 +14,7 @@ paths:
       operationId: docsRoot
       responses:
         '302':
-          description: Redirect to swagger-ui
+          description: Redirect to OpenAPI docs
 components:
   schemas:
     TradeOrder:

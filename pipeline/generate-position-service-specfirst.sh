@@ -101,7 +101,6 @@ spring.datasource.password=\${${DATABASE_DBPASS_ENV}:sa}
 spring.threads.virtual.enabled=true
 
 server.max-http-request-header-size=1000000
-springdoc.swagger-ui.disable-swagger-default-url=true
 EOF
 
 cat <<EOF > "${TARGET}/Dockerfile"

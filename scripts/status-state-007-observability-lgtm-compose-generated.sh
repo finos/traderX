@@ -47,7 +47,7 @@ for target in \
   "reference-data|http://localhost:18085/stocks" \
   "account-service|http://localhost:18088/account/22214" \
   "position-service|http://localhost:18090/health/alive" \
-  "trade-service|http://localhost:18092/swagger-ui.html"; do
+  "trade-service|http://localhost:18092/v3/api-docs"; do
   name="${target%%|*}"
   url="${target#*|}"
   code="$(http_code_for "${url}")"

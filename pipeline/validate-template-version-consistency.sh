@@ -140,8 +140,7 @@ while IFS= read -r gradle_file; do
 done < <(find "${TEMPLATES_ROOT}" -maxdepth 2 -type f -name build.gradle -print | sort)
 
 shared_dependencies=(
-  "org.springdoc:springdoc-openapi-starter-webmvc-ui"
-  "org.webjars:swagger-ui"
+  "org.springdoc:springdoc-openapi-starter-webmvc-api"
   "org.apache.logging.log4j:log4j-api"
   "ch.qos.logback:logback-core"
   "ch.qos.logback:logback-classic"

@@ -113,7 +113,6 @@ trade.feed.address=\${${TRADE_FEED_ADDRESS_ENV}:http://\${${TRADE_FEED_HOST_ENV}
 
 # To avoid "Request header is too large" when application is backed by oidc proxy.
 server.max-http-request-header-size=1000000
-springdoc.swagger-ui.disable-swagger-default-url=true
 
 logging.level.org.hibernate.SQL=DEBUG
 logging.level.org.hibernate.type.descriptor.sql.BasicBinder=DEBUG
