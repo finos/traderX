@@ -181,6 +181,9 @@ is_ignored_entry() {
     AGENTS.md|ARCHITECTURE.md|CONTRIBUTING.md|FUNCTIONAL_TESTING.md|LEARNING.md|README.md|RUN_FROM_CLONE.md|RUN_FROM_GENERATED.md|STATE.md|.gitignore)
       return 0
       ;;
+    start-env.sh|stop-env.sh|status-env.sh|test-env.sh)
+      return 0
+      ;;
     *)
       return 1
       ;;
