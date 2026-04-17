@@ -94,5 +94,6 @@ fi
 
 bash "${REPO_ROOT}/pipeline/validate-state-doc-consistency.sh"
 bash "${REPO_ROOT}/pipeline/validate-template-version-consistency.sh"
+bash "${REPO_ROOT}/pipeline/validate-generated-state-lineage-invariants.sh" --policy-only
 
 echo "[ok] root Spec Kit quality gates passed (feature=${FEATURE_ID}, branch=${branch_name})"

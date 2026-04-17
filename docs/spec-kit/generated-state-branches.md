@@ -34,6 +34,7 @@ Generated branches include metadata files so consumers can always see provenance
 - `STATE.md`
 - `.traderx-state/state.json`
 - `LEARNING.md`
+- `FUNCTIONAL_TESTING.md`
 - `docs/learning/*` generated learning artifacts (component list, system design, architecture, diagram)
 
 These files record:
@@ -43,6 +44,7 @@ These files record:
 - source branch/commit used to generate snapshot
 - generation timestamp
 - state-oriented learning links back to canonical docs/specs
+- plain-English functional behavior expectations plus smoke-test entrypoints for that snapshot
 
 Canonical portal learning guides live at:
 

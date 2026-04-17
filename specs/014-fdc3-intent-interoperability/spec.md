@@ -48,6 +48,9 @@
 - NFR-01411: Any widget-specific compatibility logic needed for Sail demo interoperability (for example exchange qualification or symbol format mapping for TradingView widgets) must be implemented as generated Sail-side patchwork assets applied pre-build/startup, and tracked as temporary technical debt for replacement by future CDM-native symbology.
 - NFR-01412: Because DesktopAgent callback behavior can be inconsistent in current Sail demo environments, TraderX may use a bounded context-sync fallback (for example active-channel `getCurrentContext` polling + dedupe) to preserve deterministic ticket-launch behavior. This fallback must be isolated, documented as technical debt, and removable when robust Sail event delivery is available.
 - NFR-01413: Root SpecKit quality gates must fail if any implemented state is missing either a generated-branch reference in getting-started docs or a Learning Paths sidebar navigation entry.
+- NFR-01414: Generated snapshot publishing for this state must be state-scoped and compact: downstream publish output may only include implementation roots required by this state and inherited C3 runtime, excluding unrelated legacy component roots.
+- NFR-01415: Decommission invariants must be enforced in generation/publish checks: once a component is replaced/decommissioned in lineage (for example `trade-feed` after state `006-messaging-nats-replacement`), it must remain absent in downstream generated snapshots unless explicitly reintroduced by a later state spec.
+- NFR-01416: Every generated snapshot branch README must include links to canonical Getting Started docs plus a plain-English functional testing guide describing intended behavior and smoke-test entrypoints for that state.
 
 ## Technical Debt Register
 
@@ -64,3 +67,4 @@
 - SC-01406: State smoke test path is implemented (`scripts/test-state-014-fdc3-intent-interoperability.sh`) and includes FDC3-specific assertions.
 - SC-01407: Local demo mode can launch TraderX + Sail + demo apps and execute the end-to-end script without manual app-directory editing.
 - SC-01408: Root SpecKit quality gates pass with state `014-fdc3-intent-interoperability` registered in the Learning Paths sidebar and getting-started generated-branch list.
+- SC-01409: Generated snapshot publish checks fail when state-external or decommissioned component roots reappear in state `014` output.

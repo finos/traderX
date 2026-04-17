@@ -14,6 +14,9 @@ This state introduces desktop interoperability concerns while preserving C3 runt
 - Generated runtime artifacts should include explicit notes for optional demo-agent (Sail/profile) validation.
 - Local Sail sidecar should run as an independent service (for example local Docker container or equivalent), outside TraderX ingress path.
 - Sail sidecar default endpoint should remain `http://localhost:8090` unless explicitly overridden.
+- Generated snapshot publish output for this state must remain compact and state-scoped: include only C3-inherited/runtime roots plus `fdc3-intent-interoperability` assets, and exclude unrelated legacy component roots.
+- Decommission invariants must be enforced in publish validation (for example `trade-feed` stays absent after state `006-messaging-nats-replacement` unless explicitly reintroduced by a later spec).
+- Every generated snapshot branch must include a plain-English `FUNCTIONAL_TESTING.md` guide and README links to canonical Getting Started docs.
 
 ## Security / Compliance
 

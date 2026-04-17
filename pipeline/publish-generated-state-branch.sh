@@ -371,11 +371,16 @@ snapshot_keep_paths_for_state() {
     012-platform-convergence-c3)
       printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "tilt-kubernetes-dev-loop" ".github" "runtime"
       ;;
-    013-radius-kubernetes-platform)
+  013-radius-kubernetes-platform)
       printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "radius-kubernetes-platform" ".github"
       ;;
+    014-fdc3-intent-interoperability)
+      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "tilt-kubernetes-dev-loop" "fdc3-intent-interoperability" ".github" "runtime"
+      ;;
     *)
-      find "${SNAPSHOT_DIR}" -mindepth 1 -maxdepth 1 -exec basename {} \;
+      echo "[fail] missing explicit snapshot keep-path policy for ${STATE_ID}"
+      echo "[hint] add ${STATE_ID} to snapshot_keep_paths_for_state and install-generated-ci-assets.sh state_allowed_roots"
+      exit 1
       ;;
   esac
 }
@@ -802,6 +807,13 @@ EOF
 - Extends UI blotters with pricing/value/P&L visualization while preserving baseline trade/account workflows.
 EOF
       ;;
+    014-fdc3-intent-interoperability)
+      cat <<'EOF'
+- Builds on state `012` and preserves C3 runtime behavior.
+- Adds TraderX app-side FDC3 flows plus a local Sail sidecar and two-tab demo profile.
+- Keeps interoperability payloads canonical (`fdc3.instrument.id.ticker`) and tracks Sail-specific workaround logic as technical debt.
+EOF
+      ;;
     *)
       cat <<'EOF'
 - Generated code snapshot for TraderX state transition.
@@ -1177,6 +1189,13 @@ EOF
 - Understand how pricing streams integrate with existing account-scoped event flows.
 - Review trade execution price stamping and position cost-basis aggregation logic.
 - Validate realtime UI valuation behavior (position value, totals, and P&L) under live price ticks.
+EOF
+      ;;
+    014-fdc3-intent-interoperability)
+      cat <<'EOF'
+- Understand inbound/outbound FDC3 flows between TraderX and the local Sail demo desktop agent.
+- Validate two-tab Sail demo behaviors (tab `One`: chart/pricing/ticket-launch controls; tab `Two`: news view).
+- Track temporary Sail interop workarounds and expected removal path toward robust event delivery and CDM-native symbology.
 EOF
       ;;
     *)
@@ -2338,6 +2357,68 @@ EOF
   fi
 }
 
+write_functional_testing_guide() {
+  local smoke_script=""
+  local generic_smoke_script=""
+  smoke_script="scripts/test-state-${STATE_ID}.sh"
+  generic_smoke_script="scripts/test-state-"*"${state_num}"*.sh
+
+  cat > "${SNAPSHOT_DIR}/FUNCTIONAL_TESTING.md" <<EOF
+# Functional Testing Guide
+
+State: \`${STATE_ID}\`
+
+This guide captures intended functional behavior for this generated snapshot branch.
+
+## What Should Work
+
+$(state_summary_markdown)
+
+## Suggested Functional Validation
+
+1. Start runtime using [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md).
+2. Execute the state's smoke test script when available.
+3. Confirm user-facing behavior and invariants described in [LEARNING.md](./LEARNING.md).
+4. If behavior differs from expectations, compare with parent state using lineage links in [README.md](./README.md).
+
+## Smoke Test Commands
+
+EOF
+
+  if [[ -f "${SNAPSHOT_DIR}/${smoke_script}" ]]; then
+    cat >> "${SNAPSHOT_DIR}/FUNCTIONAL_TESTING.md" <<EOF
+\`\`\`bash
+./${smoke_script}
+\`\`\`
+EOF
+  else
+    cat >> "${SNAPSHOT_DIR}/FUNCTIONAL_TESTING.md" <<EOF
+\`\`\`bash
+ls ./scripts/test-state-*.sh
+\`\`\`
+
+Use the script matching this state id when available.
+EOF
+  fi
+
+  cat >> "${SNAPSHOT_DIR}/FUNCTIONAL_TESTING.md" <<EOF
+
+## Canonical References
+
+- Spec pack: \`${FEATURE_PACK}\`
+- Runtime guide: [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
+- Snapshot learning guide: [LEARNING.md](./LEARNING.md)
+- Snapshot metadata: [STATE.md](./STATE.md)
+EOF
+
+  if [[ -n "${REPO_WEB_BASE}" ]]; then
+    cat >> "${SNAPSHOT_DIR}/FUNCTIONAL_TESTING.md" <<EOF
+- Canonical Getting Started (main): ${REPO_WEB_BASE}/blob/main/docs/spec-kit/getting-started-with-traderx.md
+- Canonical SpecKit docs (source commit): ${REPO_WEB_BASE}/tree/${SOURCE_COMMIT}/docs/spec-kit
+EOF
+  fi
+}
+
 write_snapshot_gitignore() {
   cat > "${SNAPSHOT_DIR}/.gitignore" <<'EOF'
 # Runtime + package-manager artifacts
@@ -2470,6 +2551,7 @@ $(api_explorer_markdown)
 $(interactive_urls_markdown)
 
 Detailed clone-first instructions: [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
+Functional validation guide: [FUNCTIONAL_TESTING.md](./FUNCTIONAL_TESTING.md)
 
 ## Learning Docs In This Snapshot
 
@@ -2487,11 +2569,13 @@ Canonical source-of-truth is maintained in the SpecKit authoring branch, not in 
 - Feature pack: \`${FEATURE_PACK}\`
 - Generation entrypoint: \`${GENERATION_ENTRYPOINT}\`
 - Developer learning guide for this snapshot: [LEARNING.md](./LEARNING.md)
+- Functional validation guide: [FUNCTIONAL_TESTING.md](./FUNCTIONAL_TESTING.md)
 - Snapshot metadata: [STATE.md](./STATE.md), [state.json](./.traderx-state/state.json)
 EOF
 
 if [[ -n "${REPO_WEB_BASE}" ]]; then
   cat >> "${SNAPSHOT_DIR}/README.md" <<EOF
+- Canonical Getting Started (main): ${REPO_WEB_BASE}/blob/main/docs/spec-kit/getting-started-with-traderx.md
 - Source commit: ${REPO_WEB_BASE}/commit/${SOURCE_COMMIT}
 - Feature pack at source commit: ${REPO_WEB_BASE}/tree/${SOURCE_COMMIT}/${FEATURE_PACK}
 - SpecKit docs at source commit: ${REPO_WEB_BASE}/tree/${SOURCE_COMMIT}/docs/spec-kit
@@ -2521,7 +2605,10 @@ write_clone_runbook
 write_snapshot_learning_docs
 write_snapshot_agentic_docs
 write_learning_guide
+write_functional_testing_guide
 write_snapshot_gitignore
+
+bash "${ROOT}/pipeline/validate-generated-state-lineage-invariants.sh" --state-id "${STATE_ID}" --snapshot-dir "${SNAPSHOT_DIR}"
 
 BRANCH_EXISTS=0
 if git -C "${ROOT}" show-ref --verify --quiet "refs/heads/${BRANCH_NAME}"; then
