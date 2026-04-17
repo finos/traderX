@@ -131,6 +131,11 @@ if [[ "${#target_states[@]}" -eq 0 ]]; then
   exit 1
 fi
 
+if printf '%s\n' "${target_states[@]}" | grep -Fxq '014-fdc3-intent-interoperability'; then
+  echo "[step] Sail pin drift check (informational)"
+  bash "${ROOT}/pipeline/check-sail-pin-drift.sh" || true
+fi
+
 echo "[step] generate target states"
 for id in "${target_states[@]}"; do
   echo "[state] generating ${id}"

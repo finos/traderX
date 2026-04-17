@@ -93,6 +93,7 @@ bash pipeline/validate-state-doc-consistency.sh
 bash pipeline/validate-state-pack-artifacts.sh
 bash pipeline/validate-template-version-consistency.sh
 bash pipeline/validate-generated-branch-dependency-consistency.sh
+bash pipeline/validate-sail-pin-contract.sh
 ./pipeline/speckit/validate-speckit-readiness.sh
 ./pipeline/speckit/verify-spec-expressiveness.sh
 bash pipeline/speckit/compile-all-component-manifests.sh
@@ -195,6 +196,26 @@ Run the state-change playbook (refresh docs -> gates -> generate -> optional pub
 ```bash
 bash pipeline/state-playbook.sh --state <state-id> --publish-neighborhood --push-generated
 ```
+
+Dependency maintenance refresh contract:
+
+1. Start from the earliest implemented state impacted by the dependency change.
+2. Run forward through downstream implemented states.
+3. Require smoke-test pass evidence before publish.
+
+Sail-specific maintenance checks (state `014`):
+
+```bash
+# local pin contract check
+bash pipeline/validate-sail-pin-contract.sh
+
+# upstream drift check (fails if tracking ref moved beyond the pinned commit)
+bash pipeline/check-sail-pin-drift.sh --fail-on-drift
+```
+
+Sail pin metadata source:
+
+- `specs/014-fdc3-intent-interoperability/generation/sail-pin.env`
 
 Generated outputs:
 

@@ -86,6 +86,18 @@ Version policy changes must be landed in generator sources, not as ad-hoc genera
 - State-specific version deltas belong in `specs/<state>/generation/patches/*.patch`.
 - Post-generation mutation scripts are not allowed in steady-state; generation must be reproducible directly from templates and state patchsets.
 
+## External Dependency Pin Contract (Sail / State 014)
+
+State `014-fdc3-intent-interoperability` depends on a local Sail sidecar and must use explicit pin governance.
+
+Policy:
+
+- Sail pin metadata is state-owned in `specs/014-fdc3-intent-interoperability/generation/sail-pin.env`.
+- Pin metadata must include repo URL, tracking ref, pinned commit SHA, and updated-on date.
+- Generated state `014` artifacts must consume that pin (`sail/bootstrap/sail-pin.env` + bootstrap defaults).
+- Root quality gates must validate pin-manifest contract (`bash pipeline/validate-sail-pin-contract.sh`).
+- Maintenance workflows must run drift detection (`bash pipeline/check-sail-pin-drift.sh --fail-on-drift`) before repinning.
+
 ## Jump-Point Overlay Parity Contract
 
 When a state first materializes full runtime files that no longer point directly at `templates/**` (for example, root-level module `build.gradle` files in a convergence jump-point), that state must preserve inherited base-template policy unless an explicit state requirement overrides it.

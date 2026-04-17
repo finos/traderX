@@ -63,4 +63,44 @@ else
   echo "[info] order-matcher not present; skipping order schema contract check"
 fi
 
+sail_state_dir="${TARGET_ROOT}/fdc3-intent-interoperability/sail"
+if [[ -d "${sail_state_dir}" ]]; then
+  pin_manifest="${sail_state_dir}/bootstrap/sail-pin.env"
+  compose_file="${sail_state_dir}/docker-compose.yml"
+  run_sail_script="${sail_state_dir}/bootstrap/run-sail.sh"
+
+  for required in "${pin_manifest}" "${compose_file}" "${run_sail_script}"; do
+    if [[ ! -f "${required}" ]]; then
+      echo "[fail] Sail pin contract violation: missing ${required}"
+      exit 1
+    fi
+  done
+
+  # shellcheck disable=SC1090
+  source "${pin_manifest}"
+  if ! [[ "${SAIL_PINNED_REF:-}" =~ ^[0-9a-f]{40}$ ]]; then
+    echo "[fail] Sail pin contract violation: SAIL_PINNED_REF missing/invalid in ${pin_manifest}"
+    exit 1
+  fi
+
+  if ! rg -Fq "${SAIL_PINNED_REF}" "${compose_file}"; then
+    echo "[fail] Sail pin contract violation: docker-compose does not default to pinned commit ${SAIL_PINNED_REF}"
+    exit 1
+  fi
+
+  if ! rg -q 'sail-pin\.env' "${run_sail_script}"; then
+    echo "[fail] Sail pin contract violation: run-sail bootstrap does not consume sail-pin.env"
+    exit 1
+  fi
+
+  if ! rg -q 'SAIL_REPO_REF=.*SAIL_PINNED_REF' "${run_sail_script}"; then
+    echo "[fail] Sail pin contract violation: run-sail bootstrap does not derive repo ref from SAIL_PINNED_REF"
+    exit 1
+  fi
+
+  echo "[ok] Sail pin contract validated for state 014 artifacts"
+else
+  echo "[info] state 014 Sail assets not present; skipping Sail pin contract check"
+fi
+
 echo "[ok] generated-state contracts validated for ${TARGET_ROOT}"
