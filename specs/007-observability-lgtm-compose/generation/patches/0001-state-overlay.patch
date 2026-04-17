@@ -215,7 +215,7 @@ index bcde254..aad8aff 100644
  
  - UI (ingress): `http://localhost:8080`
 -- API explorer (ingress): `http://localhost:8080/api/docs`
--- Trade service Swagger: `http://localhost:18092/swagger-ui.html`
+-- Trade service Swagger: `http://localhost:18092/v3/api-docs`
 -- Account service API sample: `http://localhost:18088/account/22214`
 -- Position service health: `http://localhost:18090/health/alive`
 +- Grafana: `http://localhost:3001` (local login credentials)
@@ -239,7 +239,7 @@ index 5edadfd..13f4ced 100644
 +  runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
    implementation 'org.postgresql:postgresql:42.7.10'
-   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
 diff --git a/ci/state-metadata.json b/ci/state-metadata.json
 index 1175300..e8e9aef 100644
 --- a/ci/state-metadata.json
@@ -1819,7 +1819,7 @@ index 0000000..ddd3733
 +          - http://people-service:18089/swagger
 +          - http://position-service:18090/health/alive
 +          - http://trade-processor:18091/health
-+          - http://trade-service:18092/swagger-ui.html
++          - http://trade-service:18092/v3/api-docs
 +          - http://web-front-end-angular:18093/
 +          - http://trade-feed:18086/
 +    relabel_configs:
@@ -1902,7 +1902,7 @@ index cddccee..f0681d0 100644
 +  runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
    implementation 'org.postgresql:postgresql:42.7.10'
-   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
 diff --git a/runtime/ghcr/007-observability-lgtm-compose/.env.example b/runtime/ghcr/007-observability-lgtm-compose/.env.example
 new file mode 100644
 index 0000000..91355af
@@ -2101,7 +2101,7 @@ index 16a2718..69f1fb3 100755
 -wait_for_http "nats-monitor" "http://localhost:8222/varz" || exit 1
 -wait_for_http "account-service" "http://localhost:18088/account/22214" || exit 1
 -wait_for_http "position-service" "http://localhost:18090/health/alive" || exit 1
--wait_for_http "trade-service" "http://localhost:18092/swagger-ui.html" || exit 1
+-wait_for_http "trade-service" "http://localhost:18092/v3/api-docs" || exit 1
  wait_for_http "ingress" "http://localhost:8080/health" || exit 1
 -wait_for_http "ingress-ui" "http://localhost:8080" || exit 1
 +wait_for_http "grafana" "http://localhost:${GRAFANA_PORT}/api/health" || exit 1
@@ -2171,9 +2171,9 @@ index 9676d35..60b84ee 100755
    "reference-data|http://localhost:18085/stocks" \
    "account-service|http://localhost:18088/account/22214" \
    "position-service|http://localhost:18090/health/alive" \
--  "trade-service|http://localhost:18092/swagger-ui.html" \
+-  "trade-service|http://localhost:18092/v3/api-docs" \
 -  "nats-monitor|http://localhost:8222/varz"; do
-+  "trade-service|http://localhost:18092/swagger-ui.html"; do
++  "trade-service|http://localhost:18092/v3/api-docs"; do
    name="${target%%|*}"
    url="${target#*|}"
    code="$(http_code_for "${url}")"
@@ -2215,7 +2215,7 @@ index 48ea8b4..2747525 100644
 +  implementation 'org.springframework.boot:spring-boot-starter-actuator'
 +  runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
    implementation 'org.postgresql:postgresql:42.7.10'
-   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
    implementation 'io.nats:jnats:2.20.5'
 diff --git a/trade-service/build.gradle b/trade-service/build.gradle
 index d7a9ae1..5540073 100644
@@ -2228,5 +2228,5 @@ index d7a9ae1..5540073 100644
 +  implementation 'org.springframework.boot:spring-boot-starter-actuator'
 +  runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
    implementation 'com.h2database:h2:2.3.232'
-   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
    implementation 'io.nats:jnats:2.20.5'

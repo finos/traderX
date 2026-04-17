@@ -219,7 +219,7 @@ index 4d09879..90a3a4c 100644
  
  ## Interactive URLs
 @@ -25,8 +25,3 @@ Smoke test:
- - Trade service Swagger: `http://localhost:18092/swagger-ui.html`
+ - Trade service Swagger: `http://localhost:18092/v3/api-docs`
  - Account service API sample: `http://localhost:18088/account/22214`
  - Position service health: `http://localhost:18090/health/alive`
 -
@@ -237,7 +237,7 @@ index 7c23724..5edadfd 100644
    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 -  implementation 'com.h2database:h2:2.3.232'
 +  implementation 'org.postgresql:postgresql:42.7.10'
-   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
  
    implementation ('ch.qos.logback:logback-core:1.5.32') {
 diff --git a/account-service/src/main/java/finos/traderx/accountservice/repository/AccountRepository.java b/account-service/src/main/java/finos/traderx/accountservice/repository/AccountRepository.java
@@ -296,7 +296,7 @@ index 060d4f8..cddccee 100644
    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 -  implementation 'com.h2database:h2:2.3.232'
 +  implementation 'org.postgresql:postgresql:42.7.10'
-   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
  
    implementation ('ch.qos.logback:logback-core:1.5.32') {
 diff --git a/position-service/src/main/resources/application.properties b/position-service/src/main/resources/application.properties
@@ -802,7 +802,7 @@ index 10c246e..b3a7648 100644
    implementation 'org.springframework.boot:spring-boot-starter-web'
 -  implementation 'com.h2database:h2:2.3.232'
 +  implementation 'org.postgresql:postgresql:42.7.10'
-   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
  
    implementation('org.json:json:20240303') {
 diff --git a/trade-processor/src/main/resources/application.properties b/trade-processor/src/main/resources/application.properties

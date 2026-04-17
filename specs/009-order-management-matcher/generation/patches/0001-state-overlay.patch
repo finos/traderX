@@ -246,7 +246,7 @@ index c2bbf69..f397f9c 100644
  
  - UI (ingress): `http://localhost:8080`
 -- API explorer (ingress): `http://localhost:8080/api/docs`
--- Trade service Swagger: `http://localhost:18092/swagger-ui.html`
+-- Trade service Swagger: `http://localhost:18092/v3/api-docs`
 -- Account service API sample: `http://localhost:18088/account/22214`
 -- Position service health: `http://localhost:18090/health/alive`
 +- Grafana: `http://localhost:3001` (local login credentials)
@@ -1599,7 +1599,7 @@ index 0000000..c3cd057
 +    {"id": 1, "type": "stat", "title": "Price Publisher Health", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 }, "targets": [{ "refId": "A", "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://price-publisher:18100/health\"})" }], "fieldConfig": {"defaults": {"min": 0, "max": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}}},
 +    {"id": 2, "type": "stat", "title": "NATS Monitor Health", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 }, "targets": [{ "refId": "A", "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://nats-broker:8222/varz\"})" }], "fieldConfig": {"defaults": {"min": 0, "max": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}}},
 +    {"id": 3, "type": "stat", "title": "Pricing Endpoint p95 (5m)", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 }, "targets": [{ "refId": "A", "expr": "quantile_over_time(0.95, probe_duration_seconds{job=\"traderx-http-probe\",instance=\"http://price-publisher:18100/prices/IBM\"}[5m])" }], "fieldConfig": {"defaults": {"unit": "s", "decimals": 3}}},
-+    {"id": 4, "type": "stat", "title": "Trade API p95 (5m)", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 }, "targets": [{ "refId": "A", "expr": "quantile_over_time(0.95, probe_duration_seconds{job=\"traderx-http-probe\",instance=\"http://trade-service:18092/swagger-ui.html\"}[5m])" }], "fieldConfig": {"defaults": {"unit": "s", "decimals": 3}}},
++    {"id": 4, "type": "stat", "title": "Trade API p95 (5m)", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 }, "targets": [{ "refId": "A", "expr": "quantile_over_time(0.95, probe_duration_seconds{job=\"traderx-http-probe\",instance=\"http://trade-service:18092/v3/api-docs\"}[5m])" }], "fieldConfig": {"defaults": {"unit": "s", "decimals": 3}}},
 +    {"id": 5, "type": "timeseries", "title": "Pricing + Trade Endpoints Success", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 }, "targets": [{ "refId": "A", "expr": "probe_success{job=\"traderx-http-probe\",instance=~\"http://price-publisher:18100/.*|http://trade-service:18092/.*|http://trade-processor:18091/health\"}" }], "fieldConfig": {"defaults": {"min": 0, "max": 1}}, "options": {"legend": {"displayMode": "table", "placement": "bottom"}}},
 +    {"id": 6, "type": "timeseries", "title": "Pricing Pipeline Log Throughput", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 }, "targets": [{ "refId": "A", "expr": "sum by (service) (rate({compose_project=\"traderx-state-009\",service=~\"price-publisher|trade-service|trade-processor|position-service\"}[1m]))" }], "fieldConfig": {"defaults": {"unit": "lines/s"}}, "options": {"legend": {"displayMode": "table", "placement": "bottom"}}},
 +    {"id": 7, "type": "logs", "title": "Pipeline Logs (Price / Trade / Position)", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 10, "w": 24, "x": 0, "y": 12 }, "targets": [{ "refId": "A", "expr": "{compose_project=\"traderx-state-009\",service=~\"price-publisher|trade-service|trade-processor|position-service\"}" }], "options": {"showLabels": true, "showTime": true, "wrapLogMessage": true, "enableLogDetails": true}}
@@ -2279,7 +2279,7 @@ index 0000000..fa60a9f
 +          - http://people-service:18089/swagger
 +          - http://position-service:18090/health/alive
 +          - http://trade-processor:18091/health
-+          - http://trade-service:18092/swagger-ui.html
++          - http://trade-service:18092/v3/api-docs
 +          - http://web-front-end-angular:18093/
 +          - http://nats-broker:8222/varz
 +          - http://order-matcher:18110/health
@@ -2501,7 +2501,7 @@ index 0000000..641b0bc
 +  implementation 'org.springframework.boot:spring-boot-starter-actuator'
 +  runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 +  runtimeOnly 'org.postgresql:postgresql:42.7.10'
-+  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
++  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
 +  implementation('org.json:json:20240303') {
 +    because 'previous versions are affected by multiple CVE'
 +  }
@@ -4048,7 +4048,7 @@ index f092e90..06c3ff6 100755
  wait_for_http "price-publisher" "http://localhost:18100/health" || exit 1
 -wait_for_http "account-service" "http://localhost:18088/account/22214" || exit 1
 -wait_for_http "position-service" "http://localhost:18090/health/alive" || exit 1
--wait_for_http "trade-service" "http://localhost:18092/swagger-ui.html" || exit 1
+-wait_for_http "trade-service" "http://localhost:18092/v3/api-docs" || exit 1
 +wait_for_http "order-matcher-health" "http://localhost:18110/health" || exit 1
  wait_for_http "ingress" "http://localhost:8080/health" || exit 1
 -wait_for_http "ingress-ui" "http://localhost:8080" || exit 1
@@ -4123,7 +4123,7 @@ index 93289b9..db391bb 100755
 +  "loki|http://localhost:3100/ready" \
 +  "tempo|http://localhost:3200/ready" \
 +  "otel-collector|http://localhost:13133/" \
-   "trade-service|http://localhost:18092/swagger-ui.html" \
+   "trade-service|http://localhost:18092/v3/api-docs" \
 -  "nats-monitor|http://localhost:8222/varz"; do
 +  "position-service|http://localhost:18090/health/alive"; do
    name="${target%%|*}"

@@ -468,7 +468,7 @@ index d0d6062..16a2718 100755
  wait_for_http "account-service" "http://localhost:18088/account/22214" || exit 1
 -wait_for_http "position-service" "http://localhost:18090/positions/22214" || exit 1
 +wait_for_http "position-service" "http://localhost:18090/health/alive" || exit 1
- wait_for_http "trade-service" "http://localhost:18092/swagger-ui.html" || exit 1
+ wait_for_http "trade-service" "http://localhost:18092/v3/api-docs" || exit 1
  wait_for_http "ingress" "http://localhost:8080/health" || exit 1
  wait_for_http "ingress-ui" "http://localhost:8080" || exit 1
  
@@ -506,8 +506,8 @@ index 340ee63..9676d35 100755
    "reference-data|http://localhost:18085/stocks" \
    "account-service|http://localhost:18088/account/22214" \
    "position-service|http://localhost:18090/health/alive" \
--  "trade-service|http://localhost:18092/swagger-ui.html"; do
-+  "trade-service|http://localhost:18092/swagger-ui.html" \
+-  "trade-service|http://localhost:18092/v3/api-docs"; do
++  "trade-service|http://localhost:18092/v3/api-docs" \
 +  "nats-monitor|http://localhost:8222/varz"; do
    name="${target%%|*}"
    url="${target#*|}"
@@ -827,7 +827,7 @@ index b3a7648..48ea8b4 100644
 @@ -20,6 +20,7 @@ dependencies {
    implementation 'org.springframework.boot:spring-boot-starter-web'
    implementation 'org.postgresql:postgresql:42.7.10'
-   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
 +  implementation 'io.nats:jnats:2.20.5'
  
    implementation('org.json:json:20240303') {
@@ -1216,7 +1216,7 @@ index 5693071..d7a9ae1 100644
 @@ -24,6 +24,7 @@ dependencies {
    implementation 'org.springframework.boot:spring-boot-starter-web'
    implementation 'com.h2database:h2:2.3.232'
-   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
 +  implementation 'io.nats:jnats:2.20.5'
  
    implementation('org.json:json:20240303') {

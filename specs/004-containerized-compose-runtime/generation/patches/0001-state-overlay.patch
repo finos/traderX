@@ -381,11 +381,11 @@ index 4e1f33f..4d09879 100644
  
 -- UI (edge): `http://localhost:18080`
 -- API explorer (edge): `http://localhost:18080/api/docs`
--- Trade service Swagger (edge): `http://localhost:18080/trade-service/swagger-ui.html`
--- Account service Swagger (edge): `http://localhost:18080/account-service/swagger-ui/index.html`
+-- Trade service Swagger (edge): `http://localhost:18080/trade-service/v3/api-docs`
+-- Account service Swagger (edge): `http://localhost:18080/account-service/v3/api-docs`
 +- UI (ingress): `http://localhost:8080`
 +- API explorer (ingress): `http://localhost:8080/api/docs`
-+- Trade service Swagger: `http://localhost:18092/swagger-ui.html`
++- Trade service Swagger: `http://localhost:18092/v3/api-docs`
 +- Account service API sample: `http://localhost:18088/account/22214`
 +- Position service health: `http://localhost:18090/health/alive`
 +
@@ -512,7 +512,7 @@ index 0000000..7c23724
 +  implementation 'org.springframework.boot:spring-boot-starter-web'
 +  implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 +  implementation 'com.h2database:h2:2.3.232'
-+  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
++  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
 +
 +  implementation ('ch.qos.logback:logback-core:1.5.32') {
 +    because 'version brought in by spring boot 3.5.13 affected by CVE-2024-12798'
@@ -867,7 +867,7 @@ index 0000000..3c709a2
 +
 +  @RequestMapping("/")
 +  public String index() {
-+    return "redirect:swagger-ui.html";
++    return "redirect:/v3/api-docs";
 +  }
 +}
 diff --git a/account-service/src/main/java/finos/traderx/accountservice/exceptions/ResourceNotFoundException.java b/account-service/src/main/java/finos/traderx/accountservice/exceptions/ResourceNotFoundException.java
@@ -2736,7 +2736,7 @@ index 0000000..060d4f8
 +  implementation 'org.springframework.boot:spring-boot-starter-web'
 +  implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 +  implementation 'com.h2database:h2:2.3.232'
-+  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
++  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
 +
 +  implementation ('ch.qos.logback:logback-core:1.5.32') {
 +    because 'version brought in by spring boot 3.5.13 affected by CVE-2024-12798'
@@ -2936,7 +2936,7 @@ index 0000000..2379e67
 +
 +  @RequestMapping("/")
 +  public String index() {
-+    return "redirect:swagger-ui.html";
++    return "redirect:/v3/api-docs";
 +  }
 +}
 diff --git a/position-service/src/main/java/finos/traderx/positionservice/controller/HealthController.java b/position-service/src/main/java/finos/traderx/positionservice/controller/HealthController.java
@@ -8874,7 +8874,7 @@ index 0000000..afeeb97
 +wait_for_http "reference-data" "http://localhost:18085/stocks" || exit 1
 +wait_for_http "account-service" "http://localhost:18088/account/22214" || exit 1
 +wait_for_http "position-service" "http://localhost:18090/positions/22214" || exit 1
-+wait_for_http "trade-service" "http://localhost:18092/swagger-ui.html" || exit 1
++wait_for_http "trade-service" "http://localhost:18092/v3/api-docs" || exit 1
 +wait_for_http "ingress" "http://localhost:8080/health" || exit 1
 +wait_for_http "ingress-ui" "http://localhost:8080" || exit 1
 +
@@ -8937,7 +8937,7 @@ index 0000000..6bbe0c0
 +  "reference-data|http://localhost:18085/stocks" \
 +  "account-service|http://localhost:18088/account/22214" \
 +  "position-service|http://localhost:18090/health/alive" \
-+  "trade-service|http://localhost:18092/swagger-ui.html"; do
++  "trade-service|http://localhost:18092/v3/api-docs"; do
 +  name="${target%%|*}"
 +  url="${target#*|}"
 +  code="$(http_code_for "${url}")"
@@ -10899,7 +10899,7 @@ index 0000000..10c246e
 +  implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 +  implementation 'org.springframework.boot:spring-boot-starter-web'
 +  implementation 'com.h2database:h2:2.3.232'
-+  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
++  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
 +
 +  implementation('org.json:json:20240303') {
 +    because 'previous versions are affected by multiple CVE'
@@ -10949,7 +10949,7 @@ index 0000000..c026cd7
 +      operationId: docsRoot
 +      responses:
 +        '302':
-+          description: Redirect to swagger-ui
++          description: Redirect to OpenAPI docs
 +components:
 +  schemas:
 +    TradeOrder:
@@ -11602,7 +11602,7 @@ index 0000000..0a52273
 +
 +  @RequestMapping("/")
 +  public String index() {
-+    return "redirect:swagger-ui.html";
++    return "redirect:/v3/api-docs";
 +  }
 +}
 diff --git a/trade-processor/src/main/java/finos/traderx/tradeprocessor/controller/TradeServiceController.java b/trade-processor/src/main/java/finos/traderx/tradeprocessor/controller/TradeServiceController.java
@@ -12303,7 +12303,7 @@ index 0000000..5693071
 +  implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 +  implementation 'org.springframework.boot:spring-boot-starter-web'
 +  implementation 'com.h2database:h2:2.3.232'
-+  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
++  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
 +
 +  implementation('org.json:json:20240303') {
 +    because 'previous versions are affected by multiple CVE'
@@ -12785,7 +12785,7 @@ index 0000000..71e17dc
 +
 +  @RequestMapping("/")
 +  public String index() {
-+    return "redirect:swagger-ui.html";
++    return "redirect:/v3/api-docs";
 +  }
 +}
 diff --git a/trade-service/src/main/java/finos/traderx/tradeservice/controller/TradeOrderController.java b/trade-service/src/main/java/finos/traderx/tradeservice/controller/TradeOrderController.java
