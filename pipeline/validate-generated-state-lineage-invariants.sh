@@ -301,7 +301,11 @@ validate_catalog_branches() {
       echo "[warn] skipping branch invariant check (branch not present locally): ${branch}"
       continue
     fi
-    mapfile -t entries < <(collect_entries_from_branch "${branch}")
+    local entries=()
+    while IFS= read -r line; do
+      [[ -n "${line}" ]] || continue
+      entries+=("${line}")
+    done < <(collect_entries_from_branch "${branch}")
     validate_state_entries "${state_id}" "${entries[@]}"
   done < <(jq -r '.states[] | [.id, (.publish.branch // ""), (.generation.mode // .status // "")] | @tsv' "${CATALOG}")
 }
@@ -318,7 +322,11 @@ if [[ -n "${SNAPSHOT_DIR}" ]]; then
     echo "[fail] --state-id is required with --snapshot-dir"
     exit 1
   }
-  mapfile -t entries < <(collect_entries_from_snapshot_dir "${SNAPSHOT_DIR}")
+  entries=()
+  while IFS= read -r line; do
+    [[ -n "${line}" ]] || continue
+    entries+=("${line}")
+  done < <(collect_entries_from_snapshot_dir "${SNAPSHOT_DIR}")
   validate_state_entries "${STATE_ID}" "${entries[@]}"
   echo "[ok] lineage invariants validated for snapshot dir ${SNAPSHOT_DIR} (${STATE_ID})"
   exit 0
@@ -332,7 +340,11 @@ if [[ -n "${BRANCH_NAME}" ]]; then
     echo "[fail] unable to resolve state-id for branch ${BRANCH_NAME}"
     exit 1
   }
-  mapfile -t entries < <(collect_entries_from_branch "${BRANCH_NAME}")
+  entries=()
+  while IFS= read -r line; do
+    [[ -n "${line}" ]] || continue
+    entries+=("${line}")
+  done < <(collect_entries_from_branch "${BRANCH_NAME}")
   validate_state_entries "${STATE_ID}" "${entries[@]}"
   echo "[ok] lineage invariants validated for branch ${BRANCH_NAME} (${STATE_ID})"
   exit 0
