@@ -9,6 +9,7 @@ module.exports = {
         id: 'blog/index',
       },
       items: [
+        'blog/2026-04-18-fdc3-integration-lessons',
         'blog/2026-04-10-custom-overlay-model-and-example',
         'blog/2026-04-10-state-003-agentic-harness-foundation',
         'blog/2026-04-06-convergence-milestone-releases',
