@@ -385,6 +385,10 @@
           "value": "traderx"
         },
         {
+          "name": "NATS_BROKER_HOST",
+          "value": "nats-broker"
+        },
+        {
           "name": "CORS_ALLOWED_ORIGINS",
           "value": "http://localhost:8080"
         },

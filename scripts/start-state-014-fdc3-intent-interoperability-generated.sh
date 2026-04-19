@@ -81,12 +81,6 @@ for required in \
   "${STATE_DIR}/README.md" \
   "${SAIL_COMPOSE_FILE}" \
   "${SAIL_DIR}/bootstrap/run-sail.sh" \
-  "${SAIL_DIR}/bootstrap/apply-tradingview-overrides.sh" \
-  "${SAIL_DIR}/bootstrap/overrides/tradingview/TradingViewWidget.tsx" \
-  "${SAIL_DIR}/bootstrap/overrides/tradingview/modes/chart.ts" \
-  "${SAIL_DIR}/bootstrap/overrides/tradingview/modes/symbol-info.ts" \
-  "${SAIL_DIR}/bootstrap/overrides/tradingview/modes/fundamentals.ts" \
-  "${SAIL_DIR}/bootstrap/overrides/tradingview/modes/symbol-compat.ts" \
   "${SAIL_DIR}/bootstrap/merge-traderx-appd.sh" \
   "${SAIL_DIR}/appd/traderx.appd.v2.json"; do
   [[ -f "${required}" ]] || {
