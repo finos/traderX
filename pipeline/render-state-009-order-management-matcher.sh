@@ -29,12 +29,225 @@ ensure_gradle_prometheus_support() {
   fi
 }
 
+install_order_matcher_nats_publisher() {
+  local order_matcher_root="${TARGET_ROOT}/order-matcher"
+  local gradle_file="${order_matcher_root}/build.gradle"
+  local app_props="${order_matcher_root}/src/main/resources/application.properties"
+  local nats_pkg_dir="${order_matcher_root}/src/main/java/finos/traderx/messaging/nats"
+  local pubsub_config_file="${order_matcher_root}/src/main/java/finos/traderx/ordermatcher/config/PubSubConfig.java"
+
+  [[ -f "${gradle_file}" ]] || return 0
+  [[ -f "${app_props}" ]] || return 0
+
+  if ! rg -q "io.nats:jnats" "${gradle_file}"; then
+    perl -0pi -e "s/\n\n  testImplementation/\n  implementation 'io.nats:jnats:2.20.5'\n\n  testImplementation/" "${gradle_file}"
+  fi
+
+  mkdir -p "${nats_pkg_dir}"
+
+  cat > "${nats_pkg_dir}/NatsEnvelope.java" <<'EOF'
+package finos.traderx.messaging.nats;
+
+import finos.traderx.messaging.Envelope;
+import java.util.Date;
+
+public class NatsEnvelope<T> implements Envelope<T> {
+  private String topic;
+  private T payload;
+  private Date date = new Date();
+  private String from;
+  private String type;
+
+  public NatsEnvelope() {}
+
+  public NatsEnvelope(String topic, T payload, String from) {
+    this.payload = payload;
+    this.topic = topic;
+    this.from = from;
+    this.type = (payload == null) ? "Unknown" : payload.getClass().getSimpleName();
+  }
+
+  public void setType(String type) {
+    this.type = type;
+  }
+
+  public void setPayload(T payload) {
+    this.payload = payload;
+  }
+
+  public void setTopic(String topic) {
+    this.topic = topic;
+  }
+
+  public void setFrom(String from) {
+    this.from = from;
+  }
+
+  @Override
+  public String getType() {
+    return type;
+  }
+
+  @Override
+  public String getTopic() {
+    return topic;
+  }
+
+  @Override
+  public T getPayload() {
+    return payload;
+  }
+
+  @Override
+  public Date getDate() {
+    return date;
+  }
+
+  @Override
+  public String getFrom() {
+    return from;
+  }
+}
+EOF
+
+  cat > "${nats_pkg_dir}/NatsJSONPublisher.java" <<'EOF'
+package finos.traderx.messaging.nats;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import finos.traderx.messaging.PubSubException;
+import finos.traderx.messaging.Publisher;
+import io.nats.client.Connection;
+import io.nats.client.Nats;
+import io.nats.client.Options;
+import java.time.Duration;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+
+public class NatsJSONPublisher<T> implements Publisher<T>, InitializingBean {
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+      .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+  org.slf4j.Logger log = LoggerFactory.getLogger(this.getClass().getName());
+
+  private boolean connected = false;
+  private Connection connection;
+  private String serverAddress = "nats://localhost:4222";
+  private String topic = "/default";
+  private String sender = "publisher";
+
+  public void setServerAddress(String addr) {
+    serverAddress = addr;
+  }
+
+  public void setTopic(String value) {
+    topic = value;
+  }
+
+  public void setSender(String value) {
+    sender = value;
+  }
+
+  @Override
+  public boolean isConnected() {
+    return connected;
+  }
+
+  @Override
+  public void publish(T message) throws PubSubException {
+    publish(topic, message);
+  }
+
+  @Override
+  public void publish(String topic, T message) throws PubSubException {
+    if (!isConnected()) {
+      throw new PubSubException("Cannot send %s on topic %s - not connected".formatted(message, topic));
+    }
+    try {
+      NatsEnvelope<T> envelope = new NatsEnvelope<>(topic, message, sender);
+      byte[] payload = OBJECT_MAPPER.writeValueAsBytes(envelope);
+      connection.publish(topic, payload);
+      connection.flush(Duration.ofSeconds(2));
+    } catch (Exception x) {
+      throw new PubSubException("Unable to publish on topic " + topic, x);
+    }
+  }
+
+  @Override
+  public void disconnect() throws PubSubException {
+    try {
+      if (connection != null) {
+        connection.close();
+      }
+      connected = false;
+      connection = null;
+    } catch (Exception x) {
+      throw new PubSubException("Failed to close NATS connection", x);
+    }
+  }
+
+  @Override
+  public void connect() throws PubSubException {
+    try {
+      Options options = new Options.Builder()
+          .server(serverAddress)
+          .maxReconnects(-1)
+          .connectionTimeout(Duration.ofSeconds(5))
+          .build();
+      connection = Nats.connect(options);
+      connected = true;
+      log.info("Connected to NATS at {}", serverAddress);
+    } catch (Exception x) {
+      throw new PubSubException("Cannot connect to NATS at " + serverAddress, x);
+    }
+  }
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    connect();
+  }
+}
+EOF
+
+  cat > "${pubsub_config_file}" <<'EOF'
+package finos.traderx.ordermatcher.config;
+
+import finos.traderx.messaging.Publisher;
+import finos.traderx.messaging.nats.NatsJSONPublisher;
+import finos.traderx.ordermatcher.api.OrderResponse;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class PubSubConfig {
+    @Value("${nats.address}")
+    private String natsAddress;
+
+    @Bean
+    public Publisher<OrderResponse> orderPublisher() {
+        NatsJSONPublisher<OrderResponse> publisher = new NatsJSONPublisher<>();
+        publisher.setServerAddress(natsAddress);
+        publisher.setSender("order-matcher");
+        return publisher;
+    }
+}
+EOF
+
+  if rg -q '^trade.feed.address=' "${app_props}"; then
+    perl -0pi -e 's/^trade\.feed\.address=.*$/nats.address=\${NATS_ADDRESS:nats:\/\/\${NATS_BROKER_HOST:localhost}:4222}/m' "${app_props}"
+  elif ! rg -q '^nats.address=' "${app_props}"; then
+    printf '\nnats.address=${NATS_ADDRESS:nats://${NATS_BROKER_HOST:localhost}:4222}\n' >> "${app_props}"
+  fi
+}
+
 require_file "${COMPOSE_FILE}"
 require_file "${PROMETHEUS_FILE}"
 
 for service in account-service position-service trade-processor trade-service order-matcher; do
   ensure_gradle_prometheus_support "${TARGET_ROOT}/${service}/build.gradle"
 done
+install_order_matcher_nats_publisher
 
 perl -0pi -e 's/^name:\s*traderx-state-\d+/name: traderx-state-009/m' "${COMPOSE_FILE}"
 

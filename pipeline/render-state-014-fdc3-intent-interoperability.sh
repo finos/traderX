@@ -403,14 +403,14 @@ else
   exit 1
 fi
 
-# Ensure state-014 web UI includes the fdc3-web getAgent implementation.
+# Ensure state-014 web UI includes primary + compatibility getAgent implementations.
 node - "${TARGET_FRONTEND_DIR}/package.json" <<'NODE'
 const fs = require('node:fs');
 const path = process.argv[2];
 const doc = JSON.parse(fs.readFileSync(path, 'utf8'));
 doc.dependencies = doc.dependencies || {};
-delete doc.dependencies['@robmoffat/fdc3-get-agent'];
 doc.dependencies['@morgan-stanley/fdc3-web'] = '^0.11.2';
+doc.dependencies['@robmoffat/fdc3-get-agent'] = '^2.2.2-beta.3';
 fs.writeFileSync(path, `${JSON.stringify(doc, null, 2)}\n`, 'utf8');
 NODE
 

@@ -37,6 +37,7 @@ done < <(
     -not -path '*/node_modules/*' \
     -not -path '*/dist/*' \
     -not -path '*/coverage/*' \
+    -not -path '*/runtime-cache/*' \
     -print0 | sort -z
 )
 
