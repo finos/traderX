@@ -9,19 +9,8 @@ UPSTREAM_DIR="${TARGET_ROOT}/tilt-kubernetes-dev-loop"
 STATE_DIR="${TARGET_ROOT}/fdc3-intent-interoperability"
 SAIL_DIR="${STATE_DIR}/sail"
 SAIL_BOOTSTRAP_DIR="${SAIL_DIR}/bootstrap"
-SAIL_BOOTSTRAP_OVERRIDE_DIR="${SAIL_BOOTSTRAP_DIR}/overrides/tradingview"
-SAIL_BOOTSTRAP_OVERRIDE_MODES_DIR="${SAIL_BOOTSTRAP_OVERRIDE_DIR}/modes"
-SAIL_BOOTSTRAP_WEB_OVERRIDE_DIR="${SAIL_BOOTSTRAP_DIR}/overrides/web"
-SAIL_BOOTSTRAP_POLYGON_OVERRIDE_DIR="${SAIL_BOOTSTRAP_DIR}/overrides/polygon"
-SAIL_BOOTSTRAP_TRADERX_INTENT_LAUNCHER_OVERRIDE_DIR="${SAIL_BOOTSTRAP_DIR}/overrides/traderx-intent-launcher"
 SAIL_APPD_DIR="${SAIL_DIR}/appd"
 SAIL_CACHE_DIR="${SAIL_DIR}/runtime-cache"
-SAIL_OVERRIDE_SOURCE_DIR="${STATE_SPEC_DIR}/generation/sail-overrides/tradingview"
-SAIL_WEB_OVERRIDE_SOURCE_FILE="${STATE_SPEC_DIR}/generation/sail-overrides/web/main.ts"
-SAIL_WEB_CLIENT_INDEX_OVERRIDE_SOURCE_FILE="${STATE_SPEC_DIR}/generation/sail-overrides/web/index.tsx"
-SAIL_WEB_DEFAULT_STATE_SOURCE_FILE="${STATE_SPEC_DIR}/generation/sail-overrides/web/default-client-state.json"
-SAIL_POLYGON_WIDGET_OVERRIDE_SOURCE_FILE="${STATE_SPEC_DIR}/generation/sail-overrides/polygon/PolygonWidget.tsx"
-SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR="${STATE_SPEC_DIR}/generation/sail-overrides/traderx-intent-launcher"
 SAIL_PIN_FILE="${STATE_SPEC_DIR}/generation/sail-pin.env"
 FRONTEND_OVERRIDE_SOURCE_DIR="${STATE_SPEC_DIR}/generation/frontend-overrides/web-front-end/angular"
 TARGET_FRONTEND_DIR="${TARGET_ROOT}/web-front-end/angular"
@@ -54,11 +43,6 @@ fi
 rm -rf "${STATE_DIR}"
 mkdir -p \
   "${SAIL_BOOTSTRAP_DIR}" \
-  "${SAIL_BOOTSTRAP_OVERRIDE_MODES_DIR}" \
-  "${SAIL_BOOTSTRAP_WEB_OVERRIDE_DIR}" \
-  "${SAIL_BOOTSTRAP_POLYGON_OVERRIDE_DIR}" \
-  "${SAIL_BOOTSTRAP_TRADERX_INTENT_LAUNCHER_OVERRIDE_DIR}/static" \
-  "${SAIL_BOOTSTRAP_TRADERX_INTENT_LAUNCHER_OVERRIDE_DIR}/src" \
   "${SAIL_APPD_DIR}" \
   "${SAIL_CACHE_DIR}" \
   "${STATE_DIR}/spec-source"
@@ -91,11 +75,6 @@ Artifacts:
 - Sail sidecar compose: `sail/docker-compose.yml`
 - Sail bootstrap scripts: `sail/bootstrap/*.sh`
 - Sail pin manifest: `sail/bootstrap/sail-pin.env`
-- Sail TradingView override assets: `sail/bootstrap/overrides/tradingview/**`
-- Sail web-server override assets: `sail/bootstrap/overrides/web/**`
-- Sail Polygon override assets: `sail/bootstrap/overrides/polygon/**`
-- Sail TraderX intents launcher override app: `sail/bootstrap/overrides/traderx-intent-launcher/**`
-- Sail default client-state snapshot: `sail/bootstrap/overrides/web/default-client-state.json`
 - TraderX app directory overlay: `sail/appd/traderx.appd.v2.json`
 - Sail runtime cache root: `sail/runtime-cache/`
 
@@ -199,19 +178,23 @@ mkdir -p "$(dirname "${SAIL_REPO_DIR}")"
 
 if [[ ! -d "${SAIL_REPO_DIR}/.git" ]]; then
   echo "[info] cloning Sail repository (${SAIL_REPO_REF}; tracking=${SAIL_REPO_TRACKING_REF})"
-  git clone --depth 1 --branch "${SAIL_REPO_REF}" "${SAIL_REPO_URL}" "${SAIL_REPO_DIR}"
+  git clone --depth 1 "${SAIL_REPO_URL}" "${SAIL_REPO_DIR}"
+  git -C "${SAIL_REPO_DIR}" remote set-url origin "${SAIL_REPO_URL}"
+  if [[ "${SAIL_REPO_REF}" =~ ^[0-9a-f]{40}$ ]]; then
+    git -C "${SAIL_REPO_DIR}" fetch --depth 1 origin "${SAIL_REPO_REF}"
+    git -C "${SAIL_REPO_DIR}" checkout --force FETCH_HEAD
+  else
+    git -C "${SAIL_REPO_DIR}" fetch --depth 1 origin "${SAIL_REPO_REF}"
+    git -C "${SAIL_REPO_DIR}" checkout --force FETCH_HEAD
+  fi
 else
   echo "[info] updating Sail repository (${SAIL_REPO_REF}; tracking=${SAIL_REPO_TRACKING_REF})"
+  git -C "${SAIL_REPO_DIR}" remote set-url origin "${SAIL_REPO_URL}"
   git -C "${SAIL_REPO_DIR}" fetch --depth 1 origin "${SAIL_REPO_REF}"
   git -C "${SAIL_REPO_DIR}" checkout --force FETCH_HEAD
 fi
 
 cd "${SAIL_REPO_DIR}"
-
-if [[ -x /workspace/bootstrap/apply-tradingview-overrides.sh ]]; then
-  echo "[info] applying TraderX TradingView overrides"
-  /workspace/bootstrap/apply-tradingview-overrides.sh "${SAIL_REPO_DIR}"
-fi
 
 echo "[info] installing Sail dependencies"
 npm install --no-audit --no-fund
@@ -282,72 +265,6 @@ EOF
 
 cp "${SAIL_PIN_FILE}" "${SAIL_BOOTSTRAP_DIR}/sail-pin.env"
 
-cat > "${SAIL_BOOTSTRAP_DIR}/apply-tradingview-overrides.sh" <<'EOF'
-#!/usr/bin/env bash
-set -euo pipefail
-
-SAIL_REPO_DIR="${1:-/workspace/runtime-cache/FDC3-Sail}"
-OVERRIDE_ROOT="/workspace/bootstrap/overrides/tradingview/modes"
-TARGET_ROOT="${SAIL_REPO_DIR}/packages/fdc3-example-apps/front-end-apps/tradingview/src/modes"
-OVERRIDE_WIDGET="/workspace/bootstrap/overrides/tradingview/TradingViewWidget.tsx"
-TARGET_WIDGET="${SAIL_REPO_DIR}/packages/fdc3-example-apps/front-end-apps/tradingview/src/TradingViewWidget.tsx"
-OVERRIDE_WEB_MAIN="/workspace/bootstrap/overrides/web/main.ts"
-TARGET_WEB_MAIN="${SAIL_REPO_DIR}/packages/web/src/server/main.ts"
-OVERRIDE_WEB_CLIENT_INDEX="/workspace/bootstrap/overrides/web/index.tsx"
-TARGET_WEB_CLIENT_INDEX="${SAIL_REPO_DIR}/packages/web/src/client/index.tsx"
-OVERRIDE_WEB_DEFAULT_STATE="/workspace/bootstrap/overrides/web/default-client-state.json"
-TARGET_WEB_DEFAULT_STATE="${SAIL_REPO_DIR}/packages/web/default-client-state.json"
-OVERRIDE_POLYGON_WIDGET="/workspace/bootstrap/overrides/polygon/PolygonWidget.tsx"
-TARGET_POLYGON_WIDGET="${SAIL_REPO_DIR}/packages/fdc3-example-apps/server-apps/polygon/src/PolygonWidget.tsx"
-OVERRIDE_TRADERX_INTENT_LAUNCHER_DIR="/workspace/bootstrap/overrides/traderx-intent-launcher"
-TARGET_TRADERX_INTENT_LAUNCHER_DIR="${SAIL_REPO_DIR}/packages/fdc3-example-apps/front-end-apps/traderx-intent-launcher"
-
-if [[ ! -d "${OVERRIDE_ROOT}" ]]; then
-  echo "[info] no TradingView overrides found at ${OVERRIDE_ROOT}"
-  exit 0
-fi
-
-mkdir -p "${TARGET_ROOT}"
-cp "${OVERRIDE_ROOT}"/*.ts "${TARGET_ROOT}/"
-echo "[ok] applied TradingView mode overrides to ${TARGET_ROOT}"
-
-if [[ -f "${OVERRIDE_WIDGET}" ]]; then
-  cp "${OVERRIDE_WIDGET}" "${TARGET_WIDGET}"
-  echo "[ok] applied TradingView widget override to ${TARGET_WIDGET}"
-fi
-
-if [[ -f "${OVERRIDE_WEB_MAIN}" ]]; then
-  mkdir -p "$(dirname "${TARGET_WEB_MAIN}")"
-  cp "${OVERRIDE_WEB_MAIN}" "${TARGET_WEB_MAIN}"
-  echo "[ok] applied Sail web-server override to ${TARGET_WEB_MAIN}"
-fi
-
-if [[ -f "${OVERRIDE_WEB_CLIENT_INDEX}" ]]; then
-  mkdir -p "$(dirname "${TARGET_WEB_CLIENT_INDEX}")"
-  cp "${OVERRIDE_WEB_CLIENT_INDEX}" "${TARGET_WEB_CLIENT_INDEX}"
-  echo "[ok] applied Sail web-client override to ${TARGET_WEB_CLIENT_INDEX}"
-fi
-
-if [[ -f "${OVERRIDE_WEB_DEFAULT_STATE}" ]]; then
-  mkdir -p "$(dirname "${TARGET_WEB_DEFAULT_STATE}")"
-  cp "${OVERRIDE_WEB_DEFAULT_STATE}" "${TARGET_WEB_DEFAULT_STATE}"
-  echo "[ok] applied Sail demo default client state to ${TARGET_WEB_DEFAULT_STATE}"
-fi
-
-if [[ -f "${OVERRIDE_POLYGON_WIDGET}" ]]; then
-  mkdir -p "$(dirname "${TARGET_POLYGON_WIDGET}")"
-  cp "${OVERRIDE_POLYGON_WIDGET}" "${TARGET_POLYGON_WIDGET}"
-  echo "[ok] applied Polygon widget override to ${TARGET_POLYGON_WIDGET}"
-fi
-
-if [[ -d "${OVERRIDE_TRADERX_INTENT_LAUNCHER_DIR}" ]]; then
-  rm -rf "${TARGET_TRADERX_INTENT_LAUNCHER_DIR}"
-  mkdir -p "${TARGET_TRADERX_INTENT_LAUNCHER_DIR}"
-  cp -R "${OVERRIDE_TRADERX_INTENT_LAUNCHER_DIR}/." "${TARGET_TRADERX_INTENT_LAUNCHER_DIR}/"
-  echo "[ok] applied TraderX intents launcher app override to ${TARGET_TRADERX_INTENT_LAUNCHER_DIR}"
-fi
-EOF
-
 cat > "${SAIL_BOOTSTRAP_DIR}/merge-traderx-appd.sh" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -410,40 +327,6 @@ fs.writeFileSync(basePath, next, "utf8");
 console.log(`[ok] merged TraderX AppD into ${basePath} (${mergedDoc.applications.length} apps)`);
 NODE
 EOF
-
-for required in \
-  "${SAIL_OVERRIDE_SOURCE_DIR}/TradingViewWidget.tsx" \
-  "${SAIL_OVERRIDE_SOURCE_DIR}/modes/chart.ts" \
-  "${SAIL_OVERRIDE_SOURCE_DIR}/modes/symbol-info.ts" \
-  "${SAIL_OVERRIDE_SOURCE_DIR}/modes/fundamentals.ts" \
-  "${SAIL_OVERRIDE_SOURCE_DIR}/modes/symbol-compat.ts" \
-  "${SAIL_WEB_OVERRIDE_SOURCE_FILE}" \
-  "${SAIL_WEB_CLIENT_INDEX_OVERRIDE_SOURCE_FILE}" \
-  "${SAIL_WEB_DEFAULT_STATE_SOURCE_FILE}" \
-  "${SAIL_POLYGON_WIDGET_OVERRIDE_SOURCE_FILE}" \
-  "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/index.html" \
-  "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/properties.json" \
-  "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/static/appd.v2.json" \
-  "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/static/icon.svg" \
-  "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/src/main.tsx" \
-  "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/src/main.module.css"; do
-  [[ -f "${required}" ]] || {
-    echo "[fail] missing required state 014 Sail override source: ${required}"
-    exit 1
-  }
-done
-cp "${SAIL_OVERRIDE_SOURCE_DIR}/TradingViewWidget.tsx" "${SAIL_BOOTSTRAP_OVERRIDE_DIR}/TradingViewWidget.tsx"
-cp "${SAIL_OVERRIDE_SOURCE_DIR}/modes/"*.ts "${SAIL_BOOTSTRAP_OVERRIDE_MODES_DIR}/"
-cp "${SAIL_WEB_OVERRIDE_SOURCE_FILE}" "${SAIL_BOOTSTRAP_WEB_OVERRIDE_DIR}/main.ts"
-cp "${SAIL_WEB_CLIENT_INDEX_OVERRIDE_SOURCE_FILE}" "${SAIL_BOOTSTRAP_WEB_OVERRIDE_DIR}/index.tsx"
-cp "${SAIL_WEB_DEFAULT_STATE_SOURCE_FILE}" "${SAIL_BOOTSTRAP_WEB_OVERRIDE_DIR}/default-client-state.json"
-cp "${SAIL_POLYGON_WIDGET_OVERRIDE_SOURCE_FILE}" "${SAIL_BOOTSTRAP_POLYGON_OVERRIDE_DIR}/PolygonWidget.tsx"
-cp "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/index.html" "${SAIL_BOOTSTRAP_TRADERX_INTENT_LAUNCHER_OVERRIDE_DIR}/index.html"
-cp "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/properties.json" "${SAIL_BOOTSTRAP_TRADERX_INTENT_LAUNCHER_OVERRIDE_DIR}/properties.json"
-cp "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/static/appd.v2.json" "${SAIL_BOOTSTRAP_TRADERX_INTENT_LAUNCHER_OVERRIDE_DIR}/static/appd.v2.json"
-cp "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/static/icon.svg" "${SAIL_BOOTSTRAP_TRADERX_INTENT_LAUNCHER_OVERRIDE_DIR}/static/icon.svg"
-cp "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/src/main.tsx" "${SAIL_BOOTSTRAP_TRADERX_INTENT_LAUNCHER_OVERRIDE_DIR}/src/main.tsx"
-cp "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/src/main.module.css" "${SAIL_BOOTSTRAP_TRADERX_INTENT_LAUNCHER_OVERRIDE_DIR}/src/main.module.css"
 
 cat > "${SAIL_APPD_DIR}/traderx.appd.v2.json" <<'EOF'
 {
@@ -520,21 +403,19 @@ else
   exit 1
 fi
 
-# Ensure state-014 FDC3 agent bootstrap dependency is present in generated web UI.
+# Ensure state-014 web UI includes the fdc3-web getAgent implementation.
 node - "${TARGET_FRONTEND_DIR}/package.json" <<'NODE'
 const fs = require('node:fs');
 const path = process.argv[2];
 const doc = JSON.parse(fs.readFileSync(path, 'utf8'));
 doc.dependencies = doc.dependencies || {};
-if (!doc.dependencies['@robmoffat/fdc3-get-agent']) {
-  doc.dependencies['@robmoffat/fdc3-get-agent'] = '2.2.2-beta.3';
-}
+delete doc.dependencies['@robmoffat/fdc3-get-agent'];
+doc.dependencies['@morgan-stanley/fdc3-web'] = '^0.11.2';
 fs.writeFileSync(path, `${JSON.stringify(doc, null, 2)}\n`, 'utf8');
 NODE
 
 chmod +x \
   "${SAIL_BOOTSTRAP_DIR}/run-sail.sh" \
-  "${SAIL_BOOTSTRAP_DIR}/apply-tradingview-overrides.sh" \
   "${SAIL_BOOTSTRAP_DIR}/merge-traderx-appd.sh"
 
 echo "[done] rendered state 014 Sail artifacts into ${STATE_DIR}"
