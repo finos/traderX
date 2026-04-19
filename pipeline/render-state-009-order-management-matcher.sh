@@ -33,6 +33,7 @@ install_order_matcher_nats_publisher() {
   local order_matcher_root="${TARGET_ROOT}/order-matcher"
   local gradle_file="${order_matcher_root}/build.gradle"
   local app_props="${order_matcher_root}/src/main/resources/application.properties"
+  local test_app_props="${order_matcher_root}/src/test/resources/application.properties"
   local nats_pkg_dir="${order_matcher_root}/src/main/java/finos/traderx/messaging/nats"
   local pubsub_config_file="${order_matcher_root}/src/main/java/finos/traderx/ordermatcher/config/PubSubConfig.java"
 
@@ -212,24 +213,49 @@ EOF
   cat > "${pubsub_config_file}" <<'EOF'
 package finos.traderx.ordermatcher.config;
 
+import finos.traderx.messaging.PubSubException;
 import finos.traderx.messaging.Publisher;
 import finos.traderx.messaging.nats.NatsJSONPublisher;
 import finos.traderx.ordermatcher.api.OrderResponse;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class PubSubConfig {
-    @Value("${nats.address}")
-    private String natsAddress;
-
     @Bean
-    public Publisher<OrderResponse> orderPublisher() {
+    @ConditionalOnProperty(name = "order.matcher.publisher", havingValue = "nats", matchIfMissing = true)
+    public Publisher<OrderResponse> natsOrderPublisher(
+        @Value("${nats.address:nats://${NATS_BROKER_HOST:localhost}:4222}") String natsAddress
+    ) {
         NatsJSONPublisher<OrderResponse> publisher = new NatsJSONPublisher<>();
         publisher.setServerAddress(natsAddress);
         publisher.setSender("order-matcher");
         return publisher;
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "order.matcher.publisher", havingValue = "noop")
+    public Publisher<OrderResponse> noopOrderPublisher() {
+        return new Publisher<>() {
+            @Override
+            public void publish(OrderResponse message) throws PubSubException {}
+
+            @Override
+            public void publish(String topic, OrderResponse message) throws PubSubException {}
+
+            @Override
+            public boolean isConnected() {
+                return true;
+            }
+
+            @Override
+            public void connect() throws PubSubException {}
+
+            @Override
+            public void disconnect() throws PubSubException {}
+        };
     }
 }
 EOF
@@ -238,6 +264,13 @@ EOF
     perl -0pi -e 's/^trade\.feed\.address=.*$/nats.address=\${NATS_ADDRESS:nats:\/\/\${NATS_BROKER_HOST:localhost}:4222}/m' "${app_props}"
   elif ! rg -q '^nats.address=' "${app_props}"; then
     printf '\nnats.address=${NATS_ADDRESS:nats://${NATS_BROKER_HOST:localhost}:4222}\n' >> "${app_props}"
+  fi
+
+  mkdir -p "$(dirname "${test_app_props}")"
+  if rg -q '^order.matcher.publisher=' "${test_app_props}" 2>/dev/null; then
+    perl -0pi -e 's/^order\.matcher\.publisher=.*$/order.matcher.publisher=noop/m' "${test_app_props}"
+  else
+    printf 'order.matcher.publisher=noop\n' > "${test_app_props}"
   fi
 }
 
