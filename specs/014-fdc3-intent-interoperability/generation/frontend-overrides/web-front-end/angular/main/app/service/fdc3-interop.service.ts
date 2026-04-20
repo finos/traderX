@@ -1,8 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { getAgent } from '@morgan-stanley/fdc3-web';
-import { resetCachedPromise as resetGetAgentCachedPromise } from '@morgan-stanley/fdc3-web/get-agent/get-agent';
-import { clearAgentPromise as clearLegacyGetAgentPromise, getAgent as getLegacyAgent } from '@robmoffat/fdc3-get-agent';
+import { clearAgentPromise, getAgent } from '@robmoffat/fdc3-get-agent';
 import { Fdc3TickerCompatibilityBridgeService } from './fdc3-ticker-compatibility-bridge.service';
 
 type Fdc3Listener = {
@@ -172,7 +170,7 @@ export class Fdc3InteropService {
         for (let attempt = 0; attempt < 10; attempt++) {
             const stableIdentityUrl = `${window.location.origin}/trade`;
             try {
-                resetGetAgentCachedPromise();
+                clearAgentPromise();
                 const agent = await getAgent({
                     timeoutMs: 5000,
                     identityUrl: stableIdentityUrl
@@ -212,26 +210,6 @@ export class Fdc3InteropService {
                 if (candidate.addContextListener || candidate.broadcast || candidate.raiseIntent) {
                     return candidate;
                 }
-            }
-
-            try {
-                clearLegacyGetAgentPromise();
-                const legacyAgent = await getLegacyAgent({
-                    timeoutMs: 5000,
-                    identityUrl: stableIdentityUrl
-                });
-                if (legacyAgent) {
-                    console.info('[fdc3] desktop agent resolved via legacy getAgent fallback', {
-                        attempt: attempt + 1,
-                        identityUrl: stableIdentityUrl
-                    });
-                    return legacyAgent as Fdc3DesktopAgentLike;
-                }
-            } catch (error) {
-                console.warn('[fdc3] legacy getAgent() fallback failed', {
-                    attempt: attempt + 1,
-                    error
-                });
             }
 
             await this.delay(500);

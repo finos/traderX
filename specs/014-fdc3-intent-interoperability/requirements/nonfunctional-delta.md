@@ -14,10 +14,6 @@ This state introduces desktop interoperability concerns while preserving C3 runt
 - Generated runtime artifacts should include explicit notes for optional demo-agent (Sail/profile) validation.
 - Local Sail sidecar should run as an independent service (for example local Docker container or equivalent), outside TraderX ingress path.
 - Sail sidecar default endpoint should remain `http://localhost:8090` unless explicitly overridden.
-- Generated snapshot publish output for this state must remain compact and state-scoped: include only C3-inherited/runtime roots plus `fdc3-intent-interoperability` assets, and exclude unrelated legacy component roots.
-- Decommission invariants must be enforced in publish validation (for example `trade-feed` stays absent after state `006-messaging-nats-replacement` unless explicitly reintroduced by a later spec).
-- Every generated snapshot branch must include a plain-English `FUNCTIONAL_TESTING.md` guide and README links to canonical Getting Started docs.
-- Dependency maintenance refresh for this lineage must run from the earliest impacted implemented state forward through downstream states, with smoke-test pass evidence per state before publish.
 
 ## Security / Compliance
 
@@ -28,8 +24,6 @@ This state introduces desktop interoperability concerns while preserving C3 runt
 - TraderX should publish canonical bare ticker payloads and must not embed Sail-widget-specific exchange remapping logic.
 - Any tactical compatibility logic required for specific Sail demo widgets (for example exchange qualification for TradingView symbol strings) must be isolated to Sail-side pre-build/startup patch assets and marked as temporary technical debt until CDM-native identifier normalization lands.
 - Workaround-driven interoperability behavior must be explicitly tracked as technical debt and reviewed for removal once Sail event delivery and normalized symbology are production-ready.
-- Sail runtime dependency must be pinned to an explicit commit SHA in state-controlled metadata (`generation/sail-pin.env`), not an implicit moving branch ref.
-- Maintenance tooling must provide Sail drift detection (tracking ref vs pinned commit) so refresh candidates are visible before changing the pin.
 
 ## Performance / Scalability
 

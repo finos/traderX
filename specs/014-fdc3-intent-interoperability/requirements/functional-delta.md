@@ -20,7 +20,6 @@ Document only functional behavior changes introduced by this state.
   - tab `One` for chart/pricing/ticket-launch actions
   - tab `Two` for news workflow.
 - Operator demo script requirements captured in feature artifacts and generated README.
-- Sail pin manifest (`generation/sail-pin.env`) captured in-spec and propagated into generated state artifacts to default runtime bootstrap to a known-good Sail commit.
 
 ## Changed
 
@@ -28,7 +27,6 @@ Document only functional behavior changes introduced by this state.
 - Ticket launch pathways now include an intent-driven path alongside existing in-app button flows.
 - Frontend startup includes FDC3 capability detection and listener registration, with graceful degraded behavior when unavailable.
 - State runtime startup gains optional/paired Sail lifecycle management separate from TraderX ingress path.
-- Sail runtime bootstrap now defaults to a pinned commit SHA from the state pin manifest rather than tracking `main` implicitly.
 
 ## Removed
 

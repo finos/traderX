@@ -11,13 +11,17 @@ SAIL_DIR="${STATE_DIR}/sail"
 SAIL_BOOTSTRAP_DIR="${SAIL_DIR}/bootstrap"
 SAIL_BOOTSTRAP_TRADINGVIEW_OVERRIDE_DIR="${SAIL_BOOTSTRAP_DIR}/overrides/tradingview"
 SAIL_BOOTSTRAP_TRADINGVIEW_OVERRIDE_MODES_DIR="${SAIL_BOOTSTRAP_TRADINGVIEW_OVERRIDE_DIR}/modes"
+SAIL_BOOTSTRAP_POLYGON_OVERRIDE_DIR="${SAIL_BOOTSTRAP_DIR}/overrides/polygon"
 SAIL_BOOTSTRAP_WEB_OVERRIDE_DIR="${SAIL_BOOTSTRAP_DIR}/overrides/web"
+SAIL_BOOTSTRAP_WEB_OVERRIDE_SRC_CLIENT_DIR="${SAIL_BOOTSTRAP_WEB_OVERRIDE_DIR}/src/client"
 SAIL_BOOTSTRAP_TRADERX_INTENT_LAUNCHER_OVERRIDE_DIR="${SAIL_BOOTSTRAP_DIR}/overrides/traderx-intent-launcher"
 SAIL_APPD_DIR="${SAIL_DIR}/appd"
 SAIL_CACHE_DIR="${SAIL_DIR}/runtime-cache"
 SAIL_TRADINGVIEW_WIDGET_OVERRIDE_SOURCE_FILE="${STATE_SPEC_DIR}/generation/sail-overrides/tradingview/TradingViewWidget.tsx"
 SAIL_TRADINGVIEW_MODES_OVERRIDE_SOURCE_DIR="${STATE_SPEC_DIR}/generation/sail-overrides/tradingview/modes"
+SAIL_POLYGON_WIDGET_OVERRIDE_SOURCE_FILE="${STATE_SPEC_DIR}/generation/sail-overrides/polygon/PolygonWidget.tsx"
 SAIL_WEB_DEFAULT_STATE_SOURCE_FILE="${STATE_SPEC_DIR}/generation/sail-overrides/web/default-client-state.json"
+SAIL_WEB_CLIENT_INDEX_OVERRIDE_SOURCE_FILE="${STATE_SPEC_DIR}/generation/sail-overrides/web/src/client/index.tsx"
 SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR="${STATE_SPEC_DIR}/generation/sail-overrides/traderx-intent-launcher"
 SAIL_PIN_SOURCE_FILE="${STATE_SPEC_DIR}/generation/sail-pin.env"
 SAIL_PIN_TARGET_FILE="${SAIL_BOOTSTRAP_DIR}/sail-pin.env"
@@ -37,7 +41,9 @@ mkdir -p \
   "${SAIL_BOOTSTRAP_DIR}" \
   "${SAIL_BOOTSTRAP_TRADINGVIEW_OVERRIDE_MODES_DIR}" \
   "${SAIL_BOOTSTRAP_TRADINGVIEW_OVERRIDE_DIR}" \
+  "${SAIL_BOOTSTRAP_POLYGON_OVERRIDE_DIR}" \
   "${SAIL_BOOTSTRAP_WEB_OVERRIDE_DIR}" \
+  "${SAIL_BOOTSTRAP_WEB_OVERRIDE_SRC_CLIENT_DIR}" \
   "${SAIL_BOOTSTRAP_TRADERX_INTENT_LAUNCHER_OVERRIDE_DIR}/static" \
   "${SAIL_BOOTSTRAP_TRADERX_INTENT_LAUNCHER_OVERRIDE_DIR}/src" \
   "${SAIL_APPD_DIR}" \
@@ -74,8 +80,10 @@ Artifacts:
 - Sail pin manifest: `sail/bootstrap/sail-pin.env`
 - Sail TradingView widget override: `sail/bootstrap/overrides/tradingview/TradingViewWidget.tsx`
 - Sail TradingView mode overrides: `sail/bootstrap/overrides/tradingview/modes/*.ts`
+- Sail Polygon news widget override: `sail/bootstrap/overrides/polygon/PolygonWidget.tsx`
 - Sail TraderX intents launcher override app: `sail/bootstrap/overrides/traderx-intent-launcher/**`
 - Sail default client-state snapshot: `sail/bootstrap/overrides/web/default-client-state.json`
+- Sail web client bootstrap override: `sail/bootstrap/overrides/web/src/client/index.tsx`
 - TraderX app directory overlay: `sail/appd/traderx.appd.v2.json`
 - Sail runtime cache root: `sail/runtime-cache/`
 
@@ -264,8 +272,12 @@ OVERRIDE_TRADINGVIEW_WIDGET="/workspace/bootstrap/overrides/tradingview/TradingV
 TARGET_TRADINGVIEW_WIDGET="${SAIL_REPO_DIR}/packages/fdc3-example-apps/front-end-apps/tradingview/src/TradingViewWidget.tsx"
 OVERRIDE_TRADINGVIEW_MODES_DIR="/workspace/bootstrap/overrides/tradingview/modes"
 TARGET_TRADINGVIEW_MODES_DIR="${SAIL_REPO_DIR}/packages/fdc3-example-apps/front-end-apps/tradingview/src/modes"
+OVERRIDE_POLYGON_WIDGET="/workspace/bootstrap/overrides/polygon/PolygonWidget.tsx"
+TARGET_POLYGON_WIDGET="${SAIL_REPO_DIR}/packages/fdc3-example-apps/server-apps/polygon/src/PolygonWidget.tsx"
 OVERRIDE_WEB_DEFAULT_STATE="/workspace/bootstrap/overrides/web/default-client-state.json"
 TARGET_WEB_DEFAULT_STATE="${SAIL_REPO_DIR}/packages/web/default-client-state.json"
+OVERRIDE_WEB_CLIENT_INDEX="/workspace/bootstrap/overrides/web/src/client/index.tsx"
+TARGET_WEB_CLIENT_INDEX="${SAIL_REPO_DIR}/packages/web/src/client/index.tsx"
 OVERRIDE_TRADERX_INTENT_LAUNCHER_DIR="/workspace/bootstrap/overrides/traderx-intent-launcher"
 TARGET_TRADERX_INTENT_LAUNCHER_DIR="${SAIL_REPO_DIR}/packages/fdc3-example-apps/front-end-apps/traderx-intent-launcher"
 
@@ -281,10 +293,22 @@ if compgen -G "${OVERRIDE_TRADINGVIEW_MODES_DIR}/*.ts" > /dev/null; then
   echo "[ok] applied TradingView mode overrides to ${TARGET_TRADINGVIEW_MODES_DIR}"
 fi
 
+if [[ -f "${OVERRIDE_POLYGON_WIDGET}" ]]; then
+  mkdir -p "$(dirname "${TARGET_POLYGON_WIDGET}")"
+  cp "${OVERRIDE_POLYGON_WIDGET}" "${TARGET_POLYGON_WIDGET}"
+  echo "[ok] applied Polygon widget override to ${TARGET_POLYGON_WIDGET}"
+fi
+
 if [[ -f "${OVERRIDE_WEB_DEFAULT_STATE}" ]]; then
   mkdir -p "$(dirname "${TARGET_WEB_DEFAULT_STATE}")"
   cp "${OVERRIDE_WEB_DEFAULT_STATE}" "${TARGET_WEB_DEFAULT_STATE}"
   echo "[ok] applied Sail demo default client state to ${TARGET_WEB_DEFAULT_STATE}"
+fi
+
+if [[ -f "${OVERRIDE_WEB_CLIENT_INDEX}" ]]; then
+  mkdir -p "$(dirname "${TARGET_WEB_CLIENT_INDEX}")"
+  cp "${OVERRIDE_WEB_CLIENT_INDEX}" "${TARGET_WEB_CLIENT_INDEX}"
+  echo "[ok] applied Sail web client bootstrap override to ${TARGET_WEB_CLIENT_INDEX}"
 fi
 
 if [[ -d "${OVERRIDE_TRADERX_INTENT_LAUNCHER_DIR}" ]]; then
@@ -360,7 +384,9 @@ EOF
 
 for required in \
   "${SAIL_PIN_SOURCE_FILE}" \
+  "${SAIL_POLYGON_WIDGET_OVERRIDE_SOURCE_FILE}" \
   "${SAIL_WEB_DEFAULT_STATE_SOURCE_FILE}" \
+  "${SAIL_WEB_CLIENT_INDEX_OVERRIDE_SOURCE_FILE}" \
   "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/index.html" \
   "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/properties.json" \
   "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/static/appd.v2.json" \
@@ -379,7 +405,9 @@ fi
 if compgen -G "${SAIL_TRADINGVIEW_MODES_OVERRIDE_SOURCE_DIR}/*.ts" > /dev/null; then
   cp "${SAIL_TRADINGVIEW_MODES_OVERRIDE_SOURCE_DIR}/"*.ts "${SAIL_BOOTSTRAP_TRADINGVIEW_OVERRIDE_MODES_DIR}/"
 fi
+cp "${SAIL_POLYGON_WIDGET_OVERRIDE_SOURCE_FILE}" "${SAIL_BOOTSTRAP_POLYGON_OVERRIDE_DIR}/PolygonWidget.tsx"
 cp "${SAIL_WEB_DEFAULT_STATE_SOURCE_FILE}" "${SAIL_BOOTSTRAP_WEB_OVERRIDE_DIR}/default-client-state.json"
+cp "${SAIL_WEB_CLIENT_INDEX_OVERRIDE_SOURCE_FILE}" "${SAIL_BOOTSTRAP_WEB_OVERRIDE_SRC_CLIENT_DIR}/index.tsx"
 cp "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/index.html" "${SAIL_BOOTSTRAP_TRADERX_INTENT_LAUNCHER_OVERRIDE_DIR}/index.html"
 cp "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/properties.json" "${SAIL_BOOTSTRAP_TRADERX_INTENT_LAUNCHER_OVERRIDE_DIR}/properties.json"
 cp "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/static/appd.v2.json" "${SAIL_BOOTSTRAP_TRADERX_INTENT_LAUNCHER_OVERRIDE_DIR}/static/appd.v2.json"
