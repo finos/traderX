@@ -66,24 +66,12 @@
             "icon": "http://localhost:4023/tradingview-icon.png"
         },
         {
-            "x": 6,
-            "y": 0,
-            "w": 8,
-            "h": 15,
-            "title": "TraderX 2",
-            "tabId": "Two",
-            "panelId": "sail-app-c650e3fd-eed4-4bb3-8e1e-13dac4219596",
-            "url": "http://localhost:8080/trade",
-            "appId": "traderx-web",
-            "icon": "https://finos.org/wp-content/uploads/2018/03/finos-icon.svg"
-        },
-        {
             "x": 0,
-            "y": 3,
-            "w": 4,
-            "h": 15,
+            "y": 13,
+            "w": 6,
+            "h": 3,
             "title": "Polygon Ticker News 1",
-            "tabId": "Two",
+            "tabId": "One",
             "panelId": "sail-app-80b35bb2-eb95-434d-adec-623d011674d8",
             "url": "http://localhost:4032",
             "appId": "polygon-ticker-news-1",
