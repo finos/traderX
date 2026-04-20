@@ -9,6 +9,7 @@ This blog captures the broader TraderX story over time: how the project started,
 
 ## Articles
 
+- [April 20, 2026: Why Our TraderX + Sail Migration to @morgan-stanley/fdc3-web Failed (and What We Learned)](/docs/blog/2026-04-20-fdc3-web-migration-retrospective)
 - [April 18, 2026: Integrating FDC3 in TraderX (What Worked, What Was Flaky, What We Learned)](/docs/blog/2026-04-18-fdc3-integration-lessons)
 - [April 10, 2026: Custom Overlay Model for Environment-Specific TraderX](/docs/blog/2026-04-10-custom-overlay-model-and-example)
 - [April 10, 2026: State 003 - Agentic Harness Foundation](/docs/blog/2026-04-10-state-003-agentic-harness-foundation)
