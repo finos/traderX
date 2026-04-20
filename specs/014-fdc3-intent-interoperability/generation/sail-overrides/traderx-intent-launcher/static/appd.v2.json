@@ -1,0 +1,41 @@
+{
+  "applications": [
+    {
+      "appId": "traderx-intent-launcher-1",
+      "name": "TraderX Intent Launcher",
+      "title": "TraderX Intent Launcher",
+      "description": "Raises TraderX trade/order ticket intents for the current fdc3.instrument ticker",
+      "type": "web",
+      "details": {
+        "url": "http://localhost:4040/"
+      },
+      "hostManifests": {},
+      "version": "1.0.0",
+      "publisher": "FINOS",
+      "icons": [
+        {
+          "src": "http://localhost:4040/icon.svg"
+        }
+      ],
+      "interop": {
+        "intents": {
+          "raises": {
+            "TraderX.CreateTradeTicket": {
+              "displayName": "Create Trade Ticket",
+              "contexts": [
+                "fdc3.instrument"
+              ]
+            },
+            "TraderX.CreateOrderTicket": {
+              "displayName": "Create Order Ticket",
+              "contexts": [
+                "fdc3.instrument"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "message": "OK"
+}

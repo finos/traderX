@@ -81,6 +81,10 @@ for required in \
   "${STATE_DIR}/README.md" \
   "${SAIL_COMPOSE_FILE}" \
   "${SAIL_DIR}/bootstrap/run-sail.sh" \
+  "${SAIL_DIR}/bootstrap/apply-tradingview-overrides.sh" \
+  "${SAIL_DIR}/bootstrap/sail-pin.env" \
+  "${SAIL_DIR}/bootstrap/overrides/web/default-client-state.json" \
+  "${SAIL_DIR}/bootstrap/overrides/traderx-intent-launcher/src/main.tsx" \
   "${SAIL_DIR}/bootstrap/merge-traderx-appd.sh" \
   "${SAIL_DIR}/appd/traderx.appd.v2.json"; do
   [[ -f "${required}" ]] || {

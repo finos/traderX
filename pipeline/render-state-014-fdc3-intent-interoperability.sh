@@ -9,9 +9,18 @@ UPSTREAM_DIR="${TARGET_ROOT}/tilt-kubernetes-dev-loop"
 STATE_DIR="${TARGET_ROOT}/fdc3-intent-interoperability"
 SAIL_DIR="${STATE_DIR}/sail"
 SAIL_BOOTSTRAP_DIR="${SAIL_DIR}/bootstrap"
+SAIL_BOOTSTRAP_TRADINGVIEW_OVERRIDE_DIR="${SAIL_BOOTSTRAP_DIR}/overrides/tradingview"
+SAIL_BOOTSTRAP_TRADINGVIEW_OVERRIDE_MODES_DIR="${SAIL_BOOTSTRAP_TRADINGVIEW_OVERRIDE_DIR}/modes"
+SAIL_BOOTSTRAP_WEB_OVERRIDE_DIR="${SAIL_BOOTSTRAP_DIR}/overrides/web"
+SAIL_BOOTSTRAP_TRADERX_INTENT_LAUNCHER_OVERRIDE_DIR="${SAIL_BOOTSTRAP_DIR}/overrides/traderx-intent-launcher"
 SAIL_APPD_DIR="${SAIL_DIR}/appd"
 SAIL_CACHE_DIR="${SAIL_DIR}/runtime-cache"
-SAIL_PIN_FILE="${STATE_SPEC_DIR}/generation/sail-pin.env"
+SAIL_TRADINGVIEW_WIDGET_OVERRIDE_SOURCE_FILE="${STATE_SPEC_DIR}/generation/sail-overrides/tradingview/TradingViewWidget.tsx"
+SAIL_TRADINGVIEW_MODES_OVERRIDE_SOURCE_DIR="${STATE_SPEC_DIR}/generation/sail-overrides/tradingview/modes"
+SAIL_WEB_DEFAULT_STATE_SOURCE_FILE="${STATE_SPEC_DIR}/generation/sail-overrides/web/default-client-state.json"
+SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR="${STATE_SPEC_DIR}/generation/sail-overrides/traderx-intent-launcher"
+SAIL_PIN_SOURCE_FILE="${STATE_SPEC_DIR}/generation/sail-pin.env"
+SAIL_PIN_TARGET_FILE="${SAIL_BOOTSTRAP_DIR}/sail-pin.env"
 FRONTEND_OVERRIDE_SOURCE_DIR="${STATE_SPEC_DIR}/generation/frontend-overrides/web-front-end/angular"
 TARGET_FRONTEND_DIR="${TARGET_ROOT}/web-front-end/angular"
 UPSTREAM_BUILD_PLAN="${UPSTREAM_DIR}/upstream-build-plan.json"
@@ -23,26 +32,14 @@ for required in "${UPSTREAM_DIR}/README.md" "${UPSTREAM_DIR}/tilt/Tiltfile"; do
   }
 done
 
-[[ -f "${SAIL_PIN_FILE}" ]] || {
-  echo "[fail] missing Sail pin manifest: ${SAIL_PIN_FILE}"
-  exit 1
-}
-# shellcheck disable=SC1090
-source "${SAIL_PIN_FILE}"
-for required_var in SAIL_PIN_REPO_URL SAIL_PIN_TRACKING_REF SAIL_PINNED_REF SAIL_PIN_UPDATED_ON; do
-  [[ -n "${!required_var:-}" ]] || {
-    echo "[fail] ${SAIL_PIN_FILE} missing ${required_var}"
-    exit 1
-  }
-done
-if ! [[ "${SAIL_PINNED_REF}" =~ ^[0-9a-f]{40}$ ]]; then
-  echo "[fail] SAIL_PINNED_REF must be a 40-char git commit SHA in ${SAIL_PIN_FILE}"
-  exit 1
-fi
-
 rm -rf "${STATE_DIR}"
 mkdir -p \
   "${SAIL_BOOTSTRAP_DIR}" \
+  "${SAIL_BOOTSTRAP_TRADINGVIEW_OVERRIDE_MODES_DIR}" \
+  "${SAIL_BOOTSTRAP_TRADINGVIEW_OVERRIDE_DIR}" \
+  "${SAIL_BOOTSTRAP_WEB_OVERRIDE_DIR}" \
+  "${SAIL_BOOTSTRAP_TRADERX_INTENT_LAUNCHER_OVERRIDE_DIR}/static" \
+  "${SAIL_BOOTSTRAP_TRADERX_INTENT_LAUNCHER_OVERRIDE_DIR}/src" \
   "${SAIL_APPD_DIR}" \
   "${SAIL_CACHE_DIR}" \
   "${STATE_DIR}/spec-source"
@@ -75,12 +72,12 @@ Artifacts:
 - Sail sidecar compose: `sail/docker-compose.yml`
 - Sail bootstrap scripts: `sail/bootstrap/*.sh`
 - Sail pin manifest: `sail/bootstrap/sail-pin.env`
+- Sail TradingView widget override: `sail/bootstrap/overrides/tradingview/TradingViewWidget.tsx`
+- Sail TradingView mode overrides: `sail/bootstrap/overrides/tradingview/modes/*.ts`
+- Sail TraderX intents launcher override app: `sail/bootstrap/overrides/traderx-intent-launcher/**`
+- Sail default client-state snapshot: `sail/bootstrap/overrides/web/default-client-state.json`
 - TraderX app directory overlay: `sail/appd/traderx.appd.v2.json`
 - Sail runtime cache root: `sail/runtime-cache/`
-
-Pinned Sail source defaults are defined in:
-
-- `sail/bootstrap/sail-pin.env`
 
 Run baseline C3 runtime:
 
@@ -113,21 +110,10 @@ Demo script (two-tab profile):
 Known demo workarounds / technical debt:
 
 - TraderX publishes canonical bare ticker payloads only (`fdc3.instrument.id.ticker`).
-- TradingView exchange/symbol compatibility remains Sail-side patchwork for demo parity.
 - TraderX may use a bounded active-channel context-sync fallback to compensate for inconsistent demo-agent callback delivery; remove when robust Sail event delivery is available.
-
-Maintenance checks:
-
-```bash
-# verify pin manifest contract
-bash pipeline/validate-sail-pin-contract.sh
-
-# detect upstream Sail drift vs pinned commit
-bash pipeline/check-sail-pin-drift.sh --fail-on-drift
-```
 EOF
 
-cat > "${SAIL_DIR}/docker-compose.yml" <<EOF
+cat > "${SAIL_DIR}/docker-compose.yml" <<'EOF'
 name: traderx-state-014-sail
 
 services:
@@ -136,39 +122,36 @@ services:
     working_dir: /workspace/runtime-cache
     restart: unless-stopped
     environment:
-      SAIL_REPO_URL: "\${SAIL_REPO_URL:-${SAIL_PIN_REPO_URL}}"
-      SAIL_REPO_REF: "\${SAIL_REPO_REF:-${SAIL_PINNED_REF}}"
-      SAIL_TRADERX_URL: "\${SAIL_TRADERX_URL:-http://localhost:8080}"
-      SAIL_HTTP_PORT: "\${SAIL_HTTP_PORT:-8090}"
-      SAIL_EXAMPLE_PORT_RANGE_START: "\${SAIL_EXAMPLE_PORT_RANGE_START:-4010}"
-      SAIL_EXAMPLE_PORT_RANGE_END: "\${SAIL_EXAMPLE_PORT_RANGE_END:-4065}"
+      SAIL_REPO_URL: "${SAIL_REPO_URL:-https://github.com/finos/FDC3-Sail.git}"
+      SAIL_REPO_REF: "${SAIL_REPO_REF:-main}"
+      SAIL_REPO_COMMIT: "${SAIL_REPO_COMMIT:-}"
+      SAIL_TRADERX_URL: "${SAIL_TRADERX_URL:-http://localhost:8080}"
+      SAIL_HTTP_PORT: "${SAIL_HTTP_PORT:-8090}"
+      SAIL_EXAMPLE_PORT_RANGE_START: "${SAIL_EXAMPLE_PORT_RANGE_START:-4010}"
+      SAIL_EXAMPLE_PORT_RANGE_END: "${SAIL_EXAMPLE_PORT_RANGE_END:-4065}"
     command: ["/bin/bash", "/workspace/bootstrap/run-sail.sh"]
     volumes:
       - ./runtime-cache:/workspace/runtime-cache
       - ./bootstrap:/workspace/bootstrap:ro
       - ./appd:/workspace/appd:ro
     ports:
-      - "\${SAIL_HTTP_PORT:-8090}:8090"
-      - "\${SAIL_EXAMPLE_PORT_RANGE_START:-4010}-\${SAIL_EXAMPLE_PORT_RANGE_END:-4065}:4010-4065"
+      - "${SAIL_HTTP_PORT:-8090}:8090"
+      - "${SAIL_EXAMPLE_PORT_RANGE_START:-4010}-${SAIL_EXAMPLE_PORT_RANGE_END:-4065}:4010-4065"
 EOF
 
 cat > "${SAIL_BOOTSTRAP_DIR}/run-sail.sh" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 
-PIN_FILE="${SAIL_PIN_FILE:-/workspace/bootstrap/sail-pin.env}"
-SAIL_PIN_REPO_URL_DEFAULT="https://github.com/finos/FDC3-Sail.git"
-SAIL_PIN_TRACKING_REF_DEFAULT="main"
-SAIL_PINNED_REF_DEFAULT="main"
-
-if [[ -f "${PIN_FILE}" ]]; then
+SAIL_PIN_FILE="${SAIL_PIN_FILE:-/workspace/bootstrap/sail-pin.env}"
+if [[ -f "${SAIL_PIN_FILE}" ]]; then
   # shellcheck disable=SC1090
-  source "${PIN_FILE}"
+  source "${SAIL_PIN_FILE}"
 fi
 
-SAIL_REPO_URL="${SAIL_REPO_URL:-${SAIL_PIN_REPO_URL:-${SAIL_PIN_REPO_URL_DEFAULT}}}"
-SAIL_REPO_REF="${SAIL_REPO_REF:-${SAIL_PINNED_REF:-${SAIL_PINNED_REF_DEFAULT}}}"
-SAIL_REPO_TRACKING_REF="${SAIL_REPO_TRACKING_REF:-${SAIL_PIN_TRACKING_REF:-${SAIL_PIN_TRACKING_REF_DEFAULT}}}"
+SAIL_REPO_URL="${SAIL_REPO_URL:-${SAIL_PIN_REPO_URL:-https://github.com/finos/FDC3-Sail.git}}"
+SAIL_REPO_REF="${SAIL_REPO_REF:-${SAIL_PIN_REPO_REF:-main}}"
+SAIL_REPO_COMMIT="${SAIL_REPO_COMMIT:-${SAIL_PIN_REPO_COMMIT:-}}"
 SAIL_REPO_DIR="${SAIL_REPO_DIR:-/workspace/runtime-cache/FDC3-Sail}"
 SAIL_TRADERX_URL="${SAIL_TRADERX_URL:-http://localhost:8080}"
 SAIL_APPD_BASE="${SAIL_REPO_DIR}/packages/fdc3-example-apps/directory/generated/fdc3-example-apps.json"
@@ -177,26 +160,35 @@ SAIL_TRADERX_APPD="/workspace/appd/traderx.appd.v2.json"
 mkdir -p "$(dirname "${SAIL_REPO_DIR}")"
 
 if [[ ! -d "${SAIL_REPO_DIR}/.git" ]]; then
-  echo "[info] cloning Sail repository (${SAIL_REPO_REF}; tracking=${SAIL_REPO_TRACKING_REF})"
-  git clone --depth 1 "${SAIL_REPO_URL}" "${SAIL_REPO_DIR}"
-  git -C "${SAIL_REPO_DIR}" remote set-url origin "${SAIL_REPO_URL}"
-  if [[ "${SAIL_REPO_REF}" =~ ^[0-9a-f]{40}$ ]]; then
-    git -C "${SAIL_REPO_DIR}" fetch --depth 1 origin "${SAIL_REPO_REF}"
-    git -C "${SAIL_REPO_DIR}" checkout --force FETCH_HEAD
+  if [[ -n "${SAIL_REPO_COMMIT}" ]]; then
+    echo "[info] cloning Sail repository (pinned commit ${SAIL_REPO_COMMIT})"
+    git clone "${SAIL_REPO_URL}" "${SAIL_REPO_DIR}"
+    git -C "${SAIL_REPO_DIR}" checkout --force "${SAIL_REPO_COMMIT}"
   else
+    echo "[info] cloning Sail repository (${SAIL_REPO_REF})"
+    git clone --depth 1 --branch "${SAIL_REPO_REF}" "${SAIL_REPO_URL}" "${SAIL_REPO_DIR}"
+  fi
+else
+  if [[ -n "${SAIL_REPO_COMMIT}" ]]; then
+    echo "[info] updating Sail repository (pinned commit ${SAIL_REPO_COMMIT})"
+    git -C "${SAIL_REPO_DIR}" fetch --prune origin
+    git -C "${SAIL_REPO_DIR}" checkout --force "${SAIL_REPO_COMMIT}"
+  else
+    echo "[info] updating Sail repository (${SAIL_REPO_REF})"
     git -C "${SAIL_REPO_DIR}" fetch --depth 1 origin "${SAIL_REPO_REF}"
     git -C "${SAIL_REPO_DIR}" checkout --force FETCH_HEAD
   fi
-else
-  echo "[info] updating Sail repository (${SAIL_REPO_REF}; tracking=${SAIL_REPO_TRACKING_REF})"
-  git -C "${SAIL_REPO_DIR}" remote set-url origin "${SAIL_REPO_URL}"
-  git -C "${SAIL_REPO_DIR}" fetch --depth 1 origin "${SAIL_REPO_REF}"
-  git -C "${SAIL_REPO_DIR}" checkout --force FETCH_HEAD
 fi
 
 cd "${SAIL_REPO_DIR}"
 
+if [[ -x /workspace/bootstrap/apply-tradingview-overrides.sh ]]; then
+  echo "[info] applying state-014 Sail overrides"
+  /workspace/bootstrap/apply-tradingview-overrides.sh "${SAIL_REPO_DIR}"
+fi
+
 echo "[info] installing Sail dependencies"
+rm -rf node_modules
 npm install --no-audit --no-fund
 
 echo "[info] building Sail workspace packages required by web desktop agent"
@@ -263,7 +255,45 @@ fi
 exit "${status}"
 EOF
 
-cp "${SAIL_PIN_FILE}" "${SAIL_BOOTSTRAP_DIR}/sail-pin.env"
+cat > "${SAIL_BOOTSTRAP_DIR}/apply-tradingview-overrides.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+SAIL_REPO_DIR="${1:-/workspace/runtime-cache/FDC3-Sail}"
+OVERRIDE_TRADINGVIEW_WIDGET="/workspace/bootstrap/overrides/tradingview/TradingViewWidget.tsx"
+TARGET_TRADINGVIEW_WIDGET="${SAIL_REPO_DIR}/packages/fdc3-example-apps/front-end-apps/tradingview/src/TradingViewWidget.tsx"
+OVERRIDE_TRADINGVIEW_MODES_DIR="/workspace/bootstrap/overrides/tradingview/modes"
+TARGET_TRADINGVIEW_MODES_DIR="${SAIL_REPO_DIR}/packages/fdc3-example-apps/front-end-apps/tradingview/src/modes"
+OVERRIDE_WEB_DEFAULT_STATE="/workspace/bootstrap/overrides/web/default-client-state.json"
+TARGET_WEB_DEFAULT_STATE="${SAIL_REPO_DIR}/packages/web/default-client-state.json"
+OVERRIDE_TRADERX_INTENT_LAUNCHER_DIR="/workspace/bootstrap/overrides/traderx-intent-launcher"
+TARGET_TRADERX_INTENT_LAUNCHER_DIR="${SAIL_REPO_DIR}/packages/fdc3-example-apps/front-end-apps/traderx-intent-launcher"
+
+if [[ -f "${OVERRIDE_TRADINGVIEW_WIDGET}" ]]; then
+  mkdir -p "$(dirname "${TARGET_TRADINGVIEW_WIDGET}")"
+  cp "${OVERRIDE_TRADINGVIEW_WIDGET}" "${TARGET_TRADINGVIEW_WIDGET}"
+  echo "[ok] applied TradingView widget override to ${TARGET_TRADINGVIEW_WIDGET}"
+fi
+
+if compgen -G "${OVERRIDE_TRADINGVIEW_MODES_DIR}/*.ts" > /dev/null; then
+  mkdir -p "${TARGET_TRADINGVIEW_MODES_DIR}"
+  cp "${OVERRIDE_TRADINGVIEW_MODES_DIR}/"*.ts "${TARGET_TRADINGVIEW_MODES_DIR}/"
+  echo "[ok] applied TradingView mode overrides to ${TARGET_TRADINGVIEW_MODES_DIR}"
+fi
+
+if [[ -f "${OVERRIDE_WEB_DEFAULT_STATE}" ]]; then
+  mkdir -p "$(dirname "${TARGET_WEB_DEFAULT_STATE}")"
+  cp "${OVERRIDE_WEB_DEFAULT_STATE}" "${TARGET_WEB_DEFAULT_STATE}"
+  echo "[ok] applied Sail demo default client state to ${TARGET_WEB_DEFAULT_STATE}"
+fi
+
+if [[ -d "${OVERRIDE_TRADERX_INTENT_LAUNCHER_DIR}" ]]; then
+  rm -rf "${TARGET_TRADERX_INTENT_LAUNCHER_DIR}"
+  mkdir -p "${TARGET_TRADERX_INTENT_LAUNCHER_DIR}"
+  cp -R "${OVERRIDE_TRADERX_INTENT_LAUNCHER_DIR}/." "${TARGET_TRADERX_INTENT_LAUNCHER_DIR}/"
+  echo "[ok] applied TraderX intents launcher app override to ${TARGET_TRADERX_INTENT_LAUNCHER_DIR}"
+fi
+EOF
 
 cat > "${SAIL_BOOTSTRAP_DIR}/merge-traderx-appd.sh" <<'EOF'
 #!/usr/bin/env bash
@@ -327,6 +357,35 @@ fs.writeFileSync(basePath, next, "utf8");
 console.log(`[ok] merged TraderX AppD into ${basePath} (${mergedDoc.applications.length} apps)`);
 NODE
 EOF
+
+for required in \
+  "${SAIL_PIN_SOURCE_FILE}" \
+  "${SAIL_WEB_DEFAULT_STATE_SOURCE_FILE}" \
+  "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/index.html" \
+  "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/properties.json" \
+  "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/static/appd.v2.json" \
+  "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/static/icon.svg" \
+  "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/src/main.tsx" \
+  "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/src/main.module.css"; do
+  [[ -f "${required}" ]] || {
+    echo "[fail] missing required state 014 Sail override source: ${required}"
+    exit 1
+  }
+done
+cp "${SAIL_PIN_SOURCE_FILE}" "${SAIL_PIN_TARGET_FILE}"
+if [[ -f "${SAIL_TRADINGVIEW_WIDGET_OVERRIDE_SOURCE_FILE}" ]]; then
+  cp "${SAIL_TRADINGVIEW_WIDGET_OVERRIDE_SOURCE_FILE}" "${SAIL_BOOTSTRAP_TRADINGVIEW_OVERRIDE_DIR}/TradingViewWidget.tsx"
+fi
+if compgen -G "${SAIL_TRADINGVIEW_MODES_OVERRIDE_SOURCE_DIR}/*.ts" > /dev/null; then
+  cp "${SAIL_TRADINGVIEW_MODES_OVERRIDE_SOURCE_DIR}/"*.ts "${SAIL_BOOTSTRAP_TRADINGVIEW_OVERRIDE_MODES_DIR}/"
+fi
+cp "${SAIL_WEB_DEFAULT_STATE_SOURCE_FILE}" "${SAIL_BOOTSTRAP_WEB_OVERRIDE_DIR}/default-client-state.json"
+cp "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/index.html" "${SAIL_BOOTSTRAP_TRADERX_INTENT_LAUNCHER_OVERRIDE_DIR}/index.html"
+cp "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/properties.json" "${SAIL_BOOTSTRAP_TRADERX_INTENT_LAUNCHER_OVERRIDE_DIR}/properties.json"
+cp "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/static/appd.v2.json" "${SAIL_BOOTSTRAP_TRADERX_INTENT_LAUNCHER_OVERRIDE_DIR}/static/appd.v2.json"
+cp "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/static/icon.svg" "${SAIL_BOOTSTRAP_TRADERX_INTENT_LAUNCHER_OVERRIDE_DIR}/static/icon.svg"
+cp "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/src/main.tsx" "${SAIL_BOOTSTRAP_TRADERX_INTENT_LAUNCHER_OVERRIDE_DIR}/src/main.tsx"
+cp "${SAIL_TRADERX_INTENT_LAUNCHER_SOURCE_DIR}/src/main.module.css" "${SAIL_BOOTSTRAP_TRADERX_INTENT_LAUNCHER_OVERRIDE_DIR}/src/main.module.css"
 
 cat > "${SAIL_APPD_DIR}/traderx.appd.v2.json" <<'EOF'
 {
@@ -403,19 +462,21 @@ else
   exit 1
 fi
 
-# Ensure state-014 web UI includes primary + compatibility getAgent implementations.
+# Ensure state-014 FDC3 agent bootstrap dependency is present in generated web UI.
 node - "${TARGET_FRONTEND_DIR}/package.json" <<'NODE'
 const fs = require('node:fs');
 const path = process.argv[2];
 const doc = JSON.parse(fs.readFileSync(path, 'utf8'));
 doc.dependencies = doc.dependencies || {};
-doc.dependencies['@morgan-stanley/fdc3-web'] = '^0.11.2';
-doc.dependencies['@robmoffat/fdc3-get-agent'] = '^2.2.2-beta.3';
+if (!doc.dependencies['@robmoffat/fdc3-get-agent']) {
+  doc.dependencies['@robmoffat/fdc3-get-agent'] = '2.2.2-beta.3';
+}
 fs.writeFileSync(path, `${JSON.stringify(doc, null, 2)}\n`, 'utf8');
 NODE
 
 chmod +x \
   "${SAIL_BOOTSTRAP_DIR}/run-sail.sh" \
+  "${SAIL_BOOTSTRAP_DIR}/apply-tradingview-overrides.sh" \
   "${SAIL_BOOTSTRAP_DIR}/merge-traderx-appd.sh"
 
 echo "[done] rendered state 014 Sail artifacts into ${STATE_DIR}"
