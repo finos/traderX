@@ -33,7 +33,11 @@ export const TradingViewWidget = ({ mode }: { mode: string }) => {
 
   useEffect(() => {
     let disposed = false
+    let connected = false
+    let connectInFlight = false
     let intervalId: number | undefined
+    let reconnectTimeoutId: number | undefined
+    let connectedAgent: any = null
     let channelChangedHandler: (() => void) | undefined
     const handles: Fdc3ListenerHandle[] = []
 
@@ -98,7 +102,39 @@ export const TradingViewWidget = ({ mode }: { mode: string }) => {
       }
     }
 
+    const teardownConnection = () => {
+      handles.splice(0).forEach((handle) => handle.unsubscribe?.())
+      if (intervalId !== undefined) {
+        window.clearInterval(intervalId)
+        intervalId = undefined
+      }
+      if (connectedAgent && channelChangedHandler) {
+        connectedAgent?.removeEventListener?.("userChannelChanged", channelChangedHandler)
+      }
+      channelChangedHandler = undefined
+      connectedAgent = null
+      connected = false
+    }
+
+    const scheduleReconnect = (reason: unknown) => {
+      if (disposed || connected || reconnectTimeoutId !== undefined) {
+        return
+      }
+      reconnectTimeoutId = window.setTimeout(() => {
+        reconnectTimeoutId = undefined
+        connect()
+      }, 1500)
+      console.info("[fdc3] TradingView retrying desktop agent connection", {
+        mode: modeProps.name,
+        reason: String(reason),
+      })
+    }
+
     const connect = async () => {
+      if (disposed || connected || connectInFlight) {
+        return
+      }
+      connectInFlight = true
       try {
         const fdc3 = await resolveAgent()
         if (disposed) return
@@ -135,15 +171,21 @@ export const TradingViewWidget = ({ mode }: { mode: string }) => {
           })
         }
         fdc3?.addEventListener?.("userChannelChanged", channelChangedHandler)
+        connectedAgent = fdc3
 
         intervalId = window.setInterval(() => {
           syncFromCurrentChannel(fdc3).catch(() => {})
         }, 2000)
+        connected = true
       } catch (error) {
         console.warn("[fdc3] TradingView failed to initialize", {
           mode: modeProps.name,
           error,
         })
+        teardownConnection()
+        scheduleReconnect(error)
+      } finally {
+        connectInFlight = false
       }
     }
 
@@ -151,16 +193,10 @@ export const TradingViewWidget = ({ mode }: { mode: string }) => {
 
     return () => {
       disposed = true
-      handles.forEach((handle) => handle.unsubscribe?.())
-      if (intervalId !== undefined) {
-        window.clearInterval(intervalId)
-      }
-      if (channelChangedHandler) {
-        resolveAgent()
-          .then((fdc3) => {
-            fdc3?.removeEventListener?.("userChannelChanged", channelChangedHandler)
-          })
-          .catch(() => {})
+      teardownConnection()
+      if (reconnectTimeoutId !== undefined) {
+        window.clearTimeout(reconnectTimeoutId)
+        reconnectTimeoutId = undefined
       }
     }
   }, [modeProps])
