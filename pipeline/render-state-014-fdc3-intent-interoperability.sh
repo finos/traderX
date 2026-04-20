@@ -158,8 +158,9 @@ if [[ -f "${SAIL_PIN_FILE}" ]]; then
 fi
 
 SAIL_REPO_URL="${SAIL_REPO_URL:-${SAIL_PIN_REPO_URL:-https://github.com/finos/FDC3-Sail.git}}"
-SAIL_REPO_REF="${SAIL_REPO_REF:-${SAIL_PIN_REPO_REF:-main}}"
-SAIL_REPO_COMMIT="${SAIL_REPO_COMMIT:-${SAIL_PIN_REPO_COMMIT:-}}"
+SAIL_REPO_REF="${SAIL_REPO_REF:-${SAIL_PIN_REPO_REF:-${SAIL_PIN_TRACKING_REF:-main}}}"
+SAIL_REPO_REF="${SAIL_REPO_REF#origin/}"
+SAIL_REPO_COMMIT="${SAIL_REPO_COMMIT:-${SAIL_PIN_REPO_COMMIT:-${SAIL_PINNED_REF:-}}}"
 SAIL_REPO_DIR="${SAIL_REPO_DIR:-/workspace/runtime-cache/FDC3-Sail}"
 SAIL_TRADERX_URL="${SAIL_TRADERX_URL:-http://localhost:8080}"
 SAIL_APPD_BASE="${SAIL_REPO_DIR}/packages/fdc3-example-apps/directory/generated/fdc3-example-apps.json"
