@@ -4,6 +4,9 @@ set -euo pipefail
 ORIGIN="${1:-http://localhost:18093}"
 TRADE_SERVICE_URL="${2:-http://localhost:18092}"
 POSITION_SERVICE_URL="${3:-http://localhost:18090}"
+REQUEST_ORIGIN="$(echo "${TRADE_SERVICE_URL}" | sed -E 's#^(https?://[^/]+).*$#\1#')"
+NORMALIZED_ORIGIN="${ORIGIN%/}"
+NORMALIZED_REQUEST_ORIGIN="${REQUEST_ORIGIN%/}"
 
 ACCOUNT_ID=22214
 QTY=$((4300 + RANDOM % 700))
@@ -22,11 +25,15 @@ echo "${headers}"
 
 cors_header="$(printf '%s\n' "${headers}" | awk -F': ' 'tolower($1)=="access-control-allow-origin" {print $2}' | tr -d '\r' || true)"
 if [[ -z "${cors_header}" ]]; then
-  echo "[error] missing Access-Control-Allow-Origin header"
-  exit 1
+  if [[ "${NORMALIZED_ORIGIN}" == "${NORMALIZED_REQUEST_ORIGIN}" ]]; then
+    echo "[info] Access-Control-Allow-Origin header omitted for same-origin request (${NORMALIZED_ORIGIN}); continuing"
+  else
+    echo "[error] missing Access-Control-Allow-Origin header"
+    exit 1
+  fi
 fi
 
-if [[ "${cors_header}" != "*" && "${cors_header}" != "${ORIGIN}" ]]; then
+if [[ -n "${cors_header}" && "${cors_header}" != "*" && "${cors_header}" != "${ORIGIN}" ]]; then
   echo "[error] unexpected Access-Control-Allow-Origin value: ${cors_header}"
   exit 1
 fi

@@ -3,6 +3,9 @@ set -euo pipefail
 
 ORIGIN="${1:-http://localhost:18093}"
 BASE_URL="${2:-http://localhost:18090}"
+REQUEST_ORIGIN="$(echo "${BASE_URL}" | sed -E 's#^(https?://[^/]+).*$#\1#')"
+NORMALIZED_ORIGIN="${ORIGIN%/}"
+NORMALIZED_REQUEST_ORIGIN="${REQUEST_ORIGIN%/}"
 
 echo "[check] CORS header from ${BASE_URL}/positions/22214 for origin ${ORIGIN}"
 headers="$(curl -sS -i -H "Origin: ${ORIGIN}" "${BASE_URL}/positions/22214" | sed -n '1,30p')"
@@ -10,11 +13,15 @@ echo "${headers}"
 
 cors_header="$(printf '%s\n' "${headers}" | awk -F': ' 'tolower($1)=="access-control-allow-origin" {print $2}' | tr -d '\r' || true)"
 if [[ -z "${cors_header}" ]]; then
-  echo "[error] missing Access-Control-Allow-Origin header"
-  exit 1
+  if [[ "${NORMALIZED_ORIGIN}" == "${NORMALIZED_REQUEST_ORIGIN}" ]]; then
+    echo "[info] Access-Control-Allow-Origin header omitted for same-origin request (${NORMALIZED_ORIGIN}); continuing"
+  else
+    echo "[error] missing Access-Control-Allow-Origin header"
+    exit 1
+  fi
 fi
 
-if [[ "${cors_header}" != "*" && "${cors_header}" != "${ORIGIN}" ]]; then
+if [[ -n "${cors_header}" && "${cors_header}" != "*" && "${cors_header}" != "${ORIGIN}" ]]; then
   echo "[error] unexpected Access-Control-Allow-Origin value: ${cors_header}"
   exit 1
 fi

@@ -23,7 +23,7 @@ DRY_RUN=0
 SKIP_BUILD=0
 RECREATE_CLUSTER=0
 RUN_TILT=0
-WITH_SAIL=0
+WITH_SAIL=1
 K8S_PROVIDER="${K8S_PROVIDER:-kind}"
 KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-traderx-state-014}"
 MINIKUBE_PROFILE=""
@@ -46,6 +46,9 @@ while (( "$#" )); do
     --with-sail)
       WITH_SAIL=1
       ;;
+    --without-sail)
+      WITH_SAIL=0
+      ;;
     --provider)
       K8S_PROVIDER="${2:-}"
       shift
@@ -64,7 +67,7 @@ while (( "$#" )); do
       ;;
     *)
       echo "[error] unknown argument: $1"
-      echo "[hint] supported: --dry-run --skip-build --recreate-cluster --run-tilt --with-sail --provider <kind|minikube> --cluster-name <name> --minikube-profile <name> --minikube-driver <name>"
+      echo "[hint] supported: --dry-run --skip-build --recreate-cluster --run-tilt --with-sail --without-sail --provider <kind|minikube> --cluster-name <name> --minikube-profile <name> --minikube-driver <name>"
       exit 1
       ;;
   esac
@@ -118,7 +121,7 @@ TRADERX_SKIP_GENERATE=1 "${REPO_ROOT}/scripts/start-state-012-platform-convergen
 
 if (( WITH_SAIL == 0 )); then
   echo "[done] state 014 started on C3 baseline runtime (Sail sidecar disabled)"
-  echo "[hint] rerun with --with-sail to launch local Sail demo sidecar"
+  echo "[hint] default is Sail enabled; use --without-sail only for backend-only runtime checks"
   exit 0
 fi
 
