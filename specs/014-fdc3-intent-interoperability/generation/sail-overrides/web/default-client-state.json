@@ -24,7 +24,7 @@
             "h": 13,
             "title": "TraderX 1",
             "tabId": "One",
-            "panelId": "sail-app-0a7af385-13dc-4f62-ad95-5f55fbf80e6d",
+            "panelId": "sail-app-4ba9b14a-21ce-4d48-a102-5cc665b70b10",
             "url": "http://localhost:8080/trade",
             "appId": "traderx-web",
             "icon": "https://finos.org/wp-content/uploads/2018/03/finos-icon.svg"
@@ -32,11 +32,11 @@
         {
             "x": 6,
             "y": 0,
-            "w": 3,
-            "h": 6,
+            "w": 6,
+            "h": 5,
             "title": "Trading View Chart 1",
             "tabId": "One",
-            "panelId": "sail-app-131b4510-5fd1-44af-828f-62fc78840e9e",
+            "panelId": "sail-app-2696c995-9387-4b24-8cfe-9532823564a7",
             "url": "http://localhost:4023/?mode=chart",
             "appId": "trading-view-chart-1",
             "icon": "http://localhost:4023/tradingview-icon.png"
@@ -44,11 +44,11 @@
         {
             "x": 6,
             "y": 0,
-            "w": 9,
+            "w": 6,
             "h": 4,
             "title": "Trading View Symbol Info 1",
             "tabId": "One",
-            "panelId": "sail-app-73e7dc3f-9173-4c15-b086-e6a808f8e00c",
+            "panelId": "sail-app-6e037082-b948-4961-9978-6f82ded20b48",
             "url": "http://localhost:4023/?mode=symbol-info",
             "appId": "trading-view-symbol-info-1",
             "icon": "http://localhost:4023/tradingview-icon.png"
@@ -56,42 +56,42 @@
         {
             "x": 6,
             "y": 8,
-            "w": 3,
+            "w": 6,
             "h": 8,
             "title": "Trading View Fundamentals 1",
             "tabId": "One",
-            "panelId": "sail-app-205c2314-761d-4cfd-8e11-19434c8ba3a7",
+            "panelId": "sail-app-433d9454-eb51-4987-8948-b558676b9ecb",
             "url": "http://localhost:4023/?mode=fundamentals",
             "appId": "trading-view-fundamentals-1",
             "icon": "http://localhost:4023/tradingview-icon.png"
         },
         {
-            "x": 6,
-            "y": 4,
-            "w": 3,
-            "h": 13,
+            "x": 0,
+            "y": 13,
+            "w": 6,
+            "h": 3,
             "title": "Polygon Ticker News 1",
             "tabId": "One",
-            "panelId": "sail-app-7472bc09-e91a-459d-af08-d18c7ba512f5",
+            "panelId": "sail-app-80b35bb2-eb95-434d-adec-623d011674d8",
             "url": "http://localhost:4032",
             "appId": "polygon-ticker-news-1",
             "icon": "http://localhost:4032/polygon-io-logo.webp"
         },
         {
-            "x": 9,
+            "x": 0,
             "y": 0,
-            "w": 3,
+            "w": 6,
             "h": 3,
             "title": "TraderX Intent Launcher 1",
             "tabId": "One",
-            "panelId": "sail-app-82a20ac1-1a1c-41b8-a207-f2cc7cff26d7",
+            "panelId": "sail-app-1f31119f-9d79-42d6-9a9d-7ca0f28d16b4",
             "url": "http://localhost:4040/",
             "appId": "traderx-intent-launcher-1",
             "icon": "http://localhost:4040/icon.svg"
         }
     ],
     "activeTabId": "One",
-    "userSessionId": "user-73986612-80cf-4391-a3f0-c62844eee1ae",
+    "userSessionId": "user-5e69b279-f43a-4518-9be1-4c482ab7ead6",
     "directories": [
         {
             "label": "FINOS FDC3 Directory",
