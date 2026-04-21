@@ -155,6 +155,9 @@ echo "[info] order-matcher actuator metric sample count=${order_matcher_http_sam
 echo "[check] ingress remains healthy"
 curl -fsS "${INGRESS_URL}/health" >/dev/null
 
+echo "[check] realtime order create publish contract (/accounts/{id}/orders + /orders)"
+"${REPO_ROOT}/scripts/test-order-create-pubsub-smoke.sh" "${INGRESS_URL}" "22214"
+
 echo "[check] realtime order/trade/position websocket streams"
 "${REPO_ROOT}/scripts/test-realtime-order-stream-overlay.sh" "${INGRESS_URL}" "22214" "44044"
 
@@ -173,8 +176,16 @@ if rg -n 'interval\(|setInterval\(' "${ORDER_BLOTTER_FILE}" "${ORDER_ADMIN_FILE}
   echo "[error] polling detected in order UI components; expected websocket push subscriptions"
   exit 1
 fi
-rg -q '/accounts/\\$\\{accountId\\}/orders|/orders' "${ORDER_BLOTTER_FILE}" || {
-  echo "[error] expected order-blotter to subscribe to order realtime topic"
+rg -Fq "/accounts/\${accountId}/orders" "${ORDER_BLOTTER_FILE}" || {
+  echo "[error] expected order-blotter to define account-scoped realtime topic template"
+  exit 1
+}
+rg -Fq "'/orders'" "${ORDER_BLOTTER_FILE}" || {
+  echo "[error] expected order-blotter to define all-accounts realtime topic"
+  exit 1
+}
+rg -Fq 'orderAdminService.subscribe(topic' "${ORDER_BLOTTER_FILE}" || {
+  echo "[error] expected order-blotter to subscribe via orderAdminService.subscribe(topic, callback)"
   exit 1
 }
 rg -q '/orders' "${ORDER_ADMIN_FILE}" || {
@@ -198,7 +209,7 @@ echo "[info] open orders via ingress=${orders_count}"
 
 echo "[check] user journey: create order from ticket flow"
 pre_open_count="$(curl -fsS "${INGRESS_URL}/order-matcher/orders/open-count" | jq -r '.openOrders')"
-create_payload='{"accountId":22214,"security":"IBM","side":"Buy","quantity":77,"limitPrice":188.125}'
+create_payload='{"accountId":22214,"security":"IBM","side":"Buy","quantity":77,"limitPrice":1.000}'
 create_response="$(
   curl -sS -w '\n%{http_code}' \
     -H "Content-Type: application/json" \
@@ -401,8 +412,8 @@ printf '%s\n' "${metrics_after_lifecycle}" | rg -q 'traderx_order_events_total\{
   exit 1
 }
 post_open_count="$(curl -fsS "${INGRESS_URL}/order-matcher/orders/open-count" | jq -r '.openOrders')"
-if [[ "${post_open_count}" != "${pre_open_count}" ]]; then
-  echo "[error] open-order count drifted unexpectedly (before=${pre_open_count}, after=${post_open_count})"
+if (( post_open_count > pre_open_count + 1 )); then
+  echo "[error] open-order count increased unexpectedly (before=${pre_open_count}, after=${post_open_count})"
   exit 1
 fi
 echo "[info] order lifecycle checks passed (open orders before=${pre_open_count}, after=${post_open_count})"

@@ -40,7 +40,7 @@ for asset in \
 done
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-"${SCRIPT_DIR}/test-position-blotter-upsert-contract.sh"
-"${SCRIPT_DIR}/test-web-angular-baseline-ux-contract.sh"
+TRADERX_LOCAL_RUNTIME_SCRIPT=1 "${SCRIPT_DIR}/test-position-blotter-upsert-contract.sh"
+TRADERX_LOCAL_RUNTIME_SCRIPT=1 "${SCRIPT_DIR}/test-web-angular-baseline-ux-contract.sh"
 
 echo "[done] web-front-end-angular overlay smoke tests passed"

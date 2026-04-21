@@ -288,38 +288,42 @@ process.on('exit', () => {
 });
 NODE
 
-echo "[check] grafana loki datasource has non-empty pricing/runtime log streams"
-now_ms=$(($(date +%s) * 1000))
-from_ms=$((now_ms - 15 * 60 * 1000))
-loki_total_query_result="$(
-  curl -sS -u admin:admin -H 'Content-Type: application/json' -X POST "http://localhost:${GRAFANA_PORT:-3001}/api/ds/query" \
-    -d "{\"from\":\"${from_ms}\",\"to\":\"${now_ms}\",\"queries\":[{\"refId\":\"A\",\"datasource\":{\"uid\":\"loki\",\"type\":\"loki\"},\"expr\":\"sum(count_over_time({compose_project=\\\"${COMPOSE_PROJECT_NAME}\\\"}[5m]))\",\"queryType\":\"range\",\"intervalMs\":1000,\"maxDataPoints\":500}]}"
-)"
-loki_total_query_error="$(echo "${loki_total_query_result}" | jq -r '.results.A.error // empty')"
-loki_total_last="$(echo "${loki_total_query_result}" | jq -r '.results.A.frames[0].data.values[1][-1] // "0"')"
-if [[ -n "${loki_total_query_error}" ]]; then
-  echo "[error] grafana loki query failed: ${loki_total_query_error}"
-  exit 1
-fi
-if ! awk "BEGIN {exit !(${loki_total_last} > 0)}"; then
-  echo "[error] expected non-empty Loki ingestion in last 5m, got ${loki_total_last}"
-  exit 1
-fi
+if docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" ps --services | grep -q '^grafana$'; then
+  echo "[check] grafana loki datasource has non-empty pricing/runtime log streams"
+  now_ms=$(($(date +%s) * 1000))
+  from_ms=$((now_ms - 15 * 60 * 1000))
+  loki_total_query_result="$(
+    curl -sS -u admin:admin -H 'Content-Type: application/json' -X POST "http://localhost:${GRAFANA_PORT:-3001}/api/ds/query" \
+      -d "{\"from\":\"${from_ms}\",\"to\":\"${now_ms}\",\"queries\":[{\"refId\":\"A\",\"datasource\":{\"uid\":\"loki\",\"type\":\"loki\"},\"expr\":\"sum(count_over_time({compose_project=\\\"${COMPOSE_PROJECT_NAME}\\\"}[5m]))\",\"queryType\":\"range\",\"intervalMs\":1000,\"maxDataPoints\":500}]}"
+  )"
+  loki_total_query_error="$(echo "${loki_total_query_result}" | jq -r '.results.A.error // empty')"
+  loki_total_last="$(echo "${loki_total_query_result}" | jq -r '.results.A.frames[0].data.values[1][-1] // "0"')"
+  if [[ -n "${loki_total_query_error}" ]]; then
+    echo "[error] grafana loki query failed: ${loki_total_query_error}"
+    exit 1
+  fi
+  if ! awk "BEGIN {exit !(${loki_total_last} > 0)}"; then
+    echo "[error] expected non-empty Loki ingestion in last 5m, got ${loki_total_last}"
+    exit 1
+  fi
 
-echo "[check] dashboard service-filtered pricing pipeline logs are present"
-loki_service_query_result="$(
-  curl -sS -u admin:admin -H 'Content-Type: application/json' -X POST "http://localhost:${GRAFANA_PORT:-3001}/api/ds/query" \
-    -d "{\"from\":\"${from_ms}\",\"to\":\"${now_ms}\",\"queries\":[{\"refId\":\"A\",\"datasource\":{\"uid\":\"loki\",\"type\":\"loki\"},\"expr\":\"sum(count_over_time({compose_project=\\\"${COMPOSE_PROJECT_NAME}\\\",service=~\\\"price-publisher|trade-service|trade-processor|position-service|nats-broker|web-front-end-angular\\\"}[10m]))\",\"queryType\":\"range\",\"intervalMs\":1000,\"maxDataPoints\":500}]}"
-)"
-loki_service_query_error="$(echo "${loki_service_query_result}" | jq -r '.results.A.error // empty')"
-loki_service_last="$(echo "${loki_service_query_result}" | jq -r '.results.A.frames[0].data.values[1][-1] // "0"')"
-if [[ -n "${loki_service_query_error}" ]]; then
-  echo "[error] grafana loki service-filter query failed: ${loki_service_query_error}"
-  exit 1
-fi
-if ! awk "BEGIN {exit !(${loki_service_last} > 0)}"; then
-  echo "[error] expected non-empty service-filtered Loki logs for pricing dashboards, got ${loki_service_last}"
-  exit 1
+  echo "[check] dashboard service-filtered pricing pipeline logs are present"
+  loki_service_query_result="$(
+    curl -sS -u admin:admin -H 'Content-Type: application/json' -X POST "http://localhost:${GRAFANA_PORT:-3001}/api/ds/query" \
+      -d "{\"from\":\"${from_ms}\",\"to\":\"${now_ms}\",\"queries\":[{\"refId\":\"A\",\"datasource\":{\"uid\":\"loki\",\"type\":\"loki\"},\"expr\":\"sum(count_over_time({compose_project=\\\"${COMPOSE_PROJECT_NAME}\\\",service=~\\\"price-publisher|trade-service|trade-processor|position-service|nats-broker|web-front-end-angular\\\"}[10m]))\",\"queryType\":\"range\",\"intervalMs\":1000,\"maxDataPoints\":500}]}"
+  )"
+  loki_service_query_error="$(echo "${loki_service_query_result}" | jq -r '.results.A.error // empty')"
+  loki_service_last="$(echo "${loki_service_query_result}" | jq -r '.results.A.frames[0].data.values[1][-1] // "0"')"
+  if [[ -n "${loki_service_query_error}" ]]; then
+    echo "[error] grafana loki service-filter query failed: ${loki_service_query_error}"
+    exit 1
+  fi
+  if ! awk "BEGIN {exit !(${loki_service_last} > 0)}"; then
+    echo "[error] expected non-empty service-filtered Loki logs for pricing dashboards, got ${loki_service_last}"
+    exit 1
+  fi
+else
+  echo "[info] grafana service is not part of state 008 compose; skipping Loki datasource assertions"
 fi
 
 echo "[check] ingress trade-service unknown ticker validation"
@@ -346,11 +350,11 @@ curl -sS "http://localhost:18090/positions/22214" | jq -e 'length > 0 and (.[0].
 }
 
 echo "[check] baseline component smoke suite in state 008 runtime"
-"${REPO_ROOT}/scripts/test-reference-data-overlay.sh" "${ORIGIN}" "http://localhost:18085" "20"
-"${REPO_ROOT}/scripts/test-people-service-overlay.sh" "${ORIGIN}" "http://localhost:18089" "http://localhost:18088/accountuser/"
-"${REPO_ROOT}/scripts/test-account-service-overlay.sh" "${ORIGIN}" "http://localhost:18088"
-"${REPO_ROOT}/scripts/test-position-service-overlay.sh" "${ORIGIN}" "http://localhost:18090"
-"${REPO_ROOT}/scripts/test-trade-service-overlay.sh" "${ORIGIN}" "http://localhost:18092" "http://localhost:18090"
-"${REPO_ROOT}/scripts/test-web-angular-overlay.sh" "${INGRESS_URL}"
+TRADERX_LOCAL_RUNTIME_SCRIPT=1 "${REPO_ROOT}/scripts/test-reference-data-overlay.sh" "${ORIGIN}" "http://localhost:18085" "20"
+TRADERX_LOCAL_RUNTIME_SCRIPT=1 "${REPO_ROOT}/scripts/test-people-service-overlay.sh" "${ORIGIN}" "http://localhost:18089" "http://localhost:18088/accountuser/"
+TRADERX_LOCAL_RUNTIME_SCRIPT=1 "${REPO_ROOT}/scripts/test-account-service-overlay.sh" "${ORIGIN}" "http://localhost:18088"
+TRADERX_LOCAL_RUNTIME_SCRIPT=1 "${REPO_ROOT}/scripts/test-position-service-overlay.sh" "${ORIGIN}" "http://localhost:18090"
+TRADERX_LOCAL_RUNTIME_SCRIPT=1 "${REPO_ROOT}/scripts/test-trade-service-overlay.sh" "${ORIGIN}" "http://localhost:18092" "http://localhost:18090"
+TRADERX_LOCAL_RUNTIME_SCRIPT=1 "${REPO_ROOT}/scripts/test-web-angular-overlay.sh" "${INGRESS_URL}"
 
 echo "[done] state 008 pricing-awareness runtime smoke tests passed"

@@ -17,6 +17,12 @@ if [[ ! -d "${WEB_ROOT}" ]]; then
     WEB_ROOT="${ALT_WEB_ROOT}"
   fi
 fi
+ALT_WEB_ROOT="${GENERATED_ROOT}/code/components/web-front-end-angular-specfirst"
+if [[ -d "${ALT_WEB_ROOT}" ]]; then
+  if [[ ! -f "${WEB_ROOT}/main/app/about/about.component.ts" || ! -f "${WEB_ROOT}/main/app/status/status.component.ts" ]]; then
+    WEB_ROOT="${ALT_WEB_ROOT}"
+  fi
+fi
 TRADE_TS="${WEB_ROOT}/main/app/trade/trade.component.ts"
 TRADE_HTML="${WEB_ROOT}/main/app/trade/trade.component.html"
 TRADE_SCSS="${WEB_ROOT}/main/app/trade/trade.component.scss"

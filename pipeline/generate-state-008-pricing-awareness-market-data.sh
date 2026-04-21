@@ -2,12 +2,22 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${ROOT}/generated}"
+TARGET_ROOT="${GENERATED_ROOT}/code/target-generated"
+TARGET_FRONTEND_DIR="${TARGET_ROOT}/web-front-end/angular"
+FRONTEND_OVERRIDE_SOURCE_DIR="${ROOT}/specs/008-pricing-awareness-market-data/generation/frontend-overrides/web-front-end/angular"
 STATE_ID="008-pricing-awareness-market-data"
 PARENT_STATE_ID="007-observability-lgtm-compose"
 
 echo "[info] generating parent state ${PARENT_STATE_ID} for ${STATE_ID}"
 bash "${ROOT}/pipeline/generate-state.sh" "${PARENT_STATE_ID}"
 bash "${ROOT}/pipeline/apply-state-patchset.sh" "${STATE_ID}"
+if [[ -d "${FRONTEND_OVERRIDE_SOURCE_DIR}" ]]; then
+  cp -R "${FRONTEND_OVERRIDE_SOURCE_DIR}/." "${TARGET_FRONTEND_DIR}/"
+else
+  echo "[fail] frontend override source not found: ${FRONTEND_OVERRIDE_SOURCE_DIR}"
+  exit 1
+fi
 bash "${ROOT}/pipeline/generate-state-architecture-doc.sh" "${STATE_ID}"
 
 cat <<'EOF'

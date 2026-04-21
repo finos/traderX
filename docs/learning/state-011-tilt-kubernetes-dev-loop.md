@@ -29,7 +29,7 @@ title: "State 011: Tilt Local Dev on Kubernetes"
 
 ## Plain-English Code Delta
 
-- **Flow Impact:** No functional flow deltas. Baseline flows `F1`-`F6` and startup behavior remain compatible with state `010`.
+- **Flow Impact:** No functional flow deltas. Baseline flows `F1`-`F6` and startup behavior remain compatible with state `010`, including inherited price snapshot+stream freshness behavior and push-based realtime blotter subscriptions.
 
 ## Run This State
 

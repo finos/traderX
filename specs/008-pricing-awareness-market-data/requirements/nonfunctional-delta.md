@@ -19,11 +19,13 @@ Parent state: `007-observability-lgtm-compose`
 
 - Persisted trade execution price and position average cost basis use precision scale of 3.
 - Position valuation calculations in UI use numeric safety defaults when market prices are temporarily unavailable.
+- Snapshot and stream pricing payloads must include server-assigned UTC event timestamp (`asOf`) so clients can compare freshness deterministically.
 
 ## Performance / Scalability
 
 - Price stream fan-out uses NATS subject wildcard (`pricing.*`) for efficient browser subscription.
 - Price generation cadence uses randomized interval (default `750-1500ms`) with subset publish model (default `25%` symbols each cycle) to reduce local message flood.
+- Price bootstrap for grid-style UI should use one-call multi-symbol snapshot retrieval where possible, instead of per-row HTTP fanout.
 
 ## Reliability
 

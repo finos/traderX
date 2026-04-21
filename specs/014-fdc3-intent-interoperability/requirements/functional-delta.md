@@ -27,6 +27,7 @@ Document only functional behavior changes introduced by this state.
 - Ticket launch pathways now include an intent-driven path alongside existing in-app button flows.
 - Frontend startup includes FDC3 capability detection and listener registration, with graceful degraded behavior when unavailable.
 - State runtime startup gains optional/paired Sail lifecycle management separate from TraderX ingress path.
+- Existing market-data semantics remain required: snapshot bootstrap + streaming continuation with server-time freshness ordering, and push-driven trade/position/order blotter updates after REST bootstrap.
 
 ## Removed
 
@@ -39,3 +40,4 @@ Document only functional behavior changes introduced by this state.
 - New flow `F7`: cross-application symbol synchronization (TraderX selection -> external chart/quote app update).
 - New flow `F8`: external app intent -> TraderX ticket launch (`Trade`/`Order`) with ticker preselection.
 - New flow `F9`: local demo bootstrap (TraderX + Sail + demo apps) and end-to-end scripted interoperability verification.
+- Existing pricing/realtime flow behavior inherited from prior states remains non-regressive under FDC3 enablement.

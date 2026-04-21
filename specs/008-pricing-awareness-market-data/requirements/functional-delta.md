@@ -12,6 +12,8 @@ Parent state: `006-messaging-nats-replacement`
 - Position blotter `OPEN` column and directional market marker (`▲/▼/■`) against open price.
 - Conditional valuation highlighting in position blotter for market-price/open and value-vs-cost comparisons.
 - Trade ticket selected-security live price stream subscription from `pricing.<TICKER>`.
+- Price snapshot REST retrieval contract for single-symbol and multi-symbol bootstrap use cases.
+- Server timestamp (`asOf`) carried on both snapshot and stream price payloads for deterministic freshness ordering.
 - Shared supported ticker universe configuration across `reference-data` and `price-publisher`.
 - Reference-data ticker normalization from `FB` to `META` for this state.
 - Price publisher randomized batch cadence: publish every `750-1500ms` (default) for random subset (`25%` default).
@@ -23,6 +25,8 @@ Parent state: `006-messaging-nats-replacement`
 - `trade-processor` now computes and persists average cost basis per account/security on every trade.
 - Trade blotter now includes execution price and relative execution timestamp rendering.
 - Position blotter now updates value and P&L in real time from price stream ticks.
+- Price-aware UI screens now perform snapshot bootstrap in parallel with subscription startup to avoid empty pre-first-tick states.
+- Realtime price rendering now resolves concurrent snapshot/stream arrivals by selecting the latest server timestamp.
 - Position blotter now applies semantic styling and marker cues for quick up/down valuation reading.
 - Runtime ticker lists are now intentionally constrained to a shared supported set for consistency across validation, pricing, and UI.
 
@@ -34,4 +38,5 @@ Parent state: `006-messaging-nats-replacement`
 
 - `F2` (trade submission and processing): now includes price lookup and persisted execution price.
 - `F4` (real-time blotter updates): now includes market price stream consumption and valuation refresh.
+- `F4` now also includes snapshot-before-stream bootstrap with server-time ordering guarantees.
 - `F1` (ticket entry + reference data): now includes consistent supported symbols aligned with streaming pricing universe.

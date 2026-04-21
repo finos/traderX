@@ -23,5 +23,6 @@ State `009` intentionally introduces no business-functional deltas. This transit
 - F2 View Positions: unchanged behavior; data path unchanged.
 - F3 Account/User lookups: unchanged behavior; cross-service validation unchanged.
 - F4 Reference Data lookup: unchanged behavior; ticker validation unchanged.
-- F5 Messaging/pub-sub: unchanged behavior; websocket route preserved at `/nats-ws`.
+- F5 Messaging/pub-sub: unchanged behavior; websocket route preserved at `/nats-ws` and realtime blotter push-subscription model remains required.
 - F6 UI browsing and navigation: unchanged behavior; single-origin path retained.
+- Price-aware UI bootstrap semantics from state `008` remain unchanged (REST snapshot + stream continuation with server-time freshness ordering).

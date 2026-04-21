@@ -40,6 +40,7 @@ let userOrderId = null;
 let adminOrderId = null;
 let buffer = '';
 let pending = null;
+const orderIdsBySubjectStatus = new Map();
 
 const seen = {
   userCreateAccount: false,
@@ -55,6 +56,56 @@ const seen = {
 function fail(message) {
   console.error(`[error] ${message}`);
   process.exit(1);
+}
+
+function trackOrderEvent(subject, payload) {
+  const orderId = String(payload.orderId || '');
+  const status = String(payload.status || '');
+  if (!orderId || !status) {
+    return;
+  }
+  const key = `${subject}|${status}`;
+  let orderIds = orderIdsBySubjectStatus.get(key);
+  if (!orderIds) {
+    orderIds = new Set();
+    orderIdsBySubjectStatus.set(key, orderIds);
+  }
+  orderIds.add(orderId);
+}
+
+function hasOrderEvent(subject, status, orderId) {
+  if (!orderId) {
+    return false;
+  }
+  const key = `${subject}|${status}`;
+  const orderIds = orderIdsBySubjectStatus.get(key);
+  return Boolean(orderIds && orderIds.has(String(orderId)));
+}
+
+function syncSeenFlagsFromTrackedEvents() {
+  if (userOrderId) {
+    if (hasOrderEvent(userOrdersTopic, 'NEW', userOrderId)) {
+      seen.userCreateAccount = true;
+    }
+    if (hasOrderEvent(allOrdersTopic, 'NEW', userOrderId)) {
+      seen.userCreateAll = true;
+    }
+    if (hasOrderEvent(userOrdersTopic, 'CANCELED', userOrderId)) {
+      seen.userCancelAccount = true;
+    }
+    if (hasOrderEvent(allOrdersTopic, 'CANCELED', userOrderId)) {
+      seen.userCancelAll = true;
+    }
+  }
+
+  if (adminOrderId) {
+    if (hasOrderEvent(adminOrdersTopic, 'FILLED', adminOrderId)) {
+      seen.adminFillAccount = true;
+    }
+    if (hasOrderEvent(allOrdersTopic, 'FILLED', adminOrderId)) {
+      seen.adminFillAll = true;
+    }
+  }
 }
 
 async function requestJson(path, options, expectedStatus) {
@@ -105,6 +156,9 @@ function handleMessage(subject, payload) {
   if (!payload || typeof payload !== 'object') {
     return;
   }
+
+  trackOrderEvent(subject, payload);
+  syncSeenFlagsFromTrackedEvents();
 
   if (userOrderId && payload.orderId === userOrderId) {
     if (subject === userOrdersTopic && payload.status === 'NEW') {
@@ -240,7 +294,8 @@ async function main() {
         security: 'IBM',
         side: 'Buy',
         quantity: 33,
-        limitPrice: 188.125,
+        // Keep this non-marketable so cancel-event assertions do not race auto-fill ticks.
+        limitPrice: 1.0,
       }),
     },
     201
@@ -249,6 +304,7 @@ async function main() {
   if (!userOrderId) {
     fail('user order create response missing orderId');
   }
+  syncSeenFlagsFromTrackedEvents();
 
   await waitFor(() => seen.userCreateAccount && seen.userCreateAll, 'user create order events');
 
@@ -283,6 +339,7 @@ async function main() {
   if (!adminOrderId) {
     fail('admin order create response missing orderId');
   }
+  syncSeenFlagsFromTrackedEvents();
 
   await requestJson(
     `/order-matcher/orders/${adminOrderId}/force-fill`,

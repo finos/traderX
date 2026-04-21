@@ -16,6 +16,9 @@
 - FR-401: Baseline flows F1-F6 SHALL remain behaviorally compatible with state `009-order-management-matcher`.
 - FR-402: The browser entrypoint SHALL remain a single origin at `http://localhost:8080`.
 - FR-403: Existing API path prefixes (`/account-service`, `/trade-service`, `/reference-data`, etc.) SHALL remain stable in this state.
+- FR-404: Pricing and realtime UI semantics inherited from states `008` and `009` SHALL remain intact in Kubernetes runtime:
+  - snapshot + stream price bootstrap with server-time ordering for price-aware views,
+  - push-based incremental updates for trade/position/order blotters after REST bootstrap.
 
 ## Non-Functional Requirements
 

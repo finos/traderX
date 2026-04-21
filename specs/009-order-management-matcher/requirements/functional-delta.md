@@ -17,6 +17,7 @@ Document only functional behavior changes introduced by this state.
 - Trader UI account-level open-order blotter (tabbed alongside trade/position context) with user cancel action.
 - Admin screen (`Admin` tab) with a filterable order blotter for all accounts and operational force-fill/cancel actions.
 - Realtime order stream updates for pending/fill/cancel transitions.
+- Explicit realtime-subscription contract for all live TraderX blotters (trade, position, account orders, admin orders), with REST bootstrap + stream continuation.
 
 ## Changed
 
@@ -25,6 +26,7 @@ Document only functional behavior changes introduced by this state.
 - Order fill path is now explicit: matched order -> trade-service submit -> trade-processor persistence -> position-service update.
 - UI navigation includes an admin entrypoint for order operations and status visibility.
 - Trade area adds an order-first interaction path: create limit order, monitor outstanding orders, and cancel from account context.
+- Realtime UI path is now standardized across live views: initial REST hydration followed by push-driven incremental updates.
 
 ## Removed
 
@@ -34,5 +36,6 @@ Document only functional behavior changes introduced by this state.
 
 - `F2` (submit and process trade): extended to include fill generation from order matching.
 - `F4` (realtime updates): extended with order lifecycle stream topics and admin updates.
+- `F4` now explicitly covers all live blotters (trade, position, account orders, admin orders) using pub/sub after bootstrap.
 - New functional flow: `F5` (order management and matching lifecycle end-to-end).
 - New functional flow: `F6` (trader order ticket + account orders blotter cancel workflow).

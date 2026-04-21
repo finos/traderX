@@ -545,6 +545,7 @@ index 0000000..28c3648
 +      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
 +      PRICE_SERVICE_URL: "http://price-publisher:18100"
 +      TRADE_SERVICE_URL: "http://trade-service:18092/trade/"
++      NATS_BROKER_HOST: "nats-broker"
 +      ORDER_MATCHER_TICK_MS: "${ORDER_MATCHER_TICK_MS:-1000}"
 +      ORDER_FILL_FULL_THRESHOLD: "${ORDER_FILL_FULL_THRESHOLD:-1000}"
 +    ports:
@@ -555,6 +556,8 @@ index 0000000..28c3648
 +      price-publisher:
 +        condition: service_started
 +      trade-service:
++        condition: service_started
++      nats-broker:
 +        condition: service_started
 +
 +  ingress:

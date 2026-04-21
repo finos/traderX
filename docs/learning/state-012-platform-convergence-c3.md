@@ -29,7 +29,7 @@ title: "State 012: Platform Convergence C3"
 
 ## Plain-English Code Delta
 
-- **Flow Impact:** No functional flow deltas. Baseline flows `F1`-`F6` and startup behavior remain compatible with state `011`.
+- **Flow Impact:** No functional flow deltas. Baseline flows `F1`-`F6` and startup behavior remain compatible with state `011`, including inherited price snapshot+stream freshness behavior and push-based realtime blotter subscriptions.
 
 ## Run This State
 

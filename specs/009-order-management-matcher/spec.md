@@ -23,6 +23,8 @@
 - FR-01306: Order submission, cancellation, and force-fill flows are exposed through order APIs and are propagated in realtime via messaging subjects.
 - FR-01311: Order matcher publishes order lifecycle updates to `/accounts/{accountId}/orders` (account scope) and `/orders` (all accounts) for every persisted transition (`NEW`, `PARTIALLY_FILLED`, `FILLED`, `CANCELED`, `REJECTED`).
 - FR-01312: Published order events use the same payload contract as order REST responses so UI consumers can apply updates without an immediate follow-up HTTP fetch.
+- FR-01313: Realtime TraderX views (`trade` blotter, `position` blotter, account order blotter, and admin order blotter) SHALL subscribe to messaging subjects and apply push updates as their source of incremental change.
+- FR-01314: Realtime views SHALL bootstrap initial state from REST and then continue via pub/sub stream updates, without requiring periodic background polling loops.
 - FR-01308: Order data is persisted in the shared database so active orders survive order-matcher service restarts.
 - FR-01309: On every matcher tick, in-the-money orders are auto-filled with this policy: remaining `< 1000` fills fully, otherwise fills half (rounded up).
 - FR-01310: Any order fill (auto-fill or force-fill) must submit a trade through trade-service so trade history and account positions are updated via the existing trade pipeline.
@@ -44,6 +46,7 @@
 - NFR-01312: Generator output MUST deterministically include `database/initialSchema.sql` with an `OrderBook` table definition whenever `order-matcher` is present in generated state artifacts.
 - NFR-01313: Generated-state publish gates MUST fail if `order-matcher` is present and the generated database schema contract for `OrderBook` is missing.
 - NFR-01314: Order-facing UI views (`trade` order blotter, admin order view) MUST use messaging-bus push subscriptions for live updates and MUST NOT run periodic background polling loops against `GET /orders`.
+- NFR-01315: Trade and position blotters MUST retain push-based realtime updates (`/accounts/{accountId}/trades`, `/accounts/{accountId}/positions`) after initial REST bootstrap and MUST NOT introduce periodic polling loops as a substitute for stream updates.
 
 ## Success Criteria
 

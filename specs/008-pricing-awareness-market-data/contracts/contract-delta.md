@@ -8,6 +8,7 @@ Parent state: `006-messaging-nats-replacement`
 - `position-service` payloads include `averageCostBasis` in positions and `price` in trades.
 - New local service endpoint:
   - `price-publisher`: `GET /prices`, `GET /prices/{ticker}`, `GET /health`.
+  - `GET /prices` is the canonical multi-symbol bootstrap path (all symbols by default, optionally filtered by request parameters when provided by implementation).
   - `price-publisher /health` includes active publish cadence config (`minMs`, `maxMs`, `ratio`).
 
 ## Event Contract Changes
@@ -30,6 +31,8 @@ Expected pricing payload:
   "source": "snapshot"
 }
 ```
+
+`asOf` is a server-assigned timestamp and is required for both snapshot REST responses and stream (`pricing.<TICKER>`) events so clients can safely pick the freshest update.
 
 ## Reference Data Symbol Contract Notes
 

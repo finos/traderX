@@ -10,6 +10,7 @@
 - As a trader, I want each executed trade to include its execution price so blotters are economically meaningful.
 - As a portfolio user, I want positions to expose average cost basis so unrealized P&L can be computed in real time.
 - As a frontend user, I want live market price updates to refresh position value and totals without page refresh.
+- As a frontend user, I want an initial snapshot price rendered immediately while stream subscription is still connecting.
 - As a maintainer, I want market data bootstrap to support deterministic snapshots and optional startup sync from yfinance.
 
 ## Functional Requirements
@@ -41,6 +42,9 @@
 - FR-1016: Price publisher SHALL emit pricing updates on randomized cadence (`750-1500ms` default) and publish only a randomized subset per cycle (`25%` default, configurable).
 - FR-1017: Default sample universe SHALL include core financial-services institutions used in demonstrations:
   `MS`, `UBS`, `C`, `GS`, `DB`, `JPM`, `COF`, `DFS`, `FNMA`, and at least one Fidelity-related listed symbol (`FIS` and/or `FNF`).
+- FR-1018: State SHALL expose price snapshot REST retrieval for both single ticker and multi-ticker retrieval in one request (for example ticket bootstrap vs. grid bootstrap).
+- FR-1019: Ticket and blotter screens that display streaming market price SHALL issue snapshot bootstrap retrieval in parallel with stream subscription and render the freshest price by server timestamp.
+- FR-1020: Price payloads delivered via both REST snapshot and `pricing.<TICKER>` stream SHALL include server-assigned event time (`asOf`) so clients can deterministically resolve snapshot-vs-stream race conditions.
 
 ## Non-Functional Requirements
 
@@ -52,6 +56,7 @@
 - NFR-1006: Pricing stream defaults SHALL reduce local runtime churn versus per-symbol 1-second fanout while preserving timely UI valuation refresh.
 - NFR-1007: Pricing visualization semantics (marker + color) SHALL remain deterministic and derived solely from open/market and cost/value comparisons.
 - NFR-1008: For all services in this state that expose Prometheus-compatible metrics, Prometheus scraping and provisioned Grafana visualization SHALL be maintained.
+- NFR-1009: `asOf` timestamps for snapshots and stream ticks SHALL be server-assigned UTC instants and consistently comparable across payload sources for the same ticker.
 
 ## Success Criteria
 
@@ -63,3 +68,4 @@
 - SC-1006: Supported ticker list and pricing stream universe stay aligned (no supported symbol missing price stream/quote).
 - SC-1007: `FB` is not exposed by reference-data in this state; `META` is exposed and priced.
 - SC-1008: Default sample startup includes the defined financial-services symbols and all return quotes from `price-publisher`.
+- SC-1009: For each ticker, UI bootstrap + stream handoff keeps the latest (`max(asOf)`) price when snapshot and stream updates arrive near-simultaneously.

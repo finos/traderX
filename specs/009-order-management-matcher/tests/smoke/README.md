@@ -1,6 +1,7 @@
 # Smoke Tests: 009-order-management-matcher
 
 - Primary smoke script: `scripts/test-state-009-order-management-matcher.sh`
+- Focused pub/sub contract smoke: `scripts/test-order-create-pubsub-smoke.sh`
 
 Planned smoke checks:
 
@@ -19,6 +20,7 @@ Planned smoke checks:
 - Admin journey checks:
   - force-fill open order via admin endpoint
 - Realtime push checks:
+  - create-order smoke asserts immediate publish on both `/accounts/{accountId}/orders` and `/orders`
   - `/accounts/{accountId}/orders` and `/orders` receive order lifecycle events (create/cancel/fill)
   - force-fill generates account-scoped trade + position stream updates
   - no order polling loops (`interval`/`setInterval`) remain in Angular order views

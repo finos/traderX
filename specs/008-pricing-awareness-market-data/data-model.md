@@ -9,8 +9,10 @@ State `010` extends functional behavior with pricing-aware fields and valuation 
 - Added:
   - Trade price capture at execution/settlement time.
   - Position valuation fields (market value, cost basis, P&L projections).
+  - Price quote freshness field (`asOf`) on snapshot and stream payloads for deterministic client-side ordering.
 - Changed:
   - Position aggregation logic includes price-aware computation outputs.
+  - UI bootstrap flow combines snapshot seed + stream continuation using `max(asOf)` merge semantics per ticker.
 - Removed: none
 
 ## Notes

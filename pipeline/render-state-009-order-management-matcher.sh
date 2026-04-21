@@ -5,6 +5,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${ROOT}/generated}"
 TARGET_ROOT="${GENERATED_ROOT}/code/target-generated"
 STATE_DIR="${TARGET_ROOT}/order-management-matcher"
+TARGET_FRONTEND_DIR="${TARGET_ROOT}/web-front-end/angular"
+FRONTEND_OVERRIDE_SOURCE_DIR="${ROOT}/specs/009-order-management-matcher/generation/frontend-overrides/web-front-end/angular"
 COMPOSE_FILE="${STATE_DIR}/docker-compose.yml"
 PROMETHEUS_FILE="${STATE_DIR}/observability/prometheus/prometheus.yml"
 DASHBOARD_DIR="${STATE_DIR}/observability/grafana/dashboards"
@@ -116,6 +118,8 @@ package finos.traderx.messaging.nats;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import finos.traderx.messaging.PubSubException;
 import finos.traderx.messaging.Publisher;
 import io.nats.client.Connection;
@@ -127,7 +131,9 @@ import org.springframework.beans.factory.InitializingBean;
 
 public class NatsJSONPublisher<T> implements Publisher<T>, InitializingBean {
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-      .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+      .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+      .registerModule(new JavaTimeModule())
+      .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
   org.slf4j.Logger log = LoggerFactory.getLogger(this.getClass().getName());
 
@@ -604,5 +610,12 @@ Primary endpoints:
 - Price publisher: `http://localhost:18100/health`
 - Order matcher: `http://localhost:18110/health`
 EOF
+
+if [[ -d "${FRONTEND_OVERRIDE_SOURCE_DIR}" ]]; then
+  cp -R "${FRONTEND_OVERRIDE_SOURCE_DIR}/." "${TARGET_FRONTEND_DIR}/"
+else
+  echo "[fail] frontend override source not found: ${FRONTEND_OVERRIDE_SOURCE_DIR}"
+  exit 1
+fi
 
 echo "[done] rendered state 009 order-management observability refinements into ${STATE_DIR}"

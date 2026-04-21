@@ -26,6 +26,7 @@ Document NFR changes introduced by this state.
 - Order open/unfilled gauge updates should be reflected in metrics within one publish cycle of matcher processing.
 - Matcher latency histogram captures time from order eligible-for-match to fill publication for local performance baselining.
 - Dashboard queries default to short-range windows suitable for active dev loops (5m/15m).
+- Realtime blotter UIs should avoid periodic REST polling for incremental changes; push streams are the primary update path after REST bootstrap.
 
 ## Reliability / Observability
 
