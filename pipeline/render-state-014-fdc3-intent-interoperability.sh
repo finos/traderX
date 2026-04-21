@@ -90,13 +90,13 @@ Artifacts:
 Run baseline C3 runtime:
 
 ```bash
-./scripts/start-state-014-fdc3-intent-interoperability-generated.sh --provider kind
+./scripts/start-state-014-fdc3-intent-interoperability-generated.sh --provider kind --without-sail
 ```
 
 Run C3 + Sail demo runtime:
 
 ```bash
-./scripts/start-state-014-fdc3-intent-interoperability-generated.sh --provider kind --with-sail
+./scripts/start-state-014-fdc3-intent-interoperability-generated.sh --provider kind
 ```
 
 Run state smoke tests:
@@ -131,7 +131,7 @@ services:
     restart: unless-stopped
     environment:
       SAIL_REPO_URL: "${SAIL_REPO_URL:-https://github.com/finos/FDC3-Sail.git}"
-      SAIL_REPO_REF: "${SAIL_REPO_REF:-main}"
+      SAIL_REPO_REF: "${SAIL_REPO_REF:-4990547b06090eee167bbcadf850844e458babd5}"
       SAIL_REPO_COMMIT: "${SAIL_REPO_COMMIT:-}"
       SAIL_TRADERX_URL: "${SAIL_TRADERX_URL:-http://localhost:8080}"
       SAIL_HTTP_PORT: "${SAIL_HTTP_PORT:-8090}"
