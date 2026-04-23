@@ -747,22 +747,34 @@ index 0000000..1f327db
 +- SC-905: ADR for database engine choice is published and linked from state artifacts.
 diff --git a/runtime/ghcr/004-containerized-compose-runtime/README.md b/runtime/ghcr/004-containerized-compose-runtime/README.md
 deleted file mode 100644
-index f0e8c31..0000000
+index 0f21781..0000000
 --- a/runtime/ghcr/004-containerized-compose-runtime/README.md
 +++ /dev/null
-@@ -1,12 +0,0 @@
+@@ -1,23 +0,0 @@
 -# GHCR Run Bundle (004-containerized-compose-runtime)
 -
--This convergence state does not use a compose runtime bundle. Use published images with the generated start script:
+-Run this state directly from published GHCR images.
+-
+-1. Optionally set a specific tag:
 -
 -```bash
--TRADERX_USE_PUBLISHED_IMAGES=1 \
--TRADERX_PUBLISHED_NAMESPACE=traderx-c0 \
--TRADERX_PUBLISHED_TAG=latest \
--./scripts/start-state-004-containerized-compose-runtime-generated.sh --skip-build
+-export TRADERX_IMAGE_TAG=latest
 -```
 -
--The start script will pull published images from `ghcr.io/finos/traderx-c0`, retag them to local expected names, and continue normal cluster startup.
+-2. Pull and start:
+-
+-```bash
+-docker compose -f runtime/ghcr/004-containerized-compose-runtime/docker-compose.ghcr.yml pull
+-docker compose -f runtime/ghcr/004-containerized-compose-runtime/docker-compose.ghcr.yml up -d
+-```
+-
+-3. Stop:
+-
+-```bash
+-docker compose -f runtime/ghcr/004-containerized-compose-runtime/docker-compose.ghcr.yml down
+-```
+-
+-This bundle overlays `containerized-compose/docker-compose.yml` and replaces buildable app services with GHCR images under `ghcr.io/finos/traderx-c0`.
 diff --git a/runtime/ghcr/004-containerized-compose-runtime/images.lock b/runtime/ghcr/004-containerized-compose-runtime/images.lock
 deleted file mode 100644
 index 1a64d75..0000000

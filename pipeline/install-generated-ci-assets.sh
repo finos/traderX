@@ -326,6 +326,9 @@ while IFS= read -r line; do
 done < "${temp_dir}/docker-entries.txt"
 
 case "${STATE_ID}" in
+  004-containerized-compose-runtime)
+    compose_file_rel="containerized-compose/docker-compose.yml"
+    ;;
   007-observability-lgtm-compose)
     compose_file_rel="observability-lgtm-compose/docker-compose.yml"
     ;;
@@ -928,6 +931,7 @@ EOF
 write_ghcr_run_bundle() {
   local namespace="$1"
   local bundle_dir="${TARGET_ROOT}/runtime/ghcr/${STATE_ID}"
+  local state_num="${STATE_ID%%-*}"
   mkdir -p "${bundle_dir}"
 
   {
@@ -970,6 +974,16 @@ EOF
   fi
 
   start_script="scripts/start-state-${STATE_ID}-generated.sh"
+  if [[ ! -f "${TARGET_ROOT}/${start_script}" ]]; then
+    fallback_script="$(
+      find "${TARGET_ROOT}/scripts" -maxdepth 1 -type f \
+        -name "start-state-${state_num}-*-generated.sh" -print \
+        | sed "s#^${TARGET_ROOT}/##" | sort | head -n 1 || true
+    )"
+    if [[ -n "${fallback_script}" ]]; then
+      start_script="${fallback_script}"
+    fi
+  fi
   cat > "${bundle_dir}/README.md" <<EOF
 # GHCR Run Bundle (${STATE_ID})
 
@@ -1006,5 +1020,7 @@ if [[ -f "${TARGET_ROOT}/RUN_FROM_GENERATED.md" && -f "${TARGET_ROOT}/runtime/gh
     } >> "${TARGET_ROOT}/RUN_FROM_GENERATED.md"
   fi
 fi
+
+bash "${ROOT}/pipeline/validate-ghcr-run-bundle-readmes.sh" "${TARGET_ROOT}"
 
 echo "[ok] installed generated CI assets for ${STATE_ID} at ${TARGET_ROOT}/.github"

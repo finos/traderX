@@ -1574,6 +1574,259 @@ install_state_compose_clone_harness() {
     "test-state-${state_id}.sh"; do
     copy_snapshot_script_with_deps "${script_name}"
   done
+
+  if [[ "${state_id}" == "012-platform-convergence-c3" ]]; then
+    cat > "${SNAPSHOT_DIR}/scripts/start-state-012-platform-convergence-c3-generated.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+STATE_DIR="${ROOT}/tilt-kubernetes-dev-loop"
+TILT_DIR="${STATE_DIR}/tilt"
+
+DRY_RUN=0
+SKIP_BUILD=0
+RECREATE_CLUSTER=0
+RUN_TILT=0
+K8S_PROVIDER="${K8S_PROVIDER:-kind}"
+KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-traderx-state-012}"
+MINIKUBE_PROFILE=""
+MINIKUBE_DRIVER="${MINIKUBE_DRIVER:-docker}"
+
+while (( "$#" )); do
+  case "$1" in
+    --dry-run)
+      DRY_RUN=1
+      ;;
+    --skip-build)
+      SKIP_BUILD=1
+      ;;
+    --recreate-cluster)
+      RECREATE_CLUSTER=1
+      ;;
+    --run-tilt)
+      RUN_TILT=1
+      ;;
+    --provider)
+      K8S_PROVIDER="${2:-}"
+      shift
+      ;;
+    --cluster-name)
+      KIND_CLUSTER_NAME="${2:-}"
+      shift
+      ;;
+    --minikube-profile)
+      MINIKUBE_PROFILE="${2:-}"
+      shift
+      ;;
+    --minikube-driver)
+      MINIKUBE_DRIVER="${2:-}"
+      shift
+      ;;
+    *)
+      echo "[error] unknown argument: $1"
+      echo "[hint] supported: --dry-run --skip-build --recreate-cluster --run-tilt --provider <kind|minikube> --cluster-name <name> --minikube-profile <name> --minikube-driver <name>"
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+for required in \
+  "${STATE_DIR}/README.md" \
+  "${TILT_DIR}/Tiltfile" \
+  "${TILT_DIR}/tilt-settings.json" \
+  "${TILT_DIR}/README.md"; do
+  [[ -f "${required}" ]] || {
+    echo "[error] missing state 012 artifact: ${required}"
+    exit 1
+  }
+done
+
+start_args=(--provider "${K8S_PROVIDER}")
+start_args+=(--cluster-name "${KIND_CLUSTER_NAME}")
+if (( DRY_RUN == 1 )); then
+  start_args+=(--dry-run)
+fi
+if (( SKIP_BUILD == 1 )); then
+  start_args+=(--skip-build)
+fi
+if (( RECREATE_CLUSTER == 1 )); then
+  start_args+=(--recreate-cluster)
+fi
+if [[ -n "${MINIKUBE_PROFILE}" ]]; then
+  start_args+=(--minikube-profile "${MINIKUBE_PROFILE}")
+fi
+if [[ -n "${MINIKUBE_DRIVER}" ]]; then
+  start_args+=(--minikube-driver "${MINIKUBE_DRIVER}")
+fi
+
+"${ROOT}/scripts/start-state-010-kubernetes-runtime-generated.sh" "${start_args[@]}"
+
+if (( DRY_RUN == 1 )); then
+  echo "[dry-run] tilt assets validated at ${TILT_DIR}"
+  if (( RUN_TILT == 1 )); then
+    echo "[dry-run] (cd ${TILT_DIR} && tilt up)"
+  fi
+  echo "[done] dry run complete for state 012"
+  exit 0
+fi
+
+echo "[info] state 012 convergence assets ready at ${TILT_DIR}"
+if command -v tilt >/dev/null 2>&1; then
+  echo "[info] tilt CLI detected: $(tilt version | head -n 1)"
+  if (( RUN_TILT == 1 )); then
+    echo "[start] launching Tilt from ${TILT_DIR}"
+    cd "${TILT_DIR}"
+    exec tilt up
+  fi
+  echo "[hint] run: (cd ${TILT_DIR} && tilt up)"
+else
+  echo "[info] tilt CLI not found; install Tilt to run local dev loop"
+fi
+
+echo "[done] state 012 platform convergence ready (runtime inherited from state 010)"
+EOF
+
+    cat > "${SNAPSHOT_DIR}/scripts/stop-state-012-platform-convergence-c3-generated.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+DELETE_CLUSTER=0
+STOP_TILT=0
+K8S_PROVIDER="${K8S_PROVIDER:-kind}"
+KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-traderx-state-012}"
+MINIKUBE_PROFILE=""
+
+while (( "$#" )); do
+  case "$1" in
+    --delete-cluster)
+      DELETE_CLUSTER=1
+      ;;
+    --stop-tilt)
+      STOP_TILT=1
+      ;;
+    --provider)
+      K8S_PROVIDER="${2:-}"
+      shift
+      ;;
+    --cluster-name)
+      KIND_CLUSTER_NAME="${2:-}"
+      shift
+      ;;
+    --minikube-profile)
+      MINIKUBE_PROFILE="${2:-}"
+      shift
+      ;;
+    *)
+      echo "[error] unknown argument: $1"
+      echo "[hint] supported: --delete-cluster --stop-tilt --provider <kind|minikube> --cluster-name <name> --minikube-profile <name>"
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+if (( STOP_TILT == 1 )); then
+  pids="$(pgrep -f "tilt up" || true)"
+  for pid in ${pids}; do
+    if kill -0 "${pid}" >/dev/null 2>&1; then
+      echo "[stop] tilt up process (pid ${pid})"
+      kill "${pid}" >/dev/null 2>&1 || true
+    fi
+  done
+fi
+
+stop_args=(--provider "${K8S_PROVIDER}")
+stop_args+=(--cluster-name "${KIND_CLUSTER_NAME}")
+if (( DELETE_CLUSTER == 1 )); then
+  stop_args+=(--delete-cluster)
+fi
+if [[ -n "${MINIKUBE_PROFILE}" ]]; then
+  stop_args+=(--minikube-profile "${MINIKUBE_PROFILE}")
+fi
+
+"${ROOT}/scripts/stop-state-010-kubernetes-runtime-generated.sh" "${stop_args[@]}"
+echo "[done] state 012 stop sequence complete"
+EOF
+
+    cat > "${SNAPSHOT_DIR}/scripts/status-state-012-platform-convergence-c3-generated.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+STATE_DIR="${ROOT}/tilt-kubernetes-dev-loop"
+TILT_DIR="${STATE_DIR}/tilt"
+
+K8S_PROVIDER="${K8S_PROVIDER:-kind}"
+KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-traderx-state-012}"
+MINIKUBE_PROFILE=""
+
+while (( "$#" )); do
+  case "$1" in
+    --provider)
+      K8S_PROVIDER="${2:-}"
+      shift
+      ;;
+    --cluster-name)
+      KIND_CLUSTER_NAME="${2:-}"
+      shift
+      ;;
+    --minikube-profile)
+      MINIKUBE_PROFILE="${2:-}"
+      shift
+      ;;
+    *)
+      echo "[error] unknown argument: $1"
+      echo "[hint] supported: --provider <kind|minikube> --cluster-name <name> --minikube-profile <name>"
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+status_args=(--provider "${K8S_PROVIDER}")
+status_args+=(--cluster-name "${KIND_CLUSTER_NAME}")
+if [[ -n "${MINIKUBE_PROFILE}" ]]; then
+  status_args+=(--minikube-profile "${MINIKUBE_PROFILE}")
+fi
+
+"${ROOT}/scripts/status-state-010-kubernetes-runtime-generated.sh" "${status_args[@]}"
+
+echo
+echo "[status] tilt artifacts"
+for target in \
+  "${STATE_DIR}/README.md" \
+  "${TILT_DIR}/Tiltfile" \
+  "${TILT_DIR}/tilt-settings.json" \
+  "${TILT_DIR}/README.md"; do
+  if [[ -f "${target}" ]]; then
+    echo "[ok] ${target}"
+  else
+    echo "[missing] ${target}"
+  fi
+done
+
+tilt_running="no"
+if pgrep -af "tilt up" >/dev/null 2>&1; then
+  tilt_running="yes"
+fi
+echo "[info] tilt-up-running: ${tilt_running}"
+
+if command -v tilt >/dev/null 2>&1; then
+  echo "[info] tilt CLI: $(tilt version | head -n 1)"
+else
+  echo "[info] tilt CLI not found on PATH"
+fi
+EOF
+
+    chmod +x \
+      "${SNAPSHOT_DIR}/scripts/start-state-012-platform-convergence-c3-generated.sh" \
+      "${SNAPSHOT_DIR}/scripts/stop-state-012-platform-convergence-c3-generated.sh" \
+      "${SNAPSHOT_DIR}/scripts/status-state-012-platform-convergence-c3-generated.sh"
+  fi
 }
 
 install_kubernetes_clone_harness() {
@@ -1593,8 +1846,13 @@ RUN_DIR="${STATE_DIR}/.run/state-010-kubernetes-runtime"
 SKIP_BUILD=0
 RECREATE_CLUSTER=0
 K8S_PROVIDER="${K8S_PROVIDER:-kind}"
+KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-}"
 MINIKUBE_PROFILE=""
 MINIKUBE_DRIVER="${MINIKUBE_DRIVER:-docker}"
+USE_PUBLISHED_IMAGES="${TRADERX_USE_PUBLISHED_IMAGES:-0}"
+PUBLISHED_REGISTRY="${TRADERX_PUBLISHED_REGISTRY:-ghcr.io/finos}"
+PUBLISHED_NAMESPACE="${TRADERX_PUBLISHED_NAMESPACE:-}"
+PUBLISHED_TAG="${TRADERX_PUBLISHED_TAG:-latest}"
 
 while (( "$#" )); do
   case "$1" in
@@ -1608,6 +1866,10 @@ while (( "$#" )); do
       K8S_PROVIDER="${2:-}"
       shift
       ;;
+    --cluster-name)
+      KIND_CLUSTER_NAME="${2:-}"
+      shift
+      ;;
     --minikube-profile)
       MINIKUBE_PROFILE="${2:-}"
       shift
@@ -1616,14 +1878,38 @@ while (( "$#" )); do
       MINIKUBE_DRIVER="${2:-}"
       shift
       ;;
+    --use-published-images)
+      USE_PUBLISHED_IMAGES=1
+      ;;
+    --published-registry)
+      PUBLISHED_REGISTRY="${2:-}"
+      shift
+      ;;
+    --published-namespace)
+      PUBLISHED_NAMESPACE="${2:-}"
+      shift
+      ;;
+    --published-tag)
+      PUBLISHED_TAG="${2:-}"
+      shift
+      ;;
     *)
       echo "[error] unknown argument: $1"
-      echo "[hint] supported: --skip-build --recreate-cluster --provider <kind|minikube> --minikube-profile <name> --minikube-driver <name>"
+      echo "[hint] supported: --skip-build --recreate-cluster --provider <kind|minikube> --cluster-name <name> --minikube-profile <name> --minikube-driver <name> --use-published-images --published-registry <registry> --published-namespace <namespace> --published-tag <tag>"
       exit 1
       ;;
   esac
   shift
 done
+
+if (( USE_PUBLISHED_IMAGES == 1 )); then
+  SKIP_BUILD=1
+  if [[ -z "${PUBLISHED_NAMESPACE}" ]]; then
+    echo "[error] published image mode requires namespace"
+    echo "[hint] set --published-namespace <name> or TRADERX_PUBLISHED_NAMESPACE=<name>"
+    exit 1
+  fi
+fi
 
 for cmd in docker kubectl jq; do
   if ! command -v "${cmd}" >/dev/null 2>&1; then
@@ -1640,6 +1926,10 @@ cluster_name="$(jq -r '.kindClusterName' "${BUILD_PLAN}")"
 namespace="$(jq -r '.namespace' "${BUILD_PLAN}")"
 host_port="$(jq -r '.hostPort' "${BUILD_PLAN}")"
 edge_service="$(jq -r '.edgeService' "${BUILD_PLAN}")"
+
+if [[ -n "${KIND_CLUSTER_NAME}" ]]; then
+  cluster_name="${KIND_CLUSTER_NAME}"
+fi
 
 if [[ -z "${MINIKUBE_PROFILE}" ]]; then
   MINIKUBE_PROFILE="${cluster_name}"
@@ -1700,10 +1990,15 @@ else
   fi
 fi
 
-if (( SKIP_BUILD == 0 )); then
-  while IFS= read -r item; do
-    name="$(jq -r '.name' <<<"${item}")"
-    image="$(jq -r '.image' <<<"${item}")"
+while IFS= read -r item; do
+  name="$(jq -r '.name' <<<"${item}")"
+  image="$(jq -r '.image' <<<"${item}")"
+  if (( USE_PUBLISHED_IMAGES == 1 )); then
+    published_image="${PUBLISHED_REGISTRY}/${PUBLISHED_NAMESPACE}/${name}:${PUBLISHED_TAG}"
+    echo "[pull] ${name} <- ${published_image}"
+    docker pull "${published_image}"
+    docker tag "${published_image}" "${image}"
+  elif (( SKIP_BUILD == 0 )); then
     context_rel="$(jq -r '.context' <<<"${item}")"
     dockerfile_rel="$(jq -r '.dockerfile' <<<"${item}")"
     context_abs="${ROOT}/${context_rel}"
@@ -1714,13 +2009,21 @@ if (( SKIP_BUILD == 0 )); then
 
     echo "[build] ${name} -> ${image}"
     docker build -t "${image}" -f "${dockerfile_abs}" "${context_abs}"
-    if [[ "${K8S_PROVIDER}" == "kind" ]]; then
-      kind load docker-image "${image}" --name "${cluster_name}"
-    else
-      minikube image load "${image}" -p "${MINIKUBE_PROFILE}" >/dev/null
-    fi
-  done < <(jq -c '.images[]' "${BUILD_PLAN}")
-fi
+  else
+    docker image inspect "${image}" >/dev/null 2>&1 || {
+      echo "[error] --skip-build was set, but local image is missing: ${image}"
+      echo "[hint] rerun without --skip-build to build images first."
+      exit 1
+    }
+    echo "[reuse] using local image ${image} (--skip-build)"
+  fi
+
+  if [[ "${K8S_PROVIDER}" == "kind" ]]; then
+    kind load docker-image "${image}" --name "${cluster_name}"
+  else
+    minikube image load "${image}" -p "${MINIKUBE_PROFILE}" >/dev/null
+  fi
+done < <(jq -c '.images[]' "${BUILD_PLAN}")
 
 kubectl apply -k "${KUSTOMIZE_DIR}"
 kubectl wait --for=condition=Available deployment --all -n "${namespace}" --timeout=600s
@@ -1733,6 +2036,9 @@ fi
 
 echo "[done] state 010 kubernetes runtime started"
 echo "[provider] ${K8S_PROVIDER}"
+if (( USE_PUBLISHED_IMAGES == 1 )); then
+  echo "[images] published namespace=${PUBLISHED_NAMESPACE} tag=${PUBLISHED_TAG}"
+fi
 echo "[ui] http://localhost:${host_port}"
 echo "[api-explorer] http://localhost:${host_port}/api/docs"
 EOF
@@ -1746,6 +2052,7 @@ BUILD_PLAN="${ROOT}/kubernetes-runtime/build-plan.json"
 RUN_DIR="${ROOT}/kubernetes-runtime/.run/state-010-kubernetes-runtime"
 DELETE_CLUSTER=0
 K8S_PROVIDER="${K8S_PROVIDER:-kind}"
+KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-}"
 MINIKUBE_PROFILE=""
 
 while (( "$#" )); do
@@ -1757,13 +2064,17 @@ while (( "$#" )); do
       K8S_PROVIDER="${2:-}"
       shift
       ;;
+    --cluster-name)
+      KIND_CLUSTER_NAME="${2:-}"
+      shift
+      ;;
     --minikube-profile)
       MINIKUBE_PROFILE="${2:-}"
       shift
       ;;
     *)
       echo "[error] unknown argument: $1"
-      echo "[hint] supported: --delete-cluster --provider <kind|minikube> --minikube-profile <name>"
+      echo "[hint] supported: --delete-cluster --provider <kind|minikube> --cluster-name <name> --minikube-profile <name>"
       exit 1
       ;;
   esac
@@ -1781,6 +2092,9 @@ done
 
 cluster_name="$(jq -r '.kindClusterName' "${BUILD_PLAN}")"
 namespace="$(jq -r '.namespace' "${BUILD_PLAN}")"
+if [[ -n "${KIND_CLUSTER_NAME}" ]]; then
+  cluster_name="${KIND_CLUSTER_NAME}"
+fi
 if [[ -z "${MINIKUBE_PROFILE}" ]]; then
   MINIKUBE_PROFILE="${cluster_name}"
 fi
@@ -1841,6 +2155,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUILD_PLAN="${ROOT}/kubernetes-runtime/build-plan.json"
 RUN_DIR="${ROOT}/kubernetes-runtime/.run/state-010-kubernetes-runtime"
 K8S_PROVIDER="${K8S_PROVIDER:-kind}"
+KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-}"
 MINIKUBE_PROFILE=""
 
 while (( "$#" )); do
@@ -1849,13 +2164,17 @@ while (( "$#" )); do
       K8S_PROVIDER="${2:-}"
       shift
       ;;
+    --cluster-name)
+      KIND_CLUSTER_NAME="${2:-}"
+      shift
+      ;;
     --minikube-profile)
       MINIKUBE_PROFILE="${2:-}"
       shift
       ;;
     *)
       echo "[error] unknown argument: $1"
-      echo "[hint] supported: --provider <kind|minikube> --minikube-profile <name>"
+      echo "[hint] supported: --provider <kind|minikube> --cluster-name <name> --minikube-profile <name>"
       exit 1
       ;;
   esac
@@ -1874,6 +2193,9 @@ done
 cluster_name="$(jq -r '.kindClusterName' "${BUILD_PLAN}")"
 namespace="$(jq -r '.namespace' "${BUILD_PLAN}")"
 host_port="$(jq -r '.hostPort' "${BUILD_PLAN}")"
+if [[ -n "${KIND_CLUSTER_NAME}" ]]; then
+  cluster_name="${KIND_CLUSTER_NAME}"
+fi
 if [[ -z "${MINIKUBE_PROFILE}" ]]; then
   MINIKUBE_PROFILE="${cluster_name}"
 fi
@@ -2884,6 +3206,7 @@ esac
 write_env_entrypoint_wrappers
 write_clone_runbook
 assert_snapshot_clone_entrypoints
+bash "${ROOT}/pipeline/validate-ghcr-run-bundle-readmes.sh" "${SNAPSHOT_DIR}"
 write_snapshot_learning_docs
 write_snapshot_agentic_docs
 write_learning_guide
