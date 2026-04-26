@@ -192,17 +192,13 @@ while IFS=$'\t' read -r state_id publish_branch; do
         printf 'gradle\t%s\tproperty\ttomcat.version\t%s\t%s\n' "${file_path}" "${state_id}" "${tomcat_version}" >> "${rows_file}"
       fi
 
-      awk -v state="${state_id}" -v path="${file_path}" -F"'" '
-        /^[[:space:]]*(implementation|api|compileOnly|runtimeOnly|testImplementation|testRuntimeOnly|annotationProcessor)[[:space:]]+\x27[^\x27]+:[^\x27]+:[^\x27]+\x27/ {
-          coord=$2;
-          n=split(coord, parts, ":");
-          if (n >= 3) {
-            ga=parts[1] ":" parts[2];
-            ver=parts[3];
-            print "gradle\t" path "\tdependency\t" ga "\t" state "\t" ver;
-          }
-        }
-      ' "${tmp_gradle}" >> "${rows_file}"
+      while IFS= read -r coord; do
+        [[ -n "${coord}" ]] || continue
+        ga="$(printf '%s' "${coord}" | cut -d: -f1-2)"
+        ver="$(printf '%s' "${coord}" | cut -d: -f3)"
+        [[ -n "${ga}" && -n "${ver}" ]] || continue
+        printf 'gradle\t%s\tdependency\t%s\t%s\t%s\n' "${file_path}" "${ga}" "${state_id}" "${ver}" >> "${rows_file}"
+      done < <(rg -o --pcre2 "'\\K[^':]+:[^':]+:[^']+" "${tmp_gradle}" | sort -u || true)
 
       rm -f "${tmp_gradle}"
       continue
