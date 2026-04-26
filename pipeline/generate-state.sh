@@ -113,13 +113,16 @@ EOT
     ;;
 esac
 
-# Normalize Java dependency baselines across generated outputs. For nested
-# parent-state generation, defer normalization to the top-level invocation so
-# downstream patchsets apply against their expected pre-normalized file shape.
+# Validate dependency version targets across generated outputs. Dependency
+# versions are canonical in templates/patches and catalog/dependency-version-targets.json.
+# Optional apply mode is provided only for explicit bulk remediation.
 if (( GEN_DEPTH == 1 )) || [[ "${TRADERX_REFRESH_JAVA_BASELINE_IN_NESTED_GENERATION:-0}" == "1" ]]; then
-  bash "${ROOT}/pipeline/refresh-generated-java-dependency-baseline.sh" "${COMPONENTS_ROOT}" "${TARGET_ROOT}"
+  if [[ "${TRADERX_APPLY_JAVA_DEPENDENCY_TARGETS:-0}" == "1" ]]; then
+    bash "${ROOT}/pipeline/refresh-generated-java-dependency-baseline.sh" "${COMPONENTS_ROOT}" "${TARGET_ROOT}"
+  fi
+  bash "${ROOT}/pipeline/validate-generated-dependency-targets.sh" "${COMPONENTS_ROOT}" "${TARGET_ROOT}"
 else
-  echo "[info] nested generation depth=${GEN_DEPTH}; skipping Java dependency baseline refresh"
+  echo "[info] nested generation depth=${GEN_DEPTH}; skipping dependency target validation"
 fi
 
 # Keep Gradle wrapper assets canonical and template-owned across all generated

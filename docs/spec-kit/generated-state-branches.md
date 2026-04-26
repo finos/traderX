@@ -155,10 +155,11 @@ Required rule:
 1. Baseline component defaults are maintained in `templates/**` (for example Java `build.gradle`, Gradle wrapper, and shared runtime/library versions).
 2. Derived state deviations are maintained in state patchsets under `specs/<state>/generation/patches/*.patch`.
 3. Post-generation mutation scripts are not allowed in steady-state generation; canonical templates and patchsets must fully define output content.
-4. Version consistency checks must pass before publish:
+4. Version targets are declared in `catalog/dependency-version-targets.json` and must pass before publish:
 
 ```bash
 bash pipeline/validate-template-version-consistency.sh
+bash pipeline/validate-generated-dependency-targets.sh generated/code/components generated/code/target-generated
 bash pipeline/validate-generated-branch-dependency-consistency.sh
 ```
 

@@ -30,3 +30,4 @@
 - `SYS-NFR-006` Angular UI branding assets and FINOS/TraderX identity SHALL remain intact in baseline UI generation.
 - `SYS-NFR-007` Spec-first generation SHALL not require hydration from deleted legacy source trees.
 - `SYS-NFR-008` Trade and position blotters SHALL keep responsive readability through side-by-side layout with wrap and minimum pane width constraints.
+- `SYS-NFR-009` Dependency upgrade targets SHALL be declared in canonical repository artifacts and MUST propagate to all generated state releases; generation and validation gates SHALL fail when target versions do not propagate.

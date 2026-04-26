@@ -1,14 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TARGETS_FILE="${TRADERX_DEPENDENCY_TARGETS_FILE:-${ROOT}/catalog/dependency-version-targets.json}"
+
 if [[ "$#" -lt 1 ]]; then
   echo "usage: bash pipeline/refresh-generated-java-dependency-baseline.sh <root> [root...]"
   exit 1
 fi
 
-BOOT_VERSION="${TRADERX_JAVA_BOOT_VERSION:-3.5.13}"
-SPRINGDOC_VERSION="${TRADERX_JAVA_SPRINGDOC_VERSION:-${TRADERX_JAVA_SPRINGDOC_UI_VERSION:-2.8.17}}"
-TOMCAT_VERSION="${TRADERX_JAVA_TOMCAT_VERSION:-10.1.54}"
+if ! command -v jq >/dev/null 2>&1; then
+  echo "[fail] jq is required"
+  exit 1
+fi
+
+if [[ ! -f "${TARGETS_FILE}" ]]; then
+  echo "[fail] missing dependency targets file: ${TARGETS_FILE}"
+  exit 1
+fi
+
+BOOT_VERSION="$(jq -er '.java.plugins["org.springframework.boot"]' "${TARGETS_FILE}")"
+SPRINGDOC_VERSION="$(jq -er '.java.dependencies["org.springdoc:springdoc-openapi-starter-webmvc-api"]' "${TARGETS_FILE}")"
+TOMCAT_VERSION="$(jq -er '.java.properties["tomcat.version"]' "${TARGETS_FILE}")"
 
 normalize_gradle_file() {
   local gradle_file="$1"
@@ -38,4 +51,4 @@ for root in "$@"; do
   done < <(find "${root}" -type f -name 'build.gradle' -print0)
 done
 
-echo "[done] normalized Java dependency baseline (boot=${BOOT_VERSION}, springdoc=${SPRINGDOC_VERSION}, tomcat=${TOMCAT_VERSION})"
+echo "[done] applied Java dependency targets (boot=${BOOT_VERSION}, springdoc=${SPRINGDOC_VERSION}, tomcat=${TOMCAT_VERSION})"

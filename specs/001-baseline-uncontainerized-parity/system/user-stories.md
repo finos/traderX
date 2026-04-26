@@ -13,3 +13,4 @@
 - `US-011` As a trader, I want security typeahead to match ticker and company while browser autofill is disabled so order entry is fast and accurate.
 - `US-012` As an operations user, I want account-user mappings to display full names resolved from people-service instead of raw usernames.
 - `US-013` As a trader, I want the trade and position blotters to remain readable on varying screen widths via responsive side-by-side wrapping layout.
+- `US-014` As a maintainer, I want dependency target versions declared once and enforced across generated states so upgrades persist across releases without hidden post-generation overrides.

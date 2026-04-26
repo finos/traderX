@@ -93,6 +93,7 @@ bash pipeline/validate-state-doc-consistency.sh
 bash pipeline/validate-state-pack-artifacts.sh
 bash pipeline/validate-template-version-consistency.sh
 bash pipeline/validate-generated-branch-dependency-consistency.sh
+bash pipeline/validate-generated-dependency-targets.sh generated/code/components generated/code/target-generated
 bash pipeline/validate-sail-pin-contract.sh
 ./pipeline/speckit/validate-speckit-readiness.sh
 ./pipeline/speckit/verify-spec-expressiveness.sh

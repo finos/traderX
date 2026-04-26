@@ -16,3 +16,4 @@
 - `AC-014` Given user enters security text in trade ticket, when typeahead suggestions appear, then combined ticker/company labels are used and browser autocomplete is suppressed.
 - `AC-015` Given account-user mappings are displayed, when people-service lookup succeeds, then full names are shown; on lookup failure, username fallback is shown.
 - `AC-016` Given viewport constraints vary, when trade and position blotters render, then layout wraps while preserving minimum pane width for readability.
+- `AC-017` Given canonical dependency targets are updated, when templates and generated-state branches are validated, then all targeted versions match across releases or the validation gates fail.

@@ -145,6 +145,7 @@ Preflight gates:
 
 ```bash
 bash pipeline/validate-template-version-consistency.sh
+bash pipeline/validate-generated-dependency-targets.sh generated/code/components generated/code/target-generated
 
 # verifies dependency key versions are consistent across generated state branches
 bash pipeline/validate-generated-branch-dependency-consistency.sh
