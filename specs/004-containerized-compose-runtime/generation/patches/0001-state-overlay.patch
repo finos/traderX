@@ -497,6 +497,8 @@ index 0000000..7c23724
 +  id 'io.spring.dependency-management' version '1.1.7'
 +}
 +
++ext['tomcat.version'] = '10.1.54'
++
 +group = 'finos.traderx.account-service-specfirst'
 +version = '0.1.0'
 +
@@ -2720,6 +2722,8 @@ index 0000000..060d4f8
 +  id 'org.springframework.boot' version '3.5.14'
 +  id 'io.spring.dependency-management' version '1.1.7'
 +}
++
++ext['tomcat.version'] = '10.1.54'
 +
 +group = 'finos.traderx.position-service-specfirst'
 +version = '0.1.0'
@@ -10884,6 +10888,8 @@ index 0000000..10c246e
 +  id 'io.spring.dependency-management' version '1.1.7'
 +}
 +
++ext['tomcat.version'] = '10.1.54'
++
 +group = 'finos.traderx.trade-processor-specfirst'
 +version = '0.1.0'
 +
@@ -12283,6 +12289,8 @@ index 0000000..5693071
 +  id 'org.springframework.boot' version '3.5.14'
 +  id 'io.spring.dependency-management' version '1.1.7'
 +}
++
++ext['tomcat.version'] = '10.1.54'
 +
 +group = 'finos.traderx.trade-service-specfirst'
 +version = '0.1.0'
