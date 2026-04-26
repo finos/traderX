@@ -492,6 +492,8 @@ else
 fi
 
 # Ensure state-014 FDC3 agent bootstrap dependency is present in generated web UI.
+# Also pin a temporary scoped override for transitive uuid to mitigate
+# GHSA-w5hq-g745-h8pq until upstream fdc3-get-agent releases without uuid<14.
 node - "${TARGET_FRONTEND_DIR}/package.json" <<'NODE'
 const fs = require('node:fs');
 const path = process.argv[2];
@@ -500,6 +502,12 @@ doc.dependencies = doc.dependencies || {};
 if (!doc.dependencies['@robmoffat/fdc3-get-agent']) {
   doc.dependencies['@robmoffat/fdc3-get-agent'] = '2.2.2-beta.3';
 }
+doc.overrides = doc.overrides || {};
+const fdc3Override = doc.overrides['@robmoffat/fdc3-get-agent'];
+if (!fdc3Override || typeof fdc3Override !== 'object' || Array.isArray(fdc3Override)) {
+  doc.overrides['@robmoffat/fdc3-get-agent'] = {};
+}
+doc.overrides['@robmoffat/fdc3-get-agent'].uuid = '^14.0.0';
 fs.writeFileSync(path, `${JSON.stringify(doc, null, 2)}\n`, 'utf8');
 NODE
 

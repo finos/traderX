@@ -24,6 +24,7 @@ This state introduces desktop interoperability concerns while preserving C3 runt
 - TraderX should publish canonical bare ticker payloads and must not embed Sail-widget-specific exchange remapping logic.
 - Any tactical compatibility logic required for specific Sail demo widgets (for example exchange qualification for TradingView symbol strings) must be isolated to Sail-side pre-build/startup patch assets and marked as temporary technical debt until CDM-native identifier normalization lands.
 - Workaround-driven interoperability behavior must be explicitly tracked as technical debt and reviewed for removal once Sail event delivery and normalized symbology are production-ready.
+- Generated state-014 frontend manifests must enforce a scoped temporary npm override for `@robmoffat/fdc3-get-agent -> uuid:^14.0.0` to mitigate GHSA-w5hq-g745-h8pq; remove this override when upstream dependency ranges are fixed and security scans pass without it.
 
 ## Performance / Scalability
 

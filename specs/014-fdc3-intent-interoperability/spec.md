@@ -47,11 +47,13 @@
 - NFR-01410: TraderX interoperability payloads must remain canonical and bare (`fdc3.instrument.id.ticker` only) with no Sail-widget-specific exchange aliasing in TraderX UI code.
 - NFR-01411: Any widget-specific compatibility logic needed for Sail demo interoperability (for example exchange qualification or symbol format mapping for TradingView widgets) must be implemented as generated Sail-side patchwork assets applied pre-build/startup, and tracked as temporary technical debt for replacement by future CDM-native symbology.
 - NFR-01412: Because DesktopAgent callback behavior can be inconsistent in current Sail demo environments, TraderX may use a bounded context-sync fallback (for example active-channel `getCurrentContext` polling + dedupe) to preserve deterministic ticket-launch behavior. This fallback must be isolated, documented as technical debt, and removable when robust Sail event delivery is available.
+- NFR-01413: Generated state-014 frontend manifests must apply a scoped npm override forcing `@robmoffat/fdc3-get-agent -> uuid:^14.0.0` as a temporary security control for GHSA-w5hq-g745-h8pq; this override must be removed once upstream `@robmoffat/fdc3-get-agent` no longer requires vulnerable `uuid` ranges and generated outputs pass security scanning without it.
 
 ## Technical Debt Register
 
 - TD-01401: Sail demo interoperability currently relies on tactical widget/runtime workarounds (for example TradingView symbol qualification and callback-delivery fallback behavior) that should be replaced by robust Sail-side event semantics and standardized interop contracts.
 - TD-01402: Symbol interoperability across apps remains ticker-centric and not fully normalized to CDM-grade symbology; this should be upgraded to canonical multi-identifier handling (for example CDM-backed FIGI/ISIN/RIC strategy) in a follow-on state.
+- TD-01403: State-014 currently depends on a scoped transitive npm override (`@robmoffat/fdc3-get-agent -> uuid:^14.0.0`) to mitigate GHSA-w5hq-g745-h8pq until upstream agent dependencies are remediated.
 
 ## Success Criteria
 
