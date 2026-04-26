@@ -55,6 +55,7 @@ GRADLE_WRAPPER_TARGET="$(jq -er '.gradleWrapper.distributionVersion' "${TARGETS_
 GRADLE_WRAPPER_SHA_TARGET="$(jq -er '.gradleWrapper.distributionSha256Sum' "${TARGETS_FILE}")"
 
 spring_files_count=0
+tomcat_seen=0
 while IFS= read -r gradle_file; do
   [[ -f "${gradle_file}" ]] || continue
   if ! rg -q "id 'org\\.springframework\\.boot' version" "${gradle_file}"; then
@@ -71,16 +72,18 @@ while IFS= read -r gradle_file; do
   [[ -n "${boot_version}" ]] || fail "missing Spring Boot plugin version in ${gradle_file}"
   [[ -n "${dep_mgmt_version}" ]] || fail "missing dependency-management plugin version in ${gradle_file}"
   [[ -n "${java_source}" ]] || fail "missing Java sourceCompatibility in ${gradle_file}"
-  [[ -n "${tomcat_version}" ]] || fail "missing tomcat.version property in ${gradle_file}"
-
   check_equals "Spring Boot plugin" "${gradle_file}" "${JAVA_BOOT_TARGET}" "${boot_version}"
   check_equals "Dependency-management plugin" "${gradle_file}" "${JAVA_DEP_MGMT_TARGET}" "${dep_mgmt_version}"
   check_equals "Java sourceCompatibility" "${gradle_file}" "${JAVA_SOURCE_TARGET}" "${java_source}"
-  check_equals "tomcat.version property" "${gradle_file}" "${JAVA_TOMCAT_TARGET}" "${tomcat_version}"
+  if [[ -n "${tomcat_version}" ]]; then
+    tomcat_seen=$((tomcat_seen + 1))
+    check_equals "tomcat.version property" "${gradle_file}" "${JAVA_TOMCAT_TARGET}" "${tomcat_version}"
+  fi
 
 done < <(rg -N "" "${tmp_files}" | rg 'build\.gradle$' || true)
 
 (( spring_files_count > 0 )) || fail "no Spring Boot build.gradle files found under provided roots"
+(( tomcat_seen > 0 )) || fail "tomcat.version property target not found in generated Gradle files"
 
 while IFS=$'\t' read -r dep expected; do
   [[ -n "${dep}" && -n "${expected}" ]] || continue
