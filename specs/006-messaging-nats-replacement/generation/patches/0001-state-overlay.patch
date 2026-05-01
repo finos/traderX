@@ -70,38 +70,6 @@ index 0e81a6c..45d73a8 100644
  
  - Service/runtime topology is defined by the source state pack in the upstream repository.
  - This generated directory contains runnable artifacts, not the authoritative architecture source.
-diff --git a/RUN_FROM_GENERATED.md b/RUN_FROM_GENERATED.md
-index 90a3a4c..bcde254 100644
---- a/RUN_FROM_GENERATED.md
-+++ b/RUN_FROM_GENERATED.md
-@@ -1,22 +1,22 @@
--# Run From Generated (State 005)
-+# Run From Generated (State 006)
- 
- Start:
- 
- ```bash
--./scripts/start-state-005-postgres-database-replacement-generated.sh
-+./scripts/start-state-006-messaging-nats-replacement-generated.sh
- ```
- 
- Status / stop:
- 
- ```bash
--./scripts/status-state-005-postgres-database-replacement-generated.sh
--./scripts/stop-state-005-postgres-database-replacement-generated.sh
-+./scripts/status-state-006-messaging-nats-replacement-generated.sh
-+./scripts/stop-state-006-messaging-nats-replacement-generated.sh
- ```
- 
- Smoke test:
- 
- ```bash
--./scripts/test-state-005-postgres-database-replacement.sh
-+./scripts/test-state-006-messaging-nats-replacement.sh
- ```
- 
- ## Interactive URLs
 diff --git a/ci/state-metadata.json b/ci/state-metadata.json
 index 0835b4c..1175300 100644
 --- a/ci/state-metadata.json
@@ -438,7 +406,7 @@ rename to scripts/start-state-006-messaging-nats-replacement-generated.sh
 index d0d6062..16a2718 100755
 --- a/scripts/start-state-005-postgres-database-replacement-generated.sh
 +++ b/scripts/start-state-006-messaging-nats-replacement-generated.sh
-@@ -17,9 +17,9 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
+@@ -17,10 +17,10 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
      exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
    fi
  fi
@@ -450,17 +418,9 @@ index d0d6062..16a2718 100755
 +COMPOSE_DIR="${GENERATED_ROOT}/code/target-generated/messaging-nats-replacement"
  COMPOSE_FILE="${COMPOSE_DIR}/docker-compose.yml"
  DRY_RUN=0
+ SKIP_BUILD=0
  
-@@ -65,7 +65,7 @@ fi
- 
- if (( DRY_RUN == 1 )); then
-   echo "[dry-run] docker compose -f ${COMPOSE_FILE} --project-name ${COMPOSE_PROJECT_NAME} up -d --build"
--  echo "[done] dry run complete for state 005"
-+  echo "[done] dry run complete for state 006"
-   exit 0
- fi
- 
-@@ -104,11 +104,12 @@ wait_for_http() {
+@@ -116,12 +116,13 @@ wait_for_http() {
  
  wait_for_postgres || exit 1
  wait_for_http "reference-data" "http://localhost:18085/stocks" || exit 1
@@ -475,6 +435,7 @@ index d0d6062..16a2718 100755
 -echo "[done] state 005 postgres-database runtime started"
 +echo "[done] state 006 messaging-nats runtime started"
  echo "[ui] http://localhost:8080"
+ echo "[api-explorer] http://localhost:8080/api/docs"
 diff --git a/scripts/status-state-005-postgres-database-replacement-generated.sh b/scripts/status-state-006-messaging-nats-replacement-generated.sh
 similarity index 73%
 rename from scripts/status-state-005-postgres-database-replacement-generated.sh
