@@ -193,31 +193,8 @@ index 3eb407b..7959ba6 100644
            - directory: reference-data
              dockerfile: Dockerfile.compose
              image_name: reference-data
-diff --git a/AGENTS.md b/AGENTS.md
-index 67e21a2..51f075a 100644
---- a/AGENTS.md
-+++ b/AGENTS.md
-@@ -1,6 +1,6 @@
- # AGENTS.md
- 
--This generated codebase is a reproducible runtime snapshot for state `007-observability-lgtm-compose`.
-+This generated codebase is a reproducible runtime snapshot for state `008-pricing-awareness-market-data`.
- 
- - Treat this snapshot as generated output; expect it to be replaced on regeneration.
- - Prototype and experiment locally here when needed.
-diff --git a/ARCHITECTURE.md b/ARCHITECTURE.md
-index 3874849..6fbcc30 100644
---- a/ARCHITECTURE.md
-+++ b/ARCHITECTURE.md
-@@ -1,6 +1,6 @@
- # ARCHITECTURE.md
- 
--This snapshot was generated from TraderX state `007-observability-lgtm-compose`.
-+This snapshot was generated from TraderX state `008-pricing-awareness-market-data`.
- 
- - Service/runtime topology is defined by the source state pack in the upstream repository.
- - This generated directory contains runnable artifacts, not the authoritative architecture source.
- 
+
+
 diff --git a/ci/state-metadata.json b/ci/state-metadata.json
 index e8e9aef..46d12e9 100644
 --- a/ci/state-metadata.json
@@ -2164,19 +2141,7 @@ index 16d96f4..0000000
 -trade-processor=ghcr.io/finos/traderx-c1/trade-processor:latest
 -trade-service=ghcr.io/finos/traderx-c1/trade-service:latest
 -web-front-end-angular=ghcr.io/finos/traderx-c1/web-front-end-angular:latest
-diff --git a/scripts/README.runtime-harness.md b/scripts/README.runtime-harness.md
-index 7481a36..ee1cdf0 100644
---- a/scripts/README.runtime-harness.md
-+++ b/scripts/README.runtime-harness.md
-@@ -1,6 +1,6 @@
- # Generated Runtime Harness
- 
--This directory is generated for state: 007-observability-lgtm-compose
-+This directory is generated for state: 008-pricing-awareness-market-data
- 
- - Scripts in this folder are local-runtime wrappers for the generated codebase.
- - They are designed to run without invoking root pipeline generation.
- 
+
 diff --git a/scripts/status-state-007-observability-lgtm-compose-generated.sh b/scripts/status-state-008-pricing-awareness-market-data-generated.sh
 similarity index 65%
 rename from scripts/status-state-007-observability-lgtm-compose-generated.sh

@@ -187,77 +187,9 @@ index 7959ba6..3ffeb57 100644
            - directory: people-service
              dockerfile: Dockerfile.compose
              image_name: people-service
-diff --git a/AGENTS.md b/AGENTS.md
-index 51f075a..491b34e 100644
---- a/AGENTS.md
-+++ b/AGENTS.md
-@@ -1,6 +1,6 @@
- # AGENTS.md
- 
--This generated codebase is a reproducible runtime snapshot for state `008-pricing-awareness-market-data`.
-+This generated codebase is a reproducible runtime snapshot for state `009-order-management-matcher`.
- 
- - Treat this snapshot as generated output; expect it to be replaced on regeneration.
- - Prototype and experiment locally here when needed.
-diff --git a/ARCHITECTURE.md b/ARCHITECTURE.md
-index 6fbcc30..7b5ea7f 100644
---- a/ARCHITECTURE.md
-+++ b/ARCHITECTURE.md
-@@ -1,6 +1,6 @@
- # ARCHITECTURE.md
- 
--This snapshot was generated from TraderX state `008-pricing-awareness-market-data`.
-+This snapshot was generated from TraderX state `009-order-management-matcher`.
- 
- - Service/runtime topology is defined by the source state pack in the upstream repository.
- - This generated directory contains runnable artifacts, not the authoritative architecture source.
-diff --git a/RUN_FROM_GENERATED.md b/RUN_FROM_GENERATED.md
-index c2bbf69..f397f9c 100644
---- a/RUN_FROM_GENERATED.md
-+++ b/RUN_FROM_GENERATED.md
-@@ -1,27 +1,33 @@
--# Run From Generated (State 008)
-+# Run From Generated (State 009)
- 
- Start:
- 
- ```bash
--./scripts/start-state-008-pricing-awareness-market-data-generated.sh
-+./scripts/start-state-009-order-management-matcher-generated.sh
- ```
- 
- Status / stop:
- 
- ```bash
--./scripts/status-state-008-pricing-awareness-market-data-generated.sh
--./scripts/stop-state-008-pricing-awareness-market-data-generated.sh
-+./scripts/status-state-009-order-management-matcher-generated.sh
-+./scripts/stop-state-009-order-management-matcher-generated.sh
- ```
- 
- Smoke test:
- 
- ```bash
--./scripts/test-state-008-pricing-awareness-market-data.sh
-+./scripts/test-state-009-order-management-matcher.sh
- ```
- 
- ## Interactive URLs
- 
- - UI (ingress): `http://localhost:8080`
--- API explorer (ingress): `http://localhost:8080/api/docs`
--- Trade service Swagger: `http://localhost:18092/v3/api-docs`
--- Account service API sample: `http://localhost:18088/account/22214`
--- Position service health: `http://localhost:18090/health/alive`
-+- Grafana: `http://localhost:3001` (local login credentials)
-+- Prometheus: `http://localhost:9090`
-+- Order matcher health: `http://localhost:18110/health`
-+- Order matcher metrics: `http://localhost:18110/metrics`
-+
-+## GHCR Run Bundle
-+
-+- See: `./runtime/ghcr/009-order-management-matcher/README.md`
-+- Image map: `./runtime/ghcr/009-order-management-matcher/images.lock`
+
+
+
 diff --git a/ci/state-metadata.json b/ci/state-metadata.json
 index 46d12e9..6e929e5 100644
 --- a/ci/state-metadata.json
@@ -3996,85 +3928,8 @@ index 0000000..8408758
 +trade-processor=ghcr.io/finos/traderx-c2/trade-processor:latest
 +trade-service=ghcr.io/finos/traderx-c2/trade-service:latest
 +web-front-end-angular=ghcr.io/finos/traderx-c2/web-front-end-angular:latest
-diff --git a/scripts/README.runtime-harness.md b/scripts/README.runtime-harness.md
-index ee1cdf0..22e0cdb 100644
---- a/scripts/README.runtime-harness.md
-+++ b/scripts/README.runtime-harness.md
-@@ -1,6 +1,6 @@
- # Generated Runtime Harness
- 
--This directory is generated for state: 008-pricing-awareness-market-data
-+This directory is generated for state: 009-order-management-matcher
- 
- - Scripts in this folder are local-runtime wrappers for the generated codebase.
- - They are designed to run without invoking root pipeline generation.
-diff --git a/scripts/start-state-008-pricing-awareness-market-data-generated.sh b/scripts/start-state-009-order-management-matcher-generated.sh
-similarity index 69%
-rename from scripts/start-state-008-pricing-awareness-market-data-generated.sh
-rename to scripts/start-state-009-order-management-matcher-generated.sh
-index f092e90..06c3ff6 100755
---- a/scripts/start-state-008-pricing-awareness-market-data-generated.sh
-+++ b/scripts/start-state-009-order-management-matcher-generated.sh
-@@ -17,9 +17,10 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
-     exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
-   fi
- fi
--STATE_ID="008-pricing-awareness-market-data"
--COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-008}"
--COMPOSE_DIR="${GENERATED_ROOT}/code/target-generated/pricing-awareness-market-data"
-+STATE_ID="009-order-management-matcher"
-+COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-009}"
-+GRAFANA_PORT="${GRAFANA_PORT:-3001}"
-+COMPOSE_DIR="${GENERATED_ROOT}/code/target-generated/order-management-matcher"
- COMPOSE_FILE="${COMPOSE_DIR}/docker-compose.yml"
- DRY_RUN=0
- 
-@@ -65,12 +66,16 @@ fi
- 
- if (( DRY_RUN == 1 )); then
-   echo "[dry-run] docker compose -f ${COMPOSE_FILE} --project-name ${COMPOSE_PROJECT_NAME} up -d --build"
--  echo "[done] dry run complete for state 008"
-+  echo "[done] dry run complete for state 009"
-   exit 0
- fi
- 
- docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" up -d --build
- 
-+# Grafana only provisions file-based dashboards on startup.
-+# Restart once after compose up so updated generated dashboards are always loaded.
-+docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" restart grafana >/dev/null 2>&1 || true
-+
- wait_for_postgres() {
-   local attempts=90
-   local i
-@@ -106,11 +111,21 @@ wait_for_postgres || exit 1
- wait_for_http "reference-data" "http://localhost:18085/stocks" || exit 1
- wait_for_http "nats-monitor" "http://localhost:8222/varz" || exit 1
- wait_for_http "price-publisher" "http://localhost:18100/health" || exit 1
--wait_for_http "account-service" "http://localhost:18088/account/22214" || exit 1
--wait_for_http "position-service" "http://localhost:18090/health/alive" || exit 1
--wait_for_http "trade-service" "http://localhost:18092/v3/api-docs" || exit 1
-+wait_for_http "order-matcher-health" "http://localhost:18110/health" || exit 1
- wait_for_http "ingress" "http://localhost:8080/health" || exit 1
--wait_for_http "ingress-ui" "http://localhost:8080" || exit 1
-+wait_for_http "grafana" "http://localhost:${GRAFANA_PORT}/api/health" || exit 1
-+wait_for_http "prometheus" "http://localhost:9090/-/ready" || exit 1
-+wait_for_http "loki" "http://localhost:3100/ready" || exit 1
-+wait_for_http "tempo" "http://localhost:3200/ready" || exit 1
-+wait_for_http "otel-collector-health" "http://localhost:13133/" || exit 1
-+
-+bash "${REPO_ROOT}/scripts/star-grafana-traderx-dashboards.sh" \
-+  "http://localhost:${GRAFANA_PORT}" \
-+  "admin" \
-+  "admin" \
-+  "TraderX" \
-+  "traderx-obs-008-order-management" || true
- 
--echo "[done] state 008 pricing-awareness runtime started"
-+echo "[done] state 009 order-management runtime started"
- echo "[ui] http://localhost:8080"
--echo "[api-explorer] http://localhost:8080/api/docs"
-+echo "[grafana] http://localhost:${GRAFANA_PORT} (local login credentials)"
+
+
 diff --git a/scripts/status-state-008-pricing-awareness-market-data-generated.sh b/scripts/status-state-009-order-management-matcher-generated.sh
 similarity index 60%
 rename from scripts/status-state-008-pricing-awareness-market-data-generated.sh
