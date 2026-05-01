@@ -86,6 +86,17 @@ Version policy changes must be landed in generator sources, not as ad-hoc genera
 - State-specific version deltas belong in `specs/<state>/generation/patches/*.patch`.
 - Post-generation mutation scripts are not allowed in steady-state; generation must be reproducible directly from templates and state patchsets.
 
+## Messaging Subject Map Contract
+
+Messaging states must keep a canonical subject registry in-state.
+
+Policy:
+
+- States `006+` must include `system/messaging-subject-map.md`.
+- The file must be cumulative for that state (all active subject families).
+- Subject-map format requirements are defined in `docs/spec-kit/messaging-subject-map-standard.md`.
+- Generated-state contract validation must fail when order-matcher states omit required order subjects.
+
 ## External Dependency Pin Contract (Sail / State 014)
 
 State `014-fdc3-intent-interoperability` depends on a local Sail sidecar and must use explicit pin governance.

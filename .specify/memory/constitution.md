@@ -23,6 +23,7 @@ Legacy/hydrated paths are temporary bridge mechanisms only. They MUST be phased 
 - Baseline architecture spans Java/Spring, Node/Nest, Node/Socket.IO, .NET, H2, and Angular.
 - Pre-ingress browser calls in baseline mode require explicit CORS support across cross-origin service calls.
 - Generated outputs must remain runnable with local native toolchains (`gradle`, `npm`, `dotnet`) and existing TraderSpec scripts until root-level pipelines fully replace them.
+- Any state that introduces, changes, or removes message-bus subjects MUST maintain a cumulative `system/messaging-subject-map.md` using the standard schema in `docs/spec-kit/messaging-subject-map-standard.md`.
 
 ## Workflow and Quality Gates
 

@@ -40,6 +40,7 @@ bash pipeline/state-playbook.sh --state <state-id> --publish-neighborhood --push
    - `/docs/spec-kit/generated-state-ci`
 5. Follow patch-set implementation workflow:
    - `/docs/spec-kit/patchset-authoring`
+   - `/docs/spec-kit/messaging-subject-map-standard`
 6. Browse state-specific architecture and flow docs:
    - `/docs/spec-kit/state-docs`
 7. Browse developer-focused generated-code guides per state:

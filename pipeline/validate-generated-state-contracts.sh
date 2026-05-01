@@ -5,6 +5,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${ROOT}/generated}"
 TARGET_ROOT="${1:-${GENERATED_ROOT}/code/target-generated}"
 STATE_METADATA="${TARGET_ROOT}/ci/state-metadata.json"
+STATE_CATALOG="${ROOT}/catalog/state-catalog.json"
 
 if [[ ! -d "${TARGET_ROOT}" ]]; then
   echo "[fail] target root does not exist: ${TARGET_ROOT}"
@@ -21,7 +22,74 @@ else
   echo "[info] validating generated-state contracts for ${TARGET_ROOT}"
 fi
 
+state_num=""
+state_feature_pack=""
+state_map_file=""
+parent_state_id=""
+parent_feature_pack=""
+parent_map_file=""
+if [[ -n "${state_id}" ]] && [[ -f "${STATE_CATALOG}" ]] && command -v jq >/dev/null 2>&1; then
+  state_num="${state_id%%-*}"
+  state_feature_pack="$(jq -r --arg id "${state_id}" '.states[] | select(.id == $id) | .featurePack // ""' "${STATE_CATALOG}")"
+  parent_state_id="$(jq -r --arg id "${state_id}" '.states[] | select(.id == $id) | ((.previous // [])[0] // "")' "${STATE_CATALOG}")"
+  if [[ -n "${state_feature_pack}" ]]; then
+    state_map_file="${ROOT}/${state_feature_pack}/system/messaging-subject-map.md"
+  fi
+  if [[ -n "${parent_state_id}" ]]; then
+    parent_feature_pack="$(jq -r --arg id "${parent_state_id}" '.states[] | select(.id == $id) | .featurePack // ""' "${STATE_CATALOG}")"
+    if [[ -n "${parent_feature_pack}" ]]; then
+      parent_map_file="${ROOT}/${parent_feature_pack}/system/messaging-subject-map.md"
+    fi
+  fi
+fi
+
+if [[ -n "${state_num}" ]] && [[ "${state_num}" =~ ^[0-9]+$ ]] && (( 10#${state_num} >= 6 )); then
+  if [[ -z "${state_map_file}" || ! -f "${state_map_file}" ]]; then
+    echo "[fail] messaging subject-map contract violation: missing state map for ${state_id}"
+    echo "[hint] expected: ${state_map_file:-<unresolved-from-catalog>}"
+    exit 1
+  fi
+
+  if ! rg -q '^## Subject Families' "${state_map_file}"; then
+    echo "[fail] messaging subject-map contract violation: ${state_map_file} missing '## Subject Families'"
+    exit 1
+  fi
+
+  for required_field in 'delivery:' 'wildcard:' 'scope:' 'payload:'; do
+    if ! rg -q "${required_field}" "${state_map_file}"; then
+      echo "[fail] messaging subject-map contract violation: ${state_map_file} missing required field '${required_field}'"
+      echo "[hint] follow docs/spec-kit/messaging-subject-map-standard.md"
+      exit 1
+    fi
+  done
+
+  echo "[ok] messaging subject-map presence/shape validated for ${state_id}"
+fi
+
 if [[ -d "${TARGET_ROOT}/order-matcher" ]]; then
+  if [[ -z "${state_map_file}" || ! -f "${state_map_file}" ]]; then
+    echo "[fail] order-matcher contract violation: state messaging subject map missing"
+    echo "[hint] expected: ${state_map_file:-<unresolved-from-catalog>}"
+    exit 1
+  fi
+
+  if ! rg -Fq '/accounts/<accountId>/orders' "${state_map_file}"; then
+    echo "[fail] order-matcher contract violation: state messaging map missing '/accounts/<accountId>/orders'"
+    exit 1
+  fi
+  if ! rg -Fq '/orders' "${state_map_file}"; then
+    echo "[fail] order-matcher contract violation: state messaging map missing '/orders'"
+    exit 1
+  fi
+
+  if [[ -n "${parent_map_file}" && -f "${parent_map_file}" ]] && cmp -s "${state_map_file}" "${parent_map_file}"; then
+    if ! rg -Fq '/accounts/<accountId>/orders' "${parent_map_file}" || ! rg -Fq '/orders' "${parent_map_file}"; then
+      echo "[fail] order-matcher contract violation: messaging subject map is unmodified from parent without order subjects"
+      echo "[hint] update ${state_map_file} with order subject families"
+      exit 1
+    fi
+  fi
+
   schema_files=()
   postgres_schema_file="${TARGET_ROOT}/postgres-database-replacement/postgres-init/initialSchema.sql"
   h2_schema_file="${TARGET_ROOT}/database/initialSchema.sql"
