@@ -27,6 +27,7 @@ bash pipeline/generate-state.sh 001-baseline-uncontainerized-parity
 Start/stop/status:
 
 ```bash
+CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh --build-only
 CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh
 
 ./scripts/status-base-uncontainerized-generated.sh

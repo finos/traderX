@@ -33,6 +33,6 @@
 ## Success Criteria
 
 - SC-401: `bash pipeline/generate-state.sh 010-kubernetes-runtime` produces Kubernetes artifacts under `generated/code/target-generated/kubernetes-runtime`.
-- SC-402: `./scripts/start-state-010-kubernetes-runtime-generated.sh` creates/uses a Kind cluster, applies manifests, and reaches `http://localhost:8080/health`.
+- SC-402: `./scripts/start-state-010-kubernetes-runtime-generated.sh` creates/uses a Kind cluster, applies manifests, and reaches `http://localhost:8080/health`; reruns with `--skip-build` preserve startup behavior without rebuilding images.
 - SC-403: `./scripts/test-state-010-kubernetes-runtime.sh` passes core ingress/API/UI smoke checks and inherited observability checks (`/grafana`, `/prometheus`), including `order-matcher` ingress health and orders listing endpoints.
 - SC-404: Catalog metadata marks state `009` as implemented with canonical runtime commands.

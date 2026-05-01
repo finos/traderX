@@ -9,6 +9,7 @@ bash pipeline/generate-state.sh 003-agentic-harness-foundation
 ## 2) Start Runtime
 
 ```bash
+./scripts/start-state-003-agentic-harness-foundation-generated.sh --build-only
 ./scripts/start-state-003-agentic-harness-foundation-generated.sh
 ```
 

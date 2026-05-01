@@ -10,6 +10,7 @@ bash pipeline/generate-state.sh 004-containerized-compose-runtime
 
 ```bash
 ./scripts/start-state-004-containerized-generated.sh
+./scripts/start-state-004-containerized-generated.sh --skip-build
 ./scripts/status-state-004-containerized-generated.sh
 ./scripts/test-state-004-containerized.sh
 ./scripts/stop-state-004-containerized-generated.sh

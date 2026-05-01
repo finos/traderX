@@ -23,3 +23,8 @@ Implemented artifacts:
 - `scripts/start-state-002-edge-proxy-generated.sh`
 - `scripts/test-state-002-edge-proxy.sh`
 - `tests/smoke/README.md`
+
+Runtime lifecycle:
+
+- first run/build: `./scripts/start-state-002-edge-proxy-generated.sh --build-only`
+- start after build: `./scripts/start-state-002-edge-proxy-generated.sh`

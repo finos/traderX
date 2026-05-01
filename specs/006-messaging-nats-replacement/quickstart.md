@@ -10,6 +10,7 @@ bash pipeline/generate-state.sh 006-messaging-nats-replacement
 
 ```bash
 ./scripts/start-state-006-messaging-nats-replacement-generated.sh
+./scripts/start-state-006-messaging-nats-replacement-generated.sh --skip-build
 ./scripts/status-state-006-messaging-nats-replacement-generated.sh
 ./scripts/test-state-006-messaging-nats-replacement.sh
 ./scripts/stop-state-006-messaging-nats-replacement-generated.sh

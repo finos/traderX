@@ -16,6 +16,7 @@
 5. Generation hook implementation in `pipeline/generate-state-010-kubernetes-runtime.sh`.
 6. Runtime control scripts:
    - `scripts/start-state-010-kubernetes-runtime-generated.sh`
+   - `scripts/start-state-010-kubernetes-runtime-generated.sh --skip-build`
    - `scripts/stop-state-010-kubernetes-runtime-generated.sh`
    - `scripts/status-state-010-kubernetes-runtime-generated.sh`
 7. Smoke test implementation in `scripts/test-state-010-kubernetes-runtime.sh`.

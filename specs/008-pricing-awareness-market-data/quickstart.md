@@ -10,6 +10,7 @@ bash pipeline/generate-state.sh 008-pricing-awareness-market-data
 
 ```bash
 ./scripts/start-state-008-pricing-awareness-market-data-generated.sh
+./scripts/start-state-008-pricing-awareness-market-data-generated.sh --skip-build
 ./scripts/status-state-008-pricing-awareness-market-data-generated.sh
 ./scripts/test-state-008-pricing-awareness-market-data.sh
 ./scripts/stop-state-008-pricing-awareness-market-data-generated.sh

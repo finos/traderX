@@ -31,7 +31,7 @@
 
 ## Success Criteria
 
-- SC-01101: `./scripts/start-state-007-observability-lgtm-compose-generated.sh` brings up app + observability stack successfully.
+- SC-01101: `./scripts/start-state-007-observability-lgtm-compose-generated.sh` brings up app + observability stack successfully, and `--skip-build` supports restart without image rebuild.
 - SC-01102: `./scripts/test-state-007-observability-lgtm-compose.sh` validates observability endpoints, dashboard provisioning, and baseline functional flow.
 - SC-01104: Smoke checks fail if Grafana dashboards are present but Loki-backed panels have no ingesting log content.
 - SC-01103: `http://localhost:3001` shows provisioned TraderX dashboard(s) and connected datasources.

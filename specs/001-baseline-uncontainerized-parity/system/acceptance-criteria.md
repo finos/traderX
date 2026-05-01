@@ -17,3 +17,4 @@
 - `AC-015` Given account-user mappings are displayed, when people-service lookup succeeds, then full names are shown; on lookup failure, username fallback is shown.
 - `AC-016` Given viewport constraints vary, when trade and position blotters render, then layout wraps while preserving minimum pane width for readability.
 - `AC-017` Given canonical dependency targets are updated, when templates and generated-state branches are validated, then all targeted versions match across releases or the validation gates fail.
+- `AC-018` Given a generated state runtime harness, when lifecycle scripts are validated, then start/stop/readiness scripts exist and build/start separation is explicitly supported (`--build-only` or `--skip-build`).

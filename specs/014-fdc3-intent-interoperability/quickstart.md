@@ -5,12 +5,14 @@
 ```bash
 bash pipeline/generate-state.sh 012-platform-convergence-c3
 ./scripts/start-state-012-platform-convergence-c3-generated.sh --provider kind
+./scripts/start-state-012-platform-convergence-c3-generated.sh --provider kind --skip-build
 ```
 
 ## 2) Start Local Sail Sidecar (State 014 Target Behavior)
 
 ```bash
 ./scripts/start-state-014-fdc3-intent-interoperability-generated.sh --provider kind --with-sail
+./scripts/start-state-014-fdc3-intent-interoperability-generated.sh --provider kind --with-sail --skip-build
 ```
 
 Expected UI endpoints:

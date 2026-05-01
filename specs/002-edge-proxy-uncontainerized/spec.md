@@ -59,5 +59,6 @@
 ## Generation + Runtime Entry Points
 
 - generation: `bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized`
-- runtime: `./scripts/start-state-002-edge-proxy-generated.sh`
+- runtime (first run/build): `./scripts/start-state-002-edge-proxy-generated.sh --build-only`
+- runtime (start after build): `./scripts/start-state-002-edge-proxy-generated.sh`
 - smoke test: `./scripts/test-state-002-edge-proxy.sh`

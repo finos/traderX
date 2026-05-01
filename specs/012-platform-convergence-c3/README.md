@@ -29,6 +29,7 @@ Core artifacts:
 Runtime entrypoints:
 
 - `./scripts/start-state-012-platform-convergence-c3-generated.sh`
+- `./scripts/start-state-012-platform-convergence-c3-generated.sh --skip-build`
 - `./scripts/status-state-012-platform-convergence-c3-generated.sh`
 - `./scripts/test-state-012-platform-convergence-c3.sh`
 - `./scripts/stop-state-012-platform-convergence-c3-generated.sh`

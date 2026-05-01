@@ -20,13 +20,15 @@ Generation now installs local runtime scripts into:
 ## Start Full Overlay Stack
 
 ```bash
+CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh --build-only
 CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh
 ```
 
 Optional if dependencies are already cached:
 
 ```bash
-TRADERSPEC_SKIP_NETWORK_CHECK=1 CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh
+TRADERSPEC_SKIP_NETWORK_CHECK=1 CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh --build-only
+CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh
 ```
 
 ## Dry Run
@@ -61,6 +63,7 @@ Generate and start:
 
 ```bash
 bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized
+./scripts/start-state-002-edge-proxy-generated.sh --build-only
 ./scripts/start-state-002-edge-proxy-generated.sh
 ```
 
@@ -83,6 +86,7 @@ Generate and start:
 ```bash
 bash pipeline/generate-state.sh 004-containerized-compose-runtime
 ./scripts/start-state-004-containerized-generated.sh
+./scripts/start-state-004-containerized-generated.sh --skip-build
 ```
 
 Ingress/UI endpoint: `http://localhost:8080`

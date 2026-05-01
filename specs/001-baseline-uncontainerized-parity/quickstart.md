@@ -18,6 +18,7 @@ bash pipeline/generate-web-front-end-angular-specfirst.sh
 
 ```bash
 ./scripts/stop-base-uncontainerized-generated.sh
+CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh --build-only
 CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh
 ```
 

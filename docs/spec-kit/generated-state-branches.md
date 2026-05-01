@@ -76,7 +76,8 @@ Default branch target for baseline:
 State `002-edge-proxy-uncontainerized` now uses:
 
 - generation: `bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized`
-- runtime: `./scripts/start-state-002-edge-proxy-generated.sh`
+- runtime (first run/build): `./scripts/start-state-002-edge-proxy-generated.sh --build-only`
+- runtime (start after build): `./scripts/start-state-002-edge-proxy-generated.sh`
 - publish branch: `code/generated-state-002-edge-proxy-uncontainerized`
 
 Publish branch snapshot:
@@ -88,7 +89,8 @@ bash pipeline/publish-generated-state-branch.sh 002-edge-proxy-uncontainerized -
 State `004-containerized-compose-runtime` now uses:
 
 - generation: `bash pipeline/generate-state.sh 004-containerized-compose-runtime`
-- runtime: `./scripts/start-state-004-containerized-generated.sh` (NGINX ingress on `http://localhost:8080`)
+- runtime (default build + start): `./scripts/start-state-004-containerized-generated.sh` (NGINX ingress on `http://localhost:8080`)
+- runtime (restart without image rebuild): `./scripts/start-state-004-containerized-generated.sh --skip-build`
 - publish branch: `code/generated-state-004-containerized-compose-runtime`
 
 Publish branch snapshot:

@@ -41,7 +41,7 @@ kill_listener_on_port() {
   done
 }
 
-while IFS=, read -r order process workdir start_cmd port health_hint; do
+while IFS=, read -r order process workdir start_cmd port health_hint build_cmd; do
   if [[ "${order}" == "order" ]]; then
     continue
   fi

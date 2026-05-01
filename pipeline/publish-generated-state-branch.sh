@@ -2277,6 +2277,7 @@ Prerequisites:
 Start:
 
 ```bash
+CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh --build-only
 CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh
 ```
 
@@ -2307,6 +2308,7 @@ Prerequisites:
 Start:
 
 ```bash
+CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-state-002-edge-proxy-generated.sh --build-only
 CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-state-002-edge-proxy-generated.sh
 ```
 
@@ -2338,6 +2340,7 @@ Prerequisites:
 Start:
 
 ```bash
+CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-state-003-agentic-harness-foundation-generated.sh --build-only
 CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-state-003-agentic-harness-foundation-generated.sh
 ```
 
@@ -2371,6 +2374,7 @@ Start:
 
 ```bash
 ./scripts/start-state-004-containerized-generated.sh
+./scripts/start-state-004-containerized-generated.sh --skip-build
 ```
 
 Endpoints:
@@ -2400,6 +2404,7 @@ Start:
 
 ```bash
 ./scripts/start-state-010-kubernetes-runtime-generated.sh
+./scripts/start-state-010-kubernetes-runtime-generated.sh --skip-build
 # optional:
 # ./scripts/start-state-010-kubernetes-runtime-generated.sh --provider minikube --minikube-profile traderx-state-010
 ```
@@ -2433,6 +2438,7 @@ Start baseline runtime (inherited from state 010):
 
 ```bash
 ./scripts/start-state-010-kubernetes-runtime-generated.sh
+./scripts/start-state-010-kubernetes-runtime-generated.sh --skip-build
 ```
 
 Inherited runtime endpoints:
@@ -2469,6 +2475,7 @@ Start baseline runtime (inherited from state 010):
 
 ```bash
 ./scripts/start-state-010-kubernetes-runtime-generated.sh
+./scripts/start-state-010-kubernetes-runtime-generated.sh --skip-build
 ```
 
 Inherited runtime endpoints:
@@ -2504,6 +2511,7 @@ Start convergence runtime:
 
 ```bash
 ./scripts/start-state-012-platform-convergence-c3-generated.sh
+./scripts/start-state-012-platform-convergence-c3-generated.sh --skip-build
 ```
 
 Inherited runtime endpoints:
@@ -2577,6 +2585,7 @@ Start:
 
 ```bash
 ./scripts/start-state-007-observability-lgtm-compose-generated.sh
+./scripts/start-state-007-observability-lgtm-compose-generated.sh --skip-build
 ```
 
 Endpoints:
@@ -2607,6 +2616,7 @@ Start:
 
 ```bash
 ./scripts/start-state-006-messaging-nats-replacement-generated.sh
+./scripts/start-state-006-messaging-nats-replacement-generated.sh --skip-build
 ```
 
 Endpoints:
@@ -2634,6 +2644,7 @@ Start:
 
 ```bash
 ./scripts/start-state-005-postgres-database-replacement-generated.sh
+./scripts/start-state-005-postgres-database-replacement-generated.sh --skip-build
 ```
 
 Endpoints:
@@ -2661,6 +2672,7 @@ Start:
 
 ```bash
 ./scripts/start-state-009-order-management-matcher-generated.sh
+./scripts/start-state-009-order-management-matcher-generated.sh --skip-build
 ```
 
 Endpoints:
@@ -2690,6 +2702,7 @@ Start:
 
 ```bash
 ./scripts/start-state-008-pricing-awareness-market-data-generated.sh
+./scripts/start-state-008-pricing-awareness-market-data-generated.sh --skip-build
 ```
 
 Endpoints:

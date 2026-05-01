@@ -32,3 +32,8 @@ Define container build/run packaging for the full TraderX baseline component set
 - `scripts/stop-state-004-containerized-generated.sh`
 - `scripts/status-state-004-containerized-generated.sh`
 - `scripts/test-state-004-containerized.sh`
+
+Runtime start modes:
+
+- default build + start: `./scripts/start-state-004-containerized-generated.sh`
+- restart without image rebuild: `./scripts/start-state-004-containerized-generated.sh --skip-build`

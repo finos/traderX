@@ -25,7 +25,7 @@ fi
 printf "%-24s %-10s %-8s %-12s\n" "process" "pid" "running" "port-open"
 printf "%-24s %-10s %-8s %-12s\n" "------------------------" "----------" "--------" "------------"
 
-while IFS=, read -r order process workdir start_cmd port health_hint; do
+while IFS=, read -r order process workdir start_cmd port health_hint build_cmd; do
   if [[ "${order}" == "order" ]]; then
     continue
   fi
