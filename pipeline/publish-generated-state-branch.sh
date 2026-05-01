@@ -133,14 +133,17 @@ echo "[info] generating state ${STATE_ID} (${STATE_TITLE})"
 case "${STATE_ID}" in
   001-baseline-uncontainerized-parity)
     bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+    "${ROOT}/scripts/start-base-uncontainerized-generated.sh" --build-only
     "${ROOT}/scripts/start-base-uncontainerized-generated.sh" --dry-run
     ;;
   002-edge-proxy-uncontainerized)
     bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+    "${ROOT}/scripts/start-state-002-edge-proxy-generated.sh" --build-only
     "${ROOT}/scripts/start-state-002-edge-proxy-generated.sh" --dry-run
     ;;
   003-agentic-harness-foundation)
     bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+    "${ROOT}/scripts/start-state-003-agentic-harness-foundation-generated.sh" --build-only
     "${ROOT}/scripts/start-state-003-agentic-harness-foundation-generated.sh" --dry-run
     ;;
   004-containerized-compose-runtime)
