@@ -2,7 +2,7 @@
 
 ## Scope
 
-State `013` focuses on platform/deployment concerns and keeps the application data model compatible with state `010`.
+State `013` focuses on platform/deployment concerns and keeps the application data model compatible with state `012`.
 
 ## Entity Impact
 

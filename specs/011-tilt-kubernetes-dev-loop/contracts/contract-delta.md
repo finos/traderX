@@ -15,4 +15,4 @@ Document any API/event/schema changes for this state.
 ## Compatibility Notes
 
 - OpenAPI and event contracts are unchanged from state `010-kubernetes-runtime`.
-- State `006` introduces local developer orchestration artifacts (Tilt) only.
+- State `011` introduces local developer orchestration artifacts (Tilt) only.

@@ -3,7 +3,7 @@
 Parent state: `011-tilt-kubernetes-dev-loop`  
 Dotted-line convergence parent: `009-order-management-matcher`
 
-State `011` keeps runtime topology from `010` and serves as the C3 convergence checkpoint.
+State `012` keeps runtime topology from `011` and serves as the C3 convergence checkpoint.
 
 ## Entrypoints
 
@@ -12,15 +12,15 @@ State `011` keeps runtime topology from `010` and serves as the C3 convergence c
 
 ## Components
 
-- Kubernetes runtime + Tilt tooling from state `010`.
-- Functional capability level equivalent to C2 (`008`) via lineage through `010`.
+- Kubernetes runtime + Tilt tooling from state `011`.
+- Functional capability level equivalent to C2 (`009`) via lineage through `011`.
 
 ## Networking
 
-- Service routes and path prefixes remain unchanged from `010`.
+- Service routes and path prefixes remain unchanged from `011`.
 - Dotted-line lineage does not change deploy/runtime wiring.
 
 ## Startup / Health Order
 
-- Startup and health checks remain as in `010`.
+- Startup and health checks remain as in `011`.
 - This state adds governance/lineage convergence semantics, not runtime topology changes.

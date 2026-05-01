@@ -15,7 +15,7 @@ Describe runtime topology and network/data flow changes introduced by this state
 
 ## Components
 
-- Inherits pricing runtime from `007` and observability baseline from `006`.
+- Inherits pricing runtime from `008` and observability baseline from `007`.
 - Adds order components:
   - `order-matcher` (Java/Spring Boot matching + persistence + metrics)
   - order-management API handlers integrated with backend flow
@@ -37,7 +37,7 @@ Describe runtime topology and network/data flow changes introduced by this state
 
 ## Startup / Health Order
 
-1. Start inherited state `007` runtime (app + LGTM).
+1. Start inherited state `008` runtime (app + LGTM).
 2. Start `order-matcher` and validate `/health` and `/metrics`.
 3. Ensure ingress routes order-management APIs and admin UI path.
 4. Verify Prometheus discovers order targets and required metric families.

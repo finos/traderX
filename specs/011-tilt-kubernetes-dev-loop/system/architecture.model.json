@@ -70,7 +70,7 @@
     }
   ],
   "notes": [
-    "State 011 is a sibling branch of state 013; both inherit from state 010.",
+    "State 011 is the publish-lineage parent of state 012; state 013 branches from state 012.",
     "Primary delta is developer workflow/tooling, not platform abstraction."
   ]
 }

@@ -2,7 +2,7 @@
 
 ## Objective
 
-Define the transition from state `003` to `004` by introducing Kubernetes runtime deployment.
+Define the transition from state `009` to `010` by introducing Kubernetes runtime deployment.
 
 ## Inputs Reviewed
 
@@ -14,6 +14,6 @@ Define the transition from state `003` to `004` by introducing Kubernetes runtim
 
 ## Key Decisions
 
-1. Keep state `003` behavior while changing orchestration to Kubernetes.
+1. Keep state `009` behavior while changing orchestration to Kubernetes.
 2. Support local developer cluster workflows with kind/minikube-compatible manifests.
 3. Keep ingress-based access patterns stable for UI and APIs.

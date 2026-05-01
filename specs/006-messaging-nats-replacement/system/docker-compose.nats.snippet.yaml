@@ -1,4 +1,4 @@
-# Compose snippet for state 008 (conceptual delta)
+# Compose snippet for state 006 (conceptual delta)
 services:
   nats-broker:
     image: nats:2.10-alpine

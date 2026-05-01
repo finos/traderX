@@ -1,8 +1,8 @@
 # Contract Delta: 010-kubernetes-runtime
 
-Parent state: `004-containerized-compose-runtime`
+Parent state: `009-order-management-matcher`
 
-State `004` introduces no API payload/schema deltas. Contract compatibility is preserved while runtime moves to Kubernetes.
+State `010` introduces no API payload/schema deltas. Contract compatibility is preserved while runtime moves to Kubernetes.
 
 ## OpenAPI Changes
 
@@ -11,12 +11,12 @@ State `004` introduces no API payload/schema deltas. Contract compatibility is p
 
 ## Event Contract Changes
 
-- Trade-feed websocket/event semantics are unchanged.
-- Trade processing publish/subscribe contract remains compatible with state `003`.
+- NATS/websocket event semantics are unchanged.
+- Trade processing publish/subscribe contract remains compatible with state `009`.
 
 ## Compatibility Notes
 
-- Client-side behavior is intentionally compatible with state `003`.
+- Client-side behavior is intentionally compatible with state `009`.
 - Operational migration changes:
   - Service discovery changes from Compose DNS to Kubernetes service DNS.
   - Runtime lifecycle changes from `docker compose up` to `kubectl apply` on generated manifests.

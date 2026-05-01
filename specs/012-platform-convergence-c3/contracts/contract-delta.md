@@ -1,6 +1,6 @@
 # Contract Delta: 012-platform-convergence-c3
 
-Parent state: `010-kubernetes-runtime`
+Parent state: `011-tilt-kubernetes-dev-loop`
 
 Document any API/event/schema changes for this state.
 
@@ -14,5 +14,5 @@ Document any API/event/schema changes for this state.
 
 ## Compatibility Notes
 
-- OpenAPI and event contracts are unchanged from state `010-kubernetes-runtime`.
-- State `006` introduces local developer orchestration artifacts (Tilt) only.
+- OpenAPI and event contracts are unchanged from state `011-tilt-kubernetes-dev-loop`.
+- State `011` introduces local developer orchestration artifacts (Tilt) only.

@@ -1,8 +1,8 @@
 # Architecture (State 013 Radius Platform on Kubernetes)
 
-State 013 preserves state 010 Kubernetes runtime while adding Radius application/resource abstractions.
+State 013 preserves state 012 C3 runtime while adding Radius application/resource abstractions.
 
-- Inherits architectural baseline from: `010-kubernetes-runtime`
+- Inherits architectural baseline from: `012-platform-convergence-c3`
 - Generated from: `system/architecture.model.json`
 - Canonical flows: `../001-baseline-uncontainerized-parity/system/end-to-end-flows.md`
 
@@ -34,12 +34,12 @@ flowchart LR
 | `developer` | actor | Developer | Operates platform/application definitions through Radius. |
 | `radius` | platform | Radius Control Plane | Application-centric platform abstraction layer. |
 | `appModel` | component | Radius App Model | Declarative app/resource definitions for TraderX. |
-| `cluster` | boundary | Kubernetes Cluster | Underlying runtime substrate inherited from state 010. |
+| `cluster` | boundary | Kubernetes Cluster | Underlying runtime substrate inherited from state 012. |
 | `edge` | gateway | NGINX Edge Proxy | Single browser/API entrypoint. |
-| `workloads` | service | TraderX Workloads | Core services remain functionally equivalent to state 010. |
+| `workloads` | service | TraderX Workloads | Core services remain functionally equivalent to state 012. |
 
 ## State Notes
 
-- State 013 is a sibling branch of state 011; both inherit from state 010.
+- State 013 is an optional child branch of state 012.
 - Primary delta is platform/deployment abstraction, not functional API behavior.
 

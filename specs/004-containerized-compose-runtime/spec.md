@@ -3,7 +3,7 @@
 **Feature Branch**: `004-containerized-compose-runtime`  
 **Created**: 2026-03-29  
 **Status**: Implemented  
-**Input**: Transition delta from `002-edge-proxy-uncontainerized`
+**Input**: Transition delta from `003-agentic-harness-foundation`
 
 ## User Stories
 

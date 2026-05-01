@@ -4,7 +4,7 @@ Parent state: `004-containerized-compose-runtime`
 
 ## Runtime / Operations
 
-- Runtime remains Docker Compose + NGINX ingress from state `003`.
+- Runtime remains Docker Compose + NGINX ingress from state `004`.
 - Database service switches to `postgres:16-alpine` with deterministic init SQL mounted at startup.
 - DB-dependent services use `depends_on` health sequencing against PostgreSQL readiness.
 

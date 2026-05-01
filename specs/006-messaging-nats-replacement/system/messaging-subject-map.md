@@ -1,4 +1,4 @@
-# Messaging Subject Map (State 008)
+# Messaging Subject Map (State 006)
 
 ## Purpose
 

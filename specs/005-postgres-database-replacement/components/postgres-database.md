@@ -2,7 +2,7 @@
 
 ## Role
 
-Persistent storage backend for account, position, and trade data in state `009`.
+Persistent storage backend for account, position, and trade data in state `005`.
 
 ## Responsibilities
 
@@ -17,5 +17,5 @@ Persistent storage backend for account, position, and trade data in state `009`.
 
 ## State Scope
 
-- replaces H2 runtime component from state `003`,
+- replaces H2 runtime component from state `004`,
 - preserves baseline data model semantics and seed data intent.

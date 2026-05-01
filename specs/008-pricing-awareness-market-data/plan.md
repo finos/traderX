@@ -2,7 +2,7 @@
 
 ## Scope
 
-- Transition from `006-messaging-nats-replacement` to `008-pricing-awareness-market-data`.
+- Transition from `007-observability-lgtm-compose` to `008-pricing-awareness-market-data`.
 - Add functional pricing enhancements while preserving runtime/messaging foundations from `007`.
 - Keep runtime model on Docker Compose + NGINX ingress.
 

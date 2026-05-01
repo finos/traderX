@@ -28,11 +28,11 @@
 - FR-01308: Order data is persisted in the shared database so active orders survive order-matcher service restarts.
 - FR-01309: On every matcher tick, in-the-money orders are auto-filled with this policy: remaining `< 1000` fills fully, otherwise fills half (rounded up).
 - FR-01310: Any order fill (auto-fill or force-fill) must submit a trade through trade-service so trade history and account positions are updated via the existing trade pipeline.
-- FR-01307: Existing pricing + trade + position flows from state `007` remain compatible unless explicitly changed in this pack.
+- FR-01307: Existing pricing + trade + position flows from state `008` remain compatible unless explicitly changed in this pack.
 
 ## Non-Functional Requirements
 
-- NFR-01301: Observability stack from `006` remains intact and now covers order-management components and endpoints.
+- NFR-01301: Observability stack from `007` remains intact and now covers order-management components and endpoints.
 - NFR-01302: Order matcher service exposes Prometheus metrics for order book depth and lifecycle transitions.
 - NFR-01303: A gauge metric reports open unfilled orders in near real time and is queryable in Grafana/Prometheus.
 - NFR-01304: Grafana includes order-management dashboards for open orders, fill/cancel rates, matcher latency, and error signals.

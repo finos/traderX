@@ -2,7 +2,7 @@
 
 Parent state: `009-order-management-matcher`
 
-State `009` intentionally introduces no business-functional deltas. This transition is runtime/topology-focused.
+State `010` intentionally introduces no business-functional deltas. This transition is runtime/topology-focused.
 
 ## Added
 

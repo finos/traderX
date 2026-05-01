@@ -6,7 +6,7 @@ Previous state: `007-observability-lgtm-compose`
 
 ## Motivation
 
-State `006` established observability on top of robust NATS messaging, but trade and position data are still quantity-only.  
+State `007` established observability on top of robust NATS messaging, but trade and position data are still quantity-only.  
 This pack adds execution pricing, position average cost basis, and streaming valuation/P&L so the trade workflow reflects realistic price-aware behavior.
 
 ## Scope In This State
@@ -18,7 +18,7 @@ This pack adds execution pricing, position average cost basis, and streaming val
 - Stamp trade execution price at submission (`trade-service`) and persist it (`trade-processor`).
 - Aggregate position average cost basis in persistence model on every trade.
 - Align supported symbol universe between `reference-data` and `price-publisher` via shared runtime config.
-- Normalize legacy `FB` symbol to `META` in state `007` reference-data responses.
+- Normalize legacy `FB` symbol to `META` in state `008` reference-data responses.
 - Expand default sample universe to include financial-services institutions used in demos:
   `MS`, `UBS`, `C`, `GS`, `DB`, `JPM`, `COF`, `DFS`, `FNMA`, `FIS`, `FNF`.
 - Extend Angular blotters with:

@@ -2,7 +2,7 @@
 
 ## Objective
 
-Define the transition from state `002` to `003` by moving the runtime to Docker Compose with NGINX ingress.
+Define the transition from state `003` to `004` by moving the runtime to Docker Compose with NGINX ingress.
 
 ## Inputs Reviewed
 

@@ -15,7 +15,7 @@ Add a practical local observability layer to the containerized baseline so devel
 
 ## Key Decisions
 
-1. Build observability on top of state `005` to keep messaging architecture stable while adding ops visibility.
+1. Build observability on top of state `006` to keep messaging architecture stable while adding ops visibility.
 2. Use LGTM stack components with OTel Collector and blackbox probes for broad coverage.
 3. Provision Grafana datasources and dashboards from source-controlled files.
 

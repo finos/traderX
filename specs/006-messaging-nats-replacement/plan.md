@@ -2,7 +2,7 @@
 
 ## Scope
 
-- Transition from `004-containerized-compose-runtime` to `006-messaging-nats-replacement`.
+- Transition from `005-postgres-database-replacement` to `006-messaging-nats-replacement`.
 - Replace messaging component and protocol while preserving baseline business behavior.
 - Keep runtime model on Docker Compose + NGINX ingress (no Kubernetes dependency in this state).
 
@@ -32,5 +32,5 @@
 
 - Architecture and migration intent are fully specified and reviewable.
 - Runtime wiring examples (compose + ingress) are explicit.
-- A clear path exists to implement generation/runtime scripts for state `007`.
+- A clear path exists to implement generation/runtime scripts for state `006`.
 - State is ready for implementation phase and subsequent publish to `code/generated-state-006-messaging-nats-replacement`.

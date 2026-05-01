@@ -9,11 +9,11 @@
 
 - As a developer, I want to run TraderX plus observability locally and inspect system behavior without changing app code paths.
 - As a maintainer, I want dashboards, logs, and probes provisioned automatically so every generated runtime has the same observability baseline.
-- As a platform engineer, I want this to remain a non-functional state with no API/contract drift from state `005`.
+- As a platform engineer, I want this to remain a non-functional state with no API/contract drift from state `006`.
 
 ## Functional Requirements
 
-- FR-01101: End-to-end functional behavior from state `005` (trade submit, processing, realtime updates, blotters) remains unchanged.
+- FR-01101: End-to-end functional behavior from state `006` (trade submit, processing, realtime updates, blotters) remains unchanged.
 - FR-01102: No new business API endpoints are introduced by this state.
 
 ## Non-Functional Requirements

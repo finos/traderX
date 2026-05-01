@@ -1,6 +1,6 @@
 # Contract Delta: 013-radius-kubernetes-platform
 
-Parent state: `010-kubernetes-runtime`
+Parent state: `012-platform-convergence-c3`
 
 Document any API/event/schema changes for this state.
 
@@ -14,5 +14,5 @@ Document any API/event/schema changes for this state.
 
 ## Compatibility Notes
 
-- OpenAPI and event contracts are unchanged from state `010-kubernetes-runtime`.
-- State `005` introduces platform deployment abstractions (Radius artifacts) only.
+- OpenAPI and event contracts are unchanged from state `012-platform-convergence-c3`.
+- State `013` introduces platform deployment abstractions (Radius artifacts) only.

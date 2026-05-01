@@ -17,7 +17,7 @@ State `010` preserves parent-state functional behavior while moving runtime orch
   - `edge-proxy` deployment (NGINX)
   - `edge-proxy` service (`NodePort`)
   - `edge-proxy-config` ConfigMap generated from `system/nginx-edge.conf`
-- Core services and supporting components are inherited from state `008` and rendered as Kubernetes Deployments/Services.
+- Core services and supporting components are inherited from state `009` and rendered as Kubernetes Deployments/Services.
 - Observability stack inherited from state `009` is rendered as Kubernetes Deployments/Services:
   - `grafana`, `prometheus`, `loki`, `tempo`, `otel-collector`, `blackbox-exporter`
 

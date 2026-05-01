@@ -14,7 +14,7 @@ Document NFR changes introduced by this state.
   - OTel Collector (`:4317`, `:4318`, `:13133`)
   - Blackbox Exporter (`:9115`)
   - Promtail (internal)
-- Keep all existing TraderX service ports unchanged from state `005`.
+- Keep all existing TraderX service ports unchanged from state `006`.
 
 ## Security / Compliance
 

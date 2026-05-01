@@ -1,6 +1,6 @@
-# Functional Delta: 010 Pricing Awareness and Market Data
+# Functional Delta: 008 Pricing Awareness and Market Data
 
-Parent state: `006-messaging-nats-replacement`
+Parent state: `007-observability-lgtm-compose`
 
 ## Added
 

@@ -2,7 +2,7 @@
 
 ## Objective
 
-Define the transition from state `003` to `009` by replacing H2 with PostgreSQL while preserving behavior.
+Define the transition from state `004` to `005` by replacing H2 with PostgreSQL while preserving behavior.
 
 ## Inputs Reviewed
 

@@ -1,4 +1,4 @@
-# Runtime Topology: 007 Pricing Awareness and Market Data
+# Runtime Topology: 008 Pricing Awareness and Market Data
 
 Parent state: `007-observability-lgtm-compose`
 

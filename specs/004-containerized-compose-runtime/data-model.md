@@ -2,7 +2,7 @@
 
 ## Scope
 
-State `003` does not introduce business data model changes relative to state `002`.
+State `004` does not introduce business data model changes relative to state `003`.
 
 ## Entity Impact
 

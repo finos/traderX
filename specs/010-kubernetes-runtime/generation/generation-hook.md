@@ -5,18 +5,18 @@
 
 Patch-set model:
 
-- Parent state: `004-containerized-compose-runtime`
+- Parent state: `009-order-management-matcher`
 - Patch path: `specs/010-kubernetes-runtime/generation/patches/0001-state-overlay.patch`
 - Patch target root: `generated/code/target-generated`
 
 Hook flow:
 
-1. Generate parent state `003`.
+1. Generate parent state `009`.
 2. Apply state patch set (k8s manifests, kind config, build plan).
 3. Regenerate architecture docs.
 
 Patch refresh command:
 
 ```bash
-bash pipeline/create-state-patchset.sh 010-kubernetes-runtime 004-containerized-compose-runtime
+bash pipeline/create-state-patchset.sh 010-kubernetes-runtime 009-order-management-matcher
 ```

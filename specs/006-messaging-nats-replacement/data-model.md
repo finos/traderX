@@ -2,7 +2,7 @@
 
 ## Scope
 
-State `007` primarily changes messaging transport and topic strategy.
+State `006` primarily changes messaging transport and topic strategy.
 
 ## Entity Impact
 

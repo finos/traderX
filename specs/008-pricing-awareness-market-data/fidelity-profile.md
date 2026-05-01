@@ -41,5 +41,5 @@ This profile captures the required technical shape for state `008-pricing-awaren
 
 ## Closeness Policy
 
-State `007` is functional-close to `006` with additive pricing behavior.  
+State `008` is functional-close to `007` with additive pricing behavior.  
 Messaging/runtime architecture remains unchanged except for adding the pricing publisher component.

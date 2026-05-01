@@ -1,6 +1,6 @@
 # Quickstart: PostgreSQL Database Replacement
 
-## 1) Generate State 010
+## 1) Generate State 005
 
 ```bash
 bash pipeline/generate-state.sh 005-postgres-database-replacement

@@ -2,7 +2,7 @@
 
 ## Scope
 
-- Transition from `010-kubernetes-runtime` to `013-radius-kubernetes-platform`.
+- Transition from `012-platform-convergence-c3` to `013-radius-kubernetes-platform`.
 - Track focus: `devex`.
 - Define requirement deltas and generation/test hooks.
 

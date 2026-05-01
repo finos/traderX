@@ -2,7 +2,7 @@
 
 Parent state: `004-containerized-compose-runtime`
 
-State `009` preserves the compose + ingress topology from state `003` and replaces only the database runtime implementation.
+State `005` preserves the compose + ingress topology from state `004` and replaces only the database runtime implementation.
 
 ## Entrypoints
 
@@ -13,21 +13,21 @@ State `009` preserves the compose + ingress topology from state `003` and replac
 ## Components
 
 - `database` -> PostgreSQL container (`postgres:16-alpine`)
-- `reference-data` -> unchanged from state `003`
-- `trade-feed` -> unchanged from state `003`
-- `people-service` -> unchanged from state `003`
+- `reference-data` -> unchanged from state `004`
+- `trade-feed` -> unchanged from state `004`
+- `people-service` -> unchanged from state `004`
 - `account-service` -> datasource updated for PostgreSQL
 - `position-service` -> datasource updated for PostgreSQL
 - `trade-processor` -> datasource + JPA dialect updated for PostgreSQL
-- `trade-service` -> unchanged from state `003`
-- `web-front-end-angular` -> unchanged from state `003`
-- `ingress` -> unchanged from state `003` (database route retained for topology compatibility but no H2 console)
+- `trade-service` -> unchanged from state `004`
+- `web-front-end-angular` -> unchanged from state `004`
+- `ingress` -> unchanged from state `004` (database route retained for topology compatibility but no H2 console)
 
 ## Networking
 
 - Container-to-container DB connectivity uses `database:5432`.
 - Host-to-container DB diagnostics use `localhost:18083`.
-- Service cross-calls and ingress path routing are unchanged from state `003`.
+- Service cross-calls and ingress path routing are unchanged from state `004`.
 
 ## Startup / Health Order
 

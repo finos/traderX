@@ -1,8 +1,8 @@
 {
   "title": "Architecture (State 013 Radius Platform on Kubernetes)",
   "stateId": "013-radius-kubernetes-platform",
-  "description": "State 013 preserves state 010 Kubernetes runtime while adding Radius application/resource abstractions.",
-  "inheritsFrom": "010-kubernetes-runtime",
+  "description": "State 013 preserves state 012 C3 runtime while adding Radius application/resource abstractions.",
+  "inheritsFrom": "012-platform-convergence-c3",
   "flowDoc": "../001-baseline-uncontainerized-parity/system/end-to-end-flows.md",
   "entrypoints": [
     {
@@ -34,7 +34,7 @@
       "id": "cluster",
       "label": "Kubernetes Cluster",
       "kind": "boundary",
-      "description": "Underlying runtime substrate inherited from state 010."
+      "description": "Underlying runtime substrate inherited from state 012."
     },
     {
       "id": "edge",
@@ -46,7 +46,7 @@
       "id": "workloads",
       "label": "TraderX Workloads",
       "kind": "service",
-      "description": "Core services remain functionally equivalent to state 010."
+      "description": "Core services remain functionally equivalent to state 012."
     }
   ],
   "edges": [
@@ -77,7 +77,7 @@
     }
   ],
   "notes": [
-    "State 013 is a sibling branch of state 011; both inherit from state 010.",
+    "State 013 is an optional child branch of state 012.",
     "Primary delta is platform/deployment abstraction, not functional API behavior."
   ]
 }

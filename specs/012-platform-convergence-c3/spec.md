@@ -13,12 +13,12 @@
 
 ## Functional Requirements
 
-- FR-01101: Functional behavior remains compatible with C2 (`009-order-management-matcher`) as carried through state `010`.
+- FR-01101: Functional behavior remains compatible with C2 (`009-order-management-matcher`) as carried through state `011`.
 - FR-01102: No new external API contracts are introduced solely by this convergence checkpoint.
 
 ## Non-Functional Requirements
 
-- NFR-01101: State `011` is marked as convergence level `C3` in `catalog/state-catalog.json`.
+- NFR-01101: State `012` is marked as convergence level `C3` in `catalog/state-catalog.json`.
 - NFR-01102: Publish lineage remains single-parent (`previous=["011-tilt-kubernetes-dev-loop"]`).
 - NFR-01103: Dotted-line lineage (`dottedParents=["009-order-management-matcher"]`) is documentation metadata only.
 - NFR-01104: Convergence rationale is recorded and maintained in `system/convergence-rationale.md`.

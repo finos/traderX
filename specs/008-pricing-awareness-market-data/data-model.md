@@ -2,7 +2,7 @@
 
 ## Scope
 
-State `010` extends functional behavior with pricing-aware fields and valuation calculations.
+State `008` extends functional behavior with pricing-aware fields and valuation calculations.
 
 ## Entity Impact
 

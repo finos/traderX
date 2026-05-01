@@ -2,7 +2,7 @@
 
 ## Scope
 
-- Transition from `004-containerized-compose-runtime` to `010-kubernetes-runtime`.
+- Transition from `009-order-management-matcher` to `010-kubernetes-runtime`.
 - Track focus: `devex`.
 - Keep baseline functional behavior stable while changing runtime to Kubernetes.
 - Generate deterministic Kind + Kubernetes assets from explicit state specs.

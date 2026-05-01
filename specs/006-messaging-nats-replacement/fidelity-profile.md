@@ -1,10 +1,10 @@
-# State 008 Fidelity Profile
+# State 006 Fidelity Profile
 
 This profile captures the required technical shape for state `006-messaging-nats-replacement`.
 
-## Runtime Stack Deltas From State 004
+## Runtime Stack Deltas From State 005
 
-| Concern | State 004 | State 008 |
+| Concern | State 005 | State 006 |
 | --- | --- | --- |
 | Messaging backbone | `trade-feed` (Socket.IO service) | `nats-broker` (NATS container) |
 | Backend pub/sub protocol | Socket.IO semantics | NATS subjects |
@@ -23,7 +23,7 @@ This profile captures the required technical shape for state `006-messaging-nats
 
 ## Closeness Policy
 
-State `007` is intentionally not source-close to the old trade-feed implementation; it is architecture-close to state `003` except for the messaging layer replacement.
+State `006` is intentionally not source-close to the old trade-feed implementation; it is architecture-close to state `005` except for the messaging layer replacement.
 
 Changes expected:
 

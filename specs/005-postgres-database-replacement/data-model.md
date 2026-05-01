@@ -2,7 +2,7 @@
 
 ## Scope
 
-State `009` keeps the same business entities as prior states and changes database engine/runtime from H2 to PostgreSQL.
+State `005` keeps the same business entities as prior states and changes database engine/runtime from H2 to PostgreSQL.
 
 ## Entity Impact
 

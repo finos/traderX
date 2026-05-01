@@ -1,8 +1,8 @@
-# Architecture (State 008 Messaging NATS Replacement)
+# Architecture (State 006 Messaging NATS Replacement)
 
-State 008 replaces Socket.IO trade-feed messaging with NATS while preserving state 004 containerized runtime and ingress entry model.
+State 006 replaces Socket.IO trade-feed messaging with NATS while preserving state 005 containerized runtime and ingress entry model.
 
-- Inherits architectural baseline from: `004-containerized-compose-runtime`
+- Inherits architectural baseline from: `005-postgres-database-replacement`
 - Generated from: `system/architecture.model.json`
 - Canonical flows: `../001-baseline-uncontainerized-parity/system/end-to-end-flows.md`
 
@@ -63,7 +63,7 @@ flowchart LR
 
 ## State Notes
 
-- State 008 is an architecture-track branch from state 004.
+- State 006 is an architecture-track branch from state 005.
 - Messaging transport changes to NATS; business behavior remains baseline-compatible.
 - JetStream durability is intentionally deferred to a future state.
 

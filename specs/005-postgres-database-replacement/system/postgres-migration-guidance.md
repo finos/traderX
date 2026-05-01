@@ -1,4 +1,4 @@
-# PostgreSQL Migration Guidance (State 010)
+# PostgreSQL Migration Guidance (State 005)
 
 Parent state: `004-containerized-compose-runtime`
 
@@ -8,7 +8,7 @@ Migrate only the runtime database engine from H2 to PostgreSQL while preserving 
 
 ## Migration Steps
 
-1. Generate parent state `003` artifacts.
+1. Generate parent state `004` artifacts.
 2. Replace compose database service with PostgreSQL container + init SQL mount.
 3. Update datasource properties and drivers for DB-dependent services:
    - `account-service`

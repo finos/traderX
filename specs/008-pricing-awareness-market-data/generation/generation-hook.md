@@ -11,7 +11,7 @@ Patch-set model:
 
 Hook flow:
 
-1. Generate parent state `006`.
+1. Generate parent state `007`.
 2. Apply state patch set (pricing component + trade/position/web deltas).
 3. Regenerate architecture docs.
 

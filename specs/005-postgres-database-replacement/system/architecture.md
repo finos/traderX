@@ -1,6 +1,6 @@
-# Architecture (State 010 PostgreSQL Database Replacement)
+# Architecture (State 005 PostgreSQL Database Replacement)
 
-State 010 replaces H2 database runtime with PostgreSQL while preserving state 004 containerized ingress topology and baseline flows.
+State 005 replaces H2 database runtime with PostgreSQL while preserving state 004 containerized ingress topology and baseline flows.
 
 - Inherits architectural baseline from: `004-containerized-compose-runtime`
 - Generated from: `system/architecture.model.json`
@@ -62,7 +62,7 @@ flowchart LR
 
 ## State Notes
 
-- State 010 is an architecture-track branch from state 004.
+- State 005 is an architecture-track branch from state 004.
 - Only database engine/runtime is replaced; functional API and messaging contracts remain stable.
 - H2 web console is removed from runtime expectations in this state.
 

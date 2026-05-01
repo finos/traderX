@@ -1,6 +1,6 @@
-# Runtime Topology: 007 Messaging NATS Replacement
+# Runtime Topology: 006 Messaging NATS Replacement
 
-Parent state: `004-containerized-compose-runtime`
+Parent state: `005-postgres-database-replacement`
 
 ## Entrypoints
 

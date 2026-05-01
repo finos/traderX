@@ -9,7 +9,7 @@ This pack defines the next state after `008-pricing-awareness-market-data`.
 Primary intent:
 
 - add order management and matcher behavior as a functional track extension,
-- preserve inherited pricing + observability capabilities from state `007`,
+- preserve inherited pricing capabilities from state `008` and observability capabilities from state `007`,
 - extend observability with order-specific metrics and dashboards,
 - capture explicit requirement deltas for this transition,
 - define architecture/runtime topology updates for this state,

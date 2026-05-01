@@ -2,7 +2,7 @@
 
 Parent state: `010-kubernetes-runtime`
 
-State `010` reuses runtime topology from state `009` and adds Tilt as local orchestration/dev loop.
+State `011` reuses runtime topology from state `010` and adds Tilt as local orchestration/dev loop.
 
 ## Entrypoints
 
@@ -11,13 +11,13 @@ State `010` reuses runtime topology from state `009` and adds Tilt as local orch
 
 ## Components
 
-- Core TraderX services remain the same as state `009`.
+- Core TraderX services remain the same as state `010`.
 - Added dev tooling layer:
   - Tiltfile and related local Kubernetes orchestration metadata.
 
 ## Networking
 
-- Service routes and path prefixes remain unchanged from state `009`.
+- Service routes and path prefixes remain unchanged from state `010`.
 - Local developer workflow can use Tilt-managed forwards/log streaming without changing service contracts.
 
 ## Startup / Health Order

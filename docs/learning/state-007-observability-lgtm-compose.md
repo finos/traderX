@@ -29,7 +29,7 @@ title: "State 007: Observability with LGTM on Compose"
 
 ## Plain-English Code Delta
 
-- **Flow Impact:** No functional flow changes from state `005`.
+- **Flow Impact:** No functional flow changes from state `006`.
 - **Flow Impact:** Existing flow IDs remain valid; this state only adds runtime observability capabilities.
 
 ## Run This State

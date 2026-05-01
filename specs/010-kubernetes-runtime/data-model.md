@@ -2,7 +2,7 @@
 
 ## Scope
 
-State `004` does not alter TraderX business entities; it changes runtime orchestration and deployment descriptors.
+State `010` does not alter TraderX business entities; it changes runtime orchestration and deployment descriptors.
 
 ## Entity Impact
 

@@ -2,7 +2,7 @@
 
 ## Role
 
-Define container build/run packaging for the full TraderX baseline component set in state `003`.
+Define container build/run packaging for the full TraderX baseline component set in state `004`.
 
 ## Scope
 

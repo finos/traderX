@@ -1,6 +1,6 @@
-# Contract Delta: 010 Pricing Awareness and Market Data
+# Contract Delta: 008 Pricing Awareness and Market Data
 
-Parent state: `006-messaging-nats-replacement`
+Parent state: `007-observability-lgtm-compose`
 
 ## REST/OpenAPI Changes
 
@@ -36,5 +36,5 @@ Expected pricing payload:
 
 ## Reference Data Symbol Contract Notes
 
-- State `010` normalizes legacy `FB` symbol to `META` for returned stock identifiers.
+- State `008` normalizes legacy `FB` symbol to `META` for returned stock identifiers.
 - Runtime supported symbol set is expected to match between `reference-data` and `price-publisher`.

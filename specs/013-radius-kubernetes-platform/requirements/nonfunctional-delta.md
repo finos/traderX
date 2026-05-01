@@ -1,8 +1,8 @@
 # Non-Functional Delta: 013-radius-kubernetes-platform
 
-Parent state: `010-kubernetes-runtime`
+Parent state: `012-platform-convergence-c3`
 
-This state layers Radius platform abstractions on top of the Kubernetes baseline from state `010`.
+This state layers Radius platform abstractions on top of the Kubernetes baseline from state `012`.
 
 ## Runtime / Operations
 
@@ -23,7 +23,7 @@ This state layers Radius platform abstractions on top of the Kubernetes baseline
 ## Reliability / Observability
 
 - Radius resource model adds stronger platform-level dependency visibility.
-- Application health/readiness behavior remains inherited from Kubernetes state `010`.
-- Inherited observability entrypoints from state `010` remain required:
+- Application health/readiness behavior remains inherited from Kubernetes state `012`.
+- Inherited observability entrypoints from state `012` remain required:
   - `http://localhost:8080/grafana`
   - `http://localhost:8080/prometheus`

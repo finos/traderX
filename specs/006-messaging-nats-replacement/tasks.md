@@ -7,5 +7,5 @@
 - [x] T705 Add state component and conformance docs for NATS replacement.
 - [x] T706 Implement generation hook: `pipeline/generate-state-006-messaging-nats-replacement.sh`.
 - [x] T707 Implement smoke tests: `scripts/test-state-006-messaging-nats-replacement.sh`.
-- [x] T708 Implement runtime scripts for state `007` and validate end-to-end behavior.
+- [x] T708 Implement runtime scripts for state `006` and validate end-to-end behavior.
 - [ ] T709 Publish generated snapshot branch and tag after validation.

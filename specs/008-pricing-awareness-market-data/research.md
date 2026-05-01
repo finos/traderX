@@ -2,7 +2,7 @@
 
 ## Objective
 
-Define the transition from state `006` to `007` by introducing pricing-aware trading and position valuation behavior.
+Define the transition from state `007` to `008` by introducing pricing-aware trading and position valuation behavior.
 
 ## Inputs Reviewed
 

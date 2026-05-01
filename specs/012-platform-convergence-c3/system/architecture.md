@@ -34,7 +34,7 @@ flowchart LR
 | `tilt` | tooling | Tilt Dev Loop | Build/deploy/log orchestration for local k8s. |
 | `cluster` | boundary | Kubernetes Cluster | Underlying runtime substrate inherited from state 011. |
 | `edge` | gateway | NGINX Edge Proxy | Single browser/API entrypoint. |
-| `workloads` | service | TraderX Workloads | Core services remain functionally equivalent to state 009 (C2), carried through state 011. |
+| `workloads` | service | TraderX Workloads | Core services remain functionally equivalent to state 009 (C2), carried through state 012 lineage. |
 
 ## State Notes
 

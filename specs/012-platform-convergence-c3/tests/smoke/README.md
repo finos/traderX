@@ -19,4 +19,4 @@ Implemented smoke command:
 State-specific checks include:
 
 - Tilt artifact pack generation (`Tiltfile`, `tilt-settings.json`).
-- Tiltfile mappings for all runtime images in the inherited state `010` build plan.
+- Tiltfile mappings for all runtime images in the inherited state `011` build plan.

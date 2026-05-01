@@ -18,5 +18,5 @@ Document only functional behavior changes introduced by this state.
 
 ## Flow Impact
 
-- No functional flow changes from state `005`.
+- No functional flow changes from state `006`.
 - Existing flow IDs remain valid; this state only adds runtime observability capabilities.

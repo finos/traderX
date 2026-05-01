@@ -2,7 +2,7 @@
 
 ## Objective
 
-Define a functional state on top of `007` that introduces order matching while preserving pricing behavior and extending observability to order operations.
+Define a functional state on top of `008` that introduces order matching while preserving pricing behavior and extending observability to order operations.
 
 ## Inputs Reviewed
 
@@ -11,11 +11,11 @@ Define a functional state on top of `007` that introduces order matching while p
 - `tasks.md`
 - `system/architecture.md`
 - `system/runtime-topology.md`
-- state `006` observability stack and dashboard/probe patterns
+- state `007` observability stack and dashboard/probe patterns
 
 ## Key Decisions
 
-1. Build on top of state `007` while preserving observability patterns from state `006`.
+1. Build on top of state `008` while preserving observability patterns from state `007`.
 2. Treat order management as additive to existing trade workflows; do not break current trade ticket path.
 3. Expose order metrics directly from matcher/API path for precise visibility instead of blackbox-only inference.
 4. Standardize required metric names in contract artifacts so generated implementations remain comparable.

@@ -1,6 +1,6 @@
-# Contract Delta: 007 Messaging NATS Replacement
+# Contract Delta: 006 Messaging NATS Replacement
 
-Parent state: `004-containerized-compose-runtime`
+Parent state: `005-postgres-database-replacement`
 
 ## OpenAPI Changes
 

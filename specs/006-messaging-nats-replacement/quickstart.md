@@ -1,6 +1,6 @@
 # Quickstart: Messaging Layer Replacement with NATS
 
-## 1) Generate State 008
+## 1) Generate State 006
 
 ```bash
 bash pipeline/generate-state.sh 006-messaging-nats-replacement

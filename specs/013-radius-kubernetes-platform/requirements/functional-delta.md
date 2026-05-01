@@ -1,6 +1,6 @@
 # Functional Delta: 013-radius-kubernetes-platform
 
-Parent state: `010-kubernetes-runtime`
+Parent state: `012-platform-convergence-c3`
 
 Document only functional behavior changes introduced by this state.
 
@@ -18,4 +18,4 @@ Document only functional behavior changes introduced by this state.
 
 ## Flow Impact
 
-- No functional flow deltas. Baseline flows `F1`-`F6` and startup behavior remain compatible with state `010`.
+- No functional flow deltas. Baseline flows `F1`-`F6` and startup behavior remain compatible with state `012`.

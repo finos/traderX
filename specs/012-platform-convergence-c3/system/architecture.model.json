@@ -44,7 +44,7 @@
       "id": "workloads",
       "label": "TraderX Workloads",
       "kind": "service",
-      "description": "Core services remain functionally equivalent to state 009 (C2), carried through state 011."
+      "description": "Core services remain functionally equivalent to state 009 (C2), carried through state 012 lineage."
     }
   ],
   "edges": [

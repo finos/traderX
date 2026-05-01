@@ -11,7 +11,7 @@ Patch-set model:
 
 Hook flow:
 
-1. Generate parent state `003`.
+1. Generate parent state `004`.
 2. Apply state patch set (PostgreSQL runtime + service DB config deltas).
 3. Regenerate architecture docs.
 

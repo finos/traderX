@@ -2,7 +2,7 @@
 
 ## Scope
 
-- Transition from `010-kubernetes-runtime` to `012-platform-convergence-c3`.
+- Transition from `011-tilt-kubernetes-dev-loop` to `012-platform-convergence-c3`.
 - Track focus: `devex`.
 - Define requirement deltas and generation/test hooks.
 

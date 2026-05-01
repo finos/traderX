@@ -37,6 +37,6 @@ Prometheus metric names required for order observability:
 
 ## Compatibility Notes
 
-- Existing trade/position/pricing APIs remain backward-compatible from `012`.
+- Existing trade/position/pricing APIs remain backward-compatible from `008`.
 - Order-management APIs are additive.
 - UI market-trade flow remains available; order-ticket + account-orders tab is introduced as an additional path.

@@ -1,10 +1,10 @@
-# State 010 Fidelity Profile
+# State 005 Fidelity Profile
 
 This profile captures the required technical shape for state `005-postgres-database-replacement`.
 
 ## Runtime Stack Deltas From State 004
 
-| Concern | State 004 | State 010 |
+| Concern | State 004 | State 005 |
 | --- | --- | --- |
 | Database runtime | H2 service process + H2 web console | PostgreSQL container (`postgres:16-alpine`) |
 | DB access protocol | H2 TCP / PG emulation | Native PostgreSQL (5432) |
@@ -21,7 +21,7 @@ This profile captures the required technical shape for state `005-postgres-datab
 
 ## Closeness Policy
 
-State `009` is architecture-close to `003` with one intentional replacement axis: database runtime engine.
+State `005` is architecture-close to `004` with one intentional replacement axis: database runtime engine.
 
 Changes expected:
 

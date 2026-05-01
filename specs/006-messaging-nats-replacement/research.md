@@ -2,7 +2,7 @@
 
 ## Objective
 
-Define the transition from state `003` to `007` by replacing Socket.IO trade-feed messaging with NATS-based messaging.
+Define the transition from state `005` to `006` by replacing Socket.IO trade-feed messaging with NATS-based messaging.
 
 ## Inputs Reviewed
 

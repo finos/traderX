@@ -15,7 +15,7 @@ Describe runtime topology and network/data flow changes introduced by this state
 
 ## Components
 
-- Baseline application components from state `005`.
+- Baseline application components from state `006`.
 - Added observability components:
   - `grafana`
   - `prometheus`
@@ -35,7 +35,7 @@ Describe runtime topology and network/data flow changes introduced by this state
 
 ## Startup / Health Order
 
-1. Start baseline app services from state `005`.
+1. Start baseline app services from state `006`.
 2. Start observability backends (`loki`, `tempo`, `otel-collector`, `blackbox-exporter`, `prometheus`).
 3. Start Grafana after datasources are reachable.
 4. Validate baseline app flow and observability endpoint health.

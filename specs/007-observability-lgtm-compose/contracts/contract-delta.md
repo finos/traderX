@@ -14,4 +14,4 @@ Document any API/event/schema changes for this state.
 
 ## Compatibility Notes
 
-- Fully backward-compatible with state `005` APIs and event topics.
+- Fully backward-compatible with state `006` APIs and event topics.

@@ -5,18 +5,18 @@
 
 Patch-set model:
 
-- Parent state: `010-kubernetes-runtime`
+- Parent state: `012-platform-convergence-c3`
 - Patch path: `specs/013-radius-kubernetes-platform/generation/patches/0001-state-overlay.patch`
 - Patch target root: `generated/code/target-generated`
 
 Hook flow:
 
-1. Generate parent state `010`.
+1. Generate parent state `012`.
 2. Apply state patch set (Radius app model + workspace artifacts).
 3. Regenerate architecture docs.
 
 Patch refresh command:
 
 ```bash
-bash pipeline/create-state-patchset.sh 013-radius-kubernetes-platform 010-kubernetes-runtime
+bash pipeline/create-state-patchset.sh 013-radius-kubernetes-platform 012-platform-convergence-c3
 ```
