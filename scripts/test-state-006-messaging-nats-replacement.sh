@@ -26,6 +26,47 @@ if [[ ! -f "${COMPOSE_FILE}" ]]; then
   exit 1
 fi
 
+check_message_bus_health_endpoint() {
+  local endpoint="$1"
+  local component="$2"
+  local payload
+  payload="$(curl -fsS "${endpoint}")"
+
+  local top_status
+  top_status="$(echo "${payload}" | jq -r '.status // empty')"
+  if [[ "${top_status}" != "ok" ]]; then
+    echo "[error] ${component} system health is not ok at ${endpoint}: status=${top_status}"
+    echo "${payload}"
+    exit 1
+  fi
+
+  local statuses
+  statuses="$(echo "${payload}" | jq -r '
+    if (.messageBus | type) != "object" then
+      empty
+    elif ((.messageBus | has("publisher")) or (.messageBus | has("subscriber"))) then
+      [.messageBus.publisher.status?, .messageBus.subscriber.status?] | .[]
+    else
+      .messageBus.status // empty
+    end
+  ')"
+
+  if [[ -z "${statuses//[$'\n\r\t ']}" ]]; then
+    echo "[error] ${component} system health missing messageBus status payload at ${endpoint}"
+    echo "${payload}"
+    exit 1
+  fi
+
+  while IFS= read -r bus_status; do
+    [[ -z "${bus_status}" ]] && continue
+    if [[ "${bus_status}" != "connected" ]]; then
+      echo "[error] ${component} message bus is not connected at ${endpoint}: status=${bus_status}"
+      echo "${payload}"
+      exit 1
+    fi
+  done <<< "${statuses}"
+}
+
 echo "[check] compose services running"
 docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" ps
 running_services="$(docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" ps --status running --services | wc -l | tr -d ' ')"
@@ -93,6 +134,27 @@ printf '%s\n' "${ws_headers}" | grep -Eq "HTTP/1\\.[01] 101|HTTP/2 101" || {
   echo "[error] expected websocket 101 response from ${INGRESS_URL}/nats-ws"
   exit 1
 }
+
+echo "[check] message bus connectivity pre-check via /system/health"
+check_message_bus_health_endpoint "${INGRESS_URL}/trade-service/system/health" "trade-service"
+check_message_bus_health_endpoint "${INGRESS_URL}/trade-processor/system/health" "trade-processor"
+
+echo "[check] service metrics expose traderx_messagebus_connected gauge"
+trade_service_metrics="$(curl -fsS "${INGRESS_URL}/trade-service/actuator/prometheus")"
+printf '%s\n' "${trade_service_metrics}" | rg -q 'traderx_messagebus_connected\{component="trade-service",role="publisher"\} 1(\.0+)?$' || {
+  echo "[error] missing connected trade-service message bus gauge"
+  exit 1
+}
+trade_processor_metrics="$(curl -fsS "${INGRESS_URL}/trade-processor/actuator/prometheus")"
+printf '%s\n' "${trade_processor_metrics}" | rg -q 'traderx_messagebus_connected\{component="trade-processor",role="publisher"\} 1(\.0+)?$' || {
+  echo "[error] missing connected trade-processor publisher gauge"
+  exit 1
+}
+printf '%s\n' "${trade_processor_metrics}" | rg -q 'traderx_messagebus_connected\{component="trade-processor",role="subscriber"\} 1(\.0+)?$' || {
+  echo "[error] missing connected trade-processor subscriber gauge"
+  exit 1
+}
+echo "[info] message bus gauges exported by trade-service and trade-processor"
 
 echo "[check] account realtime stream over NATS websocket after trade submit"
 INGRESS_URL="${INGRESS_URL}" TRADE_SERVICE_URL="http://localhost:18092" ACCOUNT_ID="22214" node <<'NODE'

@@ -1,7 +1,5 @@
-import { Component, HostListener, OnDestroy, OnInit, Output, EventEmitter } from '@angular/core';
-import { Observable, Subscription } from 'rxjs';
-import { StateUiMetadata } from '../model/state-ui-metadata.model';
-import { StateMetadataService } from '../service/state-metadata.service';
+import { Component, OnDestroy, OnInit, Output, EventEmitter } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { MessageBusConnectionState, TradeFeedService } from '../service/trade-feed.service';
 
 @Component({
@@ -11,22 +9,15 @@ import { MessageBusConnectionState, TradeFeedService } from '../service/trade-fe
   styleUrls: ['./header.component.scss']
 })
 export class HeaderComponent implements OnInit, OnDestroy {
-
   @Output() switchTheme = new EventEmitter();
-  metadata$: Observable<StateUiMetadata>;
-  isSystemMenuOpen = false;
+
   messageBusState: MessageBusConnectionState = 'connecting';
   messageBusStateLabel = 'Connecting';
   messageBusNotice = '';
   private connectionStateSubscription?: Subscription;
   private reconnectNoticeTimer: ReturnType<typeof setTimeout> | null = null;
 
-  constructor(
-    private readonly stateMetadataService: StateMetadataService,
-    private readonly tradeFeedService: TradeFeedService
-  ) {
-    this.metadata$ = this.stateMetadataService.metadata$;
-  }
+  constructor(private readonly tradeFeedService: TradeFeedService) {}
 
   ngOnInit(): void {
     let previousState: MessageBusConnectionState = this.messageBusState;
@@ -44,33 +35,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.connectionStateSubscription?.unsubscribe();
     this.clearNoticeTimer();
-  }
-
-  appTitle(stateId: string): string {
-    return `TraderX Sample Trading App (${stateId})`;
-  }
-
-  toggleSystemMenu(event: MouseEvent): void {
-    event.stopPropagation();
-    this.isSystemMenuOpen = !this.isSystemMenuOpen;
-  }
-
-  closeSystemMenu(): void {
-    this.isSystemMenuOpen = false;
-  }
-
-  onSystemMenuInteraction(event: MouseEvent): void {
-    event.stopPropagation();
-  }
-
-  @HostListener('document:click')
-  onDocumentClick(): void {
-    this.closeSystemMenu();
-  }
-
-  @HostListener('document:keydown.escape')
-  onEscapeKey(): void {
-    this.closeSystemMenu();
   }
 
   private toStateLabel(state: MessageBusConnectionState): string {

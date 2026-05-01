@@ -17,6 +17,13 @@
         <li class="nav-item">
             <a class="nav-link" routerLink="/admin" routerLinkActive="active">Admin</a>
         </li>
+        <li class="nav-item header-bus-slot">
+            <div class="header-bus-pill" [ngClass]="'header-bus-' + messageBusState">
+                <span class="header-bus-dot" aria-hidden="true"></span>
+                <span class="header-bus-label">Message Bus {{ messageBusStateLabel }}</span>
+            </div>
+            <small class="header-bus-notice" *ngIf="messageBusNotice">{{ messageBusNotice }}</small>
+        </li>
         <li class="nav-item header-fdc3-slot">
             <div class="header-fdc3-pill" [ngClass]="fdc3AgentAvailable ? 'header-fdc3-pill-connected' : 'header-fdc3-pill-disconnected'">
                 <span class="header-fdc3-label">FDC3</span>

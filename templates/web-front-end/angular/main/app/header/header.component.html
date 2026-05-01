@@ -5,6 +5,11 @@
             <div class="app-title" *ngIf="metadata$ | async as metadata">{{ appTitle(metadata.stateId) }}</div>
         </div>
         <div class="system-group" *ngIf="metadata$ | async as metadata">
+            <div class="message-bus-indicator" [ngClass]="'message-bus-' + messageBusState" title="Message bus connection status">
+                <span class="message-bus-dot" aria-hidden="true"></span>
+                <span class="message-bus-label">Message Bus {{ messageBusStateLabel }}</span>
+            </div>
+            <small class="message-bus-notice" *ngIf="messageBusNotice">{{ messageBusNotice }}</small>
             <div class="dropdown system-dropdown" [class.show]="isSystemMenuOpen" (click)="onSystemMenuInteraction($event)">
                 <button
                     class="btn btn-sm btn-outline-light dropdown-toggle system-dropdown-toggle"

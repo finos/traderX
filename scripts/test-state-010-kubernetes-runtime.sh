@@ -63,6 +63,47 @@ case "${K8S_PROVIDER}" in
     ;;
 esac
 
+check_message_bus_health_endpoint() {
+  local endpoint="$1"
+  local component="$2"
+  local payload
+  payload="$(curl -fsS "${endpoint}")"
+
+  local top_status
+  top_status="$(echo "${payload}" | jq -r '.status // empty')"
+  if [[ "${top_status}" != "ok" ]]; then
+    echo "[error] ${component} system health is not ok at ${endpoint}: status=${top_status}"
+    echo "${payload}"
+    exit 1
+  fi
+
+  local statuses
+  statuses="$(echo "${payload}" | jq -r '
+    if (.messageBus | type) != "object" then
+      empty
+    elif ((.messageBus | has("publisher")) or (.messageBus | has("subscriber"))) then
+      [.messageBus.publisher.status?, .messageBus.subscriber.status?] | .[]
+    else
+      .messageBus.status // empty
+    end
+  ')"
+
+  if [[ -z "${statuses//[$'\n\r\t ']}" ]]; then
+    echo "[error] ${component} system health missing messageBus status payload at ${endpoint}"
+    echo "${payload}"
+    exit 1
+  fi
+
+  while IFS= read -r bus_status; do
+    [[ -z "${bus_status}" ]] && continue
+    if [[ "${bus_status}" != "connected" ]]; then
+      echo "[error] ${component} message bus is not connected at ${endpoint}: status=${bus_status}"
+      echo "${payload}"
+      exit 1
+    fi
+  done <<< "${statuses}"
+}
+
 echo "[check] kubernetes deployments available in namespace ${NAMESPACE}"
 kubectl get deployments -n "${NAMESPACE}"
 kubectl wait --for=condition=Available deployment --all -n "${NAMESPACE}" --timeout=180s >/dev/null
@@ -105,6 +146,11 @@ echo "${order_listing_body}" | jq -e 'if type=="array" then . else empty end' >/
   exit 1
 }
 
+echo "[check] message bus connectivity pre-check via /system/health"
+check_message_bus_health_endpoint "${INGRESS_URL}/trade-service/system/health" "trade-service"
+check_message_bus_health_endpoint "${INGRESS_URL}/trade-processor/system/health" "trade-processor"
+check_message_bus_health_endpoint "${INGRESS_URL}/order-matcher/system/health" "order-matcher"
+
 echo "[check] observability ingress routes"
 grafana_headers="$(curl -sS -i "${INGRESS_URL}/grafana/api/health" | sed -n '1,25p')"
 echo "${grafana_headers}"
@@ -127,6 +173,18 @@ printf '%s\n' "${prometheus_query_payload}" | grep -q '"status":"success"' || {
   exit 1
 }
 
+echo "[check] prometheus message bus connectivity metric is queryable"
+message_bus_sample_count="$(
+  curl -sS --get "${INGRESS_URL}/prometheus/api/v1/query" \
+    --data-urlencode 'query=traderx_messagebus_connected' \
+  | jq -r '.data.result | length'
+)"
+if [[ "${message_bus_sample_count}" -lt 4 ]]; then
+  echo "[error] expected 4+ traderx_messagebus_connected samples in Prometheus, got ${message_bus_sample_count}"
+  exit 1
+fi
+echo "[info] traderx_messagebus_connected series=${message_bus_sample_count}"
+
 echo "[check] grafana datasource can query prometheus"
 now_ms=$(($(date +%s) * 1000))
 from_ms=$((now_ms - 10 * 60 * 1000))
@@ -144,6 +202,27 @@ if [[ "${grafana_query_frames}" -lt 1 ]]; then
   echo "[error] expected at least one Grafana data frame from Prometheus query"
   exit 1
 fi
+
+echo "[check] grafana includes message bus connectivity panel query"
+dashboard_uids_raw="$(
+  curl -sS -u admin:admin "${INGRESS_URL}/grafana/api/search?query=TraderX&type=dash-db" \
+  | jq -r '.[].uid'
+)"
+message_bus_dashboard_uid=""
+while IFS= read -r dashboard_uid; do
+  [[ -z "${dashboard_uid}" ]] && continue
+  dashboard_payload="$(curl -sS -u admin:admin "${INGRESS_URL}/grafana/api/dashboards/uid/${dashboard_uid}")"
+  dashboard_text="$(echo "${dashboard_payload}" | jq -r '.dashboard | tostring')"
+  if printf '%s\n' "${dashboard_text}" | rg -q 'traderx_messagebus_connected'; then
+    message_bus_dashboard_uid="${dashboard_uid}"
+    break
+  fi
+done <<< "${dashboard_uids_raw}"
+if [[ -z "${message_bus_dashboard_uid}" ]]; then
+  echo "[error] no provisioned TraderX dashboard includes traderx_messagebus_connected query"
+  exit 1
+fi
+echo "[info] grafana dashboard uid=${message_bus_dashboard_uid} includes message bus connectivity query"
 
 echo "[check] spring actuator scrape targets healthy in prometheus"
 actuator_up_count=0

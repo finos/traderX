@@ -7,6 +7,7 @@ TARGET_ROOT="${GENERATED_ROOT}/code/target-generated"
 STATE_DIR="${TARGET_ROOT}/order-management-matcher"
 TARGET_FRONTEND_DIR="${TARGET_ROOT}/web-front-end/angular"
 FRONTEND_OVERRIDE_SOURCE_DIR="${ROOT}/specs/009-order-management-matcher/generation/frontend-overrides/web-front-end/angular"
+RUNTIME_OVERRIDES_DIR="${ROOT}/specs/009-order-management-matcher/generation/runtime-overrides"
 COMPOSE_FILE="${STATE_DIR}/docker-compose.yml"
 PROMETHEUS_FILE="${STATE_DIR}/observability/prometheus/prometheus.yml"
 DASHBOARD_DIR="${STATE_DIR}/observability/grafana/dashboards"
@@ -287,6 +288,9 @@ for service in account-service position-service trade-processor trade-service or
   ensure_gradle_prometheus_support "${TARGET_ROOT}/${service}/build.gradle"
 done
 install_order_matcher_nats_publisher
+if [[ -d "${RUNTIME_OVERRIDES_DIR}" ]]; then
+  rsync -a "${RUNTIME_OVERRIDES_DIR}/" "${TARGET_ROOT}/"
+fi
 
 perl -0pi -e 's/^name:\s*traderx-state-\d+/name: traderx-state-009/m' "${COMPOSE_FILE}"
 

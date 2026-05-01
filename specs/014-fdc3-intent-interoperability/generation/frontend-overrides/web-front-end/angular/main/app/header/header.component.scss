@@ -36,6 +36,66 @@
     background: var(--bs-body-bg, #ffffff);
 }
 
+.header-bus-slot {
+    margin-left: auto;
+    padding: 0.2rem 0;
+}
+
+.header-bus-pill {
+    align-items: center;
+    border: 1px solid rgba(15, 23, 42, 0.18);
+    border-radius: 999px;
+    display: inline-flex;
+    font-size: 0.76rem;
+    font-weight: 600;
+    gap: 0.35rem;
+    line-height: 1;
+    max-width: min(56vw, 420px);
+    padding: 0.2rem 0.66rem;
+}
+
+.header-bus-dot {
+    border-radius: 999px;
+    display: inline-block;
+    height: 0.55rem;
+    width: 0.55rem;
+}
+
+.header-bus-connected {
+    background: rgba(25, 135, 84, 0.14);
+    color: #14532d;
+}
+
+.header-bus-connected .header-bus-dot {
+    background: #22c55e;
+}
+
+.header-bus-connecting {
+    background: rgba(251, 191, 36, 0.2);
+    color: #7c2d12;
+}
+
+.header-bus-connecting .header-bus-dot {
+    background: #f59e0b;
+}
+
+.header-bus-disconnected {
+    background: rgba(239, 68, 68, 0.2);
+    color: #7f1d1d;
+}
+
+.header-bus-disconnected .header-bus-dot {
+    background: #ef4444;
+}
+
+.header-bus-notice {
+    color: #14532d;
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-top: 0.15rem;
+}
+
 .header-fdc3-slot {
     margin-left: auto;
     padding: 0.2rem 0;
@@ -95,12 +155,24 @@
     }
 
     .header-fdc3-slot {
+        margin-left: auto;
+        width: 100%;
+        padding-bottom: 0.35rem;
+    }
+
+    .header-bus-slot {
         margin-left: 0;
         width: 100%;
         padding-bottom: 0.35rem;
     }
 
     .header-fdc3-pill {
+        display: flex;
+        max-width: none;
+        width: 100%;
+    }
+
+    .header-bus-pill {
         display: flex;
         max-width: none;
         width: 100%;
