@@ -21,6 +21,32 @@ fi
 
 mkdir -p "${CONTRACTS_ROOT}"
 
+install_nats_ws_vendor() {
+  if ! command -v npm >/dev/null 2>&1; then
+    echo "[fail] npm is required to vendor nats.ws for API explorer inspector"
+    exit 1
+  fi
+
+  local explorer_abs
+  explorer_abs="$(cd "${EXPLORER_ROOT}" && pwd)"
+  local vendor_dir="${explorer_abs}/vendor/nats.ws"
+  mkdir -p "${vendor_dir}"
+
+  local tmp_dir
+  tmp_dir="$(mktemp -d)"
+  (
+    cd "${tmp_dir}"
+    local pkg
+    pkg="$(npm pack nats.ws --silent)"
+    tar -xzf "${pkg}"
+    cp package/esm/nats.js "${vendor_dir}/nats.js"
+    cp package/LICENSE "${vendor_dir}/LICENSE-nats.ws"
+  )
+  rm -rf "${tmp_dir}"
+}
+
+install_nats_ws_vendor
+
 cat > "${EXPLORER_ROOT}/index.html" <<'EOF'
 <!doctype html>
 <html lang="en">
@@ -31,15 +57,39 @@ cat > "${EXPLORER_ROOT}/index.html" <<'EOF'
     <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
     <style>
       body { margin: 0; background: #f5f7fb; }
-      .topbar { background: #0b233a; color: #fff; padding: 12px 16px; font-family: sans-serif; }
+      .topbar {
+        background: #0b233a;
+        color: #fff;
+        padding: 12px 16px;
+        font-family: sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
       .topbar small { opacity: 0.8; }
+      .topbar a {
+        color: #9fd0ff;
+        font-size: 14px;
+        text-decoration: none;
+        border: 1px solid rgba(159, 208, 255, 0.55);
+        border-radius: 6px;
+        padding: 6px 10px;
+        white-space: nowrap;
+      }
+      .topbar a:hover {
+        background: rgba(159, 208, 255, 0.18);
+      }
       #swagger-ui { max-width: 1300px; margin: 0 auto; }
     </style>
   </head>
   <body>
     <div class="topbar">
-      TraderX API Docs
-      <small id="state-label"></small>
+      <div>
+        TraderX API Docs
+        <small id="state-label"></small>
+      </div>
+      <a id="pubsub-inspector-link" href="#">Open Pub/Sub Inspector</a>
     </div>
     <div id="swagger-ui"></div>
     <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
@@ -127,6 +177,11 @@ cat > "${EXPLORER_ROOT}/index.html" <<'EOF'
         if (stateLabel && catalog.stateId) {
           stateLabel.textContent = ` - state ${catalog.stateId}`;
         }
+        const inspectorLink = document.getElementById('pubsub-inspector-link');
+        if (inspectorLink) {
+          const base = window.location.href.replace(/\/[^/]*$/, '/');
+          inspectorLink.href = `${base}pubsub-inspector.html`;
+        }
 
         window.ui = SwaggerUIBundle({
           dom_id: '#swagger-ui',
@@ -179,6 +234,523 @@ cat > "${EXPLORER_ROOT}/index.html" <<'EOF'
         if (!el) return;
         el.innerHTML = `<pre style="padding:16px;color:#a40000;">${String(error)}</pre>`;
       });
+    </script>
+  </body>
+</html>
+EOF
+
+cat > "${EXPLORER_ROOT}/pubsub-inspector.html" <<'EOF'
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TraderX Pub/Sub Inspector</title>
+    <style>
+      :root {
+        --bg: #f3f7fb;
+        --panel: #ffffff;
+        --ink: #0f172a;
+        --muted: #667085;
+        --border: #d8e2ee;
+        --accent: #0a66c2;
+        --ok: #1a7f37;
+        --bad: #b42318;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      }
+      .top {
+        background: #0b233a;
+        color: #fff;
+        padding: 12px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+      .top a {
+        color: #9fd0ff;
+        text-decoration: none;
+      }
+      .shell {
+        padding: 12px;
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        gap: 12px;
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+      }
+      .panel h2 {
+        margin: 0;
+        font-size: 15px;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border);
+      }
+      .panel .body {
+        padding: 10px 12px;
+      }
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+      }
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #9ca3af;
+      }
+      .dot.connected { background: var(--ok); }
+      .dot.error { background: var(--bad); }
+      .muted { color: var(--muted); font-size: 12px; }
+      .topics {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .topic-btn {
+        border: 1px solid var(--border);
+        background: #f8fbff;
+        color: #0f172a;
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .topic-btn.wildcard {
+        border-color: #7c92ff;
+        background: #eef1ff;
+      }
+      .topic-btn.parameterized {
+        border-color: #f59e0b;
+        background: #fff8e6;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-top: 8px;
+      }
+      input[type="text"] {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px 10px;
+        font-size: 13px;
+      }
+      button {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #fff;
+        padding: 7px 10px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .btn-primary {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: #fff;
+      }
+      ul.subs {
+        margin: 8px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+      .subs li {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 7px 9px;
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .subs code {
+        font-size: 12px;
+      }
+      .feed-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border);
+        flex-wrap: wrap;
+      }
+      #feed {
+        max-height: calc(100vh - 210px);
+        overflow: auto;
+        padding: 10px 12px;
+      }
+      details.msg {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #fff;
+        padding: 6px 8px;
+        margin-bottom: 8px;
+      }
+      details.msg summary {
+        cursor: pointer;
+        font-size: 12px;
+        line-height: 1.4;
+      }
+      .topic {
+        font-weight: 700;
+      }
+      .pattern {
+        color: #64748b;
+      }
+      pre {
+        margin: 8px 0 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-size: 12px;
+      }
+      @media (max-width: 980px) {
+        .shell { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top">
+      <div>
+        TraderX Pub/Sub Inspector
+      </div>
+      <div>
+        <a href="./">Back to API Docs</a>
+      </div>
+    </div>
+    <div class="shell">
+      <div class="panel">
+        <h2>Connection & Subscriptions</h2>
+        <div class="body">
+          <div class="status"><span id="status-dot" class="dot"></span><span id="status-text">connecting</span></div>
+          <div id="status-note" class="muted" style="margin-top:4px;"></div>
+
+          <div style="margin-top:12px; font-size:12px; font-weight:600;">Generated subjects</div>
+          <div id="topic-buttons" class="topics" style="margin-top:6px;"></div>
+
+          <div class="row">
+            <input id="topic-input" type="text" placeholder="Topic (for example pricing.* or /orders)" />
+            <button id="subscribe-btn" class="btn-primary">Subscribe</button>
+          </div>
+
+          <div style="margin-top:12px; font-size:12px; font-weight:600;">Active subscriptions</div>
+          <ul id="subscriptions" class="subs"></ul>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="feed-toolbar">
+          <input id="filter-input" type="text" placeholder="Filter by delivery topic or payload text" style="flex:1;min-width:220px;" />
+          <button id="pause-btn">Pause</button>
+          <button id="clear-btn">Clear</button>
+          <div class="muted">
+            Session messages: <strong id="total-count">0</strong> |
+            Buffer: <strong id="buffer-count">0</strong>/2000
+          </div>
+        </div>
+        <div id="feed"></div>
+      </div>
+    </div>
+    <script type="module">
+      import { connect, StringCodec } from './vendor/nats.ws/nats.js';
+
+      const MAX_BUFFER = 2000;
+      const statusDot = document.getElementById('status-dot');
+      const statusText = document.getElementById('status-text');
+      const statusNote = document.getElementById('status-note');
+      const topicButtons = document.getElementById('topic-buttons');
+      const topicInput = document.getElementById('topic-input');
+      const subscribeBtn = document.getElementById('subscribe-btn');
+      const subscriptionsList = document.getElementById('subscriptions');
+      const filterInput = document.getElementById('filter-input');
+      const pauseBtn = document.getElementById('pause-btn');
+      const clearBtn = document.getElementById('clear-btn');
+      const feed = document.getElementById('feed');
+      const totalCountEl = document.getElementById('total-count');
+      const bufferCountEl = document.getElementById('buffer-count');
+      const sc = StringCodec();
+
+      let nc = null;
+      let paused = false;
+      let feedDirtyWhilePaused = false;
+      let totalMessages = 0;
+      let reconnectAttempts = 0;
+      let nextMessageId = 1;
+      const messages = [];
+      const subscriptions = new Map();
+      const seedTopics = [];
+
+      function setStatus(state, text, note = '') {
+        statusText.textContent = text;
+        statusDot.className = `dot ${state}`;
+        statusNote.textContent = note;
+      }
+
+      function formatTime(date) {
+        const pad = (n, width = 2) => String(n).padStart(width, '0');
+        return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.${pad(date.getMilliseconds(), 3)}`;
+      }
+
+      function parseTopicEntry(raw) {
+        const base = String(raw || '').trim();
+        if (!base) {
+          return null;
+        }
+        const wildcard = base.includes('*') || base.includes('>');
+        const parameterized = /<[^>]+>/.test(base) || /{[^}]+}/.test(base);
+        return {
+          subject: base,
+          prefill: base.replace(/<([^>]+)>/g, '{$1}'),
+          wildcard,
+          parameterized,
+        };
+      }
+
+      function deriveNatsWsUrl() {
+        const natsUrl = new URL('../../nats-ws', window.location.href);
+        natsUrl.protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        return natsUrl.toString();
+      }
+
+      function renderCounts() {
+        totalCountEl.textContent = String(totalMessages);
+        bufferCountEl.textContent = String(messages.length);
+      }
+
+      function renderSubscriptions() {
+        subscriptionsList.innerHTML = '';
+        const entries = Array.from(subscriptions.values())
+          .sort((a, b) => a.pattern.localeCompare(b.pattern));
+        if (entries.length === 0) {
+          const li = document.createElement('li');
+          li.innerHTML = '<span class="muted">No active subscriptions</span>';
+          subscriptionsList.appendChild(li);
+          return;
+        }
+        for (const entry of entries) {
+          const li = document.createElement('li');
+          const left = document.createElement('div');
+          left.innerHTML = `<code>${entry.pattern}</code><div class="muted">messages: ${entry.count}</div>`;
+          const remove = document.createElement('button');
+          remove.textContent = '×';
+          remove.title = `Unsubscribe ${entry.pattern}`;
+          remove.onclick = () => unsubscribe(entry.pattern);
+          li.appendChild(left);
+          li.appendChild(remove);
+          subscriptionsList.appendChild(li);
+        }
+      }
+
+      function renderFeed() {
+        const filter = filterInput.value.trim().toLowerCase();
+        const rows = filter
+          ? messages.filter((msg) => msg.deliveryTopic.toLowerCase().includes(filter) || msg.payloadPreviewLower.includes(filter))
+          : messages;
+        feed.innerHTML = '';
+        for (const msg of rows.slice().reverse()) {
+          const details = document.createElement('details');
+          details.className = 'msg';
+          const summary = document.createElement('summary');
+          const patternPart = msg.subscriptionPattern !== msg.deliveryTopic
+            ? ` <span class="pattern">(matched by ${msg.subscriptionPattern})</span>`
+            : '';
+          summary.innerHTML = `<span class="topic">${msg.deliveryTopic}</span>${patternPart} <span class="muted">${msg.receivedAt}</span> <span class="muted">${msg.payloadPreview}</span>`;
+          const pre = document.createElement('pre');
+          pre.textContent = msg.payloadPretty;
+          details.appendChild(summary);
+          details.appendChild(pre);
+          feed.appendChild(details);
+        }
+      }
+
+      function pushMessage(subscriptionPattern, natsMsg) {
+        let decoded = '';
+        try {
+          decoded = sc.decode(natsMsg.data);
+        } catch (_error) {
+          decoded = '[binary payload]';
+        }
+        let payloadPretty = decoded;
+        try {
+          payloadPretty = JSON.stringify(JSON.parse(decoded), null, 2);
+        } catch (_error) {
+          payloadPretty = decoded;
+        }
+        const preview = decoded.length > 80 ? `${decoded.slice(0, 80)}...` : decoded;
+        messages.push({
+          id: nextMessageId++,
+          deliveryTopic: String(natsMsg.subject || subscriptionPattern),
+          subscriptionPattern,
+          receivedAt: formatTime(new Date()),
+          payloadPreview: preview,
+          payloadPreviewLower: `${String(natsMsg.subject || '')} ${decoded}`.toLowerCase(),
+          payloadPretty,
+        });
+        if (messages.length > MAX_BUFFER) {
+          messages.shift();
+        }
+        totalMessages += 1;
+        const entry = subscriptions.get(subscriptionPattern);
+        if (entry) {
+          entry.count += 1;
+        }
+        renderCounts();
+        renderSubscriptions();
+        if (paused) {
+          feedDirtyWhilePaused = true;
+          return;
+        }
+        renderFeed();
+      }
+
+      function unsubscribe(pattern) {
+        const entry = subscriptions.get(pattern);
+        if (!entry) {
+          return;
+        }
+        try {
+          entry.subscription.unsubscribe();
+        } catch (_error) {}
+        subscriptions.delete(pattern);
+        renderSubscriptions();
+      }
+
+      async function subscribe(pattern) {
+        const normalized = String(pattern || '').trim();
+        if (!normalized) {
+          return;
+        }
+        if (!nc) {
+          setStatus('error', 'disconnected', 'Cannot subscribe until connected');
+          return;
+        }
+        if (subscriptions.has(normalized)) {
+          return;
+        }
+        const subscription = nc.subscribe(normalized);
+        const entry = { pattern: normalized, subscription, count: 0 };
+        subscriptions.set(normalized, entry);
+        renderSubscriptions();
+        (async () => {
+          for await (const msg of subscription) {
+            pushMessage(normalized, msg);
+          }
+        })().catch((error) => {
+          setStatus('error', 'subscription error', String(error && error.message ? error.message : error));
+          subscriptions.delete(normalized);
+          renderSubscriptions();
+        });
+      }
+
+      function clearFeed() {
+        messages.length = 0;
+        for (const entry of subscriptions.values()) {
+          entry.count = 0;
+        }
+        renderCounts();
+        renderSubscriptions();
+        renderFeed();
+      }
+
+      function renderSeedButtons(subjects) {
+        topicButtons.innerHTML = '';
+        const unique = new Set();
+        for (const subject of subjects) {
+          const topic = parseTopicEntry(subject.pattern || subject.subject || subject);
+          if (!topic || unique.has(topic.subject)) {
+            continue;
+          }
+          unique.add(topic.subject);
+          seedTopics.push(topic);
+          const button = document.createElement('button');
+          button.className = `topic-btn${topic.wildcard ? ' wildcard' : ''}${topic.parameterized ? ' parameterized' : ''}`;
+          button.textContent = topic.subject;
+          if (topic.parameterized) {
+            button.title = 'Prefill pattern in topic input';
+            button.onclick = () => {
+              topicInput.value = topic.prefill;
+              topicInput.focus();
+            };
+          } else {
+            button.title = 'Subscribe';
+            button.onclick = () => subscribe(topic.subject);
+          }
+          topicButtons.appendChild(button);
+        }
+      }
+
+      async function loadCatalogSubjects() {
+        const response = await fetch('./catalog.json', { cache: 'no-cache' });
+        if (!response.ok) {
+          return [];
+        }
+        const catalog = await response.json();
+        return Array.isArray(catalog.messagingSubjects) ? catalog.messagingSubjects : [];
+      }
+
+      async function connectLoop() {
+        const wsUrl = deriveNatsWsUrl();
+        while (true) {
+          try {
+            setStatus('', 'connecting', wsUrl);
+            nc = await connect({
+              servers: wsUrl,
+              maxReconnectAttempts: 0,
+              noEcho: true,
+            });
+            reconnectAttempts = 0;
+            setStatus('connected', 'connected', wsUrl);
+            const toSubscribe = Array.from(subscriptions.keys());
+            subscriptions.clear();
+            renderSubscriptions();
+            for (const pattern of toSubscribe) {
+              await subscribe(pattern);
+            }
+            await nc.closed();
+            setStatus('error', 'disconnected', 'Connection closed');
+          } catch (error) {
+            const waitMs = Math.min(30000, 500 * (2 ** reconnectAttempts));
+            reconnectAttempts += 1;
+            setStatus('error', 'reconnecting', `${wsUrl} (retry in ${waitMs} ms)`);
+            await new Promise((resolve) => setTimeout(resolve, waitMs));
+          }
+        }
+      }
+
+      subscribeBtn.addEventListener('click', () => subscribe(topicInput.value));
+      topicInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          subscribe(topicInput.value);
+        }
+      });
+      filterInput.addEventListener('input', () => renderFeed());
+      pauseBtn.addEventListener('click', () => {
+        paused = !paused;
+        pauseBtn.textContent = paused ? 'Resume' : 'Pause';
+        if (!paused && feedDirtyWhilePaused) {
+          feedDirtyWhilePaused = false;
+          renderFeed();
+        }
+      });
+      clearBtn.addEventListener('click', clearFeed);
+
+      renderCounts();
+      renderSubscriptions();
+      loadCatalogSubjects()
+        .then((subjects) => renderSeedButtons(subjects))
+        .catch(() => renderSeedButtons([]));
+      connectLoop();
     </script>
   </body>
 </html>
@@ -256,6 +828,44 @@ const serviceDefs = Array.isArray(apiCatalog.services) && apiCatalog.services.le
   ? apiCatalog.services
   : defaults.services;
 
+const messageSubjectsPath = path.join(root, 'specs', stateId, 'system', 'messaging-subject-map.md');
+
+const parseMessagingSubjects = (markdown) => {
+  const lines = String(markdown || '').split(/\r?\n/);
+  const subjects = [];
+  let current = null;
+  for (const line of lines) {
+    const familyMatch = line.match(/^\s*-\s+`([^`]+)`\s*$/);
+    if (familyMatch) {
+      current = {
+        subject: familyMatch[1].trim(),
+        wildcard: false,
+        wildcardPattern: null,
+      };
+      subjects.push(current);
+      continue;
+    }
+    if (!current) {
+      continue;
+    }
+    const wildcardMatch = line.match(/^\s*-\s+wildcard:\s+`?yes`?(?:\s+\(`([^`]+)`\))?/i);
+    if (wildcardMatch) {
+      current.wildcard = true;
+      current.wildcardPattern = wildcardMatch[1] ? wildcardMatch[1].trim() : null;
+    }
+  }
+  return subjects.map((entry) => {
+    const pattern = entry.wildcardPattern || entry.subject;
+    return {
+      subject: entry.subject,
+      pattern,
+      wildcard: Boolean(entry.wildcard),
+      parameterized: /<[^>]+>/.test(entry.subject) || /{[^}]+}/.test(entry.subject),
+      prefillPattern: entry.subject.replace(/<([^>]+)>/g, '{$1}'),
+    };
+  });
+};
+
 const deriveRuntimeBasePath = (def) => {
   if (typeof def.runtimeBasePath === 'string' && def.runtimeBasePath.trim()) {
     const explicit = def.runtimeBasePath.trim();
@@ -315,6 +925,9 @@ const runtimeCatalog = {
   stateId,
   mountPath,
   services,
+  messagingSubjects: fs.existsSync(messageSubjectsPath)
+    ? parseMessagingSubjects(fs.readFileSync(messageSubjectsPath, 'utf8'))
+    : [],
 };
 
 fs.writeFileSync(path.join(explorerRoot, 'catalog.json'), JSON.stringify(runtimeCatalog, null, 2) + '\n');

@@ -45,6 +45,16 @@
 - FR-1018: State SHALL expose price snapshot REST retrieval for both single ticker and multi-ticker retrieval in one request (for example ticket bootstrap vs. grid bootstrap).
 - FR-1019: Ticket and blotter screens that display streaming market price SHALL issue snapshot bootstrap retrieval in parallel with stream subscription and render the freshest price by server timestamp.
 - FR-1020: Price payloads delivered via both REST snapshot and `pricing.<TICKER>` stream SHALL include server-assigned event time (`asOf`) so clients can deterministically resolve snapshot-vs-stream race conditions.
+- FR-1021: API explorer runtime (`/api/docs`) SHALL expose a companion pub/sub inspector page at `pubsub-inspector.html`.
+- FR-1022: Pub/sub inspector SHALL auto-connect to the state message bus websocket route using environment-derived address resolution (no manual endpoint input).
+- FR-1023: Pub/sub inspector SHALL start unsubscribed with an empty feed; all subscriptions are user-initiated.
+- FR-1024: Pub/sub inspector SHALL render one-click topic buttons generated from cumulative `system/messaging-subject-map.md` for the state.
+- FR-1025: Pub/sub inspector SHALL visually distinguish wildcard subjects and parameterized subjects; parameterized buttons SHALL prefill topic input with a placeholder pattern for user substitution.
+- FR-1026: Pub/sub inspector SHALL allow arbitrary topic/pattern subscription input and maintain an active-subscription list with per-subscription message counters and unsubscribe controls.
+- FR-1027: Pub/sub inspector feed rows SHALL show delivery topic, matched subscription pattern (when different), receipt timestamp, payload preview, and expandable pretty JSON payload.
+- FR-1028: Pub/sub inspector in-memory feed buffer SHALL cap at 2000 messages with oldest-first eviction while retaining an uncapped session-total counter.
+- FR-1029: Pub/sub inspector SHALL support feed filter, pause/resume display updates, and clear (buffer reset + per-subscription counter reset).
+- FR-1030: API explorer index SHALL link to the inspector using a runtime-computed relative URL that resolves correctly under ingress sub-path mounting.
 
 ## Non-Functional Requirements
 
@@ -57,6 +67,10 @@
 - NFR-1007: Pricing visualization semantics (marker + color) SHALL remain deterministic and derived solely from open/market and cost/value comparisons.
 - NFR-1008: For all services in this state that expose Prometheus-compatible metrics, Prometheus scraping and provisioned Grafana visualization SHALL be maintained.
 - NFR-1009: `asOf` timestamps for snapshots and stream ticks SHALL be server-assigned UTC instants and consistently comparable across payload sources for the same ticker.
+- NFR-1010: Pub/sub inspector SHALL be generated as a self-contained static HTML asset in `api-explorer/` with no runtime build step.
+- NFR-1011: Pub/sub inspector message bus client dependency SHALL be vendored as a local asset in generated runtime output (no CDN dependency).
+- NFR-1012: Generated topic-button data for the inspector SHALL be pipeline-derived from the state's cumulative messaging subject map, not manually curated.
+- NFR-1013: Pub/sub inspector UI responsiveness SHALL remain acceptable at sustained 2000-message buffer occupancy.
 
 ## Success Criteria
 
@@ -69,3 +83,7 @@
 - SC-1007: `FB` is not exposed by reference-data in this state; `META` is exposed and priced.
 - SC-1008: Default sample startup includes the defined financial-services symbols and all return quotes from `price-publisher`.
 - SC-1009: For each ticker, UI bootstrap + stream handoff keeps the latest (`max(asOf)`) price when snapshot and stream updates arrive near-simultaneously.
+- SC-1010: `/api/docs/pubsub-inspector.html` loads successfully from generated runtime and auto-connects to websocket bus route.
+- SC-1011: Inspector-generated topic buttons match the state's cumulative `system/messaging-subject-map.md`.
+- SC-1012: Inspector feed displays delivery topic plus wildcard subscription context (`pricing.*`-style) where applicable.
+- SC-1013: Inspector enforces 2000-message buffer cap with FIFO eviction while session-total counter continues increasing.

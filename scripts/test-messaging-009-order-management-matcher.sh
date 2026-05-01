@@ -8,6 +8,24 @@ ADMIN_ACCOUNT_ID="${4:-44044}"
 SUBJECT_MAP_FILE="${5:-specs/009-order-management-matcher/system/messaging-subject-map.md}"
 TIMEOUT_MS="${TIMEOUT_MS:-35000}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+WORKSPACE_ROOT="$(git -C "${REPO_ROOT}" rev-parse --show-toplevel 2>/dev/null || printf '%s' "${REPO_ROOT}")"
+
+resolve_subject_map_path() {
+  local candidate="$1"
+  if [[ -f "${candidate}" ]]; then
+    echo "${candidate}"
+    return
+  fi
+  if [[ -f "${REPO_ROOT}/${candidate}" ]]; then
+    echo "${REPO_ROOT}/${candidate}"
+    return
+  fi
+  if [[ -f "${WORKSPACE_ROOT}/${candidate}" ]]; then
+    echo "${WORKSPACE_ROOT}/${candidate}"
+    return
+  fi
+  echo "${WORKSPACE_ROOT}/${candidate}"
+}
 
 warn_uncovered_subjects() {
   local map_file="$1"
@@ -71,7 +89,7 @@ ws.onerror = () => {
 NODE
 
 warn_uncovered_subjects \
-  "${REPO_ROOT}/${SUBJECT_MAP_FILE}" \
+  "$(resolve_subject_map_path "${SUBJECT_MAP_FILE}")" \
   "/trades" \
   "/accounts/<accountId>/trades" \
   "/accounts/<accountId>/positions" \

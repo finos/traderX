@@ -145,6 +145,11 @@ printf '%s\n' "${ui_headers}" | grep -q "HTTP/1.1 200" || {
   exit 1
 }
 
+echo "[check] api explorer pubsub inspector contract"
+bash "${REPO_ROOT}/scripts/test-api-explorer-pubsub-inspector.sh" \
+  "${INGRESS_URL}" \
+  "specs/008-pricing-awareness-market-data/system/messaging-subject-map.md"
+
 echo "[check] NATS broker monitor endpoint"
 nats_varz_headers="$(curl -sS -i "http://localhost:8222/varz" | sed -n '1,30p')"
 echo "${nats_varz_headers}"

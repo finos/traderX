@@ -14,11 +14,16 @@ The explorer UI is static Swagger UI and the service list/spec URLs are metadata
 
 - `catalog/state-catalog.json` → `apiCatalog`
 
+For states with message-bus subject maps (`006+`, with required pub/sub inspector baseline from `008+`), the same generated runtime catalog also carries inspector topic metadata derived from:
+
+- `specs/<state-id>/system/messaging-subject-map.md` → `/api/docs/catalog.json` → `messagingSubjects`
+
 ## Browse
 
 - Runtime route: `/api/docs`
 - Runtime catalog URL: `/api/docs/catalog.json`
 - Runtime static contracts: `/api/docs/contracts/*.yaml`
+- Runtime pub/sub inspector: `/api/docs/pubsub-inspector.html`
 
 ## Usage
 

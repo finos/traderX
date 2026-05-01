@@ -253,6 +253,11 @@ echo "[info] order-matcher actuator metric sample count=${order_matcher_http_sam
 echo "[check] ingress remains healthy"
 curl -fsS "${INGRESS_URL}/health" >/dev/null
 
+echo "[check] api explorer pubsub inspector contract"
+bash "${REPO_ROOT}/scripts/test-api-explorer-pubsub-inspector.sh" \
+  "${INGRESS_URL}" \
+  "specs/009-order-management-matcher/system/messaging-subject-map.md"
+
 echo "[check] frontend order views use push updates (no polling regressions)"
 ORDER_UI_ROOT="${GENERATED_ROOT}/code/target-generated/web-front-end/angular/main/app"
 ORDER_BLOTTER_FILE="${ORDER_UI_ROOT}/trade/order-blotter/order-blotter.component.ts"
