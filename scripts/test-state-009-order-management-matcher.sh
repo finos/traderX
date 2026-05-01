@@ -1,17 +1,40 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-INGRESS_URL="${1:-http://localhost:8080}"
+INGRESS_URL="http://localhost:8080"
 ORDER_MATCHER_PORT="${ORDER_MATCHER_PORT:-18110}"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-009}"
 GRAFANA_PORT="${GRAFANA_PORT:-3001}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
+SKIP_MESSAGING=0
+
+while (( "$#" )); do
+  case "$1" in
+    --skip-messaging)
+      SKIP_MESSAGING=1
+      ;;
+    *)
+      if [[ "${INGRESS_URL}" == "http://localhost:8080" ]]; then
+        INGRESS_URL="$1"
+      else
+        echo "[error] unknown argument: $1"
+        echo "[hint] usage: $0 [INGRESS_URL] [--skip-messaging]"
+        exit 1
+      fi
+      ;;
+  esac
+  shift
+done
 
 if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
   LOCAL_RUNTIME_SCRIPT="${GENERATED_ROOT}/code/target-generated/scripts/$(basename "${BASH_SOURCE[0]}")"
   if [[ -x "${LOCAL_RUNTIME_SCRIPT}" ]]; then
-    exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+    args=("${INGRESS_URL}")
+    if [[ "${SKIP_MESSAGING}" -eq 1 ]]; then
+      args+=("--skip-messaging")
+    fi
+    exec "${LOCAL_RUNTIME_SCRIPT}" "${args[@]}"
   fi
 fi
 COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/order-management-matcher/docker-compose.yml"
@@ -229,12 +252,6 @@ echo "[info] order-matcher actuator metric sample count=${order_matcher_http_sam
 
 echo "[check] ingress remains healthy"
 curl -fsS "${INGRESS_URL}/health" >/dev/null
-
-echo "[check] realtime order create publish contract (/accounts/{id}/orders + /orders)"
-"${REPO_ROOT}/scripts/test-order-create-pubsub-smoke.sh" "${INGRESS_URL}" "22214"
-
-echo "[check] realtime order/trade/position websocket streams"
-"${REPO_ROOT}/scripts/test-realtime-order-stream-overlay.sh" "${INGRESS_URL}" "22214" "44044"
 
 echo "[check] frontend order views use push updates (no polling regressions)"
 ORDER_UI_ROOT="${GENERATED_ROOT}/code/target-generated/web-front-end/angular/main/app"
@@ -533,6 +550,13 @@ fi
 if ! awk "BEGIN {exit !(${loki_service_last} > 0)}"; then
   echo "[error] expected non-empty service-filtered Loki logs for dashboards, got ${loki_service_last}"
   exit 1
+fi
+
+if [[ "${SKIP_MESSAGING}" -eq 1 ]]; then
+  echo "[info] skipping messaging smoke step (--skip-messaging)"
+else
+  echo "[check] messaging smoke step (post-functional): state 009"
+  TRADERX_LOCAL_RUNTIME_SCRIPT=1 "${REPO_ROOT}/scripts/test-messaging-009-order-management-matcher.sh" "${INGRESS_URL}" "http://localhost:18092" "22214"
 fi
 
 echo "[done] state 009 order-management observability smoke tests passed"

@@ -1019,6 +1019,14 @@ UI/ingress endpoint: `http://localhost:8080`
 NATS monitor endpoint: `http://localhost:8222/varz`
 Price publisher endpoint: `http://localhost:18100/prices`
 
+Smoke test:
+
+```bash
+./scripts/test-state-008-pricing-awareness-market-data.sh
+./scripts/test-state-008-pricing-awareness-market-data.sh --skip-messaging
+./scripts/test-messaging-008-pricing-awareness-market-data.sh
+```
+
 Status / stop:
 
 ```bash
@@ -1577,6 +1585,15 @@ install_state_compose_clone_harness() {
     "test-state-${state_id}.sh"; do
     copy_snapshot_script_with_deps "${script_name}"
   done
+  local state_num="${state_id%%-*}"
+  local messaging_script
+  messaging_script="$(
+    find "${ROOT}/scripts" -maxdepth 1 -type f -name "test-messaging-${state_num}-*.sh" -print \
+      | sed "s#^${ROOT}/scripts/##" | sort | head -n 1 || true
+  )"
+  if [[ -n "${messaging_script}" ]]; then
+    copy_snapshot_script_with_deps "${messaging_script}"
+  fi
 
   if [[ "${state_id}" == "012-platform-convergence-c3" ]]; then
     cat > "${SNAPSHOT_DIR}/scripts/start-state-012-platform-convergence-c3-generated.sh" <<'EOF'
@@ -2686,6 +2703,14 @@ Endpoints:
 - Grafana: `http://localhost:3001`
 - Prometheus: `http://localhost:9090`
 
+Smoke test:
+
+```bash
+./scripts/test-state-009-order-management-matcher.sh
+./scripts/test-state-009-order-management-matcher.sh --skip-messaging
+./scripts/test-messaging-009-order-management-matcher.sh
+```
+
 Status / stop:
 
 ```bash
@@ -2714,6 +2739,14 @@ Endpoints:
 - Ingress health: `http://localhost:8080/health`
 - NATS monitor: `http://localhost:8222/varz`
 - Price publisher: `http://localhost:18100/prices`
+
+Smoke test:
+
+```bash
+./scripts/test-state-008-pricing-awareness-market-data.sh
+./scripts/test-state-008-pricing-awareness-market-data.sh --skip-messaging
+./scripts/test-messaging-008-pricing-awareness-market-data.sh
+```
 
 Status / stop:
 
@@ -2973,9 +3006,15 @@ EOF
 
 write_functional_testing_guide() {
   local smoke_script=""
-  local generic_smoke_script=""
+  local messaging_smoke_script=""
   smoke_script="scripts/test-state-${STATE_ID}.sh"
-  generic_smoke_script="scripts/test-state-"*"${state_num}"*.sh
+  messaging_smoke_script="scripts/test-messaging-${STATE_ID}.sh"
+  if [[ ! -f "${SNAPSHOT_DIR}/${messaging_smoke_script}" ]]; then
+    messaging_smoke_script="$(
+      find "${SNAPSHOT_DIR}/scripts" -maxdepth 1 -type f -name "test-messaging-${state_num}-*.sh" -print \
+        | sed "s#^${SNAPSHOT_DIR}/##" | sort | head -n 1 || true
+    )"
+  fi
 
   cat > "${SNAPSHOT_DIR}/FUNCTIONAL_TESTING.md" <<EOF
 # Functional Testing Guide
@@ -3005,6 +3044,14 @@ EOF
 ./${smoke_script}
 \`\`\`
 EOF
+    if [[ -n "${messaging_smoke_script}" && -f "${SNAPSHOT_DIR}/${messaging_smoke_script}" ]]; then
+      cat >> "${SNAPSHOT_DIR}/FUNCTIONAL_TESTING.md" <<EOF
+\`\`\`bash
+./${smoke_script} --skip-messaging
+./${messaging_smoke_script}
+\`\`\`
+EOF
+    fi
   else
     cat >> "${SNAPSHOT_DIR}/FUNCTIONAL_TESTING.md" <<EOF
 \`\`\`bash

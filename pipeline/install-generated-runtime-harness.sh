@@ -106,12 +106,14 @@ case "${STATE_ID}" in
     copy_script_if_exists "stop-state-008-pricing-awareness-market-data-generated.sh"
     copy_script_if_exists "status-state-008-pricing-awareness-market-data-generated.sh"
     copy_script_if_exists "test-state-008-pricing-awareness-market-data.sh"
+    copy_script_if_exists "test-messaging-008-pricing-awareness-market-data.sh"
     ;;
   009-order-management-matcher)
     copy_script_if_exists "start-state-009-order-management-matcher-generated.sh"
     copy_script_if_exists "stop-state-009-order-management-matcher-generated.sh"
     copy_script_if_exists "status-state-009-order-management-matcher-generated.sh"
     copy_script_if_exists "test-state-009-order-management-matcher.sh"
+    copy_script_if_exists "test-messaging-009-order-management-matcher.sh"
     ;;
   010-kubernetes-runtime)
     copy_script_if_exists "start-state-010-kubernetes-runtime-generated.sh"
@@ -417,6 +419,8 @@ Smoke test:
 
 ```bash
 ./scripts/test-state-008-pricing-awareness-market-data.sh
+./scripts/test-state-008-pricing-awareness-market-data.sh --skip-messaging
+./scripts/test-messaging-008-pricing-awareness-market-data.sh
 ```
 EOF
       ;;
@@ -445,6 +449,8 @@ Smoke test:
 
 ```bash
 ./scripts/test-state-009-order-management-matcher.sh
+./scripts/test-state-009-order-management-matcher.sh --skip-messaging
+./scripts/test-messaging-009-order-management-matcher.sh
 ```
 EOF
       ;;

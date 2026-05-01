@@ -17,6 +17,8 @@ bash pipeline/generate-state.sh 009-order-management-matcher
 
 ```bash
 ./scripts/test-state-009-order-management-matcher.sh
+./scripts/test-state-009-order-management-matcher.sh --skip-messaging
+./scripts/test-messaging-009-order-management-matcher.sh
 ```
 
 ## 4) Stop Runtime

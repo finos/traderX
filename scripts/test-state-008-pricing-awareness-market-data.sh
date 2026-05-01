@@ -1,16 +1,41 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-INGRESS_URL="${1:-http://localhost:8080}"
-ORIGIN="${2:-http://localhost:8080}"
+INGRESS_URL="http://localhost:8080"
+ORIGIN="http://localhost:8080"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-008}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
+SKIP_MESSAGING=0
+
+while (( "$#" )); do
+  case "$1" in
+    --skip-messaging)
+      SKIP_MESSAGING=1
+      ;;
+    *)
+      if [[ "${INGRESS_URL}" == "http://localhost:8080" ]]; then
+        INGRESS_URL="$1"
+      elif [[ "${ORIGIN}" == "http://localhost:8080" ]]; then
+        ORIGIN="$1"
+      else
+        echo "[error] unknown argument: $1"
+        echo "[hint] usage: $0 [INGRESS_URL] [ORIGIN] [--skip-messaging]"
+        exit 1
+      fi
+      ;;
+  esac
+  shift
+done
 
 if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
   LOCAL_RUNTIME_SCRIPT="${GENERATED_ROOT}/code/target-generated/scripts/$(basename "${BASH_SOURCE[0]}")"
   if [[ -x "${LOCAL_RUNTIME_SCRIPT}" ]]; then
-    exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+    args=("${INGRESS_URL}" "${ORIGIN}")
+    if [[ "${SKIP_MESSAGING}" -eq 1 ]]; then
+      args+=("--skip-messaging")
+    fi
+    exec "${LOCAL_RUNTIME_SCRIPT}" "${args[@]}"
   fi
 fi
 COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/pricing-awareness-market-data/docker-compose.yml"
@@ -151,222 +176,48 @@ echo "[check] message bus connectivity pre-check via /system/health"
 check_message_bus_health_endpoint "${INGRESS_URL}/trade-service/system/health" "trade-service"
 check_message_bus_health_endpoint "${INGRESS_URL}/trade-processor/system/health" "trade-processor"
 
-echo "[check] prometheus message bus connectivity metric is queryable"
-message_bus_sample_count="$(
-  curl -sS --get "http://localhost:9090/api/v1/query" \
-    --data-urlencode 'query=traderx_messagebus_connected' \
-  | jq -r '.data.result | length'
-)"
-if [[ "${message_bus_sample_count}" -lt 3 ]]; then
-  echo "[error] expected 3+ traderx_messagebus_connected samples in Prometheus, got ${message_bus_sample_count}"
-  exit 1
-fi
-echo "[info] traderx_messagebus_connected series=${message_bus_sample_count}"
-
-echo "[check] grafana includes message bus connectivity dashboard/panel query"
-dashboard_uids_raw="$(
-  curl -sS -u admin:admin "http://localhost:3001/api/search?query=TraderX&type=dash-db" \
-  | jq -r '.[].uid'
-)"
-message_bus_dashboard_uid=""
-while IFS= read -r dashboard_uid; do
-  [[ -z "${dashboard_uid}" ]] && continue
-  dashboard_payload="$(curl -sS -u admin:admin "http://localhost:3001/api/dashboards/uid/${dashboard_uid}")"
-  dashboard_text="$(echo "${dashboard_payload}" | jq -r '.dashboard | tostring')"
-  if printf '%s\n' "${dashboard_text}" | rg -q 'traderx_messagebus_connected'; then
-    message_bus_dashboard_uid="${dashboard_uid}"
-    break
+if docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" ps --status running --services | grep -q '^prometheus$'; then
+  echo "[check] prometheus message bus connectivity metric is queryable"
+  message_bus_sample_count="$(
+    curl -sS --get "http://localhost:9090/api/v1/query" \
+      --data-urlencode 'query=traderx_messagebus_connected' \
+    | jq -r '.data.result | length'
+  )"
+  if [[ "${message_bus_sample_count}" -lt 3 ]]; then
+    echo "[error] expected 3+ traderx_messagebus_connected samples in Prometheus, got ${message_bus_sample_count}"
+    exit 1
   fi
-done <<< "${dashboard_uids_raw}"
-if [[ -z "${message_bus_dashboard_uid}" ]]; then
-  echo "[error] no provisioned TraderX dashboard includes traderx_messagebus_connected query"
-  exit 1
+  echo "[info] traderx_messagebus_connected series=${message_bus_sample_count}"
+else
+  echo "[info] prometheus service is not part of state 008 compose; skipping Prometheus metric assertions"
 fi
-echo "[info] grafana dashboard uid=${message_bus_dashboard_uid} includes message bus connectivity query"
 
-echo "[check] account + pricing realtime streams over NATS websocket after trade submit"
-INGRESS_URL="${INGRESS_URL}" TRADE_SERVICE_URL="http://localhost:18092" ACCOUNT_ID="22214" node <<'NODE'
-const ingressUrl = process.env.INGRESS_URL || 'http://localhost:8080';
-const tradeServiceUrl = process.env.TRADE_SERVICE_URL || 'http://localhost:18092';
-const accountId = Number(process.env.ACCOUNT_ID || '22214');
-const wsUrl = ingressUrl.replace(/^http/i, 'ws') + '/nats-ws';
-const tradeTopic = `/accounts/${accountId}/trades`;
-const positionTopic = `/accounts/${accountId}/positions`;
-const qty = 7000 + Math.floor(Math.random() * 500);
-const security = 'IBM';
-const priceTopic = `pricing.${security}`;
-const timeoutMs = 20000;
+if docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" ps --status running --services | grep -q '^grafana$'; then
+  echo "[check] grafana includes message bus connectivity dashboard/panel query"
+  dashboard_uids_raw="$(
+    curl -sS -u admin:admin "http://localhost:3001/api/search?query=TraderX&type=dash-db" \
+    | jq -r '.[].uid'
+  )"
+  message_bus_dashboard_uid=""
+  while IFS= read -r dashboard_uid; do
+    [[ -z "${dashboard_uid}" ]] && continue
+    dashboard_payload="$(curl -sS -u admin:admin "http://localhost:3001/api/dashboards/uid/${dashboard_uid}")"
+    dashboard_text="$(echo "${dashboard_payload}" | jq -r '.dashboard | tostring')"
+    if printf '%s\n' "${dashboard_text}" | rg -q 'traderx_messagebus_connected'; then
+      message_bus_dashboard_uid="${dashboard_uid}"
+      break
+    fi
+  done <<< "${dashboard_uids_raw}"
+  if [[ -z "${message_bus_dashboard_uid}" ]]; then
+    echo "[error] no provisioned TraderX dashboard includes traderx_messagebus_connected query"
+    exit 1
+  fi
+  echo "[info] grafana dashboard uid=${message_bus_dashboard_uid} includes message bus connectivity query"
+else
+  echo "[info] grafana service is not part of state 008 compose; skipping dashboard assertions"
+fi
 
-if (typeof WebSocket !== 'function') {
-  console.error('[error] global WebSocket is unavailable in this Node runtime');
-  process.exit(1);
-}
-
-let buffer = '';
-let pending = null;
-let sawTrade = false;
-let sawPosition = false;
-let sawPrice = false;
-let submitted = false;
-const sidByTopic = new Map([
-  [tradeTopic, 1],
-  [positionTopic, 2],
-  [priceTopic, 3],
-]);
-
-function fail(message) {
-  console.error(`[error] ${message}`);
-  process.exit(1);
-}
-
-function maybeDone() {
-  if (sawTrade && sawPosition && sawPrice) {
-    console.log('[info] account trade/position + pricing realtime updates received via NATS websocket');
-    process.exit(0);
-  }
-}
-
-function parseFrame(text, ws) {
-  buffer += text;
-  while (true) {
-    if (pending) {
-      const needed = pending.bytes + 2;
-      if (buffer.length < needed) {
-        return;
-      }
-      const payloadText = buffer.slice(0, pending.bytes);
-      buffer = buffer.slice(needed);
-      try {
-        const parsed = JSON.parse(payloadText);
-        const payload = parsed && typeof parsed === 'object' && parsed.payload ? parsed.payload : parsed;
-        if (pending.subject === tradeTopic &&
-            payload &&
-            payload.security === security &&
-            Number(payload.quantity) === qty &&
-            payload.state === 'Settled') {
-          sawTrade = true;
-        }
-        if (pending.subject === positionTopic &&
-            payload &&
-            payload.security === security &&
-            Number.isFinite(Number(payload.quantity))) {
-          sawPosition = true;
-        }
-        if (pending.subject === priceTopic &&
-            payload &&
-            payload.ticker === security &&
-            Number.isFinite(Number(payload.price))) {
-          sawPrice = true;
-        }
-        maybeDone();
-      } catch (err) {
-        // Ignore unrelated / non-JSON payloads.
-      }
-      pending = null;
-      continue;
-    }
-
-    const eol = buffer.indexOf('\r\n');
-    if (eol < 0) {
-      return;
-    }
-    const line = buffer.slice(0, eol);
-    buffer = buffer.slice(eol + 2);
-    if (!line) {
-      continue;
-    }
-    if (line.startsWith('PING')) {
-      ws.send('PONG\r\n');
-      continue;
-    }
-    if (line.startsWith('INFO') || line.startsWith('PONG')) {
-      continue;
-    }
-    if (line.startsWith('MSG ')) {
-      const parts = line.split(' ');
-      if (parts.length < 4) {
-        continue;
-      }
-      const subject = parts[1];
-      const bytes = Number(parts[parts.length - 1]);
-      if (!Number.isFinite(bytes)) {
-        continue;
-      }
-      pending = { subject, bytes };
-    }
-  }
-}
-
-async function submitTrade() {
-  if (submitted) {
-    return;
-  }
-  submitted = true;
-  const response = await fetch(`${tradeServiceUrl}/trade/`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      security,
-      quantity: qty,
-      accountId,
-      side: 'Buy',
-    }),
-  });
-  if (response.status !== 200) {
-    const body = await response.text();
-    fail(`expected 200 from trade submit, got ${response.status}; body=${body}`);
-  }
-  const body = await response.json();
-  if (!Number.isFinite(Number(body.price))) {
-    fail(`expected execution price in trade submission response, got: ${JSON.stringify(body)}`);
-  }
-}
-
-const timer = setTimeout(() => {
-  fail(`timed out waiting for realtime updates (trade=${sawTrade}, position=${sawPosition}, price=${sawPrice})`);
-}, timeoutMs);
-
-const ws = new WebSocket(wsUrl);
-ws.onopen = async () => {
-  ws.send('CONNECT {"protocol":1,"verbose":false,"pedantic":false,"echo":false}\r\n');
-  for (const [topic, sid] of sidByTopic.entries()) {
-    ws.send(`SUB ${topic} ${sid}\r\n`);
-  }
-  ws.send('PING\r\n');
-  try {
-    await submitTrade();
-  } catch (err) {
-    clearTimeout(timer);
-    fail(`trade submit failed: ${err.message}`);
-  }
-};
-
-ws.onmessage = async (event) => {
-  if (typeof event.data === 'string') {
-    parseFrame(event.data, ws);
-    return;
-  }
-  if (event.data instanceof Blob) {
-    parseFrame(await event.data.text(), ws);
-    return;
-  }
-  if (event.data instanceof ArrayBuffer) {
-    parseFrame(new TextDecoder().decode(new Uint8Array(event.data)), ws);
-  }
-};
-
-ws.onerror = () => {
-  clearTimeout(timer);
-  fail(`websocket error while connected to ${wsUrl}`);
-};
-
-process.on('exit', () => {
-  clearTimeout(timer);
-  try { ws.close(); } catch (_) {}
-});
-NODE
-
-if docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" ps --services | grep -q '^grafana$'; then
+if docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" ps --status running --services | grep -q '^grafana$'; then
   echo "[check] grafana loki datasource has non-empty pricing/runtime log streams"
   now_ms=$(($(date +%s) * 1000))
   from_ms=$((now_ms - 15 * 60 * 1000))
@@ -434,5 +285,12 @@ TRADERX_LOCAL_RUNTIME_SCRIPT=1 "${REPO_ROOT}/scripts/test-account-service-overla
 TRADERX_LOCAL_RUNTIME_SCRIPT=1 "${REPO_ROOT}/scripts/test-position-service-overlay.sh" "${ORIGIN}" "http://localhost:18090"
 TRADERX_LOCAL_RUNTIME_SCRIPT=1 "${REPO_ROOT}/scripts/test-trade-service-overlay.sh" "${ORIGIN}" "http://localhost:18092" "http://localhost:18090"
 TRADERX_LOCAL_RUNTIME_SCRIPT=1 "${REPO_ROOT}/scripts/test-web-angular-overlay.sh" "${INGRESS_URL}"
+
+if [[ "${SKIP_MESSAGING}" -eq 1 ]]; then
+  echo "[info] skipping messaging smoke step (--skip-messaging)"
+else
+  echo "[check] messaging smoke step (post-functional): state 008"
+  TRADERX_LOCAL_RUNTIME_SCRIPT=1 "${REPO_ROOT}/scripts/test-messaging-008-pricing-awareness-market-data.sh" "${INGRESS_URL}" "http://localhost:18092" "22214"
+fi
 
 echo "[done] state 008 pricing-awareness runtime smoke tests passed"
