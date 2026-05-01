@@ -1,4 +1,4 @@
-# Migration Guidance: 006 to 007 Pricing Awareness
+# Migration Guidance: 007 to 008 Pricing Awareness
 
 ## Goal
 

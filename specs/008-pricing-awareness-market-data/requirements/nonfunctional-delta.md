@@ -1,4 +1,4 @@
-# Non-Functional Delta: 007 Pricing Awareness and Market Data
+# Non-Functional Delta: 008 Pricing Awareness and Market Data
 
 Parent state: `007-observability-lgtm-compose`
 
