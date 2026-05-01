@@ -67,7 +67,10 @@ trap 'rm -rf "${temp_dir}"' EXIT
 is_ignored_dir() {
   local rel="$1"
   case "${rel}" in
-    .github*|runtime/*|scripts*|catalog*|generated/*|docs/*|ci/*|spec-source/*|.run/*)
+    .github*|runtime/*|scripts*|catalog*|generated/*|docs/*|ci/*|spec-source/*|.run/*|\
+    *runtime-cache/*|runtime-cache/*|\
+    *node_modules/*|node_modules/*|\
+    *.vite/*|.vite/*)
       return 0
       ;;
     *)
@@ -213,7 +216,11 @@ discover_node_modules() {
     is_ignored_dir "${dir}" && continue
     state_allows_dir "${dir}" || continue
     add_unique_line "${out_file}" "${dir}"
-  done < <(find "${TARGET_ROOT}" -type f -name package.json -not -path '*/node_modules/*' | sort)
+  done < <(find "${TARGET_ROOT}" \
+    -type f -name package.json \
+    -not -path '*/node_modules/*' \
+    -not -path '*/runtime-cache/*' \
+    -not -path '*/.vite/*' | sort)
   sort -u -o "${out_file}" "${out_file}"
 }
 
