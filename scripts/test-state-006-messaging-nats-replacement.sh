@@ -346,4 +346,7 @@ echo "[check] baseline component smoke suite in state 006 runtime"
 "${REPO_ROOT}/scripts/test-trade-service-overlay.sh" "${ORIGIN}" "http://localhost:18092" "http://localhost:18090"
 "${REPO_ROOT}/scripts/test-web-angular-overlay.sh" "${INGRESS_URL}"
 
+echo "[check] web-front-end state-aware UX contract"
+"${REPO_ROOT}/scripts/test-web-angular-baseline-ux-contract.sh" "${GENERATED_ROOT}/code/target-generated/web-front-end/angular"
+
 echo "[done] state 006 messaging-nats runtime smoke tests passed"

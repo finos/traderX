@@ -49,6 +49,9 @@ if [[ "${status_code}" != "404" ]]; then
   exit 1
 fi
 
+echo "[check] web-front-end state-aware UX contract"
+"${REPO_ROOT}/scripts/test-web-angular-baseline-ux-contract.sh" "${GENERATED_ROOT}/code/target-generated/web-front-end/angular"
+
 for required in AGENTS.md ARCHITECTURE.md CONTRIBUTING.md; do
   if [[ ! -f "${TARGET}/${required}" ]]; then
     echo "[error] missing generated harness file: ${TARGET}/${required}"

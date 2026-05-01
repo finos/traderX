@@ -1,6 +1,8 @@
-import { Component, OnInit, Output, EventEmitter, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Component, OnInit, Output, EventEmitter, ElementRef, AfterViewInit, OnDestroy, HostListener } from '@angular/core';
+import { Observable, Subscription } from 'rxjs';
 import { Fdc3InteropService } from '../service/fdc3-interop.service';
+import { StateUiMetadata } from '../model/state-ui-metadata.model';
+import { StateMetadataService } from '../service/state-metadata.service';
 import { MessageBusConnectionState, TradeFeedService } from '../service/trade-feed.service';
 
 @Component({
@@ -12,6 +14,8 @@ import { MessageBusConnectionState, TradeFeedService } from '../service/trade-fe
 export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
     @Output() switchTheme = new EventEmitter();
+    metadata$: Observable<StateUiMetadata>;
+    isSystemMenuOpen = false;
     fdc3AgentAvailable = false;
     fdc3StatusMessage = 'FDC3: connecting...';
     messageBusState: MessageBusConnectionState = 'connecting';
@@ -26,8 +30,11 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
     constructor(
         private elementRef: ElementRef<HTMLElement>,
         private fdc3Interop: Fdc3InteropService,
+        private stateMetadataService: StateMetadataService,
         private tradeFeedService: TradeFeedService
-    ) {}
+    ) {
+        this.metadata$ = this.stateMetadataService.metadata$;
+    }
 
     ngOnInit(): void {
         this.interopSubscriptions.add(
@@ -78,6 +85,33 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
         this.interopSubscriptions.unsubscribe();
         this.fdc3Interop.destroy();
         this.clearNoticeTimer();
+    }
+
+    appTitle(stateId: string): string {
+        return `TraderX Sample Trading App (${stateId})`;
+    }
+
+    toggleSystemMenu(event: MouseEvent): void {
+        event.stopPropagation();
+        this.isSystemMenuOpen = !this.isSystemMenuOpen;
+    }
+
+    closeSystemMenu(): void {
+        this.isSystemMenuOpen = false;
+    }
+
+    onSystemMenuInteraction(event: MouseEvent): void {
+        event.stopPropagation();
+    }
+
+    @HostListener('document:click')
+    onDocumentClick(): void {
+        this.closeSystemMenu();
+    }
+
+    @HostListener('document:keydown.escape')
+    onEscapeKey(): void {
+        this.closeSystemMenu();
     }
 
     private updateHeaderHeightCssVar(): void {

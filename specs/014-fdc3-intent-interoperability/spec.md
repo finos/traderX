@@ -32,6 +32,7 @@
   - tab `Two`: news-oriented view.
 - FR-01414: The feature pack and generated state README must include an explicit operator demo script with ordered steps and expected outcomes for the two-tab layout.
 - FR-01415: FDC3 integration must not regress inherited realtime market-data behavior: price-aware views continue to use snapshot bootstrap + stream updates with server-time freshness ordering, and trade/position/order blotters remain push-driven after REST bootstrap.
+- FR-01416: The state-specific header override in this feature SHALL retain the inherited System menu contract (API Explorer + About + conditional Status) and state-id title rendering while adding FDC3 status affordances.
 
 ## Non-Functional Requirements
 
@@ -64,3 +65,4 @@
 - SC-01405: Regression tests show no breakage in baseline trade/order/position behavior when FDC3 agent is unavailable.
 - SC-01406: State smoke test path is implemented (`scripts/test-state-014-fdc3-intent-interoperability.sh`) and includes FDC3-specific assertions.
 - SC-01407: Local demo mode can launch TraderX + Sail + demo apps and execute the end-to-end script without manual app-directory editing.
+- SC-01408: Smoke checks validate that generated frontend output still satisfies inherited state-aware header/System-menu contract after adding FDC3 header affordances.

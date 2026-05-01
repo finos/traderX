@@ -2,20 +2,39 @@
     <div class="container-fluid top-bar-content">
         <div class="brand-group">
             <img width="50px" src="assets/img/traderx-apple-touch-icon.png"/>
-            <div style="font-size: 1.5em">FINOS | TraderX Sample Application</div>
+            <div class="app-title" *ngIf="metadata$ | async as metadata">{{ appTitle(metadata.stateId) }}</div>
         </div>
-        <div class="status-group">
+        <div class="system-group" *ngIf="metadata$ | async as metadata">
             <div class="message-bus-indicator" [ngClass]="'message-bus-' + messageBusState" title="Message bus connection status">
                 <span class="message-bus-dot" aria-hidden="true"></span>
                 <span class="message-bus-label">Message Bus {{ messageBusStateLabel }}</span>
             </div>
             <small class="message-bus-notice" *ngIf="messageBusNotice">{{ messageBusNotice }}</small>
-            <img width="30px" src="assets/img/FINOS_Icon_White.png"/>
+            <div class="dropdown system-dropdown" [class.show]="isSystemMenuOpen" (click)="onSystemMenuInteraction($event)">
+                <button
+                    class="btn btn-sm btn-outline-light dropdown-toggle system-dropdown-toggle"
+                    type="button"
+                    [attr.aria-expanded]="isSystemMenuOpen"
+                    (click)="toggleSystemMenu($event)">
+                    System
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" [class.show]="isSystemMenuOpen">
+                    <li><a class="dropdown-item" [href]="metadata.apiExplorerUrl" (click)="closeSystemMenu()">API Explorer</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item" routerLink="/about" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeSystemMenu()">About</a>
+                    </li>
+                    <li *ngIf="metadata.features.statusPage">
+                        <a class="dropdown-item" routerLink="/status" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeSystemMenu()">Status</a>
+                    </li>
+                </ul>
+            </div>
+            <img class="finos-logo" width="30px" src="assets/img/FINOS_Icon_White.png"/>
         </div>
     </div>
 </nav>
 
-<ul class="nav nav-tabs mt-3">
+<ul class="nav nav-tabs mt-3 functional-tabs">
     <li class="nav-item">
         <a class="nav-link" routerLink="/trade" routerLinkActive="active">Trade</a>
     </li>

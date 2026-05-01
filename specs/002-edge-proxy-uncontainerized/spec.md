@@ -23,6 +23,12 @@
 - FR-206: GUI top navigation SHALL include a `Status` tab/link in this state and later states in this lineage unless explicitly superseded.
 - FR-207: The `Status` page SHALL render uptime/health status for each runtime service participating in this state.
 - FR-208: Status-page service status data SHALL be obtained through edge-accessible health/status sources so the page works from the single edge endpoint.
+- FR-209: From state `002` onward, the header top-right area SHALL include a `System` dropdown menu.
+- FR-210: The `System` menu SHALL include an `API Explorer` entry bound to `StateUiMetadata.apiExplorerUrl`.
+- FR-211: The `System` menu SHALL include an `About` entry routing to `/about`.
+- FR-212: The `System` menu SHALL include a `Status` entry routing to `/status` when `StateUiMetadata.features.statusPage` is `true`, and SHALL hide the entry when that flag is `false`.
+- FR-213: The header title SHALL always render the active state id from `StateUiMetadata.stateId` (not a hard-coded title string).
+- FR-214: State-specific header overrides in `generation/frontend-overrides/web-front-end/angular/main/app/header/` SHALL preserve the `System` menu items and state-id title behavior unless a later approved spec explicitly supersedes one or more of these requirements.
 
 ## Non-Functional Requirements
 
@@ -42,6 +48,9 @@
 - NFR-214: On state mismatch, runtime/start scripts SHALL provide explicit guidance for forward-regeneration versus backward clean rebuild decisions.
 - NFR-215: Runtime/start scripts SHALL support an explicit opt-in mode to auto-regenerate expected state before startup.
 - NFR-216: Generated-state snapshot pruning and generated CI module discovery SHALL be state-scoped; components not in the active state's runtime inventory (for example legacy Node edge-proxy in `004+` states) MUST be excluded unless explicitly reintroduced by a later approved state spec.
+- NFR-217: From state `002` onward, `HeaderComponent` SHALL inject `StateMetadataService` and consume `metadata$` for state-id title and `System` menu metadata wiring.
+- NFR-218: The `System` menu + state-aware title pattern SHALL be treated as a cross-cutting UI contract; state-specific additions (for example new tabs or status pills) MUST compose with that contract and MUST NOT replace it.
+- NFR-219: Smoke suites for states `002` through `014` SHALL assert presence of the `System` menu toggle, `API Explorer` + `About` links, conditional `Status` link, and state-id title rendering contract via shared web UX contract checks.
 
 ## Success Criteria
 
@@ -55,6 +64,7 @@
 - SC-208: Edge-routed UI smoke tests verify `Status` page is reachable and shows per-service uptime/health entries for this state.
 - SC-209: Startup script smoke checks verify generated-state detection messaging for both match and mismatch cases, including opt-in auto-regeneration flow.
 - SC-210: Publishing snapshots and generated CI metadata for states `004+` excludes the Node `edge-proxy` module unless a later state spec explicitly restores it.
+- SC-211: Header override regressions that drop `StateMetadataService` wiring, state-id title rendering, or required `System` menu items fail state smoke checks before publish.
 
 ## Generation + Runtime Entry Points
 

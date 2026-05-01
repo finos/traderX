@@ -15,6 +15,21 @@
     min-height: 64px;
 }
 
+.top-bar-content {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: space-between;
+}
+
+.brand-group {
+    align-items: center;
+    display: flex;
+    gap: 0.65rem;
+    min-width: 0;
+}
+
 .header-brand-logo {
     width: 50px;
 }
@@ -24,7 +39,85 @@
     font-weight: 600;
 }
 
+.system-group {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-left: auto;
+}
+
+.message-bus-indicator {
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    border-radius: 999px;
+    display: inline-flex;
+    font-size: 0.76rem;
+    font-weight: 600;
+    gap: 0.38rem;
+    line-height: 1;
+    padding: 0.24rem 0.62rem;
+}
+
+.message-bus-dot {
+    border-radius: 999px;
+    display: inline-block;
+    height: 0.55rem;
+    width: 0.55rem;
+}
+
+.message-bus-connected {
+    background: rgba(25, 135, 84, 0.18);
+    color: #dcfce7;
+}
+
+.message-bus-connected .message-bus-dot {
+    background: #22c55e;
+}
+
+.message-bus-connecting {
+    background: rgba(251, 191, 36, 0.2);
+    color: #fef3c7;
+}
+
+.message-bus-connecting .message-bus-dot {
+    background: #f59e0b;
+}
+
+.message-bus-disconnected {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fee2e2;
+}
+
+.message-bus-disconnected .message-bus-dot {
+    background: #ef4444;
+}
+
+.message-bus-notice {
+    color: #d1fae5;
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.system-dropdown-toggle {
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    min-width: 6.25rem;
+}
+
+.system-dropdown .dropdown-menu {
+    min-width: 12rem;
+}
+
+.system-dropdown .dropdown-item.active {
+    background-color: rgba(13, 110, 253, 0.15);
+    color: #0a58ca;
+}
+
 .finos-logo {
+    display: block;
     width: 30px;
 }
 
@@ -32,68 +125,10 @@
     display: flex;
     align-items: center;
     margin-top: 0 !important;
-    padding: 0 0.75rem;
-    background: var(--bs-body-bg, #ffffff);
 }
 
-.header-bus-slot {
-    margin-left: auto;
-    padding: 0.2rem 0;
-}
-
-.header-bus-pill {
-    align-items: center;
-    border: 1px solid rgba(15, 23, 42, 0.18);
-    border-radius: 999px;
-    display: inline-flex;
-    font-size: 0.76rem;
-    font-weight: 600;
-    gap: 0.35rem;
-    line-height: 1;
-    max-width: min(56vw, 420px);
-    padding: 0.2rem 0.66rem;
-}
-
-.header-bus-dot {
-    border-radius: 999px;
-    display: inline-block;
-    height: 0.55rem;
-    width: 0.55rem;
-}
-
-.header-bus-connected {
-    background: rgba(25, 135, 84, 0.14);
-    color: #14532d;
-}
-
-.header-bus-connected .header-bus-dot {
-    background: #22c55e;
-}
-
-.header-bus-connecting {
-    background: rgba(251, 191, 36, 0.2);
-    color: #7c2d12;
-}
-
-.header-bus-connecting .header-bus-dot {
-    background: #f59e0b;
-}
-
-.header-bus-disconnected {
-    background: rgba(239, 68, 68, 0.2);
-    color: #7f1d1d;
-}
-
-.header-bus-disconnected .header-bus-dot {
-    background: #ef4444;
-}
-
-.header-bus-notice {
-    color: #14532d;
-    display: block;
-    font-size: 0.7rem;
-    font-weight: 600;
-    margin-top: 0.15rem;
+.functional-tabs {
+    padding-inline: 0.75rem;
 }
 
 .header-fdc3-slot {
@@ -145,7 +180,29 @@
         width: 38px;
     }
 
+    .system-group {
+        justify-content: flex-end;
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .message-bus-indicator {
+        order: 1;
+        width: 100%;
+    }
+
+    .message-bus-notice {
+        order: 2;
+        width: 100%;
+    }
+
+    .system-dropdown {
+        order: 3;
+    }
+
     .finos-logo {
+        margin-left: auto;
+        order: 4;
         width: 24px;
     }
 
@@ -160,19 +217,7 @@
         padding-bottom: 0.35rem;
     }
 
-    .header-bus-slot {
-        margin-left: 0;
-        width: 100%;
-        padding-bottom: 0.35rem;
-    }
-
     .header-fdc3-pill {
-        display: flex;
-        max-width: none;
-        width: 100%;
-    }
-
-    .header-bus-pill {
         display: flex;
         max-width: none;
         width: 100%;

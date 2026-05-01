@@ -320,5 +320,7 @@ echo "[check] state 010 ingress-routed service smoke suite"
 "${REPO_ROOT}/scripts/test-position-service-overlay.sh" "${INGRESS_URL}" "${INGRESS_URL}/position-service"
 "${REPO_ROOT}/scripts/test-trade-service-overlay.sh" "${INGRESS_URL}" "${INGRESS_URL}/trade-service" "${INGRESS_URL}/position-service"
 "${REPO_ROOT}/scripts/test-web-angular-overlay.sh" "${INGRESS_URL}"
+echo "[check] web-front-end state-aware UX contract"
+"${REPO_ROOT}/scripts/test-web-angular-baseline-ux-contract.sh" "${GENERATED_ROOT}/code/target-generated/web-front-end/angular"
 
 echo "[done] state 010 kubernetes runtime smoke tests passed"

@@ -557,6 +557,9 @@ if ! awk "BEGIN {exit !(${loki_service_last} > 0)}"; then
   exit 1
 fi
 
+echo "[check] web-front-end state-aware UX contract"
+TRADERX_LOCAL_RUNTIME_SCRIPT=1 "${REPO_ROOT}/scripts/test-web-angular-baseline-ux-contract.sh" "${GENERATED_ROOT}/code/target-generated/web-front-end/angular"
+
 if [[ "${SKIP_MESSAGING}" -eq 1 ]]; then
   echo "[info] skipping messaging smoke step (--skip-messaging)"
 else

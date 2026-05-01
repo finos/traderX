@@ -26,6 +26,7 @@
 - FR-01313: Realtime TraderX views (`trade` blotter, `position` blotter, account order blotter, and admin order blotter) SHALL subscribe to messaging subjects and apply push updates as their source of incremental change.
 - FR-01314: Realtime views SHALL bootstrap initial state from REST and then continue via pub/sub stream updates, without requiring periodic background polling loops.
 - FR-01315: API explorer pub/sub inspector contract introduced in state `008` SHALL be preserved, and generated inspector topic buttons SHALL include order subjects (`/accounts/{accountId}/orders`, `/orders`) in this state.
+- FR-01317: The state-specific header override in this feature SHALL retain the inherited System menu contract (API Explorer + About + conditional Status) and state-id title rendering while adding the `Admin` functional tab.
 - FR-01308: Order data is persisted in the shared database so active orders survive order-matcher service restarts.
 - FR-01309: On every matcher tick, in-the-money orders are auto-filled with this policy: remaining `< 1000` fills fully, otherwise fills half (rounded up).
 - FR-01310: Any order fill (auto-fill or force-fill) must submit a trade through trade-service so trade history and account positions are updated via the existing trade pipeline.
@@ -64,3 +65,4 @@
 - SC-01310: `pipeline/validate-generated-state-contracts.sh` fails on generated snapshots that include `order-matcher` without `OrderBook` schema and passes when the contract is present.
 - SC-01311: Smoke checks validate that open-order views update in real time on create/auto-fill/cancel/force-fill via `/accounts/{accountId}/orders` and `/orders`, without periodic `GET /orders` polling traffic.
 - SC-01312: Smoke checks validate `/api/docs/pubsub-inspector.html` availability and topic metadata coverage against `system/messaging-subject-map.md`.
+- SC-01313: Smoke checks validate that the generated frontend still satisfies the inherited state-aware header/System-menu contract after the `Admin` tab extension.

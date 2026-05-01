@@ -113,4 +113,7 @@ echo "[check] baseline service smoke suite in postgres runtime"
 "${REPO_ROOT}/scripts/test-realtime-account-stream-overlay.sh" "http://localhost:18092" "${INGRESS_URL}" "22214"
 "${REPO_ROOT}/scripts/test-web-angular-overlay.sh" "${INGRESS_URL}"
 
+echo "[check] web-front-end state-aware UX contract"
+"${REPO_ROOT}/scripts/test-web-angular-baseline-ux-contract.sh" "${GENERATED_ROOT}/code/target-generated/web-front-end/angular"
+
 echo "[done] state 005 postgres-database runtime smoke tests passed"
