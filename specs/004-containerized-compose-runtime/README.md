@@ -19,3 +19,8 @@ Implemented architecture artifacts:
 - `scripts/start-state-004-containerized-generated.sh`
 - `scripts/test-state-004-containerized.sh`
 - `tests/smoke/README.md`
+
+Runtime lifecycle:
+
+- default build + start: `./scripts/start-state-004-containerized-generated.sh`
+- restart without image rebuild: `./scripts/start-state-004-containerized-generated.sh --skip-build`

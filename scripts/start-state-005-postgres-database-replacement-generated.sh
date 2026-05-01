@@ -15,15 +15,19 @@ COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-005}"
 COMPOSE_DIR="${GENERATED_ROOT}/code/target-generated/postgres-database-replacement"
 COMPOSE_FILE="${COMPOSE_DIR}/docker-compose.yml"
 DRY_RUN=0
+SKIP_BUILD=0
 
 while (( "$#" )); do
   case "$1" in
     --dry-run)
       DRY_RUN=1
       ;;
+    --skip-build)
+      SKIP_BUILD=1
+      ;;
     *)
       echo "[error] unknown argument: $1"
-      echo "[hint] supported: --dry-run"
+      echo "[hint] supported: --dry-run --skip-build"
       exit 1
       ;;
   esac
@@ -57,12 +61,20 @@ fi
 }
 
 if (( DRY_RUN == 1 )); then
-  echo "[dry-run] docker compose -f ${COMPOSE_FILE} --project-name ${COMPOSE_PROJECT_NAME} up -d --build"
+  if (( SKIP_BUILD == 1 )); then
+    echo "[dry-run] docker compose -f ${COMPOSE_FILE} --project-name ${COMPOSE_PROJECT_NAME} up -d --no-build"
+  else
+    echo "[dry-run] docker compose -f ${COMPOSE_FILE} --project-name ${COMPOSE_PROJECT_NAME} up -d --build"
+  fi
   echo "[done] dry run complete for state 005"
   exit 0
 fi
 
-docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" up -d --build
+if (( SKIP_BUILD == 1 )); then
+  docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" up -d --no-build
+else
+  docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" up -d --build
+fi
 
 wait_for_postgres() {
   local attempts=90

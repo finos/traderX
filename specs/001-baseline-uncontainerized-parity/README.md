@@ -14,6 +14,17 @@ This is the canonical root Spec Kit feature pack for the TraderX simple base app
 - `conformance/**` - generated per-component conformance packs
 - `tests/smoke/**` - state smoke-test coverage expectations
 
+## Environment Lifecycle Contract
+
+Every uncontainerized generated state must provide and maintain these four scripts:
+
+- `scripts/start-<state>.sh --build-only` - install dependencies and compile artifacts; never starts processes; reruns safely
+- `scripts/start-<state>.sh` - start all services; requires a prior successful build
+- `scripts/stop-<state>.sh` - stop all services; idempotent
+- `scripts/smoke-test-<state>.sh` - end-to-end readiness check against a running environment; read-only; exits `0` only when healthy
+
+The smoke test is the canonical "ready for business" check and must remain runnable independently from the start script.
+
 ## Validation
 
 ```bash

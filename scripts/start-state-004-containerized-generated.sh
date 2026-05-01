@@ -17,15 +17,19 @@ COMPOSE_FILE="${COMPOSE_DIR}/docker-compose.yml"
 WEB_COMPONENT_DIR="${GENERATED_ROOT}/code/components/web-front-end-angular-specfirst"
 WEB_TARGET_DIR="${GENERATED_ROOT}/code/target-generated/web-front-end/angular"
 DRY_RUN=0
+SKIP_BUILD=0
 
 while (( "$#" )); do
   case "$1" in
     --dry-run)
       DRY_RUN=1
       ;;
+    --skip-build)
+      SKIP_BUILD=1
+      ;;
     *)
       echo "[error] unknown argument: $1"
-      echo "[hint] supported: --dry-run"
+      echo "[hint] supported: --dry-run --skip-build"
       exit 1
       ;;
   esac
@@ -94,12 +98,20 @@ sync_state_aware_web_ui
 }
 
 if (( DRY_RUN == 1 )); then
-  echo "[dry-run] docker compose -f ${COMPOSE_FILE} --project-name ${COMPOSE_PROJECT_NAME} up -d --build"
+  if (( SKIP_BUILD == 1 )); then
+    echo "[dry-run] docker compose -f ${COMPOSE_FILE} --project-name ${COMPOSE_PROJECT_NAME} up -d --no-build"
+  else
+    echo "[dry-run] docker compose -f ${COMPOSE_FILE} --project-name ${COMPOSE_PROJECT_NAME} up -d --build"
+  fi
   echo "[done] dry run complete for state 004"
   exit 0
 fi
 
-docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" up -d --build
+if (( SKIP_BUILD == 1 )); then
+  docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" up -d --no-build
+else
+  docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" up -d --build
+fi
 
 wait_for_http() {
   local name="$1"

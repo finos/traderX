@@ -71,16 +71,20 @@ Run examples:
 
 ```bash
 # 001 (uncontainerized)
+CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh --build-only
 CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh
 
 # 003 (compose)
 ./scripts/start-state-004-containerized-generated.sh
+./scripts/start-state-004-containerized-generated.sh --skip-build
 
 # 006 (compose + observability)
 ./scripts/start-state-007-observability-lgtm-compose-generated.sh
+./scripts/start-state-007-observability-lgtm-compose-generated.sh --skip-build
 
 # 009 (kubernetes)
 ./scripts/start-state-010-kubernetes-runtime-generated.sh --provider kind
+./scripts/start-state-010-kubernetes-runtime-generated.sh --provider kind --skip-build
 ```
 
 ## Derived-State Implementation Pattern

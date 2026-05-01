@@ -26,6 +26,7 @@ Core artifacts:
 Runtime entrypoints:
 
 - `./scripts/start-state-011-tilt-kubernetes-dev-loop-generated.sh`
+- `./scripts/start-state-011-tilt-kubernetes-dev-loop-generated.sh --skip-build`
 - `./scripts/status-state-011-tilt-kubernetes-dev-loop-generated.sh`
 - `./scripts/test-state-011-tilt-kubernetes-dev-loop.sh`
 - `./scripts/stop-state-011-tilt-kubernetes-dev-loop-generated.sh`

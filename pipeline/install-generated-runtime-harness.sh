@@ -215,6 +215,7 @@ write_generated_runbook() {
 Start:
 
 ```bash
+./scripts/start-base-uncontainerized-generated.sh --build-only
 ./scripts/start-base-uncontainerized-generated.sh
 ```
 
@@ -233,6 +234,7 @@ EOF
 Start:
 
 ```bash
+./scripts/start-state-002-edge-proxy-generated.sh --build-only
 ./scripts/start-state-002-edge-proxy-generated.sh
 ```
 
@@ -251,6 +253,7 @@ EOF
 Start:
 
 ```bash
+./scripts/start-state-003-agentic-harness-foundation-generated.sh --build-only
 ./scripts/start-state-003-agentic-harness-foundation-generated.sh
 ```
 
@@ -276,6 +279,7 @@ Start:
 
 ```bash
 ./scripts/start-state-004-containerized-generated.sh
+./scripts/start-state-004-containerized-generated.sh --skip-build
 ```
 
 Status / stop:
@@ -300,6 +304,7 @@ Start:
 
 ```bash
 ./scripts/start-state-005-postgres-database-replacement-generated.sh
+./scripts/start-state-005-postgres-database-replacement-generated.sh --skip-build
 ```
 
 Status / stop:
@@ -324,6 +329,7 @@ Start:
 
 ```bash
 ./scripts/start-state-006-messaging-nats-replacement-generated.sh
+./scripts/start-state-006-messaging-nats-replacement-generated.sh --skip-build
 ```
 
 Status / stop:
@@ -348,6 +354,7 @@ Start:
 
 ```bash
 ./scripts/start-state-007-observability-lgtm-compose-generated.sh
+./scripts/start-state-007-observability-lgtm-compose-generated.sh --skip-build
 ```
 
 Status / stop:
@@ -372,6 +379,7 @@ Start:
 
 ```bash
 ./scripts/start-state-008-pricing-awareness-market-data-generated.sh
+./scripts/start-state-008-pricing-awareness-market-data-generated.sh --skip-build
 ```
 
 Status / stop:
@@ -396,6 +404,7 @@ Start:
 
 ```bash
 ./scripts/start-state-009-order-management-matcher-generated.sh
+./scripts/start-state-009-order-management-matcher-generated.sh --skip-build
 ```
 
 Status / stop:
@@ -420,6 +429,7 @@ Start:
 
 ```bash
 ./scripts/start-state-010-kubernetes-runtime-generated.sh
+./scripts/start-state-010-kubernetes-runtime-generated.sh --skip-build
 ```
 
 Status / stop:
@@ -444,6 +454,7 @@ Start:
 
 ```bash
 ./scripts/start-state-011-tilt-kubernetes-dev-loop-generated.sh
+./scripts/start-state-011-tilt-kubernetes-dev-loop-generated.sh --skip-build
 ```
 
 Status / stop:
@@ -468,6 +479,7 @@ Start:
 
 ```bash
 ./scripts/start-state-012-platform-convergence-c3-generated.sh
+./scripts/start-state-012-platform-convergence-c3-generated.sh --skip-build
 ```
 
 Status / stop:
@@ -492,6 +504,7 @@ Start:
 
 ```bash
 ./scripts/start-state-013-radius-kubernetes-platform-generated.sh
+./scripts/start-state-013-radius-kubernetes-platform-generated.sh --skip-build
 ```
 
 Status / stop:
@@ -516,6 +529,7 @@ Start baseline C3 runtime:
 
 ```bash
 ./scripts/start-state-014-fdc3-intent-interoperability-generated.sh
+./scripts/start-state-014-fdc3-intent-interoperability-generated.sh --skip-build
 ```
 
 Start C3 + Sail sidecar:

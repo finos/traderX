@@ -31,14 +31,18 @@ TRADE_SERVICE_SPECFIRST="${GENERATED_ROOT}/code/components/trade-service-specfir
 WEB_FRONT_END_ANGULAR_SPECFIRST="${GENERATED_ROOT}/code/components/web-front-end-angular-specfirst"
 
 DRY_RUN=0
+BUILD_ONLY=0
 while (( "$#" )); do
   case "$1" in
     --dry-run)
       DRY_RUN=1
       ;;
+    --build-only)
+      BUILD_ONLY=1
+      ;;
     *)
       echo "[error] unknown argument: $1"
-      echo "[hint] supported: --dry-run"
+      echo "[hint] supported: --dry-run --build-only"
       exit 1
       ;;
   esac
@@ -47,6 +51,17 @@ done
 
 source "${REPO_ROOT}/scripts/lib/generated-state-detection.sh"
 traderx_ensure_generated_state "${EXPECTED_STATE}" "${REPO_ROOT}" "${GENERATED_ROOT}"
+
+ensure_component_layout() {
+  local source_dir="$1"
+  local target_dir="$2"
+
+  if [[ -d "${target_dir}" ]]; then
+    return 0
+  fi
+
+  cp -R "${source_dir}" "${target_dir}"
+}
 
 prepare_generated_base_layout() {
   local generated_paths=(
@@ -70,12 +85,6 @@ prepare_generated_base_layout() {
     fi
   done
 
-  # Full wipe of target-generated (preserving .run/ which holds pids/logs/tool-cache).
-  # This guarantees no stale component directories from other states are present,
-  # regardless of which states were generated before this one.
-  if [[ -d "${TARGET}" ]]; then
-    find "${TARGET}" -maxdepth 1 -mindepth 1 ! -name '.run' -exec rm -rf {} +
-  fi
   mkdir -p "${TARGET}" "${TARGET}/web-front-end" "${TARGET}/catalog"
 
   if [[ ! -f "${SPEC_SOURCE}" ]]; then
@@ -84,15 +93,15 @@ prepare_generated_base_layout() {
   fi
   cp "${SPEC_SOURCE}" "${SPEC}"
 
-  cp -R "${REFERENCE_DATA_SPECFIRST}" "${TARGET}/reference-data"
-  cp -R "${DATABASE_SPECFIRST}" "${TARGET}/database"
-  cp -R "${PEOPLE_SERVICE_SPECFIRST}" "${TARGET}/people-service"
-  cp -R "${ACCOUNT_SERVICE_SPECFIRST}" "${TARGET}/account-service"
-  cp -R "${POSITION_SERVICE_SPECFIRST}" "${TARGET}/position-service"
-  cp -R "${TRADE_FEED_SPECFIRST}" "${TARGET}/trade-feed"
-  cp -R "${TRADE_PROCESSOR_SPECFIRST}" "${TARGET}/trade-processor"
-  cp -R "${TRADE_SERVICE_SPECFIRST}" "${TARGET}/trade-service"
-  cp -R "${WEB_FRONT_END_ANGULAR_SPECFIRST}" "${TARGET}/web-front-end/angular"
+  ensure_component_layout "${REFERENCE_DATA_SPECFIRST}" "${TARGET}/reference-data"
+  ensure_component_layout "${DATABASE_SPECFIRST}" "${TARGET}/database"
+  ensure_component_layout "${PEOPLE_SERVICE_SPECFIRST}" "${TARGET}/people-service"
+  ensure_component_layout "${ACCOUNT_SERVICE_SPECFIRST}" "${TARGET}/account-service"
+  ensure_component_layout "${POSITION_SERVICE_SPECFIRST}" "${TARGET}/position-service"
+  ensure_component_layout "${TRADE_FEED_SPECFIRST}" "${TARGET}/trade-feed"
+  ensure_component_layout "${TRADE_PROCESSOR_SPECFIRST}" "${TARGET}/trade-processor"
+  ensure_component_layout "${TRADE_SERVICE_SPECFIRST}" "${TARGET}/trade-service"
+  ensure_component_layout "${WEB_FRONT_END_ANGULAR_SPECFIRST}" "${TARGET}/web-front-end/angular"
 
   echo "[ok] generated base layout prepared in ${TARGET}"
 }
@@ -214,6 +223,106 @@ port_listener_pids() {
   lsof -nP -tiTCP:"${port}" -sTCP:LISTEN 2>/dev/null || true
 }
 
+build_artifact_exists() {
+  local process="$1"
+  local workdir_rel="$2"
+  local build_cmd="$3"
+  local workdir="${TARGET}/${workdir_rel}"
+
+  if [[ -z "${build_cmd}" ]]; then
+    return 0
+  fi
+
+  if [[ "${process}" == "web-front-end-angular" ]]; then
+    [[ -d "${workdir}/node_modules" && -d "${workdir}/dist" ]]
+    return $?
+  fi
+
+  if echo "${build_cmd}" | grep -q 'ng build'; then
+    [[ -d "${workdir}/dist" ]]
+    return $?
+  fi
+
+  if echo "${build_cmd}" | grep -q '\[ -d dist \]'; then
+    [[ -d "${workdir}/dist" ]]
+    return $?
+  fi
+
+  if echo "${build_cmd}" | grep -q 'node_modules'; then
+    [[ -d "${workdir}/node_modules" ]]
+    return $?
+  fi
+
+  if echo "${build_cmd}" | grep -q 'dotnet build'; then
+    compgen -G "${workdir}/bin/Debug/net*/PeopleService.WebApi.dll" >/dev/null
+    return $?
+  fi
+
+  if echo "${build_cmd}" | grep -q 'gradlew'; then
+    if [[ "${process}" == "database" ]]; then
+      [[ -f "${workdir}/build/libs/database-specfirst.jar" ]]
+      return $?
+    fi
+
+    local jar
+    jar="$(ls "${workdir}"/build/libs/*.jar 2>/dev/null | grep -v plain | head -1 || true)"
+    [[ -n "${jar}" ]]
+    return $?
+  fi
+
+  return 1
+}
+
+run_build_process() {
+  local process="$1"
+  local workdir_rel="$2"
+  local build_cmd="$3"
+  local workdir="${TARGET}/${workdir_rel}"
+
+  if [[ -z "${build_cmd}" ]]; then
+    return 0
+  fi
+
+  if [[ ! -d "${workdir}" ]]; then
+    echo "[error] missing workdir for ${process}: ${workdir}"
+    exit 1
+  fi
+
+  if build_artifact_exists "${process}" "${workdir_rel}" "${build_cmd}"; then
+    echo "[build-skip] ${process}: already built"
+    return 0
+  fi
+
+  if ((DRY_RUN == 1)); then
+    echo "[dry-run] [build] ${process}: cd ${workdir} && ${build_cmd}"
+    return 0
+  fi
+
+  echo "[build] ${process}: ${build_cmd}"
+  (cd "${workdir}" && eval "${build_cmd}") || {
+    echo "[error] build failed for ${process}"
+    exit 1
+  }
+}
+
+build_check_or_exit() {
+  local process="$1"
+  local workdir_rel="$2"
+  local build_cmd="$3"
+
+  if [[ -z "${build_cmd}" ]]; then
+    return 0
+  fi
+
+  if build_artifact_exists "${process}" "${workdir_rel}" "${build_cmd}"; then
+    return 0
+  fi
+
+  echo "[error] ${process}: missing build artifacts required by start command."
+  echo "[hint] run ./scripts/start-base-uncontainerized-generated.sh --build-only"
+  exit 1
+}
+
 start_process() {
   local process="$1"
   local workdir_rel="$2"
@@ -274,10 +383,29 @@ if ((DRY_RUN == 0)); then
   preflight_checks
 fi
 
-while IFS=, read -r order process workdir start_cmd port health_hint; do
+if ((BUILD_ONLY == 1)); then
+  echo "[build] building base uncontainerized services (--build-only)"
+  while IFS=, read -r order process workdir start_cmd port health_hint build_cmd; do
+    if [[ "${order}" == "order" ]]; then
+      continue
+    fi
+    run_build_process "${process}" "${workdir}" "${build_cmd}"
+  done < <(tail -n +2 "${SPEC}" | sort -t, -k1,1n)
+
+  if ((DRY_RUN == 1)); then
+    echo "[done] dry run complete"
+  else
+    echo "[done] build phase complete"
+    echo "[hint] run the same script without --build-only to start services"
+  fi
+  exit 0
+fi
+
+while IFS=, read -r order process workdir start_cmd port health_hint build_cmd; do
   if [[ "${order}" == "order" ]]; then
     continue
   fi
+  build_check_or_exit "${process}" "${workdir}" "${build_cmd}"
   start_process "${process}" "${workdir}" "${start_cmd}" "${port}"
 done < <(tail -n +2 "${SPEC}" | sort -t, -k1,1n)
 

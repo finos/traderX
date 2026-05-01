@@ -45,3 +45,4 @@ SYS-FR-016,US-011,AC-014,F3,web-front-end-angular,none,scripts/test-web-angular-
 SYS-FR-017,US-012,AC-015,F6,web-front-end-angular,none,scripts/test-web-angular-baseline-ux-contract.sh
 SYS-NFR-008,US-013,AC-016,F2,web-front-end-angular,none,scripts/test-web-angular-baseline-ux-contract.sh
 SYS-NFR-009,US-014,AC-017,STARTUP,trade-service,specs/001-baseline-uncontainerized-parity/contracts/trade-service/openapi.yaml,pipeline/validate-generated-branch-dependency-consistency.sh
+SYS-NFR-010,US-015,AC-018,STARTUP,trade-service,specs/001-baseline-uncontainerized-parity/contracts/trade-service/openapi.yaml,pipeline/validate-lifecycle-script-contract.sh

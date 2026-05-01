@@ -10,6 +10,7 @@ bash pipeline/generate-state.sh 011-tilt-kubernetes-dev-loop
 
 ```bash
 ./scripts/start-state-011-tilt-kubernetes-dev-loop-generated.sh --provider kind
+./scripts/start-state-011-tilt-kubernetes-dev-loop-generated.sh --provider kind --skip-build
 ./scripts/status-state-011-tilt-kubernetes-dev-loop-generated.sh --provider kind
 ./scripts/test-state-011-tilt-kubernetes-dev-loop.sh http://localhost:8080 traderx kind traderx-state-011
 ./scripts/stop-state-011-tilt-kubernetes-dev-loop-generated.sh --provider kind

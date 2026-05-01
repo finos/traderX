@@ -180,6 +180,7 @@ As a developer, I need startup commands to report what state is currently genera
 - **NFR-008 (Responsive Blotters)**: Trade and position blotters MUST preserve readability across viewport sizes via side-by-side wrapping layout with minimum pane width constraints.
 - **NFR-009 (Runtime State Detection)**: State runtime/start scripts MUST detect the currently generated state id before startup and emit explicit guidance for mismatch handling (including clean-rebuild guidance when moving backwards in lineage).
 - **NFR-010 (Optional Auto-Regeneration)**: Runtime/start scripts MUST support an explicit opt-in mode to auto-regenerate the expected state before startup when mismatch is detected.
+- **NFR-011 (Lifecycle Script Contract)**: Generated states MUST expose separated lifecycle commands for build, start, stop, and readiness checks. For uncontainerized states this is `start --build-only`, `start`, `stop`, and `smoke`; for containerized/Kubernetes states `--skip-build` is the accepted build/start separation mode.
 
 ### Key Entities *(include if feature involves data)*
 

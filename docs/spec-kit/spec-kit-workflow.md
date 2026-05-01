@@ -227,6 +227,7 @@ Generated outputs:
 Run generated baseline stack:
 
 ```bash
+CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh --build-only
 CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh
 ```
 
@@ -234,6 +235,7 @@ Run generated containerized stack (state `004`):
 
 ```bash
 ./scripts/start-state-004-containerized-generated.sh
+./scripts/start-state-004-containerized-generated.sh --skip-build
 ./scripts/status-state-004-containerized-generated.sh
 ./scripts/test-state-004-containerized.sh
 ./scripts/stop-state-004-containerized-generated.sh

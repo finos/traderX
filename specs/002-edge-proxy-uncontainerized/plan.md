@@ -25,5 +25,6 @@
 - `bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized`
 - `bash pipeline/generate-state-002-edge-proxy-uncontainerized.sh`
 - `bash pipeline/apply-state-patchset.sh 002-edge-proxy-uncontainerized generated/code/components`
+- `./scripts/start-state-002-edge-proxy-generated.sh --build-only`
 - `./scripts/start-state-002-edge-proxy-generated.sh`
 - `./scripts/test-state-002-edge-proxy.sh`

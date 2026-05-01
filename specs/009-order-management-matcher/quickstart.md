@@ -10,6 +10,7 @@ bash pipeline/generate-state.sh 009-order-management-matcher
 
 ```bash
 ./scripts/start-state-009-order-management-matcher-generated.sh
+./scripts/start-state-009-order-management-matcher-generated.sh --skip-build
 ```
 
 ## 3) Run Smoke Tests

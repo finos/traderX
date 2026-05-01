@@ -29,6 +29,7 @@ fi
 
 "${ROOT}/pipeline/validate-regeneration-readiness.sh"
 bash "${ROOT}/pipeline/validate-state-pack-artifacts.sh"
+bash "${ROOT}/pipeline/validate-lifecycle-script-contract.sh"
 bash "${ROOT}/pipeline/validate-convergence-state-model.sh"
 bash "${ROOT}/pipeline/validate-convergence-rationale-deltas.sh"
 bash "${ROOT}/pipeline/validate-ghcr-run-bundle-readmes.sh"

@@ -30,7 +30,7 @@
 ## Success Criteria
 
 - SC-901: `pipeline/generate-state-005-postgres-database-replacement.sh` generates a runnable PostgreSQL-based runtime pack.
-- SC-902: `scripts/start-state-005-postgres-database-replacement-generated.sh` starts runtime successfully.
+- SC-902: `scripts/start-state-005-postgres-database-replacement-generated.sh` starts runtime successfully, and `--skip-build` supports restart without image rebuild.
 - SC-903: `scripts/test-state-005-postgres-database-replacement.sh` passes core smoke checks.
 - SC-904: State catalog points to `code/generated-state-005-postgres-database-replacement`.
 - SC-905: ADR for database engine choice is published and linked from state artifacts.

@@ -26,7 +26,24 @@ Generate and start a state runtime:
 
 ```bash
 bash pipeline/generate-state.sh <state-id>
+```
+
+For process-based states (`001`, `002`, `003`):
+
+```bash
+./scripts/start-base-uncontainerized-generated.sh --build-only
+./scripts/start-base-uncontainerized-generated.sh
+# or for state 002/003:
+# ./scripts/start-state-002-edge-proxy-generated.sh --build-only
+# ./scripts/start-state-002-edge-proxy-generated.sh
+```
+
+For containerized/Kubernetes states (`004+`):
+
+```bash
 ./scripts/start-state-<state-id>-generated.sh
+# optional restart without rebuild
+./scripts/start-state-<state-id>-generated.sh --skip-build
 ```
 
 Then open:

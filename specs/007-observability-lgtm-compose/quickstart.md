@@ -10,6 +10,7 @@ bash pipeline/generate-state.sh 007-observability-lgtm-compose
 
 ```bash
 ./scripts/start-state-007-observability-lgtm-compose-generated.sh
+./scripts/start-state-007-observability-lgtm-compose-generated.sh --skip-build
 ```
 
 ## 3) Run Smoke Tests

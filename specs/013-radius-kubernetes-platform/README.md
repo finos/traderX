@@ -27,6 +27,7 @@ Core artifacts:
 Runtime entrypoints:
 
 - `./scripts/start-state-013-radius-kubernetes-platform-generated.sh`
+- `./scripts/start-state-013-radius-kubernetes-platform-generated.sh --skip-build`
 - `./scripts/status-state-013-radius-kubernetes-platform-generated.sh`
 - `./scripts/test-state-013-radius-kubernetes-platform.sh`
 - `./scripts/stop-state-013-radius-kubernetes-platform-generated.sh`

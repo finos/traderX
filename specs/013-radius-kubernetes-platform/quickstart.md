@@ -10,6 +10,7 @@ bash pipeline/generate-state.sh 013-radius-kubernetes-platform
 
 ```bash
 ./scripts/start-state-013-radius-kubernetes-platform-generated.sh --provider kind
+./scripts/start-state-013-radius-kubernetes-platform-generated.sh --provider kind --skip-build
 ./scripts/status-state-013-radius-kubernetes-platform-generated.sh --provider kind
 ./scripts/test-state-013-radius-kubernetes-platform.sh http://localhost:8080 traderx kind traderx-state-013
 ./scripts/stop-state-013-radius-kubernetes-platform-generated.sh --provider kind

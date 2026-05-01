@@ -21,15 +21,19 @@ EDGE_COMPONENT_DIR="${GENERATED_ROOT}/code/components/edge-proxy-specfirst"
 EDGE_TARGET_DIR="${TARGET}/edge-proxy"
 EDGE_PROXY_PORT="${EDGE_PROXY_PORT:-18080}"
 DRY_RUN=0
+BUILD_ONLY=0
 
 while (( "$#" )); do
   case "$1" in
     --dry-run)
       DRY_RUN=1
       ;;
+    --build-only)
+      BUILD_ONLY=1
+      ;;
     *)
       echo "[error] unknown argument: $1"
-      echo "[hint] supported: --dry-run"
+      echo "[hint] supported: --dry-run --build-only"
       exit 1
       ;;
   esac
@@ -42,11 +46,21 @@ done
   exit 1
 }
 
-if (( DRY_RUN == 1 )); then
+if (( DRY_RUN == 1 )) && (( BUILD_ONLY == 1 )); then
+  TRADERX_EXPECTED_STATE_ID="${EXPECTED_STATE}" \
+  TRADERX_GENERATED_ROOT="${GENERATED_ROOT}" \
+  TRADERX_SOURCE_REPO_ROOT="${SOURCE_REPO_ROOT}" \
+    "${REPO_ROOT}/scripts/start-base-uncontainerized-generated.sh" --dry-run --build-only
+elif (( DRY_RUN == 1 )); then
   TRADERX_EXPECTED_STATE_ID="${EXPECTED_STATE}" \
   TRADERX_GENERATED_ROOT="${GENERATED_ROOT}" \
   TRADERX_SOURCE_REPO_ROOT="${SOURCE_REPO_ROOT}" \
     "${REPO_ROOT}/scripts/start-base-uncontainerized-generated.sh" --dry-run
+elif (( BUILD_ONLY == 1 )); then
+  TRADERX_EXPECTED_STATE_ID="${EXPECTED_STATE}" \
+  TRADERX_GENERATED_ROOT="${GENERATED_ROOT}" \
+  TRADERX_SOURCE_REPO_ROOT="${SOURCE_REPO_ROOT}" \
+    "${REPO_ROOT}/scripts/start-base-uncontainerized-generated.sh" --build-only
 else
   TRADERX_EXPECTED_STATE_ID="${EXPECTED_STATE}" \
   TRADERX_GENERATED_ROOT="${GENERATED_ROOT}" \
@@ -55,8 +69,34 @@ else
 fi
 
 mkdir -p "${RUN_DIR}/logs" "${RUN_DIR}/pids"
-rm -rf "${EDGE_TARGET_DIR}"
-cp -R "${EDGE_COMPONENT_DIR}" "${EDGE_TARGET_DIR}"
+if [[ ! -d "${EDGE_TARGET_DIR}" ]]; then
+  cp -R "${EDGE_COMPONENT_DIR}" "${EDGE_TARGET_DIR}"
+fi
+
+if (( BUILD_ONLY == 1 )); then
+  if [[ -d "${EDGE_TARGET_DIR}/node_modules" ]]; then
+    echo "[build-skip] edge-proxy: already built"
+  elif (( DRY_RUN == 1 )); then
+    echo "[dry-run] [build] edge-proxy: cd ${EDGE_TARGET_DIR} && npm install"
+  else
+    echo "[build] edge-proxy: npm install"
+    (cd "${EDGE_TARGET_DIR}" && npm install)
+  fi
+
+  if (( DRY_RUN == 1 )); then
+    echo "[done] dry run complete for state 003"
+  else
+    echo "[done] build phase complete for state 003"
+    echo "[hint] run without --build-only to start services"
+  fi
+  exit 0
+fi
+
+if [[ ! -d "${EDGE_TARGET_DIR}/node_modules" ]]; then
+  echo "[error] edge-proxy build artifacts missing (node_modules)."
+  echo "[hint] run ./scripts/start-state-003-agentic-harness-foundation-generated.sh --build-only"
+  exit 1
+fi
 
 pidfile="${RUN_DIR}/pids/edge-proxy.pid"
 logfile="${RUN_DIR}/logs/edge-proxy.log"
@@ -76,13 +116,13 @@ if nc -z localhost "${EDGE_PROXY_PORT}" >/dev/null 2>&1; then
 fi
 
 if (( DRY_RUN == 1 )); then
-  echo "[dry-run] edge-proxy: cd ${EDGE_TARGET_DIR} && [ -d node_modules ] || npm install; npm run start"
+  echo "[dry-run] edge-proxy: cd ${EDGE_TARGET_DIR} && npm run start"
   echo "[done] dry run complete for state 003"
   exit 0
 fi
 
 echo "[start] edge-proxy"
-nohup /bin/zsh -lc "cd '${EDGE_TARGET_DIR}' && [ -d node_modules ] || npm install; npm run start" >"${logfile}" 2>&1 &
+nohup /bin/zsh -lc "cd '${EDGE_TARGET_DIR}' && npm run start" >"${logfile}" 2>&1 &
 echo "$!" > "${pidfile}"
 
 attempts=60
