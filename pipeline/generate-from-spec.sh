@@ -3,7 +3,6 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${ROOT}/generated}"
-REPO_ROOT="${ROOT}"
 CSV="${ROOT}/catalog/component-spec.csv"
 MANIFEST_DIR="${GENERATED_ROOT}/manifests"
 COMPONENTS_DIR="${GENERATED_ROOT}/code/components"
@@ -39,7 +38,7 @@ while IFS=, read -r component_id kind source_path target_path language framework
     continue
   fi
 
-  source_dir="${REPO_ROOT}/${source_path}"
+  source_dir="${COMPONENTS_DIR}/$(basename "${source_path}")"
   if [[ ! -d "${source_dir}" ]]; then
     echo "[fail] missing synthesized component source for ${component_id}: ${source_dir}"
     exit 1
