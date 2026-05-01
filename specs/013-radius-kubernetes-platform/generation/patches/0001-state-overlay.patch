@@ -335,42 +335,6 @@ diff --git a/tilt-kubernetes-dev-loop/upstream-build-plan.json b/radius-kubernet
 similarity index 100%
 rename from tilt-kubernetes-dev-loop/upstream-build-plan.json
 rename to radius-kubernetes-platform/upstream-build-plan.json
-diff --git a/runtime/ghcr/012-platform-convergence-c3/README.md b/runtime/ghcr/012-platform-convergence-c3/README.md
-deleted file mode 100644
-index 0a19b96..0000000
---- a/runtime/ghcr/012-platform-convergence-c3/README.md
-+++ /dev/null
-@@ -1,12 +0,0 @@
--# GHCR Run Bundle (012-platform-convergence-c3)
--
--This convergence state does not use a compose runtime bundle. Use published images with the generated start script:
--
--```bash
--TRADERX_USE_PUBLISHED_IMAGES=1 \
--TRADERX_PUBLISHED_NAMESPACE=traderx-c3 \
--TRADERX_PUBLISHED_TAG=latest \
--./scripts/start-state-012-platform-convergence-c3-generated.sh --skip-build
--```
--
--The start script will pull published images from `ghcr.io/finos/traderx-c3`, retag them to local expected names, and continue normal cluster startup.
-diff --git a/runtime/ghcr/012-platform-convergence-c3/images.lock b/runtime/ghcr/012-platform-convergence-c3/images.lock
-deleted file mode 100644
-index 64e74b6..0000000
---- a/runtime/ghcr/012-platform-convergence-c3/images.lock
-+++ /dev/null
-@@ -1,12 +0,0 @@
--# GHCR image map for 012-platform-convergence-c3
--account-service=ghcr.io/finos/traderx-c3/account-service:latest
--database=ghcr.io/finos/traderx-c3/database:latest
--ingress=ghcr.io/finos/traderx-c3/ingress:latest
--order-matcher=ghcr.io/finos/traderx-c3/order-matcher:latest
--people-service=ghcr.io/finos/traderx-c3/people-service:latest
--position-service=ghcr.io/finos/traderx-c3/position-service:latest
--price-publisher=ghcr.io/finos/traderx-c3/price-publisher:latest
--reference-data=ghcr.io/finos/traderx-c3/reference-data:latest
--trade-processor=ghcr.io/finos/traderx-c3/trade-processor:latest
--trade-service=ghcr.io/finos/traderx-c3/trade-service:latest
--web-front-end-angular=ghcr.io/finos/traderx-c3/web-front-end-angular:latest
 
 
 diff --git a/scripts/status-state-012-platform-convergence-c3-generated.sh b/scripts/status-state-013-radius-kubernetes-platform-generated.sh
