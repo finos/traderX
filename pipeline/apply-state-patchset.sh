@@ -59,19 +59,17 @@ fi
 
 for patch_file in "${patch_files[@]}"; do
   if [[ -n "${APPLY_DIR_PREFIX}" ]]; then
-    if git -C "${APPLY_SCOPE_ROOT}" apply --recount --check --whitespace=nowarn --directory="${APPLY_DIR_PREFIX}" "${patch_file}" >/dev/null 2>&1; then
-      git -C "${APPLY_SCOPE_ROOT}" apply --recount --whitespace=nowarn --directory="${APPLY_DIR_PREFIX}" "${patch_file}"
-    else
-      echo "[warn] patch context drift detected; retrying with 3-way merge: ${patch_file}"
-      git -C "${APPLY_SCOPE_ROOT}" apply --3way --recount --whitespace=nowarn --directory="${APPLY_DIR_PREFIX}" "${patch_file}"
-    fi
+    git -C "${APPLY_SCOPE_ROOT}" apply --recount --check --whitespace=nowarn --directory="${APPLY_DIR_PREFIX}" "${patch_file}"
   else
-    if git -C "${APPLY_SCOPE_ROOT}" apply --recount --check --whitespace=nowarn "${patch_file}" >/dev/null 2>&1; then
-      git -C "${APPLY_SCOPE_ROOT}" apply --recount --whitespace=nowarn "${patch_file}"
-    else
-      echo "[warn] patch context drift detected; retrying with 3-way merge: ${patch_file}"
-      git -C "${APPLY_SCOPE_ROOT}" apply --3way --recount --whitespace=nowarn "${patch_file}"
-    fi
+    git -C "${APPLY_SCOPE_ROOT}" apply --recount --check --whitespace=nowarn "${patch_file}"
+  fi
+done
+
+for patch_file in "${patch_files[@]}"; do
+  if [[ -n "${APPLY_DIR_PREFIX}" ]]; then
+    git -C "${APPLY_SCOPE_ROOT}" apply --recount --whitespace=nowarn --directory="${APPLY_DIR_PREFIX}" "${patch_file}"
+  else
+    git -C "${APPLY_SCOPE_ROOT}" apply --recount --whitespace=nowarn "${patch_file}"
   fi
   echo "[apply] ${patch_file}"
 done
