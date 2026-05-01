@@ -215,7 +215,10 @@ write_generated_runbook() {
 Start:
 
 ```bash
+# Build/preflight only (no runtime start)
 ./scripts/start-base-uncontainerized-generated.sh --build-only
+
+# Start runtime (will build if needed)
 ./scripts/start-base-uncontainerized-generated.sh
 ```
 
@@ -234,7 +237,10 @@ EOF
 Start:
 
 ```bash
+# Build/preflight only (no runtime start)
 ./scripts/start-state-002-edge-proxy-generated.sh --build-only
+
+# Start runtime (will build if needed)
 ./scripts/start-state-002-edge-proxy-generated.sh
 ```
 
@@ -253,7 +259,10 @@ EOF
 Start:
 
 ```bash
+# Build/preflight only (no runtime start)
 ./scripts/start-state-003-agentic-harness-foundation-generated.sh --build-only
+
+# Start runtime (will build if needed)
 ./scripts/start-state-003-agentic-harness-foundation-generated.sh
 ```
 
@@ -275,10 +284,13 @@ EOF
       cat > "${TARGET_ROOT}/RUN_FROM_GENERATED.md" <<'EOF'
 # Run From Generated (State 004)
 
-Start:
+Start (choose one):
 
 ```bash
+# Full start (build + start)
 ./scripts/start-state-004-containerized-generated.sh
+
+# Fast restart (reuse existing artifacts; skips build)
 ./scripts/start-state-004-containerized-generated.sh --skip-build
 ```
 
@@ -300,10 +312,13 @@ EOF
       cat > "${TARGET_ROOT}/RUN_FROM_GENERATED.md" <<'EOF'
 # Run From Generated (State 005)
 
-Start:
+Start (choose one):
 
 ```bash
+# Full start (build + start)
 ./scripts/start-state-005-postgres-database-replacement-generated.sh
+
+# Fast restart (reuse existing artifacts; skips build)
 ./scripts/start-state-005-postgres-database-replacement-generated.sh --skip-build
 ```
 
@@ -325,10 +340,13 @@ EOF
       cat > "${TARGET_ROOT}/RUN_FROM_GENERATED.md" <<'EOF'
 # Run From Generated (State 006)
 
-Start:
+Start (choose one):
 
 ```bash
+# Full start (build + start)
 ./scripts/start-state-006-messaging-nats-replacement-generated.sh
+
+# Fast restart (reuse existing artifacts; skips build)
 ./scripts/start-state-006-messaging-nats-replacement-generated.sh --skip-build
 ```
 
@@ -350,10 +368,13 @@ EOF
       cat > "${TARGET_ROOT}/RUN_FROM_GENERATED.md" <<'EOF'
 # Run From Generated (State 007)
 
-Start:
+Start (choose one):
 
 ```bash
+# Full start (build + start)
 ./scripts/start-state-007-observability-lgtm-compose-generated.sh
+
+# Fast restart (reuse existing artifacts; skips build)
 ./scripts/start-state-007-observability-lgtm-compose-generated.sh --skip-build
 ```
 
@@ -375,10 +396,13 @@ EOF
       cat > "${TARGET_ROOT}/RUN_FROM_GENERATED.md" <<'EOF'
 # Run From Generated (State 008)
 
-Start:
+Start (choose one):
 
 ```bash
+# Full start (build + start)
 ./scripts/start-state-008-pricing-awareness-market-data-generated.sh
+
+# Fast restart (reuse existing artifacts; skips build)
 ./scripts/start-state-008-pricing-awareness-market-data-generated.sh --skip-build
 ```
 
@@ -400,10 +424,13 @@ EOF
       cat > "${TARGET_ROOT}/RUN_FROM_GENERATED.md" <<'EOF'
 # Run From Generated (State 009)
 
-Start:
+Start (choose one):
 
 ```bash
+# Full start (build + start)
 ./scripts/start-state-009-order-management-matcher-generated.sh
+
+# Fast restart (reuse existing artifacts; skips build)
 ./scripts/start-state-009-order-management-matcher-generated.sh --skip-build
 ```
 
@@ -425,10 +452,13 @@ EOF
       cat > "${TARGET_ROOT}/RUN_FROM_GENERATED.md" <<'EOF'
 # Run From Generated (State 010)
 
-Start:
+Start (choose one):
 
 ```bash
+# Full start (build + start)
 ./scripts/start-state-010-kubernetes-runtime-generated.sh
+
+# Fast restart (reuse existing artifacts; skips build)
 ./scripts/start-state-010-kubernetes-runtime-generated.sh --skip-build
 ```
 
@@ -450,10 +480,13 @@ EOF
       cat > "${TARGET_ROOT}/RUN_FROM_GENERATED.md" <<'EOF'
 # Run From Generated (State 011)
 
-Start:
+Start (choose one):
 
 ```bash
+# Full start (build + start)
 ./scripts/start-state-011-tilt-kubernetes-dev-loop-generated.sh
+
+# Fast restart (reuse existing artifacts; skips build)
 ./scripts/start-state-011-tilt-kubernetes-dev-loop-generated.sh --skip-build
 ```
 
@@ -475,10 +508,13 @@ EOF
       cat > "${TARGET_ROOT}/RUN_FROM_GENERATED.md" <<'EOF'
 # Run From Generated (State 012)
 
-Start:
+Start (choose one):
 
 ```bash
+# Full start (build + start)
 ./scripts/start-state-012-platform-convergence-c3-generated.sh
+
+# Fast restart (reuse existing artifacts; skips build)
 ./scripts/start-state-012-platform-convergence-c3-generated.sh --skip-build
 ```
 
@@ -500,10 +536,13 @@ EOF
       cat > "${TARGET_ROOT}/RUN_FROM_GENERATED.md" <<'EOF'
 # Run From Generated (State 013)
 
-Start:
+Start (choose one):
 
 ```bash
+# Full start (build + start)
 ./scripts/start-state-013-radius-kubernetes-platform-generated.sh
+
+# Fast restart (reuse existing artifacts; skips build)
 ./scripts/start-state-013-radius-kubernetes-platform-generated.sh --skip-build
 ```
 
@@ -525,10 +564,13 @@ EOF
       cat > "${TARGET_ROOT}/RUN_FROM_GENERATED.md" <<'EOF'
 # Run From Generated (State 014)
 
-Start baseline C3 runtime:
+Start baseline C3 runtime (choose one):
 
 ```bash
+# Full start (build + start)
 ./scripts/start-state-014-fdc3-intent-interoperability-generated.sh
+
+# Fast restart (reuse existing artifacts; skips build)
 ./scripts/start-state-014-fdc3-intent-interoperability-generated.sh --skip-build
 ```
 
