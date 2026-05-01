@@ -31,6 +31,12 @@
     "tslib": "^2.7.0",
     "zone.js": "^0.15.0"
   },
+  "overrides": {
+    "postcss": "^8.5.13",
+    "serialize-javascript": "^7.0.5",
+    "tar": "^7.5.13",
+    "uuid": "^14.0.0"
+  },
   "devDependencies": {
     "@angular-devkit/build-angular": "^19.2.20",
     "@angular/cli": "^19.2.20",
