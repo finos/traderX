@@ -51,6 +51,8 @@
 - NFR-217: From state `002` onward, `HeaderComponent` SHALL inject `StateMetadataService` and consume `metadata$` for state-id title and `System` menu metadata wiring.
 - NFR-218: The `System` menu + state-aware title pattern SHALL be treated as a cross-cutting UI contract; state-specific additions (for example new tabs or status pills) MUST compose with that contract and MUST NOT replace it.
 - NFR-219: Smoke suites for states `002` through `014` SHALL assert presence of the `System` menu toggle, `API Explorer` + `About` links, conditional `Status` link, and state-id title rendering contract via shared web UX contract checks.
+- NFR-220: Generated `assets/state-ui.json` status checks SHALL be state-lineage aware: they MUST include all active runtime services introduced by earlier states (for example `price-publisher` from `008+`, `order-matcher` from `009+`) and MUST remove superseded checks when a runtime substrate is replaced (for example `trade-feed` after `006` NATS migration).
+- NFR-221: Generation SHALL fail when UI status metadata is inconsistent with lineage invariants (missing required service checks, stale superseded checks, duplicate ids, or malformed check definitions).
 
 ## Success Criteria
 
@@ -65,6 +67,7 @@
 - SC-209: Startup script smoke checks verify generated-state detection messaging for both match and mismatch cases, including opt-in auto-regeneration flow.
 - SC-210: Publishing snapshots and generated CI metadata for states `004+` excludes the Node `edge-proxy` module unless a later state spec explicitly restores it.
 - SC-211: Header override regressions that drop `StateMetadataService` wiring, state-id title rendering, or required `System` menu items fail state smoke checks before publish.
+- SC-212: Generation-time validation fails for any state whose generated status metadata omits required runtime checks (including `price-publisher`/`order-matcher` where applicable) or retains deprecated checks (for example `trade-feed` after state `006`).
 
 ## Generation + Runtime Entry Points
 

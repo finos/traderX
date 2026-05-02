@@ -112,24 +112,42 @@ const statusEnabled = stateNo >= 2;
 const proxyMode = stateNo >= 2;
 const baseOrigin = proxyMode ? '' : 'http://localhost';
 
-const statusChecks = proxyMode
-  ? [
-      { id: 'edge-health', name: 'Edge/Ingress Health', url: '/health', expectedStatuses: [200] },
-      { id: 'account-service', name: 'Account Service', url: '/account-service/account/22214', expectedStatuses: [200] },
-      { id: 'reference-data', name: 'Reference Data', url: '/reference-data/stocks', expectedStatuses: [200] },
-      { id: 'position-service', name: 'Position Service', url: '/position-service/health/alive', expectedStatuses: [200] },
-      { id: 'trade-service', name: 'Trade Service', url: '/trade-service/v3/api-docs', expectedStatuses: [200] },
-      { id: 'people-service', name: 'People Service', url: '/people-service/People/GetPerson?LogonId=user01', expectedStatuses: [200] },
-      { id: 'trade-feed', name: 'Trade Feed', url: '/socket.io/?EIO=4&transport=polling', expectedStatuses: [200] },
-    ]
-  : [
-      { id: 'account-service', name: 'Account Service', url: `${baseOrigin}:18088/account/22214`, expectedStatuses: [200] },
-      { id: 'reference-data', name: 'Reference Data', url: `${baseOrigin}:18085/stocks`, expectedStatuses: [200] },
-      { id: 'position-service', name: 'Position Service', url: `${baseOrigin}:18090/health/alive`, expectedStatuses: [200] },
-      { id: 'trade-service', name: 'Trade Service', url: `${baseOrigin}:18092/v3/api-docs`, expectedStatuses: [200] },
-      { id: 'people-service', name: 'People Service', url: `${baseOrigin}:18089/People/GetPerson?LogonId=user01`, expectedStatuses: [200] },
-      { id: 'trade-feed', name: 'Trade Feed', url: `${baseOrigin}:18086/socket.io/?EIO=4&transport=polling`, expectedStatuses: [200] },
-    ];
+const statusChecks = [];
+const pushCheck = (id, name, url, expectedStatuses) => {
+  statusChecks.push({ id, name, url, expectedStatuses });
+};
+
+if (proxyMode) {
+  pushCheck('edge-health', 'Edge/Ingress Health', '/health', [200]);
+  pushCheck('account-service', 'Account Service', '/account-service/account/22214', [200]);
+  pushCheck('reference-data', 'Reference Data', '/reference-data/stocks', [200]);
+  pushCheck('position-service', 'Position Service', '/position-service/health/alive', [200]);
+  pushCheck('trade-service', 'Trade Service', '/trade-service/v3/api-docs', [200]);
+  pushCheck('people-service', 'People Service', '/people-service/People/GetPerson?LogonId=user01', [200]);
+
+  // State 006 replaces Socket.IO trade-feed with NATS.
+  if (stateNo < 6) {
+    pushCheck('trade-feed', 'Trade Feed (Socket.IO)', '/socket.io/?EIO=4&transport=polling', [200]);
+  } else {
+    // Plain HTTP probe against WS endpoint is expected to return handshake error.
+    pushCheck('nats-ws', 'Message Bus WS Endpoint', '/nats-ws', [400]);
+  }
+
+  if (stateNo >= 8) {
+    pushCheck('price-publisher', 'Price Publisher', '/price-publisher/health', [200]);
+  }
+
+  if (stateNo >= 9) {
+    pushCheck('order-matcher', 'Order Matcher', '/order-matcher/health', [200]);
+  }
+} else {
+  pushCheck('account-service', 'Account Service', `${baseOrigin}:18088/account/22214`, [200]);
+  pushCheck('reference-data', 'Reference Data', `${baseOrigin}:18085/stocks`, [200]);
+  pushCheck('position-service', 'Position Service', `${baseOrigin}:18090/health/alive`, [200]);
+  pushCheck('trade-service', 'Trade Service', `${baseOrigin}:18092/v3/api-docs`, [200]);
+  pushCheck('people-service', 'People Service', `${baseOrigin}:18089/People/GetPerson?LogonId=user01`, [200]);
+  pushCheck('trade-feed', 'Trade Feed (Socket.IO)', `${baseOrigin}:18086/socket.io/?EIO=4&transport=polling`, [200]);
+}
 
 const previousStates = buildLineage(activeState).map((entry) => {
   const branch = entry.publish?.branch || '';

@@ -1,0 +1,52 @@
+<div class="about-page" *ngIf="metadata$ | async as metadata">
+    <h2>About This TraderX State</h2>
+    <p class="about-lead">
+        State-aware metadata is generated at build time from repository state lineage contracts.
+    </p>
+
+    <section class="about-card">
+        <h3>Active State</h3>
+        <dl class="about-grid">
+            <dt>State ID</dt>
+            <dd>{{ metadata.stateId }}</dd>
+            <dt>State Title</dt>
+            <dd>{{ metadata.stateTitle }}</dd>
+            <dt>Track</dt>
+            <dd>{{ metadata.stateTrack }}</dd>
+            <dt>Generated</dt>
+            <dd>{{ formatGeneratedDate(metadata.generatedAtUtc) }}</dd>
+            <dt>Source Branch</dt>
+            <dd>
+                <a *ngIf="metadata.sourceBranchUrl; else sourceBranchText" [href]="metadata.sourceBranchUrl" target="_blank" rel="noopener noreferrer">
+                    {{ metadata.sourceBranch }}
+                </a>
+                <ng-template #sourceBranchText>{{ metadata.sourceBranch }}</ng-template>
+            </dd>
+        </dl>
+    </section>
+
+    <section class="about-card" *ngIf="metadata.previousStates.length > 0">
+        <h3>Lineage</h3>
+        <p class="about-lineage-link" *ngIf="metadata.lineageLinkUrl">
+            <a [href]="metadata.lineageLinkUrl" target="_blank" rel="noopener noreferrer">Open lineage map</a>
+        </p>
+        <ul class="lineage-list">
+            <li *ngFor="let entry of metadata.previousStates">
+                <strong>{{ entry.id }}</strong>
+                <span> - {{ entry.title }}</span>
+                <span class="lineage-summary">{{ entry.summary }}</span>
+                <span class="lineage-branch">
+                    (<a *ngIf="entry.sourceBranchUrl; else branchText" [href]="entry.sourceBranchUrl" target="_blank" rel="noopener noreferrer">{{ entry.sourceBranch }}</a>
+                    <ng-template #branchText>{{ entry.sourceBranch }}</ng-template>)
+                </span>
+            </li>
+        </ul>
+    </section>
+
+    <section class="about-card">
+        <h3>Tools</h3>
+        <p>
+            <a [href]="metadata.apiExplorerUrl">Open API explorer</a>
+        </p>
+    </section>
+</div>
