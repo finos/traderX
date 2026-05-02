@@ -16,9 +16,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 @Service
+@ConditionalOnProperty(
+    name = "order.matcher.pricing-subscriber.enabled",
+    havingValue = "true",
+    matchIfMissing = true
+)
 public class PricingNatsSubscriberService implements InitializingBean, DisposableBean {
     private static final Logger log = LoggerFactory.getLogger(PricingNatsSubscriberService.class);
 

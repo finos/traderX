@@ -279,6 +279,12 @@ EOF
   else
     printf 'order.matcher.publisher=noop\n' > "${test_app_props}"
   fi
+
+  if rg -q '^order.matcher.pricing-subscriber.enabled=' "${test_app_props}" 2>/dev/null; then
+    perl -0pi -e 's/^order\.matcher\.pricing-subscriber\.enabled=.*$/order.matcher.pricing-subscriber.enabled=false/m' "${test_app_props}"
+  else
+    printf 'order.matcher.pricing-subscriber.enabled=false\n' >> "${test_app_props}"
+  fi
 }
 
 require_file "${COMPOSE_FILE}"
