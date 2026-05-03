@@ -474,6 +474,7 @@ index 0000000..7c23724
 +  }
 +  implementation 'ch.qos.logback:logback-classic:1.5.32'
 +  implementation 'org.apache.logging.log4j:log4j-api:2.25.4'
++  implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.25.4'
 +  implementation 'org.apache.commons:commons-lang3:3.20.0'
 +
 +  testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -2700,6 +2701,7 @@ index 0000000..060d4f8
 +  }
 +  implementation 'ch.qos.logback:logback-classic:1.5.32'
 +  implementation 'org.apache.logging.log4j:log4j-api:2.25.4'
++  implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.25.4'
 +  implementation 'org.apache.commons:commons-lang3:3.20.0'
 +
 +  testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -10798,6 +10800,7 @@ index 0000000..10c246e
 +  }
 +  implementation 'ch.qos.logback:logback-classic:1.5.32'
 +  implementation 'org.apache.logging.log4j:log4j-api:2.25.4'
++  implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.25.4'
 +  implementation 'org.apache.commons:commons-lang3:3.20.0'
 +
 +  testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -12204,6 +12207,7 @@ index 0000000..5693071
 +  }
 +  implementation 'ch.qos.logback:logback-classic:1.5.32'
 +  implementation 'org.apache.logging.log4j:log4j-api:2.25.4'
++  implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.25.4'
 +  implementation 'org.apache.commons:commons-lang3:3.20.0'
 +
 +  testImplementation 'org.springframework.boot:spring-boot-starter-test'
