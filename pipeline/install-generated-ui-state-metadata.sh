@@ -109,6 +109,8 @@ const repoBaseUrl = deriveRepoBaseUrl();
 const activeBranch = activeState.publish?.branch || '';
 const stateNo = stateNumber(activeState.id);
 const statusEnabled = stateNo >= 2;
+const apiExplorerEnabled = stateNo >= 2;
+const pubSubInspectorEnabled = stateNo >= 8;
 const proxyMode = stateNo >= 2;
 const baseOrigin = proxyMode ? '' : 'http://localhost';
 
@@ -169,8 +171,11 @@ const metadata = {
   sourceBranchUrl: repoBaseUrl && activeBranch ? `${repoBaseUrl}/tree/${branchUrlEncode(activeBranch)}` : '',
   lineageLinkUrl: repoBaseUrl ? `${repoBaseUrl}/blob/main/docs/learning-paths/index.md` : '',
   apiExplorerUrl: '/api/docs',
+  pubSubInspectorUrl: '/api/docs/pubsub-inspector.html',
   features: {
     statusPage: statusEnabled,
+    apiExplorer: apiExplorerEnabled,
+    pubSubInspector: pubSubInspectorEnabled,
   },
   previousStates,
   statusChecks,

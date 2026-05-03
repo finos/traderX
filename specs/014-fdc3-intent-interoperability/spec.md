@@ -32,7 +32,7 @@
   - tab `Two`: news-oriented view.
 - FR-01414: The feature pack and generated state README must include an explicit operator demo script with ordered steps and expected outcomes for the two-tab layout.
 - FR-01415: FDC3 integration must not regress inherited realtime market-data behavior: price-aware views continue to use snapshot bootstrap + stream updates with server-time freshness ordering, and trade/position/order blotters remain push-driven after REST bootstrap.
-- FR-01416: The state-specific header override in this feature SHALL retain the inherited System menu contract (API Explorer + About + conditional Status) and state-id title rendering while adding FDC3 status affordances.
+- FR-01416: The state-specific header override in this feature SHALL retain the inherited System menu contract (About + conditional Status + conditional API Explorer + conditional Pub/Sub Inspector) and state-id title rendering while adding FDC3 status affordances.
 
 ## Non-Functional Requirements
 

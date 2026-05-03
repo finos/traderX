@@ -45,8 +45,11 @@
 
     <section class="about-card">
         <h3>Tools</h3>
-        <p>
+        <p *ngIf="metadata.features.apiExplorer">
             <a [href]="metadata.apiExplorerUrl">Open API explorer</a>
+        </p>
+        <p *ngIf="metadata.features.pubSubInspector">
+            <a [href]="metadata.pubSubInspectorUrl">Open Pub/Sub inspector</a>
         </p>
     </section>
 </div>

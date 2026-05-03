@@ -91,14 +91,16 @@ require_pattern "${HEADER_HTML}" "class=\"system-group\"" "expected right-aligne
 require_pattern "${HEADER_TS}" "isSystemMenuOpen" "expected internal System dropdown state in header component"
 require_pattern "${HEADER_HTML}" '\(click\)="toggleSystemMenu\(\$event\)"' "expected Angular-driven System dropdown toggle"
 require_pattern "${HEADER_HTML}" "\\[href\\]=\"metadata\\.apiExplorerUrl\"" "expected API explorer link in System dropdown"
+require_pattern "${HEADER_HTML}" "\\[href\\]=\"metadata\\.pubSubInspectorUrl\"" "expected Pub/Sub inspector link in System dropdown"
 require_pattern "${HEADER_HTML}" "routerLink=\"/about\"" "expected About link in System dropdown"
 require_pattern "${HEADER_HTML}" "routerLink=\"/status\"" "expected Status link in System dropdown"
 require_pattern "${HEADER_HTML}" "class=\"finos-logo\"" "expected FINOS logo anchored at right side"
-require_pattern "${HEADER_HTML}" "class=\"nav nav-tabs mt-3 functional-tabs\"" "expected separate functional tab row"
+require_pattern "${HEADER_HTML}" "class=\"[^\"]*nav[^\"]*nav-tabs[^\"]*functional-tabs[^\"]*\"" "expected separate functional tab row"
 require_pattern "${ROUTING_TS}" "path: 'about'" "expected about route registration"
 require_pattern "${ROUTING_TS}" "path: 'status'" "expected status route registration"
 require_pattern "${ABOUT_HTML}" "Open lineage map" "expected lineage link in about page"
 require_pattern "${ABOUT_HTML}" "Open API explorer|Open API Explorer|Open API explorer" "expected API explorer link in about page"
+require_pattern "${ABOUT_HTML}" "Open Pub/Sub inspector|Open Pub/Sub Inspector|Open Pub/Sub inspector" "expected Pub/Sub inspector link in about page"
 require_pattern "${STATUS_TS}" "statusChecks" "expected status checks metadata wiring"
 require_pattern "${STATUS_HTML}" "Service Status" "expected status page heading"
 
@@ -111,14 +113,18 @@ if command -v jq >/dev/null 2>&1; then
   state_id="$(jq -r '.stateId // empty' "${STATE_UI_JSON}")"
   generated_at="$(jq -r '.generatedAtUtc // empty' "${STATE_UI_JSON}")"
   source_branch="$(jq -r '.sourceBranch // empty' "${STATE_UI_JSON}")"
-  if [[ -z "${state_id}" || -z "${generated_at}" || -z "${source_branch}" ]]; then
-    echo "[error] UI metadata missing required fields (stateId/generatedAtUtc/sourceBranch)"
+  api_explorer_url="$(jq -r '.apiExplorerUrl // empty' "${STATE_UI_JSON}")"
+  pubsub_inspector_url="$(jq -r '.pubSubInspectorUrl // empty' "${STATE_UI_JSON}")"
+  if [[ -z "${state_id}" || -z "${generated_at}" || -z "${source_branch}" || -z "${api_explorer_url}" || -z "${pubsub_inspector_url}" ]]; then
+    echo "[error] UI metadata missing required fields (stateId/generatedAtUtc/sourceBranch/apiExplorerUrl/pubSubInspectorUrl)"
     exit 1
   fi
 else
   require_pattern "${STATE_UI_JSON}" "\"stateId\"" "expected stateId in ui metadata"
   require_pattern "${STATE_UI_JSON}" "\"generatedAtUtc\"" "expected generatedAtUtc in ui metadata"
   require_pattern "${STATE_UI_JSON}" "\"sourceBranch\"" "expected sourceBranch in ui metadata"
+  require_pattern "${STATE_UI_JSON}" "\"apiExplorerUrl\"" "expected apiExplorerUrl in ui metadata"
+  require_pattern "${STATE_UI_JSON}" "\"pubSubInspectorUrl\"" "expected pubSubInspectorUrl in ui metadata"
 fi
 
 echo "[done] web-front-end-angular baseline UX contract checks passed"

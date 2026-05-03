@@ -74,6 +74,29 @@ for (const metadataPath of existing) {
   if (stateNo < 2 && metadata.features?.statusPage !== false) {
     fail(`${metadataPath}: expected features.statusPage=false for state ${stateId}`);
   }
+  if (stateNo >= 2 && metadata.features?.apiExplorer !== true) {
+    fail(`${metadataPath}: expected features.apiExplorer=true for state ${stateId}`);
+  }
+  if (stateNo < 2 && metadata.features?.apiExplorer !== false) {
+    fail(`${metadataPath}: expected features.apiExplorer=false for state ${stateId}`);
+  }
+  if (stateNo >= 8 && metadata.features?.pubSubInspector !== true) {
+    fail(`${metadataPath}: expected features.pubSubInspector=true for state ${stateId}`);
+  }
+  if (stateNo < 8 && metadata.features?.pubSubInspector !== false) {
+    fail(`${metadataPath}: expected features.pubSubInspector=false for state ${stateId}`);
+  }
+  if (metadata.features?.apiExplorer === true && (typeof metadata.apiExplorerUrl !== 'string' || metadata.apiExplorerUrl.trim() === '')) {
+    fail(`${metadataPath}: expected non-empty apiExplorerUrl when features.apiExplorer=true`);
+  }
+  if (metadata.features?.pubSubInspector === true) {
+    if (typeof metadata.pubSubInspectorUrl !== 'string' || metadata.pubSubInspectorUrl.trim() === '') {
+      fail(`${metadataPath}: expected non-empty pubSubInspectorUrl when features.pubSubInspector=true`);
+    }
+    if (!metadata.pubSubInspectorUrl.includes('pubsub-inspector.html')) {
+      fail(`${metadataPath}: expected pubSubInspectorUrl to reference pubsub-inspector.html`);
+    }
+  }
 
   if (ids.length !== idSet.size) {
     fail(`${metadataPath}: duplicate statusChecks ids detected`);

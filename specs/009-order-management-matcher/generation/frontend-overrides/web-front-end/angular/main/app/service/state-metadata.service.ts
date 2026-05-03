@@ -52,8 +52,11 @@ const DEFAULT_METADATA: StateUiMetadata = {
     sourceBranchUrl: '',
     lineageLinkUrl: '',
     apiExplorerUrl: '/api/docs',
+    pubSubInspectorUrl: '/api/docs/pubsub-inspector.html',
     features: {
-        statusPage: false
+        statusPage: false,
+        apiExplorer: false,
+        pubSubInspector: false
     },
     previousStates: [],
     statusChecks: DEFAULT_STATUS_CHECKS

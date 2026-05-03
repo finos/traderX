@@ -22,8 +22,11 @@ export interface StateUiMetadata {
     sourceBranchUrl: string;
     lineageLinkUrl: string;
     apiExplorerUrl: string;
+    pubSubInspectorUrl: string;
     features: {
         statusPage: boolean;
+        apiExplorer: boolean;
+        pubSubInspector: boolean;
     };
     previousStates: LineageStateEntry[];
     statusChecks: StatusCheckDefinition[];

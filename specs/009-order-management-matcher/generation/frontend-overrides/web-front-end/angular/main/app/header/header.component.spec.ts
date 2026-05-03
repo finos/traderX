@@ -35,7 +35,12 @@ describe('HeaderComponent', () => {
               sourceBranchUrl: 'https://example.test',
               lineageLinkUrl: 'https://example.test/lineage',
               apiExplorerUrl: '/api/docs',
-              features: { statusPage: true },
+              pubSubInspectorUrl: '/api/docs/pubsub-inspector.html',
+              features: {
+                statusPage: true,
+                apiExplorer: true,
+                pubSubInspector: true
+              },
               previousStates: [],
               statusChecks: []
             }).asObservable()

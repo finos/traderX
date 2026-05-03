@@ -20,13 +20,17 @@
                         System
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" [class.show]="isSystemMenuOpen">
-                        <li><a class="dropdown-item" [href]="metadata.apiExplorerUrl" (click)="closeSystemMenu()">API Explorer</a></li>
-                        <li><hr class="dropdown-divider"></li>
                         <li>
                             <a class="dropdown-item" routerLink="/about" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeSystemMenu()">About</a>
                         </li>
                         <li *ngIf="metadata.features.statusPage">
                             <a class="dropdown-item" routerLink="/status" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeSystemMenu()">Status</a>
+                        </li>
+                        <li *ngIf="metadata.features.apiExplorer">
+                            <a class="dropdown-item" [href]="metadata.apiExplorerUrl" (click)="closeSystemMenu()">API Explorer</a>
+                        </li>
+                        <li *ngIf="metadata.features.pubSubInspector">
+                            <a class="dropdown-item" [href]="metadata.pubSubInspectorUrl" (click)="closeSystemMenu()">Pub/Sub Inspector</a>
                         </li>
                     </ul>
                 </div>

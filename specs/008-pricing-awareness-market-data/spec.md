@@ -55,6 +55,8 @@
 - FR-1028: Pub/sub inspector in-memory feed buffer SHALL cap at 2000 messages with oldest-first eviction while retaining an uncapped session-total counter.
 - FR-1029: Pub/sub inspector SHALL support feed filter, pause/resume display updates, and clear (buffer reset + per-subscription counter reset).
 - FR-1030: API explorer index SHALL link to the inspector using a runtime-computed relative URL that resolves correctly under ingress sub-path mounting.
+- FR-1031: For states where pub/sub inspector is enabled, main-app `System` menu and About-page `Tools` section SHALL include a Pub/Sub Inspector link bound to generated state metadata (`StateUiMetadata.pubSubInspectorUrl`).
+- FR-1032: API explorer and pub/sub inspector pages SHALL include a top-right navigation link back to the TraderX main app web root (`/`).
 
 ## Non-Functional Requirements
 
@@ -87,3 +89,4 @@
 - SC-1011: Inspector-generated topic buttons match the state's cumulative `system/messaging-subject-map.md`.
 - SC-1012: Inspector feed displays delivery topic plus wildcard subscription context (`pricing.*`-style) where applicable.
 - SC-1013: Inspector enforces 2000-message buffer cap with FIFO eviction while session-total counter continues increasing.
+- SC-1014: API explorer and pub/sub inspector each expose a working top-right link to TraderX main app web root (`/`), and main-app metadata-driven menus/pages expose inspector link when enabled.

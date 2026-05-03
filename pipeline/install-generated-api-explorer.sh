@@ -77,6 +77,11 @@ cat > "${EXPLORER_ROOT}/index.html" <<'EOF'
         padding: 6px 10px;
         white-space: nowrap;
       }
+      .topbar-links {
+        align-items: center;
+        display: inline-flex;
+        gap: 8px;
+      }
       .topbar a:hover {
         background: rgba(159, 208, 255, 0.18);
       }
@@ -89,7 +94,10 @@ cat > "${EXPLORER_ROOT}/index.html" <<'EOF'
         TraderX API Docs
         <small id="state-label"></small>
       </div>
-      <a id="pubsub-inspector-link" href="#">Open Pub/Sub Inspector</a>
+      <div class="topbar-links">
+        <a href="/">Back to App</a>
+        <a id="pubsub-inspector-link" href="#">Open Pub/Sub Inspector</a>
+      </div>
     </div>
     <div id="swagger-ui"></div>
     <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
@@ -427,6 +435,7 @@ cat > "${EXPLORER_ROOT}/pubsub-inspector.html" <<'EOF'
       </div>
       <div>
         <a href="./">Back to API Docs</a>
+        <a href="/" style="margin-left:8px;">Back to App</a>
       </div>
     </div>
     <div class="shell">

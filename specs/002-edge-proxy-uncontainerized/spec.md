@@ -24,11 +24,13 @@
 - FR-207: The `Status` page SHALL render uptime/health status for each runtime service participating in this state.
 - FR-208: Status-page service status data SHALL be obtained through edge-accessible health/status sources so the page works from the single edge endpoint.
 - FR-209: From state `002` onward, the header top-right area SHALL include a `System` dropdown menu.
-- FR-210: The `System` menu SHALL include an `API Explorer` entry bound to `StateUiMetadata.apiExplorerUrl`.
+- FR-210: The `System` menu SHALL include an `API Explorer` entry bound to `StateUiMetadata.apiExplorerUrl` when `StateUiMetadata.features.apiExplorer` is `true`.
 - FR-211: The `System` menu SHALL include an `About` entry routing to `/about`.
 - FR-212: The `System` menu SHALL include a `Status` entry routing to `/status` when `StateUiMetadata.features.statusPage` is `true`, and SHALL hide the entry when that flag is `false`.
 - FR-213: The header title SHALL always render the active state id from `StateUiMetadata.stateId` (not a hard-coded title string).
 - FR-214: State-specific header overrides in `generation/frontend-overrides/web-front-end/angular/main/app/header/` SHALL preserve the `System` menu items and state-id title behavior unless a later approved spec explicitly supersedes one or more of these requirements.
+- FR-215: The `System` menu SHALL include an `API Explorer` entry only when `StateUiMetadata.features.apiExplorer` is `true`.
+- FR-216: The `System` menu SHALL include a `Pub/Sub Inspector` entry only when `StateUiMetadata.features.pubSubInspector` is `true`; when present it SHALL navigate via `StateUiMetadata.pubSubInspectorUrl`.
 
 ## Non-Functional Requirements
 
@@ -50,7 +52,7 @@
 - NFR-216: Generated-state snapshot pruning and generated CI module discovery SHALL be state-scoped; components not in the active state's runtime inventory (for example legacy Node edge-proxy in `004+` states) MUST be excluded unless explicitly reintroduced by a later approved state spec.
 - NFR-217: From state `002` onward, `HeaderComponent` SHALL inject `StateMetadataService` and consume `metadata$` for state-id title and `System` menu metadata wiring.
 - NFR-218: The `System` menu + state-aware title pattern SHALL be treated as a cross-cutting UI contract; state-specific additions (for example new tabs or status pills) MUST compose with that contract and MUST NOT replace it.
-- NFR-219: Smoke suites for states `002` through `014` SHALL assert presence of the `System` menu toggle, `API Explorer` + `About` links, conditional `Status` link, and state-id title rendering contract via shared web UX contract checks.
+- NFR-219: Smoke suites for states `002` through `014` SHALL assert presence of the `System` menu toggle, `About` link, conditional `Status` link, conditional `API Explorer` link, conditional `Pub/Sub Inspector` link, and state-id title rendering contract via shared web UX contract checks.
 - NFR-220: Generated `assets/state-ui.json` status checks SHALL be state-lineage aware: they MUST include all active runtime services introduced by earlier states (for example `price-publisher` from `008+`, `order-matcher` from `009+`) and MUST remove superseded checks when a runtime substrate is replaced (for example `trade-feed` after `006` NATS migration).
 - NFR-221: Generation SHALL fail when UI status metadata is inconsistent with lineage invariants (missing required service checks, stale superseded checks, duplicate ids, or malformed check definitions).
 - NFR-222: Before generated-state branch commit/push, publish automation SHALL enforce a prepublish CI-parity gate that validates contracts, dependency/version targets, lineage/UI invariants, module compile preflight, Node license policy, container image buildability, and dependency CVE scanning; gate failures MUST block branch generation/publish unless an explicit operator override is provided.
@@ -63,7 +65,7 @@
 - SC-204: Generated snapshots from this state lineage contain required CI workflow files and scanner suppression files with component-complete coverage.
 - SC-205: Generated-state publish fails prior to commit/push when compile preflight fails for any generated module in scope.
 - SC-206: After state startup, API explorer is reachable at `http://localhost:18080/api/docs` and interactive requests route through prefixed service paths.
-- SC-207: Edge-routed UI smoke tests verify header title includes `002-edge-proxy-uncontainerized`, `About` page metadata renders expected lineage/source fields, and API explorer link is available.
+- SC-207: Edge-routed UI smoke tests verify header title includes `002-edge-proxy-uncontainerized`, `About` page metadata renders expected lineage/source fields, and conditional system-menu tooling links (API explorer + pub/sub inspector where enabled) are available.
 - SC-208: Edge-routed UI smoke tests verify `Status` page is reachable and shows per-service uptime/health entries for this state.
 - SC-209: Startup script smoke checks verify generated-state detection messaging for both match and mismatch cases, including opt-in auto-regeneration flow.
 - SC-210: Publishing snapshots and generated CI metadata for states `004+` excludes the Node `edge-proxy` module unless a later state spec explicitly restores it.

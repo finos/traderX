@@ -40,6 +40,10 @@ printf '%s' "${index_html}" | rg -q 'window\.location\.href\.replace\(/\\/\[\^/\
   echo "[error] expected computed relative inspector URL logic in /api/docs/ index"
   exit 1
 }
+printf '%s' "${index_html}" | rg -q 'href="/"' || {
+  echo "[error] expected back-to-app link to / in /api/docs/ index"
+  exit 1
+}
 
 echo "[check] pubsub inspector static page"
 inspector_html="$(curl -fsS "${INGRESS_URL}/api/docs/pubsub-inspector.html")"
@@ -61,6 +65,10 @@ printf '%s' "${inspector_html}" | rg -q 'id="clear-btn"' || {
 }
 printf '%s' "${inspector_html}" | rg -q './vendor/nats\.ws/nats\.js' || {
   echo "[error] expected local vendored nats.ws asset in pubsub inspector"
+  exit 1
+}
+printf '%s' "${inspector_html}" | rg -q 'href="/"' || {
+  echo "[error] expected back-to-app link to / in pubsub inspector"
   exit 1
 }
 if printf '%s' "${inspector_html}" | rg -qi 'unpkg|jsdelivr|skypack|cdn'; then
