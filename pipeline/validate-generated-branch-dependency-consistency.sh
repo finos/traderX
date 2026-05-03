@@ -130,7 +130,7 @@ assert_target_any_scope() {
 
 state_query='.states[] | select(.generation.mode == "implemented")'
 if [[ -n "${STATE_FILTER}" ]]; then
-  state_query+=" | select((\"${STATE_FILTER}\" | split(\",\") | index(.id)))"
+  state_query+=" | select(.id as \$state_id | (\"${STATE_FILTER}\" | split(\",\") | index(\$state_id)))"
 fi
 
 missing=0
