@@ -188,7 +188,7 @@ cat > "${EXPLORER_ROOT}/index.html" <<'EOF'
         const inspectorLink = document.getElementById('pubsub-inspector-link');
         if (inspectorLink) {
           const base = window.location.href.replace(/\/[^/]*$/, '/');
-          inspectorLink.href = `${base}pubsub-inspector.html`;
+          inspectorLink.href = `${base}pubsub-inspector`;
         }
 
         window.ui = SwaggerUIBundle({
@@ -764,6 +764,10 @@ cat > "${EXPLORER_ROOT}/pubsub-inspector.html" <<'EOF'
   </body>
 </html>
 EOF
+
+# Keep a no-extension alias to avoid relative redirect pitfalls behind
+# clean-URL static servers while preserving direct .html compatibility.
+cp "${EXPLORER_ROOT}/pubsub-inspector.html" "${EXPLORER_ROOT}/pubsub-inspector"
 
 ROOT="${ROOT}" STATE_ID="${STATE_ID}" TARGET_ROOT="${TARGET_ROOT}" EXPLORER_ROOT="${EXPLORER_ROOT}" node <<'NODE'
 const fs = require('node:fs');

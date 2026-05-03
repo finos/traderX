@@ -32,7 +32,7 @@ fi
 
 echo "[check] api explorer index route"
 index_html="$(curl -fsS "${INGRESS_URL}/api/docs/")"
-printf '%s' "${index_html}" | rg -q 'pubsub-inspector\.html' || {
+printf '%s' "${index_html}" | rg -q 'pubsub-inspector' || {
   echo "[error] expected pubsub inspector link in /api/docs/ index"
   exit 1
 }
@@ -45,8 +45,8 @@ printf '%s' "${index_html}" | rg -q 'href="/"' || {
   exit 1
 }
 
-echo "[check] pubsub inspector static page"
-inspector_html="$(curl -fsS "${INGRESS_URL}/api/docs/pubsub-inspector.html")"
+echo "[check] pubsub inspector canonical route"
+inspector_html="$(curl -fsS "${INGRESS_URL}/api/docs/pubsub-inspector")"
 printf '%s' "${inspector_html}" | rg -q 'MAX_BUFFER = 2000' || {
   echo "[error] expected 2000 message buffer cap in pubsub inspector"
   exit 1
@@ -75,6 +75,12 @@ if printf '%s' "${inspector_html}" | rg -qi 'unpkg|jsdelivr|skypack|cdn'; then
   echo "[error] pubsub inspector must not depend on CDN assets"
   exit 1
 fi
+
+echo "[check] pubsub inspector .html compatibility route"
+curl -fsS "${INGRESS_URL}/api/docs/pubsub-inspector.html" >/dev/null || {
+  echo "[error] expected /api/docs/pubsub-inspector.html compatibility route"
+  exit 1
+}
 
 echo "[check] api explorer catalog messaging subjects"
 catalog_file="$(mktemp)"

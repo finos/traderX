@@ -64,5 +64,5 @@
 - SC-01309: Generated branch artifacts include `C2` build/publish workflow and GHCR run-bundle assets.
 - SC-01310: `pipeline/validate-generated-state-contracts.sh` fails on generated snapshots that include `order-matcher` without `OrderBook` schema and passes when the contract is present.
 - SC-01311: Smoke checks validate that open-order views update in real time on create/auto-fill/cancel/force-fill via `/accounts/{accountId}/orders` and `/orders`, without periodic `GET /orders` polling traffic.
-- SC-01312: Smoke checks validate `/api/docs/pubsub-inspector.html` availability and topic metadata coverage against `system/messaging-subject-map.md`.
+- SC-01312: Smoke checks validate `/api/docs/pubsub-inspector` availability (`.html` compatibility path included) and topic metadata coverage against `system/messaging-subject-map.md`.
 - SC-01313: Smoke checks validate that the generated frontend still satisfies the inherited state-aware header/System-menu contract after the `Admin` tab extension.

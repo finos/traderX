@@ -171,7 +171,7 @@ const metadata = {
   sourceBranchUrl: repoBaseUrl && activeBranch ? `${repoBaseUrl}/tree/${branchUrlEncode(activeBranch)}` : '',
   lineageLinkUrl: repoBaseUrl ? `${repoBaseUrl}/blob/main/docs/learning-paths/index.md` : '',
   apiExplorerUrl: '/api/docs',
-  pubSubInspectorUrl: '/api/docs/pubsub-inspector.html',
+  pubSubInspectorUrl: '/api/docs/pubsub-inspector',
   features: {
     statusPage: statusEnabled,
     apiExplorer: apiExplorerEnabled,

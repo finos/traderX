@@ -93,8 +93,8 @@ for (const metadataPath of existing) {
     if (typeof metadata.pubSubInspectorUrl !== 'string' || metadata.pubSubInspectorUrl.trim() === '') {
       fail(`${metadataPath}: expected non-empty pubSubInspectorUrl when features.pubSubInspector=true`);
     }
-    if (!metadata.pubSubInspectorUrl.includes('pubsub-inspector.html')) {
-      fail(`${metadataPath}: expected pubSubInspectorUrl to reference pubsub-inspector.html`);
+    if (!metadata.pubSubInspectorUrl.includes('pubsub-inspector')) {
+      fail(`${metadataPath}: expected pubSubInspectorUrl to reference pubsub-inspector`);
     }
   }
 
