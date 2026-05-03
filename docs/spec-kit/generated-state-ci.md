@@ -209,40 +209,30 @@ Minimum bundle artifacts:
 
 ## Local CI Preflight Before Publish
 
-Generated branch publish runs CI preflight by default via
+Generated branch publish runs a prepublish CI-parity gate by default via
 `pipeline/publish-generated-state-branch.sh`.
 
-Run the same checks manually when validating outside publish flow:
+Run the same gate manually when validating outside publish flow:
 
 ```bash
-# generated state preflight (workflow lint + module install/build checks)
-bash pipeline/preflight-generated-ci.sh generated/code/target-generated
-
-# workflow lint only
-actionlint
-
-# workflow smoke execution (best-effort parity with GitHub-hosted runners)
-act -W .github/workflows/security.yml
-act -W .github/workflows/license-scanning-node.yml
-
-# required for convergence states C0+
-act -W .github/workflows/build-and-publish.yml
-
-# required for non-convergence states with containers
-act -W .github/workflows/build-container-images.yml
+bash pipeline/prepublish-generated-state-gate.sh <state-id>
 ```
 
-If `actionlint` is not installed locally, install it first:
+The gate enforces:
+
+- generated-state contract validation
+- compile preflight for Node/Gradle/.NET modules
+- dependency target/version propagation checks
+- UI status metadata + lineage invariants
+- Node license scanning
+- container image buildability checks
+- dependency CVE scanning with suppression rules
+
+Emergency override remains explicit and operator-invoked:
 
 ```bash
-# macOS (Homebrew)
-brew install actionlint
-
-# Linux (Go)
-go install github.com/rhysd/actionlint/cmd/actionlint@latest
+bash pipeline/publish-generated-state-branch.sh <state-id> --skip-prepublish-gate
 ```
-
-Also run the underlying scan/build commands directly via project scripts where available, so local and CI behavior stay aligned.
 
 ## Publish Gate
 
@@ -251,4 +241,4 @@ Generated branch publish is blocked unless:
 - required CI workflows are present for the target state,
 - scanner/build matrices include all applicable components,
 - required suppression files are present and valid,
-- local preflight checks pass.
+- prepublish CI-parity gate checks pass.

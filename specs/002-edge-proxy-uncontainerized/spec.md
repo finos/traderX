@@ -53,6 +53,7 @@
 - NFR-219: Smoke suites for states `002` through `014` SHALL assert presence of the `System` menu toggle, `API Explorer` + `About` links, conditional `Status` link, and state-id title rendering contract via shared web UX contract checks.
 - NFR-220: Generated `assets/state-ui.json` status checks SHALL be state-lineage aware: they MUST include all active runtime services introduced by earlier states (for example `price-publisher` from `008+`, `order-matcher` from `009+`) and MUST remove superseded checks when a runtime substrate is replaced (for example `trade-feed` after `006` NATS migration).
 - NFR-221: Generation SHALL fail when UI status metadata is inconsistent with lineage invariants (missing required service checks, stale superseded checks, duplicate ids, or malformed check definitions).
+- NFR-222: Before generated-state branch commit/push, publish automation SHALL enforce a prepublish CI-parity gate that validates contracts, dependency/version targets, lineage/UI invariants, module compile preflight, Node license policy, container image buildability, and dependency CVE scanning; gate failures MUST block branch generation/publish unless an explicit operator override is provided.
 
 ## Success Criteria
 
@@ -68,6 +69,7 @@
 - SC-210: Publishing snapshots and generated CI metadata for states `004+` excludes the Node `edge-proxy` module unless a later state spec explicitly restores it.
 - SC-211: Header override regressions that drop `StateMetadataService` wiring, state-id title rendering, or required `System` menu items fail state smoke checks before publish.
 - SC-212: Generation-time validation fails for any state whose generated status metadata omits required runtime checks (including `price-publisher`/`order-matcher` where applicable) or retains deprecated checks (for example `trade-feed` after state `006`).
+- SC-213: Generated-state publish fails before commit/push when `pipeline/prepublish-generated-state-gate.sh` reports any prepublish CI-parity gate failure.
 
 ## Generation + Runtime Entry Points
 

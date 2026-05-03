@@ -104,22 +104,14 @@ bash pipeline/speckit/compile-all-component-manifests.sh
 
 ## Generated-State CI Preflight
 
-For generated-code branch publish, local workflow preflight is executed by default by
+For generated-code branch publish, prepublish CI-parity gating is executed by default by
 `pipeline/publish-generated-state-branch.sh`. Run it manually when you need a standalone check:
 
 ```bash
-bash pipeline/preflight-generated-ci.sh generated/code/target-generated
-
-# optional direct workflow lint
-actionlint
-act -W .github/workflows/security.yml
-act -W .github/workflows/license-scanning-node.yml
-
-# required for convergence states C0+
-act -W .github/workflows/build-and-publish.yml
+bash pipeline/prepublish-generated-state-gate.sh <state-id>
 ```
 
-If `act` parity is incomplete for a workflow, run the underlying scanner/build scripts directly so local checks still mirror CI intent.
+Use `--skip-prepublish-gate` only as an explicit temporary override.
 See: [`/docs/spec-kit/generated-state-ci`](/docs/spec-kit/generated-state-ci)
 
 ## Docusaurus CI Compatibility

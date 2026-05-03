@@ -8,12 +8,13 @@ GENERATED_ROOT_BRANCH="${GENERATED_ROOT_BRANCH:-code/generated-state-root}"
 
 usage() {
   cat <<'EOF'
-usage: bash pipeline/publish-generated-state-branch.sh <state-id> [--branch <branch-name>] [--push] [--skip-compile-preflight]
+usage: bash pipeline/publish-generated-state-branch.sh <state-id> [--branch <branch-name>] [--push] [--skip-compile-preflight] [--skip-prepublish-gate]
 
 Examples:
   bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity
   bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --push
   bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --skip-compile-preflight
+  bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --skip-prepublish-gate
   bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --branch code/generated-state-001-baseline-uncontainerized-parity
 EOF
 }
@@ -33,6 +34,7 @@ shift || true
 BRANCH_OVERRIDE=""
 PUSH=0
 SKIP_COMPILE_PREFLIGHT="${TRADERX_SKIP_COMPILE_PREFLIGHT:-0}"
+SKIP_PREPUBLISH_GATE="${TRADERX_SKIP_PREPUBLISH_GATE:-0}"
 
 while (( "$#" )); do
   case "$1" in
@@ -50,6 +52,10 @@ while (( "$#" )); do
       ;;
     --skip-compile-preflight)
       SKIP_COMPILE_PREFLIGHT=1
+      shift
+      ;;
+    --skip-prepublish-gate)
+      SKIP_PREPUBLISH_GATE=1
       shift
       ;;
     --help|-h)
@@ -191,22 +197,32 @@ esac
 # target-generated during dry-run. Without this refresh, workflow target
 # discovery may emit "no targets" stubs.
 bash "${ROOT}/pipeline/install-generated-ci-assets.sh" "${STATE_ID}" "${GENERATED_ROOT}/code/target-generated"
-bash "${ROOT}/pipeline/validate-generated-state-contracts.sh" "${GENERATED_ROOT}/code/target-generated"
 
-if [[ "${SKIP_COMPILE_PREFLIGHT}" == "1" ]]; then
-  echo "[warn] skipping generated compile preflight (--skip-compile-preflight)"
-else
-  CI_METADATA="${GENERATED_ROOT}/code/target-generated/ci/state-metadata.json"
-  if [[ -f "${CI_METADATA}" ]]; then
-    echo "[step] run generated compile preflight"
-    bash "${ROOT}/pipeline/preflight-generated-ci.sh" "${GENERATED_ROOT}/code/target-generated"
-  elif [[ "${state_num}" -lt 2 ]]; then
-    echo "[info] compile preflight metadata unavailable for ${STATE_ID}; skipping for legacy pre-CI state"
+if [[ "${SKIP_PREPUBLISH_GATE}" == "1" ]]; then
+  echo "[warn] skipping prepublish generated-state gate (--skip-prepublish-gate)"
+  bash "${ROOT}/pipeline/validate-generated-state-contracts.sh" "${GENERATED_ROOT}/code/target-generated"
+  if [[ "${SKIP_COMPILE_PREFLIGHT}" == "1" ]]; then
+    echo "[warn] skipping generated compile preflight (--skip-compile-preflight)"
   else
-    echo "[fail] missing compile preflight metadata: ${CI_METADATA}"
-    echo "[hint] ensure CI assets were installed during state generation"
-    exit 1
+    CI_METADATA="${GENERATED_ROOT}/code/target-generated/ci/state-metadata.json"
+    if [[ -f "${CI_METADATA}" ]]; then
+      echo "[step] run generated compile preflight"
+      bash "${ROOT}/pipeline/preflight-generated-ci.sh" "${GENERATED_ROOT}/code/target-generated"
+    elif [[ "${state_num}" -lt 2 ]]; then
+      echo "[info] compile preflight metadata unavailable for ${STATE_ID}; skipping for legacy pre-CI state"
+    else
+      echo "[fail] missing compile preflight metadata: ${CI_METADATA}"
+      echo "[hint] ensure CI assets were installed during state generation"
+      exit 1
+    fi
   fi
+else
+  prepublish_args=("${STATE_ID}" "--target-root" "${GENERATED_ROOT}/code/target-generated" "--components-root" "${GENERATED_ROOT}/code/components")
+  if [[ "${SKIP_COMPILE_PREFLIGHT}" == "1" ]]; then
+    prepublish_args+=("--skip-compile-preflight")
+  fi
+  echo "[step] run prepublish generated-state gate"
+  bash "${ROOT}/pipeline/prepublish-generated-state-gate.sh" "${prepublish_args[@]}"
 fi
 
 SNAPSHOT_ROOT="${GENERATED_ROOT}/code/target-generated"
