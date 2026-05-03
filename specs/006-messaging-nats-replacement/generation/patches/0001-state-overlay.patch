@@ -787,7 +787,7 @@ index b3a7648..48ea8b4 100644
 +++ b/trade-processor/build.gradle
 @@ -20,6 +20,7 @@ dependencies {
    implementation 'org.springframework.boot:spring-boot-starter-web'
-   implementation 'org.postgresql:postgresql:42.7.10'
+   implementation 'org.postgresql:postgresql:42.7.11'
    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
 +  implementation 'io.nats:jnats:2.20.5'
  

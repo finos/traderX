@@ -14,6 +14,11 @@ bash "${ROOT}/pipeline/apply-state-patchset.sh" "${STATE_ID}"
 if [[ -d "${RUNTIME_OVERRIDES_ROOT}" ]]; then
   rsync -a "${RUNTIME_OVERRIDES_ROOT}/" "${TARGET_ROOT}/"
 fi
+if (( ${TRADERX_GENERATION_DEPTH:-1} == 1 )) || [[ "${TRADERX_RENDER_STATE_006_IN_NESTED_GENERATION:-0}" == "1" ]]; then
+  bash "${ROOT}/pipeline/render-state-006-messaging-nats-replacement.sh"
+else
+  echo "[info] nested generation depth=${TRADERX_GENERATION_DEPTH:-unknown}; skipping state-006 gradle micrometer render"
+fi
 bash "${ROOT}/pipeline/generate-state-architecture-doc.sh" "${STATE_ID}"
 
 cat <<'EOF'

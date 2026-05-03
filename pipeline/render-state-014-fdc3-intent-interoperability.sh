@@ -491,6 +491,10 @@ else
   exit 1
 fi
 
+# State 014 overlays can update package manifests, so refresh lockfiles after
+# overlay copy to keep generated Docker/npm-ci builds deterministic.
+bash "${ROOT}/pipeline/refresh-generated-node-lockfiles.sh" "${TARGET_FRONTEND_DIR}"
+
 # Ensure state-014 FDC3 agent bootstrap dependency is present in generated web UI.
 # Also pin a temporary scoped override for transitive uuid to mitigate
 # GHSA-w5hq-g745-h8pq until upstream fdc3-get-agent releases without uuid<14.

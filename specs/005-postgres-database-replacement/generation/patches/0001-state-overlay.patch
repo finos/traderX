@@ -195,7 +195,7 @@ index 7c23724..5edadfd 100644
    implementation 'org.springframework.boot:spring-boot-starter-web'
    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 -  implementation 'com.h2database:h2:2.3.232'
-+  implementation 'org.postgresql:postgresql:42.7.10'
++  implementation 'org.postgresql:postgresql:42.7.11'
    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
  
    implementation ('ch.qos.logback:logback-core:1.5.32') {
@@ -254,7 +254,7 @@ index 060d4f8..cddccee 100644
    implementation 'org.springframework.boot:spring-boot-starter-web'
    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 -  implementation 'com.h2database:h2:2.3.232'
-+  implementation 'org.postgresql:postgresql:42.7.10'
++  implementation 'org.postgresql:postgresql:42.7.11'
    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
  
    implementation ('ch.qos.logback:logback-core:1.5.32') {
@@ -725,7 +725,7 @@ index 10c246e..b3a7648 100644
    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
    implementation 'org.springframework.boot:spring-boot-starter-web'
 -  implementation 'com.h2database:h2:2.3.232'
-+  implementation 'org.postgresql:postgresql:42.7.10'
++  implementation 'org.postgresql:postgresql:42.7.11'
    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
  
    implementation('org.json:json:20240303') {
