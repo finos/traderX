@@ -8,14 +8,14 @@ GENERATED_ROOT_BRANCH="${GENERATED_ROOT_BRANCH:-code/generated-state-root}"
 
 usage() {
   cat <<'EOF'
-usage: bash pipeline/publish-generated-state-branch.sh <state-id> [--branch <branch-name>] [--push] [--skip-compile-preflight] [--skip-prepublish-gate] [--skip-runtime-preflight] [--skip-contract-validation]
+usage: bash pipeline/publish-generated-state-branch.sh <state-id> [--branch <branch-name>] [--push] [--skip-compile-preflight] [--skip-prepublish-gate] [--skip-runtime-preflight] [--skip-contract-validation] [--skip-lineage-validation]
 
 Examples:
   bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity
   bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --push
   bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --skip-compile-preflight
   bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --skip-prepublish-gate
-  bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --skip-runtime-preflight --skip-prepublish-gate --skip-compile-preflight --skip-contract-validation --push
+  bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --skip-runtime-preflight --skip-prepublish-gate --skip-compile-preflight --skip-contract-validation --skip-lineage-validation --push
   bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --branch code/generated-state-001-baseline-uncontainerized-parity
 EOF
 }
@@ -38,6 +38,7 @@ SKIP_COMPILE_PREFLIGHT="${TRADERX_SKIP_COMPILE_PREFLIGHT:-0}"
 SKIP_PREPUBLISH_GATE="${TRADERX_SKIP_PREPUBLISH_GATE:-0}"
 SKIP_RUNTIME_PREFLIGHT="${TRADERX_SKIP_RUNTIME_PREFLIGHT:-0}"
 SKIP_CONTRACT_VALIDATION="${TRADERX_SKIP_CONTRACT_VALIDATION:-0}"
+SKIP_LINEAGE_VALIDATION="${TRADERX_SKIP_LINEAGE_VALIDATION:-0}"
 
 while (( "$#" )); do
   case "$1" in
@@ -67,6 +68,10 @@ while (( "$#" )); do
       ;;
     --skip-contract-validation)
       SKIP_CONTRACT_VALIDATION=1
+      shift
+      ;;
+    --skip-lineage-validation)
+      SKIP_LINEAGE_VALIDATION=1
       shift
       ;;
     --help|-h)
@@ -3443,7 +3448,11 @@ write_learning_guide
 write_functional_testing_guide
 write_snapshot_gitignore
 
-bash "${ROOT}/pipeline/validate-generated-state-lineage-invariants.sh" --state-id "${STATE_ID}" --snapshot-dir "${SNAPSHOT_DIR}"
+if [[ "${SKIP_LINEAGE_VALIDATION}" == "1" ]]; then
+  echo "[warn] skipping lineage invariant validation (--skip-lineage-validation)"
+else
+  bash "${ROOT}/pipeline/validate-generated-state-lineage-invariants.sh" --state-id "${STATE_ID}" --snapshot-dir "${SNAPSHOT_DIR}"
+fi
 
 BRANCH_EXISTS=0
 if git -C "${ROOT}" show-ref --verify --quiet "refs/heads/${BRANCH_NAME}"; then
