@@ -8,13 +8,14 @@ GENERATED_ROOT_BRANCH="${GENERATED_ROOT_BRANCH:-code/generated-state-root}"
 
 usage() {
   cat <<'EOF'
-usage: bash pipeline/publish-generated-state-branch.sh <state-id> [--branch <branch-name>] [--push] [--skip-compile-preflight] [--skip-prepublish-gate]
+usage: bash pipeline/publish-generated-state-branch.sh <state-id> [--branch <branch-name>] [--push] [--skip-compile-preflight] [--skip-prepublish-gate] [--skip-runtime-preflight] [--skip-contract-validation]
 
 Examples:
   bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity
   bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --push
   bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --skip-compile-preflight
   bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --skip-prepublish-gate
+  bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --skip-runtime-preflight --skip-prepublish-gate --skip-compile-preflight --skip-contract-validation --push
   bash pipeline/publish-generated-state-branch.sh 001-baseline-uncontainerized-parity --branch code/generated-state-001-baseline-uncontainerized-parity
 EOF
 }
@@ -35,6 +36,8 @@ BRANCH_OVERRIDE=""
 PUSH=0
 SKIP_COMPILE_PREFLIGHT="${TRADERX_SKIP_COMPILE_PREFLIGHT:-0}"
 SKIP_PREPUBLISH_GATE="${TRADERX_SKIP_PREPUBLISH_GATE:-0}"
+SKIP_RUNTIME_PREFLIGHT="${TRADERX_SKIP_RUNTIME_PREFLIGHT:-0}"
+SKIP_CONTRACT_VALIDATION="${TRADERX_SKIP_CONTRACT_VALIDATION:-0}"
 
 while (( "$#" )); do
   case "$1" in
@@ -56,6 +59,14 @@ while (( "$#" )); do
       ;;
     --skip-prepublish-gate)
       SKIP_PREPUBLISH_GATE=1
+      shift
+      ;;
+    --skip-runtime-preflight)
+      SKIP_RUNTIME_PREFLIGHT=1
+      shift
+      ;;
+    --skip-contract-validation)
+      SKIP_CONTRACT_VALIDATION=1
       shift
       ;;
     --help|-h)
@@ -139,18 +150,30 @@ echo "[info] generating state ${STATE_ID} (${STATE_TITLE})"
 case "${STATE_ID}" in
   001-baseline-uncontainerized-parity)
     bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
-    "${ROOT}/scripts/start-base-uncontainerized-generated.sh" --build-only
-    "${ROOT}/scripts/start-base-uncontainerized-generated.sh" --dry-run
+    if [[ "${SKIP_RUNTIME_PREFLIGHT}" == "1" ]]; then
+      echo "[warn] skipping runtime preflight (--skip-runtime-preflight)"
+    else
+      "${ROOT}/scripts/start-base-uncontainerized-generated.sh" --build-only
+      "${ROOT}/scripts/start-base-uncontainerized-generated.sh" --dry-run
+    fi
     ;;
   002-edge-proxy-uncontainerized)
     bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
-    "${ROOT}/scripts/start-state-002-edge-proxy-generated.sh" --build-only
-    "${ROOT}/scripts/start-state-002-edge-proxy-generated.sh" --dry-run
+    if [[ "${SKIP_RUNTIME_PREFLIGHT}" == "1" ]]; then
+      echo "[warn] skipping runtime preflight (--skip-runtime-preflight)"
+    else
+      "${ROOT}/scripts/start-state-002-edge-proxy-generated.sh" --build-only
+      "${ROOT}/scripts/start-state-002-edge-proxy-generated.sh" --dry-run
+    fi
     ;;
   003-agentic-harness-foundation)
     bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
-    "${ROOT}/scripts/start-state-003-agentic-harness-foundation-generated.sh" --build-only
-    "${ROOT}/scripts/start-state-003-agentic-harness-foundation-generated.sh" --dry-run
+    if [[ "${SKIP_RUNTIME_PREFLIGHT}" == "1" ]]; then
+      echo "[warn] skipping runtime preflight (--skip-runtime-preflight)"
+    else
+      "${ROOT}/scripts/start-state-003-agentic-harness-foundation-generated.sh" --build-only
+      "${ROOT}/scripts/start-state-003-agentic-harness-foundation-generated.sh" --dry-run
+    fi
     ;;
   004-containerized-compose-runtime)
     bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
@@ -165,7 +188,11 @@ case "${STATE_ID}" in
       echo "[fail] missing generated kubernetes build-plan for state 010"
       exit 1
     }
-    "${ROOT}/scripts/start-state-010-kubernetes-runtime-generated.sh" --dry-run
+    if [[ "${SKIP_RUNTIME_PREFLIGHT}" == "1" ]]; then
+      echo "[warn] skipping runtime preflight (--skip-runtime-preflight)"
+    else
+      "${ROOT}/scripts/start-state-010-kubernetes-runtime-generated.sh" --dry-run
+    fi
     ;;
   013-radius-kubernetes-platform)
     bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
@@ -184,7 +211,9 @@ case "${STATE_ID}" in
   *)
     bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
     RUNTIME_START_SCRIPT="${ROOT}/scripts/start-state-${STATE_ID}-generated.sh"
-    if [[ -x "${RUNTIME_START_SCRIPT}" ]]; then
+    if [[ "${SKIP_RUNTIME_PREFLIGHT}" == "1" ]]; then
+      echo "[warn] skipping runtime preflight (--skip-runtime-preflight)"
+    elif [[ -x "${RUNTIME_START_SCRIPT}" ]]; then
       "${RUNTIME_START_SCRIPT}" --dry-run || true
     else
       echo "[info] no state-specific start script found at ${RUNTIME_START_SCRIPT}; skipping runtime dry-run"
@@ -200,7 +229,11 @@ bash "${ROOT}/pipeline/install-generated-ci-assets.sh" "${STATE_ID}" "${GENERATE
 
 if [[ "${SKIP_PREPUBLISH_GATE}" == "1" ]]; then
   echo "[warn] skipping prepublish generated-state gate (--skip-prepublish-gate)"
-  bash "${ROOT}/pipeline/validate-generated-state-contracts.sh" "${GENERATED_ROOT}/code/target-generated"
+  if [[ "${SKIP_CONTRACT_VALIDATION}" == "1" ]]; then
+    echo "[warn] skipping generated-state contract validation (--skip-contract-validation)"
+  else
+    bash "${ROOT}/pipeline/validate-generated-state-contracts.sh" "${GENERATED_ROOT}/code/target-generated"
+  fi
   if [[ "${SKIP_COMPILE_PREFLIGHT}" == "1" ]]; then
     echo "[warn] skipping generated compile preflight (--skip-compile-preflight)"
   else
