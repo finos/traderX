@@ -388,13 +388,25 @@ C2_COMPONENT_DIRS=(
 snapshot_keep_paths_for_state() {
   case "${STATE_ID}" in
     001-baseline-uncontainerized-parity)
-      printf '%s\n' "${CORE_COMPONENT_DIRS[@]}"
+      if [[ "${SKIP_RUNTIME_PREFLIGHT}" == "1" ]]; then
+        printf '%s\n' "api-explorer" "catalog" "generated" "scripts"
+      else
+        printf '%s\n' "${CORE_COMPONENT_DIRS[@]}"
+      fi
       ;;
   002-edge-proxy-uncontainerized)
-    printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "edge-proxy" ".github"
+    if [[ "${SKIP_RUNTIME_PREFLIGHT}" == "1" ]]; then
+      printf '%s\n' "api-explorer" "catalog" "generated" "scripts" ".github"
+    else
+      printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "edge-proxy" ".github"
+    fi
     ;;
   003-agentic-harness-foundation)
-    printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "edge-proxy" ".github"
+    if [[ "${SKIP_RUNTIME_PREFLIGHT}" == "1" ]]; then
+      printf '%s\n' "api-explorer" "catalog" "generated" "scripts" ".github"
+    else
+      printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "edge-proxy" ".github"
+    fi
     ;;
   004-containerized-compose-runtime)
     printf '%s\n' "${CORE_COMPONENT_DIRS[@]}" "containerized-compose" "ingress" ".github" "runtime"
