@@ -851,6 +851,10 @@ Run directly from this generated snapshot branch:
 ./scripts/start-base-uncontainerized-generated.sh
 ```
 
+```powershell
+./scripts/start-base-uncontainerized-generated.ps1
+```
+
 UI endpoint: `http://localhost:18093`
 
 Status / stop:
@@ -858,6 +862,11 @@ Status / stop:
 ```bash
 ./scripts/status-base-uncontainerized-generated.sh
 ./scripts/stop-base-uncontainerized-generated.sh
+```
+
+```powershell
+./scripts/status-base-uncontainerized-generated.ps1
+./scripts/stop-base-uncontainerized-generated.ps1
 ```
 EOF
       ;;
@@ -869,6 +878,10 @@ Run directly from this generated snapshot branch:
 ./scripts/start-state-002-edge-proxy-generated.sh
 ```
 
+```powershell
+./scripts/start-state-002-edge-proxy-generated.ps1
+```
+
 Browser endpoint (via edge proxy): `http://localhost:18080`
 
 Status / stop:
@@ -876,6 +889,11 @@ Status / stop:
 ```bash
 ./scripts/status-state-002-edge-proxy-generated.sh
 ./scripts/stop-state-002-edge-proxy-generated.sh
+```
+
+```powershell
+./scripts/status-state-002-edge-proxy-generated.ps1
+./scripts/stop-state-002-edge-proxy-generated.ps1
 ```
 EOF
       ;;
@@ -885,6 +903,10 @@ Run directly from this generated snapshot branch:
 
 ```bash
 ./scripts/start-state-003-agentic-harness-foundation-generated.sh
+```
+
+```powershell
+./scripts/start-state-003-agentic-harness-foundation-generated.ps1
 ```
 
 Browser endpoint (via edge proxy): `http://localhost:18080`
@@ -900,6 +922,11 @@ Status / stop:
 ```bash
 ./scripts/status-state-003-agentic-harness-foundation-generated.sh
 ./scripts/stop-state-003-agentic-harness-foundation-generated.sh
+```
+
+```powershell
+./scripts/status-state-003-agentic-harness-foundation-generated.ps1
+./scripts/stop-state-003-agentic-harness-foundation-generated.ps1
 ```
 EOF
       ;;
@@ -1124,6 +1151,19 @@ EOF
 EOF
       ;;
   esac
+}
+
+snapshot_platform_badges_markdown() {
+  local linux_badge='![linux/mac support](https://badgen.net/badge/linux%2Fmac/supported/green?icon=linux)'
+  local windows_badge='![windows support](https://badgen.net/badge/windows/not%20supported/red?icon=windows)'
+
+  case "${STATE_ID}" in
+    001-baseline-uncontainerized-parity|002-edge-proxy-uncontainerized|003-agentic-harness-foundation)
+      windows_badge='![windows support](https://badgen.net/badge/windows/supported/green?icon=windows)'
+      ;;
+  esac
+
+  printf '%s %s\n' "${linux_badge}" "${windows_badge}"
 }
 
 api_explorer_markdown() {
@@ -1469,15 +1509,30 @@ assert_snapshot_clone_entrypoints() {
 }
 
 install_uncontainerized_clone_harness() {
+  copy_uncontainerized_script_with_ps1_sibling() {
+    local script_name="$1"
+    if [[ -f "${ROOT}/scripts/${script_name}" ]]; then
+      cp "${ROOT}/scripts/${script_name}" "${SNAPSHOT_DIR}/scripts/"
+    fi
+    if [[ "${script_name}" == *.sh ]]; then
+      local ps_script="${script_name%.sh}.ps1"
+      if [[ -f "${ROOT}/scripts/${ps_script}" ]]; then
+        cp "${ROOT}/scripts/${ps_script}" "${SNAPSHOT_DIR}/scripts/"
+      fi
+    fi
+  }
+
   mkdir -p \
     "${SNAPSHOT_DIR}/scripts" \
+    "${SNAPSHOT_DIR}/scripts/lib" \
     "${SNAPSHOT_DIR}/catalog" \
     "${SNAPSHOT_DIR}/generated/code/components" \
     "${SNAPSHOT_DIR}/generated/code/target-generated"
 
-  cp "${ROOT}/scripts/start-base-uncontainerized-generated.sh" "${SNAPSHOT_DIR}/scripts/"
-  cp "${ROOT}/scripts/stop-base-uncontainerized-generated.sh" "${SNAPSHOT_DIR}/scripts/"
-  cp "${ROOT}/scripts/status-base-uncontainerized-generated.sh" "${SNAPSHOT_DIR}/scripts/"
+  cp -R "${ROOT}/scripts/lib/." "${SNAPSHOT_DIR}/scripts/lib/"
+  copy_uncontainerized_script_with_ps1_sibling "start-base-uncontainerized-generated.sh"
+  copy_uncontainerized_script_with_ps1_sibling "stop-base-uncontainerized-generated.sh"
+  copy_uncontainerized_script_with_ps1_sibling "status-base-uncontainerized-generated.sh"
   cp "${ROOT}/catalog/base-uncontainerized-processes.csv" "${SNAPSHOT_DIR}/catalog/"
 
   link_snapshot_component "reference-data" "reference-data"
@@ -1491,15 +1546,17 @@ install_uncontainerized_clone_harness() {
   link_snapshot_component "web-front-end-angular" "web-front-end/angular"
 
 if [[ "${STATE_ID}" == "002-edge-proxy-uncontainerized" || "${STATE_ID}" == "003-agentic-harness-foundation" ]]; then
-  cp "${ROOT}/scripts/start-state-002-edge-proxy-generated.sh" "${SNAPSHOT_DIR}/scripts/"
-  cp "${ROOT}/scripts/stop-state-002-edge-proxy-generated.sh" "${SNAPSHOT_DIR}/scripts/"
-  cp "${ROOT}/scripts/status-state-002-edge-proxy-generated.sh" "${SNAPSHOT_DIR}/scripts/"
+  copy_uncontainerized_script_with_ps1_sibling "start-state-002-edge-proxy-generated.sh"
+  copy_uncontainerized_script_with_ps1_sibling "stop-state-002-edge-proxy-generated.sh"
+  copy_uncontainerized_script_with_ps1_sibling "status-state-002-edge-proxy-generated.sh"
+  copy_uncontainerized_script_with_ps1_sibling "test-state-002-edge-proxy.sh"
+  copy_uncontainerized_script_with_ps1_sibling "test-web-angular-baseline-ux-contract.sh"
 
   if [[ "${STATE_ID}" == "003-agentic-harness-foundation" ]]; then
-    cp "${ROOT}/scripts/start-state-003-agentic-harness-foundation-generated.sh" "${SNAPSHOT_DIR}/scripts/"
-    cp "${ROOT}/scripts/stop-state-003-agentic-harness-foundation-generated.sh" "${SNAPSHOT_DIR}/scripts/"
-    cp "${ROOT}/scripts/status-state-003-agentic-harness-foundation-generated.sh" "${SNAPSHOT_DIR}/scripts/"
-    cp "${ROOT}/scripts/test-state-003-agentic-harness-foundation.sh" "${SNAPSHOT_DIR}/scripts/"
+    copy_uncontainerized_script_with_ps1_sibling "start-state-003-agentic-harness-foundation-generated.sh"
+    copy_uncontainerized_script_with_ps1_sibling "stop-state-003-agentic-harness-foundation-generated.sh"
+    copy_uncontainerized_script_with_ps1_sibling "status-state-003-agentic-harness-foundation-generated.sh"
+    copy_uncontainerized_script_with_ps1_sibling "test-state-003-agentic-harness-foundation.sh"
   fi
 
   if [[ ! -d "${SNAPSHOT_DIR}/edge-proxy" ]]; then
@@ -2317,6 +2374,11 @@ CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized
 CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh
 ```
 
+```powershell
+$env:CORS_ALLOWED_ORIGINS='http://localhost:18093'; ./scripts/start-base-uncontainerized-generated.ps1 -BuildOnly
+$env:CORS_ALLOWED_ORIGINS='http://localhost:18093'; ./scripts/start-base-uncontainerized-generated.ps1
+```
+
 Endpoints:
 - UI: `http://localhost:18093`
 - Reference data: `http://localhost:18085/stocks`
@@ -2327,6 +2389,11 @@ Status / stop:
 ```bash
 ./scripts/status-base-uncontainerized-generated.sh
 ./scripts/stop-base-uncontainerized-generated.sh
+```
+
+```powershell
+./scripts/status-base-uncontainerized-generated.ps1
+./scripts/stop-base-uncontainerized-generated.ps1
 ```
 EOF
       ;;
@@ -2348,6 +2415,11 @@ CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-state-002-edge-proxy
 CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-state-002-edge-proxy-generated.sh
 ```
 
+```powershell
+$env:CORS_ALLOWED_ORIGINS='http://localhost:18093'; ./scripts/start-state-002-edge-proxy-generated.ps1 -BuildOnly
+$env:CORS_ALLOWED_ORIGINS='http://localhost:18093'; ./scripts/start-state-002-edge-proxy-generated.ps1
+```
+
 Endpoints:
 - Browser entrypoint (edge proxy): `http://localhost:18080`
 - API explorer (edge proxy): `http://localhost:18080/api/docs`
@@ -2359,6 +2431,11 @@ Status / stop:
 ```bash
 ./scripts/status-state-002-edge-proxy-generated.sh
 ./scripts/stop-state-002-edge-proxy-generated.sh
+```
+
+```powershell
+./scripts/status-state-002-edge-proxy-generated.ps1
+./scripts/stop-state-002-edge-proxy-generated.ps1
 ```
 EOF
       ;;
@@ -2380,6 +2457,11 @@ CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-state-003-agentic-ha
 CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-state-003-agentic-harness-foundation-generated.sh
 ```
 
+```powershell
+$env:CORS_ALLOWED_ORIGINS='http://localhost:18093'; ./scripts/start-state-003-agentic-harness-foundation-generated.ps1 -BuildOnly
+$env:CORS_ALLOWED_ORIGINS='http://localhost:18093'; ./scripts/start-state-003-agentic-harness-foundation-generated.ps1
+```
+
 Endpoints:
 - Browser entrypoint (edge proxy): `http://localhost:18080`
 - API explorer (edge proxy): `http://localhost:18080/api/docs`
@@ -2396,6 +2478,11 @@ Status / stop:
 ```bash
 ./scripts/status-state-003-agentic-harness-foundation-generated.sh
 ./scripts/stop-state-003-agentic-harness-foundation-generated.sh
+```
+
+```powershell
+./scripts/status-state-003-agentic-harness-foundation-generated.ps1
+./scripts/stop-state-003-agentic-harness-foundation-generated.ps1
 ```
 EOF
       ;;
@@ -3177,6 +3264,8 @@ cat > "${SNAPSHOT_DIR}/README.md" <<EOF
 # TraderX Generated Code Snapshot
 
 This branch is an auto-published generated-code snapshot for FINOS TraderX.
+
+$(snapshot_platform_badges_markdown)
 
 - State ID: \`${STATE_ID}\`
 - State Title: \`${STATE_TITLE}\`

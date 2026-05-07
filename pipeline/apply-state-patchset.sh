@@ -57,21 +57,32 @@ if [[ "${#patch_files[@]}" -eq 0 ]]; then
   exit 1
 fi
 
-for patch_file in "${patch_files[@]}"; do
+apply_patch_with_fallback() {
+  local patch_file="$1"
+  local apply_args=(--recount --whitespace=nowarn)
   if [[ -n "${APPLY_DIR_PREFIX}" ]]; then
-    git -C "${APPLY_SCOPE_ROOT}" apply --recount --check --whitespace=nowarn --directory="${APPLY_DIR_PREFIX}" "${patch_file}"
-  else
-    git -C "${APPLY_SCOPE_ROOT}" apply --recount --check --whitespace=nowarn "${patch_file}"
+    apply_args+=(--directory="${APPLY_DIR_PREFIX}")
   fi
-done
+
+  if git -C "${APPLY_SCOPE_ROOT}" apply --check "${apply_args[@]}" "${patch_file}"; then
+    git -C "${APPLY_SCOPE_ROOT}" apply "${apply_args[@]}" "${patch_file}"
+    echo "[apply] ${patch_file}"
+    return 0
+  fi
+
+  echo "[warn] direct apply failed, retrying with 3-way merge: ${patch_file}"
+  if git -C "${APPLY_SCOPE_ROOT}" apply --3way --check "${apply_args[@]}" "${patch_file}"; then
+    git -C "${APPLY_SCOPE_ROOT}" apply --3way "${apply_args[@]}" "${patch_file}"
+    echo "[apply-3way] ${patch_file}"
+    return 0
+  fi
+
+  echo "[fail] unable to apply patch even with 3-way merge: ${patch_file}"
+  return 1
+}
 
 for patch_file in "${patch_files[@]}"; do
-  if [[ -n "${APPLY_DIR_PREFIX}" ]]; then
-    git -C "${APPLY_SCOPE_ROOT}" apply --recount --whitespace=nowarn --directory="${APPLY_DIR_PREFIX}" "${patch_file}"
-  else
-    git -C "${APPLY_SCOPE_ROOT}" apply --recount --whitespace=nowarn "${patch_file}"
-  fi
-  echo "[apply] ${patch_file}"
+  apply_patch_with_fallback "${patch_file}"
 done
 
 echo "[done] applied ${#patch_files[@]} patch(es) for ${STATE_ID} into ${TARGET_ROOT}"
