@@ -1203,15 +1203,24 @@ EOF
   esac
 }
 
+windows_supported_for_state() {
+  case "${STATE_ID}" in
+    001-baseline-uncontainerized-parity|002-edge-proxy-uncontainerized|003-agentic-harness-foundation)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
 snapshot_platform_badges_markdown() {
   local linux_badge='![linux/mac support](https://badgen.net/badge/linux%2Fmac/supported/green?icon=linux)'
   local windows_badge='![windows support](https://badgen.net/badge/windows/not%20supported/red?icon=windows)'
 
-  case "${STATE_ID}" in
-    001-baseline-uncontainerized-parity|002-edge-proxy-uncontainerized|003-agentic-harness-foundation)
-      windows_badge='![windows support](https://badgen.net/badge/windows/supported/green?icon=windows)'
-      ;;
-  esac
+  if windows_supported_for_state; then
+    windows_badge='![windows support](https://badgen.net/badge/windows/supported/green?icon=windows)'
+  fi
 
   printf '%s %s\n' "${linux_badge}" "${windows_badge}"
 }
@@ -1637,16 +1646,24 @@ write_env_entrypoint_wrappers() {
   write_env_wrapper_script "start-env.sh" "start" "${start_target}"
   write_env_wrapper_script "stop-env.sh" "stop" "${stop_target}"
   write_env_wrapper_script "status-env.sh" "status" "${status_target}"
-  write_env_wrapper_batch_script "start-env.bat" "start" "${start_target}"
-  write_env_wrapper_batch_script "stop-env.bat" "stop" "${stop_target}"
-  write_env_wrapper_batch_script "status-env.bat" "status" "${status_target}"
+  if windows_supported_for_state; then
+    write_env_wrapper_batch_script "start-env.bat" "start" "${start_target}"
+    write_env_wrapper_batch_script "stop-env.bat" "stop" "${stop_target}"
+    write_env_wrapper_batch_script "status-env.bat" "status" "${status_target}"
+  else
+    rm -f "${SNAPSHOT_DIR}/start-env.bat" "${SNAPSHOT_DIR}/stop-env.bat" "${SNAPSHOT_DIR}/status-env.bat" "${SNAPSHOT_DIR}/test-env.bat"
+  fi
 
   if [[ -n "${test_target}" ]]; then
     write_env_wrapper_script "test-env.sh" "test" "${test_target}"
-    write_env_wrapper_batch_script "test-env.bat" "test" "${test_target}"
+    if windows_supported_for_state; then
+      write_env_wrapper_batch_script "test-env.bat" "test" "${test_target}"
+    fi
   else
     write_test_env_wrapper_without_target
-    write_test_env_wrapper_without_target_batch
+    if windows_supported_for_state; then
+      write_test_env_wrapper_without_target_batch
+    fi
   fi
 
   prune_snapshot_scripts_for_targets "${start_target}" "${stop_target}" "${status_target}" "${test_target}"
@@ -1661,13 +1678,15 @@ assert_snapshot_clone_entrypoints() {
     fi
   done
 
-  local required_batch
-  for required_batch in start-env.bat stop-env.bat status-env.bat test-env.bat; do
-    if [[ ! -f "${SNAPSHOT_DIR}/${required_batch}" ]]; then
-      echo "[fail] missing batch wrapper: ${required_batch}"
-      exit 1
-    fi
-  done
+  if windows_supported_for_state; then
+    local required_batch
+    for required_batch in start-env.bat stop-env.bat status-env.bat test-env.bat; do
+      if [[ ! -f "${SNAPSHOT_DIR}/${required_batch}" ]]; then
+        echo "[fail] missing batch wrapper: ${required_batch}"
+        exit 1
+      fi
+    done
+  fi
 
   if [[ ! -f "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" ]]; then
     echo "[fail] missing RUN_FROM_CLONE.md in snapshot"
@@ -3052,6 +3071,10 @@ Use root wrappers for this generated branch:
 ./stop-env.sh    # stop runtime
 ./test-env.sh    # state smoke/validation
 ```
+EOF
+
+  if windows_supported_for_state; then
+    cat >> "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
 
 ```bat
 start-env.bat
@@ -3059,6 +3082,10 @@ status-env.bat
 stop-env.bat
 test-env.bat
 ```
+EOF
+  fi
+
+  cat >> "${SNAPSHOT_DIR}/RUN_FROM_CLONE.md" <<'EOF'
 
 Wrappers intentionally delegate to numbered state scripts to maximize reuse while keeping clone-first commands stable.
 EOF
