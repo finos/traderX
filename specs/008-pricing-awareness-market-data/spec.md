@@ -45,7 +45,7 @@
 - FR-1018: State SHALL expose price snapshot REST retrieval for both single ticker and multi-ticker retrieval in one request (for example ticket bootstrap vs. grid bootstrap).
 - FR-1019: Ticket and blotter screens that display streaming market price SHALL issue snapshot bootstrap retrieval in parallel with stream subscription and render the freshest price by server timestamp.
 - FR-1020: Price payloads delivered via both REST snapshot and `pricing.<TICKER>` stream SHALL include server-assigned event time (`asOf`) so clients can deterministically resolve snapshot-vs-stream race conditions.
-- FR-1021: API explorer runtime (`/api/docs`) SHALL expose a companion pub/sub inspector page at canonical route `pubsub-inspector` (with `.html` compatibility path retained).
+- FR-1021: API explorer runtime (`/api/docs`) SHALL expose a companion pub/sub inspector page at canonical route `pubsub-inspector.html` (with no-extension compatibility path retained).
 - FR-1022: Pub/sub inspector SHALL auto-connect to the state message bus websocket route using environment-derived address resolution (no manual endpoint input).
 - FR-1023: Pub/sub inspector SHALL start unsubscribed with an empty feed; all subscriptions are user-initiated.
 - FR-1024: Pub/sub inspector SHALL render one-click topic buttons generated from cumulative `system/messaging-subject-map.md` for the state.
@@ -73,6 +73,7 @@
 - NFR-1011: Pub/sub inspector message bus client dependency SHALL be vendored as a local asset in generated runtime output (no CDN dependency).
 - NFR-1012: Generated topic-button data for the inspector SHALL be pipeline-derived from the state's cumulative messaging subject map, not manually curated.
 - NFR-1013: Pub/sub inspector UI responsiveness SHALL remain acceptable at sustained 2000-message buffer occupancy.
+- NFR-1014: Browser-offered documentation/tool URLs (`/api/docs/`, `pubSubInspectorUrl`, and API explorer nav links) SHALL return non-404 responses with browser-renderable content types (HTML for pages, JSON for catalog payloads).
 
 ## Success Criteria
 
@@ -85,7 +86,7 @@
 - SC-1007: `FB` is not exposed by reference-data in this state; `META` is exposed and priced.
 - SC-1008: Default sample startup includes the defined financial-services symbols and all return quotes from `price-publisher`.
 - SC-1009: For each ticker, UI bootstrap + stream handoff keeps the latest (`max(asOf)`) price when snapshot and stream updates arrive near-simultaneously.
-- SC-1010: `/api/docs/pubsub-inspector` loads successfully from generated runtime and auto-connects to websocket bus route (and `/api/docs/pubsub-inspector.html` remains compatible).
+- SC-1010: `/api/docs/pubsub-inspector.html` loads successfully from generated runtime and auto-connects to websocket bus route (and `/api/docs/pubsub-inspector` remains compatible).
 - SC-1011: Inspector-generated topic buttons match the state's cumulative `system/messaging-subject-map.md`.
 - SC-1012: Inspector feed displays delivery topic plus wildcard subscription context (`pricing.*`-style) where applicable.
 - SC-1013: Inspector enforces 2000-message buffer cap with FIFO eviction while session-total counter continues increasing.

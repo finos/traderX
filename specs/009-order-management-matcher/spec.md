@@ -50,6 +50,7 @@
 - NFR-01314: Order-facing UI views (`trade` order blotter, admin order view) MUST use messaging-bus push subscriptions for live updates and MUST NOT run periodic background polling loops against `GET /orders`.
 - NFR-01315: Trade and position blotters MUST retain push-based realtime updates (`/accounts/{accountId}/trades`, `/accounts/{accountId}/positions`) after initial REST bootstrap and MUST NOT introduce periodic polling loops as a substitute for stream updates.
 - NFR-01316: Generated API explorer catalog for this state SHALL include cumulative `messagingSubjects` metadata for inspector topic generation, including wildcard semantics (`pricing.*`) and parameterized subject prefill patterns.
+- NFR-01317: Browser-offered API explorer and pub/sub inspector links in this state SHALL resolve with non-404 responses and browser-renderable content types (HTML for pages, JSON for catalog payloads).
 
 ## Success Criteria
 
@@ -64,5 +65,5 @@
 - SC-01309: Generated branch artifacts include `C2` build/publish workflow and GHCR run-bundle assets.
 - SC-01310: `pipeline/validate-generated-state-contracts.sh` fails on generated snapshots that include `order-matcher` without `OrderBook` schema and passes when the contract is present.
 - SC-01311: Smoke checks validate that open-order views update in real time on create/auto-fill/cancel/force-fill via `/accounts/{accountId}/orders` and `/orders`, without periodic `GET /orders` polling traffic.
-- SC-01312: Smoke checks validate `/api/docs/pubsub-inspector` availability (`.html` compatibility path included) and topic metadata coverage against `system/messaging-subject-map.md`.
+- SC-01312: Smoke checks validate `/api/docs/pubsub-inspector.html` availability (no-extension compatibility path included), URL/content-type contracts, and topic metadata coverage against `system/messaging-subject-map.md`.
 - SC-01313: Smoke checks validate that the generated frontend still satisfies the inherited state-aware header/System-menu contract after the `Admin` tab extension.

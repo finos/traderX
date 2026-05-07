@@ -35,7 +35,7 @@ describe('HeaderComponent', () => {
               sourceBranchUrl: 'https://example.test',
               lineageLinkUrl: 'https://example.test/lineage',
               apiExplorerUrl: '/api/docs',
-              pubSubInspectorUrl: '/api/docs/pubsub-inspector',
+              pubSubInspectorUrl: '/api/docs/pubsub-inspector.html',
               features: {
                 statusPage: true,
                 apiExplorer: true,

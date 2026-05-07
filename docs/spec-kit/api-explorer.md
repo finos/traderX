@@ -23,7 +23,7 @@ For states with message-bus subject maps (`006+`, with required pub/sub inspecto
 - Runtime route: `/api/docs`
 - Runtime catalog URL: `/api/docs/catalog.json`
 - Runtime static contracts: `/api/docs/contracts/*.yaml`
-- Runtime pub/sub inspector (canonical): `/api/docs/pubsub-inspector` (`/api/docs/pubsub-inspector.html` remains supported for compatibility)
+- Runtime pub/sub inspector (canonical): `/api/docs/pubsub-inspector.html` (`/api/docs/pubsub-inspector` remains supported for compatibility)
 
 ## Usage
 

@@ -188,7 +188,7 @@ cat > "${EXPLORER_ROOT}/index.html" <<'EOF'
         const inspectorLink = document.getElementById('pubsub-inspector-link');
         if (inspectorLink) {
           const base = window.location.href.replace(/\/[^/]*$/, '/');
-          inspectorLink.href = `${base}pubsub-inspector`;
+          inspectorLink.href = `${base}pubsub-inspector.html`;
         }
 
         window.ui = SwaggerUIBundle({

@@ -30,9 +30,32 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
   fi
 fi
 
+assert_content_type() {
+  local url="$1"
+  local expected_substring="$2"
+  local headers content_type
+  headers="$(curl -fsSI "${url}")" || {
+    echo "[error] request failed for ${url}"
+    exit 1
+  }
+  content_type="$(
+    printf '%s\n' "${headers}" \
+      | awk -F': *' 'tolower($1)=="content-type"{print tolower($2); exit}' \
+      | tr -d '\r'
+  )"
+  if [[ -z "${content_type}" ]]; then
+    echo "[error] missing Content-Type header for ${url}"
+    exit 1
+  fi
+  if [[ "${content_type}" != *"${expected_substring}"* ]]; then
+    echo "[error] unexpected Content-Type for ${url}: ${content_type} (expected substring: ${expected_substring})"
+    exit 1
+  fi
+}
+
 echo "[check] api explorer index route"
 index_html="$(curl -fsS "${INGRESS_URL}/api/docs/")"
-printf '%s' "${index_html}" | rg -q 'pubsub-inspector' || {
+printf '%s' "${index_html}" | rg -q 'pubsub-inspector\.html' || {
   echo "[error] expected pubsub inspector link in /api/docs/ index"
   exit 1
 }
@@ -44,9 +67,10 @@ printf '%s' "${index_html}" | rg -q 'href="/"' || {
   echo "[error] expected back-to-app link to / in /api/docs/ index"
   exit 1
 }
+assert_content_type "${INGRESS_URL}/api/docs/" "text/html"
 
 echo "[check] pubsub inspector canonical route"
-inspector_html="$(curl -fsS "${INGRESS_URL}/api/docs/pubsub-inspector")"
+inspector_html="$(curl -fsS "${INGRESS_URL}/api/docs/pubsub-inspector.html")"
 printf '%s' "${inspector_html}" | rg -q 'MAX_BUFFER = 2000' || {
   echo "[error] expected 2000 message buffer cap in pubsub inspector"
   exit 1
@@ -75,10 +99,11 @@ if printf '%s' "${inspector_html}" | rg -qi 'unpkg|jsdelivr|skypack|cdn'; then
   echo "[error] pubsub inspector must not depend on CDN assets"
   exit 1
 fi
+assert_content_type "${INGRESS_URL}/api/docs/pubsub-inspector.html" "text/html"
 
-echo "[check] pubsub inspector .html compatibility route"
-curl -fsS "${INGRESS_URL}/api/docs/pubsub-inspector.html" >/dev/null || {
-  echo "[error] expected /api/docs/pubsub-inspector.html compatibility route"
+echo "[check] pubsub inspector legacy no-extension compatibility route"
+curl -fsS "${INGRESS_URL}/api/docs/pubsub-inspector" >/dev/null || {
+  echo "[error] expected /api/docs/pubsub-inspector compatibility route"
   exit 1
 }
 
@@ -86,6 +111,7 @@ echo "[check] api explorer catalog messaging subjects"
 catalog_file="$(mktemp)"
 trap 'rm -f "${catalog_file}"' EXIT
 curl -fsS "${INGRESS_URL}/api/docs/catalog.json" > "${catalog_file}"
+assert_content_type "${INGRESS_URL}/api/docs/catalog.json" "application/json"
 
 jq -e '.messagingSubjects | type == "array"' "${catalog_file}" >/dev/null || {
   echo "[error] expected catalog.json to include messagingSubjects array"

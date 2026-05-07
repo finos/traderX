@@ -17,7 +17,7 @@ const DEFAULT_METADATA: StateUiMetadata = {
   sourceBranchUrl: '',
   lineageLinkUrl: '',
   apiExplorerUrl: '/api/docs',
-  pubSubInspectorUrl: '/api/docs/pubsub-inspector',
+  pubSubInspectorUrl: '/api/docs/pubsub-inspector.html',
   features: {
     statusPage: false,
     apiExplorer: false,

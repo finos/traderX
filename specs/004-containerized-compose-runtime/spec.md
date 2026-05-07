@@ -39,6 +39,7 @@
 - NFR-312: On mismatch, runtime/start scripts SHALL provide explicit guidance for forward-regenerate versus backward clean rebuild decisions.
 - NFR-313: Runtime/start scripts SHALL support an explicit opt-in mode to auto-regenerate expected state before startup.
 - NFR-314: Generated snapshot pruning and generated CI target discovery for this and later states SHALL exclude legacy uncontainerized runtime components that are no longer active in-state (for example Node `edge-proxy`), unless explicitly reintroduced by a later approved state spec.
+- NFR-315: Browser-offered documentation/tool URLs (`/api/docs/`, API explorer navigation links, and conditional `pubSubInspectorUrl` links when enabled in later lineage states) SHALL return non-404 responses with browser-renderable content types (HTML for pages, JSON for catalog payloads).
 
 ## Success Criteria
 
@@ -46,7 +47,7 @@
 - SC-302: Smoke/conformance checks pass against containerized state.
 - SC-303: Generated snapshot tag published with linked validation evidence.
 - SC-304: Generated branch artifacts include `C0` build/publish workflow and GHCR run-bundle assets.
-- SC-305: After state startup, API explorer is reachable at `http://localhost:8080/api/docs` and interactive requests route through prefixed service paths.
+- SC-305: After state startup, API explorer is reachable at `http://localhost:8080/api/docs`, interactive requests route through prefixed service paths, and browser-offered docs/tool URLs satisfy non-404 + expected content-type contracts.
 - SC-306: Ingress-routed UI smoke tests verify header title includes `004-containerized-compose-runtime`, About metadata renders expected lineage/source fields, and API explorer link is available.
 - SC-307: Ingress-routed UI smoke tests verify `Status` page is reachable and shows per-service uptime/health entries for this state.
 - SC-308: Startup script smoke checks verify generated-state detection messaging for both match and mismatch cases, including opt-in auto-regeneration flow.
