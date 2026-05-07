@@ -1513,6 +1513,33 @@ write_env_wrapper_script() {
   chmod +x "${wrapper_path}"
 }
 
+write_env_wrapper_batch_script() {
+  local wrapper_name="$1"
+  local action="$2"
+  local target_script="$3"
+  local wrapper_path="${SNAPSHOT_DIR}/${wrapper_name}"
+  local target_script_name="${target_script#scripts/}"
+  local target_ps1_name="${target_script_name%.sh}.ps1"
+  local target_ps1_windows="${target_ps1_name//\//\\}"
+
+  if [[ -f "${SNAPSHOT_DIR}/scripts/${target_ps1_name}" ]]; then
+    cat > "${wrapper_path}" <<EOF
+@echo off
+setlocal
+set "ROOT=%~dp0"
+pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%ROOT%scripts\\${target_ps1_windows}" %*
+EOF
+    return 0
+  fi
+
+  cat > "${wrapper_path}" <<EOF
+@echo off
+echo [error] no PowerShell entrypoint is available for ${action} in this state snapshot.
+echo [hint] use .\\${wrapper_name%.bat}.sh on Linux/macOS.
+exit /b 2
+EOF
+}
+
 write_test_env_wrapper_without_target() {
   local wrapper_path="${SNAPSHOT_DIR}/test-env.sh"
   cat > "${wrapper_path}" <<'EOF'
@@ -1528,6 +1555,69 @@ fi
 exit 2
 EOF
   chmod +x "${wrapper_path}"
+}
+
+write_test_env_wrapper_without_target_batch() {
+  local wrapper_path="${SNAPSHOT_DIR}/test-env.bat"
+  cat > "${wrapper_path}" <<'EOF'
+@echo off
+echo [info] no state-specific test entrypoint was detected for this snapshot.
+if exist "%~dp0scripts" (
+  echo [hint] available test scripts:
+  dir /b "%~dp0scripts\test-state-*.ps1" 2>nul
+  dir /b "%~dp0scripts\test-state-*.sh" 2>nul
+)
+exit /b 2
+EOF
+}
+
+prune_snapshot_scripts_for_targets() {
+  local keep_file
+  keep_file="$(mktemp "${TMPDIR:-/tmp}/traderx-snapshot-script-keep.XXXXXX")"
+
+  add_script_keep() {
+    local rel="$1"
+    [[ -n "${rel}" ]] || return 0
+    [[ -f "${SNAPSHOT_DIR}/scripts/${rel}" ]] || return 0
+    if ! grep -Fxq "${rel}" "${keep_file}"; then
+      printf '%s\n' "${rel}" >> "${keep_file}"
+    fi
+  }
+
+  add_script_keep "README.runtime-harness.md"
+  add_script_keep "lib/generated-state-detection.sh"
+  add_script_keep "lib/generated-state-detection.ps1"
+  add_script_keep "lib/resolve-socketio-client-path.sh"
+  add_script_keep "lib/runtime-common.ps1"
+
+  local target dep dep_root
+  for target in "$@"; do
+    [[ -n "${target}" ]] || continue
+    dep_root="${target#scripts/}"
+    while IFS= read -r dep; do
+      [[ -n "${dep}" ]] || continue
+      add_script_keep "${dep}"
+    done < <(collect_snapshot_script_dependency_closure "${dep_root}")
+  done
+
+  local rel sibling_ps1
+  while IFS= read -r rel; do
+    [[ -n "${rel}" ]] || continue
+    if [[ "${rel}" == *.sh ]]; then
+      sibling_ps1="${rel%.sh}.ps1"
+      add_script_keep "${sibling_ps1}"
+    fi
+  done < "${keep_file}"
+
+  while IFS= read -r rel; do
+    [[ -n "${rel}" ]] || continue
+    if ! grep -Fxq "${rel}" "${keep_file}"; then
+      rm -f "${SNAPSHOT_DIR}/scripts/${rel}"
+    fi
+  done < <(find "${SNAPSHOT_DIR}/scripts" -type f -print | sed "s#^${SNAPSHOT_DIR}/scripts/##" | sort)
+
+  find "${SNAPSHOT_DIR}/scripts" -type d -empty -delete
+  rm -f "${keep_file}"
 }
 
 write_env_entrypoint_wrappers() {
@@ -1547,12 +1637,19 @@ write_env_entrypoint_wrappers() {
   write_env_wrapper_script "start-env.sh" "start" "${start_target}"
   write_env_wrapper_script "stop-env.sh" "stop" "${stop_target}"
   write_env_wrapper_script "status-env.sh" "status" "${status_target}"
+  write_env_wrapper_batch_script "start-env.bat" "start" "${start_target}"
+  write_env_wrapper_batch_script "stop-env.bat" "stop" "${stop_target}"
+  write_env_wrapper_batch_script "status-env.bat" "status" "${status_target}"
 
   if [[ -n "${test_target}" ]]; then
     write_env_wrapper_script "test-env.sh" "test" "${test_target}"
+    write_env_wrapper_batch_script "test-env.bat" "test" "${test_target}"
   else
     write_test_env_wrapper_without_target
+    write_test_env_wrapper_without_target_batch
   fi
+
+  prune_snapshot_scripts_for_targets "${start_target}" "${stop_target}" "${status_target}" "${test_target}"
 }
 
 assert_snapshot_clone_entrypoints() {
@@ -1560,6 +1657,14 @@ assert_snapshot_clone_entrypoints() {
   for required_exec in start-env.sh stop-env.sh status-env.sh test-env.sh; do
     if [[ ! -x "${SNAPSHOT_DIR}/${required_exec}" ]]; then
       echo "[fail] missing executable wrapper: ${required_exec}"
+      exit 1
+    fi
+  done
+
+  local required_batch
+  for required_batch in start-env.bat stop-env.bat status-env.bat test-env.bat; do
+    if [[ ! -f "${SNAPSHOT_DIR}/${required_batch}" ]]; then
+      echo "[fail] missing batch wrapper: ${required_batch}"
       exit 1
     fi
   done
@@ -2946,6 +3051,13 @@ Use root wrappers for this generated branch:
 ./status-env.sh  # runtime health/status
 ./stop-env.sh    # stop runtime
 ./test-env.sh    # state smoke/validation
+```
+
+```bat
+start-env.bat
+status-env.bat
+stop-env.bat
+test-env.bat
 ```
 
 Wrappers intentionally delegate to numbered state scripts to maximize reuse while keeping clone-first commands stable.
