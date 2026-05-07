@@ -23,10 +23,20 @@ require_pattern_in_file() {
   fi
 }
 
+require_powershell_sibling() {
+  local sh_path="$1"
+  local ps_path="${sh_path%.sh}.ps1"
+  [[ -f "${ps_path}" ]] || fail "missing PowerShell sibling for ${sh_path} (expected ${ps_path})"
+}
+
 require_file "${SCRIPTS_DIR}/start-base-uncontainerized-generated.sh"
 require_file "${SCRIPTS_DIR}/stop-base-uncontainerized-generated.sh"
+require_file "${SCRIPTS_DIR}/status-base-uncontainerized-generated.sh"
 require_file "${SCRIPTS_DIR}/test-order-create-pubsub-smoke.sh"
 require_file "${CATALOG}"
+require_powershell_sibling "${SCRIPTS_DIR}/start-base-uncontainerized-generated.sh"
+require_powershell_sibling "${SCRIPTS_DIR}/stop-base-uncontainerized-generated.sh"
+require_powershell_sibling "${SCRIPTS_DIR}/status-base-uncontainerized-generated.sh"
 
 # Baseline contract: catalog must expose build_cmd and every process row must define it.
 header="$(head -n 1 "${CATALOG}")"
@@ -36,17 +46,26 @@ awk -F, 'NR > 1 { if ($7 == "") { printf("[fail] missing build_cmd for process %
 
 # Uncontainerized lifecycle scripts must expose explicit build-only mode.
 require_pattern_in_file '--build-only' "${SCRIPTS_DIR}/start-base-uncontainerized-generated.sh"
+require_pattern_in_file '-BuildOnly' "${SCRIPTS_DIR}/start-base-uncontainerized-generated.ps1"
 
 for state_num in 002 003; do
   start_script="$(find "${SCRIPTS_DIR}" -maxdepth 1 -type f -name "start-state-${state_num}-*-generated.sh" | sort | head -n 1 || true)"
   stop_script="$(find "${SCRIPTS_DIR}" -maxdepth 1 -type f -name "stop-state-${state_num}-*-generated.sh" | sort | head -n 1 || true)"
+  status_script="$(find "${SCRIPTS_DIR}" -maxdepth 1 -type f -name "status-state-${state_num}-*-generated.sh" | sort | head -n 1 || true)"
   smoke_script="$(find "${SCRIPTS_DIR}" -maxdepth 1 -type f -name "test-state-${state_num}-*.sh" | sort | head -n 1 || true)"
 
   [[ -n "${start_script}" ]] || fail "missing start script for state ${state_num}"
   [[ -n "${stop_script}" ]] || fail "missing stop script for state ${state_num}"
+  [[ -n "${status_script}" ]] || fail "missing status script for state ${state_num}"
   [[ -n "${smoke_script}" ]] || fail "missing readiness script for state ${state_num}"
 
+  require_powershell_sibling "${start_script}"
+  require_powershell_sibling "${stop_script}"
+  require_powershell_sibling "${status_script}"
+  require_powershell_sibling "${smoke_script}"
+
   require_pattern_in_file '--build-only' "${start_script}"
+  require_pattern_in_file '-BuildOnly' "${start_script%.sh}.ps1"
 done
 
 # Every other generated state must have start/stop/readiness scripts and build/start separation flag.

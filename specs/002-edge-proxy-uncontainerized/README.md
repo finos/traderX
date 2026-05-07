@@ -1,5 +1,7 @@
 # Feature Pack 002: Edge Proxy Uncontainerized
 
+![linux/mac support](https://badgen.net/badge/linux%2Fmac/supported/green?icon=linux) ![windows support](https://badgen.net/badge/windows/supported/green?icon=windows)
+
 Status: Implemented (pending release tag)
 
 This pack defines the first post-baseline state transition from `001-baseline-uncontainerized-parity`.
@@ -21,10 +23,14 @@ Implemented artifacts:
 - `pipeline/generate-state-002-edge-proxy-uncontainerized.sh`
 - `specs/002-edge-proxy-uncontainerized/generation/patches/*.patch`
 - `scripts/start-state-002-edge-proxy-generated.sh`
+- `scripts/start-state-002-edge-proxy-generated.ps1`
 - `scripts/test-state-002-edge-proxy.sh`
+- `scripts/test-state-002-edge-proxy.ps1`
 - `tests/smoke/README.md`
 
 Runtime lifecycle:
 
 - first run/build: `./scripts/start-state-002-edge-proxy-generated.sh --build-only`
 - start after build: `./scripts/start-state-002-edge-proxy-generated.sh`
+- first run/build (PowerShell): `./scripts/start-state-002-edge-proxy-generated.ps1 -BuildOnly`
+- start after build (PowerShell): `./scripts/start-state-002-edge-proxy-generated.ps1`

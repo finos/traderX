@@ -38,17 +38,32 @@ fi
 # Local helper lib used by some runtime tests.
 cp "${SCRIPTS_SRC}/lib/resolve-socketio-client-path.sh" "${SCRIPTS_DST}/lib/"
 cp "${SCRIPTS_SRC}/lib/generated-state-detection.sh" "${SCRIPTS_DST}/lib/"
+if [[ -f "${SCRIPTS_SRC}/lib/runtime-common.ps1" ]]; then
+  cp "${SCRIPTS_SRC}/lib/runtime-common.ps1" "${SCRIPTS_DST}/lib/"
+fi
+if [[ -f "${SCRIPTS_SRC}/lib/generated-state-detection.ps1" ]]; then
+  cp "${SCRIPTS_SRC}/lib/generated-state-detection.ps1" "${SCRIPTS_DST}/lib/"
+fi
 
 copy_script_if_exists() {
   local name="$1"
   if [[ -f "${SCRIPTS_SRC}/${name}" ]]; then
     cp "${SCRIPTS_SRC}/${name}" "${SCRIPTS_DST}/"
   fi
+  if [[ "${name}" == *.sh ]]; then
+    local ps_name="${name%.sh}.ps1"
+    if [[ -f "${SCRIPTS_SRC}/${ps_name}" ]]; then
+      cp "${SCRIPTS_SRC}/${ps_name}" "${SCRIPTS_DST}/"
+    fi
+  fi
 }
 
 # Always include helper test scripts used by state smoke wrappers.
 shopt -s nullglob
 for test_script in "${SCRIPTS_SRC}"/test-*.sh; do
+  cp "${test_script}" "${SCRIPTS_DST}/"
+done
+for test_script in "${SCRIPTS_SRC}"/test-*.ps1; do
   cp "${test_script}" "${SCRIPTS_DST}/"
 done
 shopt -u nullglob
@@ -174,6 +189,13 @@ done
 chmod +x "${SCRIPTS_DST}/lib/resolve-socketio-client-path.sh"
 chmod +x "${SCRIPTS_DST}/lib/generated-state-detection.sh"
 
+for script in "${SCRIPTS_DST}"/*.ps1; do
+  [[ -f "${script}" ]] || continue
+  if ! rg -q '^\$env:TRADERX_LOCAL_RUNTIME_SCRIPT = '\''1'\''' "${script}"; then
+    perl -0pi -e 's#\$ErrorActionPreference = '\''Stop'\''\n#\$ErrorActionPreference = '\''Stop'\''\n\n\$env:TRADERX_LOCAL_RUNTIME_SCRIPT = '\''1'\''\n\$env:TRADERX_SKIP_GENERATE = '\''1'\''\nif ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable('\''TRADERX_GENERATED_ROOT'\''))) {\n  \$env:TRADERX_GENERATED_ROOT = (Resolve-Path (Join-Path \$PSScriptRoot '\''../../..'\'')).Path\n}\n#' "${script}"
+  fi
+done
+
 # Recreate component-compat symlinks used by uncontainerized/edge scripts.
 link_component() {
   local component_name="$1"
@@ -224,11 +246,24 @@ Start:
 ./scripts/start-base-uncontainerized-generated.sh
 ```
 
+```powershell
+# Build/preflight only (no runtime start)
+./scripts/start-base-uncontainerized-generated.ps1 -BuildOnly
+
+# Start runtime (will build if needed)
+./scripts/start-base-uncontainerized-generated.ps1
+```
+
 Status / stop:
 
 ```bash
 ./scripts/status-base-uncontainerized-generated.sh
 ./scripts/stop-base-uncontainerized-generated.sh
+```
+
+```powershell
+./scripts/status-base-uncontainerized-generated.ps1
+./scripts/stop-base-uncontainerized-generated.ps1
 ```
 EOF
       ;;
@@ -246,11 +281,24 @@ Start:
 ./scripts/start-state-002-edge-proxy-generated.sh
 ```
 
+```powershell
+# Build/preflight only (no runtime start)
+./scripts/start-state-002-edge-proxy-generated.ps1 -BuildOnly
+
+# Start runtime (will build if needed)
+./scripts/start-state-002-edge-proxy-generated.ps1
+```
+
 Status / stop:
 
 ```bash
 ./scripts/status-state-002-edge-proxy-generated.sh
 ./scripts/stop-state-002-edge-proxy-generated.sh
+```
+
+```powershell
+./scripts/status-state-002-edge-proxy-generated.ps1
+./scripts/stop-state-002-edge-proxy-generated.ps1
 ```
 EOF
       ;;
@@ -268,6 +316,14 @@ Start:
 ./scripts/start-state-003-agentic-harness-foundation-generated.sh
 ```
 
+```powershell
+# Build/preflight only (no runtime start)
+./scripts/start-state-003-agentic-harness-foundation-generated.ps1 -BuildOnly
+
+# Start runtime (will build if needed)
+./scripts/start-state-003-agentic-harness-foundation-generated.ps1
+```
+
 Status / stop:
 
 ```bash
@@ -275,10 +331,19 @@ Status / stop:
 ./scripts/stop-state-003-agentic-harness-foundation-generated.sh
 ```
 
+```powershell
+./scripts/status-state-003-agentic-harness-foundation-generated.ps1
+./scripts/stop-state-003-agentic-harness-foundation-generated.ps1
+```
+
 Smoke test:
 
 ```bash
 ./scripts/test-state-003-agentic-harness-foundation.sh
+```
+
+```powershell
+./scripts/test-state-003-agentic-harness-foundation.ps1
 ```
 EOF
       ;;

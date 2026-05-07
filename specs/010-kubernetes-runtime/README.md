@@ -1,5 +1,7 @@
 # Feature Pack 010: Kubernetes Runtime Baseline
 
+![linux/mac support](https://badgen.net/badge/linux%2Fmac/supported/green?icon=linux) ![windows support](https://badgen.net/badge/windows/not%20supported/red?icon=windows)
+
 Status: Implemented
 Track: `devex`
 Previous state: `009-order-management-matcher`

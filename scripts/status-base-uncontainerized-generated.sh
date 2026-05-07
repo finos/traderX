@@ -11,7 +11,8 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
   fi
 fi
 TARGET="${GENERATED_ROOT}/code/target-generated"
-RUN_DIR="${TARGET}/.run/base-uncontainerized"
+RUN_ROOT="${TRADERX_RUN_DIR:-/var/tmp/${USER:-unknown-user}/traderx}"
+RUN_DIR="${RUN_ROOT}/base-uncontainerized"
 SPEC="${REPO_ROOT}/catalog/base-uncontainerized-processes.csv"
 source "${REPO_ROOT}/scripts/lib/generated-state-detection.sh"
 

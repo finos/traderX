@@ -1,5 +1,7 @@
 # Feature Pack 006: Messaging Layer Replacement with NATS
 
+![linux/mac support](https://badgen.net/badge/linux%2Fmac/supported/green?icon=linux) ![windows support](https://badgen.net/badge/windows/not%20supported/red?icon=windows)
+
 Status: Implemented  
 Track: `architecture`  
 Previous state: `005-postgres-database-replacement`

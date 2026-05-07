@@ -107,6 +107,13 @@ for id in "${all_ids[@]}"; do
   else
     fail "${readme} heading must begin with '# Feature Pack ${expected_num}:' or '# ${expected_num} ...'"
   fi
+
+  grep -q 'badgen.net/badge/linux%2Fmac/' "${readme}" || fail "${readme} missing linux/mac support badge"
+  grep -q 'badgen.net/badge/windows/' "${readme}" || fail "${readme} missing windows support badge"
+
+  if rg -q '\.sh`|\.sh$|\.sh ' "${readme}"; then
+    rg -q '\.ps1`|\.ps1$|\.ps1 ' "${readme}" || fail "${readme} contains shell invocation(s) without PowerShell equivalent"
+  fi
 done
 
 for id in "${implemented_ids[@]}"; do

@@ -1,5 +1,7 @@
 # Feature Pack 012: Platform Convergence C3
 
+![linux/mac support](https://badgen.net/badge/linux%2Fmac/supported/green?icon=linux) ![windows support](https://badgen.net/badge/windows/not%20supported/red?icon=windows)
+
 Status: Implemented  
 Track: `devex`  
 Previous state: `011-tilt-kubernetes-dev-loop`  
@@ -33,3 +35,4 @@ Runtime entrypoints:
 - `./scripts/status-state-012-platform-convergence-c3-generated.sh`
 - `./scripts/test-state-012-platform-convergence-c3.sh`
 - `./scripts/stop-state-012-platform-convergence-c3-generated.sh`
+- Planned PowerShell parity entrypoint (Phase 2): `./scripts/start-state-012-platform-convergence-c3-generated.ps1`

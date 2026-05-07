@@ -1,5 +1,7 @@
 # Feature Pack 013: Radius Platform on Kubernetes
 
+![linux/mac support](https://badgen.net/badge/linux%2Fmac/supported/green?icon=linux) ![windows support](https://badgen.net/badge/windows/not%20supported/red?icon=windows)
+
 Status: Implemented  
 Track: `devex`  
 Lineage role: `optional`  
@@ -31,3 +33,4 @@ Runtime entrypoints:
 - `./scripts/status-state-013-radius-kubernetes-platform-generated.sh`
 - `./scripts/test-state-013-radius-kubernetes-platform.sh`
 - `./scripts/stop-state-013-radius-kubernetes-platform-generated.sh`
+- Planned PowerShell parity entrypoint (Phase 2): `./scripts/start-state-013-radius-kubernetes-platform-generated.ps1`

@@ -1,5 +1,7 @@
 # Feature Pack 014: FDC3 Intent Interoperability on C3
 
+![linux/mac support](https://badgen.net/badge/linux%2Fmac/supported/green?icon=linux) ![windows support](https://badgen.net/badge/windows/not%20supported/red?icon=windows)
+
 Status: Planned  
 Track: `functional`  
 Lineage role: `canonical`  

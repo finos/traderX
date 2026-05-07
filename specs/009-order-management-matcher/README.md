@@ -1,5 +1,7 @@
 # Feature Pack 009: Order Management and Matcher
 
+![linux/mac support](https://badgen.net/badge/linux%2Fmac/supported/green?icon=linux) ![windows support](https://badgen.net/badge/windows/not%20supported/red?icon=windows)
+
 Status: Implemented
 Track: `functional`
 Previous state: `008-pricing-awareness-market-data`

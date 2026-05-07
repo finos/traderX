@@ -1,5 +1,7 @@
 # Feature Pack 008: Pricing Awareness and Market Data Streaming
 
+![linux/mac support](https://badgen.net/badge/linux%2Fmac/supported/green?icon=linux) ![windows support](https://badgen.net/badge/windows/not%20supported/red?icon=windows)
+
 Status: Implemented  
 Track: `functional`  
 Previous state: `007-observability-lgtm-compose`

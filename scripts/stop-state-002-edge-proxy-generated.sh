@@ -11,7 +11,8 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
   fi
 fi
 TARGET="${GENERATED_ROOT}/code/target-generated"
-RUN_DIR="${TARGET}/.run/state-002-edge-proxy"
+RUN_ROOT="${TRADERX_RUN_DIR:-/var/tmp/${USER:-unknown-user}/traderx}"
+RUN_DIR="${RUN_ROOT}/state-002-edge-proxy"
 EDGE_PROXY_PORT="${EDGE_PROXY_PORT:-18080}"
 
 pidfile="${RUN_DIR}/pids/edge-proxy.pid"

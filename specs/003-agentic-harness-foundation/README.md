@@ -1,5 +1,7 @@
 # Feature Pack 003: Agentic Harness Foundation
 
+![linux/mac support](https://badgen.net/badge/linux%2Fmac/supported/green?icon=linux) ![windows support](https://badgen.net/badge/windows/supported/green?icon=windows)
+
 Status: Implemented
 Track: `prelude`
 Previous state: `002-edge-proxy-uncontainerized`

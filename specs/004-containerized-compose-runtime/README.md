@@ -1,5 +1,7 @@
 # Feature Pack 004: Containerized Compose Runtime
 
+![linux/mac support](https://badgen.net/badge/linux%2Fmac/supported/green?icon=linux) ![windows support](https://badgen.net/badge/windows/not%20supported/red?icon=windows)
+
 Status: Implemented (pending release validation/tag)
 
 This pack defines the next state after `003-agentic-harness-foundation`.
@@ -24,3 +26,4 @@ Runtime lifecycle:
 
 - default build + start: `./scripts/start-state-004-containerized-generated.sh`
 - restart without image rebuild: `./scripts/start-state-004-containerized-generated.sh --skip-build`
+- PowerShell equivalent is planned for Phase 2: `./scripts/start-state-004-containerized-generated.ps1`

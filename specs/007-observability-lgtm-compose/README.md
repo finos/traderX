@@ -1,5 +1,7 @@
 # Feature Pack 007: Observability with LGTM on Compose
 
+![linux/mac support](https://badgen.net/badge/linux%2Fmac/supported/green?icon=linux) ![windows support](https://badgen.net/badge/windows/not%20supported/red?icon=windows)
+
 Status: Implemented
 Track: `nonfunctional`
 Previous state: `006-messaging-nats-replacement`
