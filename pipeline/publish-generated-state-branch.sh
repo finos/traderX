@@ -1322,6 +1322,23 @@ EOF
 require_snapshot_component_dir() {
   local component_rel="$1"
   if [[ ! -d "${SNAPSHOT_DIR}/${component_rel}" ]]; then
+    local source_component_dir=""
+    case "${component_rel}" in
+      web-front-end/angular)
+        source_component_dir="${GENERATED_ROOT}/code/components/web-front-end-angular-specfirst"
+        ;;
+      *)
+        source_component_dir="${GENERATED_ROOT}/code/components/${component_rel}-specfirst"
+        ;;
+    esac
+
+    if [[ -d "${source_component_dir}" ]]; then
+      mkdir -p "${SNAPSHOT_DIR}/${component_rel}"
+      cp -R "${source_component_dir}/." "${SNAPSHOT_DIR}/${component_rel}/"
+    fi
+  fi
+
+  if [[ ! -d "${SNAPSHOT_DIR}/${component_rel}" ]]; then
     echo "[fail] expected component directory missing in snapshot: ${component_rel}"
     exit 1
   fi
