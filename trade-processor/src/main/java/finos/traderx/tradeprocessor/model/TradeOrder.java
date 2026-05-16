@@ -8,7 +8,7 @@ public class TradeOrder {
     private Integer quantity;
     private Integer accountId;
     private TradeSide side;
-
+    private OrderType orderType;
     public TradeOrder(){}
     
     public TradeOrder(String id, int accountId, String security, TradeSide side, int quantity) {
@@ -17,6 +17,10 @@ public class TradeOrder {
         this.side = side;
         this.quantity = quantity;
         this.id = id;
+    }
+
+    public OrderType getOrderType() {
+        return orderType;
     }
 
     public String getId() {

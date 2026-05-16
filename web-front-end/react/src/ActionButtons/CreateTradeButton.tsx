@@ -13,6 +13,10 @@ export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 	);
 	
 	const handleSubmit = async () => {
+		if (!security || !side || !quantity || quantity <= 0) {
+			setError("Please select security, side, and a positive quantity.");
+			return;
+		}
 		try {
 			const response = await fetch(`${Environment.trade_service_url}/trade/`, {
 				method: 'POST',
@@ -23,6 +27,7 @@ export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 					quantity: quantity,
 					accountId: accountId,
 					side: side,
+					orderType: "Market",
 				}),
 			});
 			if (response.ok) {
@@ -99,6 +104,13 @@ export const CreateTradeButton = ({accountId}:ActionButtonsProps) => {
 							style={{width: "8em"}}
 							onChange={handleSecurityChange}
 						>
+							<TextField
+								label="Order Type"
+								value="Market"
+								variant="outlined"
+								disabled
+								style={{width: "8em"}}
+							/>
 							{tickerItem}
 						</TextField>
 						<TextField
