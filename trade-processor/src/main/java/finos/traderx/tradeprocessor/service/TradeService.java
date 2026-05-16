@@ -34,6 +34,10 @@ public class TradeService {
     
 	public TradeBookingResult processTrade(TradeOrder order) {
 		log.info("Trade order received : "+order);
+		if (order.getOrderType() == null || order.getOrderType() != OrderType.Market) {
+			throw new IllegalArgumentException("Only Market orders are currently supported.");
+		}
+
         Trade t=new Trade();
         t.setAccountId(order.getAccountId());
 

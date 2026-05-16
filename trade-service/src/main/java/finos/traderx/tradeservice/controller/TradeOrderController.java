@@ -21,6 +21,9 @@ import finos.traderx.tradeservice.model.Security;
 import finos.traderx.tradeservice.model.TradeOrder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import org.springframework.http.HttpStatus;
+
+import finos.traderx.tradeservice.model.OrderType;
 
 @CrossOrigin("*")
 @RestController
@@ -44,7 +47,25 @@ public class TradeOrderController {
 	@PostMapping("/")
 	public ResponseEntity<TradeOrder> createTradeOrder(@Parameter(description = "the intendeded trade order") @RequestBody TradeOrder tradeOrder) {
 		log.info("Called createTradeOrder");
-		
+		if (tradeOrder.getSecurity() == null || tradeOrder.getSecurity().isBlank()) {
+			return ResponseEntity.badRequest().build();
+		}
+
+		if (tradeOrder.getAccountId() == null) {
+			return ResponseEntity.badRequest().build();
+		}
+
+		if (tradeOrder.getQuantity() == null || tradeOrder.getQuantity() <= 0) {
+			return ResponseEntity.badRequest().build();
+		}
+
+		if (tradeOrder.getSide() == null) {
+			return ResponseEntity.badRequest().build();
+		}
+
+		if (tradeOrder.getOrderType() == null || tradeOrder.getOrderType() != OrderType.Market) {
+			return ResponseEntity.badRequest().build();
+		}
 		if (!validateTicker(tradeOrder.getSecurity())) 
 		{
 			throw new ResourceNotFoundException(tradeOrder.getSecurity() + " not found in Reference data service.");
