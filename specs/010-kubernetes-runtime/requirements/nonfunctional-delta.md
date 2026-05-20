@@ -23,6 +23,12 @@ This state changes runtime and operations model while keeping baseline functiona
 - No new authn/authz model introduced in this state (intentionally baseline/legacy-like).
 - Network surface is reduced to one browser entrypoint (`localhost:8080`) plus internal cluster service networking.
 
+## Deployment Profile Planning
+
+- Kubernetes lineage deploy bundles should use profile `aws-ec2-k8s` (not `aws-ec2-compose`).
+- Profile is specification-defined but intentionally disabled until generator support is implemented.
+- Enablement requires generated Kubernetes deploy assets, host prerequisite checks, and profile smoke tests.
+
 ## Performance / Scalability
 
 - Services run as Kubernetes Deployments with explicit replica counts (default `1` for baseline determinism).

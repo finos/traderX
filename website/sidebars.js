@@ -56,6 +56,7 @@ module.exports = {
             'spec-kit/generated-state-branches',
             'spec-kit/generated-state-ci',
             'spec-kit/aws-ec2-compose-prerequisites',
+            'spec-kit/aws-ec2-kubernetes-prerequisites',
             'spec-kit/run-generated-overlays',
           ],
         },

@@ -40,6 +40,7 @@ bash pipeline/state-playbook.sh --state <state-id> --publish-neighborhood --push
    - `/docs/spec-kit/generated-state-ci`
    - `/docs/spec-kit/live-environments`
    - `/docs/spec-kit/aws-ec2-compose-prerequisites`
+   - `/docs/spec-kit/aws-ec2-kubernetes-prerequisites`
 5. Follow patch-set implementation workflow:
    - `/docs/spec-kit/patchset-authoring`
    - `/docs/spec-kit/messaging-subject-map-standard`

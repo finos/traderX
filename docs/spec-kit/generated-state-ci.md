@@ -222,6 +222,11 @@ Policy:
 - Default generated deploy-clone instructions MUST use tokenless public repository URLs; token-authenticated clone guidance should be optional and only for private forks.
 - Deployment bundle generation must come from canonical templates/generator logic, not manual edits on generated-state branches.
 
+Profile matrix:
+
+- `aws-ec2-compose` (active): compose-runtime states.
+- `aws-ec2-k8s` (planned): Kubernetes-runtime states (`010+`) once profile-generation support lands.
+
 Recommended minimum deployment bundle assets:
 
 - `runtime/deploy/<profile>/README.md`
@@ -236,6 +241,13 @@ Reverse-proxy snippet contract:
 
 - Must include websocket upgrade headers (`Upgrade`, `Connection`, HTTP/1.1) for websocket routes.
 - Must include websocket path mappings required by runtime messaging transport for the emitted state (for example `/nats-ws` for NATS-enabled state lineage), and avoid transport-specific stale routes that are no longer active for that state.
+
+Planned Kubernetes deploy profile contract (`aws-ec2-k8s`):
+
+- Must emit Kubernetes-specific deploy assets (for example ingress values/templates and cluster smoke checks), not Compose-only scripts.
+- Must include host setup check/install scripts for Kubernetes operator dependencies (`kubectl`, `helm`, and cluster access checks).
+- Must include dry-run deploy/upgrade/cleanup behavior consistent with compose profile expectations.
+- Must remain disabled in catalog (`deploy.enabled=false`) until generator support and profile smoke tests are implemented.
 
 ## Local CI Preflight Before Publish
 

@@ -29,6 +29,8 @@
 - NFR-405: Runtime topology and architecture SHALL be machine-documented in `system/runtime-topology.md` and `system/architecture.model.json`.
 - NFR-406: Observability capabilities inherited from state `009-order-management-matcher` (Prometheus scrape coverage, provisioned Grafana dashboards, and LGTM control-plane services) SHALL remain available through Kubernetes runtime entrypoints.
 - NFR-407: NGINX edge routes SHALL forward standard ingress headers (`X-Forwarded-For`, `X-Forwarded-Host`, `X-Forwarded-Proto`, and route-specific `X-Forwarded-Prefix`) to upstream services.
+- NFR-408: Kubernetes deployment-bundle profile contract SHALL be `aws-ec2-k8s` for `010+` runtime lineage when deployment bundles are enabled, with profile assets and smoke checks generated from canonical spec/generator sources.
+- NFR-409: Until `aws-ec2-k8s` generator support is implemented, Kubernetes states SHALL keep deployment-bundle metadata disabled (`deploy.enabled=false`) to avoid emitting Compose-scoped deploy artifacts for Kubernetes runtime.
 
 ## Success Criteria
 
@@ -36,3 +38,4 @@
 - SC-402: `./scripts/start-state-010-kubernetes-runtime-generated.sh` creates/uses a Kind cluster, applies manifests, and reaches `http://localhost:8080/health`; reruns with `--skip-build` preserve startup behavior without rebuilding images.
 - SC-403: `./scripts/test-state-010-kubernetes-runtime.sh` passes core ingress/API/UI smoke checks and inherited observability checks (`/grafana`, `/prometheus`), including `order-matcher` ingress health and orders listing endpoints.
 - SC-404: Catalog metadata marks state `010` as implemented with canonical runtime commands.
+- SC-405: Spec/docs define `aws-ec2-k8s` deploy-profile contract and enablement criteria before any Kubernetes-state deployment bundle opt-in.

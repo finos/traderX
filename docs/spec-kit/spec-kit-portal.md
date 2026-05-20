@@ -27,6 +27,8 @@ The portal publishes three repository sources:
 - Generated-state branch model: `/docs/spec-kit/generated-state-branches`
 - Generated-state CI policy: `/docs/spec-kit/generated-state-ci`
 - Live demo environment registry: `/docs/spec-kit/live-environments`
+- EC2 Compose host prerequisites: `/docs/spec-kit/aws-ec2-compose-prerequisites`
+- EC2 Kubernetes host prerequisites (planned profile): `/docs/spec-kit/aws-ec2-kubernetes-prerequisites`
 - Learning-path visuals: `/docs/learning-paths`
 
 ## Official GitHub Spec Kit

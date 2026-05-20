@@ -58,6 +58,12 @@ Use immutable commit-SHA tags plus a moving `latest` tag per namespace/component
 
 Reference: `/docs/spec-kit/generated-state-ci`
 
+Convergence level alone does not force a deployment profile.
+Deployment-bundle profile selection follows runtime substrate:
+
+- Compose runtime states -> `aws-ec2-compose`
+- Kubernetes runtime states -> `aws-ec2-k8s` (planned; enable only after generator support lands)
+
 ## Canonical Sources
 
 - State metadata: `catalog/state-catalog.json`

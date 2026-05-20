@@ -10,6 +10,7 @@ This guide documents host-level prerequisites for running generated TraderX depl
 
 - Applies to generated deployment bundles under `runtime/deploy/aws-ec2-compose/`.
 - Intended for containerized states that opt in to deploy bundles.
+- For Kubernetes runtime profile planning, see `/docs/spec-kit/aws-ec2-kubernetes-prerequisites`.
 
 ## Required Host Tools
 
