@@ -26,6 +26,7 @@ Define container build/run packaging for the full TraderX baseline component set
 - Frontend container runtime packaging for deployed/demo targets must serve production/static assets and must not expose Vite/Angular dev-server hot-reload endpoints (for example `@vite/client` or `/@fs/*`).
 - Containerized compose artifacts must not hardcode localhost-only CORS origins; generated runtime/deploy flows must derive default CORS allowlists from `TRADERX_FQDN` (with explicit `CORS_ALLOWED_ORIGINS` override support).
 - API explorer packaging for state `004` must exclude Pub/Sub inspector assets/UI; Pub/Sub inspector packaging is reserved for later NATS-enabled states.
+- Deployment-bundle external reverse-proxy snippets must include websocket upgrade route mappings required by active runtime messaging paths; NATS-enabled state lineage must include `/nats-ws`.
 
 ## Generation Surface
 

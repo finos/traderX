@@ -1070,6 +1070,12 @@ This bundle is generated for state \`${STATE_ID}\` and is intended for compose-b
 ./runtime/deploy/aws-ec2-compose/upgrade.sh --dry-run
 ./runtime/deploy/aws-ec2-compose/cleanup.sh --dry-run
 \`\`\`
+
+## Front Proxy Note
+
+If you run an external NGINX in front of TraderX, include
+\`runtime/deploy/aws-ec2-compose/nginx.reverse-proxy.snippet.conf\` in that front-proxy
+server block so websocket upgrades are preserved (especially \`/nats-ws\` in NATS states).
 EOF
 
   cat > "${bundle_dir}/deploy.sh" <<EOF
@@ -1262,6 +1268,18 @@ location /trade-feed/ {
     proxy_set_header Connection "upgrade";
 }
 
+# NATS websocket route used by state 006+.
+location /nats-ws {
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Host $http_host;
+    proxy_pass http://localhost:8080/nats-ws;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_read_timeout 86400;
+}
+
+# Legacy Socket.IO path retained for backward compatibility with older states.
 location /socket.io/ {
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header Host $http_host;

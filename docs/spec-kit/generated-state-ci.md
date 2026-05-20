@@ -226,6 +226,12 @@ Recommended minimum deployment bundle assets:
 - `runtime/deploy/<profile>/deploy.sh`
 - `runtime/deploy/<profile>/upgrade.sh`
 - `runtime/deploy/<profile>/cleanup.sh`
+- `runtime/deploy/<profile>/nginx.reverse-proxy.snippet.conf`
+
+Reverse-proxy snippet contract:
+
+- Must include websocket upgrade headers (`Upgrade`, `Connection`, HTTP/1.1) for websocket routes.
+- Must include websocket path mappings required by runtime messaging transport (for example `/nats-ws` for NATS-enabled state lineage).
 
 ## Local CI Preflight Before Publish
 

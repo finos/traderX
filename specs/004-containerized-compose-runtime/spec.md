@@ -46,6 +46,7 @@
 - NFR-319: Containerized runtime frontend images intended for deployed/demo environments SHALL serve production/static assets and MUST NOT expose development-server hot-reload endpoints (for example `@vite/client`, `/@fs/*`) or require localhost-scoped websocket reload channels.
 - NFR-320: Containerized compose runtime artifacts (`004+`) SHALL configure service CORS origin allowlists from deployment-time FQDN input by default (derived from `TRADERX_FQDN`), with explicit `CORS_ALLOWED_ORIGINS` override support for non-default environments.
 - NFR-321: State `004` API explorer SHALL NOT expose Pub/Sub inspector UI/assets; Pub/Sub inspector is enabled only for states with NATS-based messaging/runtime support.
+- NFR-322: Generated deployment bundles (`runtime/deploy/aws-ec2-compose/`) SHALL include an external NGINX reverse-proxy snippet that preserves websocket upgrade routing for active runtime messaging paths. For NATS-enabled states (`006+`), this MUST include `/nats-ws`.
 
 ## Success Criteria
 
@@ -62,3 +63,4 @@
 - SC-311: Containerized UI smoke checks fail if ingress/frontend responses include development hot-reload artifacts (for example `@vite/client`) in deployed/runtime image output.
 - SC-312: Generated deploy/runtime artifacts accept `TRADERX_FQDN` and produce CORS-allowlist behavior that permits same-origin browser API calls on the deployed domain without requiring localhost-only CORS settings.
 - SC-313: Generated state `004` API explorer output does not expose a Pub/Sub inspector link/page, while later NATS-enabled states continue to expose it.
+- SC-314: Generated deployment bundle nginx snippet includes websocket upgrade route coverage needed by runtime state lineage, including `/nats-ws` for NATS-enabled states.
