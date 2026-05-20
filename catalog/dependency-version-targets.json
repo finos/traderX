@@ -6,7 +6,7 @@
       "io.spring.dependency-management": "1.1.7"
     },
     "properties": {
-      "tomcat.version": "10.1.54"
+      "tomcat.version": "10.1.55"
     },
     "dependencies": {
       "org.springdoc:springdoc-openapi-starter-webmvc-api": "2.8.17",

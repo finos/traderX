@@ -2229,7 +2229,7 @@ index 0000000..641b0bc
 +  id 'io.spring.dependency-management' version '1.1.7'
 +}
 +
-+ext['tomcat.version'] = '10.1.54'
++ext['tomcat.version'] = '10.1.55'
 +
 +group = 'finos.traderx.order-matcher-specfirst'
 +version = '0.1.0'
