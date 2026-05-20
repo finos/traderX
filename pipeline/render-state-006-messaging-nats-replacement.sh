@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${ROOT}/generated}"
 TARGET_ROOT="${GENERATED_ROOT}/code/target-generated"
+RUNTIME_OVERRIDES_DIR="${ROOT}/specs/006-messaging-nats-replacement/generation/runtime-overrides"
 
 ensure_micrometer_core() {
   local gradle_file="$1"
@@ -18,5 +19,9 @@ ensure_micrometer_core() {
 
 ensure_micrometer_core "${TARGET_ROOT}/trade-service/build.gradle"
 ensure_micrometer_core "${TARGET_ROOT}/trade-processor/build.gradle"
+
+if [[ -d "${RUNTIME_OVERRIDES_DIR}" ]]; then
+  rsync -a "${RUNTIME_OVERRIDES_DIR}/" "${TARGET_ROOT}/"
+fi
 
 echo "[ok] rendered state 006 micrometer dependency overrides"

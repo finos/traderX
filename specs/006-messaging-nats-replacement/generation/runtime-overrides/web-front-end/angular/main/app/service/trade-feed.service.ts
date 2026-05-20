@@ -39,7 +39,8 @@ export class TradeFeedService {
             return;
         }
         this.connectionStateSubject.next('connecting');
-        const ws = new WebSocket(environment.tradeFeedUrl);
+        const wsUrl = this.resolveWebSocketUrl(environment.tradeFeedUrl);
+        const ws = new WebSocket(wsUrl);
         this.socket = ws;
 
         ws.onopen = () => {
@@ -50,7 +51,7 @@ export class TradeFeedService {
             this.sendRaw('CONNECT {"protocol":1,"verbose":false,"pedantic":false,"echo":false}\r\n');
             this.sendRaw('PING\r\n');
             this.resubscribeAll();
-            console.log(`Trade feed (NATS websocket) connected: ${environment.tradeFeedUrl}`);
+            console.log(`Trade feed (NATS websocket) connected: ${wsUrl}`);
         };
 
         ws.onmessage = (event) => {
@@ -69,6 +70,19 @@ export class TradeFeedService {
             this.scheduleReconnect();
             console.warn('NATS websocket disconnected; reconnect scheduled');
         };
+    }
+
+    private resolveWebSocketUrl(configuredUrl: string): string {
+        const targetProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const fallback = `${targetProtocol}//${window.location.host}/nats-ws`;
+
+        try {
+            const parsed = new URL(configuredUrl, window.location.href);
+            parsed.protocol = targetProtocol;
+            return parsed.toString();
+        } catch (_error) {
+            return fallback;
+        }
     }
 
     private scheduleReconnect() {
