@@ -40,6 +40,9 @@
 - NFR-313: Runtime/start scripts SHALL support an explicit opt-in mode to auto-regenerate expected state before startup.
 - NFR-314: Generated snapshot pruning and generated CI target discovery for this and later states SHALL exclude legacy uncontainerized runtime components that are no longer active in-state (for example Node `edge-proxy`), unless explicitly reintroduced by a later approved state spec.
 - NFR-315: Browser-offered documentation/tool URLs (`/api/docs/`, API explorer navigation links, and conditional `pubSubInspectorUrl` links when enabled in later lineage states) SHALL return non-404 responses with browser-renderable content types (HTML for pages, JSON for catalog payloads).
+- NFR-316: For containerized states selected for live-demo operations, generated snapshots SHALL include a deployment bundle under `runtime/deploy/` with profile-scoped scripts and runbook content derived from canonical spec/generator sources (not manual branch edits).
+- NFR-317: Deployment bundle scripts SHALL support `--dry-run`, require runtime env vars for environment-specific values (for example domain/branch), and MUST NOT embed credentials or tokens.
+- NFR-318: Pre-container states (`001-003`) SHALL NOT emit deployment bundles in generated snapshots.
 
 ## Success Criteria
 
@@ -52,3 +55,4 @@
 - SC-307: Ingress-routed UI smoke tests verify `Status` page is reachable and shows per-service uptime/health entries for this state.
 - SC-308: Startup script smoke checks verify generated-state detection messaging for both match and mismatch cases, including opt-in auto-regeneration flow.
 - SC-309: State `004+` snapshot/CI outputs contain only active runtime components and do not emit legacy Node `edge-proxy` CI targets unless later specs explicitly restore that component.
+- SC-310: Generated snapshot contains deployment-bundle assets for approved demo-target containerized states and those assets pass local dry-run validation.

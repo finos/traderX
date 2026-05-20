@@ -51,6 +51,8 @@
 - NFR-01315: Trade and position blotters MUST retain push-based realtime updates (`/accounts/{accountId}/trades`, `/accounts/{accountId}/positions`) after initial REST bootstrap and MUST NOT introduce periodic polling loops as a substitute for stream updates.
 - NFR-01316: Generated API explorer catalog for this state SHALL include cumulative `messagingSubjects` metadata for inspector topic generation, including wildcard semantics (`pricing.*`) and parameterized subject prefill patterns.
 - NFR-01317: Browser-offered API explorer and pub/sub inspector links in this state SHALL resolve with non-404 responses and browser-renderable content types (HTML for pages, JSON for catalog payloads).
+- NFR-01318: As a demo-target containerized state, generated snapshots SHALL include a deployment bundle under `runtime/deploy/` for profile-scoped environment rollout scripts and runbooks.
+- NFR-01319: Deployment bundle scripts SHALL be dry-run-capable, rely on env vars for environment-specific values, and SHALL NOT include embedded secrets/tokens.
 
 ## Success Criteria
 
@@ -67,3 +69,4 @@
 - SC-01311: Smoke checks validate that open-order views update in real time on create/auto-fill/cancel/force-fill via `/accounts/{accountId}/orders` and `/orders`, without periodic `GET /orders` polling traffic.
 - SC-01312: Smoke checks validate `/api/docs/pubsub-inspector.html` availability (no-extension compatibility path included), URL/content-type contracts, and topic metadata coverage against `system/messaging-subject-map.md`.
 - SC-01313: Smoke checks validate that the generated frontend still satisfies the inherited state-aware header/System-menu contract after the `Admin` tab extension.
+- SC-01314: Generated snapshot contains deployment-bundle assets for demo rollout and those assets pass local dry-run validation.

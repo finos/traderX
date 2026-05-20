@@ -21,6 +21,7 @@ The state catalog is the publish contract for generated snapshots:
 - generation readiness (`generation.mode`)
 - default generated-state branch name
 - release tag hint
+- optional deployment-bundle metadata (`deploy.enabled`, `deploy.profile`, environment labels/domain hints)
 
 ## State Independence + Lineage
 
@@ -36,6 +37,7 @@ Generated branches include metadata files so consumers can always see provenance
 - `LEARNING.md`
 - `FUNCTIONAL_TESTING.md`
 - `docs/learning/*` generated learning artifacts (component list, system design, architecture, diagram)
+- optional `runtime/deploy/*` deployment bundle artifacts for containerized states that explicitly opt in
 
 These files record:
 

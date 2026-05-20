@@ -11,3 +11,6 @@
 - [ ] T01309 Add order-specific observability dashboards and Prometheus target config in generated runtime.
 - [ ] T01310 Implement smoke tests: `scripts/test-state-009-order-management-matcher.sh`.
 - [ ] T01311 Validate docs/spec gates and publish generated snapshot branch.
+- [ ] T01312 Generate `runtime/deploy/aws-ec2-compose/` deployment bundle for this state (`demo-advanced` target profile) with dry-run-capable scripts and runbook.
+- [ ] T01313 Validate deployment bundle local dry-run and enforce no hardcoded secrets/token material in generated deployment artifacts.
+- [ ] T01314 Ensure generated deployment-bundle policy remains state-scoped: present for this containerized state, absent for uncontainerized states.

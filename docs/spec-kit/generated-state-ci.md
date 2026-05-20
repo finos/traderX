@@ -207,6 +207,26 @@ Minimum bundle artifacts:
 - `.env.example` or equivalent runtime config template
 - state run README with copyable startup commands
 
+## Deployment Bundle Contract For Containerized Demo States
+
+Generated snapshots may include deployment bundles only for containerized states that explicitly opt in via state catalog metadata.
+
+Policy:
+
+- Pre-container states (`001-003`) MUST NOT emit deployment bundles.
+- Deployment bundle assets, when enabled, live under `runtime/deploy/<profile>/`.
+- Initial profile contract is `aws-ec2-compose` for compose-based demo rollout.
+- Deployment scripts MUST support `--dry-run` and use env vars for environment-specific values (for example target branch, domain/FQDN, image tag).
+- Deployment scripts MUST NOT contain embedded credentials/tokens/secrets.
+- Deployment bundle generation must come from canonical templates/generator logic, not manual edits on generated-state branches.
+
+Recommended minimum deployment bundle assets:
+
+- `runtime/deploy/<profile>/README.md`
+- `runtime/deploy/<profile>/deploy.sh`
+- `runtime/deploy/<profile>/upgrade.sh`
+- `runtime/deploy/<profile>/cleanup.sh`
+
 ## Local CI Preflight Before Publish
 
 Generated branch publish runs a prepublish CI-parity gate by default via

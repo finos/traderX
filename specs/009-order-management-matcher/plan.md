@@ -15,10 +15,12 @@
 5. Observability contract for order lifecycle metrics (open/unfilled gauges, events, latency).
 6. Generation hook implementation in `pipeline/generate-state-009-order-management-matcher.sh`.
 7. Smoke test implementation in `scripts/test-state-009-order-management-matcher.sh`.
+8. Generated deployment bundle for live demo deployment from this generated-state branch (issue `#351`), aligned with shared containerized deployment contract.
 
 ## Exit Criteria
 
 - Spec and tasks are complete and reviewed.
 - Generation hook produces expected artifacts.
 - Smoke tests pass for this state, including order observability assertions.
+- Deployment bundle artifacts are generated and locally dry-run validated.
 - State can be published to `code/generated-state-009-order-management-matcher`.
