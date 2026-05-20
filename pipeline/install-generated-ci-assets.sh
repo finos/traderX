@@ -1054,6 +1054,7 @@ This bundle is generated for state \`${STATE_ID}\` and is intended for compose-b
 - \`TRADERX_BRANCH\` (default: generated-state branch for this state)
 - \`TRADERX_WORKDIR\` (default: \`\$HOME/traderx\`)
 - \`TRADERX_COMPOSE_PATH_REL\` (default: \`${compose_rel}\`)
+- \`TRADERX_GHCR_COMPOSE_PATH_REL\` (default: \`runtime/ghcr/${STATE_ID}/docker-compose.ghcr.yml\`)
 - \`TRADERX_COMPOSE_PROJECT_NAME\` (default: \`traderx-${STATE_ID}\`)
 - \`TRADERX_DEPLOY_ENV\` (default: \`${default_environment:-demo}\`)
 - \`TRADERX_IMAGE_TAG\` (default: \`latest\`)
@@ -1064,6 +1065,7 @@ This bundle is generated for state \`${STATE_ID}\` and is intended for compose-b
 
 \`\`\`bash
 ./runtime/deploy/aws-ec2-compose/deploy.sh --dry-run
+./runtime/deploy/aws-ec2-compose/deploy.sh --use-ghcr --dry-run
 ./runtime/deploy/aws-ec2-compose/upgrade.sh --dry-run
 ./runtime/deploy/aws-ec2-compose/cleanup.sh --dry-run
 \`\`\`
@@ -1078,20 +1080,25 @@ TRADERX_REPO_URL="\${TRADERX_REPO_URL:-https://github.com/finos/traderX.git}"
 TRADERX_BRANCH="\${TRADERX_BRANCH:-${default_branch}}"
 TRADERX_WORKDIR="\${TRADERX_WORKDIR:-\${HOME}/traderx}"
 TRADERX_COMPOSE_PATH_REL="\${TRADERX_COMPOSE_PATH_REL:-${compose_rel}}"
+TRADERX_GHCR_COMPOSE_PATH_REL="\${TRADERX_GHCR_COMPOSE_PATH_REL:-runtime/ghcr/\${STATE_ID}/docker-compose.ghcr.yml}"
 TRADERX_COMPOSE_PROJECT_NAME="\${TRADERX_COMPOSE_PROJECT_NAME:-traderx-\${STATE_ID}}"
 TRADERX_DEPLOY_ENV="\${TRADERX_DEPLOY_ENV:-${default_environment:-demo}}"
 TRADERX_FQDN="\${TRADERX_FQDN:-${default_domain}}"
 TRADERX_IMAGE_TAG="\${TRADERX_IMAGE_TAG:-latest}"
 DRY_RUN=0
+USE_GHCR=0
 
 while (( "\$#" )); do
   case "\$1" in
     --dry-run)
       DRY_RUN=1
       ;;
+    --use-ghcr)
+      USE_GHCR=1
+      ;;
     *)
       echo "[fail] unknown argument: \$1"
-      echo "[hint] supported: --dry-run"
+      echo "[hint] supported: --dry-run --use-ghcr"
       exit 1
       ;;
   esac
@@ -1121,6 +1128,17 @@ run_compose_up() {
     docker compose -f "\${compose_file}" --project-name "\${TRADERX_COMPOSE_PROJECT_NAME}" up -d --build
 }
 
+run_compose_ghcr_up() {
+  local ghcr_compose_file="\$1"
+  echo "[run] docker compose -f \${ghcr_compose_file} --project-name \${TRADERX_COMPOSE_PROJECT_NAME} pull"
+  echo "[run] docker compose -f \${ghcr_compose_file} --project-name \${TRADERX_COMPOSE_PROJECT_NAME} up -d"
+  if (( DRY_RUN == 1 )); then
+    return 0
+  fi
+  docker compose -f "\${ghcr_compose_file}" --project-name "\${TRADERX_COMPOSE_PROJECT_NAME}" pull
+  docker compose -f "\${ghcr_compose_file}" --project-name "\${TRADERX_COMPOSE_PROJECT_NAME}" up -d
+}
+
 if [[ ! -d "\${TRADERX_WORKDIR}/.git" ]]; then
   run_cmd git clone "\${TRADERX_REPO_URL}" "\${TRADERX_WORKDIR}"
 fi
@@ -1130,17 +1148,34 @@ run_cmd git -C "\${TRADERX_WORKDIR}" checkout "\${TRADERX_BRANCH}"
 run_cmd git -C "\${TRADERX_WORKDIR}" reset --hard "origin/\${TRADERX_BRANCH}"
 
 compose_file="\${TRADERX_WORKDIR}/\${TRADERX_COMPOSE_PATH_REL}"
-if [[ ! -f "\${compose_file}" ]]; then
-  if (( DRY_RUN == 1 )); then
-    echo "[warn] compose file not found in dry-run mode: \${compose_file}"
-  else
-    echo "[fail] compose file not found: \${compose_file}"
-    exit 1
+ghcr_compose_file="\${TRADERX_WORKDIR}/\${TRADERX_GHCR_COMPOSE_PATH_REL}"
+if (( USE_GHCR == 1 )); then
+  if [[ ! -f "\${ghcr_compose_file}" ]]; then
+    if (( DRY_RUN == 1 )); then
+      echo "[warn] GHCR compose file not found in dry-run mode: \${ghcr_compose_file}"
+    else
+      echo "[fail] GHCR compose file not found: \${ghcr_compose_file}"
+      exit 1
+    fi
+  fi
+else
+  if [[ ! -f "\${compose_file}" ]]; then
+    if (( DRY_RUN == 1 )); then
+      echo "[warn] compose file not found in dry-run mode: \${compose_file}"
+    else
+      echo "[fail] compose file not found: \${compose_file}"
+      exit 1
+    fi
   fi
 fi
 
-run_compose_up "\${compose_file}"
-echo "[done] deploy completed for state \${STATE_ID} (\${TRADERX_DEPLOY_ENV})"
+if (( USE_GHCR == 1 )); then
+  run_compose_ghcr_up "\${ghcr_compose_file}"
+  echo "[done] deploy completed for state \${STATE_ID} (\${TRADERX_DEPLOY_ENV}) using ghcr images"
+else
+  run_compose_up "\${compose_file}"
+  echo "[done] deploy completed for state \${STATE_ID} (\${TRADERX_DEPLOY_ENV}) using local builds"
+fi
 EOF
 
   cat > "${bundle_dir}/upgrade.sh" <<'EOF'

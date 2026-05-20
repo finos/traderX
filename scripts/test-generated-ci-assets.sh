@@ -152,6 +152,16 @@ grep -q -- '--dry-run' "${TARGET_ROOT}/runtime/deploy/aws-ec2-compose/deploy.sh"
   exit 1
 }
 
+grep -q -- '--use-ghcr' "${TARGET_ROOT}/runtime/deploy/aws-ec2-compose/deploy.sh" || {
+  echo "[fail] deploy bundle should support --use-ghcr"
+  exit 1
+}
+
+grep -q 'TRADERX_GHCR_COMPOSE_PATH_REL' "${TARGET_ROOT}/runtime/deploy/aws-ec2-compose/deploy.sh" || {
+  echo "[fail] deploy bundle should support GHCR compose path override"
+  exit 1
+}
+
 if rg -qi 'token|password' "${TARGET_ROOT}/runtime/deploy/aws-ec2-compose/deploy.sh"; then
   echo "[fail] deploy bundle should not embed credentials/tokens"
   exit 1
