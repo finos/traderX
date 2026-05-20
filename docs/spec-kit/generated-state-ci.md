@@ -219,6 +219,7 @@ Policy:
 - Deployment scripts MUST support `--dry-run` and use env vars for environment-specific values (for example target branch, domain/FQDN, image tag).
 - Deployment scripts MUST NOT contain embedded credentials/tokens/secrets.
 - Deployment bundle generation must come from canonical templates/generator logic, not manual edits on generated-state branches.
+- Host-level EC2 setup is documented in `/docs/spec-kit/aws-ec2-compose-prerequisites` (AMI bootstrap, Docker/Compose/Buildx, nginx/certbot, and state-specific websocket routing notes such as `/nats-ws` for state `009`).
 
 Recommended minimum deployment bundle assets:
 

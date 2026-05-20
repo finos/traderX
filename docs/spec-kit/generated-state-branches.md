@@ -39,6 +39,12 @@ Generated branches include metadata files so consumers can always see provenance
 - `docs/learning/*` generated learning artifacts (component list, system design, architecture, diagram)
 - optional `runtime/deploy/*` deployment bundle artifacts for containerized states that explicitly opt in
 
+Deployment runbooks:
+
+- host prerequisites: `/docs/spec-kit/aws-ec2-compose-prerequisites`
+- 004 cutover checklist: `/docs/spec-kit/demo-004-cutover-checklist`
+- 009 cutover checklist: `/docs/spec-kit/demo-009-cutover-checklist`
+
 These files record:
 
 - current state id/title

@@ -38,6 +38,9 @@ bash pipeline/state-playbook.sh --state <state-id> --publish-neighborhood --push
 4. Understand generated-code branch publishing:
    - `/docs/spec-kit/generated-state-branches`
    - `/docs/spec-kit/generated-state-ci`
+   - `/docs/spec-kit/aws-ec2-compose-prerequisites`
+   - `/docs/spec-kit/demo-004-cutover-checklist`
+   - `/docs/spec-kit/demo-009-cutover-checklist`
 5. Follow patch-set implementation workflow:
    - `/docs/spec-kit/patchset-authoring`
    - `/docs/spec-kit/messaging-subject-map-standard`
