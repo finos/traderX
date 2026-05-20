@@ -1029,8 +1029,28 @@ write_aws_ec2_compose_deploy_bundle() {
   local default_environment="$3"
   local default_domain="$4"
   local bundle_dir="${TARGET_ROOT}/runtime/deploy/aws-ec2-compose"
+  local ingress_template="${TARGET_ROOT}/ingress/nginx.traderx.conf.template"
+  local include_ng_cli_ws=0
+  local include_trade_feed=0
+  local include_socket_io=0
+  local include_nats_ws=0
 
   mkdir -p "${bundle_dir}"
+
+  if [[ -f "${ingress_template}" ]]; then
+    if rg -q 'location /ng-cli-ws' "${ingress_template}"; then
+      include_ng_cli_ws=1
+    fi
+    if rg -q 'location /trade-feed/' "${ingress_template}"; then
+      include_trade_feed=1
+    fi
+    if rg -q 'location /socket\.io/' "${ingress_template}"; then
+      include_socket_io=1
+    fi
+    if rg -q 'location /nats-ws' "${ingress_template}"; then
+      include_nats_ws=1
+    fi
+  fi
 
   cat > "${bundle_dir}/README.md" <<EOF
 # AWS EC2 Compose Deploy Bundle (${STATE_ID})
@@ -1075,7 +1095,8 @@ This bundle is generated for state \`${STATE_ID}\` and is intended for compose-b
 
 If you run an external NGINX in front of TraderX, include
 \`runtime/deploy/aws-ec2-compose/nginx.reverse-proxy.snippet.conf\` in that front-proxy
-server block so websocket upgrades are preserved (especially \`/nats-ws\` in NATS states).
+server block. This generated snippet is state-aware and includes websocket routes
+that match the emitted runtime ingress transport for this state.
 EOF
 
   cat > "${bundle_dir}/deploy.sh" <<EOF
@@ -1251,6 +1272,10 @@ EOF
   cat > "${bundle_dir}/nginx.reverse-proxy.snippet.conf" <<'EOF'
 # Optional reverse-proxy snippet for TraderX demo endpoints.
 # Adjust upstream host/port and include this in your active nginx server block.
+EOF
+
+  if (( include_ng_cli_ws == 1 )); then
+    cat >> "${bundle_dir}/nginx.reverse-proxy.snippet.conf" <<'EOF'
 
 location /ng-cli-ws {
     proxy_pass http://localhost:8080/ng-cli-ws;
@@ -1258,6 +1283,11 @@ location /ng-cli-ws {
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
 }
+EOF
+  fi
+
+  if (( include_trade_feed == 1 )); then
+    cat >> "${bundle_dir}/nginx.reverse-proxy.snippet.conf" <<'EOF'
 
 location /trade-feed/ {
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -1267,8 +1297,12 @@ location /trade-feed/ {
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
 }
+EOF
+  fi
 
-# NATS websocket route used by state 006+.
+  if (( include_nats_ws == 1 )); then
+    cat >> "${bundle_dir}/nginx.reverse-proxy.snippet.conf" <<'EOF'
+
 location /nats-ws {
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header Host $http_host;
@@ -1278,8 +1312,12 @@ location /nats-ws {
     proxy_set_header Connection "upgrade";
     proxy_read_timeout 86400;
 }
+EOF
+  fi
 
-# Legacy Socket.IO path retained for backward compatibility with older states.
+  if (( include_socket_io == 1 )); then
+    cat >> "${bundle_dir}/nginx.reverse-proxy.snippet.conf" <<'EOF'
+
 location /socket.io/ {
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header Host $http_host;
@@ -1289,6 +1327,7 @@ location /socket.io/ {
     proxy_set_header Connection "upgrade";
 }
 EOF
+  fi
 
   chmod +x "${bundle_dir}/deploy.sh" "${bundle_dir}/upgrade.sh" "${bundle_dir}/cleanup.sh"
 }

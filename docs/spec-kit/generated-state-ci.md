@@ -231,7 +231,7 @@ Recommended minimum deployment bundle assets:
 Reverse-proxy snippet contract:
 
 - Must include websocket upgrade headers (`Upgrade`, `Connection`, HTTP/1.1) for websocket routes.
-- Must include websocket path mappings required by runtime messaging transport (for example `/nats-ws` for NATS-enabled state lineage).
+- Must include websocket path mappings required by runtime messaging transport for the emitted state (for example `/nats-ws` for NATS-enabled state lineage), and avoid transport-specific stale routes that are no longer active for that state.
 
 ## Local CI Preflight Before Publish
 
