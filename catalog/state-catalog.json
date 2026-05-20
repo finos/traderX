@@ -146,6 +146,12 @@
       "publish": {
         "branch": "code/generated-state-004-containerized-compose-runtime",
         "tag": "generated/004-containerized-compose-runtime/v1"
+      },
+      "deploy": {
+        "enabled": true,
+        "profile": "aws-ec2-compose",
+        "environment": "demo",
+        "domain": "demo.traderx.finos.org"
       }
     },
     {
@@ -264,6 +270,12 @@
       "publish": {
         "branch": "code/generated-state-009-order-management-matcher",
         "tag": "generated/009-order-management-matcher/v1"
+      },
+      "deploy": {
+        "enabled": true,
+        "profile": "aws-ec2-compose",
+        "environment": "demo-advanced",
+        "domain": "demo-advanced.traderx.finos.org"
       }
     },
     {

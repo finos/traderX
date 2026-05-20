@@ -48,6 +48,11 @@ is_convergence="$(jq -r '.isConvergence // false' <<<"${state_entry}")"
 convergence_level="$(jq -r '.convergenceLevel // "none"' <<<"${state_entry}")"
 convergence_level_lc="$(printf '%s' "${convergence_level}" | tr '[:upper:]' '[:lower:]')"
 convergence_namespace=""
+deploy_enabled="$(jq -r '(.deploy.enabled // false) | if . then "true" else "false" end' <<<"${state_entry}")"
+deploy_profile="$(jq -r '.deploy.profile // ""' <<<"${state_entry}")"
+deploy_environment="$(jq -r '.deploy.environment // ""' <<<"${state_entry}")"
+deploy_domain_hint="$(jq -r '.deploy.domain // ""' <<<"${state_entry}")"
+publish_branch="$(jq -r '.publish.branch // ""' <<<"${state_entry}")"
 case "${convergence_level}" in
   C0|C1|C2|C3)
     convergence_namespace="traderx-${convergence_level_lc}"
@@ -349,6 +354,7 @@ esac
 
 mkdir -p "${TARGET_ROOT}/.github/workflows" "${TARGET_ROOT}/ci"
 rm -rf "${TARGET_ROOT}/runtime/ghcr"
+rm -rf "${TARGET_ROOT}/runtime/deploy"
 
 for suppression in gradle-cve-ignore-list.xml node-cve-ignore-list.xml dotnet-cve-ignore-list.xml; do
   if [[ -f "${ROOT}/.github/${suppression}" ]]; then
@@ -804,6 +810,10 @@ jq -n \
   --arg convergenceLevel "${convergence_level}" \
   --arg convergenceNamespace "${convergence_namespace}" \
   --argjson isConvergence "${is_convergence}" \
+  --argjson deployEnabled "${deploy_enabled}" \
+  --arg deployProfile "${deploy_profile}" \
+  --arg deployEnvironment "${deploy_environment}" \
+  --arg deployDomainHint "${deploy_domain_hint}" \
   --argjson nodeModules "${node_json}" \
   --argjson gradleModules "${gradle_json}" \
   --argjson dotnetModules "${dotnet_json}" \
@@ -818,6 +828,12 @@ jq -n \
       gradle: $gradleModules,
       dotnet: $dotnetModules,
       docker: $dockerModules
+    },
+    deploy: {
+      enabled: $deployEnabled,
+      profile: $deployProfile,
+      environment: $deployEnvironment,
+      domainHint: $deployDomainHint
     }
   }' > "${TARGET_ROOT}/ci/state-metadata.json"
 
@@ -1007,6 +1023,221 @@ The start script will pull published images from \`ghcr.io/finos/${namespace}\`,
 EOF
 }
 
+write_aws_ec2_compose_deploy_bundle() {
+  local compose_rel="$1"
+  local default_branch="$2"
+  local default_environment="$3"
+  local default_domain="$4"
+  local bundle_dir="${TARGET_ROOT}/runtime/deploy/aws-ec2-compose"
+
+  mkdir -p "${bundle_dir}"
+
+  cat > "${bundle_dir}/README.md" <<EOF
+# AWS EC2 Compose Deploy Bundle (${STATE_ID})
+
+This bundle is generated for state \`${STATE_ID}\` and is intended for compose-based demo rollout.
+
+## Defaults
+
+- Branch: \`${default_branch}\`
+- Environment label: \`${default_environment:-demo}\`
+- Domain/FQDN hint: \`${default_domain:-set TRADERX_FQDN at runtime}\`
+- Compose file: \`${compose_rel}\`
+
+## Required runtime inputs
+
+- \`TRADERX_FQDN\` (if no default domain was generated for this state)
+
+## Optional runtime inputs
+
+- \`TRADERX_REPO_URL\` (default: \`https://github.com/finos/traderX.git\`)
+- \`TRADERX_BRANCH\` (default: generated-state branch for this state)
+- \`TRADERX_WORKDIR\` (default: \`\$HOME/traderx\`)
+- \`TRADERX_COMPOSE_PATH_REL\` (default: \`${compose_rel}\`)
+- \`TRADERX_COMPOSE_PROJECT_NAME\` (default: \`traderx-${STATE_ID}\`)
+- \`TRADERX_DEPLOY_ENV\` (default: \`${default_environment:-demo}\`)
+- \`TRADERX_IMAGE_TAG\` (default: \`latest\`)
+- \`TRADERX_PRUNE_DOCKER\` (\`1\` enables aggressive prune in \`cleanup.sh\`)
+- \`TRADERX_RUN_CLEANUP\` (\`1\` runs cleanup before \`upgrade.sh\`)
+
+## Dry-run examples
+
+\`\`\`bash
+./runtime/deploy/aws-ec2-compose/deploy.sh --dry-run
+./runtime/deploy/aws-ec2-compose/upgrade.sh --dry-run
+./runtime/deploy/aws-ec2-compose/cleanup.sh --dry-run
+\`\`\`
+EOF
+
+  cat > "${bundle_dir}/deploy.sh" <<EOF
+#!/usr/bin/env bash
+set -euo pipefail
+
+STATE_ID="${STATE_ID}"
+TRADERX_REPO_URL="\${TRADERX_REPO_URL:-https://github.com/finos/traderX.git}"
+TRADERX_BRANCH="\${TRADERX_BRANCH:-${default_branch}}"
+TRADERX_WORKDIR="\${TRADERX_WORKDIR:-\${HOME}/traderx}"
+TRADERX_COMPOSE_PATH_REL="\${TRADERX_COMPOSE_PATH_REL:-${compose_rel}}"
+TRADERX_COMPOSE_PROJECT_NAME="\${TRADERX_COMPOSE_PROJECT_NAME:-traderx-\${STATE_ID}}"
+TRADERX_DEPLOY_ENV="\${TRADERX_DEPLOY_ENV:-${default_environment:-demo}}"
+TRADERX_FQDN="\${TRADERX_FQDN:-${default_domain}}"
+TRADERX_IMAGE_TAG="\${TRADERX_IMAGE_TAG:-latest}"
+DRY_RUN=0
+
+while (( "\$#" )); do
+  case "\$1" in
+    --dry-run)
+      DRY_RUN=1
+      ;;
+    *)
+      echo "[fail] unknown argument: \$1"
+      echo "[hint] supported: --dry-run"
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+if [[ -z "\${TRADERX_FQDN}" ]]; then
+  echo "[fail] TRADERX_FQDN is required for deploy"
+  exit 1
+fi
+
+run_cmd() {
+  echo "[run] \$*"
+  if (( DRY_RUN == 1 )); then
+    return 0
+  fi
+  "\$@"
+}
+
+run_compose_up() {
+  local compose_file="\$1"
+  echo "[run] TRADERX_FQDN=\${TRADERX_FQDN} TRADERX_IMAGE_TAG=\${TRADERX_IMAGE_TAG} docker compose -f \${compose_file} --project-name \${TRADERX_COMPOSE_PROJECT_NAME} up -d --build"
+  if (( DRY_RUN == 1 )); then
+    return 0
+  fi
+  TRADERX_FQDN="\${TRADERX_FQDN}" TRADERX_IMAGE_TAG="\${TRADERX_IMAGE_TAG}" \\
+    docker compose -f "\${compose_file}" --project-name "\${TRADERX_COMPOSE_PROJECT_NAME}" up -d --build
+}
+
+if [[ ! -d "\${TRADERX_WORKDIR}/.git" ]]; then
+  run_cmd git clone "\${TRADERX_REPO_URL}" "\${TRADERX_WORKDIR}"
+fi
+
+run_cmd git -C "\${TRADERX_WORKDIR}" fetch --all --prune
+run_cmd git -C "\${TRADERX_WORKDIR}" checkout "\${TRADERX_BRANCH}"
+run_cmd git -C "\${TRADERX_WORKDIR}" reset --hard "origin/\${TRADERX_BRANCH}"
+
+compose_file="\${TRADERX_WORKDIR}/\${TRADERX_COMPOSE_PATH_REL}"
+if [[ ! -f "\${compose_file}" ]]; then
+  if (( DRY_RUN == 1 )); then
+    echo "[warn] compose file not found in dry-run mode: \${compose_file}"
+  else
+    echo "[fail] compose file not found: \${compose_file}"
+    exit 1
+  fi
+fi
+
+run_compose_up "\${compose_file}"
+echo "[done] deploy completed for state \${STATE_ID} (\${TRADERX_DEPLOY_ENV})"
+EOF
+
+  cat > "${bundle_dir}/upgrade.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TRADERX_RUN_CLEANUP="${TRADERX_RUN_CLEANUP:-0}"
+
+if [[ "${TRADERX_RUN_CLEANUP}" == "1" ]]; then
+  "${SCRIPT_DIR}/cleanup.sh" "$@"
+fi
+
+"${SCRIPT_DIR}/deploy.sh" "$@"
+EOF
+
+  cat > "${bundle_dir}/cleanup.sh" <<EOF
+#!/usr/bin/env bash
+set -euo pipefail
+
+STATE_ID="${STATE_ID}"
+TRADERX_WORKDIR="\${TRADERX_WORKDIR:-\${HOME}/traderx}"
+TRADERX_COMPOSE_PATH_REL="\${TRADERX_COMPOSE_PATH_REL:-${compose_rel}}"
+TRADERX_COMPOSE_PROJECT_NAME="\${TRADERX_COMPOSE_PROJECT_NAME:-traderx-\${STATE_ID}}"
+TRADERX_PRUNE_DOCKER="\${TRADERX_PRUNE_DOCKER:-0}"
+DRY_RUN=0
+
+while (( "\$#" )); do
+  case "\$1" in
+    --dry-run)
+      DRY_RUN=1
+      ;;
+    *)
+      echo "[fail] unknown argument: \$1"
+      echo "[hint] supported: --dry-run"
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+run_cmd() {
+  echo "[run] \$*"
+  if (( DRY_RUN == 1 )); then
+    return 0
+  fi
+  "\$@"
+}
+
+compose_file="\${TRADERX_WORKDIR}/\${TRADERX_COMPOSE_PATH_REL}"
+if [[ -f "\${compose_file}" ]]; then
+  run_cmd docker compose -f "\${compose_file}" --project-name "\${TRADERX_COMPOSE_PROJECT_NAME}" down --remove-orphans
+else
+  echo "[info] compose file not found; skipping compose down: \${compose_file}"
+fi
+
+if [[ "\${TRADERX_PRUNE_DOCKER}" == "1" ]]; then
+  run_cmd docker system prune -f
+  run_cmd docker volume prune -f
+fi
+
+echo "[done] cleanup completed for state \${STATE_ID}"
+EOF
+
+  cat > "${bundle_dir}/nginx.reverse-proxy.snippet.conf" <<'EOF'
+# Optional reverse-proxy snippet for TraderX demo endpoints.
+# Adjust upstream host/port and include this in your active nginx server block.
+
+location /ng-cli-ws {
+    proxy_pass http://localhost:8080/ng-cli-ws;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+}
+
+location /trade-feed/ {
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Host $http_host;
+    proxy_pass http://localhost:8080/trade-feed/;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+}
+
+location /socket.io/ {
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Host $http_host;
+    proxy_pass http://localhost:8080/socket.io/;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+}
+EOF
+
+  chmod +x "${bundle_dir}/deploy.sh" "${bundle_dir}/upgrade.sh" "${bundle_dir}/cleanup.sh"
+}
+
 if ((${#docker_entries[@]} > 0)); then
   if [[ -n "${convergence_namespace}" && "${is_convergence}" == "true" ]]; then
     write_build_publish_workflow "${TARGET_ROOT}/.github/workflows/build-and-publish.yml" "${convergence_namespace}"
@@ -1014,6 +1245,26 @@ if ((${#docker_entries[@]} > 0)); then
   else
     write_build_only_workflow "${TARGET_ROOT}/.github/workflows/build-container-images.yml"
   fi
+fi
+
+if [[ "${deploy_enabled}" == "true" ]]; then
+  case "${deploy_profile}" in
+    aws-ec2-compose)
+      if [[ -z "${compose_file_rel}" ]]; then
+        echo "[fail] deploy profile ${deploy_profile} requires a compose runtime mapping for ${STATE_ID}"
+        exit 1
+      fi
+      if [[ ! -f "${TARGET_ROOT}/${compose_file_rel}" ]]; then
+        echo "[fail] deploy profile ${deploy_profile} requires compose file: ${TARGET_ROOT}/${compose_file_rel}"
+        exit 1
+      fi
+      write_aws_ec2_compose_deploy_bundle "${compose_file_rel}" "${publish_branch}" "${deploy_environment}" "${deploy_domain_hint}"
+      ;;
+    *)
+      echo "[fail] unsupported deploy profile for ${STATE_ID}: ${deploy_profile}"
+      exit 1
+      ;;
+  esac
 fi
 
 if [[ -f "${TARGET_ROOT}/RUN_FROM_GENERATED.md" && -f "${TARGET_ROOT}/runtime/ghcr/${STATE_ID}/README.md" ]]; then
@@ -1024,6 +1275,18 @@ if [[ -f "${TARGET_ROOT}/RUN_FROM_GENERATED.md" && -f "${TARGET_ROOT}/runtime/gh
       echo
       echo "- See: \`./runtime/ghcr/${STATE_ID}/README.md\`"
       echo "- Image map: \`./runtime/ghcr/${STATE_ID}/images.lock\`"
+    } >> "${TARGET_ROOT}/RUN_FROM_GENERATED.md"
+  fi
+fi
+
+if [[ -f "${TARGET_ROOT}/RUN_FROM_GENERATED.md" && -f "${TARGET_ROOT}/runtime/deploy/aws-ec2-compose/README.md" ]]; then
+  if ! grep -q 'Deployment Bundle' "${TARGET_ROOT}/RUN_FROM_GENERATED.md"; then
+    {
+      echo
+      echo "## Deployment Bundle"
+      echo
+      echo "- See: \`./runtime/deploy/aws-ec2-compose/README.md\`"
+      echo "- Dry-run deploy: \`./runtime/deploy/aws-ec2-compose/deploy.sh --dry-run\`"
     } >> "${TARGET_ROOT}/RUN_FROM_GENERATED.md"
   fi
 fi

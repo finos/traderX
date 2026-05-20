@@ -66,6 +66,10 @@ grep -q "JAVA_HOME: /opt/jdk" "${TARGET_ROOT}/.github/workflows/security.yml" ||
   echo "[fail] state 002 should not generate convergence build-and-publish workflow"
   exit 1
 }
+[[ ! -d "${TARGET_ROOT}/runtime/deploy" ]] || {
+  echo "[fail] state 002 should not generate deployment bundles"
+  exit 1
+}
 
 echo "[check] state 009 generates convergence workflows + GHCR run bundle"
 rm -rf "${TARGET_ROOT}"
@@ -111,7 +115,12 @@ for required in \
   "${TARGET_ROOT}/.github/workflows/build-and-publish.yml" \
   "${TARGET_ROOT}/runtime/ghcr/009-order-management-matcher/README.md" \
   "${TARGET_ROOT}/runtime/ghcr/009-order-management-matcher/images.lock" \
-  "${TARGET_ROOT}/runtime/ghcr/009-order-management-matcher/docker-compose.ghcr.yml"; do
+  "${TARGET_ROOT}/runtime/ghcr/009-order-management-matcher/docker-compose.ghcr.yml" \
+  "${TARGET_ROOT}/runtime/deploy/aws-ec2-compose/README.md" \
+  "${TARGET_ROOT}/runtime/deploy/aws-ec2-compose/deploy.sh" \
+  "${TARGET_ROOT}/runtime/deploy/aws-ec2-compose/upgrade.sh" \
+  "${TARGET_ROOT}/runtime/deploy/aws-ec2-compose/cleanup.sh" \
+  "${TARGET_ROOT}/runtime/deploy/aws-ec2-compose/nginx.reverse-proxy.snippet.conf"; do
   [[ -f "${required}" ]] || {
     echo "[fail] missing convergence CI artifact: ${required}"
     exit 1
@@ -137,6 +146,16 @@ grep -q 'ghcr.io/finos/traderx-c2' "${TARGET_ROOT}/runtime/ghcr/009-order-manage
   echo "[fail] ghcr namespace mapping missing from images.lock"
   exit 1
 }
+
+grep -q -- '--dry-run' "${TARGET_ROOT}/runtime/deploy/aws-ec2-compose/deploy.sh" || {
+  echo "[fail] deploy bundle should support --dry-run"
+  exit 1
+}
+
+if rg -qi 'token|password' "${TARGET_ROOT}/runtime/deploy/aws-ec2-compose/deploy.sh"; then
+  echo "[fail] deploy bundle should not embed credentials/tokens"
+  exit 1
+fi
 
 echo "[check] generated-state contract validation guards order-matcher schema"
 mkdir -p "${TARGET_ROOT}/order-matcher" "${TARGET_ROOT}/database" "${TARGET_ROOT}/ci"
