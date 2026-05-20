@@ -3,7 +3,7 @@
   "environments": [
     {
       "id": "demo-004",
-      "name": "TraderX Demo (State 004)",
+      "name": "Original Demo",
       "status": "live",
       "stateId": "004-containerized-compose-runtime",
       "stateBranch": "code/generated-state-004-containerized-compose-runtime",
@@ -12,7 +12,7 @@
     },
     {
       "id": "demo-advanced-009",
-      "name": "TraderX Advanced Demo (State 009)",
+      "name": "Advanced Demo",
       "status": "live",
       "stateId": "009-order-management-matcher",
       "stateBranch": "code/generated-state-009-order-management-matcher",

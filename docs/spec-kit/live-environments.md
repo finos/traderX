@@ -11,17 +11,17 @@ Source of truth:
 - `catalog/live-environments.json`
 - `catalog/state-catalog.json`
 
-## Current Live Demos
-
-| Environment | URL | State | Generated Branch | Notes |
-| --- | --- | --- | --- | --- |
-| `demo-004` | [demo.traderx.finos.org](https://demo.traderx.finos.org) | `004-containerized-compose-runtime` | [`code/generated-state-004-containerized-compose-runtime`](https://github.com/finos/traderX/tree/code/generated-state-004-containerized-compose-runtime) | Containerized compose baseline demo |
-| `demo-advanced-009` | [demo-advanced.traderx.finos.org](https://demo-advanced.traderx.finos.org) | `009-order-management-matcher` | [`code/generated-state-009-order-management-matcher`](https://github.com/finos/traderX/tree/code/generated-state-009-order-management-matcher) | NATS + order-management demo |
-
 ## Launch Live Demos
 
-<a class="button button--primary button--lg margin-right--sm" href="https://demo.traderx.finos.org" target="_blank" rel="noopener noreferrer">Launch Demo 004</a>
-<a class="button button--secondary button--lg" href="https://demo-advanced.traderx.finos.org" target="_blank" rel="noopener noreferrer">Launch Demo 009</a>
+<a class="button button--primary button--lg margin-right--sm" href="https://demo.traderx.finos.org" target="_blank" rel="noopener noreferrer">Launch Original Demo</a>
+<a class="button button--primary button--lg" href="https://demo-advanced.traderx.finos.org" target="_blank" rel="noopener noreferrer">Launch Advanced Demo</a>
+
+## Current Live Demos
+
+| Environment | Demo Name | URL | State | Generated Branch | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `demo-004` | `Original Demo` | [demo.traderx.finos.org](https://demo.traderx.finos.org) | `004-containerized-compose-runtime` | [`code/generated-state-004-containerized-compose-runtime`](https://github.com/finos/traderX/tree/code/generated-state-004-containerized-compose-runtime) | Containerized compose baseline demo |
+| `demo-advanced-009` | `Advanced Demo` | [demo-advanced.traderx.finos.org](https://demo-advanced.traderx.finos.org) | `009-order-management-matcher` | [`code/generated-state-009-order-management-matcher`](https://github.com/finos/traderX/tree/code/generated-state-009-order-management-matcher) | NATS + order-management demo |
 
 ## Update Process
 
