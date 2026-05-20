@@ -44,24 +44,8 @@ function Home() {
                 'button button--outline button--secondary button--lg',
                 styles.getStarted
               )}
-              to={'https://demo.traderx.finos.org'}>
-              Demo 004
-            </Link>
-            <Link
-              className={classnames(
-                'button button--outline button--secondary button--lg',
-                styles.getStarted
-              )}
-              to={'https://demo-advanced.traderx.finos.org'}>
-              Demo 009
-            </Link>
-            <Link
-              className={classnames(
-                'button button--outline button--secondary button--lg',
-                styles.getStarted
-              )}
               to={'/docs/spec-kit/live-environments'}>
-              Live States
+              Live Demos
             </Link>
             <Link
               className={classnames(
