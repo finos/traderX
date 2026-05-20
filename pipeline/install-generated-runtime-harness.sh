@@ -58,6 +58,49 @@ copy_script_if_exists() {
   fi
 }
 
+inject_containerized_web_ui_vite_guard() {
+  local overlay_test_script="${SCRIPTS_DST}/test-web-angular-overlay.sh"
+  [[ -f "${overlay_test_script}" ]] || return 0
+  if rg -q 'Vite dev endpoints are not exposed' "${overlay_test_script}"; then
+    return 0
+  fi
+
+  local tmp_file
+  tmp_file="$(mktemp)"
+  awk '
+    /echo "\[check\] angular route fallback for \/trade"/ && inserted == 0 {
+      print "if printf '\''%s\\n'\'' \"${root_body}\" | grep -q '\''/@vite/client'\''; then"
+      print "  echo \"[error] root response unexpectedly includes Vite dev client (/@vite/client)\""
+      print "  exit 1"
+      print "fi"
+      print "if printf '\''%s\\n'\'' \"${root_body}\" | grep -q '\''/@fs/'\''; then"
+      print "  echo \"[error] root response unexpectedly includes Vite file-system dev paths (/@fs/)\""
+      print "  exit 1"
+      print "fi"
+      print ""
+      print "echo \"[check] Vite dev endpoints are not exposed\""
+      print "vite_status=\"$(curl -sS -o /dev/null -w \"%{http_code}\" \"${BASE_URL}/@vite/client\")\""
+      print "if [[ \"${vite_status}\" == \"200\" ]]; then"
+      print "  echo \"[error] ${BASE_URL}/@vite/client should not be served in deployed/runtime images\""
+      print "  exit 1"
+      print "fi"
+      print ""
+      inserted = 1
+    }
+    { print }
+    END {
+      if (inserted == 0) {
+        exit 2
+      }
+    }
+  ' "${overlay_test_script}" > "${tmp_file}" || {
+    rm -f "${tmp_file}"
+    echo "[fail] unable to inject Vite guard into ${overlay_test_script}"
+    exit 1
+  }
+  mv "${tmp_file}" "${overlay_test_script}"
+}
+
 # Always include helper test scripts used by state smoke wrappers.
 shopt -s nullglob
 for test_script in "${SCRIPTS_SRC}"/test-*.sh; do
@@ -175,6 +218,12 @@ case "${STATE_ID}" in
     copy_script_if_exists "status-state-014-fdc3-intent-interoperability-generated.sh"
     copy_script_if_exists "test-state-012-platform-convergence-c3.sh"
     copy_script_if_exists "test-state-014-fdc3-intent-interoperability.sh"
+    ;;
+esac
+
+case "${STATE_ID}" in
+  004-*|005-*|006-*|007-*|008-*|009-*|010-*|011-*|012-*|013-*|014-*)
+    inject_containerized_web_ui_vite_guard
     ;;
 esac
 

@@ -43,6 +43,7 @@
 - NFR-316: For containerized states selected for live-demo operations, generated snapshots SHALL include a deployment bundle under `runtime/deploy/` with profile-scoped scripts and runbook content derived from canonical spec/generator sources (not manual branch edits).
 - NFR-317: Deployment bundle scripts SHALL support `--dry-run`, require runtime env vars for environment-specific values (for example domain/branch), and MUST NOT embed credentials or tokens.
 - NFR-318: Pre-container states (`001-003`) SHALL NOT emit deployment bundles in generated snapshots.
+- NFR-319: Containerized runtime frontend images intended for deployed/demo environments SHALL serve production/static assets and MUST NOT expose development-server hot-reload endpoints (for example `@vite/client`, `/@fs/*`) or require localhost-scoped websocket reload channels.
 
 ## Success Criteria
 
@@ -56,3 +57,4 @@
 - SC-308: Startup script smoke checks verify generated-state detection messaging for both match and mismatch cases, including opt-in auto-regeneration flow.
 - SC-309: State `004+` snapshot/CI outputs contain only active runtime components and do not emit legacy Node `edge-proxy` CI targets unless later specs explicitly restore that component.
 - SC-310: Generated snapshot contains deployment-bundle assets for approved demo-target containerized states and those assets pass local dry-run validation.
+- SC-311: Containerized UI smoke checks fail if ingress/frontend responses include development hot-reload artifacts (for example `@vite/client`) in deployed/runtime image output.

@@ -23,6 +23,7 @@ Define container build/run packaging for the full TraderX baseline component set
 - Compose wiring must come from `system/docker-compose.spec.yaml`.
 - NGINX ingress routes must be sourced from `system/ingress-nginx.conf.template`.
 - Runtime must preserve baseline flow compatibility through ingress entrypoint.
+- Frontend container runtime packaging for deployed/demo targets must serve production/static assets and must not expose Vite/Angular dev-server hot-reload endpoints (for example `@vite/client` or `/@fs/*`).
 
 ## Generation Surface
 
