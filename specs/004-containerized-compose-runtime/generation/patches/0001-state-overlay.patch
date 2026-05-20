@@ -357,7 +357,7 @@ index 0000000..a933d4c
 +**/.vscode/
 diff --git a/.traderx-state/state.json b/.traderx-state/state.json
 new file mode 100644
-index 0000000..dc059e9
+index 0000000..0b34c3b
 --- /dev/null
 +++ b/.traderx-state/state.json
 @@ -0,0 +1,19 @@
@@ -375,8 +375,8 @@ index 0000000..dc059e9
 +  "previousConvergenceState": "",
 +  "nextConvergenceState": "007-observability-lgtm-compose",
 +  "sourceBranch": "feature/agentic-renovation",
-+  "sourceCommit": "56d9351f6c81a0345582c9fb7a762b19c4f5511c",
-+  "generatedAtUtc": "2026-05-20T07:23:15Z",
++  "sourceCommit": "136dbf7bf223141f406620a11f12ce44b1484d4d",
++  "generatedAtUtc": "2026-05-20T09:44:59Z",
 +  "generationEntryPoint": "bash pipeline/generate-state.sh 004-containerized-compose-runtime",
 +  "publishTagHint": "generated/004-containerized-compose-runtime/v1"
 +}
@@ -431,7 +431,7 @@ index e3aab6e..c65c2a5 100644
 +- Local edits here are for experimentation and debugging, then should be translated back into source specs/state packs.
 diff --git a/FUNCTIONAL_TESTING.md b/FUNCTIONAL_TESTING.md
 new file mode 100644
-index 0000000..46d20a9
+index 0000000..ec55442
 --- /dev/null
 +++ b/FUNCTIONAL_TESTING.md
 @@ -0,0 +1,35 @@
@@ -469,10 +469,10 @@ index 0000000..46d20a9
 +- Snapshot learning guide: [LEARNING.md](./LEARNING.md)
 +- Snapshot metadata: [STATE.md](./STATE.md)
 +- Canonical Getting Started (main): https://github.com/finos/traderX/blob/main/docs/spec-kit/getting-started-with-traderx.md
-+- Canonical SpecKit docs (source commit): https://github.com/finos/traderX/tree/56d9351f6c81a0345582c9fb7a762b19c4f5511c/docs/spec-kit
++- Canonical SpecKit docs (source commit): https://github.com/finos/traderX/tree/136dbf7bf223141f406620a11f12ce44b1484d4d/docs/spec-kit
 diff --git a/LEARNING.md b/LEARNING.md
 new file mode 100644
-index 0000000..bf038ab
+index 0000000..9de4f05
 --- /dev/null
 +++ b/LEARNING.md
 @@ -0,0 +1,26 @@
@@ -500,11 +500,11 @@ index 0000000..bf038ab
 +- State docs map route: `/docs/spec-kit/state-docs`
 +- Learning guide route: `/docs/learning/state-004-containerized-compose-runtime`
 +- Learning guide markdown path in source branch: `docs/learning/state-004-containerized-compose-runtime.md`
-+- Source branch feature pack (exact commit): https://github.com/finos/traderX/tree/56d9351f6c81a0345582c9fb7a762b19c4f5511c/specs/004-containerized-compose-runtime
-+- Source branch learning guide (exact commit): https://github.com/finos/traderX/blob/56d9351f6c81a0345582c9fb7a762b19c4f5511c/docs/learning/state-004-containerized-compose-runtime.md
++- Source branch feature pack (exact commit): https://github.com/finos/traderX/tree/136dbf7bf223141f406620a11f12ce44b1484d4d/specs/004-containerized-compose-runtime
++- Source branch learning guide (exact commit): https://github.com/finos/traderX/blob/136dbf7bf223141f406620a11f12ce44b1484d4d/docs/learning/state-004-containerized-compose-runtime.md
 diff --git a/README.md b/README.md
 new file mode 100644
-index 0000000..40c629e
+index 0000000..1b92491
 --- /dev/null
 +++ b/README.md
 @@ -0,0 +1,116 @@
@@ -519,8 +519,8 @@ index 0000000..40c629e
 +- Status: `implemented`
 +- Suggested Version Tag: `generated/004-containerized-compose-runtime/v1`
 +- Source Branch: `feature/agentic-renovation`
-+- Source Commit: `56d9351f6c81a0345582c9fb7a762b19c4f5511c`
-+- Generated At (UTC): `2026-05-20T07:23:15Z`
++- Source Commit: `136dbf7bf223141f406620a11f12ce44b1484d4d`
++- Generated At (UTC): `2026-05-20T09:44:59Z`
 +
 +## State Summary
 +
@@ -621,9 +621,9 @@ index 0000000..40c629e
 +- Functional validation guide: [FUNCTIONAL_TESTING.md](./FUNCTIONAL_TESTING.md)
 +- Snapshot metadata: [STATE.md](./STATE.md), [state.json](./.traderx-state/state.json)
 +- Canonical Getting Started (main): https://github.com/finos/traderX/blob/main/docs/spec-kit/getting-started-with-traderx.md
-+- Source commit: https://github.com/finos/traderX/commit/56d9351f6c81a0345582c9fb7a762b19c4f5511c
-+- Feature pack at source commit: https://github.com/finos/traderX/tree/56d9351f6c81a0345582c9fb7a762b19c4f5511c/specs/004-containerized-compose-runtime
-+- SpecKit docs at source commit: https://github.com/finos/traderX/tree/56d9351f6c81a0345582c9fb7a762b19c4f5511c/docs/spec-kit
++- Source commit: https://github.com/finos/traderX/commit/136dbf7bf223141f406620a11f12ce44b1484d4d
++- Feature pack at source commit: https://github.com/finos/traderX/tree/136dbf7bf223141f406620a11f12ce44b1484d4d/specs/004-containerized-compose-runtime
++- SpecKit docs at source commit: https://github.com/finos/traderX/tree/136dbf7bf223141f406620a11f12ce44b1484d4d/docs/spec-kit
 diff --git a/RUN_FROM_CLONE.md b/RUN_FROM_CLONE.md
 new file mode 100644
 index 0000000..741d0cc
@@ -722,7 +722,7 @@ index 338a225..0000000
 -- Account service Swagger (edge): `http://localhost:18080/account-service/v3/api-docs`
 diff --git a/STATE.md b/STATE.md
 new file mode 100644
-index 0000000..bdba735
+index 0000000..ea605eb
 --- /dev/null
 +++ b/STATE.md
 @@ -0,0 +1,20 @@
@@ -741,8 +741,8 @@ index 0000000..bdba735
 +- Previous Convergence State: `none`
 +- Next Convergence State: `007-observability-lgtm-compose`
 +- Source Branch: `feature/agentic-renovation`
-+- Source Commit: `56d9351f6c81a0345582c9fb7a762b19c4f5511c`
-+- Generated At (UTC): `2026-05-20T07:23:15Z`
++- Source Commit: `136dbf7bf223141f406620a11f12ce44b1484d4d`
++- Generated At (UTC): `2026-05-20T09:44:59Z`
 +- Suggested Tag: `generated/004-containerized-compose-runtime/v1`
 +
 +Machine-readable metadata: `.traderx-state/state.json`
@@ -2144,7 +2144,7 @@ index 0000000..4057097
 +- [Component Diagram](./learning/component-diagram.md)
 diff --git a/docs/learning/README.md b/docs/learning/README.md
 new file mode 100644
-index 0000000..60a2935
+index 0000000..b5c340b
 --- /dev/null
 +++ b/docs/learning/README.md
 @@ -0,0 +1,16 @@
@@ -2162,8 +2162,8 @@ index 0000000..60a2935
 +Canonical source remains SpecKit artifacts in the main authoring branch:
 +
 +- Feature pack: `specs/004-containerized-compose-runtime`
-+- Source feature pack at commit: https://github.com/finos/traderX/tree/56d9351f6c81a0345582c9fb7a762b19c4f5511c/specs/004-containerized-compose-runtime
-+- Source architecture model at commit: https://github.com/finos/traderX/blob/56d9351f6c81a0345582c9fb7a762b19c4f5511c/specs/004-containerized-compose-runtime/system/architecture.model.json
++- Source feature pack at commit: https://github.com/finos/traderX/tree/136dbf7bf223141f406620a11f12ce44b1484d4d/specs/004-containerized-compose-runtime
++- Source architecture model at commit: https://github.com/finos/traderX/blob/136dbf7bf223141f406620a11f12ce44b1484d4d/specs/004-containerized-compose-runtime/system/architecture.model.json
 diff --git a/docs/learning/component-diagram.md b/docs/learning/component-diagram.md
 new file mode 100644
 index 0000000..7896996
@@ -9215,6 +9215,224 @@ index 0000000..0f3f6db
 +    "dist"
 +  ]
 +}
+diff --git a/runtime/deploy/aws-ec2-compose/README.md b/runtime/deploy/aws-ec2-compose/README.md
+new file mode 100644
+index 0000000..49d4db0
+--- /dev/null
++++ b/runtime/deploy/aws-ec2-compose/README.md
+@@ -0,0 +1,34 @@
++# AWS EC2 Compose Deploy Bundle (004-containerized-compose-runtime)
++
++This bundle is generated for state `004-containerized-compose-runtime` and is intended for compose-based demo rollout.
++
++## Defaults
++
++- Branch: `code/generated-state-004-containerized-compose-runtime`
++- Environment label: `demo`
++- Domain/FQDN hint: `demo.traderx.finos.org`
++- Compose file: `containerized-compose/docker-compose.yml`
++
++## Required runtime inputs
++
++- `TRADERX_FQDN` (if no default domain was generated for this state)
++
++## Optional runtime inputs
++
++- `TRADERX_REPO_URL` (default: `https://github.com/finos/traderX.git`)
++- `TRADERX_BRANCH` (default: generated-state branch for this state)
++- `TRADERX_WORKDIR` (default: `$HOME/traderx`)
++- `TRADERX_COMPOSE_PATH_REL` (default: `containerized-compose/docker-compose.yml`)
++- `TRADERX_COMPOSE_PROJECT_NAME` (default: `traderx-004-containerized-compose-runtime`)
++- `TRADERX_DEPLOY_ENV` (default: `demo`)
++- `TRADERX_IMAGE_TAG` (default: `latest`)
++- `TRADERX_PRUNE_DOCKER` (`1` enables aggressive prune in `cleanup.sh`)
++- `TRADERX_RUN_CLEANUP` (`1` runs cleanup before `upgrade.sh`)
++
++## Dry-run examples
++
++```bash
++./runtime/deploy/aws-ec2-compose/deploy.sh --dry-run
++./runtime/deploy/aws-ec2-compose/upgrade.sh --dry-run
++./runtime/deploy/aws-ec2-compose/cleanup.sh --dry-run
++```
+diff --git a/runtime/deploy/aws-ec2-compose/cleanup.sh b/runtime/deploy/aws-ec2-compose/cleanup.sh
+new file mode 100755
+index 0000000..cc06eb7
+--- /dev/null
++++ b/runtime/deploy/aws-ec2-compose/cleanup.sh
+@@ -0,0 +1,45 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++STATE_ID="004-containerized-compose-runtime"
++TRADERX_WORKDIR="${TRADERX_WORKDIR:-${HOME}/traderx}"
++TRADERX_COMPOSE_PATH_REL="${TRADERX_COMPOSE_PATH_REL:-containerized-compose/docker-compose.yml}"
++TRADERX_COMPOSE_PROJECT_NAME="${TRADERX_COMPOSE_PROJECT_NAME:-traderx-${STATE_ID}}"
++TRADERX_PRUNE_DOCKER="${TRADERX_PRUNE_DOCKER:-0}"
++DRY_RUN=0
++
++while (( "$#" )); do
++  case "$1" in
++    --dry-run)
++      DRY_RUN=1
++      ;;
++    *)
++      echo "[fail] unknown argument: $1"
++      echo "[hint] supported: --dry-run"
++      exit 1
++      ;;
++  esac
++  shift
++done
++
++run_cmd() {
++  echo "[run] $*"
++  if (( DRY_RUN == 1 )); then
++    return 0
++  fi
++  "$@"
++}
++
++compose_file="${TRADERX_WORKDIR}/${TRADERX_COMPOSE_PATH_REL}"
++if [[ -f "${compose_file}" ]]; then
++  run_cmd docker compose -f "${compose_file}" --project-name "${TRADERX_COMPOSE_PROJECT_NAME}" down --remove-orphans
++else
++  echo "[info] compose file not found; skipping compose down: ${compose_file}"
++fi
++
++if [[ "${TRADERX_PRUNE_DOCKER}" == "1" ]]; then
++  run_cmd docker system prune -f
++  run_cmd docker volume prune -f
++fi
++
++echo "[done] cleanup completed for state ${STATE_ID}"
+diff --git a/runtime/deploy/aws-ec2-compose/deploy.sh b/runtime/deploy/aws-ec2-compose/deploy.sh
+new file mode 100755
+index 0000000..b5c1bed
+--- /dev/null
++++ b/runtime/deploy/aws-ec2-compose/deploy.sh
+@@ -0,0 +1,71 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++STATE_ID="004-containerized-compose-runtime"
++TRADERX_REPO_URL="${TRADERX_REPO_URL:-https://github.com/finos/traderX.git}"
++TRADERX_BRANCH="${TRADERX_BRANCH:-code/generated-state-004-containerized-compose-runtime}"
++TRADERX_WORKDIR="${TRADERX_WORKDIR:-${HOME}/traderx}"
++TRADERX_COMPOSE_PATH_REL="${TRADERX_COMPOSE_PATH_REL:-containerized-compose/docker-compose.yml}"
++TRADERX_COMPOSE_PROJECT_NAME="${TRADERX_COMPOSE_PROJECT_NAME:-traderx-${STATE_ID}}"
++TRADERX_DEPLOY_ENV="${TRADERX_DEPLOY_ENV:-demo}"
++TRADERX_FQDN="${TRADERX_FQDN:-demo.traderx.finos.org}"
++TRADERX_IMAGE_TAG="${TRADERX_IMAGE_TAG:-latest}"
++DRY_RUN=0
++
++while (( "$#" )); do
++  case "$1" in
++    --dry-run)
++      DRY_RUN=1
++      ;;
++    *)
++      echo "[fail] unknown argument: $1"
++      echo "[hint] supported: --dry-run"
++      exit 1
++      ;;
++  esac
++  shift
++done
++
++if [[ -z "${TRADERX_FQDN}" ]]; then
++  echo "[fail] TRADERX_FQDN is required for deploy"
++  exit 1
++fi
++
++run_cmd() {
++  echo "[run] $*"
++  if (( DRY_RUN == 1 )); then
++    return 0
++  fi
++  "$@"
++}
++
++run_compose_up() {
++  local compose_file="$1"
++  echo "[run] TRADERX_FQDN=${TRADERX_FQDN} TRADERX_IMAGE_TAG=${TRADERX_IMAGE_TAG} docker compose -f ${compose_file} --project-name ${TRADERX_COMPOSE_PROJECT_NAME} up -d --build"
++  if (( DRY_RUN == 1 )); then
++    return 0
++  fi
++  TRADERX_FQDN="${TRADERX_FQDN}" TRADERX_IMAGE_TAG="${TRADERX_IMAGE_TAG}" \
++    docker compose -f "${compose_file}" --project-name "${TRADERX_COMPOSE_PROJECT_NAME}" up -d --build
++}
++
++if [[ ! -d "${TRADERX_WORKDIR}/.git" ]]; then
++  run_cmd git clone "${TRADERX_REPO_URL}" "${TRADERX_WORKDIR}"
++fi
++
++run_cmd git -C "${TRADERX_WORKDIR}" fetch --all --prune
++run_cmd git -C "${TRADERX_WORKDIR}" checkout "${TRADERX_BRANCH}"
++run_cmd git -C "${TRADERX_WORKDIR}" reset --hard "origin/${TRADERX_BRANCH}"
++
++compose_file="${TRADERX_WORKDIR}/${TRADERX_COMPOSE_PATH_REL}"
++if [[ ! -f "${compose_file}" ]]; then
++  if (( DRY_RUN == 1 )); then
++    echo "[warn] compose file not found in dry-run mode: ${compose_file}"
++  else
++    echo "[fail] compose file not found: ${compose_file}"
++    exit 1
++  fi
++fi
++
++run_compose_up "${compose_file}"
++echo "[done] deploy completed for state ${STATE_ID} (${TRADERX_DEPLOY_ENV})"
+diff --git a/runtime/deploy/aws-ec2-compose/nginx.reverse-proxy.snippet.conf b/runtime/deploy/aws-ec2-compose/nginx.reverse-proxy.snippet.conf
+new file mode 100644
+index 0000000..8d624b8
+--- /dev/null
++++ b/runtime/deploy/aws-ec2-compose/nginx.reverse-proxy.snippet.conf
+@@ -0,0 +1,27 @@
++# Optional reverse-proxy snippet for TraderX demo endpoints.
++# Adjust upstream host/port and include this in your active nginx server block.
++
++location /ng-cli-ws {
++    proxy_pass http://localhost:8080/ng-cli-ws;
++    proxy_http_version 1.1;
++    proxy_set_header Upgrade $http_upgrade;
++    proxy_set_header Connection "upgrade";
++}
++
++location /trade-feed/ {
++    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
++    proxy_set_header Host $http_host;
++    proxy_pass http://localhost:8080/trade-feed/;
++    proxy_http_version 1.1;
++    proxy_set_header Upgrade $http_upgrade;
++    proxy_set_header Connection "upgrade";
++}
++
++location /socket.io/ {
++    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
++    proxy_set_header Host $http_host;
++    proxy_pass http://localhost:8080/socket.io/;
++    proxy_http_version 1.1;
++    proxy_set_header Upgrade $http_upgrade;
++    proxy_set_header Connection "upgrade";
++}
+diff --git a/runtime/deploy/aws-ec2-compose/upgrade.sh b/runtime/deploy/aws-ec2-compose/upgrade.sh
+new file mode 100755
+index 0000000..e760644
+--- /dev/null
++++ b/runtime/deploy/aws-ec2-compose/upgrade.sh
+@@ -0,0 +1,11 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++TRADERX_RUN_CLEANUP="${TRADERX_RUN_CLEANUP:-0}"
++
++if [[ "${TRADERX_RUN_CLEANUP}" == "1" ]]; then
++  "${SCRIPT_DIR}/cleanup.sh" "$@"
++fi
++
++"${SCRIPT_DIR}/deploy.sh" "$@"
 diff --git a/runtime/ghcr/004-containerized-compose-runtime/README.md b/runtime/ghcr/004-containerized-compose-runtime/README.md
 new file mode 100644
 index 0000000..3836221
@@ -11009,16 +11227,35 @@ index 9711b0a..0000000
 -exit 1
 diff --git a/scripts/start-state-004-containerized-generated.sh b/scripts/start-state-004-containerized-generated.sh
 new file mode 100755
-index 0000000..a65ab7b
+index 0000000..f891b91
 --- /dev/null
 +++ b/scripts/start-state-004-containerized-generated.sh
-@@ -0,0 +1,26 @@
+@@ -0,0 +1,59 @@
 +#!/usr/bin/env bash
 +set -euo pipefail
 +
 +ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-+  COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-004}"
++COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-004}"
 +COMPOSE_FILE="${ROOT}/containerized-compose/docker-compose.yml"
++DRY_RUN=0
++SKIP_BUILD=0
++
++while (( "$#" )); do
++  case "$1" in
++    --dry-run)
++      DRY_RUN=1
++      ;;
++    --skip-build)
++      SKIP_BUILD=1
++      ;;
++    *)
++      echo "[error] unknown argument: $1"
++      echo "[hint] supported: --dry-run --skip-build"
++      exit 1
++      ;;
++  esac
++  shift
++done
 +
 +if ! command -v docker >/dev/null 2>&1; then
 +  echo "[error] docker command not found"
@@ -11035,7 +11272,21 @@ index 0000000..a65ab7b
 +  exit 1
 +fi
 +
-+docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" up -d --build
++if (( DRY_RUN == 1 )); then
++  if (( SKIP_BUILD == 1 )); then
++    echo "[dry-run] docker compose -f ${COMPOSE_FILE} --project-name ${COMPOSE_PROJECT_NAME} up -d --no-build"
++  else
++    echo "[dry-run] docker compose -f ${COMPOSE_FILE} --project-name ${COMPOSE_PROJECT_NAME} up -d --build"
++  fi
++  echo "[done] dry run complete for state 004"
++  exit 0
++fi
++
++if (( SKIP_BUILD == 1 )); then
++  docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" up -d --no-build
++else
++  docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" up -d --build
++fi
 +echo "[done] state 004 containerized compose runtime started"
 +echo "[ui] http://localhost:8080"
 +echo "[api-explorer] http://localhost:8080/api/docs"
@@ -11904,10 +12155,10 @@ index 773231a..0000000
 -echo "[done] database overlay smoke tests passed"
 diff --git a/scripts/test-generated-ci-assets.sh b/scripts/test-generated-ci-assets.sh
 deleted file mode 100755
-index 7cf5429..0000000
+index 17cb312..0000000
 --- a/scripts/test-generated-ci-assets.sh
 +++ /dev/null
-@@ -1,199 +0,0 @@
+@@ -1,209 +0,0 @@
 -#!/usr/bin/env bash
 -set -euo pipefail
 -
@@ -12066,6 +12317,16 @@ index 7cf5429..0000000
 -
 -grep -q -- '--dry-run' "${TARGET_ROOT}/runtime/deploy/aws-ec2-compose/deploy.sh" || {
 -  echo "[fail] deploy bundle should support --dry-run"
+-  exit 1
+-}
+-
+-grep -q -- '--use-ghcr' "${TARGET_ROOT}/runtime/deploy/aws-ec2-compose/deploy.sh" || {
+-  echo "[fail] deploy bundle should support --use-ghcr"
+-  exit 1
+-}
+-
+-grep -q 'TRADERX_GHCR_COMPOSE_PATH_REL' "${TARGET_ROOT}/runtime/deploy/aws-ec2-compose/deploy.sh" || {
+-  echo "[fail] deploy bundle should support GHCR compose path override"
 -  exit 1
 -}
 -
@@ -26254,7 +26515,7 @@ index 0000000..8728e48
 +</svg>
 diff --git a/web-front-end/angular/main/assets/state-ui.json b/web-front-end/angular/main/assets/state-ui.json
 new file mode 100644
-index 0000000..20a3dce
+index 0000000..ce602a4
 --- /dev/null
 +++ b/web-front-end/angular/main/assets/state-ui.json
 @@ -0,0 +1,97 @@
@@ -26262,7 +26523,7 @@ index 0000000..20a3dce
 +  "stateId": "004-containerized-compose-runtime",
 +  "stateTitle": "Containerized Compose Runtime (NGINX Ingress)",
 +  "stateTrack": "baseline",
-+  "generatedAtUtc": "2026-05-20T07:22:39.885Z",
++  "generatedAtUtc": "2026-05-20T09:44:50.615Z",
 +  "sourceBranch": "code/generated-state-004-containerized-compose-runtime",
 +  "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-004-containerized-compose-runtime",
 +  "lineageLinkUrl": "https://github.com/finos/traderX/blob/main/docs/learning-paths/index.md",
