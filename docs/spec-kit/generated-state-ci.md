@@ -218,6 +218,8 @@ Policy:
 - Initial profile contract is `aws-ec2-compose` for compose-based demo rollout.
 - Deployment scripts MUST support `--dry-run` and use env vars for environment-specific values (for example target branch, domain/FQDN, image tag).
 - Deployment scripts MUST NOT contain embedded credentials/tokens/secrets.
+- Deployment bundles MUST include host-prerequisite setup assets (`host-setup-check.sh` and `host-setup-install.sh`) for the emitted profile.
+- Default generated deploy-clone instructions MUST use tokenless public repository URLs; token-authenticated clone guidance should be optional and only for private forks.
 - Deployment bundle generation must come from canonical templates/generator logic, not manual edits on generated-state branches.
 
 Recommended minimum deployment bundle assets:
@@ -226,6 +228,8 @@ Recommended minimum deployment bundle assets:
 - `runtime/deploy/<profile>/deploy.sh`
 - `runtime/deploy/<profile>/upgrade.sh`
 - `runtime/deploy/<profile>/cleanup.sh`
+- `runtime/deploy/<profile>/host-setup-check.sh`
+- `runtime/deploy/<profile>/host-setup-install.sh`
 - `runtime/deploy/<profile>/nginx.reverse-proxy.snippet.conf`
 
 Reverse-proxy snippet contract:

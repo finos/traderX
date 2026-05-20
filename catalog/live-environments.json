@@ -1,0 +1,23 @@
+{
+  "version": "1.0.0",
+  "environments": [
+    {
+      "id": "demo-004",
+      "name": "TraderX Demo (State 004)",
+      "status": "live",
+      "stateId": "004-containerized-compose-runtime",
+      "stateBranch": "code/generated-state-004-containerized-compose-runtime",
+      "url": "https://demo.traderx.finos.org",
+      "notes": "Containerized compose baseline demo"
+    },
+    {
+      "id": "demo-advanced-009",
+      "name": "TraderX Advanced Demo (State 009)",
+      "status": "live",
+      "stateId": "009-order-management-matcher",
+      "stateBranch": "code/generated-state-009-order-management-matcher",
+      "url": "https://demo-advanced.traderx.finos.org",
+      "notes": "NATS + order-management demo"
+    }
+  ]
+}

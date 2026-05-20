@@ -1,4 +1,5 @@
-[![FINOS Hosted Platform - TraderX demo](https://img.shields.io/badge/FINOS%20Hosted%20Platform-TraderX%20Demo-blue)](https://demo.traderx.finos.org/)
+[![FINOS Hosted Platform - TraderX demo 004](https://img.shields.io/badge/FINOS%20Hosted%20Platform-TraderX%20Demo%20004-blue)](https://demo.traderx.finos.org/)
+[![FINOS Hosted Platform - TraderX demo 009](https://img.shields.io/badge/FINOS%20Hosted%20Platform-TraderX%20Demo%20009-teal)](https://demo-advanced.traderx.finos.org/)
 [![FINOS - Incubating](https://cdn.jsdelivr.net/gh/finos/contrib-toolbox@master/images/badge-incubating.svg)](https://finosfoundation.atlassian.net/wiki/display/FINOS/Incubating)
 
 # FINOS | TraderX (SpecKit-First Baseline)
@@ -67,7 +68,14 @@ bash pipeline/speckit/run-full-parity-validation.sh
 - SpecKit portal: `docs/spec-kit/spec-kit-portal.md`
 - Workflow: `docs/spec-kit/spec-kit-workflow.md`
 - Runbook: `docs/spec-kit/spec-kit-generation-guide.md`
+- Live environment registry: `docs/spec-kit/live-environments.md`
+- EC2 host prerequisites: `docs/spec-kit/aws-ec2-compose-prerequisites.md`
 - Legacy migration-era docs were retired from active tree; recover via git history if needed.
+
+## Live Demos
+
+- State `004`: [https://demo.traderx.finos.org](https://demo.traderx.finos.org)
+- State `009`: [https://demo-advanced.traderx.finos.org](https://demo-advanced.traderx.finos.org)
 
 ## Learning Doc Enrichment Plugin
 

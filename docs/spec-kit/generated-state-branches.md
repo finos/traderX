@@ -23,6 +23,11 @@ The state catalog is the publish contract for generated snapshots:
 - release tag hint
 - optional deployment-bundle metadata (`deploy.enabled`, `deploy.profile`, environment labels/domain hints)
 
+Live demo environment mappings are tracked separately in:
+
+- `catalog/live-environments.json`
+- `/docs/spec-kit/live-environments`
+
 ## State Independence + Lineage
 
 Each state must be buildable from its own feature pack without requiring branch-local edits.

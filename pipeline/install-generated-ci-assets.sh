@@ -1097,6 +1097,35 @@ If you run an external NGINX in front of TraderX, include
 \`runtime/deploy/aws-ec2-compose/nginx.reverse-proxy.snippet.conf\` in that front-proxy
 server block. This generated snippet is state-aware and includes websocket routes
 that match the emitted runtime ingress transport for this state.
+
+## Host Setup
+
+Before running deploy/upgrade, verify host prerequisites:
+
+\`\`\`bash
+./runtime/deploy/aws-ec2-compose/host-setup-check.sh
+\`\`\`
+
+Install missing prerequisites (or preview with dry-run):
+
+\`\`\`bash
+./runtime/deploy/aws-ec2-compose/host-setup-install.sh --dry-run
+./runtime/deploy/aws-ec2-compose/host-setup-install.sh
+\`\`\`
+
+Canonical host prerequisites guidance:
+
+- https://github.com/finos/traderX/blob/main/docs/spec-kit/aws-ec2-compose-prerequisites.md
+
+## Public Repo Clone Default
+
+Generated-state branches in \`finos/traderX\` are public. Default deploy flow uses:
+
+\`\`\`bash
+git clone https://github.com/finos/traderX.git
+\`\`\`
+
+Use token-authenticated clone URLs only when deploying from private forks/overlays.
 EOF
 
   cat > "${bundle_dir}/deploy.sh" <<EOF
@@ -1269,6 +1298,146 @@ fi
 echo "[done] cleanup completed for state \${STATE_ID}"
 EOF
 
+  cat > "${bundle_dir}/host-setup-check.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+DRY_RUN=0
+while (( "$#" )); do
+  case "$1" in
+    --dry-run)
+      DRY_RUN=1
+      ;;
+    *)
+      echo "[fail] unknown argument: $1"
+      echo "[hint] supported: --dry-run"
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+missing=0
+check_cmd() {
+  local cmd="$1"
+  if command -v "${cmd}" >/dev/null 2>&1; then
+    echo "[ok] ${cmd} is installed"
+  else
+    echo "[missing] ${cmd} is not installed"
+    missing=1
+  fi
+}
+
+echo "[info] validating EC2 host prerequisites for TraderX deploy bundle"
+check_cmd git
+check_cmd curl
+check_cmd jq
+check_cmd docker
+check_cmd nginx
+
+if command -v docker >/dev/null 2>&1; then
+  if docker compose version >/dev/null 2>&1; then
+    echo "[ok] docker compose plugin is available"
+  else
+    echo "[missing] docker compose plugin is not available"
+    missing=1
+  fi
+fi
+
+if command -v certbot >/dev/null 2>&1; then
+  echo "[ok] certbot is installed"
+else
+  echo "[warn] certbot is not installed (required for automated TLS issuance)"
+fi
+
+if (( DRY_RUN == 1 )); then
+  echo "[done] host setup check completed (dry-run mode)"
+  exit 0
+fi
+
+if (( missing == 1 )); then
+  echo "[fail] missing required host prerequisites; run host-setup-install.sh"
+  exit 1
+fi
+
+echo "[done] host setup check passed"
+EOF
+
+  cat > "${bundle_dir}/host-setup-install.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+DRY_RUN=0
+while (( "$#" )); do
+  case "$1" in
+    --dry-run)
+      DRY_RUN=1
+      ;;
+    *)
+      echo "[fail] unknown argument: $1"
+      echo "[hint] supported: --dry-run"
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+if [[ "${EUID}" -eq 0 ]]; then
+  SUDO=""
+else
+  SUDO="sudo"
+fi
+
+run_cmd() {
+  echo "[run] $*"
+  if (( DRY_RUN == 1 )); then
+    return 0
+  fi
+  "$@"
+}
+
+install_with_apt() {
+  run_cmd ${SUDO} apt-get update
+  run_cmd ${SUDO} apt-get install -y git curl jq nginx docker.io docker-compose-plugin certbot python3-certbot-nginx
+}
+
+install_with_dnf() {
+  run_cmd ${SUDO} dnf install -y git curl jq nginx docker docker-compose-plugin certbot python3-certbot-nginx
+}
+
+install_with_yum() {
+  run_cmd ${SUDO} yum install -y git curl jq nginx docker certbot
+}
+
+echo "[info] installing EC2 host prerequisites for TraderX deploy bundle"
+
+if command -v apt-get >/dev/null 2>&1; then
+  install_with_apt
+elif command -v dnf >/dev/null 2>&1; then
+  install_with_dnf
+elif command -v yum >/dev/null 2>&1; then
+  install_with_yum
+else
+  echo "[fail] unsupported package manager (expected apt-get, dnf, or yum)"
+  exit 1
+fi
+
+if command -v systemctl >/dev/null 2>&1; then
+  run_cmd ${SUDO} systemctl enable docker || true
+  run_cmd ${SUDO} systemctl start docker || true
+  run_cmd ${SUDO} systemctl enable nginx || true
+  run_cmd ${SUDO} systemctl start nginx || true
+fi
+
+if (( DRY_RUN == 1 )); then
+  echo "[done] host setup install dry-run complete"
+  exit 0
+fi
+
+"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/host-setup-check.sh"
+echo "[done] host setup install complete"
+EOF
+
   cat > "${bundle_dir}/nginx.reverse-proxy.snippet.conf" <<'EOF'
 # Optional reverse-proxy snippet for TraderX demo endpoints.
 # Adjust upstream host/port and include this in your active nginx server block.
@@ -1329,7 +1498,12 @@ location /socket.io/ {
 EOF
   fi
 
-  chmod +x "${bundle_dir}/deploy.sh" "${bundle_dir}/upgrade.sh" "${bundle_dir}/cleanup.sh"
+  chmod +x \
+    "${bundle_dir}/deploy.sh" \
+    "${bundle_dir}/upgrade.sh" \
+    "${bundle_dir}/cleanup.sh" \
+    "${bundle_dir}/host-setup-check.sh" \
+    "${bundle_dir}/host-setup-install.sh"
 }
 
 if ((${#docker_entries[@]} > 0)); then

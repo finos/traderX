@@ -48,6 +48,8 @@
 - NFR-321: State `004` API explorer SHALL NOT expose Pub/Sub inspector UI/assets; Pub/Sub inspector is enabled only for states with NATS-based messaging/runtime support.
 - NFR-322: Generated deployment bundles (`runtime/deploy/aws-ec2-compose/`) SHALL include an external NGINX reverse-proxy snippet that preserves websocket upgrade routing for active runtime messaging paths.
 - NFR-323: Reverse-proxy websocket route mappings in that snippet SHALL be state-aware and SHALL mirror the generated ingress transport contract for the emitted state (for example, include `/nats-ws` for NATS lineage and avoid emitting superseded Socket.IO-only paths when they are no longer active in-state).
+- NFR-324: Generated `aws-ec2-compose` deploy bundles SHALL include host prerequisite setup scripts (`host-setup-check.sh` and `host-setup-install.sh`) to validate/install required host tooling before deploy execution.
+- NFR-325: Generated deploy-bundle clone defaults for public FINOS generated-state branches SHALL use tokenless repository URLs; token-authenticated clone guidance MAY be documented only as optional for private overlays/forks.
 
 ## Success Criteria
 
@@ -66,3 +68,4 @@
 - SC-313: Generated state `004` API explorer output does not expose a Pub/Sub inspector link/page, while later NATS-enabled states continue to expose it.
 - SC-314: Generated deployment bundle nginx snippet includes websocket upgrade route coverage needed by runtime state lineage.
 - SC-315: For state snapshots where ingress transport is NATS websocket, the generated reverse-proxy snippet includes `/nats-ws`; for snapshots where ingress transport is Socket.IO, the snippet includes Socket.IO routes, with no stale transport-only routes emitted.
+- SC-316: Generated `runtime/deploy/aws-ec2-compose/` output includes `host-setup-check.sh` and `host-setup-install.sh`, and both scripts support `--dry-run` execution paths.

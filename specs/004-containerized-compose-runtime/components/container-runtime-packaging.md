@@ -27,6 +27,7 @@ Define container build/run packaging for the full TraderX baseline component set
 - Containerized compose artifacts must not hardcode localhost-only CORS origins; generated runtime/deploy flows must derive default CORS allowlists from `TRADERX_FQDN` (with explicit `CORS_ALLOWED_ORIGINS` override support).
 - API explorer packaging for state `004` must exclude Pub/Sub inspector assets/UI; Pub/Sub inspector packaging is reserved for later NATS-enabled states.
 - Deployment-bundle external reverse-proxy snippets must include websocket upgrade route mappings required by active runtime messaging paths and must be generated from the active ingress transport contract for the emitted state (for example `/nats-ws` for NATS states, Socket.IO routes only where still active).
+- Deployment bundles for `aws-ec2-compose` must include host prerequisite scripts (`host-setup-check.sh`, `host-setup-install.sh`) and default clone instructions that do not require token-authenticated Git URLs for public generated-state branches.
 
 ## Generation Surface
 

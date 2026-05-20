@@ -38,6 +38,8 @@ bash pipeline/state-playbook.sh --state <state-id> --publish-neighborhood --push
 4. Understand generated-code branch publishing:
    - `/docs/spec-kit/generated-state-branches`
    - `/docs/spec-kit/generated-state-ci`
+   - `/docs/spec-kit/live-environments`
+   - `/docs/spec-kit/aws-ec2-compose-prerequisites`
 5. Follow patch-set implementation workflow:
    - `/docs/spec-kit/patchset-authoring`
    - `/docs/spec-kit/messaging-subject-map-standard`
@@ -72,7 +74,9 @@ Browse directly:
 - [Generated-State Branches on GitHub](https://github.com/finos/traderX/branches/all?query=code%2Fgenerated-state-)
 - [Generated-State Tags on GitHub](https://github.com/finos/traderX/tags?query=generated%2F)
 - [State Catalog (`catalog/state-catalog.json`)](https://github.com/finos/traderX/blob/main/catalog/state-catalog.json)
+- [Live Environments (`catalog/live-environments.json`)](https://github.com/finos/traderX/blob/main/catalog/live-environments.json)
 - [Generated State Branches Guide](/docs/spec-kit/generated-state-branches)
+- [Live Environments Guide](/docs/spec-kit/live-environments)
 
 ## What Is Canonical
 
