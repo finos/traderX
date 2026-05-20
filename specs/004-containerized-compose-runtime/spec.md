@@ -44,6 +44,8 @@
 - NFR-317: Deployment bundle scripts SHALL support `--dry-run`, require runtime env vars for environment-specific values (for example domain/branch), and MUST NOT embed credentials or tokens.
 - NFR-318: Pre-container states (`001-003`) SHALL NOT emit deployment bundles in generated snapshots.
 - NFR-319: Containerized runtime frontend images intended for deployed/demo environments SHALL serve production/static assets and MUST NOT expose development-server hot-reload endpoints (for example `@vite/client`, `/@fs/*`) or require localhost-scoped websocket reload channels.
+- NFR-320: Containerized compose runtime artifacts (`004+`) SHALL configure service CORS origin allowlists from deployment-time FQDN input by default (derived from `TRADERX_FQDN`), with explicit `CORS_ALLOWED_ORIGINS` override support for non-default environments.
+- NFR-321: State `004` API explorer SHALL NOT expose Pub/Sub inspector UI/assets; Pub/Sub inspector is enabled only for states with NATS-based messaging/runtime support.
 
 ## Success Criteria
 
@@ -58,3 +60,5 @@
 - SC-309: State `004+` snapshot/CI outputs contain only active runtime components and do not emit legacy Node `edge-proxy` CI targets unless later specs explicitly restore that component.
 - SC-310: Generated snapshot contains deployment-bundle assets for approved demo-target containerized states and those assets pass local dry-run validation.
 - SC-311: Containerized UI smoke checks fail if ingress/frontend responses include development hot-reload artifacts (for example `@vite/client`) in deployed/runtime image output.
+- SC-312: Generated deploy/runtime artifacts accept `TRADERX_FQDN` and produce CORS-allowlist behavior that permits same-origin browser API calls on the deployed domain without requiring localhost-only CORS settings.
+- SC-313: Generated state `004` API explorer output does not expose a Pub/Sub inspector link/page, while later NATS-enabled states continue to expose it.

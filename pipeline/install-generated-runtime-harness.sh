@@ -101,6 +101,15 @@ inject_containerized_web_ui_vite_guard() {
   mv "${tmp_file}" "${overlay_test_script}"
 }
 
+normalize_containerized_compose_cors_origins() {
+  local compose_file
+  while IFS= read -r compose_file; do
+    [[ -f "${compose_file}" ]] || continue
+    perl -0pi -e 's/CORS_ALLOWED_ORIGINS:\s*"http:\/\/localhost:8080"/CORS_ALLOWED_ORIGINS: "\$\{CORS_ALLOWED_ORIGINS:-*\}"/g' "${compose_file}"
+    perl -0pi -e 's/NGINX_HOST:\s*"localhost"/NGINX_HOST: "\$\{TRADERX_FQDN:-localhost\}"/g' "${compose_file}"
+  done < <(find "${TARGET_ROOT}" -type f -name 'docker-compose.yml' | sort)
+}
+
 # Always include helper test scripts used by state smoke wrappers.
 shopt -s nullglob
 for test_script in "${SCRIPTS_SRC}"/test-*.sh; do
@@ -223,7 +232,13 @@ esac
 
 case "${STATE_ID}" in
   004-*|005-*|006-*|007-*|008-*|009-*|010-*|011-*|012-*|013-*|014-*)
-    inject_containerized_web_ui_vite_guard
+    gen_depth="${TRADERX_GENERATION_DEPTH:-0}"
+    if (( gen_depth <= 2 )) || [[ "${TRADERX_RUNTIME_NORMALIZE_IN_NESTED_GENERATION:-0}" == "1" ]]; then
+      normalize_containerized_compose_cors_origins
+      inject_containerized_web_ui_vite_guard
+    else
+      echo "[info] nested generation depth=${gen_depth}; skipping runtime normalization for ${STATE_ID}"
+    fi
     ;;
 esac
 

@@ -1058,6 +1058,7 @@ This bundle is generated for state \`${STATE_ID}\` and is intended for compose-b
 - \`TRADERX_COMPOSE_PROJECT_NAME\` (default: \`traderx-${STATE_ID}\`)
 - \`TRADERX_DEPLOY_ENV\` (default: \`${default_environment:-demo}\`)
 - \`TRADERX_IMAGE_TAG\` (default: \`latest\`)
+- \`TRADERX_CORS_ALLOWED_ORIGINS\` (default: \`https://\$TRADERX_FQDN,http://\$TRADERX_FQDN,http://localhost:8080\`)
 - \`TRADERX_PRUNE_DOCKER\` (\`1\` enables aggressive prune in \`cleanup.sh\`)
 - \`TRADERX_RUN_CLEANUP\` (\`1\` runs cleanup before \`upgrade.sh\`)
 
@@ -1085,6 +1086,7 @@ TRADERX_COMPOSE_PROJECT_NAME="\${TRADERX_COMPOSE_PROJECT_NAME:-traderx-\${STATE_
 TRADERX_DEPLOY_ENV="\${TRADERX_DEPLOY_ENV:-${default_environment:-demo}}"
 TRADERX_FQDN="\${TRADERX_FQDN:-${default_domain}}"
 TRADERX_IMAGE_TAG="\${TRADERX_IMAGE_TAG:-latest}"
+TRADERX_CORS_ALLOWED_ORIGINS="\${TRADERX_CORS_ALLOWED_ORIGINS:-https://\${TRADERX_FQDN},http://\${TRADERX_FQDN},http://localhost:8080}"
 DRY_RUN=0
 USE_GHCR=0
 
@@ -1120,23 +1122,23 @@ run_cmd() {
 
 run_compose_up() {
   local compose_file="\$1"
-  echo "[run] TRADERX_FQDN=\${TRADERX_FQDN} TRADERX_IMAGE_TAG=\${TRADERX_IMAGE_TAG} docker compose -f \${compose_file} --project-name \${TRADERX_COMPOSE_PROJECT_NAME} up -d --build"
+  echo "[run] TRADERX_FQDN=\${TRADERX_FQDN} TRADERX_IMAGE_TAG=\${TRADERX_IMAGE_TAG} TRADERX_CORS_ALLOWED_ORIGINS=\${TRADERX_CORS_ALLOWED_ORIGINS} docker compose -f \${compose_file} --project-name \${TRADERX_COMPOSE_PROJECT_NAME} up -d --build"
   if (( DRY_RUN == 1 )); then
     return 0
   fi
-  TRADERX_FQDN="\${TRADERX_FQDN}" TRADERX_IMAGE_TAG="\${TRADERX_IMAGE_TAG}" \\
+  TRADERX_FQDN="\${TRADERX_FQDN}" TRADERX_IMAGE_TAG="\${TRADERX_IMAGE_TAG}" CORS_ALLOWED_ORIGINS="\${TRADERX_CORS_ALLOWED_ORIGINS}" \\
     docker compose -f "\${compose_file}" --project-name "\${TRADERX_COMPOSE_PROJECT_NAME}" up -d --build
 }
 
 run_compose_ghcr_up() {
   local ghcr_compose_file="\$1"
-  echo "[run] docker compose -f \${ghcr_compose_file} --project-name \${TRADERX_COMPOSE_PROJECT_NAME} pull"
-  echo "[run] docker compose -f \${ghcr_compose_file} --project-name \${TRADERX_COMPOSE_PROJECT_NAME} up -d"
+  echo "[run] TRADERX_CORS_ALLOWED_ORIGINS=\${TRADERX_CORS_ALLOWED_ORIGINS} docker compose -f \${ghcr_compose_file} --project-name \${TRADERX_COMPOSE_PROJECT_NAME} pull"
+  echo "[run] TRADERX_CORS_ALLOWED_ORIGINS=\${TRADERX_CORS_ALLOWED_ORIGINS} docker compose -f \${ghcr_compose_file} --project-name \${TRADERX_COMPOSE_PROJECT_NAME} up -d"
   if (( DRY_RUN == 1 )); then
     return 0
   fi
-  docker compose -f "\${ghcr_compose_file}" --project-name "\${TRADERX_COMPOSE_PROJECT_NAME}" pull
-  docker compose -f "\${ghcr_compose_file}" --project-name "\${TRADERX_COMPOSE_PROJECT_NAME}" up -d
+  CORS_ALLOWED_ORIGINS="\${TRADERX_CORS_ALLOWED_ORIGINS}" docker compose -f "\${ghcr_compose_file}" --project-name "\${TRADERX_COMPOSE_PROJECT_NAME}" pull
+  CORS_ALLOWED_ORIGINS="\${TRADERX_CORS_ALLOWED_ORIGINS}" docker compose -f "\${ghcr_compose_file}" --project-name "\${TRADERX_COMPOSE_PROJECT_NAME}" up -d
 }
 
 if [[ ! -d "\${TRADERX_WORKDIR}/.git" ]]; then

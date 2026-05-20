@@ -8,6 +8,7 @@ TARGET_ROOT="${2:-${GENERATED_ROOT}/code/target-generated}"
 COMPONENTS_ROOT="${3:-${GENERATED_ROOT}/code/components}"
 EXPLORER_ROOT="${TARGET_ROOT}/api-explorer"
 CONTRACTS_ROOT="${EXPLORER_ROOT}/contracts"
+PUBSUB_INSPECTOR_ENABLED=0
 
 if [[ -z "${STATE_ID}" ]]; then
   echo "usage: bash pipeline/install-generated-api-explorer.sh <state-id> [target-root] [components-root]"
@@ -20,6 +21,12 @@ if [[ ! -d "${TARGET_ROOT}" ]]; then
 fi
 
 mkdir -p "${CONTRACTS_ROOT}"
+
+case "${STATE_ID}" in
+  006-*|007-*|008-*|009-*|010-*|011-*|012-*|013-*|014-*)
+    PUBSUB_INSPECTOR_ENABLED=1
+    ;;
+esac
 
 install_nats_ws_vendor() {
   if ! command -v npm >/dev/null 2>&1; then
@@ -45,7 +52,9 @@ install_nats_ws_vendor() {
   rm -rf "${tmp_dir}"
 }
 
-install_nats_ws_vendor
+if (( PUBSUB_INSPECTOR_ENABLED == 1 )); then
+  install_nats_ws_vendor
+fi
 
 cat > "${EXPLORER_ROOT}/index.html" <<'EOF'
 <!doctype html>
@@ -186,9 +195,11 @@ cat > "${EXPLORER_ROOT}/index.html" <<'EOF'
           stateLabel.textContent = ` - state ${catalog.stateId}`;
         }
         const inspectorLink = document.getElementById('pubsub-inspector-link');
-        if (inspectorLink) {
+        if (inspectorLink && catalog.pubSubInspectorEnabled) {
           const base = window.location.href.replace(/\/[^/]*$/, '/');
           inspectorLink.href = `${base}pubsub-inspector.html`;
+        } else if (inspectorLink) {
+          inspectorLink.style.display = 'none';
         }
 
         window.ui = SwaggerUIBundle({
@@ -247,6 +258,12 @@ cat > "${EXPLORER_ROOT}/index.html" <<'EOF'
 </html>
 EOF
 
+if (( PUBSUB_INSPECTOR_ENABLED == 0 )); then
+  perl -0pi -e 's!<a id="pubsub-inspector-link" href="#">Open Pub/Sub Inspector</a>!!g' "${EXPLORER_ROOT}/index.html"
+  perl -0777 -pi -e "s@\n\\s*const inspectorLink = document\\.getElementById\\('pubsub-inspector-link'\\);.*?\n\\s*window\\.ui = SwaggerUIBundle\\(\\{@\n        window.ui = SwaggerUIBundle({@s" "${EXPLORER_ROOT}/index.html"
+fi
+
+if (( PUBSUB_INSPECTOR_ENABLED == 1 )); then
 cat > "${EXPLORER_ROOT}/pubsub-inspector.html" <<'EOF'
 <!doctype html>
 <html lang="en">
@@ -768,8 +785,12 @@ EOF
 # Keep a no-extension alias to avoid relative redirect pitfalls behind
 # clean-URL static servers while preserving direct .html compatibility.
 cp "${EXPLORER_ROOT}/pubsub-inspector.html" "${EXPLORER_ROOT}/pubsub-inspector"
+else
+  rm -f "${EXPLORER_ROOT}/pubsub-inspector.html" "${EXPLORER_ROOT}/pubsub-inspector"
+  rm -rf "${EXPLORER_ROOT}/vendor/nats.ws"
+fi
 
-ROOT="${ROOT}" STATE_ID="${STATE_ID}" TARGET_ROOT="${TARGET_ROOT}" EXPLORER_ROOT="${EXPLORER_ROOT}" node <<'NODE'
+ROOT="${ROOT}" STATE_ID="${STATE_ID}" TARGET_ROOT="${TARGET_ROOT}" EXPLORER_ROOT="${EXPLORER_ROOT}" PUBSUB_INSPECTOR_ENABLED="${PUBSUB_INSPECTOR_ENABLED}" node <<'NODE'
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -778,6 +799,7 @@ const stateId = process.env.STATE_ID;
 const targetRoot = process.env.TARGET_ROOT;
 const explorerRoot = process.env.EXPLORER_ROOT;
 const contractsRoot = path.join(explorerRoot, 'contracts');
+const pubSubInspectorEnabled = String(process.env.PUBSUB_INSPECTOR_ENABLED || '0') === '1';
 
 const catalogPath = path.join(root, 'catalog', 'state-catalog.json');
 const stateCatalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
@@ -937,6 +959,7 @@ const runtimeCatalog = {
   generatedAtUtc: new Date().toISOString(),
   stateId,
   mountPath,
+  pubSubInspectorEnabled,
   services,
   messagingSubjects: fs.existsSync(messageSubjectsPath)
     ? parseMessagingSubjects(fs.readFileSync(messageSubjectsPath, 'utf8'))
