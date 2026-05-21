@@ -31,7 +31,20 @@ function mermaidZoomClientPlugin() {
 }
 
 
+// GitHub repo configuration - update these for forks/branches
+const repoOwner = 'finos';
+// Allow override via environment (e.g., DOCS_BRANCH=feature-branch)
+const repoBranch = process.env.DOCS_BRANCH || 'main';
+const repoUrl = `https://github.com/${repoOwner}/${projectSlug}`;
+
+// Remark plugin to transform relative links to GitHub URLs
+const transformRelativeLinks = require('./src/remark/transformRelativeLinks');
+
 module.exports = {
+  markdown: {
+    mermaid: true,
+  },
+  themes: ['@docusaurus/theme-mermaid'],
   onBrokenLinks: 'ignore',
   title: `${projectName}`,
   tagline: `${projectName}`, 
@@ -42,7 +55,7 @@ module.exports = {
   projectName: `${projectName}`,
   organizationName: 'FINOS',
   customFields: {
-    repoUrl: `https://github.com/finos/${projectSlug}`,
+    repoUrl: repoUrl,
   },
   scripts: ['https://buttons.github.io/buttons.js'],
   stylesheets: ['https://fonts.googleapis.com/css?family=Overpass:400,400i,700'],

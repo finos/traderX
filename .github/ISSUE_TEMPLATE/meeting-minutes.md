@@ -45,8 +45,6 @@ YYYYMMDD - time
 - [ ] ...
 
 ### Zoom info
-https://zoom.us/j/96264933811
-Meeting ID: 962 6493 3811
-Passcode: 532953
+- [Meeting link](https://zoom-lfx.platform.linuxfoundation.org/meeting/97085484379?password=ec271ed7-f068-4e6d-bcd7-c3171d254b8e)
+- [Registration link](https://zoom-lfx.platform.linuxfoundation.org/meeting/97085484379?password=ec271ed7-f068-4e6d-bcd7-c3171d254b8e&invite=true)
 
-Find your local number: https://zoom.us/u/aHHeTieyi

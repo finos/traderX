@@ -2,17 +2,20 @@
 
 ![DEV Only Warning](https://badgen.net/badge/warning/not-for-production/red) ![Local Dev Machine Supported](http://badgen.net/badge/local-dev/supported/green)
 
-The Sample Trading Application is a usable simple yet distributed reference application
-in the financial services domain which can be used for experimenting with various 
-techniques and other open source projects.  It is designed to be simple and accesible
-to programmers of all backgrounds, and can serve as a starting point for educational
-and experimentation purposes.
+TraderX is a simple, distributed reference application for exploring trading workflows in financial services. It is intentionally approachable and non-production, and is meant for education, experimentation, and demos.
 
-It is designed to be runnable from any developer workstation with minimal assumptions 
-other than Node, Java and Python runtimes.
+## Start here
+- [Overview](overview.md) for architecture and the C4-inspired diagram.
+- [Flows](flows.md) for sequence diagrams of core user journeys.
+- [Code map](code.md) for links to each service.
+- The [Running TraderX](running.md) guide for run options (manual, Docker, Kubernetes/Tilt).
 
-It contains Java, NodeJS, Python, .NET components that communicate over REST APIs and 
-messaging systems and are able to showcase a wide range of technical challenges to solve.
+## What is in this docs folder
+- `overview.md` contains the architectural diagram and links to system context.
+- `flows.md` contains sequence diagrams for key workflows.
+- `code.md` links to each service root.
+- `home.mdx`, `roadmap.mdx`, `running.md`, and `project-history.md` are Docusaurus site pages.
+- `c4/` contains the original C4 DSL and rendered image.
 
 You can view more details here:
 * [Generated State Branches](spec-kit/generated-state-branches.md)
