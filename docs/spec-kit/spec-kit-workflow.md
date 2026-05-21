@@ -123,21 +123,20 @@ When changing Docusaurus, docs plugins, or website build configuration:
 3. Validate docs build with GitHub Pages settings:
 
 ```bash
-DOCUSAURUS_URL=https://finos.github.io \
-DOCUSAURUS_BASE_URL=/traderX/ \
-TRADERX_SITE_ROOT=/traderX \
+DOCUSAURUS_URL=https://traderx.finos.org \
+DOCUSAURUS_BASE_URL=/ \
 bash pipeline/refresh-state-docs.sh
 
-DOCUSAURUS_URL=https://finos.github.io \
-DOCUSAURUS_BASE_URL=/traderX/ \
+DOCUSAURUS_URL=https://traderx.finos.org \
+DOCUSAURUS_BASE_URL=/ \
 npm --prefix website run clear
 
-DOCUSAURUS_URL=https://finos.github.io \
-DOCUSAURUS_BASE_URL=/traderX/ \
+DOCUSAURUS_URL=https://traderx.finos.org \
+DOCUSAURUS_BASE_URL=/ \
 npm --prefix website run build
 ```
 
-`TRADERX_SITE_ROOT` is used when regenerating `/docs/learning-paths` Mermaid click links so GitHub Pages artifacts resolve under `/traderX/...` instead of root-relative `/...`.
+`TRADERX_SITE_ROOT` controls the docs-route prefix used when regenerating `/docs/learning-paths` Mermaid click links. Keep it empty for root deployment (`/`) and set it only when publishing under a subpath.
 
 4. If dependency changes alter transitive Webpack behavior, pin and re-lock before merge.
 
@@ -149,7 +148,7 @@ npx afdocs check http://localhost:3000 --format scorecard
 npx afdocs check http://localhost:3000 --format json --score
 
 # published docs URL
-npx afdocs check https://finos.github.io/traderX/ --format scorecard
+npx afdocs check https://traderx.finos.org/ --format scorecard
 ```
 
 Use AFDocs scorecards to prioritize high-impact fixes. Prefer improvements via docs build/pipeline/plugins (for example llms outputs) before broad manual content rewrites.

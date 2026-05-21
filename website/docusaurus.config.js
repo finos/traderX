@@ -3,7 +3,7 @@
 const projectName = 'TraderX'
 const projectSlug = 'traderX'
 const copyrightOwner = 'FINOS - The Fintech Open Source Foundation'
-const docsUrl = process.env.DOCUSAURUS_URL || 'https://finos.org'
+const docsUrl = process.env.DOCUSAURUS_URL || 'https://traderx.finos.org'
 const docsBaseUrl = process.env.DOCUSAURUS_BASE_URL || '/'
 
 function pathBrowserPolyfillPlugin() {

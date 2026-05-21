@@ -17,8 +17,8 @@ flowchart TB
   U002 -.->|converges| CORP002
 
   %% Replace placeholder links with your actual public FINOS and internal overlay doc URLs.
-  click U001 "https://finos.github.io/traderX/docs/learning/001-baseline-uncontainerized-parity" "FINOS U001 learning guide"
-  click U002 "https://finos.github.io/traderX/docs/learning/002-edge-proxy-uncontainerized" "FINOS U002 learning guide"
+  click U001 "https://traderx.finos.org/docs/learning/001-baseline-uncontainerized-parity" "FINOS U001 learning guide"
+  click U002 "https://traderx.finos.org/docs/learning/002-edge-proxy-uncontainerized" "FINOS U002 learning guide"
   click CORP000 "/docs/learning/corp-000-overlay-baseline" "Overlay CORP-000 learning guide"
   click CORP001 "/docs/learning/corp-001-corporate-runtime" "Overlay CORP-001 learning guide"
   click CORP002 "/docs/learning/corp-002-custom-messaging" "Overlay CORP-002 learning guide"
@@ -38,8 +38,8 @@ flowchart TB
 
 | State | Learning Guide | Spec Pack | Generated Branch | Diff vs Previous | Runnable |
 |---|---|---|---|---|---|
-| U001 | [U001 Guide](https://finos.github.io/traderX/docs/learning/001-baseline-uncontainerized-parity) | `specs/001-baseline-uncontainerized-parity` | `code/generated-state-001-baseline-uncontainerized-parity` | N/A | No |
-| U002 | [U002 Guide](https://finos.github.io/traderX/docs/learning/002-edge-proxy-uncontainerized) | `specs/002-edge-proxy-uncontainerized` | `code/generated-state-002-edge-proxy-uncontainerized` | [Compare](https://github.com/finos/traderX/compare/code/generated-state-001-baseline-uncontainerized-parity...code/generated-state-002-edge-proxy-uncontainerized) | No |
+| U001 | [U001 Guide](https://traderx.finos.org/docs/learning/001-baseline-uncontainerized-parity) | `specs/001-baseline-uncontainerized-parity` | `code/generated-state-001-baseline-uncontainerized-parity` | N/A | No |
+| U002 | [U002 Guide](https://traderx.finos.org/docs/learning/002-edge-proxy-uncontainerized) | `specs/002-edge-proxy-uncontainerized` | `code/generated-state-002-edge-proxy-uncontainerized` | [Compare](https://github.com/finos/traderX/compare/code/generated-state-001-baseline-uncontainerized-parity...code/generated-state-002-edge-proxy-uncontainerized) | No |
 | CORP-000 | [CORP-000 Guide](/docs/learning/corp-000-overlay-baseline) | `specs/corp-000-overlay-baseline` | `code/generated-state-corp-000-overlay-baseline` | [Compare](https://github.example.com/org/traderx-overlay/compare/code/generated-state-002-edge-proxy-uncontainerized...code/generated-state-corp-000-overlay-baseline) | No |
 | CORP-001 | [CORP-001 Guide](/docs/learning/corp-001-corporate-runtime) | `specs/corp-001-corporate-runtime` | `code/generated-state-corp-001-corporate-runtime` | [Compare](https://github.example.com/org/traderx-overlay/compare/code/generated-state-corp-000-overlay-baseline...code/generated-state-corp-001-corporate-runtime) | Yes |
 | CORP-002 | [CORP-002 Guide](/docs/learning/corp-002-custom-messaging) | `specs/corp-002-custom-messaging` | `code/generated-state-corp-002-custom-messaging` | [Compare](https://github.example.com/org/traderx-overlay/compare/code/generated-state-corp-001-corporate-runtime...code/generated-state-corp-002-custom-messaging) | Yes |

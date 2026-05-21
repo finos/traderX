@@ -3,7 +3,7 @@ name: Deploy Docusaurus (GitHub Pages)
 on:
   push:
     branches:
-      - feature/agentic-renovation
+      - main
   workflow_dispatch:
 
 permissions:
@@ -35,8 +35,8 @@ jobs:
 
       - name: Build Docusaurus site
         env:
-          DOCUSAURUS_URL: https://finos.github.io
-          DOCUSAURUS_BASE_URL: /traderX/
+          DOCUSAURUS_URL: https://traderx.finos.org
+          DOCUSAURUS_BASE_URL: /
         run: |
           TRADERX_SITE_ROOT="${DOCUSAURUS_BASE_URL%/}" bash pipeline/refresh-state-docs.sh
           npm --prefix website run clear
