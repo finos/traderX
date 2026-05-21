@@ -9,8 +9,19 @@ FRONTEND_OVERRIDE_SOURCE_DIR="${ROOT}/specs/008-pricing-awareness-market-data/ge
 STATE_ID="008-pricing-awareness-market-data"
 PARENT_STATE_ID="007-observability-lgtm-compose"
 
+normalize_parent_messaging_compose_for_patch() {
+  local compose_file="${TARGET_ROOT}/messaging-nats-replacement/docker-compose.yml"
+  [[ -f "${compose_file}" ]] || return 0
+
+  # Keep parent compose shape stable across nested generation depths so the
+  # 008 patch applies deterministically.
+  perl -0pi -e 's/CORS_ALLOWED_ORIGINS: "http:\/\/localhost:8080"/CORS_ALLOWED_ORIGINS: "\$\{CORS_ALLOWED_ORIGINS:-\*\}"/g' "${compose_file}"
+  perl -0pi -e 's/NGINX_HOST: "localhost"/NGINX_HOST: "\$\{TRADERX_FQDN:-localhost\}"/g' "${compose_file}"
+}
+
 echo "[info] generating parent state ${PARENT_STATE_ID} for ${STATE_ID}"
 bash "${ROOT}/pipeline/generate-state.sh" "${PARENT_STATE_ID}"
+normalize_parent_messaging_compose_for_patch
 bash "${ROOT}/pipeline/apply-state-patchset.sh" "${STATE_ID}"
 bash "${ROOT}/pipeline/render-state-008-pricing-awareness-market-data.sh"
 if [[ -d "${FRONTEND_OVERRIDE_SOURCE_DIR}" ]]; then

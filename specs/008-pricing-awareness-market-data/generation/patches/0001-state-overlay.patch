@@ -1763,7 +1763,7 @@ index ba4a919..cc3a0ef 100644
 @@ -25,6 +25,10 @@ services:
      environment:
        REFERENCE_DATA_SERVICE_PORT: "18085"
-       CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+       CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-*}"
 +      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
 +      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
 +      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
@@ -1795,7 +1795,7 @@ index ba4a919..cc3a0ef 100644
 @@ -47,6 +65,9 @@ services:
      environment:
        PEOPLE_SERVICE_PORT: "18089"
-       CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+       CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-*}"
 +      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
 +      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
 +      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
@@ -1805,7 +1805,7 @@ index ba4a919..cc3a0ef 100644
 @@ -63,6 +84,9 @@ services:
        DATABASE_DBPASS: "traderx"
        PEOPLE_SERVICE_HOST: "people-service"
-       CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+       CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-*}"
 +      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
 +      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
 +      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
@@ -1815,7 +1815,7 @@ index ba4a919..cc3a0ef 100644
 @@ -83,6 +107,9 @@ services:
        DATABASE_DBUSER: "traderx"
        DATABASE_DBPASS: "traderx"
-       CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+       CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-*}"
 +      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
 +      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
 +      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
@@ -1825,7 +1825,7 @@ index ba4a919..cc3a0ef 100644
 @@ -102,6 +129,9 @@ services:
        DATABASE_DBPASS: "traderx"
        NATS_BROKER_HOST: "nats-broker"
-       CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+       CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-*}"
 +      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
 +      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
 +      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
@@ -1837,7 +1837,7 @@ index ba4a919..cc3a0ef 100644
        PEOPLE_SERVICE_HOST: "people-service"
        NATS_BROKER_HOST: "nats-broker"
 +      PRICE_SERVICE_HOST: "price-publisher"
-       CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+       CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-*}"
 +      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
 +      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
 +      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
