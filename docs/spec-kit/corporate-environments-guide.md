@@ -73,7 +73,7 @@ Example policy file in corporate overlay repo (`corporate/profiles/corporate-int
 
 ```yaml
 profile: corporate-internal
-upstreamPin: feature/agentic-renovation
+upstreamPin: main
 mirroredUpstreamStates:
   - 004-containerized-compose-runtime
   - 007-observability-lgtm-compose

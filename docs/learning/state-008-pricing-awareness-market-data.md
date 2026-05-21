@@ -21,7 +21,7 @@ title: "State 008: Pricing Awareness and Market Data Streaming"
 ## Rendered Code
 
 - Generated branch: [code/generated-state-008-pricing-awareness-market-data](https://github.com/finos/traderX/tree/code/generated-state-008-pricing-awareness-market-data)
-- Authoring branch (spec source): [feature/agentic-renovation](https://github.com/finos/traderX/tree/feature/agentic-renovation)
+- Authoring branch (spec source): [main](https://github.com/finos/traderX/tree/main)
 
 ## Code Comparison With Previous State
 

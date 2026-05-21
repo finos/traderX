@@ -21,7 +21,7 @@ title: "State 007: Observability with LGTM on Compose"
 ## Rendered Code
 
 - Generated branch: [code/generated-state-007-observability-lgtm-compose](https://github.com/finos/traderX/tree/code/generated-state-007-observability-lgtm-compose)
-- Authoring branch (spec source): [feature/agentic-renovation](https://github.com/finos/traderX/tree/feature/agentic-renovation)
+- Authoring branch (spec source): [main](https://github.com/finos/traderX/tree/main)
 
 ## Code Comparison With Previous State
 

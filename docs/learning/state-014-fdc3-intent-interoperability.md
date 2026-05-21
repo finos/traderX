@@ -21,7 +21,7 @@ title: "State 014: FDC3 Intent Interoperability on C3"
 ## Rendered Code
 
 - Generated branch: [code/generated-state-014-fdc3-intent-interoperability](https://github.com/finos/traderX/tree/code/generated-state-014-fdc3-intent-interoperability)
-- Authoring branch (spec source): [feature/agentic-renovation](https://github.com/finos/traderX/tree/feature/agentic-renovation)
+- Authoring branch (spec source): [main](https://github.com/finos/traderX/tree/main)
 
 ## Code Comparison With Previous State
 

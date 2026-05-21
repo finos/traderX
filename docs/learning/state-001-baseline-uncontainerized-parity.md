@@ -21,7 +21,7 @@ title: "State 001: Simple App - Base Uncontainerized App"
 ## Rendered Code
 
 - Generated branch: [code/generated-state-001-baseline-uncontainerized-parity](https://github.com/finos/traderX/tree/code/generated-state-001-baseline-uncontainerized-parity)
-- Authoring branch (spec source): [feature/agentic-renovation](https://github.com/finos/traderX/tree/feature/agentic-renovation)
+- Authoring branch (spec source): [main](https://github.com/finos/traderX/tree/main)
 
 ## Code Comparison With Previous State
 

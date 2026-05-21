@@ -15,10 +15,13 @@ Created: 2026-05-21
 
 ## Go-Live Checklist
 
-- [ ] 1) Docs cleanup to reference `main` as canonical authoring branch.
+- [x] 1) Docs cleanup to reference `main` as canonical authoring branch.
 - [x] 1.1) Remove/replace the renovation banner with launch messaging and engineering-blog link.
+- [x] 1.3) Update generator default branch reference used by learning/state docs.
+- [x] 1.4) Regenerate derived docs and validate no stale branch refs remain in generated learning/state docs.
 - [x] 2.0) Create the major PR from `feature/agentic-renovation` to `main` ([#354](https://github.com/finos/traderX/pull/354)).
 - [ ] 2.1) Merge the major PR from `feature/agentic-renovation` to `main`.
+- [x] 2.2) Confirm final pre-merge gates pass.
 - [x] 3.1) Switch Pages deploy trigger to `main`.
 - [ ] 3.2) Remove Netlify dependency from release path (including external project settings).
 - [x] 3.3) Decide canonical docs domain strategy (`traderx.finos.org` on GitHub Pages).

@@ -21,7 +21,7 @@ title: "State 006: Messaging Layer Replacement with NATS"
 ## Rendered Code
 
 - Generated branch: [code/generated-state-006-messaging-nats-replacement](https://github.com/finos/traderX/tree/code/generated-state-006-messaging-nats-replacement)
-- Authoring branch (spec source): [feature/agentic-renovation](https://github.com/finos/traderX/tree/feature/agentic-renovation)
+- Authoring branch (spec source): [main](https://github.com/finos/traderX/tree/main)
 
 ## Code Comparison With Previous State
 
