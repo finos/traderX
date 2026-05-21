@@ -12,6 +12,7 @@ PARENT_STATE_ID="007-observability-lgtm-compose"
 echo "[info] generating parent state ${PARENT_STATE_ID} for ${STATE_ID}"
 bash "${ROOT}/pipeline/generate-state.sh" "${PARENT_STATE_ID}"
 bash "${ROOT}/pipeline/apply-state-patchset.sh" "${STATE_ID}"
+bash "${ROOT}/pipeline/render-state-008-pricing-awareness-market-data.sh"
 if [[ -d "${FRONTEND_OVERRIDE_SOURCE_DIR}" ]]; then
   cp -R "${FRONTEND_OVERRIDE_SOURCE_DIR}/." "${TARGET_FRONTEND_DIR}/"
 else

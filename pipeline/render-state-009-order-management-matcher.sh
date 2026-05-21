@@ -11,6 +11,7 @@ RUNTIME_OVERRIDES_DIR="${ROOT}/specs/009-order-management-matcher/generation/run
 COMPOSE_FILE="${STATE_DIR}/docker-compose.yml"
 PROMETHEUS_FILE="${STATE_DIR}/observability/prometheus/prometheus.yml"
 DASHBOARD_DIR="${STATE_DIR}/observability/grafana/dashboards"
+INGRESS_FILE="${TARGET_ROOT}/ingress/nginx.traderx.conf.template"
 COMPOSE_PROJECT_LABEL="traderx-state-009"
 
 require_file() {
@@ -30,6 +31,39 @@ ensure_gradle_prometheus_support() {
   elif ! rg -q "micrometer-registry-prometheus" "${gradle_file}"; then
     perl -0pi -e "s/implementation 'org\\.springframework\\.boot:spring-boot-starter-actuator'\\n/implementation 'org.springframework.boot:spring-boot-starter-actuator'\\n  runtimeOnly 'io.micrometer:micrometer-registry-prometheus'\\n/" "${gradle_file}"
   fi
+}
+
+ensure_observability_ingress_routes() {
+  local ingress_file="$1"
+  local tmp_file
+  if rg -q "location /grafana/" "${ingress_file}" && rg -q "location /prometheus/" "${ingress_file}"; then
+    return 0
+  fi
+
+  tmp_file="$(mktemp)"
+  awk '
+    !added && $0 ~ /^[[:space:]]*location \/ \{/ {
+      print "    location /grafana/ {"
+      print "        rewrite ^/grafana/(.*)$ /$1 break;"
+      print "        proxy_pass http://grafana:3000;"
+      print "        proxy_http_version 1.1;"
+      print "        proxy_set_header Host $http_host;"
+      print "        proxy_set_header X-Forwarded-Proto $scheme;"
+      print "    }"
+      print ""
+      print "    location /prometheus/ {"
+      print "        rewrite ^/prometheus/(.*)$ /$1 break;"
+      print "        proxy_pass http://prometheus:9090;"
+      print "        proxy_http_version 1.1;"
+      print "        proxy_set_header Host $http_host;"
+      print "        proxy_set_header X-Forwarded-Proto $scheme;"
+      print "    }"
+      print ""
+      added = 1
+    }
+    { print }
+  ' "${ingress_file}" > "${tmp_file}"
+  mv "${tmp_file}" "${ingress_file}"
 }
 
 install_order_matcher_nats_publisher() {
@@ -289,6 +323,7 @@ EOF
 
 require_file "${COMPOSE_FILE}"
 require_file "${PROMETHEUS_FILE}"
+require_file "${INGRESS_FILE}"
 
 for service in account-service position-service trade-processor trade-service order-matcher; do
   ensure_gradle_prometheus_support "${TARGET_ROOT}/${service}/build.gradle"
@@ -308,6 +343,13 @@ fi
 
 if ! rg -q "job_name: traderx-spring-boot-actuator" "${PROMETHEUS_FILE}"; then
   perl -0pi -e 's/(  - job_name: blackbox-exporter\n    static_configs:\n      - targets: \["blackbox-exporter:9115"\]\n\n)/$1  - job_name: traderx-spring-boot-actuator\n    metrics_path: \/actuator\/prometheus\n    static_configs:\n      - targets: ["account-service:18088", "position-service:18090", "trade-processor:18091", "trade-service:18092", "order-matcher:18110"]\n\n/s' "${PROMETHEUS_FILE}"
+fi
+
+GEN_DEPTH="${TRADERX_GENERATION_DEPTH:-1}"
+if [[ "${GEN_DEPTH}" == "1" ]]; then
+  ensure_observability_ingress_routes "${INGRESS_FILE}"
+else
+  echo "[info] nested generation depth=${GEN_DEPTH}; skipping ingress observability route mutation"
 fi
 
 mkdir -p "${DASHBOARD_DIR}"
