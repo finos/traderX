@@ -18548,7 +18548,7 @@ index 0000000..33e775c
 +        "cors": "~2.8.5",
 +        "debug": "~4.4.1",
 +        "engine.io-parser": "~5.2.1",
-+        "ws": "~8.18.3"
++        "ws": "8.20.1"
 +      },
 +      "engines": {
 +        "node": ">=10.2.0"
@@ -18563,7 +18563,7 @@ index 0000000..33e775c
 +        "@socket.io/component-emitter": "~3.1.0",
 +        "debug": "~4.4.1",
 +        "engine.io-parser": "~5.2.1",
-+        "ws": "~8.18.3",
++        "ws": "8.20.1",
 +        "xmlhttprequest-ssl": "~2.1.1"
 +      }
 +    },
@@ -19337,7 +19337,7 @@ index 0000000..33e775c
 +      "license": "MIT",
 +      "dependencies": {
 +        "debug": "~4.4.1",
-+        "ws": "~8.18.3"
++        "ws": "8.20.1"
 +      }
 +    },
 +    "node_modules/socket.io-client": {
@@ -19549,9 +19549,9 @@ index 0000000..33e775c
 +      "license": "ISC"
 +    },
 +    "node_modules/ws": {
-+      "version": "8.18.3",
-+      "resolved": "https://registry.npmjs.org/ws/-/ws-8.18.3.tgz",
-+      "integrity": "sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg==",
++      "version": "8.20.1",
++      "resolved": "https://registry.npmjs.org/ws/-/ws-8.20.1.tgz",
++      "integrity": "sha512-It4dO0K5v//JtTXuPkfEOaI3uUN87iYPnqo/ZzqCoG3g8uhA66QUMs/SrM0YK7/NAu+r4LMh/9dq2A7k+rHs+w==",
 +      "license": "MIT",
 +      "engines": {
 +        "node": ">=10.0.0"
@@ -19599,6 +19599,9 @@ index 0000000..d9ef000
 +    "socket.io": "^4.8.1",
 +    "socket.io-client": "^4.8.3",
 +    "winston": "^3.17.0"
++  },
++  "overrides": {
++    "ws": "8.20.1"
 +  }
 +}
 diff --git a/trade-processor/Dockerfile b/trade-processor/Dockerfile
@@ -35064,7 +35067,7 @@ index 0000000..22fbba9
 +        "cors": "~2.8.5",
 +        "debug": "~4.4.1",
 +        "engine.io-parser": "~5.2.1",
-+        "ws": "~8.18.3"
++        "ws": "8.20.1"
 +      },
 +      "engines": {
 +        "node": ">=10.2.0"
@@ -35079,14 +35082,14 @@ index 0000000..22fbba9
 +        "@socket.io/component-emitter": "~3.1.0",
 +        "debug": "~4.4.1",
 +        "engine.io-parser": "~5.2.1",
-+        "ws": "~8.18.3",
++        "ws": "8.20.1",
 +        "xmlhttprequest-ssl": "~2.1.1"
 +      }
 +    },
 +    "node_modules/engine.io-client/node_modules/ws": {
-+      "version": "8.18.3",
-+      "resolved": "https://registry.npmjs.org/ws/-/ws-8.18.3.tgz",
-+      "integrity": "sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg==",
++      "version": "8.20.1",
++      "resolved": "https://registry.npmjs.org/ws/-/ws-8.20.1.tgz",
++      "integrity": "sha512-It4dO0K5v//JtTXuPkfEOaI3uUN87iYPnqo/ZzqCoG3g8uhA66QUMs/SrM0YK7/NAu+r4LMh/9dq2A7k+rHs+w==",
 +      "license": "MIT",
 +      "engines": {
 +        "node": ">=10.0.0"
@@ -35114,9 +35117,9 @@ index 0000000..22fbba9
 +      }
 +    },
 +    "node_modules/engine.io/node_modules/ws": {
-+      "version": "8.18.3",
-+      "resolved": "https://registry.npmjs.org/ws/-/ws-8.18.3.tgz",
-+      "integrity": "sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg==",
++      "version": "8.20.1",
++      "resolved": "https://registry.npmjs.org/ws/-/ws-8.20.1.tgz",
++      "integrity": "sha512-It4dO0K5v//JtTXuPkfEOaI3uUN87iYPnqo/ZzqCoG3g8uhA66QUMs/SrM0YK7/NAu+r4LMh/9dq2A7k+rHs+w==",
 +      "dev": true,
 +      "license": "MIT",
 +      "engines": {
@@ -40924,13 +40927,13 @@ index 0000000..22fbba9
 +      "license": "MIT",
 +      "dependencies": {
 +        "debug": "~4.4.1",
-+        "ws": "~8.18.3"
++        "ws": "8.20.1"
 +      }
 +    },
 +    "node_modules/socket.io-adapter/node_modules/ws": {
-+      "version": "8.18.3",
-+      "resolved": "https://registry.npmjs.org/ws/-/ws-8.18.3.tgz",
-+      "integrity": "sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg==",
++      "version": "8.20.1",
++      "resolved": "https://registry.npmjs.org/ws/-/ws-8.20.1.tgz",
++      "integrity": "sha512-It4dO0K5v//JtTXuPkfEOaI3uUN87iYPnqo/ZzqCoG3g8uhA66QUMs/SrM0YK7/NAu+r4LMh/9dq2A7k+rHs+w==",
 +      "dev": true,
 +      "license": "MIT",
 +      "engines": {
