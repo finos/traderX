@@ -52,12 +52,12 @@ module.exports = {
   themes: ['@docusaurus/theme-mermaid'],
   themeConfig: {
     announcementBar: {
-      id: 'agentic-renovation-disclaimer',
+      id: 'traderx-v2-welcome',
       backgroundColor: '#0b3a5e',
       textColor: '#ffffff',
       isCloseable: false,
       content:
-        '🚧 This site is from the <a href="https://github.com/finos/traderX/tree/feature/agentic-renovation" target="_blank" rel="noopener noreferrer"><strong>TraderX Renovation Branch</strong></a> exploring Spec-Driven Development. For the official TraderX site, visit <a href="https://traderx.finos.org" target="_blank" rel="noopener noreferrer"><strong>traderx.finos.org</strong></a>.',
+        'Welcome to the new <strong>TraderX</strong> docs. Read the <a href="/docs/blog/2026-03-29-traderx-speckit-migration"><strong>engineering migration story</strong></a>.',
     },
     navbar: {
       title: `TraderX`,
