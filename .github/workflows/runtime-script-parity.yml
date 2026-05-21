@@ -1,0 +1,56 @@
+name: Runtime Script Parity
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "**"
+
+jobs:
+  runtime-script-parity:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install shell dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq ripgrep
+
+      - name: Verify lifecycle script contract (.sh/.ps1)
+        run: bash pipeline/validate-lifecycle-script-contract.sh
+
+      - name: Validate state docs parity contract
+        run: bash pipeline/validate-state-doc-consistency.sh
+
+      - name: Validate PowerShell syntax with pwsh parser
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Stop'
+
+          $files = Get-ChildItem -Path scripts -Recurse -Filter *.ps1 -File
+          if (-not $files) {
+            throw '[fail] no PowerShell scripts found under scripts/'
+          }
+
+          $hasErrors = $false
+          foreach ($file in $files) {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              $hasErrors = $true
+              Write-Host "[fail] parse errors in $($file.FullName)"
+              foreach ($err in $errors) {
+                Write-Host "  - $($err.Message)"
+              }
+            }
+          }
+
+          if ($hasErrors) {
+            throw '[fail] PowerShell parse validation failed'
+          }
+
+          Write-Host "[ok] parsed $($files.Count) PowerShell scripts"

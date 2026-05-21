@@ -1,0 +1,18 @@
+{
+  "stateId": "001-baseline-uncontainerized-parity",
+  "stateTitle": "Simple App - Base Uncontainerized App",
+  "stateTrack": "prelude",
+  "generatedAtUtc": "",
+  "sourceBranch": "code/generated-state-001-baseline-uncontainerized-parity",
+  "sourceBranchUrl": "",
+  "lineageLinkUrl": "",
+  "apiExplorerUrl": "/api/docs",
+  "pubSubInspectorUrl": "/api/docs/pubsub-inspector.html",
+  "features": {
+    "statusPage": false,
+    "apiExplorer": false,
+    "pubSubInspector": false
+  },
+  "previousStates": [],
+  "statusChecks": []
+}

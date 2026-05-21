@@ -1,0 +1,8 @@
+{
+  "label": "Catalog",
+  "position": 40,
+  "link": {
+    "type": "generated-index",
+    "title": "Learning Path Catalog"
+  }
+}

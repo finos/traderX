@@ -1,0 +1,4027 @@
+
+diff --git a/ci/state-metadata.json b/ci/state-metadata.json
+index 5634dd6..5ee6b58 100644
+--- a/ci/state-metadata.json
++++ b/ci/state-metadata.json
+@@ -1,8 +1,8 @@
+ {
+-  "stateId": "012-platform-convergence-c3",
+-  "isConvergence": true,
+-  "convergenceLevel": "C3",
+-  "convergenceNamespace": "traderx-c3",
++  "stateId": "013-radius-kubernetes-platform",
++  "isConvergence": false,
++  "convergenceLevel": "none",
++  "convergenceNamespace": "",
+   "modules": {
+     "node": [
+       "price-publisher",
+diff --git a/radius-kubernetes-platform/README.md b/radius-kubernetes-platform/README.md
+new file mode 100644
+index 0000000..653c519
+--- /dev/null
++++ b/radius-kubernetes-platform/README.md
+@@ -0,0 +1,37 @@
++# State 013 Radius Platform Artifacts
++
++Generated from:
++
++- `specs/013-radius-kubernetes-platform/**`
++- `generated/code/target-generated/kubernetes-runtime/build-plan.json`
++
++State intent:
++
++- preserve state 010 runtime behavior,
++- add Radius app/resource definitions as platform abstraction artifacts.
++
++Artifacts:
++
++- Radius app model: `radius/app.bicep`
++- Radius workspace config: `radius/.rad/rad.yaml`
++- Bicep extension config: `radius/bicepconfig.json`
++- Parent image map reference: `upstream-build-plan.json`
++
++Run baseline runtime for this state:
++
++```bash
++./scripts/start-state-013-radius-kubernetes-platform-generated.sh --provider kind
++```
++
++Run state smoke tests:
++
++```bash
++./scripts/test-state-013-radius-kubernetes-platform.sh
++```
++
++Optional Radius command flow (requires `rad`):
++
++```bash
++cd generated/code/target-generated/radius-kubernetes-platform/radius
++rad run app.bicep
++```
+diff --git a/radius-kubernetes-platform/radius/.rad/rad.yaml b/radius-kubernetes-platform/radius/.rad/rad.yaml
+new file mode 100644
+index 0000000..8de7682
+--- /dev/null
++++ b/radius-kubernetes-platform/radius/.rad/rad.yaml
+@@ -0,0 +1,2 @@
++workspace:
++  application: "traderx-state-010"
+diff --git a/radius-kubernetes-platform/radius/app.bicep b/radius-kubernetes-platform/radius/app.bicep
+new file mode 100644
+index 0000000..3d7c86f
+--- /dev/null
++++ b/radius-kubernetes-platform/radius/app.bicep
+@@ -0,0 +1,159 @@
++extension radius
++
++param application string = 'traderx-state-010'
++
++resource database 'Applications.Core/containers@2023-10-01-preview' = {
++  name: 'database'
++  properties: {
++    application: application
++    container: {
++      image: 'postgres:16-alpine'
++      ports: {
++        web: { containerPort: 5432 }
++      }
++    }
++  }
++}
++
++resource natsbroker 'Applications.Core/containers@2023-10-01-preview' = {
++  name: 'nats-broker'
++  properties: {
++    application: application
++    container: {
++      image: 'nats:2.10-alpine'
++      ports: {
++        web: { containerPort: 4222 }
++      }
++    }
++  }
++}
++
++resource referencedata 'Applications.Core/containers@2023-10-01-preview' = {
++  name: 'reference-data'
++  properties: {
++    application: application
++    container: {
++      image: 'traderx/reference-data:state009'
++      ports: {
++        web: { containerPort: 18085 }
++      }
++    }
++  }
++}
++
++resource peopleservice 'Applications.Core/containers@2023-10-01-preview' = {
++  name: 'people-service'
++  properties: {
++    application: application
++    container: {
++      image: 'traderx/people-service:state009'
++      ports: {
++        web: { containerPort: 18089 }
++      }
++    }
++  }
++}
++
++resource accountservice 'Applications.Core/containers@2023-10-01-preview' = {
++  name: 'account-service'
++  properties: {
++    application: application
++    container: {
++      image: 'traderx/account-service:state009'
++      ports: {
++        web: { containerPort: 18088 }
++      }
++    }
++  }
++}
++
++resource positionservice 'Applications.Core/containers@2023-10-01-preview' = {
++  name: 'position-service'
++  properties: {
++    application: application
++    container: {
++      image: 'traderx/position-service:state009'
++      ports: {
++        web: { containerPort: 18090 }
++      }
++    }
++  }
++}
++
++resource tradeprocessor 'Applications.Core/containers@2023-10-01-preview' = {
++  name: 'trade-processor'
++  properties: {
++    application: application
++    container: {
++      image: 'traderx/trade-processor:state009'
++      ports: {
++        web: { containerPort: 18091 }
++      }
++    }
++  }
++}
++
++resource tradeservice 'Applications.Core/containers@2023-10-01-preview' = {
++  name: 'trade-service'
++  properties: {
++    application: application
++    container: {
++      image: 'traderx/trade-service:state009'
++      ports: {
++        web: { containerPort: 18092 }
++      }
++    }
++  }
++}
++
++resource pricepublisher 'Applications.Core/containers@2023-10-01-preview' = {
++  name: 'price-publisher'
++  properties: {
++    application: application
++    container: {
++      image: 'traderx/price-publisher:state009'
++      ports: {
++        web: { containerPort: 18100 }
++      }
++    }
++  }
++}
++
++resource ordermatcher 'Applications.Core/containers@2023-10-01-preview' = {
++  name: 'order-matcher'
++  properties: {
++    application: application
++    container: {
++      image: 'traderx/order-matcher:state009'
++      ports: {
++        web: { containerPort: 18110 }
++      }
++    }
++  }
++}
++
++resource webfrontendangular 'Applications.Core/containers@2023-10-01-preview' = {
++  name: 'web-front-end-angular'
++  properties: {
++    application: application
++    container: {
++      image: 'traderx/web-front-end-angular:state009'
++      ports: {
++        web: { containerPort: 18093 }
++      }
++    }
++  }
++}
++
++resource edgeproxy 'Applications.Core/containers@2023-10-01-preview' = {
++  name: 'edge-proxy'
++  properties: {
++    application: application
++    container: {
++      image: 'nginx:1.27-alpine'
++      ports: {
++        web: { containerPort: 8080 }
++      }
++    }
++  }
++}
+diff --git a/radius-kubernetes-platform/radius/bicepconfig.json b/radius-kubernetes-platform/radius/bicepconfig.json
+new file mode 100644
+index 0000000..6b9ead4
+--- /dev/null
++++ b/radius-kubernetes-platform/radius/bicepconfig.json
+@@ -0,0 +1,11 @@
++{
++  "experimentalFeaturesEnabled": {
++    "extensibility": true,
++    "extensionRegistry": true,
++    "dynamicTypeLoading": true
++  },
++  "extensions": {
++    "radius": "br:biceptypes.azurecr.io/radius:0.38",
++    "aws": "br:biceptypes.azurecr.io/aws:0.38"
++  }
++}
+diff --git a/tilt-kubernetes-dev-loop/upstream-build-plan.json b/radius-kubernetes-platform/upstream-build-plan.json
+similarity index 100%
+rename from tilt-kubernetes-dev-loop/upstream-build-plan.json
+rename to radius-kubernetes-platform/upstream-build-plan.json
+
+
+diff --git a/scripts/status-state-012-platform-convergence-c3-generated.sh b/scripts/status-state-013-radius-kubernetes-platform-generated.sh
+similarity index 74%
+rename from scripts/status-state-012-platform-convergence-c3-generated.sh
+rename to scripts/status-state-013-radius-kubernetes-platform-generated.sh
+index 5b213e2..03e6aa0 100755
+--- a/scripts/status-state-012-platform-convergence-c3-generated.sh
++++ b/scripts/status-state-013-radius-kubernetes-platform-generated.sh
+@@ -17,11 +17,11 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
+     exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+   fi
+ fi
+-STATE_DIR="${GENERATED_ROOT}/code/target-generated/tilt-kubernetes-dev-loop"
+-TILT_DIR="${STATE_DIR}/tilt"
++STATE_DIR="${GENERATED_ROOT}/code/target-generated/radius-kubernetes-platform"
++RADIUS_DIR="${STATE_DIR}/radius"
+ 
+ K8S_PROVIDER="${K8S_PROVIDER:-kind}"
+-KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-traderx-state-012}"
++KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-traderx-state-013}"
+ MINIKUBE_PROFILE=""
+ 
+ while (( "$#" )); do
+@@ -56,12 +56,12 @@ fi
+ "${REPO_ROOT}/scripts/status-state-010-kubernetes-runtime-generated.sh" "${status_args[@]}"
+ 
+ echo
+-echo "[status] tilt artifacts"
++echo "[status] radius artifacts"
+ for target in \
+   "${STATE_DIR}/README.md" \
+-  "${TILT_DIR}/Tiltfile" \
+-  "${TILT_DIR}/tilt-settings.json" \
+-  "${TILT_DIR}/README.md"; do
++  "${RADIUS_DIR}/app.bicep" \
++  "${RADIUS_DIR}/bicepconfig.json" \
++  "${RADIUS_DIR}/.rad/rad.yaml"; do
+   if [[ -f "${target}" ]]; then
+     echo "[ok] ${target}"
+   else
+@@ -69,14 +69,8 @@ for target in \
+   fi
+ done
+ 
+-tilt_running="no"
+-if pgrep -af "tilt up" >/dev/null 2>&1; then
+-  tilt_running="yes"
+-fi
+-echo "[info] tilt-up-running: ${tilt_running}"
+-
+-if command -v tilt >/dev/null 2>&1; then
+-  echo "[info] tilt CLI: $(tilt version | head -n 1)"
++if command -v rad >/dev/null 2>&1; then
++  echo "[info] radius CLI: $(rad version | head -n 1)"
+ else
+-  echo "[info] tilt CLI not found on PATH"
++  echo "[info] radius CLI not found on PATH"
+ fi
+diff --git a/scripts/stop-state-012-platform-convergence-c3-generated.sh b/scripts/stop-state-013-radius-kubernetes-platform-generated.sh
+similarity index 73%
+rename from scripts/stop-state-012-platform-convergence-c3-generated.sh
+rename to scripts/stop-state-013-radius-kubernetes-platform-generated.sh
+index 553f46f..2ceb469 100755
+--- a/scripts/stop-state-012-platform-convergence-c3-generated.sh
++++ b/scripts/stop-state-013-radius-kubernetes-platform-generated.sh
+@@ -19,9 +19,8 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
+ fi
+ 
+ DELETE_CLUSTER=0
+-STOP_TILT=0
+ K8S_PROVIDER="${K8S_PROVIDER:-kind}"
+-KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-traderx-state-012}"
++KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-traderx-state-013}"
+ MINIKUBE_PROFILE=""
+ 
+ while (( "$#" )); do
+@@ -29,9 +28,6 @@ while (( "$#" )); do
+     --delete-cluster)
+       DELETE_CLUSTER=1
+       ;;
+-    --stop-tilt)
+-      STOP_TILT=1
+-      ;;
+     --provider)
+       K8S_PROVIDER="${2:-}"
+       shift
+@@ -46,23 +42,13 @@ while (( "$#" )); do
+       ;;
+     *)
+       echo "[error] unknown argument: $1"
+-      echo "[hint] supported: --delete-cluster --stop-tilt --provider <kind|minikube> --cluster-name <name> --minikube-profile <name>"
++      echo "[hint] supported: --delete-cluster --provider <kind|minikube> --cluster-name <name> --minikube-profile <name>"
+       exit 1
+       ;;
+   esac
+   shift
+ done
+ 
+-if (( STOP_TILT == 1 )); then
+-  pids="$(pgrep -f "tilt up" || true)"
+-  for pid in ${pids}; do
+-    if kill -0 "${pid}" >/dev/null 2>&1; then
+-      echo "[stop] tilt up process (pid ${pid})"
+-      kill "${pid}" >/dev/null 2>&1 || true
+-    fi
+-  done
+-fi
+-
+ stop_args=(--provider "${K8S_PROVIDER}")
+ stop_args+=(--cluster-name "${KIND_CLUSTER_NAME}")
+ if (( DELETE_CLUSTER == 1 )); then
+@@ -73,4 +59,4 @@ if [[ -n "${MINIKUBE_PROFILE}" ]]; then
+ fi
+ 
+ "${REPO_ROOT}/scripts/stop-state-010-kubernetes-runtime-generated.sh" "${stop_args[@]}"
+-echo "[done] state 012 stop sequence complete"
++echo "[done] state 013 stop sequence complete"
+diff --git a/tilt-kubernetes-dev-loop/README.md b/tilt-kubernetes-dev-loop/README.md
+deleted file mode 100644
+index c55bde3..0000000
+--- a/tilt-kubernetes-dev-loop/README.md
++++ /dev/null
+@@ -1,37 +0,0 @@
+-# State 011 Tilt Local Dev Loop Artifacts
+-
+-Generated from:
+-
+-- `specs/011-tilt-kubernetes-dev-loop/**`
+-- `generated/code/target-generated/kubernetes-runtime/build-plan.json`
+-
+-State intent:
+-
+-- preserve state 010 runtime behavior,
+-- add Tilt-driven local Kubernetes development workflow artifacts.
+-
+-Artifacts:
+-
+-- Tiltfile: `tilt/Tiltfile`
+-- Tilt state metadata: `tilt/tilt-settings.json`
+-- Copied k8s manifests baseline: `manifests/base`
+-- Parent image map reference: `upstream-build-plan.json`
+-
+-Run baseline runtime for this state:
+-
+-```bash
+-./scripts/start-state-011-tilt-kubernetes-dev-loop-generated.sh --provider kind
+-```
+-
+-Run state smoke tests:
+-
+-```bash
+-./scripts/test-state-011-tilt-kubernetes-dev-loop.sh
+-```
+-
+-Optional Tilt command flow (requires `tilt`):
+-
+-```bash
+-cd generated/code/target-generated/tilt-kubernetes-dev-loop/tilt
+-tilt up
+-```
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/account-service-deployment.yaml b/tilt-kubernetes-dev-loop/manifests/base/account-service-deployment.yaml
+deleted file mode 100644
+index 8410a2e..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/account-service-deployment.yaml
++++ /dev/null
+@@ -1,48 +0,0 @@
+-apiVersion: apps/v1
+-kind: Deployment
+-metadata:
+-  name: account-service
+-  namespace: traderx
+-  labels:
+-    app: account-service
+-spec:
+-  replicas: 1
+-  selector:
+-    matchLabels:
+-      app: account-service
+-  template:
+-    metadata:
+-      labels:
+-        app: account-service
+-    spec:
+-      containers:
+-        - name: account-service
+-          image: traderx/account-service:state009
+-          imagePullPolicy: IfNotPresent
+-          ports:
+-            - name: http
+-              containerPort: 18088
+-              protocol: TCP
+-          env:
+-            - name: ACCOUNT_SERVICE_PORT
+-              value: "18088"
+-            - name: DATABASE_PG_HOST
+-              value: "database"
+-            - name: DATABASE_PG_PORT
+-              value: "5432"
+-            - name: DATABASE_NAME
+-              value: "traderx"
+-            - name: DATABASE_DBUSER
+-              value: "traderx"
+-            - name: DATABASE_DBPASS
+-              value: "traderx"
+-            - name: PEOPLE_SERVICE_HOST
+-              value: "people-service"
+-            - name: CORS_ALLOWED_ORIGINS
+-              value: "http://localhost:8080"
+-            - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
+-              value: "health,prometheus,info"
+-            - name: MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED
+-              value: "true"
+-            - name: MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED
+-              value: "true"
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/account-service-service.yaml b/tilt-kubernetes-dev-loop/manifests/base/account-service-service.yaml
+deleted file mode 100644
+index ef50739..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/account-service-service.yaml
++++ /dev/null
+@@ -1,16 +0,0 @@
+-apiVersion: v1
+-kind: Service
+-metadata:
+-  name: account-service
+-  namespace: traderx
+-  labels:
+-    app: account-service
+-spec:
+-  type: ClusterIP
+-  selector:
+-    app: account-service
+-  ports:
+-    - name: http
+-      protocol: TCP
+-      port: 18088
+-      targetPort: 18088
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/blackbox-exporter-deployment.yaml b/tilt-kubernetes-dev-loop/manifests/base/blackbox-exporter-deployment.yaml
+deleted file mode 100644
+index 8b5350a..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/blackbox-exporter-deployment.yaml
++++ /dev/null
+@@ -1,34 +0,0 @@
+-apiVersion: apps/v1
+-kind: Deployment
+-metadata:
+-  name: blackbox-exporter
+-  namespace: traderx
+-  labels:
+-    app: blackbox-exporter
+-spec:
+-  replicas: 1
+-  selector:
+-    matchLabels:
+-      app: blackbox-exporter
+-  template:
+-    metadata:
+-      labels:
+-        app: blackbox-exporter
+-    spec:
+-      containers:
+-        - name: blackbox-exporter
+-          image: prom/blackbox-exporter:v0.25.0
+-          imagePullPolicy: IfNotPresent
+-          args: ["--config.file=/etc/blackbox_exporter/config.yml"]
+-          ports:
+-            - name: http
+-              containerPort: 9115
+-              protocol: TCP
+-          volumeMounts:
+-            - name: blackbox-config
+-              mountPath: /etc/blackbox_exporter/config.yml
+-              subPath: blackbox.yml
+-      volumes:
+-        - name: blackbox-config
+-          configMap:
+-            name: observability-blackbox-config
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/blackbox-exporter-service.yaml b/tilt-kubernetes-dev-loop/manifests/base/blackbox-exporter-service.yaml
+deleted file mode 100644
+index a81f772..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/blackbox-exporter-service.yaml
++++ /dev/null
+@@ -1,16 +0,0 @@
+-apiVersion: v1
+-kind: Service
+-metadata:
+-  name: blackbox-exporter
+-  namespace: traderx
+-  labels:
+-    app: blackbox-exporter
+-spec:
+-  type: ClusterIP
+-  selector:
+-    app: blackbox-exporter
+-  ports:
+-    - name: http
+-      protocol: TCP
+-      port: 9115
+-      targetPort: 9115
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/database-deployment.yaml b/tilt-kubernetes-dev-loop/manifests/base/database-deployment.yaml
+deleted file mode 100644
+index fcce3ec..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/database-deployment.yaml
++++ /dev/null
+@@ -1,54 +0,0 @@
+-apiVersion: apps/v1
+-kind: Deployment
+-metadata:
+-  name: database
+-  namespace: traderx
+-  labels:
+-    app: database
+-spec:
+-  replicas: 1
+-  selector:
+-    matchLabels:
+-      app: database
+-  template:
+-    metadata:
+-      labels:
+-        app: database
+-    spec:
+-      containers:
+-        - name: database
+-          image: postgres:16-alpine
+-          imagePullPolicy: IfNotPresent
+-          ports:
+-            - name: pg
+-              containerPort: 5432
+-              protocol: TCP
+-          env:
+-            - name: POSTGRES_DB
+-              value: "traderx"
+-            - name: POSTGRES_USER
+-              value: "traderx"
+-            - name: POSTGRES_PASSWORD
+-              value: "traderx"
+-          volumeMounts:
+-            - name: db-data
+-              mountPath: /var/lib/postgresql/data
+-            - name: database-init-sql
+-              mountPath: /docker-entrypoint-initdb.d/001-initialSchema.sql
+-              subPath: 001-initialSchema.sql
+-          readinessProbe:
+-            exec:
+-              command: ["sh", "-c", "pg_isready -U traderx -d traderx"]
+-            initialDelaySeconds: 5
+-            periodSeconds: 5
+-          livenessProbe:
+-            exec:
+-              command: ["sh", "-c", "pg_isready -U traderx -d traderx"]
+-            initialDelaySeconds: 10
+-            periodSeconds: 10
+-      volumes:
+-        - name: db-data
+-          emptyDir: {}
+-        - name: database-init-sql
+-          configMap:
+-            name: database-init-sql
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/database-init-configmap.yaml b/tilt-kubernetes-dev-loop/manifests/base/database-init-configmap.yaml
+deleted file mode 100644
+index be8e4e2..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/database-init-configmap.yaml
++++ /dev/null
+@@ -1,86 +0,0 @@
+-apiVersion: v1
+-kind: ConfigMap
+-metadata:
+-  name: database-init-sql
+-  namespace: traderx
+-data:
+-  001-initialSchema.sql: |
+-    DROP TABLE IF EXISTS trades;
+-    DROP TABLE IF EXISTS accountusers;
+-    DROP TABLE IF EXISTS positions;
+-    DROP TABLE IF EXISTS accounts;
+-    DROP SEQUENCE IF EXISTS accounts_seq;
+-    
+-    CREATE TABLE accounts (
+-      id INTEGER PRIMARY KEY,
+-      displayname VARCHAR(50)
+-    );
+-    
+-    CREATE TABLE accountusers (
+-      accountid INTEGER NOT NULL,
+-      username VARCHAR(15) NOT NULL,
+-      PRIMARY KEY (accountid, username),
+-      FOREIGN KEY (accountid) REFERENCES accounts(id)
+-    );
+-    
+-    CREATE TABLE positions (
+-      accountid INTEGER,
+-      security VARCHAR(15),
+-      updated TIMESTAMP,
+-      quantity INTEGER,
+-      averagecostbasis DECIMAL(18,3),
+-      PRIMARY KEY (accountid, security),
+-      FOREIGN KEY (accountid) REFERENCES accounts(id)
+-    );
+-    
+-    CREATE TABLE trades (
+-      id VARCHAR(50) PRIMARY KEY,
+-      accountid INTEGER REFERENCES accounts(id),
+-      created TIMESTAMP,
+-      updated TIMESTAMP,
+-      security VARCHAR(15),
+-      side VARCHAR(10) CHECK (side in ('Buy', 'Sell')),
+-      quantity INTEGER CHECK (quantity > 0),
+-      price DECIMAL(18,3),
+-      state VARCHAR(20) CHECK (state in ('New', 'Processing', 'Settled', 'Cancelled'))
+-    );
+-    
+-    CREATE SEQUENCE accounts_seq START WITH 65000 INCREMENT BY 1;
+-    
+-    INSERT INTO accounts (id, displayname) VALUES (22214, 'Test Account 20');
+-    INSERT INTO accounts (id, displayname) VALUES (11413, 'Private Clients Fund TTXX');
+-    INSERT INTO accounts (id, displayname) VALUES (42422, 'Algo Execution Partners');
+-    INSERT INTO accounts (id, displayname) VALUES (52355, 'Big Corporate Fund');
+-    INSERT INTO accounts (id, displayname) VALUES (62654, 'Hedge Fund TXY1');
+-    INSERT INTO accounts (id, displayname) VALUES (10031, 'Internal Trading Book');
+-    INSERT INTO accounts (id, displayname) VALUES (44044, 'Trading Account 1');
+-    
+-    INSERT INTO accountusers (accountid, username) VALUES (22214, 'user01');
+-    INSERT INTO accountusers (accountid, username) VALUES (22214, 'user03');
+-    INSERT INTO accountusers (accountid, username) VALUES (22214, 'user09');
+-    INSERT INTO accountusers (accountid, username) VALUES (22214, 'user05');
+-    INSERT INTO accountusers (accountid, username) VALUES (22214, 'user07');
+-    INSERT INTO accountusers (accountid, username) VALUES (62654, 'user09');
+-    INSERT INTO accountusers (accountid, username) VALUES (62654, 'user05');
+-    INSERT INTO accountusers (accountid, username) VALUES (62654, 'user07');
+-    INSERT INTO accountusers (accountid, username) VALUES (62654, 'user01');
+-    INSERT INTO accountusers (accountid, username) VALUES (10031, 'user01');
+-    INSERT INTO accountusers (accountid, username) VALUES (10031, 'user03');
+-    INSERT INTO accountusers (accountid, username) VALUES (10031, 'user09');
+-    INSERT INTO accountusers (accountid, username) VALUES (44044, 'user09');
+-    INSERT INTO accountusers (accountid, username) VALUES (44044, 'user05');
+-    INSERT INTO accountusers (accountid, username) VALUES (44044, 'user07');
+-    INSERT INTO accountusers (accountid, username) VALUES (44044, 'user04');
+-    INSERT INTO accountusers (accountid, username) VALUES (44044, 'user01');
+-    INSERT INTO accountusers (accountid, username) VALUES (44044, 'user06');
+-    
+-    INSERT INTO trades (id, created, updated, security, side, quantity, price, state, accountid) VALUES ('TRADE-22214-AABBCC', NOW(), NOW(), 'IBM', 'Sell', 100, 136.250, 'Settled', 22214);
+-    INSERT INTO trades (id, created, updated, security, side, quantity, price, state, accountid) VALUES ('TRADE-22214-DDEEFF', NOW(), NOW(), 'MS', 'Buy', 1000, 95.125, 'Settled', 22214);
+-    INSERT INTO trades (id, created, updated, security, side, quantity, price, state, accountid) VALUES ('TRADE-22214-GGHHII', NOW(), NOW(), 'C', 'Sell', 2000, 57.500, 'Settled', 22214);
+-    
+-    INSERT INTO positions (accountid, security, updated, quantity, averagecostbasis) VALUES (22214, 'MS', NOW(), 1000, 95.125);
+-    INSERT INTO positions (accountid, security, updated, quantity, averagecostbasis) VALUES (22214, 'IBM', NOW(), -100, 136.250);
+-    INSERT INTO positions (accountid, security, updated, quantity, averagecostbasis) VALUES (22214, 'C', NOW(), -2000, 57.500);
+-    
+-    INSERT INTO trades (id, created, updated, security, side, quantity, price, state, accountid) VALUES ('TRADE-52355-AABBCC', NOW(), NOW(), 'BAC', 'Sell', 2400, 41.125, 'Settled', 52355);
+-    INSERT INTO positions (accountid, security, updated, quantity, averagecostbasis) VALUES (52355, 'BAC', NOW(), -2400, 41.125);
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/database-service.yaml b/tilt-kubernetes-dev-loop/manifests/base/database-service.yaml
+deleted file mode 100644
+index ac90acf..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/database-service.yaml
++++ /dev/null
+@@ -1,16 +0,0 @@
+-apiVersion: v1
+-kind: Service
+-metadata:
+-  name: database
+-  namespace: traderx
+-  labels:
+-    app: database
+-spec:
+-  type: ClusterIP
+-  selector:
+-    app: database
+-  ports:
+-    - name: pg
+-      protocol: TCP
+-      port: 5432
+-      targetPort: 5432
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/edge-proxy-configmap.yaml b/tilt-kubernetes-dev-loop/manifests/base/edge-proxy-configmap.yaml
+deleted file mode 100644
+index 0f45bff..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/edge-proxy-configmap.yaml
++++ /dev/null
+@@ -1,85 +0,0 @@
+-apiVersion: v1
+-kind: ConfigMap
+-metadata:
+-  name: edge-proxy-config
+-  namespace: traderx
+-data:
+-  default.conf: |
+-    server {
+-        listen 8080;
+-        server_name localhost;
+-    
+-        location = /health {
+-            add_header Content-Type text/plain;
+-            return 200 "ok\n";
+-        }
+-    
+-        location /reference-data/ {
+-            proxy_pass http://reference-data:18085/;
+-        }
+-    
+-        location /ng-cli-ws {
+-            proxy_pass http://web-front-end-angular:18093/ng-cli-ws;
+-            proxy_http_version 1.1;
+-            proxy_set_header Upgrade $http_upgrade;
+-            proxy_set_header Connection "upgrade";
+-        }
+-    
+-        location /nats-ws {
+-            proxy_pass http://nats-broker:8081;
+-            proxy_http_version 1.1;
+-            proxy_set_header Upgrade $http_upgrade;
+-            proxy_set_header Connection "upgrade";
+-            proxy_set_header Host $http_host;
+-        }
+-    
+-        location /people-service/ {
+-            proxy_pass http://people-service:18089/;
+-        }
+-    
+-        location /account-service/ {
+-            proxy_pass http://account-service:18088/;
+-        }
+-    
+-        location /position-service/ {
+-            proxy_pass http://position-service:18090/;
+-        }
+-    
+-        location /trade-service/ {
+-            proxy_pass http://trade-service:18092/;
+-        }
+-    
+-        location /trade-processor/ {
+-            proxy_pass http://trade-processor:18091/;
+-        }
+-    
+-        location /price-publisher/ {
+-            proxy_pass http://price-publisher:18100/;
+-        }
+-    
+-        location /order-matcher/ {
+-            proxy_pass http://order-matcher:18110/;
+-        }
+-    
+-        location /grafana/ {
+-            proxy_pass http://grafana:3000;
+-            proxy_http_version 1.1;
+-            proxy_set_header Host $http_host;
+-            proxy_set_header X-Forwarded-Proto $scheme;
+-            proxy_set_header X-Forwarded-Prefix /grafana;
+-        }
+-    
+-        location /prometheus/ {
+-            proxy_pass http://prometheus:9090;
+-            proxy_http_version 1.1;
+-            proxy_set_header Host $http_host;
+-            proxy_set_header X-Forwarded-Proto $scheme;
+-        }
+-    
+-        location / {
+-            proxy_pass http://web-front-end-angular:18093/;
+-            proxy_http_version 1.1;
+-            proxy_set_header Upgrade $http_upgrade;
+-            proxy_set_header Connection "upgrade";
+-        }
+-    }
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/edge-proxy-deployment.yaml b/tilt-kubernetes-dev-loop/manifests/base/edge-proxy-deployment.yaml
+deleted file mode 100644
+index 59bf594..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/edge-proxy-deployment.yaml
++++ /dev/null
+@@ -1,45 +0,0 @@
+-apiVersion: apps/v1
+-kind: Deployment
+-metadata:
+-  name: edge-proxy
+-  namespace: traderx
+-  labels:
+-    app: edge-proxy
+-spec:
+-  replicas: 1
+-  selector:
+-    matchLabels:
+-      app: edge-proxy
+-  template:
+-    metadata:
+-      labels:
+-        app: edge-proxy
+-    spec:
+-      containers:
+-        - name: edge-proxy
+-          image: nginx:1.27-alpine
+-          imagePullPolicy: IfNotPresent
+-          ports:
+-            - name: http
+-              containerPort: 8080
+-              protocol: TCP
+-          volumeMounts:
+-            - name: edge-proxy-config
+-              mountPath: /etc/nginx/conf.d/default.conf
+-              subPath: default.conf
+-          readinessProbe:
+-            httpGet:
+-              path: /health
+-              port: 8080
+-            initialDelaySeconds: 2
+-            periodSeconds: 5
+-          livenessProbe:
+-            httpGet:
+-              path: /health
+-              port: 8080
+-            initialDelaySeconds: 5
+-            periodSeconds: 10
+-      volumes:
+-        - name: edge-proxy-config
+-          configMap:
+-            name: edge-proxy-config
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/edge-proxy-service.yaml b/tilt-kubernetes-dev-loop/manifests/base/edge-proxy-service.yaml
+deleted file mode 100644
+index 3e582f3..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/edge-proxy-service.yaml
++++ /dev/null
+@@ -1,17 +0,0 @@
+-apiVersion: v1
+-kind: Service
+-metadata:
+-  name: edge-proxy
+-  namespace: traderx
+-  labels:
+-    app: edge-proxy
+-spec:
+-  type: NodePort
+-  selector:
+-    app: edge-proxy
+-  ports:
+-    - name: http
+-      protocol: TCP
+-      port: 8080
+-      targetPort: 8080
+-      nodePort: 30080
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/grafana-deployment.yaml b/tilt-kubernetes-dev-loop/manifests/base/grafana-deployment.yaml
+deleted file mode 100644
+index 6d875ab..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/grafana-deployment.yaml
++++ /dev/null
+@@ -1,69 +0,0 @@
+-apiVersion: apps/v1
+-kind: Deployment
+-metadata:
+-  name: grafana
+-  namespace: traderx
+-  labels:
+-    app: grafana
+-spec:
+-  replicas: 1
+-  selector:
+-    matchLabels:
+-      app: grafana
+-  template:
+-    metadata:
+-      labels:
+-        app: grafana
+-    spec:
+-      containers:
+-        - name: grafana
+-          image: grafana/grafana:11.1.0
+-          imagePullPolicy: IfNotPresent
+-          env:
+-            - name: GF_SECURITY_ADMIN_USER
+-              value: "admin"
+-            - name: GF_SECURITY_ADMIN_PASSWORD
+-              value: "admin"
+-            - name: GF_USERS_ALLOW_SIGN_UP
+-              value: "false"
+-            - name: GF_AUTH_ANONYMOUS_ENABLED
+-              value: "false"
+-            - name: GF_SERVER_ROOT_URL
+-              value: "%(protocol)s://%(domain)s/grafana/"
+-            - name: GF_SERVER_SERVE_FROM_SUB_PATH
+-              value: "true"
+-          ports:
+-            - name: http
+-              containerPort: 3000
+-              protocol: TCP
+-          readinessProbe:
+-            httpGet:
+-              path: /api/health
+-              port: 3000
+-            initialDelaySeconds: 5
+-            periodSeconds: 5
+-          livenessProbe:
+-            httpGet:
+-              path: /api/health
+-              port: 3000
+-            initialDelaySeconds: 10
+-            periodSeconds: 10
+-          volumeMounts:
+-            - name: grafana-datasources
+-              mountPath: /etc/grafana/provisioning/datasources/datasources.yaml
+-              subPath: datasources.yaml
+-            - name: grafana-dashboard-providers
+-              mountPath: /etc/grafana/provisioning/dashboards/dashboards.yaml
+-              subPath: dashboards.yaml
+-            - name: grafana-dashboards
+-              mountPath: /var/lib/grafana/dashboards
+-      volumes:
+-        - name: grafana-datasources
+-          configMap:
+-            name: observability-grafana-datasources
+-        - name: grafana-dashboard-providers
+-          configMap:
+-            name: observability-grafana-dashboard-providers
+-        - name: grafana-dashboards
+-          configMap:
+-            name: observability-grafana-dashboards
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/grafana-service.yaml b/tilt-kubernetes-dev-loop/manifests/base/grafana-service.yaml
+deleted file mode 100644
+index 1698d74..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/grafana-service.yaml
++++ /dev/null
+@@ -1,16 +0,0 @@
+-apiVersion: v1
+-kind: Service
+-metadata:
+-  name: grafana
+-  namespace: traderx
+-  labels:
+-    app: grafana
+-spec:
+-  type: ClusterIP
+-  selector:
+-    app: grafana
+-  ports:
+-    - name: http
+-      protocol: TCP
+-      port: 3000
+-      targetPort: 3000
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/kustomization.yaml b/tilt-kubernetes-dev-loop/manifests/base/kustomization.yaml
+deleted file mode 100644
+index faf866c..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/kustomization.yaml
++++ /dev/null
+@@ -1,57 +0,0 @@
+-apiVersion: kustomize.config.k8s.io/v1beta1
+-kind: Kustomization
+-namespace: traderx
+-resources:
+-  - namespace.yaml
+-  - edge-proxy-configmap.yaml
+-  - database-init-configmap.yaml
+-  - nats-configmap.yaml
+-  - observability-blackbox-configmap.yaml
+-  - observability-loki-configmap.yaml
+-  - observability-promtail-configmap.yaml
+-  - observability-tempo-configmap.yaml
+-  - observability-otel-configmap.yaml
+-  - observability-prometheus-configmap.yaml
+-  - observability-grafana-datasources-configmap.yaml
+-  - observability-grafana-dashboard-providers-configmap.yaml
+-  - observability-grafana-dashboards-configmap.yaml
+-  - edge-proxy-deployment.yaml
+-  - edge-proxy-service.yaml
+-  - blackbox-exporter-deployment.yaml
+-  - blackbox-exporter-service.yaml
+-  - loki-deployment.yaml
+-  - loki-service.yaml
+-  - promtail-serviceaccount.yaml
+-  - promtail-clusterrole.yaml
+-  - promtail-clusterrolebinding.yaml
+-  - promtail-daemonset.yaml
+-  - tempo-deployment.yaml
+-  - tempo-service.yaml
+-  - otel-collector-deployment.yaml
+-  - otel-collector-service.yaml
+-  - prometheus-deployment.yaml
+-  - prometheus-service.yaml
+-  - grafana-deployment.yaml
+-  - grafana-service.yaml
+-  - database-deployment.yaml
+-  - database-service.yaml
+-  - nats-broker-deployment.yaml
+-  - nats-broker-service.yaml
+-  - reference-data-deployment.yaml
+-  - reference-data-service.yaml
+-  - people-service-deployment.yaml
+-  - people-service-service.yaml
+-  - account-service-deployment.yaml
+-  - account-service-service.yaml
+-  - position-service-deployment.yaml
+-  - position-service-service.yaml
+-  - trade-processor-deployment.yaml
+-  - trade-processor-service.yaml
+-  - trade-service-deployment.yaml
+-  - trade-service-service.yaml
+-  - price-publisher-deployment.yaml
+-  - price-publisher-service.yaml
+-  - order-matcher-deployment.yaml
+-  - order-matcher-service.yaml
+-  - web-front-end-angular-deployment.yaml
+-  - web-front-end-angular-service.yaml
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/loki-deployment.yaml b/tilt-kubernetes-dev-loop/manifests/base/loki-deployment.yaml
+deleted file mode 100644
+index 94a7acd..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/loki-deployment.yaml
++++ /dev/null
+@@ -1,46 +0,0 @@
+-apiVersion: apps/v1
+-kind: Deployment
+-metadata:
+-  name: loki
+-  namespace: traderx
+-  labels:
+-    app: loki
+-spec:
+-  replicas: 1
+-  selector:
+-    matchLabels:
+-      app: loki
+-  template:
+-    metadata:
+-      labels:
+-        app: loki
+-    spec:
+-      containers:
+-        - name: loki
+-          image: grafana/loki:2.9.8
+-          imagePullPolicy: IfNotPresent
+-          args: ["-config.file=/etc/loki/config.yaml"]
+-          ports:
+-            - name: http
+-              containerPort: 3100
+-              protocol: TCP
+-          readinessProbe:
+-            httpGet:
+-              path: /ready
+-              port: 3100
+-            initialDelaySeconds: 5
+-            periodSeconds: 5
+-          livenessProbe:
+-            httpGet:
+-              path: /ready
+-              port: 3100
+-            initialDelaySeconds: 10
+-            periodSeconds: 10
+-          volumeMounts:
+-            - name: loki-config
+-              mountPath: /etc/loki/config.yaml
+-              subPath: config.yaml
+-      volumes:
+-        - name: loki-config
+-          configMap:
+-            name: observability-loki-config
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/loki-service.yaml b/tilt-kubernetes-dev-loop/manifests/base/loki-service.yaml
+deleted file mode 100644
+index 0624ed6..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/loki-service.yaml
++++ /dev/null
+@@ -1,16 +0,0 @@
+-apiVersion: v1
+-kind: Service
+-metadata:
+-  name: loki
+-  namespace: traderx
+-  labels:
+-    app: loki
+-spec:
+-  type: ClusterIP
+-  selector:
+-    app: loki
+-  ports:
+-    - name: http
+-      protocol: TCP
+-      port: 3100
+-      targetPort: 3100
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/namespace.yaml b/tilt-kubernetes-dev-loop/manifests/base/namespace.yaml
+deleted file mode 100644
+index 282aa6b..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/namespace.yaml
++++ /dev/null
+@@ -1,4 +0,0 @@
+-apiVersion: v1
+-kind: Namespace
+-metadata:
+-  name: traderx
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/nats-broker-deployment.yaml b/tilt-kubernetes-dev-loop/manifests/base/nats-broker-deployment.yaml
+deleted file mode 100644
+index e73ec97..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/nats-broker-deployment.yaml
++++ /dev/null
+@@ -1,40 +0,0 @@
+-apiVersion: apps/v1
+-kind: Deployment
+-metadata:
+-  name: nats-broker
+-  namespace: traderx
+-  labels:
+-    app: nats-broker
+-spec:
+-  replicas: 1
+-  selector:
+-    matchLabels:
+-      app: nats-broker
+-  template:
+-    metadata:
+-      labels:
+-        app: nats-broker
+-    spec:
+-      containers:
+-        - name: nats-broker
+-          image: nats:2.10-alpine
+-          imagePullPolicy: IfNotPresent
+-          ports:
+-            - name: client
+-              containerPort: 4222
+-              protocol: TCP
+-            - name: monitor
+-              containerPort: 8222
+-              protocol: TCP
+-            - name: ws
+-              containerPort: 8081
+-              protocol: TCP
+-          args: ["-c", "/etc/nats/nats.conf"]
+-          volumeMounts:
+-            - name: nats-config
+-              mountPath: /etc/nats/nats.conf
+-              subPath: nats.conf
+-      volumes:
+-        - name: nats-config
+-          configMap:
+-            name: nats-config
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/nats-broker-service.yaml b/tilt-kubernetes-dev-loop/manifests/base/nats-broker-service.yaml
+deleted file mode 100644
+index 68541c5..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/nats-broker-service.yaml
++++ /dev/null
+@@ -1,24 +0,0 @@
+-apiVersion: v1
+-kind: Service
+-metadata:
+-  name: nats-broker
+-  namespace: traderx
+-  labels:
+-    app: nats-broker
+-spec:
+-  type: ClusterIP
+-  selector:
+-    app: nats-broker
+-  ports:
+-    - name: client
+-      protocol: TCP
+-      port: 4222
+-      targetPort: 4222
+-    - name: monitor
+-      protocol: TCP
+-      port: 8222
+-      targetPort: 8222
+-    - name: ws
+-      protocol: TCP
+-      port: 8081
+-      targetPort: 8081
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/nats-configmap.yaml b/tilt-kubernetes-dev-loop/manifests/base/nats-configmap.yaml
+deleted file mode 100644
+index c1e82c3..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/nats-configmap.yaml
++++ /dev/null
+@@ -1,14 +0,0 @@
+-apiVersion: v1
+-kind: ConfigMap
+-metadata:
+-  name: nats-config
+-  namespace: traderx
+-data:
+-  nats.conf: |
+-    port: 4222
+-    http: 8222
+-    
+-    websocket {
+-      port: 8081
+-      no_tls: true
+-    }
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/observability-blackbox-configmap.yaml b/tilt-kubernetes-dev-loop/manifests/base/observability-blackbox-configmap.yaml
+deleted file mode 100644
+index 9701fd2..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/observability-blackbox-configmap.yaml
++++ /dev/null
+@@ -1,13 +0,0 @@
+-apiVersion: v1
+-kind: ConfigMap
+-metadata:
+-  name: observability-blackbox-config
+-  namespace: traderx
+-data:
+-  blackbox.yml: |
+-    modules:
+-      http_2xx:
+-        prober: http
+-        timeout: 5s
+-        http:
+-          preferred_ip_protocol: "ip4"
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/observability-grafana-dashboard-providers-configmap.yaml b/tilt-kubernetes-dev-loop/manifests/base/observability-grafana-dashboard-providers-configmap.yaml
+deleted file mode 100644
+index 7637e07..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/observability-grafana-dashboard-providers-configmap.yaml
++++ /dev/null
+@@ -1,18 +0,0 @@
+-apiVersion: v1
+-kind: ConfigMap
+-metadata:
+-  name: observability-grafana-dashboard-providers
+-  namespace: traderx
+-data:
+-  dashboards.yaml: |
+-    apiVersion: 1
+-    
+-    providers:
+-      - name: TraderX Dashboards
+-        orgId: 1
+-        folder: TraderX
+-        type: file
+-        disableDeletion: false
+-        updateIntervalSeconds: 30
+-        options:
+-          path: /var/lib/grafana/dashboards
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/observability-grafana-dashboards-configmap.yaml b/tilt-kubernetes-dev-loop/manifests/base/observability-grafana-dashboards-configmap.yaml
+deleted file mode 100644
+index 7b87e12..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/observability-grafana-dashboards-configmap.yaml
++++ /dev/null
+@@ -1,1371 +0,0 @@
+-apiVersion: v1
+-kind: ConfigMap
+-metadata:
+-  name: observability-grafana-dashboards
+-  namespace: traderx
+-data:
+-  traderx-logs-errors.json: |
+-    {
+-      "panels": [
+-        {
+-          "datasource": {
+-            "type": "loki",
+-            "uid": "loki"
+-          },
+-          "fieldConfig": {
+-            "defaults": {
+-              "unit": "lines/s"
+-            }
+-          },
+-          "gridPos": {
+-            "h": 8,
+-            "w": 12,
+-            "x": 0,
+-            "y": 0
+-          },
+-          "id": 1,
+-          "options": {
+-            "legend": {
+-              "displayMode": "table",
+-              "placement": "bottom"
+-            }
+-          },
+-          "targets": [
+-            {
+-              "expr": "sum by (service) (rate({compose_project=\"traderx-state-009\",service=~\"$service\"}[1m]))",
+-              "refId": "A"
+-            }
+-          ],
+-          "title": "Log Throughput by Service",
+-          "type": "timeseries"
+-        },
+-        {
+-          "datasource": {
+-            "type": "loki",
+-            "uid": "loki"
+-          },
+-          "fieldConfig": {
+-            "defaults": {
+-              "unit": "lines/s"
+-            }
+-          },
+-          "gridPos": {
+-            "h": 8,
+-            "w": 12,
+-            "x": 12,
+-            "y": 0
+-          },
+-          "id": 2,
+-          "options": {
+-            "legend": {
+-              "displayMode": "table",
+-              "placement": "bottom"
+-            }
+-          },
+-          "targets": [
+-            {
+-              "expr": "sum by (service) (rate({compose_project=\"traderx-state-009\",service=~\"$service\"} |~ \"(?i)(error|warn|exception|fail)\" [1m]))",
+-              "refId": "A"
+-            }
+-          ],
+-          "title": "Error/Warn Throughput by Service",
+-          "type": "timeseries"
+-        },
+-        {
+-          "datasource": {
+-            "type": "loki",
+-            "uid": "loki"
+-          },
+-          "gridPos": {
+-            "h": 10,
+-            "w": 24,
+-            "x": 0,
+-            "y": 8
+-          },
+-          "id": 3,
+-          "options": {
+-            "enableLogDetails": true,
+-            "showLabels": true,
+-            "showTime": true,
+-            "wrapLogMessage": true
+-          },
+-          "targets": [
+-            {
+-              "expr": "{compose_project=\"traderx-state-009\",service=~\"$service\"}",
+-              "refId": "A"
+-            }
+-          ],
+-          "title": "Live Logs (Selected Services)",
+-          "type": "logs"
+-        },
+-        {
+-          "datasource": {
+-            "type": "loki",
+-            "uid": "loki"
+-          },
+-          "gridPos": {
+-            "h": 10,
+-            "w": 24,
+-            "x": 0,
+-            "y": 18
+-          },
+-          "id": 4,
+-          "options": {
+-            "enableLogDetails": true,
+-            "showLabels": true,
+-            "showTime": true,
+-            "wrapLogMessage": true
+-          },
+-          "targets": [
+-            {
+-              "expr": "{compose_project=\"traderx-state-009\",service=~\"$service\"} |~ \"(?i)(error|warn|exception|fail)\"",
+-              "refId": "A"
+-            }
+-          ],
+-          "title": "Error Focus",
+-          "type": "logs"
+-        }
+-      ],
+-      "refresh": "10s",
+-      "schemaVersion": 39,
+-      "tags": [
+-        "traderx",
+-        "logs",
+-        "provisioned"
+-      ],
+-      "templating": {
+-        "list": [
+-          {
+-            "current": {
+-              "text": "All",
+-              "value": [
+-                "$__all"
+-              ]
+-            },
+-            "datasource": {
+-              "type": "loki",
+-              "uid": "loki"
+-            },
+-            "includeAll": true,
+-            "label": "Service",
+-            "multi": true,
+-            "name": "service",
+-            "query": "label_values({compose_project=\"traderx-state-009\"}, service)",
+-            "type": "query"
+-          }
+-        ]
+-      },
+-      "time": {
+-        "from": "now-30m",
+-        "to": "now"
+-      },
+-      "timezone": "browser",
+-      "title": "TraderX Logs & Errors",
+-      "uid": "traderx-logs-errors"
+-    }
+-  traderx-nats-messaging-overview.json: |
+-    {
+-      "id": null,
+-      "uid": "traderx-nats-messaging-overview",
+-      "title": "TraderX NATS Messaging Overview",
+-      "tags": ["traderx", "state-012", "nats", "messaging", "provisioned"],
+-      "timezone": "browser",
+-      "schemaVersion": 39,
+-      "version": 1,
+-      "refresh": "10s",
+-      "time": { "from": "now-30m", "to": "now" },
+-      "panels": [
+-        {"id": 1, "type": "stat", "title": "NATS Monitor Endpoint", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 }, "targets": [{ "refId": "A", "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://nats-broker:8222/varz\"})" }], "fieldConfig": {"defaults": {"min": 0, "max": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}}},
+-        {"id": 2, "type": "stat", "title": "Ingress NATS-WS Route", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 }, "targets": [{ "refId": "A", "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://ingress:8080/nats-ws\"})" }], "fieldConfig": {"defaults": {"min": 0, "max": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "orange", "value": null}, {"color": "green", "value": 1}]}}}},
+-        {"id": 3, "type": "timeseries", "title": "NATS + Gateway Endpoint Latency", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 }, "targets": [{ "refId": "A", "expr": "probe_duration_seconds{job=\"traderx-http-probe\",instance=~\"http://nats-broker:8222/varz|http://ingress:8080/nats-ws\"}" }], "fieldConfig": {"defaults": {"unit": "s", "decimals": 3}}, "options": {"legend": {"displayMode": "table", "placement": "bottom"}}},
+-        {"id": 4, "type": "timeseries", "title": "NATS + Messaging Service Log Throughput", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 }, "targets": [{ "refId": "A", "expr": "sum by (service) (rate({compose_project=\"traderx-state-009\",service=~\"nats-broker|trade-service|trade-processor|web-front-end-angular\"}[1m]))" }], "fieldConfig": {"defaults": {"unit": "lines/s"}}, "options": {"legend": {"displayMode": "table", "placement": "bottom"}}},
+-        {"id": 5, "type": "logs", "title": "NATS Broker Logs", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 }, "targets": [{ "refId": "A", "expr": "{compose_project=\"traderx-state-009\",service=\"nats-broker\"}" }], "options": {"showLabels": true, "showTime": true, "wrapLogMessage": true, "enableLogDetails": true}},
+-        {"id": 6, "type": "logs", "title": "Messaging Errors (Trade/Processor/Web)", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 }, "targets": [{ "refId": "A", "expr": "{compose_project=\"traderx-state-009\",service=~\"trade-service|trade-processor|web-front-end-angular\"} |~ \"(?i)(error|warn|exception|fail|nats|websocket)\"" }], "options": {"showLabels": true, "showTime": true, "wrapLogMessage": true, "enableLogDetails": true}}
+-      ]
+-    }
+-  traderx-observability-control-plane.json: |
+-    {
+-      "panels": [
+-        {
+-          "datasource": {
+-            "type": "prometheus",
+-            "uid": "prometheus"
+-          },
+-          "fieldConfig": {
+-            "defaults": {
+-              "max": 1,
+-              "min": 0,
+-              "thresholds": {
+-                "mode": "absolute",
+-                "steps": [
+-                  {
+-                    "color": "red",
+-                    "value": null
+-                  },
+-                  {
+-                    "color": "green",
+-                    "value": 1
+-                  }
+-                ]
+-              }
+-            }
+-          },
+-          "gridPos": {
+-            "h": 4,
+-            "w": 6,
+-            "x": 0,
+-            "y": 0
+-          },
+-          "id": 1,
+-          "targets": [
+-            {
+-              "expr": "up{job=\"prometheus\"}",
+-              "refId": "A"
+-            }
+-          ],
+-          "title": "Prometheus Up",
+-          "type": "stat"
+-        },
+-        {
+-          "datasource": {
+-            "type": "prometheus",
+-            "uid": "prometheus"
+-          },
+-          "fieldConfig": {
+-            "defaults": {
+-              "unit": "none"
+-            }
+-          },
+-          "gridPos": {
+-            "h": 4,
+-            "w": 6,
+-            "x": 6,
+-            "y": 0
+-          },
+-          "id": 2,
+-          "targets": [
+-            {
+-              "expr": "sum(up{job=\"otel-collector\"})",
+-              "refId": "A"
+-            }
+-          ],
+-          "title": "OTel Collector Targets Up",
+-          "type": "stat"
+-        },
+-        {
+-          "datasource": {
+-            "type": "prometheus",
+-            "uid": "prometheus"
+-          },
+-          "fieldConfig": {
+-            "defaults": {
+-              "max": 1,
+-              "min": 0,
+-              "thresholds": {
+-                "mode": "absolute",
+-                "steps": [
+-                  {
+-                    "color": "red",
+-                    "value": null
+-                  },
+-                  {
+-                    "color": "green",
+-                    "value": 1
+-                  }
+-                ]
+-              }
+-            }
+-          },
+-          "gridPos": {
+-            "h": 4,
+-            "w": 6,
+-            "x": 12,
+-            "y": 0
+-          },
+-          "id": 3,
+-          "targets": [
+-            {
+-              "expr": "up{job=\"blackbox-exporter\"}",
+-              "refId": "A"
+-            }
+-          ],
+-          "title": "Blackbox Exporter Up",
+-          "type": "stat"
+-        },
+-        {
+-          "datasource": {
+-            "type": "prometheus",
+-            "uid": "prometheus"
+-          },
+-          "fieldConfig": {
+-            "defaults": {
+-              "unit": "none"
+-            }
+-          },
+-          "gridPos": {
+-            "h": 4,
+-            "w": 6,
+-            "x": 18,
+-            "y": 0
+-          },
+-          "id": 4,
+-          "targets": [
+-            {
+-              "expr": "sum(otelcol_exporter_queue_size)",
+-              "refId": "A"
+-            }
+-          ],
+-          "title": "OTel Exporter Queue Size",
+-          "type": "stat"
+-        },
+-        {
+-          "datasource": {
+-            "type": "prometheus",
+-            "uid": "prometheus"
+-          },
+-          "fieldConfig": {
+-            "defaults": {
+-              "unit": "bytes"
+-            }
+-          },
+-          "gridPos": {
+-            "h": 8,
+-            "w": 12,
+-            "x": 0,
+-            "y": 4
+-          },
+-          "id": 5,
+-          "options": {
+-            "legend": {
+-              "displayMode": "table",
+-              "placement": "bottom"
+-            }
+-          },
+-          "targets": [
+-            {
+-              "expr": "process_resident_memory_bytes{job=~\"prometheus|blackbox-exporter\"}",
+-              "refId": "A"
+-            },
+-            {
+-              "expr": "otelcol_process_memory_rss",
+-              "refId": "B"
+-            }
+-          ],
+-          "title": "Observability Process RSS",
+-          "type": "timeseries"
+-        },
+-        {
+-          "datasource": {
+-            "type": "prometheus",
+-            "uid": "prometheus"
+-          },
+-          "fieldConfig": {
+-            "defaults": {
+-              "unit": "none"
+-            }
+-          },
+-          "gridPos": {
+-            "h": 8,
+-            "w": 12,
+-            "x": 12,
+-            "y": 4
+-          },
+-          "id": 6,
+-          "options": {
+-            "legend": {
+-              "displayMode": "table",
+-              "placement": "bottom"
+-            }
+-          },
+-          "targets": [
+-            {
+-              "expr": "otelcol_exporter_queue_size",
+-              "refId": "A"
+-            },
+-            {
+-              "expr": "otelcol_exporter_queue_capacity",
+-              "refId": "B"
+-            }
+-          ],
+-          "title": "OTel Exporter Queue (size/capacity)",
+-          "type": "timeseries"
+-        },
+-        {
+-          "datasource": {
+-            "type": "loki",
+-            "uid": "loki"
+-          },
+-          "gridPos": {
+-            "h": 10,
+-            "w": 24,
+-            "x": 0,
+-            "y": 12
+-          },
+-          "id": 7,
+-          "options": {
+-            "enableLogDetails": true,
+-            "showLabels": true,
+-            "showTime": true,
+-            "wrapLogMessage": true
+-          },
+-          "targets": [
+-            {
+-              "expr": "{compose_project=\"traderx-state-009\",service=~\"grafana|loki|tempo|otel-collector|prometheus|promtail\"}",
+-              "refId": "A"
+-            }
+-          ],
+-          "title": "Control Plane Logs (Grafana/Loki/Tempo/OTel/Prometheus)",
+-          "type": "logs"
+-        },
+-        {
+-          "datasource": {
+-            "type": "prometheus",
+-            "uid": "prometheus"
+-          },
+-          "gridPos": {
+-            "h": 6,
+-            "w": 24,
+-            "x": 0,
+-            "y": 22
+-          },
+-          "id": 8,
+-          "options": {
+-            "content": "### Tempo is wired and ready\n- Data source: **Tempo**\n- Open Explore with Tempo selected and run TraceQL search: `{}`\n- In this base state, spans appear once services emit OTLP traces (current stack is ready for that next step).",
+-            "mode": "markdown"
+-          },
+-          "title": "Tempo / Trace Exploration",
+-          "type": "text"
+-        }
+-      ],
+-      "refresh": "10s",
+-      "schemaVersion": 39,
+-      "tags": [
+-        "traderx",
+-        "observability",
+-        "provisioned"
+-      ],
+-      "time": {
+-        "from": "now-30m",
+-        "to": "now"
+-      },
+-      "timezone": "browser",
+-      "title": "TraderX Observability Control Plane",
+-      "uid": "traderx-obs-control-plane"
+-    }
+-  traderx-order-management-observability.json: |
+-    {
+-      "id": null,
+-      "uid": "traderx-order-management-observability",
+-      "title": "TraderX Order Management Observability",
+-      "tags": [
+-        "traderx",
+-        "state-013",
+-        "orders",
+-        "provisioned"
+-      ],
+-      "timezone": "browser",
+-      "schemaVersion": 39,
+-      "version": 1,
+-      "refresh": "10s",
+-      "time": {
+-        "from": "now-30m",
+-        "to": "now"
+-      },
+-      "panels": [
+-        {
+-          "id": 1,
+-          "type": "stat",
+-          "title": "Open Orders",
+-          "datasource": {
+-            "type": "prometheus",
+-            "uid": "prometheus"
+-          },
+-          "gridPos": {
+-            "h": 4,
+-            "w": 6,
+-            "x": 0,
+-            "y": 0
+-          },
+-          "targets": [
+-            {
+-              "refId": "A",
+-              "expr": "max(traderx_orders_open_total)"
+-            }
+-          ]
+-        },
+-        {
+-          "id": 2,
+-          "type": "stat",
+-          "title": "Unfilled Orders",
+-          "datasource": {
+-            "type": "prometheus",
+-            "uid": "prometheus"
+-          },
+-          "gridPos": {
+-            "h": 4,
+-            "w": 6,
+-            "x": 6,
+-            "y": 0
+-          },
+-          "targets": [
+-            {
+-              "refId": "A",
+-              "expr": "max(traderx_orders_unfilled_total)"
+-            }
+-          ]
+-        },
+-        {
+-          "id": 3,
+-          "type": "timeseries",
+-          "title": "Order Events by Type",
+-          "datasource": {
+-            "type": "prometheus",
+-            "uid": "prometheus"
+-          },
+-          "gridPos": {
+-            "h": 8,
+-            "w": 12,
+-            "x": 0,
+-            "y": 4
+-          },
+-          "targets": [
+-            {
+-              "refId": "A",
+-              "expr": "sum by (event) (rate(traderx_order_events_total[5m]))"
+-            }
+-          ],
+-          "options": {
+-            "legend": {
+-              "displayMode": "table",
+-              "placement": "bottom"
+-            }
+-          }
+-        },
+-        {
+-          "id": 4,
+-          "type": "timeseries",
+-          "title": "Matcher p95 Latency (5m)",
+-          "datasource": {
+-            "type": "prometheus",
+-            "uid": "prometheus"
+-          },
+-          "gridPos": {
+-            "h": 8,
+-            "w": 12,
+-            "x": 12,
+-            "y": 4
+-          },
+-          "targets": [
+-            {
+-              "refId": "A",
+-              "expr": "histogram_quantile(0.95, sum(rate(traderx_order_match_latency_seconds_bucket[5m])) by (le))"
+-            }
+-          ],
+-          "fieldConfig": {
+-            "defaults": {
+-              "unit": "s",
+-              "decimals": 3
+-            }
+-          }
+-        },
+-        {
+-          "id": 5,
+-          "type": "timeseries",
+-          "title": "Pending Orders by Side",
+-          "datasource": {
+-            "type": "prometheus",
+-            "uid": "prometheus"
+-          },
+-          "gridPos": {
+-            "h": 8,
+-            "w": 12,
+-            "x": 0,
+-            "y": 12
+-          },
+-          "targets": [
+-            {
+-              "refId": "A",
+-              "expr": "traderx_orders_pending_by_side"
+-            }
+-          ],
+-          "options": {
+-            "legend": {
+-              "displayMode": "table",
+-              "placement": "bottom"
+-            }
+-          }
+-        },
+-        {
+-          "id": 6,
+-          "type": "logs",
+-          "title": "Order Matcher Logs",
+-          "datasource": {
+-            "type": "loki",
+-            "uid": "loki"
+-          },
+-          "gridPos": {
+-            "h": 8,
+-            "w": 12,
+-            "x": 12,
+-            "y": 12
+-          },
+-          "targets": [
+-            {
+-              "refId": "A",
+-              "expr": "{compose_project=\"traderx-state-009\",service=\"order-matcher\"}"
+-            }
+-          ],
+-          "options": {
+-            "showLabels": true,
+-            "showTime": true,
+-            "wrapLogMessage": true,
+-            "enableLogDetails": true
+-          }
+-        }
+-      ]
+-    }
+-  traderx-order-matcher-sli.json: |
+-    {
+-      "uid": "traderx-order-matcher-sli",
+-      "title": "TraderX Order Matcher SLI",
+-      "schemaVersion": 39,
+-      "refresh": "10s",
+-      "tags": ["traderx", "orders", "matcher", "prometheus", "provisioned"],
+-      "time": { "from": "now-30m", "to": "now" },
+-      "panels": [
+-        {
+-          "id": 1,
+-          "type": "stat",
+-          "title": "Open Orders",
+-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+-          "gridPos": { "h": 5, "w": 6, "x": 0, "y": 0 },
+-          "targets": [{ "refId": "A", "expr": "max(traderx_orders_open_total)" }]
+-        },
+-        {
+-          "id": 2,
+-          "type": "stat",
+-          "title": "Unfilled Orders",
+-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+-          "gridPos": { "h": 5, "w": 6, "x": 6, "y": 0 },
+-          "targets": [{ "refId": "A", "expr": "max(traderx_orders_unfilled_total)" }]
+-        },
+-        {
+-          "id": 3,
+-          "type": "stat",
+-          "title": "Order Matcher Actuator Up",
+-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+-          "gridPos": { "h": 5, "w": 6, "x": 12, "y": 0 },
+-          "targets": [{ "refId": "A", "expr": "max(up{job=\"traderx-spring-boot-actuator\",instance=~\".*order-matcher.*\"})" }],
+-          "fieldConfig": {
+-            "defaults": {
+-              "min": 0,
+-              "max": 1,
+-              "thresholds": {
+-                "mode": "absolute",
+-                "steps": [
+-                  { "color": "red", "value": null },
+-                  { "color": "green", "value": 1 }
+-                ]
+-              }
+-            }
+-          }
+-        },
+-        {
+-          "id": 4,
+-          "type": "stat",
+-          "title": "Order Matcher HTTP p95 (s)",
+-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+-          "gridPos": { "h": 5, "w": 6, "x": 18, "y": 0 },
+-          "targets": [
+-            {
+-              "refId": "A",
+-              "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"traderx-spring-boot-actuator\",instance=~\".*order-matcher.*\"}[5m])))"
+-            }
+-          ],
+-          "fieldConfig": { "defaults": { "unit": "s" } }
+-        },
+-        {
+-          "id": 5,
+-          "type": "timeseries",
+-          "title": "Order Event Rate (5m)",
+-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 5 },
+-          "targets": [
+-            { "refId": "A", "expr": "sum by (event) (rate(traderx_order_events_total[5m]))" }
+-          ],
+-          "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+-        },
+-        {
+-          "id": 6,
+-          "type": "timeseries",
+-          "title": "Matcher Latency p95 (s)",
+-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 5 },
+-          "targets": [
+-            {
+-              "refId": "A",
+-              "expr": "histogram_quantile(0.95, sum by (le) (rate(traderx_order_match_latency_seconds_bucket[5m])))"
+-            }
+-          ],
+-          "fieldConfig": { "defaults": { "unit": "s" } }
+-        }
+-      ]
+-    }
+-  traderx-pricing-observability.json: |
+-    {
+-      "id": null,
+-      "uid": "traderx-obs-012-pricing",
+-      "title": "TraderX Pricing + Observability (State 013)",
+-      "tags": ["traderx", "state-012", "pricing", "observability"],
+-      "timezone": "browser",
+-      "schemaVersion": 39,
+-      "version": 1,
+-      "refresh": "10s",
+-      "time": {
+-        "from": "now-30m",
+-        "to": "now"
+-      },
+-      "panels": [
+-        {
+-          "id": 1,
+-          "type": "timeseries",
+-          "title": "Endpoint Probe Success",
+-          "datasource": {
+-            "type": "prometheus",
+-            "uid": "prometheus"
+-          },
+-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+-          "targets": [
+-            {
+-              "refId": "A",
+-              "expr": "probe_success{job=\"traderx-http-probe\"}",
+-              "legendFormat": "{{instance}}"
+-            }
+-          ]
+-        },
+-        {
+-          "id": 2,
+-          "type": "timeseries",
+-          "title": "Probe P95 Latency (seconds)",
+-          "datasource": {
+-            "type": "prometheus",
+-            "uid": "prometheus"
+-          },
+-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+-          "targets": [
+-            {
+-              "refId": "A",
+-              "expr": "histogram_quantile(0.95, sum by (le, instance) (rate(probe_duration_seconds_bucket{job=\"traderx-http-probe\"}[5m])))",
+-              "legendFormat": "{{instance}}"
+-            }
+-          ]
+-        },
+-        {
+-          "id": 3,
+-          "type": "stat",
+-          "title": "Price Publisher Availability",
+-          "datasource": {
+-            "type": "prometheus",
+-            "uid": "prometheus"
+-          },
+-          "gridPos": { "h": 6, "w": 8, "x": 0, "y": 8 },
+-          "targets": [
+-            {
+-              "refId": "A",
+-              "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://price-publisher:18100/health\"})"
+-            }
+-          ],
+-          "options": {
+-            "reduceOptions": {
+-              "calcs": ["lastNotNull"],
+-              "fields": "",
+-              "values": false
+-            }
+-          }
+-        },
+-        {
+-          "id": 4,
+-          "type": "stat",
+-          "title": "NATS Monitor Availability",
+-          "datasource": {
+-            "type": "prometheus",
+-            "uid": "prometheus"
+-          },
+-          "gridPos": { "h": 6, "w": 8, "x": 8, "y": 8 },
+-          "targets": [
+-            {
+-              "refId": "A",
+-              "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://nats-broker:8222/varz\"})"
+-            }
+-          ],
+-          "options": {
+-            "reduceOptions": {
+-              "calcs": ["lastNotNull"],
+-              "fields": "",
+-              "values": false
+-            }
+-          }
+-        },
+-        {
+-          "id": 5,
+-          "type": "table",
+-          "title": "Latest HTTP Status by Endpoint",
+-          "datasource": {
+-            "type": "prometheus",
+-            "uid": "prometheus"
+-          },
+-          "gridPos": { "h": 6, "w": 8, "x": 16, "y": 8 },
+-          "targets": [
+-            {
+-              "refId": "A",
+-              "expr": "max by (instance) (probe_http_status_code{job=\"traderx-http-probe\"})",
+-              "format": "table",
+-              "instant": true
+-            }
+-          ]
+-        },
+-        {
+-          "id": 6,
+-          "type": "timeseries",
+-          "title": "Container Log Throughput (lines / 5m)",
+-          "datasource": {
+-            "type": "loki",
+-            "uid": "loki"
+-          },
+-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 14 },
+-          "targets": [
+-            {
+-              "refId": "A",
+-              "expr": "sum by (service) (count_over_time({job=\"traderx-docker\", service=~\".+\"}[5m]))"
+-            }
+-          ]
+-        },
+-        {
+-          "id": 7,
+-          "type": "logs",
+-          "title": "Price Publisher / Trade Logs",
+-          "datasource": {
+-            "type": "loki",
+-            "uid": "loki"
+-          },
+-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 14 },
+-          "targets": [
+-            {
+-              "refId": "A",
+-              "expr": "{job=\"traderx-docker\", service=~\"price-publisher|trade-service|trade-processor\"}"
+-            }
+-          ],
+-          "options": {
+-            "showLabels": true,
+-            "showTime": true,
+-            "sortOrder": "Descending"
+-          }
+-        }
+-      ]
+-    }
+-  traderx-pricing-pipeline-health.json: |
+-    {
+-      "id": null,
+-      "uid": "traderx-pricing-pipeline-health",
+-      "title": "TraderX Pricing Pipeline Health",
+-      "tags": ["traderx", "state-012", "pricing", "nats", "provisioned"],
+-      "timezone": "browser",
+-      "schemaVersion": 39,
+-      "version": 1,
+-      "refresh": "10s",
+-      "time": { "from": "now-30m", "to": "now" },
+-      "panels": [
+-        {"id": 1, "type": "stat", "title": "Price Publisher Health", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 }, "targets": [{ "refId": "A", "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://price-publisher:18100/health\"})" }], "fieldConfig": {"defaults": {"min": 0, "max": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}}},
+-        {"id": 2, "type": "stat", "title": "NATS Monitor Health", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 }, "targets": [{ "refId": "A", "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://nats-broker:8222/varz\"})" }], "fieldConfig": {"defaults": {"min": 0, "max": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}}},
+-        {"id": 3, "type": "stat", "title": "Pricing Endpoint p95 (5m)", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 }, "targets": [{ "refId": "A", "expr": "quantile_over_time(0.95, probe_duration_seconds{job=\"traderx-http-probe\",instance=\"http://price-publisher:18100/prices/IBM\"}[5m])" }], "fieldConfig": {"defaults": {"unit": "s", "decimals": 3}}},
+-        {"id": 4, "type": "stat", "title": "Trade API p95 (5m)", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 }, "targets": [{ "refId": "A", "expr": "quantile_over_time(0.95, probe_duration_seconds{job=\"traderx-http-probe\",instance=\"http://trade-service:18092/v3/api-docs\"}[5m])" }], "fieldConfig": {"defaults": {"unit": "s", "decimals": 3}}},
+-        {"id": 5, "type": "timeseries", "title": "Pricing + Trade Endpoints Success", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 }, "targets": [{ "refId": "A", "expr": "probe_success{job=\"traderx-http-probe\",instance=~\"http://price-publisher:18100/.*|http://trade-service:18092/.*|http://trade-processor:18091/health\"}" }], "fieldConfig": {"defaults": {"min": 0, "max": 1}}, "options": {"legend": {"displayMode": "table", "placement": "bottom"}}},
+-        {"id": 6, "type": "timeseries", "title": "Pricing Pipeline Log Throughput", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 }, "targets": [{ "refId": "A", "expr": "sum by (service) (rate({compose_project=\"traderx-state-009\",service=~\"price-publisher|trade-service|trade-processor|position-service\"}[1m]))" }], "fieldConfig": {"defaults": {"unit": "lines/s"}}, "options": {"legend": {"displayMode": "table", "placement": "bottom"}}},
+-        {"id": 7, "type": "logs", "title": "Pipeline Logs (Price / Trade / Position)", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 10, "w": 24, "x": 0, "y": 12 }, "targets": [{ "refId": "A", "expr": "{compose_project=\"traderx-state-009\",service=~\"price-publisher|trade-service|trade-processor|position-service\"}" }], "options": {"showLabels": true, "showTime": true, "wrapLogMessage": true, "enableLogDetails": true}}
+-      ]
+-    }
+-  traderx-runtime-health.json: |
+-    {
+-      "panels": [
+-        {
+-          "datasource": {
+-            "type": "prometheus",
+-            "uid": "prometheus"
+-          },
+-          "fieldConfig": {
+-            "defaults": {
+-              "decimals": 2,
+-              "thresholds": {
+-                "mode": "absolute",
+-                "steps": [
+-                  {
+-                    "color": "red",
+-                    "value": null
+-                  },
+-                  {
+-                    "color": "orange",
+-                    "value": 95
+-                  },
+-                  {
+-                    "color": "green",
+-                    "value": 99
+-                  }
+-                ]
+-              },
+-              "unit": "percent"
+-            }
+-          },
+-          "gridPos": {
+-            "h": 4,
+-            "w": 6,
+-            "x": 0,
+-            "y": 0
+-          },
+-          "id": 1,
+-          "targets": [
+-            {
+-              "expr": "100 * avg_over_time(probe_success{job=\"traderx-http-probe\"}[5m])",
+-              "refId": "A"
+-            }
+-          ],
+-          "title": "Endpoint Availability % (5m)",
+-          "type": "stat"
+-        },
+-        {
+-          "datasource": {
+-            "type": "prometheus",
+-            "uid": "prometheus"
+-          },
+-          "fieldConfig": {
+-            "defaults": {
+-              "thresholds": {
+-                "mode": "absolute",
+-                "steps": [
+-                  {
+-                    "color": "green",
+-                    "value": null
+-                  },
+-                  {
+-                    "color": "red",
+-                    "value": 1
+-                  }
+-                ]
+-              },
+-              "unit": "none"
+-            }
+-          },
+-          "gridPos": {
+-            "h": 4,
+-            "w": 6,
+-            "x": 6,
+-            "y": 0
+-          },
+-          "id": 2,
+-          "targets": [
+-            {
+-              "expr": "count(probe_success{job=\"traderx-http-probe\"} == 0)",
+-              "refId": "A"
+-            }
+-          ],
+-          "title": "Failing Endpoints (now)",
+-          "type": "stat"
+-        },
+-        {
+-          "datasource": {
+-            "type": "prometheus",
+-            "uid": "prometheus"
+-          },
+-          "fieldConfig": {
+-            "defaults": {
+-              "unit": "none"
+-            }
+-          },
+-          "gridPos": {
+-            "h": 4,
+-            "w": 6,
+-            "x": 12,
+-            "y": 0
+-          },
+-          "id": 3,
+-          "targets": [
+-            {
+-              "expr": "count(probe_success{job=\"traderx-http-probe\"})",
+-              "refId": "A"
+-            }
+-          ],
+-          "title": "Monitored Endpoints",
+-          "type": "stat"
+-        },
+-        {
+-          "datasource": {
+-            "type": "prometheus",
+-            "uid": "prometheus"
+-          },
+-          "fieldConfig": {
+-            "defaults": {
+-              "decimals": 3,
+-              "thresholds": {
+-                "mode": "absolute",
+-                "steps": [
+-                  {
+-                    "color": "green",
+-                    "value": null
+-                  },
+-                  {
+-                    "color": "orange",
+-                    "value": 0.5
+-                  },
+-                  {
+-                    "color": "red",
+-                    "value": 1.5
+-                  }
+-                ]
+-              },
+-              "unit": "s"
+-            }
+-          },
+-          "gridPos": {
+-            "h": 4,
+-            "w": 6,
+-            "x": 18,
+-            "y": 0
+-          },
+-          "id": 4,
+-          "targets": [
+-            {
+-              "expr": "quantile_over_time(0.95, probe_duration_seconds{job=\"traderx-http-probe\"}[5m])",
+-              "refId": "A"
+-            }
+-          ],
+-          "title": "Probe p95 Latency (5m)",
+-          "type": "stat"
+-        },
+-        {
+-          "datasource": {
+-            "type": "prometheus",
+-            "uid": "prometheus"
+-          },
+-          "fieldConfig": {
+-            "defaults": {
+-              "max": 1,
+-              "min": 0
+-            }
+-          },
+-          "gridPos": {
+-            "h": 8,
+-            "w": 12,
+-            "x": 0,
+-            "y": 4
+-          },
+-          "id": 5,
+-          "options": {
+-            "legend": {
+-              "displayMode": "table",
+-              "placement": "bottom"
+-            }
+-          },
+-          "targets": [
+-            {
+-              "expr": "probe_success{job=\"traderx-http-probe\"}",
+-              "refId": "A"
+-            }
+-          ],
+-          "title": "Endpoint Up/Down by Target",
+-          "type": "timeseries"
+-        },
+-        {
+-          "datasource": {
+-            "type": "prometheus",
+-            "uid": "prometheus"
+-          },
+-          "fieldConfig": {
+-            "defaults": {
+-              "decimals": 3,
+-              "unit": "s"
+-            }
+-          },
+-          "gridPos": {
+-            "h": 8,
+-            "w": 12,
+-            "x": 12,
+-            "y": 4
+-          },
+-          "id": 6,
+-          "options": {
+-            "legend": {
+-              "displayMode": "table",
+-              "placement": "bottom"
+-            }
+-          },
+-          "targets": [
+-            {
+-              "expr": "probe_duration_seconds{job=\"traderx-http-probe\"}",
+-              "refId": "A"
+-            }
+-          ],
+-          "title": "Probe Duration by Target",
+-          "type": "timeseries"
+-        },
+-        {
+-          "datasource": {
+-            "type": "prometheus",
+-            "uid": "prometheus"
+-          },
+-          "gridPos": {
+-            "h": 8,
+-            "w": 12,
+-            "x": 0,
+-            "y": 12
+-          },
+-          "id": 7,
+-          "options": {
+-            "showHeader": true
+-          },
+-          "targets": [
+-            {
+-              "expr": "probe_success{job=\"traderx-http-probe\"}",
+-              "instant": true,
+-              "refId": "A"
+-            }
+-          ],
+-          "title": "Current Endpoint Status",
+-          "type": "table"
+-        },
+-        {
+-          "datasource": {
+-            "type": "prometheus",
+-            "uid": "prometheus"
+-          },
+-          "fieldConfig": {
+-            "defaults": {
+-              "unit": "none"
+-            }
+-          },
+-          "gridPos": {
+-            "h": 8,
+-            "w": 12,
+-            "x": 12,
+-            "y": 12
+-          },
+-          "id": 8,
+-          "options": {
+-            "legend": {
+-              "displayMode": "table",
+-              "placement": "bottom"
+-            }
+-          },
+-          "targets": [
+-            {
+-              "expr": "otelcol_exporter_queue_size",
+-              "refId": "A"
+-            },
+-            {
+-              "expr": "otelcol_exporter_queue_capacity",
+-              "refId": "B"
+-            }
+-          ],
+-          "title": "Collector Queue Size",
+-          "type": "timeseries"
+-        }
+-      ],
+-      "refresh": "10s",
+-      "schemaVersion": 39,
+-      "tags": [
+-        "traderx",
+-        "runtime",
+-        "provisioned"
+-      ],
+-      "time": {
+-        "from": "now-30m",
+-        "to": "now"
+-      },
+-      "timezone": "browser",
+-      "title": "TraderX Runtime Health",
+-      "uid": "traderx-runtime-health"
+-    }
+-  traderx-spring-actuator-overview.json: |
+-    {
+-      "uid": "traderx-spring-actuator-overview",
+-      "title": "TraderX Spring Actuator Overview",
+-      "schemaVersion": 39,
+-      "refresh": "10s",
+-      "tags": ["traderx", "spring", "prometheus", "provisioned"],
+-      "time": { "from": "now-30m", "to": "now" },
+-      "templating": {
+-        "list": [
+-          {
+-            "name": "instance",
+-            "type": "query",
+-            "label": "Instance",
+-            "datasource": { "type": "prometheus", "uid": "prometheus" },
+-            "query": "label_values(up{job=\"traderx-spring-boot-actuator\"}, instance)",
+-            "includeAll": true,
+-            "multi": true,
+-            "current": { "text": "All", "value": ["$__all"] }
+-          }
+-        ]
+-      },
+-      "panels": [
+-        {
+-          "id": 1,
+-          "type": "timeseries",
+-          "title": "HTTP Request Rate (req/s)",
+-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+-          "targets": [
+-            { "refId": "A", "expr": "sum by (instance) (rate(http_server_requests_seconds_count{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}[5m]))" }
+-          ]
+-        },
+-        {
+-          "id": 2,
+-          "type": "timeseries",
+-          "title": "HTTP p95 Latency (s)",
+-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+-          "targets": [
+-            { "refId": "A", "expr": "histogram_quantile(0.95, sum by (instance, le) (rate(http_server_requests_seconds_bucket{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}[5m])))" }
+-          ]
+-        },
+-        {
+-          "id": 3,
+-          "type": "timeseries",
+-          "title": "JVM Heap Used (bytes)",
+-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+-          "targets": [
+-            { "refId": "A", "expr": "sum by (instance) (jvm_memory_used_bytes{job=\"traderx-spring-boot-actuator\",area=\"heap\",instance=~\"$instance\"})" }
+-          ]
+-        },
+-        {
+-          "id": 4,
+-          "type": "stat",
+-          "title": "Actuator Targets Up",
+-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+-          "targets": [
+-            { "refId": "A", "expr": "sum(up{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"})" }
+-          ],
+-          "fieldConfig": {
+-            "defaults": {
+-              "min": 0,
+-              "thresholds": {
+-                "mode": "absolute",
+-                "steps": [
+-                  { "color": "red", "value": null },
+-                  { "color": "green", "value": 1 }
+-                ]
+-              }
+-            }
+-          }
+-        }
+-      ]
+-    }
+-  traderx-spring-service-sli.json: |
+-    {
+-      "uid": "traderx-spring-service-sli",
+-      "title": "TraderX Spring Service SLI",
+-      "schemaVersion": 39,
+-      "refresh": "10s",
+-      "tags": ["traderx", "spring", "sli", "prometheus", "provisioned"],
+-      "time": { "from": "now-30m", "to": "now" },
+-      "templating": {
+-        "list": [
+-          {
+-            "name": "instance",
+-            "type": "query",
+-            "label": "Instance",
+-            "datasource": { "type": "prometheus", "uid": "prometheus" },
+-            "query": "label_values(up{job=\"traderx-spring-boot-actuator\"}, instance)",
+-            "includeAll": true,
+-            "multi": true,
+-            "current": { "text": "All", "value": ["$__all"] }
+-          }
+-        ]
+-      },
+-      "panels": [
+-        {
+-          "id": 1,
+-          "type": "stat",
+-          "title": "Scrape Target Availability Ratio",
+-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+-          "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
+-          "targets": [
+-            {
+-              "refId": "A",
+-              "expr": "sum(up{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}) / clamp_min(count(up{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}), 1)"
+-            }
+-          ],
+-          "fieldConfig": {
+-            "defaults": {
+-              "min": 0,
+-              "max": 1,
+-              "unit": "percentunit",
+-              "thresholds": {
+-                "mode": "absolute",
+-                "steps": [
+-                  { "color": "red", "value": null },
+-                  { "color": "yellow", "value": 0.9 },
+-                  { "color": "green", "value": 1.0 }
+-                ]
+-              }
+-            }
+-          }
+-        },
+-        {
+-          "id": 2,
+-          "type": "timeseries",
+-          "title": "HTTP 5xx Rate (req/s)",
+-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+-          "gridPos": { "h": 6, "w": 18, "x": 6, "y": 0 },
+-          "targets": [
+-            {
+-              "refId": "A",
+-              "expr": "sum by (instance) (rate(http_server_requests_seconds_count{job=\"traderx-spring-boot-actuator\",status=~\"5..\",instance=~\"$instance\"}[5m]))"
+-            }
+-          ],
+-          "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+-        },
+-        {
+-          "id": 3,
+-          "type": "timeseries",
+-          "title": "Process CPU Usage (%)",
+-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+-          "targets": [
+-            {
+-              "refId": "A",
+-              "expr": "100 * max by (instance) (process_cpu_usage{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"})"
+-            }
+-          ],
+-          "fieldConfig": { "defaults": { "unit": "percent", "min": 0 } }
+-        },
+-        {
+-          "id": 4,
+-          "type": "timeseries",
+-          "title": "GC Pause p95 (s)",
+-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+-          "targets": [
+-            {
+-              "refId": "A",
+-              "expr": "histogram_quantile(0.95, sum by (instance, le) (rate(jvm_gc_pause_seconds_bucket{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}[5m])))"
+-            }
+-          ],
+-          "fieldConfig": { "defaults": { "unit": "s" } }
+-        },
+-        {
+-          "id": 5,
+-          "type": "timeseries",
+-          "title": "Live Threads",
+-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+-          "gridPos": { "h": 8, "w": 24, "x": 0, "y": 14 },
+-          "targets": [
+-            {
+-              "refId": "A",
+-              "expr": "max by (instance) (jvm_threads_live_threads{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"})"
+-            }
+-          ],
+-          "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+-        }
+-      ]
+-    }
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/observability-grafana-datasources-configmap.yaml b/tilt-kubernetes-dev-loop/manifests/base/observability-grafana-datasources-configmap.yaml
+deleted file mode 100644
+index 5a53a0e..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/observability-grafana-datasources-configmap.yaml
++++ /dev/null
+@@ -1,34 +0,0 @@
+-apiVersion: v1
+-kind: ConfigMap
+-metadata:
+-  name: observability-grafana-datasources
+-  namespace: traderx
+-data:
+-  datasources.yaml: |
+-    apiVersion: 1
+-    
+-    datasources:
+-      - name: Prometheus
+-        uid: prometheus
+-        type: prometheus
+-        access: proxy
+-        url: http://prometheus:9090/prometheus
+-        isDefault: true
+-    
+-      - name: Loki
+-        uid: loki
+-        type: loki
+-        access: proxy
+-        url: http://loki:3100
+-    
+-      - name: Tempo
+-        uid: tempo
+-        type: tempo
+-        access: proxy
+-        url: http://tempo:3200
+-        jsonData:
+-          httpMethod: GET
+-          tracesToLogs:
+-            datasourceUid: loki
+-          serviceMap:
+-            datasourceUid: prometheus
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/observability-loki-configmap.yaml b/tilt-kubernetes-dev-loop/manifests/base/observability-loki-configmap.yaml
+deleted file mode 100644
+index 856496a..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/observability-loki-configmap.yaml
++++ /dev/null
+@@ -1,38 +0,0 @@
+-apiVersion: v1
+-kind: ConfigMap
+-metadata:
+-  name: observability-loki-config
+-  namespace: traderx
+-data:
+-  config.yaml: |
+-    auth_enabled: false
+-    
+-    server:
+-      http_listen_port: 3100
+-      grpc_listen_port: 9096
+-    
+-    common:
+-      path_prefix: /tmp/loki
+-      storage:
+-        filesystem:
+-          chunks_directory: /tmp/loki/chunks
+-          rules_directory: /tmp/loki/rules
+-      replication_factor: 1
+-      ring:
+-        kvstore:
+-          store: inmemory
+-    
+-    schema_config:
+-      configs:
+-        - from: "2024-01-01"
+-          store: tsdb
+-          object_store: filesystem
+-          schema: v13
+-          index:
+-            prefix: index_
+-            period: 24h
+-    
+-    limits_config:
+-      allow_structured_metadata: false
+-      reject_old_samples: true
+-      reject_old_samples_max_age: 168h
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/observability-otel-configmap.yaml b/tilt-kubernetes-dev-loop/manifests/base/observability-otel-configmap.yaml
+deleted file mode 100644
+index e0c76ee..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/observability-otel-configmap.yaml
++++ /dev/null
+@@ -1,44 +0,0 @@
+-apiVersion: v1
+-kind: ConfigMap
+-metadata:
+-  name: observability-otel-collector-config
+-  namespace: traderx
+-data:
+-  config.yaml: |
+-    extensions:
+-      health_check:
+-        endpoint: 0.0.0.0:13133
+-    
+-    receivers:
+-      otlp:
+-        protocols:
+-          grpc:
+-            endpoint: 0.0.0.0:4317
+-          http:
+-            endpoint: 0.0.0.0:4318
+-    
+-    processors:
+-      batch:
+-        timeout: 1s
+-    
+-    exporters:
+-      logging:
+-        verbosity: normal
+-      prometheus:
+-        endpoint: 0.0.0.0:8889
+-      otlp/tempo:
+-        endpoint: tempo:4317
+-        tls:
+-          insecure: true
+-    
+-    service:
+-      extensions: [health_check]
+-      pipelines:
+-        traces:
+-          receivers: [otlp]
+-          processors: [batch]
+-          exporters: [otlp/tempo, logging]
+-        metrics:
+-          receivers: [otlp]
+-          processors: [batch]
+-          exporters: [prometheus, logging]
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/observability-prometheus-configmap.yaml b/tilt-kubernetes-dev-loop/manifests/base/observability-prometheus-configmap.yaml
+deleted file mode 100644
+index 79c96d3..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/observability-prometheus-configmap.yaml
++++ /dev/null
+@@ -1,64 +0,0 @@
+-apiVersion: v1
+-kind: ConfigMap
+-metadata:
+-  name: observability-prometheus-config
+-  namespace: traderx
+-data:
+-  prometheus.yml: |
+-    global:
+-      scrape_interval: 15s
+-      evaluation_interval: 15s
+-    
+-    scrape_configs:
+-      - job_name: prometheus
+-        metrics_path: /prometheus/metrics
+-        static_configs:
+-          - targets: ["prometheus:9090"]
+-    
+-      - job_name: otel-collector
+-        static_configs:
+-          - targets: ["otel-collector:8888", "otel-collector:8889", "otel-collector:13133"]
+-    
+-      - job_name: blackbox-exporter
+-        static_configs:
+-          - targets: ["blackbox-exporter:9115"]
+-    
+-      - job_name: traderx-spring-boot-actuator
+-        metrics_path: /actuator/prometheus
+-        static_configs:
+-          - targets: ["account-service:18088", "position-service:18090", "trade-processor:18091", "trade-service:18092", "order-matcher:18110"]
+-    
+-      - job_name: traderx-http-probe
+-        metrics_path: /probe
+-        params:
+-          module: [http_2xx]
+-        static_configs:
+-          - targets:
+-              - http://edge-proxy:8080/health
+-              - http://edge-proxy:8080/
+-              - http://database:18084/
+-              - http://reference-data:18085/stocks
+-              - http://price-publisher:18100/health
+-              - http://price-publisher:18100/prices/IBM
+-              - http://account-service:18088/account/22214
+-              - http://people-service:18089/swagger
+-              - http://position-service:18090/health/alive
+-              - http://trade-processor:18091/health
+-              - http://trade-service:18092/v3/api-docs
+-              - http://web-front-end-angular:18093/
+-              - http://nats-broker:8222/varz
+-              - http://order-matcher:18110/health
+-              - http://order-matcher:18110/orders/open-count
+-        relabel_configs:
+-          - source_labels: [__address__]
+-            target_label: __param_target
+-          - source_labels: [__param_target]
+-            target_label: instance
+-          - target_label: __address__
+-            replacement: blackbox-exporter:9115
+-    
+-    
+-      - job_name: order-matcher
+-        metrics_path: /metrics
+-        static_configs:
+-          - targets: ["order-matcher:18110"]
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/observability-promtail-configmap.yaml b/tilt-kubernetes-dev-loop/manifests/base/observability-promtail-configmap.yaml
+deleted file mode 100644
+index 576da7e..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/observability-promtail-configmap.yaml
++++ /dev/null
+@@ -1,34 +0,0 @@
+-apiVersion: v1
+-kind: ConfigMap
+-metadata:
+-  name: observability-promtail-config
+-  namespace: traderx
+-data:
+-  config.yaml: |
+-    server:
+-      http_listen_port: 3101
+-      grpc_listen_port: 0
+-
+-    positions:
+-      filename: /run/promtail/positions.yaml
+-
+-    clients:
+-      - url: http://loki:3100/loki/api/v1/push
+-
+-    scrape_configs:
+-      - job_name: traderx-pod-logs
+-        pipeline_stages:
+-          - cri: {}
+-          - regex:
+-              source: filename
+-              expression: '/var/log/pods/(?P<namespace>[^_]+)_(?P<pod>[^_]+)_(?P<pod_uid>[^/]+)/(?P<service>[^/]+)/.*'
+-          - labels:
+-              namespace:
+-              pod:
+-              service:
+-        static_configs:
+-          - targets: [localhost]
+-            labels:
+-              compose_project: traderx-state-009
+-              job: traderx-docker
+-              __path__: /var/log/pods/traderx_*/*/*.log
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/observability-tempo-configmap.yaml b/tilt-kubernetes-dev-loop/manifests/base/observability-tempo-configmap.yaml
+deleted file mode 100644
+index cfe0108..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/observability-tempo-configmap.yaml
++++ /dev/null
+@@ -1,31 +0,0 @@
+-apiVersion: v1
+-kind: ConfigMap
+-metadata:
+-  name: observability-tempo-config
+-  namespace: traderx
+-data:
+-  config.yaml: |
+-    server:
+-      http_listen_port: 3200
+-    
+-    distributor:
+-      receivers:
+-        otlp:
+-          protocols:
+-            grpc:
+-              endpoint: 0.0.0.0:4317
+-            http:
+-              endpoint: 0.0.0.0:4318
+-    
+-    ingester:
+-      max_block_duration: 5m
+-    
+-    compactor:
+-      compaction:
+-        block_retention: 24h
+-    
+-    storage:
+-      trace:
+-        backend: local
+-        local:
+-          path: /tmp/tempo/traces
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/order-matcher-deployment.yaml b/tilt-kubernetes-dev-loop/manifests/base/order-matcher-deployment.yaml
+deleted file mode 100644
+index 1418658..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/order-matcher-deployment.yaml
++++ /dev/null
+@@ -1,54 +0,0 @@
+-apiVersion: apps/v1
+-kind: Deployment
+-metadata:
+-  name: order-matcher
+-  namespace: traderx
+-  labels:
+-    app: order-matcher
+-spec:
+-  replicas: 1
+-  selector:
+-    matchLabels:
+-      app: order-matcher
+-  template:
+-    metadata:
+-      labels:
+-        app: order-matcher
+-    spec:
+-      containers:
+-        - name: order-matcher
+-          image: traderx/order-matcher:state009
+-          imagePullPolicy: IfNotPresent
+-          ports:
+-            - name: http
+-              containerPort: 18110
+-              protocol: TCP
+-          env:
+-            - name: ORDER_MATCHER_PORT
+-              value: "18110"
+-            - name: DATABASE_PG_HOST
+-              value: "database"
+-            - name: DATABASE_PG_PORT
+-              value: "5432"
+-            - name: DATABASE_NAME
+-              value: "traderx"
+-            - name: DATABASE_DBUSER
+-              value: "traderx"
+-            - name: DATABASE_DBPASS
+-              value: "traderx"
+-            - name: CORS_ALLOWED_ORIGINS
+-              value: "http://localhost:8080"
+-            - name: PRICE_SERVICE_URL
+-              value: "http://price-publisher:18100"
+-            - name: TRADE_SERVICE_URL
+-              value: "http://trade-service:18092/trade/"
+-            - name: ORDER_MATCHER_TICK_MS
+-              value: "1000"
+-            - name: ORDER_FILL_FULL_THRESHOLD
+-              value: "1000"
+-            - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
+-              value: "health,prometheus,info"
+-            - name: MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED
+-              value: "true"
+-            - name: MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED
+-              value: "true"
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/order-matcher-service.yaml b/tilt-kubernetes-dev-loop/manifests/base/order-matcher-service.yaml
+deleted file mode 100644
+index 95f0067..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/order-matcher-service.yaml
++++ /dev/null
+@@ -1,16 +0,0 @@
+-apiVersion: v1
+-kind: Service
+-metadata:
+-  name: order-matcher
+-  namespace: traderx
+-  labels:
+-    app: order-matcher
+-spec:
+-  type: ClusterIP
+-  selector:
+-    app: order-matcher
+-  ports:
+-    - name: http
+-      protocol: TCP
+-      port: 18110
+-      targetPort: 18110
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/otel-collector-deployment.yaml b/tilt-kubernetes-dev-loop/manifests/base/otel-collector-deployment.yaml
+deleted file mode 100644
+index db47562..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/otel-collector-deployment.yaml
++++ /dev/null
+@@ -1,58 +0,0 @@
+-apiVersion: apps/v1
+-kind: Deployment
+-metadata:
+-  name: otel-collector
+-  namespace: traderx
+-  labels:
+-    app: otel-collector
+-spec:
+-  replicas: 1
+-  selector:
+-    matchLabels:
+-      app: otel-collector
+-  template:
+-    metadata:
+-      labels:
+-        app: otel-collector
+-    spec:
+-      containers:
+-        - name: otel-collector
+-          image: otel/opentelemetry-collector-contrib:0.103.1
+-          imagePullPolicy: IfNotPresent
+-          args: ["--config=/etc/otelcol-contrib/config.yaml"]
+-          ports:
+-            - name: otlp-grpc
+-              containerPort: 4317
+-              protocol: TCP
+-            - name: otlp-http
+-              containerPort: 4318
+-              protocol: TCP
+-            - name: prometheus
+-              containerPort: 8889
+-              protocol: TCP
+-            - name: metrics
+-              containerPort: 8888
+-              protocol: TCP
+-            - name: health
+-              containerPort: 13133
+-              protocol: TCP
+-          readinessProbe:
+-            httpGet:
+-              path: /
+-              port: 13133
+-            initialDelaySeconds: 5
+-            periodSeconds: 5
+-          livenessProbe:
+-            httpGet:
+-              path: /
+-              port: 13133
+-            initialDelaySeconds: 10
+-            periodSeconds: 10
+-          volumeMounts:
+-            - name: otel-config
+-              mountPath: /etc/otelcol-contrib/config.yaml
+-              subPath: config.yaml
+-      volumes:
+-        - name: otel-config
+-          configMap:
+-            name: observability-otel-collector-config
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/otel-collector-service.yaml b/tilt-kubernetes-dev-loop/manifests/base/otel-collector-service.yaml
+deleted file mode 100644
+index c723702..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/otel-collector-service.yaml
++++ /dev/null
+@@ -1,32 +0,0 @@
+-apiVersion: v1
+-kind: Service
+-metadata:
+-  name: otel-collector
+-  namespace: traderx
+-  labels:
+-    app: otel-collector
+-spec:
+-  type: ClusterIP
+-  selector:
+-    app: otel-collector
+-  ports:
+-    - name: otlp-grpc
+-      protocol: TCP
+-      port: 4317
+-      targetPort: 4317
+-    - name: otlp-http
+-      protocol: TCP
+-      port: 4318
+-      targetPort: 4318
+-    - name: metrics
+-      protocol: TCP
+-      port: 8888
+-      targetPort: 8888
+-    - name: prometheus
+-      protocol: TCP
+-      port: 8889
+-      targetPort: 8889
+-    - name: health
+-      protocol: TCP
+-      port: 13133
+-      targetPort: 13133
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/people-service-deployment.yaml b/tilt-kubernetes-dev-loop/manifests/base/people-service-deployment.yaml
+deleted file mode 100644
+index bfdbcaf..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/people-service-deployment.yaml
++++ /dev/null
+@@ -1,30 +0,0 @@
+-apiVersion: apps/v1
+-kind: Deployment
+-metadata:
+-  name: people-service
+-  namespace: traderx
+-  labels:
+-    app: people-service
+-spec:
+-  replicas: 1
+-  selector:
+-    matchLabels:
+-      app: people-service
+-  template:
+-    metadata:
+-      labels:
+-        app: people-service
+-    spec:
+-      containers:
+-        - name: people-service
+-          image: traderx/people-service:state009
+-          imagePullPolicy: IfNotPresent
+-          ports:
+-            - name: http
+-              containerPort: 18089
+-              protocol: TCP
+-          env:
+-            - name: PEOPLE_SERVICE_PORT
+-              value: "18089"
+-            - name: CORS_ALLOWED_ORIGINS
+-              value: "http://localhost:8080"
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/people-service-service.yaml b/tilt-kubernetes-dev-loop/manifests/base/people-service-service.yaml
+deleted file mode 100644
+index 73149cb..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/people-service-service.yaml
++++ /dev/null
+@@ -1,16 +0,0 @@
+-apiVersion: v1
+-kind: Service
+-metadata:
+-  name: people-service
+-  namespace: traderx
+-  labels:
+-    app: people-service
+-spec:
+-  type: ClusterIP
+-  selector:
+-    app: people-service
+-  ports:
+-    - name: http
+-      protocol: TCP
+-      port: 18089
+-      targetPort: 18089
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/position-service-deployment.yaml b/tilt-kubernetes-dev-loop/manifests/base/position-service-deployment.yaml
+deleted file mode 100644
+index 60fbc71..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/position-service-deployment.yaml
++++ /dev/null
+@@ -1,46 +0,0 @@
+-apiVersion: apps/v1
+-kind: Deployment
+-metadata:
+-  name: position-service
+-  namespace: traderx
+-  labels:
+-    app: position-service
+-spec:
+-  replicas: 1
+-  selector:
+-    matchLabels:
+-      app: position-service
+-  template:
+-    metadata:
+-      labels:
+-        app: position-service
+-    spec:
+-      containers:
+-        - name: position-service
+-          image: traderx/position-service:state009
+-          imagePullPolicy: IfNotPresent
+-          ports:
+-            - name: http
+-              containerPort: 18090
+-              protocol: TCP
+-          env:
+-            - name: POSITION_SERVICE_PORT
+-              value: "18090"
+-            - name: DATABASE_PG_HOST
+-              value: "database"
+-            - name: DATABASE_PG_PORT
+-              value: "5432"
+-            - name: DATABASE_NAME
+-              value: "traderx"
+-            - name: DATABASE_DBUSER
+-              value: "traderx"
+-            - name: DATABASE_DBPASS
+-              value: "traderx"
+-            - name: CORS_ALLOWED_ORIGINS
+-              value: "http://localhost:8080"
+-            - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
+-              value: "health,prometheus,info"
+-            - name: MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED
+-              value: "true"
+-            - name: MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED
+-              value: "true"
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/position-service-service.yaml b/tilt-kubernetes-dev-loop/manifests/base/position-service-service.yaml
+deleted file mode 100644
+index 3294520..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/position-service-service.yaml
++++ /dev/null
+@@ -1,16 +0,0 @@
+-apiVersion: v1
+-kind: Service
+-metadata:
+-  name: position-service
+-  namespace: traderx
+-  labels:
+-    app: position-service
+-spec:
+-  type: ClusterIP
+-  selector:
+-    app: position-service
+-  ports:
+-    - name: http
+-      protocol: TCP
+-      port: 18090
+-      targetPort: 18090
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/price-publisher-deployment.yaml b/tilt-kubernetes-dev-loop/manifests/base/price-publisher-deployment.yaml
+deleted file mode 100644
+index 06025bd..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/price-publisher-deployment.yaml
++++ /dev/null
+@@ -1,34 +0,0 @@
+-apiVersion: apps/v1
+-kind: Deployment
+-metadata:
+-  name: price-publisher
+-  namespace: traderx
+-  labels:
+-    app: price-publisher
+-spec:
+-  replicas: 1
+-  selector:
+-    matchLabels:
+-      app: price-publisher
+-  template:
+-    metadata:
+-      labels:
+-        app: price-publisher
+-    spec:
+-      containers:
+-        - name: price-publisher
+-          image: traderx/price-publisher:state009
+-          imagePullPolicy: IfNotPresent
+-          ports:
+-            - name: http
+-              containerPort: 18100
+-              protocol: TCP
+-          env:
+-            - name: PRICE_PUBLISHER_PORT
+-              value: "18100"
+-            - name: NATS_BROKER_HOST
+-              value: "nats-broker"
+-            - name: PRICE_BOOTSTRAP_MODE
+-              value: "snapshot"
+-            - name: PRICE_TICKERS
+-              value: "AAPL,MSFT,AMZN,GOOGL,META,NVDA,TSLA,IBM,BAC,C,JPM,GS,MS,UBS,DB,COF,DFS,FNMA,FIS,FNF"
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/price-publisher-service.yaml b/tilt-kubernetes-dev-loop/manifests/base/price-publisher-service.yaml
+deleted file mode 100644
+index 93ab3be..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/price-publisher-service.yaml
++++ /dev/null
+@@ -1,16 +0,0 @@
+-apiVersion: v1
+-kind: Service
+-metadata:
+-  name: price-publisher
+-  namespace: traderx
+-  labels:
+-    app: price-publisher
+-spec:
+-  type: ClusterIP
+-  selector:
+-    app: price-publisher
+-  ports:
+-    - name: http
+-      protocol: TCP
+-      port: 18100
+-      targetPort: 18100
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/prometheus-deployment.yaml b/tilt-kubernetes-dev-loop/manifests/base/prometheus-deployment.yaml
+deleted file mode 100644
+index ee1f3dd..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/prometheus-deployment.yaml
++++ /dev/null
+@@ -1,50 +0,0 @@
+-apiVersion: apps/v1
+-kind: Deployment
+-metadata:
+-  name: prometheus
+-  namespace: traderx
+-  labels:
+-    app: prometheus
+-spec:
+-  replicas: 1
+-  selector:
+-    matchLabels:
+-      app: prometheus
+-  template:
+-    metadata:
+-      labels:
+-        app: prometheus
+-    spec:
+-      containers:
+-        - name: prometheus
+-          image: prom/prometheus:v2.53.2
+-          imagePullPolicy: IfNotPresent
+-          args:
+-            - --config.file=/etc/prometheus/prometheus.yml
+-            - --web.enable-lifecycle
+-            - --web.route-prefix=/prometheus
+-            - --web.external-url=/prometheus
+-          ports:
+-            - name: http
+-              containerPort: 9090
+-              protocol: TCP
+-          readinessProbe:
+-            httpGet:
+-              path: /prometheus/-/ready
+-              port: 9090
+-            initialDelaySeconds: 5
+-            periodSeconds: 5
+-          livenessProbe:
+-            httpGet:
+-              path: /prometheus/-/healthy
+-              port: 9090
+-            initialDelaySeconds: 10
+-            periodSeconds: 10
+-          volumeMounts:
+-            - name: prometheus-config
+-              mountPath: /etc/prometheus/prometheus.yml
+-              subPath: prometheus.yml
+-      volumes:
+-        - name: prometheus-config
+-          configMap:
+-            name: observability-prometheus-config
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/prometheus-service.yaml b/tilt-kubernetes-dev-loop/manifests/base/prometheus-service.yaml
+deleted file mode 100644
+index 327a147..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/prometheus-service.yaml
++++ /dev/null
+@@ -1,16 +0,0 @@
+-apiVersion: v1
+-kind: Service
+-metadata:
+-  name: prometheus
+-  namespace: traderx
+-  labels:
+-    app: prometheus
+-spec:
+-  type: ClusterIP
+-  selector:
+-    app: prometheus
+-  ports:
+-    - name: http
+-      protocol: TCP
+-      port: 9090
+-      targetPort: 9090
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/promtail-clusterrole.yaml b/tilt-kubernetes-dev-loop/manifests/base/promtail-clusterrole.yaml
+deleted file mode 100644
+index 1cdbbcf..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/promtail-clusterrole.yaml
++++ /dev/null
+@@ -1,8 +0,0 @@
+-apiVersion: rbac.authorization.k8s.io/v1
+-kind: ClusterRole
+-metadata:
+-  name: promtail-traderx
+-rules:
+-  - apiGroups: [""]
+-    resources: ["pods", "nodes", "namespaces", "services"]
+-    verbs: ["get", "list", "watch"]
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/promtail-clusterrolebinding.yaml b/tilt-kubernetes-dev-loop/manifests/base/promtail-clusterrolebinding.yaml
+deleted file mode 100644
+index 0f58c47..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/promtail-clusterrolebinding.yaml
++++ /dev/null
+@@ -1,12 +0,0 @@
+-apiVersion: rbac.authorization.k8s.io/v1
+-kind: ClusterRoleBinding
+-metadata:
+-  name: promtail-traderx
+-subjects:
+-  - kind: ServiceAccount
+-    name: promtail
+-    namespace: traderx
+-roleRef:
+-  apiGroup: rbac.authorization.k8s.io
+-  kind: ClusterRole
+-  name: promtail-traderx
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/promtail-daemonset.yaml b/tilt-kubernetes-dev-loop/manifests/base/promtail-daemonset.yaml
+deleted file mode 100644
+index 5bcb004..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/promtail-daemonset.yaml
++++ /dev/null
+@@ -1,45 +0,0 @@
+-apiVersion: apps/v1
+-kind: DaemonSet
+-metadata:
+-  name: promtail
+-  namespace: traderx
+-  labels:
+-    app: promtail
+-spec:
+-  selector:
+-    matchLabels:
+-      app: promtail
+-  template:
+-    metadata:
+-      labels:
+-        app: promtail
+-    spec:
+-      serviceAccountName: promtail
+-      containers:
+-        - name: promtail
+-          image: grafana/promtail:2.9.8
+-          imagePullPolicy: IfNotPresent
+-          args: ["-config.file=/etc/promtail/config.yaml"]
+-          ports:
+-            - name: http
+-              containerPort: 3101
+-              protocol: TCP
+-          volumeMounts:
+-            - name: promtail-config
+-              mountPath: /etc/promtail/config.yaml
+-              subPath: config.yaml
+-            - name: varlogpods
+-              mountPath: /var/log/pods
+-              readOnly: true
+-            - name: run
+-              mountPath: /run/promtail
+-      volumes:
+-        - name: promtail-config
+-          configMap:
+-            name: observability-promtail-config
+-        - name: varlogpods
+-          hostPath:
+-            path: /var/log/pods
+-            type: DirectoryOrCreate
+-        - name: run
+-          emptyDir: {}
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/promtail-serviceaccount.yaml b/tilt-kubernetes-dev-loop/manifests/base/promtail-serviceaccount.yaml
+deleted file mode 100644
+index a2eabcc..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/promtail-serviceaccount.yaml
++++ /dev/null
+@@ -1,5 +0,0 @@
+-apiVersion: v1
+-kind: ServiceAccount
+-metadata:
+-  name: promtail
+-  namespace: traderx
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/reference-data-deployment.yaml b/tilt-kubernetes-dev-loop/manifests/base/reference-data-deployment.yaml
+deleted file mode 100644
+index f065f48..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/reference-data-deployment.yaml
++++ /dev/null
+@@ -1,32 +0,0 @@
+-apiVersion: apps/v1
+-kind: Deployment
+-metadata:
+-  name: reference-data
+-  namespace: traderx
+-  labels:
+-    app: reference-data
+-spec:
+-  replicas: 1
+-  selector:
+-    matchLabels:
+-      app: reference-data
+-  template:
+-    metadata:
+-      labels:
+-        app: reference-data
+-    spec:
+-      containers:
+-        - name: reference-data
+-          image: traderx/reference-data:state009
+-          imagePullPolicy: IfNotPresent
+-          ports:
+-            - name: http
+-              containerPort: 18085
+-              protocol: TCP
+-          env:
+-            - name: REFERENCE_DATA_SERVICE_PORT
+-              value: "18085"
+-            - name: CORS_ALLOWED_ORIGINS
+-              value: "http://localhost:8080"
+-            - name: REFERENCE_DATA_SUPPORTED_TICKERS
+-              value: "AAPL,MSFT,AMZN,GOOGL,META,NVDA,TSLA,IBM,BAC,C,JPM,GS,MS,UBS,DB,COF,DFS,FNMA,FIS,FNF"
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/reference-data-service.yaml b/tilt-kubernetes-dev-loop/manifests/base/reference-data-service.yaml
+deleted file mode 100644
+index ad7cd44..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/reference-data-service.yaml
++++ /dev/null
+@@ -1,16 +0,0 @@
+-apiVersion: v1
+-kind: Service
+-metadata:
+-  name: reference-data
+-  namespace: traderx
+-  labels:
+-    app: reference-data
+-spec:
+-  type: ClusterIP
+-  selector:
+-    app: reference-data
+-  ports:
+-    - name: http
+-      protocol: TCP
+-      port: 18085
+-      targetPort: 18085
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/tempo-deployment.yaml b/tilt-kubernetes-dev-loop/manifests/base/tempo-deployment.yaml
+deleted file mode 100644
+index 48e80b3..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/tempo-deployment.yaml
++++ /dev/null
+@@ -1,40 +0,0 @@
+-apiVersion: apps/v1
+-kind: Deployment
+-metadata:
+-  name: tempo
+-  namespace: traderx
+-  labels:
+-    app: tempo
+-spec:
+-  replicas: 1
+-  selector:
+-    matchLabels:
+-      app: tempo
+-  template:
+-    metadata:
+-      labels:
+-        app: tempo
+-    spec:
+-      containers:
+-        - name: tempo
+-          image: grafana/tempo:2.5.0
+-          imagePullPolicy: IfNotPresent
+-          args: ["-config.file=/etc/tempo/config.yaml"]
+-          ports:
+-            - name: http
+-              containerPort: 3200
+-              protocol: TCP
+-            - name: otlp-grpc
+-              containerPort: 4317
+-              protocol: TCP
+-            - name: otlp-http
+-              containerPort: 4318
+-              protocol: TCP
+-          volumeMounts:
+-            - name: tempo-config
+-              mountPath: /etc/tempo/config.yaml
+-              subPath: config.yaml
+-      volumes:
+-        - name: tempo-config
+-          configMap:
+-            name: observability-tempo-config
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/tempo-service.yaml b/tilt-kubernetes-dev-loop/manifests/base/tempo-service.yaml
+deleted file mode 100644
+index f5e897d..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/tempo-service.yaml
++++ /dev/null
+@@ -1,24 +0,0 @@
+-apiVersion: v1
+-kind: Service
+-metadata:
+-  name: tempo
+-  namespace: traderx
+-  labels:
+-    app: tempo
+-spec:
+-  type: ClusterIP
+-  selector:
+-    app: tempo
+-  ports:
+-    - name: http
+-      protocol: TCP
+-      port: 3200
+-      targetPort: 3200
+-    - name: otlp-grpc
+-      protocol: TCP
+-      port: 4317
+-      targetPort: 4317
+-    - name: otlp-http
+-      protocol: TCP
+-      port: 4318
+-      targetPort: 4318
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/trade-processor-deployment.yaml b/tilt-kubernetes-dev-loop/manifests/base/trade-processor-deployment.yaml
+deleted file mode 100644
+index 5ecfb18..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/trade-processor-deployment.yaml
++++ /dev/null
+@@ -1,48 +0,0 @@
+-apiVersion: apps/v1
+-kind: Deployment
+-metadata:
+-  name: trade-processor
+-  namespace: traderx
+-  labels:
+-    app: trade-processor
+-spec:
+-  replicas: 1
+-  selector:
+-    matchLabels:
+-      app: trade-processor
+-  template:
+-    metadata:
+-      labels:
+-        app: trade-processor
+-    spec:
+-      containers:
+-        - name: trade-processor
+-          image: traderx/trade-processor:state009
+-          imagePullPolicy: IfNotPresent
+-          ports:
+-            - name: http
+-              containerPort: 18091
+-              protocol: TCP
+-          env:
+-            - name: TRADE_PROCESSOR_SERVICE_PORT
+-              value: "18091"
+-            - name: DATABASE_PG_HOST
+-              value: "database"
+-            - name: DATABASE_PG_PORT
+-              value: "5432"
+-            - name: DATABASE_NAME
+-              value: "traderx"
+-            - name: DATABASE_DBUSER
+-              value: "traderx"
+-            - name: DATABASE_DBPASS
+-              value: "traderx"
+-            - name: NATS_BROKER_HOST
+-              value: "nats-broker"
+-            - name: CORS_ALLOWED_ORIGINS
+-              value: "http://localhost:8080"
+-            - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
+-              value: "health,prometheus,info"
+-            - name: MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED
+-              value: "true"
+-            - name: MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED
+-              value: "true"
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/trade-processor-service.yaml b/tilt-kubernetes-dev-loop/manifests/base/trade-processor-service.yaml
+deleted file mode 100644
+index 8b6514a..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/trade-processor-service.yaml
++++ /dev/null
+@@ -1,16 +0,0 @@
+-apiVersion: v1
+-kind: Service
+-metadata:
+-  name: trade-processor
+-  namespace: traderx
+-  labels:
+-    app: trade-processor
+-spec:
+-  type: ClusterIP
+-  selector:
+-    app: trade-processor
+-  ports:
+-    - name: http
+-      protocol: TCP
+-      port: 18091
+-      targetPort: 18091
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/trade-service-deployment.yaml b/tilt-kubernetes-dev-loop/manifests/base/trade-service-deployment.yaml
+deleted file mode 100644
+index f2e4474..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/trade-service-deployment.yaml
++++ /dev/null
+@@ -1,46 +0,0 @@
+-apiVersion: apps/v1
+-kind: Deployment
+-metadata:
+-  name: trade-service
+-  namespace: traderx
+-  labels:
+-    app: trade-service
+-spec:
+-  replicas: 1
+-  selector:
+-    matchLabels:
+-      app: trade-service
+-  template:
+-    metadata:
+-      labels:
+-        app: trade-service
+-    spec:
+-      containers:
+-        - name: trade-service
+-          image: traderx/trade-service:state009
+-          imagePullPolicy: IfNotPresent
+-          ports:
+-            - name: http
+-              containerPort: 18092
+-              protocol: TCP
+-          env:
+-            - name: TRADING_SERVICE_PORT
+-              value: "18092"
+-            - name: ACCOUNT_SERVICE_HOST
+-              value: "account-service"
+-            - name: REFERENCE_DATA_HOST
+-              value: "reference-data"
+-            - name: PEOPLE_SERVICE_HOST
+-              value: "people-service"
+-            - name: NATS_BROKER_HOST
+-              value: "nats-broker"
+-            - name: PRICE_SERVICE_HOST
+-              value: "price-publisher"
+-            - name: CORS_ALLOWED_ORIGINS
+-              value: "http://localhost:8080"
+-            - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
+-              value: "health,prometheus,info"
+-            - name: MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED
+-              value: "true"
+-            - name: MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED
+-              value: "true"
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/trade-service-service.yaml b/tilt-kubernetes-dev-loop/manifests/base/trade-service-service.yaml
+deleted file mode 100644
+index 5a8fffd..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/trade-service-service.yaml
++++ /dev/null
+@@ -1,16 +0,0 @@
+-apiVersion: v1
+-kind: Service
+-metadata:
+-  name: trade-service
+-  namespace: traderx
+-  labels:
+-    app: trade-service
+-spec:
+-  type: ClusterIP
+-  selector:
+-    app: trade-service
+-  ports:
+-    - name: http
+-      protocol: TCP
+-      port: 18092
+-      targetPort: 18092
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/web-front-end-angular-deployment.yaml b/tilt-kubernetes-dev-loop/manifests/base/web-front-end-angular-deployment.yaml
+deleted file mode 100644
+index 1788269..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/web-front-end-angular-deployment.yaml
++++ /dev/null
+@@ -1,28 +0,0 @@
+-apiVersion: apps/v1
+-kind: Deployment
+-metadata:
+-  name: web-front-end-angular
+-  namespace: traderx
+-  labels:
+-    app: web-front-end-angular
+-spec:
+-  replicas: 1
+-  selector:
+-    matchLabels:
+-      app: web-front-end-angular
+-  template:
+-    metadata:
+-      labels:
+-        app: web-front-end-angular
+-    spec:
+-      containers:
+-        - name: web-front-end-angular
+-          image: traderx/web-front-end-angular:state009
+-          imagePullPolicy: IfNotPresent
+-          ports:
+-            - name: http
+-              containerPort: 18093
+-              protocol: TCP
+-          env:
+-            - name: WEB_SERVICE_PORT
+-              value: "18093"
+diff --git a/tilt-kubernetes-dev-loop/manifests/base/web-front-end-angular-service.yaml b/tilt-kubernetes-dev-loop/manifests/base/web-front-end-angular-service.yaml
+deleted file mode 100644
+index 908d33e..0000000
+--- a/tilt-kubernetes-dev-loop/manifests/base/web-front-end-angular-service.yaml
++++ /dev/null
+@@ -1,16 +0,0 @@
+-apiVersion: v1
+-kind: Service
+-metadata:
+-  name: web-front-end-angular
+-  namespace: traderx
+-  labels:
+-    app: web-front-end-angular
+-spec:
+-  type: ClusterIP
+-  selector:
+-    app: web-front-end-angular
+-  ports:
+-    - name: http
+-      protocol: TCP
+-      port: 18093
+-      targetPort: 18093
+diff --git a/tilt-kubernetes-dev-loop/spec-source/contract-delta.md b/tilt-kubernetes-dev-loop/spec-source/contract-delta.md
+deleted file mode 100644
+index 367b1fd..0000000
+--- a/tilt-kubernetes-dev-loop/spec-source/contract-delta.md
++++ /dev/null
+@@ -1,18 +0,0 @@
+-# Contract Delta: 011-tilt-kubernetes-dev-loop
+-
+-Parent state: `010-kubernetes-runtime`
+-
+-Document any API/event/schema changes for this state.
+-
+-## OpenAPI Changes
+-
+-- No changes yet.
+-
+-## Event Contract Changes
+-
+-- No changes yet.
+-
+-## Compatibility Notes
+-
+-- OpenAPI and event contracts are unchanged from state `010-kubernetes-runtime`.
+-- State `006` introduces local developer orchestration artifacts (Tilt) only.
+diff --git a/tilt-kubernetes-dev-loop/spec-source/functional-delta.md b/tilt-kubernetes-dev-loop/spec-source/functional-delta.md
+deleted file mode 100644
+index e1a2442..0000000
+--- a/tilt-kubernetes-dev-loop/spec-source/functional-delta.md
++++ /dev/null
+@@ -1,21 +0,0 @@
+-# Functional Delta: 011-tilt-kubernetes-dev-loop
+-
+-Parent state: `010-kubernetes-runtime`
+-
+-Document only functional behavior changes introduced by this state.
+-
+-## Added
+-
+-- None.
+-
+-## Changed
+-
+-- None.
+-
+-## Removed
+-
+-- None.
+-
+-## Flow Impact
+-
+-- No functional flow deltas. Baseline flows `F1`-`F6` and startup behavior remain compatible with state `010`.
+diff --git a/tilt-kubernetes-dev-loop/spec-source/nonfunctional-delta.md b/tilt-kubernetes-dev-loop/spec-source/nonfunctional-delta.md
+deleted file mode 100644
+index a5f92ab..0000000
+--- a/tilt-kubernetes-dev-loop/spec-source/nonfunctional-delta.md
++++ /dev/null
+@@ -1,29 +0,0 @@
+-# Non-Functional Delta: 011-tilt-kubernetes-dev-loop
+-
+-Parent state: `010-kubernetes-runtime`
+-
+-This state adds local development loop automation on top of Kubernetes baseline state `010`.
+-
+-## Runtime / Operations
+-
+-- Runtime substrate remains Kubernetes.
+-- Developer workflow is driven by Tilt (live update/build/deploy loop).
+-- Runtime entrypoint behavior remains functionally equivalent to state `010`.
+-
+-## Security / Compliance
+-
+-- No baseline authn/authz changes introduced.
+-- Local dev-only orchestration should remain isolated from production deployment definitions.
+-
+-## Performance / Scalability
+-
+-- Focus is local developer productivity and turnaround time.
+-- No change to baseline performance contracts is required.
+-
+-## Reliability / Observability
+-
+-- Tilt provides consolidated service logs/status and rapid failure feedback.
+-- Baseline readiness/health semantics inherited from state `010` remain unchanged.
+-- Inherited observability entrypoints from state `010` remain required:
+-  - `http://localhost:8080/grafana`
+-  - `http://localhost:8080/prometheus`
+diff --git a/tilt-kubernetes-dev-loop/spec-source/spec.md b/tilt-kubernetes-dev-loop/spec-source/spec.md
+deleted file mode 100644
+index 8a5610d..0000000
+--- a/tilt-kubernetes-dev-loop/spec-source/spec.md
++++ /dev/null
+@@ -1,29 +0,0 @@
+-# Feature Specification: Tilt Local Dev on Kubernetes
+-
+-**Feature Branch**: `011-tilt-kubernetes-dev-loop`  
+-**Created**: 2026-03-29  
+-**Status**: Implemented  
+-**Input**: Transition delta from `010-kubernetes-runtime`
+-
+-## User Stories
+-
+-- As a developer, I want a fast local Kubernetes inner loop using Tilt.
+-- As a maintainer, I want this state to stay independent from the Radius path.
+-- As a developer, I want functional behavior to remain compatible while dev tooling improves.
+-
+-## Functional Requirements
+-
+-- FR-01001: Baseline flows F1-F6 remain behaviorally compatible with state `010-kubernetes-runtime`.
+-- FR-01002: API routes and payload contracts remain unchanged unless explicitly declared in this pack.
+-
+-## Non-Functional Requirements
+-
+-- NFR-01001: Tilt manifests/config become the canonical local developer orchestration for this state.
+-- NFR-01002: Kubernetes remains the runtime substrate inherited from state `010-kubernetes-runtime`.
+-- NFR-01003: This state does not require Radius artifacts.
+-
+-## Success Criteria
+-
+-- SC-01001: Generation hook and smoke test paths are implemented for Tilt-focused assets.
+-- SC-01002: Generated snapshot branch and tag strategy are defined in state catalog.
+-- SC-01003: State topology/docs clearly identify this state as a sibling (not parent/child) of `013-radius-kubernetes-platform`.
+diff --git a/tilt-kubernetes-dev-loop/tilt/README.md b/tilt-kubernetes-dev-loop/tilt/README.md
+deleted file mode 100644
+index 3f29b62..0000000
+--- a/tilt-kubernetes-dev-loop/tilt/README.md
++++ /dev/null
+@@ -1,15 +0,0 @@
+-# Tilt Dev Loop (State 011)
+-
+-This Tilt project reuses state 010 manifests and image mappings.
+-
+-Run:
+-
+-```bash
+-tilt up
+-```
+-
+-Prerequisite:
+-
+-```bash
+-./scripts/start-state-011-tilt-kubernetes-dev-loop-generated.sh --provider kind
+-```
+diff --git a/tilt-kubernetes-dev-loop/tilt/Tiltfile b/tilt-kubernetes-dev-loop/tilt/Tiltfile
+deleted file mode 100644
+index ab08786..0000000
+--- a/tilt-kubernetes-dev-loop/tilt/Tiltfile
++++ /dev/null
+@@ -1,35 +0,0 @@
+-# Generated by pipeline/render-state-011-tilt-kubernetes-dev-loop.sh
+-# State: 011-tilt-kubernetes-dev-loop
+-
+-allow_k8s_contexts('kind-traderx-state-010', 'traderx-state-010', 'kind-traderx-state-011', 'traderx-state-011', 'kind-traderx-state-012', 'traderx-state-012', 'minikube')
+-
+-k8s_yaml('../manifests/base/*.yaml')
+-
+-docker_build('traderx/reference-data:state009', '../reference-data', dockerfile='../reference-data/Dockerfile.compose')
+-docker_build('traderx/people-service:state009', '../people-service', dockerfile='../people-service/Dockerfile.compose')
+-docker_build('traderx/account-service:state009', '../account-service', dockerfile='../account-service/Dockerfile.compose')
+-docker_build('traderx/position-service:state009', '../position-service', dockerfile='../position-service/Dockerfile.compose')
+-docker_build('traderx/trade-processor:state009', '../trade-processor', dockerfile='../trade-processor/Dockerfile.compose')
+-docker_build('traderx/trade-service:state009', '../trade-service', dockerfile='../trade-service/Dockerfile.compose')
+-docker_build('traderx/price-publisher:state009', '../price-publisher', dockerfile='../price-publisher/Dockerfile.compose')
+-docker_build('traderx/order-matcher:state009', '../order-matcher', dockerfile='../order-matcher/Dockerfile.compose')
+-docker_build('traderx/web-front-end-angular:state009', '../web-front-end/angular', dockerfile='../web-front-end/angular/Dockerfile.compose')
+-
+-k8s_resource('database')
+-k8s_resource('nats-broker')
+-k8s_resource('reference-data')
+-k8s_resource('people-service')
+-k8s_resource('account-service')
+-k8s_resource('position-service')
+-k8s_resource('trade-processor')
+-k8s_resource('trade-service')
+-k8s_resource('price-publisher')
+-k8s_resource('order-matcher')
+-k8s_resource('web-front-end-angular')
+-k8s_resource('edge-proxy')
+-k8s_resource('blackbox-exporter')
+-k8s_resource('loki')
+-k8s_resource('tempo')
+-k8s_resource('otel-collector')
+-k8s_resource('prometheus')
+-k8s_resource('grafana')
+diff --git a/tilt-kubernetes-dev-loop/tilt/tilt-settings.json b/tilt-kubernetes-dev-loop/tilt/tilt-settings.json
+deleted file mode 100644
+index a582812..0000000
+--- a/tilt-kubernetes-dev-loop/tilt/tilt-settings.json
++++ /dev/null
+@@ -1,12 +0,0 @@
+-{
+-  "stateId": "011-tilt-kubernetes-dev-loop",
+-  "inheritsFrom": "010-kubernetes-runtime",
+-  "clusterName": "traderx-state-011",
+-  "primaryEntrypoints": [
+-    "http://localhost:8080"
+-  ],
+-  "notes": [
+-    "Run start-state-010 to ensure baseline Kubernetes runtime is available.",
+-    "Then run tilt up from this directory."
+-  ]
+-}

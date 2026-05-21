@@ -1,0 +1,92 @@
+name: Deploy Docusaurus (GitHub Pages)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Install website dependencies
+        run: npm --prefix website ci --no-audit --no-fund
+
+      - name: Build Docusaurus site
+        env:
+          DOCUSAURUS_URL: https://traderx.finos.org
+          DOCUSAURUS_BASE_URL: /
+        run: |
+          TRADERX_SITE_ROOT="${DOCUSAURUS_BASE_URL%/}" bash pipeline/refresh-state-docs.sh
+          npm --prefix website run clear
+          npm --prefix website run build
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: website/build
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Setup Node for AFDocs
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      - name: Run AFDocs on published GitHub Pages URL
+        env:
+          PUBLISHED_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          echo "[info] checking published docs at ${PUBLISHED_URL}"
+          SUCCESS=0
+          for attempt in $(seq 1 10); do
+            if npx --yes afdocs check "${PUBLISHED_URL}" --format scorecard; then
+              if npx --yes afdocs check "${PUBLISHED_URL}" --format json --score > afdocs-score-published.json; then
+                SUCCESS=1
+                break
+              fi
+            fi
+            echo "[warn] AFDocs check failed on attempt ${attempt}, retrying..."
+            sleep 15
+          done
+          if [ "$SUCCESS" -eq 0 ]; then
+            echo '{"status":"error","message":"AFDocs check failed after retries"}' > afdocs-score-published.json
+            echo "[warn] AFDocs checks failed after retries (non-blocking in deploy workflow)."
+          fi
+
+      - name: Upload AFDocs published score artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: afdocs-published-score
+          path: afdocs-score-published.json
+          if-no-files-found: warn

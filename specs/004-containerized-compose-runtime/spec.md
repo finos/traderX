@@ -1,0 +1,71 @@
+# Feature Specification: Containerized Compose Runtime
+
+**Feature Branch**: `004-containerized-compose-runtime`  
+**Created**: 2026-03-29  
+**Status**: Implemented  
+**Input**: Transition delta from `003-agentic-harness-foundation`
+
+## User Stories
+
+- As a developer, I want one command to start the full stack in containers.
+- As a developer, I want deterministic inter-service networking in container runtime.
+- As a platform engineer, I want an industry-standard ingress implementation in this state.
+- As a maintainer, I want containerized state generation to remain spec-first and reproducible.
+- As a learner, I want state-aware header/About UX preserved in the containerized state.
+- As a learner, I want the `Status` page introduced in state `002` to remain available with container-runtime health visibility.
+
+## Functional Requirements
+
+- FR-301: Baseline flows F1-F6 SHALL remain behaviorally compatible in containerized runtime.
+- FR-302: State SHALL expose documented runtime entrypoints for UI and APIs in container mode.
+- FR-303: Ingress runtime SHALL expose a standalone API explorer at `/api/docs`, backed by state API metadata and service OpenAPI specs.
+- FR-304: GUI state-awareness requirements from state `001` (header title with active state id, About page metadata/lineage, API explorer link) SHALL be preserved.
+- FR-305: `Status` page requirements from state `002` SHALL be preserved and rendered through ingress for this state.
+- FR-306: Status page SHALL report uptime/health for each service participating in this containerized runtime.
+
+## Non-Functional Requirements
+
+- NFR-301: Runtime SHALL be Docker/Docker Compose based for this state.
+- NFR-302: Container startup SHALL honor dependency ordering and health readiness checks.
+- NFR-303: Container networking and service discovery SHALL be deterministic and documented.
+- NFR-304: Generated containerized artifacts SHALL be produced from specs and validated before release tagging.
+- NFR-305: Browser ingress in this state SHALL use NGINX reverse-proxy configuration generated from spec artifacts.
+- NFR-306: As convergence level `C0`, generated state branches MUST include `.github/workflows/build-and-publish.yml` for container image publication.
+- NFR-307: `C0` image publication namespace MUST use `ghcr.io/finos/traderx-c0/<component>` with immutable commit-SHA tags plus `latest`.
+- NFR-308: Generated artifacts MUST include a GHCR run bundle for running this state from published images.
+- NFR-309: NGINX ingress routes SHALL forward standard ingress headers (`X-Forwarded-For`, `X-Forwarded-Host`, `X-Forwarded-Proto`, and route-specific `X-Forwarded-Prefix`) to upstream services.
+- NFR-310: API explorer "Try it out" requests in ingress/containerized states SHALL honor service path prefixes (for example `/order-matcher`, `/people-service`) and MUST NOT fallback to root-relative service paths.
+- NFR-311: Runtime/start scripts for this state SHALL detect and report currently generated state id versus expected state id before startup.
+- NFR-312: On mismatch, runtime/start scripts SHALL provide explicit guidance for forward-regenerate versus backward clean rebuild decisions.
+- NFR-313: Runtime/start scripts SHALL support an explicit opt-in mode to auto-regenerate expected state before startup.
+- NFR-314: Generated snapshot pruning and generated CI target discovery for this and later states SHALL exclude legacy uncontainerized runtime components that are no longer active in-state (for example Node `edge-proxy`), unless explicitly reintroduced by a later approved state spec.
+- NFR-315: Browser-offered documentation/tool URLs (`/api/docs/`, API explorer navigation links, and conditional `pubSubInspectorUrl` links when enabled in later lineage states) SHALL return non-404 responses with browser-renderable content types (HTML for pages, JSON for catalog payloads).
+- NFR-316: For containerized states selected for live-demo operations, generated snapshots SHALL include a deployment bundle under `runtime/deploy/` with profile-scoped scripts and runbook content derived from canonical spec/generator sources (not manual branch edits).
+- NFR-317: Deployment bundle scripts SHALL support `--dry-run`, require runtime env vars for environment-specific values (for example domain/branch), and MUST NOT embed credentials or tokens.
+- NFR-318: Pre-container states (`001-003`) SHALL NOT emit deployment bundles in generated snapshots.
+- NFR-319: Containerized runtime frontend images intended for deployed/demo environments SHALL serve production/static assets and MUST NOT expose development-server hot-reload endpoints (for example `@vite/client`, `/@fs/*`) or require localhost-scoped websocket reload channels.
+- NFR-320: Containerized compose runtime artifacts (`004+`) SHALL configure service CORS origin allowlists from deployment-time FQDN input by default (derived from `TRADERX_FQDN`), with explicit `CORS_ALLOWED_ORIGINS` override support for non-default environments.
+- NFR-321: State `004` API explorer SHALL NOT expose Pub/Sub inspector UI/assets; Pub/Sub inspector is enabled only for states with NATS-based messaging/runtime support.
+- NFR-322: Generated deployment bundles (`runtime/deploy/aws-ec2-compose/`) SHALL include an external NGINX reverse-proxy snippet that preserves websocket upgrade routing for active runtime messaging paths.
+- NFR-323: Reverse-proxy websocket route mappings in that snippet SHALL be state-aware and SHALL mirror the generated ingress transport contract for the emitted state (for example, include `/nats-ws` for NATS lineage and avoid emitting superseded Socket.IO-only paths when they are no longer active in-state).
+- NFR-324: Generated `aws-ec2-compose` deploy bundles SHALL include host prerequisite setup scripts (`host-setup-check.sh` and `host-setup-install.sh`) to validate/install required host tooling before deploy execution.
+- NFR-325: Generated deploy-bundle clone defaults for public FINOS generated-state branches SHALL use tokenless repository URLs; token-authenticated clone guidance MAY be documented only as optional for private overlays/forks.
+
+## Success Criteria
+
+- SC-301: Containerized stack starts with one documented command path.
+- SC-302: Smoke/conformance checks pass against containerized state.
+- SC-303: Generated snapshot tag published with linked validation evidence.
+- SC-304: Generated branch artifacts include `C0` build/publish workflow and GHCR run-bundle assets.
+- SC-305: After state startup, API explorer is reachable at `http://localhost:8080/api/docs`, interactive requests route through prefixed service paths, and browser-offered docs/tool URLs satisfy non-404 + expected content-type contracts.
+- SC-306: Ingress-routed UI smoke tests verify header title includes `004-containerized-compose-runtime`, About metadata renders expected lineage/source fields, and API explorer link is available.
+- SC-307: Ingress-routed UI smoke tests verify `Status` page is reachable and shows per-service uptime/health entries for this state.
+- SC-308: Startup script smoke checks verify generated-state detection messaging for both match and mismatch cases, including opt-in auto-regeneration flow.
+- SC-309: State `004+` snapshot/CI outputs contain only active runtime components and do not emit legacy Node `edge-proxy` CI targets unless later specs explicitly restore that component.
+- SC-310: Generated snapshot contains deployment-bundle assets for approved demo-target containerized states and those assets pass local dry-run validation.
+- SC-311: Containerized UI smoke checks fail if ingress/frontend responses include development hot-reload artifacts (for example `@vite/client`) in deployed/runtime image output.
+- SC-312: Generated deploy/runtime artifacts accept `TRADERX_FQDN` and produce CORS-allowlist behavior that permits same-origin browser API calls on the deployed domain without requiring localhost-only CORS settings.
+- SC-313: Generated state `004` API explorer output does not expose a Pub/Sub inspector link/page, while later NATS-enabled states continue to expose it.
+- SC-314: Generated deployment bundle nginx snippet includes websocket upgrade route coverage needed by runtime state lineage.
+- SC-315: For state snapshots where ingress transport is NATS websocket, the generated reverse-proxy snippet includes `/nats-ws`; for snapshots where ingress transport is Socket.IO, the snippet includes Socket.IO routes, with no stale transport-only routes emitted.
+- SC-316: Generated `runtime/deploy/aws-ec2-compose/` output includes `host-setup-check.sh` and `host-setup-install.sh`, and both scripts support `--dry-run` execution paths.

@@ -1,0 +1,9 @@
+{
+  "label": "Project ADRs",
+  "position": 20,
+  "link": {
+    "type": "generated-index",
+    "title": "Project Architecture Decision Records",
+    "description": "Core repo-level decisions for SpecKit adoption, generation strategy, and state packaging."
+  }
+}

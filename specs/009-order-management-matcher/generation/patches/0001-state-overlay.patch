@@ -1,0 +1,5170 @@
+
+
+diff --git a/ci/state-metadata.json b/ci/state-metadata.json
+index 46d12e9..6e929e5 100644
+--- a/ci/state-metadata.json
++++ b/ci/state-metadata.json
+@@ -1,8 +1,8 @@
+ {
+-  "stateId": "008-pricing-awareness-market-data",
+-  "isConvergence": false,
+-  "convergenceLevel": "none",
+-  "convergenceNamespace": "",
++  "stateId": "009-order-management-matcher",
++  "isConvergence": true,
++  "convergenceLevel": "C2",
++  "convergenceNamespace": "traderx-c2",
+   "modules": {
+     "node": [
+       "price-publisher",
+@@ -12,6 +12,7 @@
+     "gradle": [
+       "account-service",
+       "database",
++      "order-matcher",
+       "position-service",
+       "trade-processor",
+       "trade-service"
+@@ -35,6 +36,11 @@
+         "dockerfile": "Dockerfile.compose",
+         "imageName": "ingress"
+       },
++      {
++        "directory": "order-matcher",
++        "dockerfile": "Dockerfile.compose",
++        "imageName": "order-matcher"
++      },
+       {
+         "directory": "people-service",
+         "dockerfile": "Dockerfile.compose",
+diff --git a/ingress/nginx.traderx.conf.template b/ingress/nginx.traderx.conf.template
+index e5c93d1..473983b 100644
+--- a/ingress/nginx.traderx.conf.template
++++ b/ingress/nginx.traderx.conf.template
+@@ -78,6 +78,10 @@ server {
+         proxy_pass ${PRICE_PUBLISHER_URL};
+     }
+ 
++    location /order-matcher/ {
++        proxy_pass ${ORDER_MATCHER_URL};
++    }
++
+     location / {
+         proxy_pass ${WEB_FRONTEND_URL};
+         proxy_http_version 1.1;
+diff --git a/order-management-matcher/README.md b/order-management-matcher/README.md
+new file mode 100644
+index 0000000..6d5fff2
+--- /dev/null
++++ b/order-management-matcher/README.md
+@@ -0,0 +1,23 @@
++## TraderX State 009 Runtime
++
++This directory defines the compose runtime for:
++
++- `009-order-management-matcher`
++
++It extends pricing + observability runtime with:
++
++- Order matcher service (Spring Boot + DB-backed order persistence)
++- Order management APIs (`/order-matcher/orders*`)
++- Spring Boot actuator metric scraping (`/actuator/prometheus`) where available
++- Provisioned order + Spring dashboards for queue health, lifecycle rates, latency, and JVM/service SLI visibility
++
++Primary endpoints:
++
++- TraderX UI: `http://localhost:8080`
++- Grafana: `http://localhost:3001` (local login credentials)
++- Prometheus: `http://localhost:9090`
++- Loki: `http://localhost:3100`
++- Tempo: `http://localhost:3200`
++- NATS monitor: `http://localhost:8222/varz`
++- Price publisher: `http://localhost:18100/health`
++- Order matcher: `http://localhost:18110/health`
+diff --git a/order-management-matcher/docker-compose.yml b/order-management-matcher/docker-compose.yml
+new file mode 100644
+index 0000000..28c3648
+--- /dev/null
++++ b/order-management-matcher/docker-compose.yml
+@@ -0,0 +1,318 @@
++name: traderx-state-009
++
++services:
++  database:
++    image: postgres:16-alpine
++    environment:
++      POSTGRES_DB: "traderx"
++      POSTGRES_USER: "traderx"
++      POSTGRES_PASSWORD: "traderx"
++    ports:
++      - "18083:5432"
++    healthcheck:
++      test: [ "CMD-SHELL", "pg_isready -U traderx -d traderx" ]
++      interval: 5s
++      timeout: 5s
++      retries: 20
++    volumes:
++      - postgres_state_009_data:/var/lib/postgresql/data
++      - ../postgres-database-replacement/postgres-init/initialSchema.sql:/docker-entrypoint-initdb.d/001-initialSchema.sql:ro
++
++  reference-data:
++    build:
++      context: ../reference-data
++      dockerfile: Dockerfile.compose
++    environment:
++      REFERENCE_DATA_SERVICE_PORT: "18085"
++      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
++      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
++      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
++      REFERENCE_DATA_SUPPORTED_TICKERS: "${SUPPORTED_TICKERS:-AAPL,MSFT,AMZN,GOOGL,META,NVDA,TSLA,IBM,BAC,C,JPM,GS,MS,UBS,DB,COF,DFS,FNMA,FIS,FNF}"
++    ports:
++      - "18085:18085"
++    depends_on:
++      - database
++
++  nats-broker:
++    image: nats:2.10-alpine
++    command: ["-c", "/etc/nats/nats.conf"]
++    volumes:
++      - ./nats/nats.conf:/etc/nats/nats.conf:ro
++    ports:
++      - "4222:4222"
++      - "8222:8222"
++      - "8081:8081"
++
++  price-publisher:
++    build:
++      context: ../price-publisher
++      dockerfile: Dockerfile.compose
++    environment:
++      PRICE_PUBLISHER_PORT: "18100"
++      NATS_BROKER_HOST: "nats-broker"
++      PRICE_BOOTSTRAP_MODE: "${PRICE_BOOTSTRAP_MODE:-snapshot}"
++      PRICE_TICKERS: "${SUPPORTED_TICKERS:-AAPL,MSFT,AMZN,GOOGL,META,NVDA,TSLA,IBM,BAC,C,JPM,GS,MS,UBS,DB,COF,DFS,FNMA,FIS,FNF}"
++    ports:
++      - "18100:18100"
++    depends_on:
++      - nats-broker
++
++  people-service:
++    build:
++      context: ../people-service
++      dockerfile: Dockerfile.compose
++    environment:
++      PEOPLE_SERVICE_PORT: "18089"
++      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
++      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
++      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
++    ports:
++      - "18089:18089"
++
++  account-service:
++    build:
++      context: ../account-service
++      dockerfile: Dockerfile.compose
++    environment:
++      ACCOUNT_SERVICE_PORT: "18088"
++      DATABASE_PG_HOST: "database"
++      DATABASE_PG_PORT: "5432"
++      DATABASE_NAME: "traderx"
++      DATABASE_DBUSER: "traderx"
++      DATABASE_DBPASS: "traderx"
++      PEOPLE_SERVICE_HOST: "people-service"
++      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
++      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
++      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
++    ports:
++      - "18088:18088"
++    depends_on:
++      database:
++        condition: service_healthy
++      people-service:
++        condition: service_started
++
++  position-service:
++    build:
++      context: ../position-service
++      dockerfile: Dockerfile.compose
++    environment:
++      POSITION_SERVICE_PORT: "18090"
++      DATABASE_PG_HOST: "database"
++      DATABASE_PG_PORT: "5432"
++      DATABASE_NAME: "traderx"
++      DATABASE_DBUSER: "traderx"
++      DATABASE_DBPASS: "traderx"
++      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
++      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
++      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
++    ports:
++      - "18090:18090"
++    depends_on:
++      database:
++        condition: service_healthy
++
++  trade-processor:
++    build:
++      context: ../trade-processor
++      dockerfile: Dockerfile.compose
++    environment:
++      TRADE_PROCESSOR_SERVICE_PORT: "18091"
++      DATABASE_PG_HOST: "database"
++      DATABASE_PG_PORT: "5432"
++      DATABASE_NAME: "traderx"
++      DATABASE_DBUSER: "traderx"
++      DATABASE_DBPASS: "traderx"
++      NATS_BROKER_HOST: "nats-broker"
++      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
++      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
++      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
++    ports:
++      - "18091:18091"
++    depends_on:
++      database:
++        condition: service_healthy
++      nats-broker:
++        condition: service_started
++
++  trade-service:
++    build:
++      context: ../trade-service
++      dockerfile: Dockerfile.compose
++    environment:
++      TRADING_SERVICE_PORT: "18092"
++      ACCOUNT_SERVICE_HOST: "account-service"
++      REFERENCE_DATA_HOST: "reference-data"
++      PEOPLE_SERVICE_HOST: "people-service"
++      NATS_BROKER_HOST: "nats-broker"
++      PRICE_SERVICE_HOST: "price-publisher"
++      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
++      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
++      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
++    ports:
++      - "18092:18092"
++    depends_on:
++      - account-service
++      - reference-data
++      - people-service
++      - nats-broker
++      - price-publisher
++      - trade-processor
++
++  web-front-end-angular:
++    build:
++      context: ../web-front-end/angular
++      dockerfile: Dockerfile.compose
++    environment:
++      WEB_SERVICE_PORT: "18093"
++    ports:
++      - "18093:18093"
++    depends_on:
++      - account-service
++      - reference-data
++      - trade-service
++      - position-service
++      - people-service
++      - nats-broker
++
++  order-matcher:
++    build:
++      context: ../order-matcher
++      dockerfile: Dockerfile.compose
++    environment:
++      ORDER_MATCHER_PORT: "18110"
++      DATABASE_PG_HOST: "database"
++      DATABASE_PG_PORT: "5432"
++      DATABASE_NAME: "traderx"
++      DATABASE_DBUSER: "traderx"
++      DATABASE_DBPASS: "traderx"
++      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
++      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
++      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
++      PRICE_SERVICE_URL: "http://price-publisher:18100"
++      TRADE_SERVICE_URL: "http://trade-service:18092/trade/"
++      NATS_BROKER_HOST: "nats-broker"
++      ORDER_MATCHER_TICK_MS: "${ORDER_MATCHER_TICK_MS:-1000}"
++      ORDER_FILL_FULL_THRESHOLD: "${ORDER_FILL_FULL_THRESHOLD:-1000}"
++    ports:
++      - "18110:18110"
++    depends_on:
++      database:
++        condition: service_healthy
++      price-publisher:
++        condition: service_started
++      trade-service:
++        condition: service_started
++      nats-broker:
++        condition: service_started
++
++  ingress:
++    build:
++      context: ../ingress
++      dockerfile: Dockerfile.compose
++    environment:
++      NGINX_HOST: "localhost"
++      DATABASE_URL: "http://database:5432/"
++      REFERENCE_DATA_URL: "http://reference-data:18085/"
++      PEOPLE_SERVICE_URL: "http://people-service:18089/"
++      ACCOUNT_SERVICE_URL: "http://account-service:18088/"
++      POSITION_SERVICE_URL: "http://position-service:18090/"
++      TRADE_PROCESSOR_URL: "http://trade-processor:18091/"
++      TRADE_SERVICE_URL: "http://trade-service:18092/"
++      PRICE_PUBLISHER_URL: "http://price-publisher:18100/"
++      ORDER_MATCHER_URL: "http://order-matcher:18110/"
++      WEB_FRONTEND_URL: "http://web-front-end-angular:18093/"
++    ports:
++      - "8080:8080"
++    depends_on:
++      - web-front-end-angular
++      - account-service
++      - reference-data
++      - trade-service
++      - position-service
++      - people-service
++      - nats-broker
++      - price-publisher
++      - order-matcher
++
++  otel-collector:
++    image: otel/opentelemetry-collector-contrib:0.103.1
++    command: ["--config=/etc/otelcol-contrib/config.yaml"]
++    volumes:
++      - ./observability/otel-collector/config.yaml:/etc/otelcol-contrib/config.yaml:ro
++    ports:
++      - "4317:4317"
++      - "4318:4318"
++      - "8888:8888"
++      - "8889:8889"
++      - "13133:13133"
++    depends_on:
++      - tempo
++
++  blackbox-exporter:
++    image: prom/blackbox-exporter:v0.25.0
++    command: ["--config.file=/etc/blackbox_exporter/config.yml"]
++    volumes:
++      - ./observability/blackbox/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
++    ports:
++      - "9115:9115"
++
++  prometheus:
++    image: prom/prometheus:v2.53.2
++    command: ["--config.file=/etc/prometheus/prometheus.yml", "--web.enable-lifecycle"]
++    volumes:
++      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
++    ports:
++      - "9090:9090"
++    depends_on:
++      - blackbox-exporter
++      - otel-collector
++
++  loki:
++    image: grafana/loki:2.9.8
++    command: ["-config.file=/etc/loki/config.yaml"]
++    volumes:
++      - ./observability/loki/config.yaml:/etc/loki/config.yaml:ro
++    ports:
++      - "3100:3100"
++
++  promtail:
++    image: grafana/promtail:2.9.8
++    command: ["-config.file=/etc/promtail/config.yaml"]
++    volumes:
++      - ./observability/promtail/config.yaml:/etc/promtail/config.yaml:ro
++      - /var/run/docker.sock:/var/run/docker.sock:ro
++    depends_on:
++      - loki
++
++  tempo:
++    image: grafana/tempo:2.5.0
++    command: ["-config.file=/etc/tempo/config.yaml"]
++    volumes:
++      - ./observability/tempo/config.yaml:/etc/tempo/config.yaml:ro
++    ports:
++      - "3200:3200"
++
++  grafana:
++    image: grafana/grafana:11.1.0
++    environment:
++      GF_SECURITY_ADMIN_USER: "admin"
++      GF_SECURITY_ADMIN_PASSWORD: "admin"
++      GF_USERS_ALLOW_SIGN_UP: "false"
++      GF_AUTH_ANONYMOUS_ENABLED: "false"
++    volumes:
++      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
++      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
++    ports:
++      - "${GRAFANA_PORT:-3001}:3000"
++    depends_on:
++      - prometheus
++      - loki
++      - tempo
++
++volumes:
++  postgres_state_009_data:
+diff --git a/order-management-matcher/nats/nats.conf b/order-management-matcher/nats/nats.conf
+new file mode 100644
+index 0000000..1fb5a5f
+--- /dev/null
++++ b/order-management-matcher/nats/nats.conf
+@@ -0,0 +1,9 @@
++port: 4222
++
++http_port: 8222
++
++websocket {
++  port: 8081
++  no_tls: true
++  same_origin: false
++}
+diff --git a/order-management-matcher/observability/blackbox/blackbox.yml b/order-management-matcher/observability/blackbox/blackbox.yml
+new file mode 100644
+index 0000000..981da60
+--- /dev/null
++++ b/order-management-matcher/observability/blackbox/blackbox.yml
+@@ -0,0 +1,6 @@
++modules:
++  http_2xx:
++    prober: http
++    timeout: 5s
++    http:
++      preferred_ip_protocol: "ip4"
+diff --git a/order-management-matcher/observability/grafana/dashboards/traderx-logs-errors.json b/order-management-matcher/observability/grafana/dashboards/traderx-logs-errors.json
+new file mode 100644
+index 0000000..cb08448
+--- /dev/null
++++ b/order-management-matcher/observability/grafana/dashboards/traderx-logs-errors.json
+@@ -0,0 +1,158 @@
++{
++  "panels": [
++    {
++      "datasource": {
++        "type": "loki",
++        "uid": "loki"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "unit": "lines/s"
++        }
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 0,
++        "y": 0
++      },
++      "id": 1,
++      "options": {
++        "legend": {
++          "displayMode": "table",
++          "placement": "bottom"
++        }
++      },
++      "targets": [
++        {
++          "expr": "sum by (service) (rate({compose_project=\"traderx-state-009\",service=~\"$service\"}[1m]))",
++          "refId": "A"
++        }
++      ],
++      "title": "Log Throughput by Service",
++      "type": "timeseries"
++    },
++    {
++      "datasource": {
++        "type": "loki",
++        "uid": "loki"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "unit": "lines/s"
++        }
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 12,
++        "y": 0
++      },
++      "id": 2,
++      "options": {
++        "legend": {
++          "displayMode": "table",
++          "placement": "bottom"
++        }
++      },
++      "targets": [
++        {
++          "expr": "sum by (service) (rate({compose_project=\"traderx-state-009\",service=~\"$service\"} |~ \"(?i)(error|warn|exception|fail)\" [1m]))",
++          "refId": "A"
++        }
++      ],
++      "title": "Error/Warn Throughput by Service",
++      "type": "timeseries"
++    },
++    {
++      "datasource": {
++        "type": "loki",
++        "uid": "loki"
++      },
++      "gridPos": {
++        "h": 10,
++        "w": 24,
++        "x": 0,
++        "y": 8
++      },
++      "id": 3,
++      "options": {
++        "enableLogDetails": true,
++        "showLabels": true,
++        "showTime": true,
++        "wrapLogMessage": true
++      },
++      "targets": [
++        {
++          "expr": "{compose_project=\"traderx-state-009\",service=~\"$service\"}",
++          "refId": "A"
++        }
++      ],
++      "title": "Live Logs (Selected Services)",
++      "type": "logs"
++    },
++    {
++      "datasource": {
++        "type": "loki",
++        "uid": "loki"
++      },
++      "gridPos": {
++        "h": 10,
++        "w": 24,
++        "x": 0,
++        "y": 18
++      },
++      "id": 4,
++      "options": {
++        "enableLogDetails": true,
++        "showLabels": true,
++        "showTime": true,
++        "wrapLogMessage": true
++      },
++      "targets": [
++        {
++          "expr": "{compose_project=\"traderx-state-009\",service=~\"$service\"} |~ \"(?i)(error|warn|exception|fail)\"",
++          "refId": "A"
++        }
++      ],
++      "title": "Error Focus",
++      "type": "logs"
++    }
++  ],
++  "refresh": "10s",
++  "schemaVersion": 39,
++  "tags": [
++    "traderx",
++    "logs",
++    "provisioned"
++  ],
++  "templating": {
++    "list": [
++      {
++        "current": {
++          "text": "All",
++          "value": [
++            "$__all"
++          ]
++        },
++        "datasource": {
++          "type": "loki",
++          "uid": "loki"
++        },
++        "includeAll": true,
++        "label": "Service",
++        "multi": true,
++        "name": "service",
++        "query": "label_values({compose_project=\"traderx-state-009\"}, service)",
++        "type": "query"
++      }
++    ]
++  },
++  "time": {
++    "from": "now-30m",
++    "to": "now"
++  },
++  "timezone": "browser",
++  "title": "TraderX Logs & Errors",
++  "uid": "traderx-logs-errors"
++}
+diff --git a/order-management-matcher/observability/grafana/dashboards/traderx-nats-messaging-overview.json b/order-management-matcher/observability/grafana/dashboards/traderx-nats-messaging-overview.json
+new file mode 100644
+index 0000000..e4bf22c
+--- /dev/null
++++ b/order-management-matcher/observability/grafana/dashboards/traderx-nats-messaging-overview.json
+@@ -0,0 +1,19 @@
++{
++  "id": null,
++  "uid": "traderx-nats-messaging-overview",
++  "title": "TraderX NATS Messaging Overview",
++  "tags": ["traderx", "state-012", "nats", "messaging", "provisioned"],
++  "timezone": "browser",
++  "schemaVersion": 39,
++  "version": 1,
++  "refresh": "10s",
++  "time": { "from": "now-30m", "to": "now" },
++  "panels": [
++    {"id": 1, "type": "stat", "title": "NATS Monitor Endpoint", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 }, "targets": [{ "refId": "A", "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://nats-broker:8222/varz\"})" }], "fieldConfig": {"defaults": {"min": 0, "max": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}}},
++    {"id": 2, "type": "stat", "title": "Ingress NATS-WS Route", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 }, "targets": [{ "refId": "A", "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://ingress:8080/nats-ws\"})" }], "fieldConfig": {"defaults": {"min": 0, "max": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "orange", "value": null}, {"color": "green", "value": 1}]}}}},
++    {"id": 3, "type": "timeseries", "title": "NATS + Gateway Endpoint Latency", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 }, "targets": [{ "refId": "A", "expr": "probe_duration_seconds{job=\"traderx-http-probe\",instance=~\"http://nats-broker:8222/varz|http://ingress:8080/nats-ws\"}" }], "fieldConfig": {"defaults": {"unit": "s", "decimals": 3}}, "options": {"legend": {"displayMode": "table", "placement": "bottom"}}},
++    {"id": 4, "type": "timeseries", "title": "NATS + Messaging Service Log Throughput", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 }, "targets": [{ "refId": "A", "expr": "sum by (service) (rate({compose_project=\"traderx-state-009\",service=~\"nats-broker|trade-service|trade-processor|web-front-end-angular\"}[1m]))" }], "fieldConfig": {"defaults": {"unit": "lines/s"}}, "options": {"legend": {"displayMode": "table", "placement": "bottom"}}},
++    {"id": 5, "type": "logs", "title": "NATS Broker Logs", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 }, "targets": [{ "refId": "A", "expr": "{compose_project=\"traderx-state-009\",service=\"nats-broker\"}" }], "options": {"showLabels": true, "showTime": true, "wrapLogMessage": true, "enableLogDetails": true}},
++    {"id": 6, "type": "logs", "title": "Messaging Errors (Trade/Processor/Web)", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 }, "targets": [{ "refId": "A", "expr": "{compose_project=\"traderx-state-009\",service=~\"trade-service|trade-processor|web-front-end-angular\"} |~ \"(?i)(error|warn|exception|fail|nats|websocket)\"" }], "options": {"showLabels": true, "showTime": true, "wrapLogMessage": true, "enableLogDetails": true}}
++  ]
++}
+diff --git a/order-management-matcher/observability/grafana/dashboards/traderx-observability-control-plane.json b/order-management-matcher/observability/grafana/dashboards/traderx-observability-control-plane.json
+new file mode 100644
+index 0000000..13838fe
+--- /dev/null
++++ b/order-management-matcher/observability/grafana/dashboards/traderx-observability-control-plane.json
+@@ -0,0 +1,268 @@
++{
++  "panels": [
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "max": 1,
++          "min": 0,
++          "thresholds": {
++            "mode": "absolute",
++            "steps": [
++              {
++                "color": "red",
++                "value": null
++              },
++              {
++                "color": "green",
++                "value": 1
++              }
++            ]
++          }
++        }
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 0,
++        "y": 0
++      },
++      "id": 1,
++      "targets": [
++        {
++          "expr": "up{job=\"prometheus\"}",
++          "refId": "A"
++        }
++      ],
++      "title": "Prometheus Up",
++      "type": "stat"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "unit": "none"
++        }
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 6,
++        "y": 0
++      },
++      "id": 2,
++      "targets": [
++        {
++          "expr": "sum(up{job=\"otel-collector\"})",
++          "refId": "A"
++        }
++      ],
++      "title": "OTel Collector Targets Up",
++      "type": "stat"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "max": 1,
++          "min": 0,
++          "thresholds": {
++            "mode": "absolute",
++            "steps": [
++              {
++                "color": "red",
++                "value": null
++              },
++              {
++                "color": "green",
++                "value": 1
++              }
++            ]
++          }
++        }
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 12,
++        "y": 0
++      },
++      "id": 3,
++      "targets": [
++        {
++          "expr": "up{job=\"blackbox-exporter\"}",
++          "refId": "A"
++        }
++      ],
++      "title": "Blackbox Exporter Up",
++      "type": "stat"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "unit": "none"
++        }
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 18,
++        "y": 0
++      },
++      "id": 4,
++      "targets": [
++        {
++          "expr": "sum(otelcol_exporter_queue_size)",
++          "refId": "A"
++        }
++      ],
++      "title": "OTel Exporter Queue Size",
++      "type": "stat"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "unit": "bytes"
++        }
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 0,
++        "y": 4
++      },
++      "id": 5,
++      "options": {
++        "legend": {
++          "displayMode": "table",
++          "placement": "bottom"
++        }
++      },
++      "targets": [
++        {
++          "expr": "process_resident_memory_bytes{job=~\"prometheus|blackbox-exporter\"}",
++          "refId": "A"
++        },
++        {
++          "expr": "otelcol_process_memory_rss",
++          "refId": "B"
++        }
++      ],
++      "title": "Observability Process RSS",
++      "type": "timeseries"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "unit": "none"
++        }
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 12,
++        "y": 4
++      },
++      "id": 6,
++      "options": {
++        "legend": {
++          "displayMode": "table",
++          "placement": "bottom"
++        }
++      },
++      "targets": [
++        {
++          "expr": "otelcol_exporter_queue_size",
++          "refId": "A"
++        },
++        {
++          "expr": "otelcol_exporter_queue_capacity",
++          "refId": "B"
++        }
++      ],
++      "title": "OTel Exporter Queue (size/capacity)",
++      "type": "timeseries"
++    },
++    {
++      "datasource": {
++        "type": "loki",
++        "uid": "loki"
++      },
++      "gridPos": {
++        "h": 10,
++        "w": 24,
++        "x": 0,
++        "y": 12
++      },
++      "id": 7,
++      "options": {
++        "enableLogDetails": true,
++        "showLabels": true,
++        "showTime": true,
++        "wrapLogMessage": true
++      },
++      "targets": [
++        {
++          "expr": "{compose_project=\"traderx-state-009\",service=~\"grafana|loki|tempo|otel-collector|prometheus|promtail\"}",
++          "refId": "A"
++        }
++      ],
++      "title": "Control Plane Logs (Grafana/Loki/Tempo/OTel/Prometheus)",
++      "type": "logs"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "gridPos": {
++        "h": 6,
++        "w": 24,
++        "x": 0,
++        "y": 22
++      },
++      "id": 8,
++      "options": {
++        "content": "### Tempo is wired and ready\n- Data source: **Tempo**\n- Open Explore with Tempo selected and run TraceQL search: `{}`\n- In this base state, spans appear once services emit OTLP traces (current stack is ready for that next step).",
++        "mode": "markdown"
++      },
++      "title": "Tempo / Trace Exploration",
++      "type": "text"
++    }
++  ],
++  "refresh": "10s",
++  "schemaVersion": 39,
++  "tags": [
++    "traderx",
++    "observability",
++    "provisioned"
++  ],
++  "time": {
++    "from": "now-30m",
++    "to": "now"
++  },
++  "timezone": "browser",
++  "title": "TraderX Observability Control Plane",
++  "uid": "traderx-obs-control-plane"
++}
+diff --git a/order-management-matcher/observability/grafana/dashboards/traderx-order-management-observability.json b/order-management-matcher/observability/grafana/dashboards/traderx-order-management-observability.json
+new file mode 100644
+index 0000000..64cbf62
+--- /dev/null
++++ b/order-management-matcher/observability/grafana/dashboards/traderx-order-management-observability.json
+@@ -0,0 +1,171 @@
++{
++  "id": null,
++  "uid": "traderx-order-management-observability",
++  "title": "TraderX Order Management Observability",
++  "tags": [
++    "traderx",
++    "state-013",
++    "orders",
++    "provisioned"
++  ],
++  "timezone": "browser",
++  "schemaVersion": 39,
++  "version": 1,
++  "refresh": "10s",
++  "time": {
++    "from": "now-30m",
++    "to": "now"
++  },
++  "panels": [
++    {
++      "id": 1,
++      "type": "stat",
++      "title": "Open Orders",
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 0,
++        "y": 0
++      },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "max(traderx_orders_open_total)"
++        }
++      ]
++    },
++    {
++      "id": 2,
++      "type": "stat",
++      "title": "Unfilled Orders",
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 6,
++        "y": 0
++      },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "max(traderx_orders_unfilled_total)"
++        }
++      ]
++    },
++    {
++      "id": 3,
++      "type": "timeseries",
++      "title": "Order Events by Type",
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 0,
++        "y": 4
++      },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "sum by (event) (rate(traderx_order_events_total[5m]))"
++        }
++      ],
++      "options": {
++        "legend": {
++          "displayMode": "table",
++          "placement": "bottom"
++        }
++      }
++    },
++    {
++      "id": 4,
++      "type": "timeseries",
++      "title": "Matcher p95 Latency (5m)",
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 12,
++        "y": 4
++      },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "histogram_quantile(0.95, sum(rate(traderx_order_match_latency_seconds_bucket[5m])) by (le))"
++        }
++      ],
++      "fieldConfig": {
++        "defaults": {
++          "unit": "s",
++          "decimals": 3
++        }
++      }
++    },
++    {
++      "id": 5,
++      "type": "timeseries",
++      "title": "Pending Orders by Side",
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 0,
++        "y": 12
++      },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "traderx_orders_pending_by_side"
++        }
++      ],
++      "options": {
++        "legend": {
++          "displayMode": "table",
++          "placement": "bottom"
++        }
++      }
++    },
++    {
++      "id": 6,
++      "type": "logs",
++      "title": "Order Matcher Logs",
++      "datasource": {
++        "type": "loki",
++        "uid": "loki"
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 12,
++        "y": 12
++      },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "{compose_project=\"traderx-state-009\",service=\"order-matcher\"}"
++        }
++      ],
++      "options": {
++        "showLabels": true,
++        "showTime": true,
++        "wrapLogMessage": true,
++        "enableLogDetails": true
++      }
++    }
++  ]
++}
+diff --git a/order-management-matcher/observability/grafana/dashboards/traderx-order-matcher-sli.json b/order-management-matcher/observability/grafana/dashboards/traderx-order-matcher-sli.json
+new file mode 100644
+index 0000000..3d99a76
+--- /dev/null
++++ b/order-management-matcher/observability/grafana/dashboards/traderx-order-matcher-sli.json
+@@ -0,0 +1,86 @@
++{
++  "uid": "traderx-order-matcher-sli",
++  "title": "TraderX Order Matcher SLI",
++  "schemaVersion": 39,
++  "refresh": "10s",
++  "tags": ["traderx", "orders", "matcher", "prometheus", "provisioned"],
++  "time": { "from": "now-30m", "to": "now" },
++  "panels": [
++    {
++      "id": 1,
++      "type": "stat",
++      "title": "Open Orders",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 0 },
++      "targets": [{ "refId": "A", "expr": "max(traderx_orders_open_total)" }]
++    },
++    {
++      "id": 2,
++      "type": "stat",
++      "title": "Unfilled Orders",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 0 },
++      "targets": [{ "refId": "A", "expr": "max(traderx_orders_unfilled_total)" }]
++    },
++    {
++      "id": 3,
++      "type": "stat",
++      "title": "Order Matcher Actuator Up",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 0 },
++      "targets": [{ "refId": "A", "expr": "max(up{job=\"traderx-spring-boot-actuator\",instance=~\".*order-matcher.*\"})" }],
++      "fieldConfig": {
++        "defaults": {
++          "min": 0,
++          "max": 1,
++          "thresholds": {
++            "mode": "absolute",
++            "steps": [
++              { "color": "red", "value": null },
++              { "color": "green", "value": 1 }
++            ]
++          }
++        }
++      }
++    },
++    {
++      "id": 4,
++      "type": "stat",
++      "title": "Order Matcher HTTP p95 (s)",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 0 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"traderx-spring-boot-actuator\",instance=~\".*order-matcher.*\"}[5m])))"
++        }
++      ],
++      "fieldConfig": { "defaults": { "unit": "s" } }
++    },
++    {
++      "id": 5,
++      "type": "timeseries",
++      "title": "Order Event Rate (5m)",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 5 },
++      "targets": [
++        { "refId": "A", "expr": "sum by (event) (rate(traderx_order_events_total[5m]))" }
++      ],
++      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
++    },
++    {
++      "id": 6,
++      "type": "timeseries",
++      "title": "Matcher Latency p95 (s)",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 5 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "histogram_quantile(0.95, sum by (le) (rate(traderx_order_match_latency_seconds_bucket[5m])))"
++        }
++      ],
++      "fieldConfig": { "defaults": { "unit": "s" } }
++    }
++  ]
++}
+diff --git a/order-management-matcher/observability/grafana/dashboards/traderx-pricing-observability.json b/order-management-matcher/observability/grafana/dashboards/traderx-pricing-observability.json
+new file mode 100644
+index 0000000..8398cb2
+--- /dev/null
++++ b/order-management-matcher/observability/grafana/dashboards/traderx-pricing-observability.json
+@@ -0,0 +1,151 @@
++{
++  "id": null,
++  "uid": "traderx-obs-012-pricing",
++  "title": "TraderX Pricing + Observability (State 013)",
++  "tags": ["traderx", "state-012", "pricing", "observability"],
++  "timezone": "browser",
++  "schemaVersion": 39,
++  "version": 1,
++  "refresh": "10s",
++  "time": {
++    "from": "now-30m",
++    "to": "now"
++  },
++  "panels": [
++    {
++      "id": 1,
++      "type": "timeseries",
++      "title": "Endpoint Probe Success",
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "probe_success{job=\"traderx-http-probe\"}",
++          "legendFormat": "{{instance}}"
++        }
++      ]
++    },
++    {
++      "id": 2,
++      "type": "timeseries",
++      "title": "Probe P95 Latency (seconds)",
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "histogram_quantile(0.95, sum by (le, instance) (rate(probe_duration_seconds_bucket{job=\"traderx-http-probe\"}[5m])))",
++          "legendFormat": "{{instance}}"
++        }
++      ]
++    },
++    {
++      "id": 3,
++      "type": "stat",
++      "title": "Price Publisher Availability",
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 8 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://price-publisher:18100/health\"})"
++        }
++      ],
++      "options": {
++        "reduceOptions": {
++          "calcs": ["lastNotNull"],
++          "fields": "",
++          "values": false
++        }
++      }
++    },
++    {
++      "id": 4,
++      "type": "stat",
++      "title": "NATS Monitor Availability",
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 8 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://nats-broker:8222/varz\"})"
++        }
++      ],
++      "options": {
++        "reduceOptions": {
++          "calcs": ["lastNotNull"],
++          "fields": "",
++          "values": false
++        }
++      }
++    },
++    {
++      "id": 5,
++      "type": "table",
++      "title": "Latest HTTP Status by Endpoint",
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 8 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "max by (instance) (probe_http_status_code{job=\"traderx-http-probe\"})",
++          "format": "table",
++          "instant": true
++        }
++      ]
++    },
++    {
++      "id": 6,
++      "type": "timeseries",
++      "title": "Container Log Throughput (lines / 5m)",
++      "datasource": {
++        "type": "loki",
++        "uid": "loki"
++      },
++      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 14 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "sum by (service) (count_over_time({job=\"traderx-docker\", service=~\".+\"}[5m]))"
++        }
++      ]
++    },
++    {
++      "id": 7,
++      "type": "logs",
++      "title": "Price Publisher / Trade Logs",
++      "datasource": {
++        "type": "loki",
++        "uid": "loki"
++      },
++      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 14 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "{job=\"traderx-docker\", service=~\"price-publisher|trade-service|trade-processor\"}"
++        }
++      ],
++      "options": {
++        "showLabels": true,
++        "showTime": true,
++        "sortOrder": "Descending"
++      }
++    }
++  ]
++}
+diff --git a/order-management-matcher/observability/grafana/dashboards/traderx-pricing-pipeline-health.json b/order-management-matcher/observability/grafana/dashboards/traderx-pricing-pipeline-health.json
+new file mode 100644
+index 0000000..c3cd057
+--- /dev/null
++++ b/order-management-matcher/observability/grafana/dashboards/traderx-pricing-pipeline-health.json
+@@ -0,0 +1,20 @@
++{
++  "id": null,
++  "uid": "traderx-pricing-pipeline-health",
++  "title": "TraderX Pricing Pipeline Health",
++  "tags": ["traderx", "state-012", "pricing", "nats", "provisioned"],
++  "timezone": "browser",
++  "schemaVersion": 39,
++  "version": 1,
++  "refresh": "10s",
++  "time": { "from": "now-30m", "to": "now" },
++  "panels": [
++    {"id": 1, "type": "stat", "title": "Price Publisher Health", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 }, "targets": [{ "refId": "A", "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://price-publisher:18100/health\"})" }], "fieldConfig": {"defaults": {"min": 0, "max": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}}},
++    {"id": 2, "type": "stat", "title": "NATS Monitor Health", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 }, "targets": [{ "refId": "A", "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://nats-broker:8222/varz\"})" }], "fieldConfig": {"defaults": {"min": 0, "max": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}}},
++    {"id": 3, "type": "stat", "title": "Pricing Endpoint p95 (5m)", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 }, "targets": [{ "refId": "A", "expr": "quantile_over_time(0.95, probe_duration_seconds{job=\"traderx-http-probe\",instance=\"http://price-publisher:18100/prices/IBM\"}[5m])" }], "fieldConfig": {"defaults": {"unit": "s", "decimals": 3}}},
++    {"id": 4, "type": "stat", "title": "Trade API p95 (5m)", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 }, "targets": [{ "refId": "A", "expr": "quantile_over_time(0.95, probe_duration_seconds{job=\"traderx-http-probe\",instance=\"http://trade-service:18092/v3/api-docs\"}[5m])" }], "fieldConfig": {"defaults": {"unit": "s", "decimals": 3}}},
++    {"id": 5, "type": "timeseries", "title": "Pricing + Trade Endpoints Success", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 }, "targets": [{ "refId": "A", "expr": "probe_success{job=\"traderx-http-probe\",instance=~\"http://price-publisher:18100/.*|http://trade-service:18092/.*|http://trade-processor:18091/health\"}" }], "fieldConfig": {"defaults": {"min": 0, "max": 1}}, "options": {"legend": {"displayMode": "table", "placement": "bottom"}}},
++    {"id": 6, "type": "timeseries", "title": "Pricing Pipeline Log Throughput", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 }, "targets": [{ "refId": "A", "expr": "sum by (service) (rate({compose_project=\"traderx-state-009\",service=~\"price-publisher|trade-service|trade-processor|position-service\"}[1m]))" }], "fieldConfig": {"defaults": {"unit": "lines/s"}}, "options": {"legend": {"displayMode": "table", "placement": "bottom"}}},
++    {"id": 7, "type": "logs", "title": "Pipeline Logs (Price / Trade / Position)", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 10, "w": 24, "x": 0, "y": 12 }, "targets": [{ "refId": "A", "expr": "{compose_project=\"traderx-state-009\",service=~\"price-publisher|trade-service|trade-processor|position-service\"}" }], "options": {"showLabels": true, "showTime": true, "wrapLogMessage": true, "enableLogDetails": true}}
++  ]
++}
+diff --git a/order-management-matcher/observability/grafana/dashboards/traderx-runtime-health.json b/order-management-matcher/observability/grafana/dashboards/traderx-runtime-health.json
+new file mode 100644
+index 0000000..678e98b
+--- /dev/null
++++ b/order-management-matcher/observability/grafana/dashboards/traderx-runtime-health.json
+@@ -0,0 +1,298 @@
++{
++  "panels": [
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "decimals": 2,
++          "thresholds": {
++            "mode": "absolute",
++            "steps": [
++              {
++                "color": "red",
++                "value": null
++              },
++              {
++                "color": "orange",
++                "value": 95
++              },
++              {
++                "color": "green",
++                "value": 99
++              }
++            ]
++          },
++          "unit": "percent"
++        }
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 0,
++        "y": 0
++      },
++      "id": 1,
++      "targets": [
++        {
++          "expr": "100 * avg_over_time(probe_success{job=\"traderx-http-probe\"}[5m])",
++          "refId": "A"
++        }
++      ],
++      "title": "Endpoint Availability % (5m)",
++      "type": "stat"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "thresholds": {
++            "mode": "absolute",
++            "steps": [
++              {
++                "color": "green",
++                "value": null
++              },
++              {
++                "color": "red",
++                "value": 1
++              }
++            ]
++          },
++          "unit": "none"
++        }
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 6,
++        "y": 0
++      },
++      "id": 2,
++      "targets": [
++        {
++          "expr": "count(probe_success{job=\"traderx-http-probe\"} == 0)",
++          "refId": "A"
++        }
++      ],
++      "title": "Failing Endpoints (now)",
++      "type": "stat"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "unit": "none"
++        }
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 12,
++        "y": 0
++      },
++      "id": 3,
++      "targets": [
++        {
++          "expr": "count(probe_success{job=\"traderx-http-probe\"})",
++          "refId": "A"
++        }
++      ],
++      "title": "Monitored Endpoints",
++      "type": "stat"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "decimals": 3,
++          "thresholds": {
++            "mode": "absolute",
++            "steps": [
++              {
++                "color": "green",
++                "value": null
++              },
++              {
++                "color": "orange",
++                "value": 0.5
++              },
++              {
++                "color": "red",
++                "value": 1.5
++              }
++            ]
++          },
++          "unit": "s"
++        }
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 18,
++        "y": 0
++      },
++      "id": 4,
++      "targets": [
++        {
++          "expr": "quantile_over_time(0.95, probe_duration_seconds{job=\"traderx-http-probe\"}[5m])",
++          "refId": "A"
++        }
++      ],
++      "title": "Probe p95 Latency (5m)",
++      "type": "stat"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "max": 1,
++          "min": 0
++        }
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 0,
++        "y": 4
++      },
++      "id": 5,
++      "options": {
++        "legend": {
++          "displayMode": "table",
++          "placement": "bottom"
++        }
++      },
++      "targets": [
++        {
++          "expr": "probe_success{job=\"traderx-http-probe\"}",
++          "refId": "A"
++        }
++      ],
++      "title": "Endpoint Up/Down by Target",
++      "type": "timeseries"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "decimals": 3,
++          "unit": "s"
++        }
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 12,
++        "y": 4
++      },
++      "id": 6,
++      "options": {
++        "legend": {
++          "displayMode": "table",
++          "placement": "bottom"
++        }
++      },
++      "targets": [
++        {
++          "expr": "probe_duration_seconds{job=\"traderx-http-probe\"}",
++          "refId": "A"
++        }
++      ],
++      "title": "Probe Duration by Target",
++      "type": "timeseries"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 0,
++        "y": 12
++      },
++      "id": 7,
++      "options": {
++        "showHeader": true
++      },
++      "targets": [
++        {
++          "expr": "probe_success{job=\"traderx-http-probe\"}",
++          "instant": true,
++          "refId": "A"
++        }
++      ],
++      "title": "Current Endpoint Status",
++      "type": "table"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "unit": "none"
++        }
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 12,
++        "y": 12
++      },
++      "id": 8,
++      "options": {
++        "legend": {
++          "displayMode": "table",
++          "placement": "bottom"
++        }
++      },
++      "targets": [
++        {
++          "expr": "otelcol_exporter_queue_size",
++          "refId": "A"
++        },
++        {
++          "expr": "otelcol_exporter_queue_capacity",
++          "refId": "B"
++        }
++      ],
++      "title": "Collector Queue Size",
++      "type": "timeseries"
++    }
++  ],
++  "refresh": "10s",
++  "schemaVersion": 39,
++  "tags": [
++    "traderx",
++    "runtime",
++    "provisioned"
++  ],
++  "time": {
++    "from": "now-30m",
++    "to": "now"
++  },
++  "timezone": "browser",
++  "title": "TraderX Runtime Health",
++  "uid": "traderx-runtime-health"
++}
+diff --git a/order-management-matcher/observability/grafana/dashboards/traderx-spring-actuator-overview.json b/order-management-matcher/observability/grafana/dashboards/traderx-spring-actuator-overview.json
+new file mode 100644
+index 0000000..56a48c6
+--- /dev/null
++++ b/order-management-matcher/observability/grafana/dashboards/traderx-spring-actuator-overview.json
+@@ -0,0 +1,76 @@
++{
++  "uid": "traderx-spring-actuator-overview",
++  "title": "TraderX Spring Actuator Overview",
++  "schemaVersion": 39,
++  "refresh": "10s",
++  "tags": ["traderx", "spring", "prometheus", "provisioned"],
++  "time": { "from": "now-30m", "to": "now" },
++  "templating": {
++    "list": [
++      {
++        "name": "instance",
++        "type": "query",
++        "label": "Instance",
++        "datasource": { "type": "prometheus", "uid": "prometheus" },
++        "query": "label_values(up{job=\"traderx-spring-boot-actuator\"}, instance)",
++        "includeAll": true,
++        "multi": true,
++        "current": { "text": "All", "value": ["$__all"] }
++      }
++    ]
++  },
++  "panels": [
++    {
++      "id": 1,
++      "type": "timeseries",
++      "title": "HTTP Request Rate (req/s)",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
++      "targets": [
++        { "refId": "A", "expr": "sum by (instance) (rate(http_server_requests_seconds_count{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}[5m]))" }
++      ]
++    },
++    {
++      "id": 2,
++      "type": "timeseries",
++      "title": "HTTP p95 Latency (s)",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
++      "targets": [
++        { "refId": "A", "expr": "histogram_quantile(0.95, sum by (instance, le) (rate(http_server_requests_seconds_bucket{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}[5m])))" }
++      ]
++    },
++    {
++      "id": 3,
++      "type": "timeseries",
++      "title": "JVM Heap Used (bytes)",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
++      "targets": [
++        { "refId": "A", "expr": "sum by (instance) (jvm_memory_used_bytes{job=\"traderx-spring-boot-actuator\",area=\"heap\",instance=~\"$instance\"})" }
++      ]
++    },
++    {
++      "id": 4,
++      "type": "stat",
++      "title": "Actuator Targets Up",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
++      "targets": [
++        { "refId": "A", "expr": "sum(up{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"})" }
++      ],
++      "fieldConfig": {
++        "defaults": {
++          "min": 0,
++          "thresholds": {
++            "mode": "absolute",
++            "steps": [
++              { "color": "red", "value": null },
++              { "color": "green", "value": 1 }
++            ]
++          }
++        }
++      }
++    }
++  ]
++}
+diff --git a/order-management-matcher/observability/grafana/dashboards/traderx-spring-service-sli.json b/order-management-matcher/observability/grafana/dashboards/traderx-spring-service-sli.json
+new file mode 100644
+index 0000000..233af92
+--- /dev/null
++++ b/order-management-matcher/observability/grafana/dashboards/traderx-spring-service-sli.json
+@@ -0,0 +1,108 @@
++{
++  "uid": "traderx-spring-service-sli",
++  "title": "TraderX Spring Service SLI",
++  "schemaVersion": 39,
++  "refresh": "10s",
++  "tags": ["traderx", "spring", "sli", "prometheus", "provisioned"],
++  "time": { "from": "now-30m", "to": "now" },
++  "templating": {
++    "list": [
++      {
++        "name": "instance",
++        "type": "query",
++        "label": "Instance",
++        "datasource": { "type": "prometheus", "uid": "prometheus" },
++        "query": "label_values(up{job=\"traderx-spring-boot-actuator\"}, instance)",
++        "includeAll": true,
++        "multi": true,
++        "current": { "text": "All", "value": ["$__all"] }
++      }
++    ]
++  },
++  "panels": [
++    {
++      "id": 1,
++      "type": "stat",
++      "title": "Scrape Target Availability Ratio",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "sum(up{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}) / clamp_min(count(up{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}), 1)"
++        }
++      ],
++      "fieldConfig": {
++        "defaults": {
++          "min": 0,
++          "max": 1,
++          "unit": "percentunit",
++          "thresholds": {
++            "mode": "absolute",
++            "steps": [
++              { "color": "red", "value": null },
++              { "color": "yellow", "value": 0.9 },
++              { "color": "green", "value": 1.0 }
++            ]
++          }
++        }
++      }
++    },
++    {
++      "id": 2,
++      "type": "timeseries",
++      "title": "HTTP 5xx Rate (req/s)",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 6, "w": 18, "x": 6, "y": 0 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "sum by (instance) (rate(http_server_requests_seconds_count{job=\"traderx-spring-boot-actuator\",status=~\"5..\",instance=~\"$instance\"}[5m]))"
++        }
++      ],
++      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
++    },
++    {
++      "id": 3,
++      "type": "timeseries",
++      "title": "Process CPU Usage (%)",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "100 * max by (instance) (process_cpu_usage{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"})"
++        }
++      ],
++      "fieldConfig": { "defaults": { "unit": "percent", "min": 0 } }
++    },
++    {
++      "id": 4,
++      "type": "timeseries",
++      "title": "GC Pause p95 (s)",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "histogram_quantile(0.95, sum by (instance, le) (rate(jvm_gc_pause_seconds_bucket{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}[5m])))"
++        }
++      ],
++      "fieldConfig": { "defaults": { "unit": "s" } }
++    },
++    {
++      "id": 5,
++      "type": "timeseries",
++      "title": "Live Threads",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 14 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "max by (instance) (jvm_threads_live_threads{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"})"
++        }
++      ],
++      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
++    }
++  ]
++}
+diff --git a/order-management-matcher/observability/grafana/provisioning/dashboards/dashboards.yaml b/order-management-matcher/observability/grafana/provisioning/dashboards/dashboards.yaml
+new file mode 100644
+index 0000000..74cc9a0
+--- /dev/null
++++ b/order-management-matcher/observability/grafana/provisioning/dashboards/dashboards.yaml
+@@ -0,0 +1,11 @@
++apiVersion: 1
++
++providers:
++  - name: TraderX Dashboards
++    orgId: 1
++    folder: TraderX
++    type: file
++    disableDeletion: false
++    updateIntervalSeconds: 30
++    options:
++      path: /var/lib/grafana/dashboards
+diff --git a/order-management-matcher/observability/grafana/provisioning/datasources/datasources.yaml b/order-management-matcher/observability/grafana/provisioning/datasources/datasources.yaml
+new file mode 100644
+index 0000000..caf551f
+--- /dev/null
++++ b/order-management-matcher/observability/grafana/provisioning/datasources/datasources.yaml
+@@ -0,0 +1,27 @@
++apiVersion: 1
++
++datasources:
++  - name: Prometheus
++    uid: prometheus
++    type: prometheus
++    access: proxy
++    url: http://prometheus:9090
++    isDefault: true
++
++  - name: Loki
++    uid: loki
++    type: loki
++    access: proxy
++    url: http://loki:3100
++
++  - name: Tempo
++    uid: tempo
++    type: tempo
++    access: proxy
++    url: http://tempo:3200
++    jsonData:
++      httpMethod: GET
++      tracesToLogs:
++        datasourceUid: loki
++      serviceMap:
++        datasourceUid: prometheus
+diff --git a/order-management-matcher/observability/loki/config.yaml b/order-management-matcher/observability/loki/config.yaml
+new file mode 100644
+index 0000000..4fcbd67
+--- /dev/null
++++ b/order-management-matcher/observability/loki/config.yaml
+@@ -0,0 +1,31 @@
++auth_enabled: false
++
++server:
++  http_listen_port: 3100
++  grpc_listen_port: 9096
++
++common:
++  path_prefix: /tmp/loki
++  storage:
++    filesystem:
++      chunks_directory: /tmp/loki/chunks
++      rules_directory: /tmp/loki/rules
++  replication_factor: 1
++  ring:
++    kvstore:
++      store: inmemory
++
++schema_config:
++  configs:
++    - from: "2024-01-01"
++      store: tsdb
++      object_store: filesystem
++      schema: v13
++      index:
++        prefix: index_
++        period: 24h
++
++limits_config:
++  allow_structured_metadata: false
++  reject_old_samples: true
++  reject_old_samples_max_age: 168h
+diff --git a/order-management-matcher/observability/otel-collector/config.yaml b/order-management-matcher/observability/otel-collector/config.yaml
+new file mode 100644
+index 0000000..18604ee
+--- /dev/null
++++ b/order-management-matcher/observability/otel-collector/config.yaml
+@@ -0,0 +1,37 @@
++extensions:
++  health_check:
++    endpoint: 0.0.0.0:13133
++
++receivers:
++  otlp:
++    protocols:
++      grpc:
++        endpoint: 0.0.0.0:4317
++      http:
++        endpoint: 0.0.0.0:4318
++
++processors:
++  batch:
++    timeout: 1s
++
++exporters:
++  logging:
++    verbosity: normal
++  prometheus:
++    endpoint: 0.0.0.0:8889
++  otlp/tempo:
++    endpoint: tempo:4317
++    tls:
++      insecure: true
++
++service:
++  extensions: [health_check]
++  pipelines:
++    traces:
++      receivers: [otlp]
++      processors: [batch]
++      exporters: [otlp/tempo, logging]
++    metrics:
++      receivers: [otlp]
++      processors: [batch]
++      exporters: [prometheus, logging]
+diff --git a/order-management-matcher/observability/prometheus/prometheus.yml b/order-management-matcher/observability/prometheus/prometheus.yml
+new file mode 100644
+index 0000000..fa60a9f
+--- /dev/null
++++ b/order-management-matcher/observability/prometheus/prometheus.yml
+@@ -0,0 +1,56 @@
++global:
++  scrape_interval: 15s
++  evaluation_interval: 15s
++
++scrape_configs:
++  - job_name: prometheus
++    static_configs:
++      - targets: ["prometheus:9090"]
++
++  - job_name: otel-collector
++    static_configs:
++      - targets: ["otel-collector:8888", "otel-collector:8889", "otel-collector:13133"]
++
++  - job_name: blackbox-exporter
++    static_configs:
++      - targets: ["blackbox-exporter:9115"]
++
++  - job_name: traderx-spring-boot-actuator
++    metrics_path: /actuator/prometheus
++    static_configs:
++      - targets: ["account-service:18088", "position-service:18090", "trade-processor:18091", "trade-service:18092", "order-matcher:18110"]
++
++  - job_name: traderx-http-probe
++    metrics_path: /probe
++    params:
++      module: [http_2xx]
++    static_configs:
++      - targets:
++          - http://ingress:8080/health
++          - http://ingress:8080/
++          - http://database:18084/
++          - http://reference-data:18085/stocks
++          - http://price-publisher:18100/health
++          - http://price-publisher:18100/prices/IBM
++          - http://account-service:18088/account/22214
++          - http://people-service:18089/swagger
++          - http://position-service:18090/health/alive
++          - http://trade-processor:18091/health
++          - http://trade-service:18092/v3/api-docs
++          - http://web-front-end-angular:18093/
++          - http://nats-broker:8222/varz
++          - http://order-matcher:18110/health
++          - http://order-matcher:18110/orders/open-count
++    relabel_configs:
++      - source_labels: [__address__]
++        target_label: __param_target
++      - source_labels: [__param_target]
++        target_label: instance
++      - target_label: __address__
++        replacement: blackbox-exporter:9115
++
++
++  - job_name: order-matcher
++    metrics_path: /metrics
++    static_configs:
++      - targets: ["order-matcher:18110"]
+diff --git a/order-management-matcher/observability/promtail/config.yaml b/order-management-matcher/observability/promtail/config.yaml
+new file mode 100644
+index 0000000..7ffa433
+--- /dev/null
++++ b/order-management-matcher/observability/promtail/config.yaml
+@@ -0,0 +1,25 @@
++server:
++  http_listen_port: 9080
++  grpc_listen_port: 0
++
++positions:
++  filename: /tmp/positions.yaml
++
++clients:
++  - url: http://loki:3100/loki/api/v1/push
++
++scrape_configs:
++  - job_name: traderx-docker
++    docker_sd_configs:
++      - host: unix:///var/run/docker.sock
++        refresh_interval: 10s
++    relabel_configs:
++      - source_labels: [__meta_docker_container_name]
++        regex: "/(.*)"
++        target_label: container
++      - source_labels: [__meta_docker_container_label_com_docker_compose_service]
++        target_label: service
++      - source_labels: [__meta_docker_container_label_com_docker_compose_project]
++        target_label: compose_project
++      - target_label: job
++        replacement: traderx-docker
+diff --git a/order-management-matcher/observability/tempo/config.yaml b/order-management-matcher/observability/tempo/config.yaml
+new file mode 100644
+index 0000000..0ac9f9f
+--- /dev/null
++++ b/order-management-matcher/observability/tempo/config.yaml
+@@ -0,0 +1,24 @@
++server:
++  http_listen_port: 3200
++
++distributor:
++  receivers:
++    otlp:
++      protocols:
++        grpc:
++          endpoint: 0.0.0.0:4317
++        http:
++          endpoint: 0.0.0.0:4318
++
++ingester:
++  max_block_duration: 5m
++
++compactor:
++  compaction:
++    block_retention: 24h
++
++storage:
++  trace:
++    backend: local
++    local:
++      path: /tmp/tempo/traces
+diff --git a/order-matcher/Dockerfile b/order-matcher/Dockerfile
+new file mode 100644
+index 0000000..6038e68
+--- /dev/null
++++ b/order-matcher/Dockerfile
+@@ -0,0 +1,5 @@
++FROM eclipse-temurin:21-jre
++WORKDIR /opt/app
++COPY build/libs/*.jar app.jar
++EXPOSE 18110
++ENTRYPOINT ["java", "-jar", "/opt/app/app.jar"]
+diff --git a/order-matcher/Dockerfile.compose b/order-matcher/Dockerfile.compose
+new file mode 100644
+index 0000000..ec92b8a
+--- /dev/null
++++ b/order-matcher/Dockerfile.compose
+@@ -0,0 +1,14 @@
++# syntax=docker/dockerfile:1.7
++FROM eclipse-temurin:21-jdk AS build
++WORKDIR /app
++COPY . .
++RUN --mount=type=cache,target=/root/.gradle,sharing=locked \
++    chmod +x gradlew && ./gradlew --no-daemon clean bootJar \
++ && jar_path="$(ls -1 build/libs/*.jar | grep -v -- '-plain\.jar$' | head -n 1)" \
++ && cp "${jar_path}" build/libs/app.jar
++
++FROM eclipse-temurin:21-jre
++WORKDIR /opt/app
++COPY --from=build /app/build/libs/app.jar app.jar
++EXPOSE 18110
++ENTRYPOINT ["java", "-jar", "/opt/app/app.jar"]
+diff --git a/order-matcher/README.md b/order-matcher/README.md
+new file mode 100644
+index 0000000..9b1b5d1
+--- /dev/null
++++ b/order-matcher/README.md
+@@ -0,0 +1,19 @@
++# Order Matcher (Spec-First Generated)
++
++This component is synthesized from the TraderX Spec Kit state overlays and provides persisted limit-order management plus matching.
++
++## Run
++
++```bash
++./gradlew build
++./gradlew bootRun
++```
++
++## Runtime Contract
++
++- Default port: `18110` via `ORDER_MATCHER_PORT`
++- Database: `DATABASE_TCP_HOST`, `DATABASE_TCP_PORT`, `DATABASE_NAME`, `DATABASE_DBUSER`, `DATABASE_DBPASS`
++- Price source: `PRICE_SERVICE_URL` (default `http://price-publisher:18100`)
++- Trade submit target: `TRADE_SERVICE_URL` (default `http://trade-service:18092/trade/`)
++- Matcher tick: `ORDER_MATCHER_TICK_MS` (default `1000`)
++- Full-fill threshold: `ORDER_FILL_FULL_THRESHOLD` (default `1000`)
+diff --git a/order-matcher/SPEC.manifest.json b/order-matcher/SPEC.manifest.json
+new file mode 100644
+index 0000000..59e1df4
+--- /dev/null
++++ b/order-matcher/SPEC.manifest.json
+@@ -0,0 +1,52 @@
++{
++  "schemaVersion": "1.0.0",
++  "generatedAtUtc": "2026-04-05T00:00:00Z",
++  "component": {
++    "id": "order-matcher",
++    "kind": "service",
++    "language": "Java",
++    "framework": "Spring Boot",
++    "buildTool": "Gradle",
++    "sourcePath": "generated/code/target-generated/order-matcher",
++    "targetPath": "apps/order-matcher",
++    "notes": "Persists and matches limit orders, submits trades on fills, and exposes order APIs + metrics."
++  },
++  "runtime": {
++    "defaultPort": 18110,
++    "dependsOn": [
++      "database",
++      "price-publisher",
++      "trade-service"
++    ],
++    "requiredEnv": [
++      "ORDER_MATCHER_PORT",
++      "DATABASE_TCP_HOST",
++      "DATABASE_TCP_PORT",
++      "DATABASE_NAME",
++      "DATABASE_DBUSER",
++      "DATABASE_DBPASS",
++      "PRICE_SERVICE_URL",
++      "TRADE_SERVICE_URL",
++      "ORDER_MATCHER_TICK_MS",
++      "ORDER_FILL_FULL_THRESHOLD"
++    ]
++  },
++  "contracts": {
++    "primary": "specs/009-order-management-matcher/contracts/contract-delta.md"
++  },
++  "traceability": {
++    "requirements": [
++      "FR-01301",
++      "FR-01302",
++      "FR-01306"
++    ],
++    "flows": [
++      "F5"
++    ],
++    "verificationRefs": [
++      "scripts/start-state-009-order-management-matcher-generated.sh",
++      "scripts/test-state-009-order-management-matcher.sh"
++    ]
++  }
++}
++
+diff --git a/order-matcher/build.gradle b/order-matcher/build.gradle
+new file mode 100644
+index 0000000..641b0bc
+--- /dev/null
++++ b/order-matcher/build.gradle
+@@ -0,0 +1,35 @@
++plugins {
++  id 'java'
++  id 'org.springframework.boot' version '3.5.14'
++  id 'io.spring.dependency-management' version '1.1.7'
++}
++
++ext['tomcat.version'] = '10.1.55'
++
++group = 'finos.traderx.order-matcher-specfirst'
++version = '0.1.0'
++
++java {
++  sourceCompatibility = JavaVersion.VERSION_21
++}
++
++repositories {
++  mavenCentral()
++}
++
++dependencies {
++  implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
++  implementation 'org.springframework.boot:spring-boot-starter-web'
++  implementation 'org.springframework.boot:spring-boot-starter-actuator'
++  runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
++  runtimeOnly 'org.postgresql:postgresql:42.7.11'
++  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
++  implementation('org.json:json:20240303') {
++    because 'previous versions are affected by multiple CVE'
++  }
++  implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.3.20'
++  implementation('io.socket:socket.io-client:2.1.2') {
++    exclude group: 'org.json', module: 'json'
++  }
++  implementation 'com.squareup.okhttp3:okhttp:4.12.0'
++  implementation ('ch.qos.logback:logback-core:1.5.32') {
++    because 'version brought in by spring boot 3.5.14 affected by CVE-2024-12798'
++  }
++  implementation 'ch.qos.logback:logback-classic:1.5.32'
++  implementation 'org.apache.logging.log4j:log4j-api:2.25.4'
++  implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.25.4'
++  implementation 'org.apache.commons:commons-lang3:3.20.0'
++
++  testImplementation 'org.springframework.boot:spring-boot-starter-test'
++  testRuntimeOnly 'com.h2database:h2'
++}
++
++tasks.withType(Test).configureEach {
++  useJUnitPlatform()
++}
++
++configurations.configureEach {
++  exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
++  exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
++}
+diff --git a/order-matcher/openapi.yaml b/order-matcher/openapi.yaml
+new file mode 100644
+index 0000000..4bb0858
+--- /dev/null
++++ b/order-matcher/openapi.yaml
+@@ -0,0 +1,53 @@
++openapi: 3.1.0
++info:
++  title: TraderX Order Matcher API
++  version: 0.1.0
++paths:
++  /orders:
++    get:
++      summary: List orders
++      parameters:
++        - in: query
++          name: status
++          schema:
++            type: string
++          required: false
++        - in: query
++          name: accountId
++          schema:
++            type: integer
++          required: false
++      responses:
++        "200":
++          description: OK
++    post:
++      summary: Create order
++      responses:
++        "201":
++          description: Created
++  /orders/{orderId}:
++    get:
++      summary: Get order
++      parameters:
++        - in: path
++          name: orderId
++          required: true
++          schema:
++            type: string
++      responses:
++        "200":
++          description: OK
++        "404":
++          description: Not found
++  /orders/{orderId}/cancel:
++    post:
++      summary: Cancel order
++      responses:
++        "200":
++          description: OK
++  /orders/{orderId}/force-fill:
++    post:
++      summary: Force fill order
++      responses:
++        "200":
++          description: OK
+diff --git a/order-matcher/settings.gradle b/order-matcher/settings.gradle
+new file mode 100644
+index 0000000..2133b59
+--- /dev/null
++++ b/order-matcher/settings.gradle
+@@ -0,0 +1 @@
++rootProject.name = 'order-matcher-specfirst'
+diff --git a/order-matcher/src/main/java/finos/traderx/ordermatcher/OrderMatcherApplication.java b/order-matcher/src/main/java/finos/traderx/ordermatcher/OrderMatcherApplication.java
+new file mode 100644
+index 0000000..6489fc1
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/ordermatcher/OrderMatcherApplication.java
+@@ -0,0 +1,14 @@
++package finos.traderx.ordermatcher;
++
++import org.springframework.boot.SpringApplication;
++import org.springframework.boot.autoconfigure.SpringBootApplication;
++import org.springframework.scheduling.annotation.EnableScheduling;
++
++@SpringBootApplication
++@EnableScheduling
++public class OrderMatcherApplication {
++    public static void main(String[] args) {
++        SpringApplication.run(OrderMatcherApplication.class, args);
++    }
++}
++
+diff --git a/order-matcher/src/main/java/finos/traderx/ordermatcher/api/OpenCountResponse.java b/order-matcher/src/main/java/finos/traderx/ordermatcher/api/OpenCountResponse.java
+new file mode 100644
+index 0000000..7f63607
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/ordermatcher/api/OpenCountResponse.java
+@@ -0,0 +1,20 @@
++package finos.traderx.ordermatcher.api;
++
++public class OpenCountResponse {
++    private final long openOrders;
++    private final long unfilledOrders;
++
++    public OpenCountResponse(long openOrders, long unfilledOrders) {
++        this.openOrders = openOrders;
++        this.unfilledOrders = unfilledOrders;
++    }
++
++    public long getOpenOrders() {
++        return openOrders;
++    }
++
++    public long getUnfilledOrders() {
++        return unfilledOrders;
++    }
++}
++
+diff --git a/order-matcher/src/main/java/finos/traderx/ordermatcher/api/OrderCreateRequest.java b/order-matcher/src/main/java/finos/traderx/ordermatcher/api/OrderCreateRequest.java
+new file mode 100644
+index 0000000..e3bccaa
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/ordermatcher/api/OrderCreateRequest.java
+@@ -0,0 +1,54 @@
++package finos.traderx.ordermatcher.api;
++
++import finos.traderx.ordermatcher.model.OrderSide;
++
++import java.math.BigDecimal;
++
++public class OrderCreateRequest {
++    private Integer accountId;
++    private String security;
++    private OrderSide side;
++    private Integer quantity;
++    private BigDecimal limitPrice;
++
++    public Integer getAccountId() {
++        return accountId;
++    }
++
++    public void setAccountId(Integer accountId) {
++        this.accountId = accountId;
++    }
++
++    public String getSecurity() {
++        return security;
++    }
++
++    public void setSecurity(String security) {
++        this.security = security;
++    }
++
++    public OrderSide getSide() {
++        return side;
++    }
++
++    public void setSide(OrderSide side) {
++        this.side = side;
++    }
++
++    public Integer getQuantity() {
++        return quantity;
++    }
++
++    public void setQuantity(Integer quantity) {
++        this.quantity = quantity;
++    }
++
++    public BigDecimal getLimitPrice() {
++        return limitPrice;
++    }
++
++    public void setLimitPrice(BigDecimal limitPrice) {
++        this.limitPrice = limitPrice;
++    }
++}
++
+diff --git a/order-matcher/src/main/java/finos/traderx/ordermatcher/api/OrderResponse.java b/order-matcher/src/main/java/finos/traderx/ordermatcher/api/OrderResponse.java
+new file mode 100644
+index 0000000..7bee55f
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/ordermatcher/api/OrderResponse.java
+@@ -0,0 +1,95 @@
++package finos.traderx.ordermatcher.api;
++
++import finos.traderx.ordermatcher.model.OrderRecord;
++import finos.traderx.ordermatcher.model.OrderSide;
++import finos.traderx.ordermatcher.model.OrderStatus;
++
++import java.math.BigDecimal;
++import java.time.Instant;
++
++public class OrderResponse {
++    private String orderId;
++    private Integer accountId;
++    private String security;
++    private OrderSide side;
++    private Integer quantity;
++    private Integer remainingQuantity;
++    private BigDecimal limitPrice;
++    private OrderStatus status;
++    private Instant createdAt;
++    private Instant updatedAt;
++    private BigDecimal lastExecutionPrice;
++    private Integer lastFillQuantity;
++    private BigDecimal marketPrice;
++
++    public static OrderResponse from(OrderRecord order, BigDecimal marketPrice) {
++        OrderResponse response = new OrderResponse();
++        response.orderId = order.getOrderId();
++        response.accountId = order.getAccountId();
++        response.security = order.getSecurity();
++        response.side = order.getSide();
++        response.quantity = order.getQuantity();
++        response.remainingQuantity = order.getRemainingQuantity();
++        response.limitPrice = order.getLimitPrice();
++        response.status = order.getStatus();
++        response.createdAt = order.getCreatedAt();
++        response.updatedAt = order.getUpdatedAt();
++        response.lastExecutionPrice = order.getLastExecutionPrice();
++        response.lastFillQuantity = order.getLastFillQuantity();
++        response.marketPrice = marketPrice;
++        return response;
++    }
++
++    public String getOrderId() {
++        return orderId;
++    }
++
++    public Integer getAccountId() {
++        return accountId;
++    }
++
++    public String getSecurity() {
++        return security;
++    }
++
++    public OrderSide getSide() {
++        return side;
++    }
++
++    public Integer getQuantity() {
++        return quantity;
++    }
++
++    public Integer getRemainingQuantity() {
++        return remainingQuantity;
++    }
++
++    public BigDecimal getLimitPrice() {
++        return limitPrice;
++    }
++
++    public OrderStatus getStatus() {
++        return status;
++    }
++
++    public Instant getCreatedAt() {
++        return createdAt;
++    }
++
++    public Instant getUpdatedAt() {
++        return updatedAt;
++    }
++
++    public BigDecimal getLastExecutionPrice() {
++        return lastExecutionPrice;
++    }
++
++    public Integer getLastFillQuantity() {
++        return lastFillQuantity;
++    }
++
++    public BigDecimal getMarketPrice() {
++        return marketPrice;
++    }
++}
++
+diff --git a/order-matcher/src/main/java/finos/traderx/ordermatcher/config/CorsConfig.java b/order-matcher/src/main/java/finos/traderx/ordermatcher/config/CorsConfig.java
+new file mode 100644
+index 0000000..ad2b159
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/ordermatcher/config/CorsConfig.java
+@@ -0,0 +1,32 @@
++package finos.traderx.ordermatcher.config;
++
++import org.springframework.beans.factory.annotation.Value;
++import org.springframework.context.annotation.Configuration;
++import org.springframework.util.StringUtils;
++import org.springframework.web.servlet.config.annotation.CorsRegistry;
++import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
++
++import java.util.Arrays;
++
++@Configuration
++public class CorsConfig implements WebMvcConfigurer {
++    @Value("${CORS_ALLOWED_ORIGINS:*}")
++    private String corsAllowedOrigins;
++
++    @Override
++    public void addCorsMappings(CorsRegistry registry) {
++        String[] origins = Arrays.stream(corsAllowedOrigins.split(","))
++            .map(String::trim)
++            .filter(StringUtils::hasText)
++            .toArray(String[]::new);
++        if (origins.length == 0) {
++            origins = new String[]{"*"};
++        }
++        registry.addMapping("/**")
++            .allowedOriginPatterns(origins)
++            .allowedMethods("GET", "POST", "OPTIONS")
++            .allowedHeaders("*")
++            .allowCredentials(false);
++    }
++}
++
+diff --git a/order-matcher/src/main/java/finos/traderx/ordermatcher/config/HttpClientConfig.java b/order-matcher/src/main/java/finos/traderx/ordermatcher/config/HttpClientConfig.java
+new file mode 100644
+index 0000000..866daff
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/ordermatcher/config/HttpClientConfig.java
+@@ -0,0 +1,20 @@
++package finos.traderx.ordermatcher.config;
++
++import org.springframework.boot.web.client.RestTemplateBuilder;
++import org.springframework.context.annotation.Bean;
++import org.springframework.context.annotation.Configuration;
++import org.springframework.web.client.RestTemplate;
++
++import java.time.Duration;
++
++@Configuration
++public class HttpClientConfig {
++    @Bean
++    RestTemplate restTemplate(RestTemplateBuilder builder) {
++        return builder
++            .setConnectTimeout(Duration.ofSeconds(2))
++            .setReadTimeout(Duration.ofSeconds(4))
++            .build();
++    }
++}
++
+diff --git a/order-matcher/src/main/java/finos/traderx/ordermatcher/controller/ApiExceptionHandler.java b/order-matcher/src/main/java/finos/traderx/ordermatcher/controller/ApiExceptionHandler.java
+new file mode 100644
+index 0000000..d9e7871
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/ordermatcher/controller/ApiExceptionHandler.java
+@@ -0,0 +1,23 @@
++package finos.traderx.ordermatcher.controller;
++
++import org.springframework.http.HttpStatus;
++import org.springframework.http.ResponseEntity;
++import org.springframework.web.bind.annotation.ExceptionHandler;
++import org.springframework.web.bind.annotation.RestControllerAdvice;
++import org.springframework.web.server.ResponseStatusException;
++
++import java.util.Map;
++
++@RestControllerAdvice
++public class ApiExceptionHandler {
++    @ExceptionHandler(ResponseStatusException.class)
++    public ResponseEntity<Map<String, String>> handleResponseStatus(ResponseStatusException ex) {
++        HttpStatus status = HttpStatus.resolve(ex.getStatusCode().value());
++        if (status == null) {
++            status = HttpStatus.INTERNAL_SERVER_ERROR;
++        }
++        String reason = ex.getReason() == null ? "request failed" : ex.getReason();
++        return ResponseEntity.status(status).body(Map.of("error", reason));
++    }
++}
++
+diff --git a/order-matcher/src/main/java/finos/traderx/ordermatcher/controller/OrderController.java b/order-matcher/src/main/java/finos/traderx/ordermatcher/controller/OrderController.java
+new file mode 100644
+index 0000000..04f1d46
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/ordermatcher/controller/OrderController.java
+@@ -0,0 +1,61 @@
++package finos.traderx.ordermatcher.controller;
++
++import finos.traderx.ordermatcher.api.OrderCreateRequest;
++import finos.traderx.ordermatcher.api.OrderResponse;
++import finos.traderx.ordermatcher.service.OrderMatcherService;
++import org.springframework.http.HttpStatus;
++import org.springframework.web.bind.annotation.GetMapping;
++import org.springframework.web.bind.annotation.PathVariable;
++import org.springframework.web.bind.annotation.PostMapping;
++import org.springframework.web.bind.annotation.RequestBody;
++import org.springframework.web.bind.annotation.RequestMapping;
++import org.springframework.web.bind.annotation.RequestParam;
++import org.springframework.web.bind.annotation.ResponseStatus;
++import org.springframework.web.bind.annotation.RestController;
++
++import java.util.List;
++
++@RestController
++@RequestMapping("/")
++public class OrderController {
++    private final OrderMatcherService orderMatcherService;
++
++    public OrderController(OrderMatcherService orderMatcherService) {
++        this.orderMatcherService = orderMatcherService;
++    }
++
++    @GetMapping("/orders")
++    public List<OrderResponse> listOrders(
++        @RequestParam(value = "status", required = false, defaultValue = "open") String status,
++        @RequestParam(value = "accountId", required = false) Integer accountId
++    ) {
++        return orderMatcherService.listOrders(status, accountId);
++    }
++
++    @GetMapping("/orders/{orderId}")
++    public OrderResponse getOrder(@PathVariable("orderId") String orderId) {
++        return orderMatcherService.getOrder(orderId);
++    }
++
++    @PostMapping("/orders")
++    @ResponseStatus(HttpStatus.CREATED)
++    public OrderResponse createOrder(@RequestBody OrderCreateRequest request) {
++        OrderResponse response = orderMatcherService.createOrder(request);
++        orderMatcherService.publishOrderUpdate(response);
++        return response;
++    }
++
++    @PostMapping("/orders/{orderId}/cancel")
++    public OrderResponse cancelOrder(@PathVariable("orderId") String orderId) {
++        OrderResponse response = orderMatcherService.cancelOrder(orderId);
++        orderMatcherService.publishOrderUpdate(response);
++        return response;
++    }
++
++    @PostMapping("/orders/{orderId}/force-fill")
++    public OrderResponse forceFillOrder(@PathVariable("orderId") String orderId) {
++        OrderResponse response = orderMatcherService.forceFillOrder(orderId);
++        orderMatcherService.publishOrderUpdate(response);
++        return response;
++    }
++}
+diff --git a/order-matcher/src/main/java/finos/traderx/ordermatcher/controller/SystemController.java b/order-matcher/src/main/java/finos/traderx/ordermatcher/controller/SystemController.java
+new file mode 100644
+index 0000000..a96a882
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/ordermatcher/controller/SystemController.java
+@@ -0,0 +1,36 @@
++package finos.traderx.ordermatcher.controller;
++
++import finos.traderx.ordermatcher.api.OpenCountResponse;
++import finos.traderx.ordermatcher.service.OrderMatcherService;
++import org.springframework.http.MediaType;
++import org.springframework.web.bind.annotation.GetMapping;
++import org.springframework.web.bind.annotation.RequestMapping;
++import org.springframework.web.bind.annotation.RestController;
++
++import java.util.Map;
++
++@RestController
++@RequestMapping("/")
++public class SystemController {
++    private final OrderMatcherService orderMatcherService;
++
++    public SystemController(OrderMatcherService orderMatcherService) {
++        this.orderMatcherService = orderMatcherService;
++    }
++
++    @GetMapping({"/health", "/healthz"})
++    public Map<String, Object> health() {
++        return orderMatcherService.health();
++    }
++
++    @GetMapping(value = "/metrics", produces = MediaType.TEXT_PLAIN_VALUE)
++    public String metrics() {
++        return orderMatcherService.prometheusMetrics();
++    }
++
++    @GetMapping("/orders/open-count")
++    public OpenCountResponse openCount() {
++        return orderMatcherService.openCounts();
++    }
++}
++
+diff --git a/order-matcher/src/main/java/finos/traderx/ordermatcher/model/OrderRecord.java b/order-matcher/src/main/java/finos/traderx/ordermatcher/model/OrderRecord.java
+new file mode 100644
+index 0000000..be5c500
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/ordermatcher/model/OrderRecord.java
+@@ -0,0 +1,172 @@
++package finos.traderx.ordermatcher.model;
++
++import jakarta.persistence.Column;
++import jakarta.persistence.Entity;
++import jakarta.persistence.EnumType;
++import jakarta.persistence.Enumerated;
++import jakarta.persistence.Id;
++import jakarta.persistence.PrePersist;
++import jakarta.persistence.PreUpdate;
++import jakarta.persistence.Table;
++
++import java.math.BigDecimal;
++import java.time.Instant;
++
++@Entity
++@Table(name = "OrderBook")
++public class OrderRecord {
++    @Id
++    @Column(name = "OrderId", nullable = false, length = 32)
++    private String orderId;
++
++    @Column(name = "AccountId", nullable = false)
++    private Integer accountId;
++
++    @Column(name = "Security", nullable = false, length = 16)
++    private String security;
++
++    @Enumerated(EnumType.STRING)
++    @Column(name = "Side", nullable = false, length = 16)
++    private OrderSide side;
++
++    @Column(name = "Quantity", nullable = false)
++    private Integer quantity;
++
++    @Column(name = "RemainingQuantity", nullable = false)
++    private Integer remainingQuantity;
++
++    @Column(name = "LimitPrice", nullable = false, precision = 18, scale = 3)
++    private BigDecimal limitPrice;
++
++    @Enumerated(EnumType.STRING)
++    @Column(name = "Status", nullable = false, length = 24)
++    private OrderStatus status;
++
++    @Column(name = "CreatedAt", nullable = false)
++    private Instant createdAt;
++
++    @Column(name = "UpdatedAt", nullable = false)
++    private Instant updatedAt;
++
++    @Column(name = "LastExecutionPrice", precision = 18, scale = 3)
++    private BigDecimal lastExecutionPrice;
++
++    @Column(name = "LastFillQuantity")
++    private Integer lastFillQuantity;
++
++    @PrePersist
++    public void prePersist() {
++        Instant now = Instant.now();
++        if (createdAt == null) {
++            createdAt = now;
++        }
++        if (updatedAt == null) {
++            updatedAt = createdAt;
++        }
++        if (status == null) {
++            status = OrderStatus.NEW;
++        }
++    }
++
++    @PreUpdate
++    public void preUpdate() {
++        updatedAt = Instant.now();
++    }
++
++    public String getOrderId() {
++        return orderId;
++    }
++
++    public void setOrderId(String orderId) {
++        this.orderId = orderId;
++    }
++
++    public Integer getAccountId() {
++        return accountId;
++    }
++
++    public void setAccountId(Integer accountId) {
++        this.accountId = accountId;
++    }
++
++    public String getSecurity() {
++        return security;
++    }
++
++    public void setSecurity(String security) {
++        this.security = security;
++    }
++
++    public OrderSide getSide() {
++        return side;
++    }
++
++    public void setSide(OrderSide side) {
++        this.side = side;
++    }
++
++    public Integer getQuantity() {
++        return quantity;
++    }
++
++    public void setQuantity(Integer quantity) {
++        this.quantity = quantity;
++    }
++
++    public Integer getRemainingQuantity() {
++        return remainingQuantity;
++    }
++
++    public void setRemainingQuantity(Integer remainingQuantity) {
++        this.remainingQuantity = remainingQuantity;
++    }
++
++    public BigDecimal getLimitPrice() {
++        return limitPrice;
++    }
++
++    public void setLimitPrice(BigDecimal limitPrice) {
++        this.limitPrice = limitPrice;
++    }
++
++    public OrderStatus getStatus() {
++        return status;
++    }
++
++    public void setStatus(OrderStatus status) {
++        this.status = status;
++    }
++
++    public Instant getCreatedAt() {
++        return createdAt;
++    }
++
++    public void setCreatedAt(Instant createdAt) {
++        this.createdAt = createdAt;
++    }
++
++    public Instant getUpdatedAt() {
++        return updatedAt;
++    }
++
++    public void setUpdatedAt(Instant updatedAt) {
++        this.updatedAt = updatedAt;
++    }
++
++    public BigDecimal getLastExecutionPrice() {
++        return lastExecutionPrice;
++    }
++
++    public void setLastExecutionPrice(BigDecimal lastExecutionPrice) {
++        this.lastExecutionPrice = lastExecutionPrice;
++    }
++
++    public Integer getLastFillQuantity() {
++        return lastFillQuantity;
++    }
++
++    public void setLastFillQuantity(Integer lastFillQuantity) {
++        this.lastFillQuantity = lastFillQuantity;
++    }
++}
++
+diff --git a/order-matcher/src/main/java/finos/traderx/ordermatcher/model/OrderSide.java b/order-matcher/src/main/java/finos/traderx/ordermatcher/model/OrderSide.java
+new file mode 100644
+index 0000000..eaae9a2
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/ordermatcher/model/OrderSide.java
+@@ -0,0 +1,7 @@
++package finos.traderx.ordermatcher.model;
++
++public enum OrderSide {
++    Buy,
++    Sell
++}
++
+diff --git a/order-matcher/src/main/java/finos/traderx/ordermatcher/model/OrderStatus.java b/order-matcher/src/main/java/finos/traderx/ordermatcher/model/OrderStatus.java
+new file mode 100644
+index 0000000..9b9ed45
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/ordermatcher/model/OrderStatus.java
+@@ -0,0 +1,10 @@
++package finos.traderx.ordermatcher.model;
++
++public enum OrderStatus {
++    NEW,
++    PARTIALLY_FILLED,
++    FILLED,
++    CANCELED,
++    REJECTED
++}
++
+diff --git a/order-matcher/src/main/java/finos/traderx/ordermatcher/repository/OrderRepository.java b/order-matcher/src/main/java/finos/traderx/ordermatcher/repository/OrderRepository.java
+new file mode 100644
+index 0000000..5ed181f
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/ordermatcher/repository/OrderRepository.java
+@@ -0,0 +1,26 @@
++package finos.traderx.ordermatcher.repository;
++
++import finos.traderx.ordermatcher.model.OrderRecord;
++import finos.traderx.ordermatcher.model.OrderSide;
++import finos.traderx.ordermatcher.model.OrderStatus;
++import org.springframework.data.jpa.repository.JpaRepository;
++import org.springframework.data.jpa.repository.Query;
++
++import java.util.Collection;
++import java.util.List;
++
++public interface OrderRepository extends JpaRepository<OrderRecord, String> {
++    List<OrderRecord> findAllByOrderByUpdatedAtDesc();
++
++    long countByStatusIn(Collection<OrderStatus> statuses);
++
++    long countByStatusInAndRemainingQuantityGreaterThan(Collection<OrderStatus> statuses, Integer remainingQuantity);
++
++    long countByStatusInAndSide(Collection<OrderStatus> statuses, OrderSide side);
++
++    long countByStatus(OrderStatus status);
++
++    @Query("select o.orderId from OrderRecord o")
++    List<String> findAllOrderIds();
++}
++
+diff --git a/order-matcher/src/main/java/finos/traderx/ordermatcher/service/OrderMatcherService.java b/order-matcher/src/main/java/finos/traderx/ordermatcher/service/OrderMatcherService.java
+new file mode 100644
+index 0000000..1cfb826
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/ordermatcher/service/OrderMatcherService.java
+@@ -0,0 +1,525 @@
++package finos.traderx.ordermatcher.service;
++
++import finos.traderx.messaging.PubSubException;
++import finos.traderx.messaging.Publisher;
++import finos.traderx.ordermatcher.api.OpenCountResponse;
++import finos.traderx.ordermatcher.api.OrderCreateRequest;
++import finos.traderx.ordermatcher.api.OrderResponse;
++import finos.traderx.ordermatcher.model.OrderRecord;
++import finos.traderx.ordermatcher.model.OrderSide;
++import finos.traderx.ordermatcher.model.OrderStatus;
++import finos.traderx.ordermatcher.repository.OrderRepository;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++import org.springframework.beans.factory.annotation.Value;
++import org.springframework.http.ResponseEntity;
++import org.springframework.scheduling.annotation.Scheduled;
++import org.springframework.stereotype.Service;
++import org.springframework.util.StringUtils;
++import org.springframework.web.server.ResponseStatusException;
++import org.springframework.web.client.RestTemplate;
++
++import java.math.BigDecimal;
++import java.math.RoundingMode;
++import java.time.Instant;
++import java.util.ArrayList;
++import java.util.Collection;
++import java.util.Comparator;
++import java.util.LinkedHashMap;
++import java.util.List;
++import java.util.Locale;
++import java.util.Map;
++import java.util.Optional;
++import java.util.Set;
++import java.util.concurrent.ConcurrentHashMap;
++import java.util.concurrent.atomic.AtomicInteger;
++import java.util.concurrent.atomic.AtomicLong;
++import java.util.concurrent.locks.ReentrantLock;
++import java.util.regex.Matcher;
++import java.util.regex.Pattern;
++import java.util.stream.Collectors;
++
++import static org.springframework.http.HttpStatus.BAD_GATEWAY;
++import static org.springframework.http.HttpStatus.BAD_REQUEST;
++import static org.springframework.http.HttpStatus.NOT_FOUND;
++
++@Service
++public class OrderMatcherService {
++    private static final Logger log = LoggerFactory.getLogger(OrderMatcherService.class);
++    private static final String APP_NAME = "traderx-order-matcher";
++    private static final Pattern ORDER_ID_PATTERN = Pattern.compile("^ord-013-(\\d{4,})$");
++    private static final String ALL_ORDERS_TOPIC = "/orders";
++    private static final Set<OrderStatus> OPEN_STATUSES = Set.of(OrderStatus.NEW, OrderStatus.PARTIALLY_FILLED);
++
++    private final OrderRepository orderRepository;
++    private final Publisher<OrderResponse> orderPublisher;
++    private final RestTemplate restTemplate;
++    private final boolean seedEnabled;
++    private final String priceServiceUrl;
++    private final String tradeServiceUrl;
++    private final int fillFullThreshold;
++    private final long matcherTickMs;
++
++    private final Instant startedAt = Instant.now();
++    private final AtomicInteger nextOrderSequence = new AtomicInteger(1);
++    private final AtomicLong matcherTicks = new AtomicLong(0);
++    private final AtomicLong autoFillAttempts = new AtomicLong(0);
++    private final AtomicLong autoFillSuccess = new AtomicLong(0);
++    private final AtomicLong tradeSubmitFailures = new AtomicLong(0);
++    private final Map<String, AtomicLong> eventCounters = new ConcurrentHashMap<>();
++    private final Map<String, BigDecimal> lastPrices = new ConcurrentHashMap<>();
++    private final ReentrantLock orderMutationLock = new ReentrantLock();
++    private volatile Instant lastTickAt;
++
++    public OrderMatcherService(
++        OrderRepository orderRepository,
++        Publisher<OrderResponse> orderPublisher,
++        RestTemplate restTemplate,
++        @Value("${order.matcher.seed-enabled:true}") boolean seedEnabled,
++        @Value("${order.matcher.price-service-url:http://price-publisher:18100}") String priceServiceUrl,
++        @Value("${order.matcher.trade-service-url:http://trade-service:18092/trade/}") String tradeServiceUrl,
++        @Value("${order.matcher.tick-ms:1000}") long matcherTickMs,
++        @Value("${order.matcher.fill-full-threshold:1000}") int fillFullThreshold
++    ) {
++        this.orderRepository = orderRepository;
++        this.orderPublisher = orderPublisher;
++        this.restTemplate = restTemplate;
++        this.seedEnabled = seedEnabled;
++        this.priceServiceUrl = trimTrailingSlash(priceServiceUrl);
++        this.tradeServiceUrl = tradeServiceUrl;
++        this.matcherTickMs = Math.max(100, matcherTickMs);
++        this.fillFullThreshold = Math.max(1, fillFullThreshold);
++        initializeCounters();
++        initializeData();
++    }
++
++    @Scheduled(fixedDelayString = "${order.matcher.tick-ms:1000}")
++    public void runMatcherTick() {
++        List<String> openOrderIds = orderRepository.findAllByOrderByUpdatedAtDesc().stream()
++            .filter(this::isOpen)
++            .filter(o -> o.getRemainingQuantity() != null && o.getRemainingQuantity() > 0)
++            .map(OrderRecord::getOrderId)
++            .toList();
++
++        for (String orderId : openOrderIds) {
++            tryAutoFill(orderId);
++        }
++        matcherTicks.incrementAndGet();
++        lastTickAt = Instant.now();
++    }
++
++    public List<OrderResponse> listOrders(String statusFilter, Integer accountIdFilter) {
++        String normalizedStatus = StringUtils.hasText(statusFilter) ? statusFilter.trim().toLowerCase(Locale.ROOT) : "open";
++        List<OrderRecord> rows = new ArrayList<>(orderRepository.findAllByOrderByUpdatedAtDesc());
++
++        rows = rows.stream()
++            .filter(order -> filterByStatus(order, normalizedStatus))
++            .filter(order -> accountIdFilter == null || order.getAccountId().equals(accountIdFilter))
++            .sorted(Comparator.comparing(OrderRecord::getUpdatedAt).reversed())
++            .toList();
++
++        return rows.stream()
++            .map(order -> OrderResponse.from(order, lastPrices.get(order.getSecurity())))
++            .toList();
++    }
++
++    public OrderResponse getOrder(String orderId) {
++        OrderRecord order = findOrder(orderId);
++        return OrderResponse.from(order, lastPrices.get(order.getSecurity()));
++    }
++
++    public OrderResponse createOrder(OrderCreateRequest request) {
++        validateCreateRequest(request);
++        orderMutationLock.lock();
++        try {
++            OrderRecord order = new OrderRecord();
++            order.setOrderId(nextOrderId());
++            order.setAccountId(request.getAccountId());
++            order.setSecurity(request.getSecurity().trim().toUpperCase(Locale.ROOT));
++            order.setSide(request.getSide());
++            order.setQuantity(request.getQuantity());
++            order.setRemainingQuantity(request.getQuantity());
++            order.setLimitPrice(roundPrice(request.getLimitPrice()));
++            order.setStatus(OrderStatus.NEW);
++            order.setCreatedAt(Instant.now());
++            order.setUpdatedAt(order.getCreatedAt());
++            OrderRecord saved = orderRepository.save(order);
++            incrementEvent("create");
++            return OrderResponse.from(saved, lastPrices.get(saved.getSecurity()));
++        } finally {
++            orderMutationLock.unlock();
++        }
++    }
++
++    public OrderResponse cancelOrder(String orderId) {
++        orderMutationLock.lock();
++        try {
++            OrderRecord order = findOrder(orderId);
++            if (isOpen(order)) {
++                order.setStatus(OrderStatus.CANCELED);
++                order.setRemainingQuantity(0);
++                order.setUpdatedAt(Instant.now());
++                orderRepository.save(order);
++                incrementEvent("cancel");
++            }
++            return OrderResponse.from(order, lastPrices.get(order.getSecurity()));
++        } finally {
++            orderMutationLock.unlock();
++        }
++    }
++
++    public OrderResponse forceFillOrder(String orderId) {
++        orderMutationLock.lock();
++        try {
++            OrderRecord order = findOrder(orderId);
++            if (!isOpen(order) || order.getRemainingQuantity() == null || order.getRemainingQuantity() <= 0) {
++                return OrderResponse.from(order, lastPrices.get(order.getSecurity()));
++            }
++            int fillQty = order.getRemainingQuantity();
++            BigDecimal marketPrice = Optional.ofNullable(fetchMarketPrice(order.getSecurity()))
++                .orElse(order.getLimitPrice());
++            if (!submitTrade(order, fillQty)) {
++                tradeSubmitFailures.incrementAndGet();
++                incrementEvent("reject");
++                throw new ResponseStatusException(BAD_GATEWAY, "failed to submit trade for force-fill");
++            }
++            applyFill(order, fillQty, marketPrice, true);
++            orderRepository.save(order);
++            return OrderResponse.from(order, lastPrices.get(order.getSecurity()));
++        } finally {
++            orderMutationLock.unlock();
++        }
++    }
++
++    public OpenCountResponse openCounts() {
++        long openOrders = orderRepository.countByStatusIn(OPEN_STATUSES);
++        long unfilledOrders = orderRepository.countByStatusInAndRemainingQuantityGreaterThan(OPEN_STATUSES, 0);
++        return new OpenCountResponse(openOrders, unfilledOrders);
++    }
++
++    public Map<String, Object> health() {
++        OpenCountResponse openCount = openCounts();
++        Map<String, Object> matcher = new LinkedHashMap<>();
++        matcher.put("tickMs", matcherTickMs);
++        matcher.put("ticks", matcherTicks.get());
++        matcher.put("lastTickAt", lastTickAt);
++        matcher.put("autoFillAttempts", autoFillAttempts.get());
++        matcher.put("autoFillSuccess", autoFillSuccess.get());
++        matcher.put("tradeSubmitFailures", tradeSubmitFailures.get());
++        Map<String, Object> payload = new LinkedHashMap<>();
++        payload.put("status", "ok");
++        payload.put("service", APP_NAME);
++        payload.put("uptimeSeconds", Math.max(0, Instant.now().getEpochSecond() - startedAt.getEpochSecond()));
++        payload.put("priceServiceUrl", priceServiceUrl);
++        payload.put("tradeServiceUrl", tradeServiceUrl);
++        payload.put("matcher", matcher);
++        payload.put("openOrders", openCount.getOpenOrders());
++        payload.put("unfilledOrders", openCount.getUnfilledOrders());
++        return payload;
++    }
++
++    public String prometheusMetrics() {
++        long openOrders = orderRepository.countByStatusIn(OPEN_STATUSES);
++        long unfilledOrders = orderRepository.countByStatusInAndRemainingQuantityGreaterThan(OPEN_STATUSES, 0);
++        long buyPending = orderRepository.countByStatusInAndSide(OPEN_STATUSES, OrderSide.Buy);
++        long sellPending = orderRepository.countByStatusInAndSide(OPEN_STATUSES, OrderSide.Sell);
++        StringBuilder sb = new StringBuilder();
++        sb.append("# HELP traderx_orders_open_total Total open orders (NEW + PARTIALLY_FILLED).\n");
++        sb.append("# TYPE traderx_orders_open_total gauge\n");
++        sb.append("traderx_orders_open_total ").append(openOrders).append('\n');
++        sb.append("# HELP traderx_orders_unfilled_total Total orders with remaining quantity > 0.\n");
++        sb.append("# TYPE traderx_orders_unfilled_total gauge\n");
++        sb.append("traderx_orders_unfilled_total ").append(unfilledOrders).append('\n');
++        sb.append("# HELP traderx_orders_pending_by_side Pending orders grouped by side.\n");
++        sb.append("# TYPE traderx_orders_pending_by_side gauge\n");
++        sb.append("traderx_orders_pending_by_side{side=\"Buy\"} ").append(buyPending).append('\n');
++        sb.append("traderx_orders_pending_by_side{side=\"Sell\"} ").append(sellPending).append('\n');
++        sb.append("# HELP traderx_order_events_total Order lifecycle events.\n");
++        sb.append("# TYPE traderx_order_events_total counter\n");
++        for (String event : List.of("create", "partial_fill", "fill", "cancel", "reject", "force_fill")) {
++            sb.append("traderx_order_events_total{event=\"").append(event).append("\"} ")
++                .append(counterValue(event)).append('\n');
++        }
++        sb.append("# HELP traderx_order_matcher_ticks_total Matcher tick executions.\n");
++        sb.append("# TYPE traderx_order_matcher_ticks_total counter\n");
++        sb.append("traderx_order_matcher_ticks_total ").append(matcherTicks.get()).append('\n');
++        sb.append("# HELP traderx_order_autofill_attempts_total Auto-fill attempts.\n");
++        sb.append("# TYPE traderx_order_autofill_attempts_total counter\n");
++        sb.append("traderx_order_autofill_attempts_total ").append(autoFillAttempts.get()).append('\n');
++        sb.append("# HELP traderx_order_autofill_success_total Auto-fill successful fills/partial-fills.\n");
++        sb.append("# TYPE traderx_order_autofill_success_total counter\n");
++        sb.append("traderx_order_autofill_success_total ").append(autoFillSuccess.get()).append('\n');
++        sb.append("# HELP traderx_order_trade_submit_failures_total Trade submit failures on fill attempts.\n");
++        sb.append("# TYPE traderx_order_trade_submit_failures_total counter\n");
++        sb.append("traderx_order_trade_submit_failures_total ").append(tradeSubmitFailures.get()).append('\n');
++        sb.append("# HELP traderx_order_match_latency_seconds Matcher latency histogram.\n");
++        sb.append("# TYPE traderx_order_match_latency_seconds histogram\n");
++        sb.append("traderx_order_match_latency_seconds_bucket{le=\"0.01\"} 0\n");
++        sb.append("traderx_order_match_latency_seconds_bucket{le=\"0.05\"} 0\n");
++        sb.append("traderx_order_match_latency_seconds_bucket{le=\"0.1\"} 0\n");
++        sb.append("traderx_order_match_latency_seconds_bucket{le=\"0.25\"} 0\n");
++        sb.append("traderx_order_match_latency_seconds_bucket{le=\"0.5\"} 0\n");
++        sb.append("traderx_order_match_latency_seconds_bucket{le=\"1\"} 0\n");
++        sb.append("traderx_order_match_latency_seconds_bucket{le=\"+Inf\"} ").append(matcherTicks.get()).append('\n');
++        sb.append("traderx_order_match_latency_seconds_sum 0\n");
++        sb.append("traderx_order_match_latency_seconds_count ").append(matcherTicks.get()).append('\n');
++        return sb.toString();
++    }
++
++    private void tryAutoFill(String orderId) {
++        OrderRecord order = orderRepository.findById(orderId).orElse(null);
++        if (order == null || !isOpen(order) || order.getRemainingQuantity() == null || order.getRemainingQuantity() <= 0) {
++            return;
++        }
++        BigDecimal marketPrice = fetchMarketPrice(order.getSecurity());
++        if (marketPrice == null) {
++            return;
++        }
++        lastPrices.put(order.getSecurity(), marketPrice);
++        if (!isInTheMoney(order, marketPrice)) {
++            return;
++        }
++        autoFillAttempts.incrementAndGet();
++        int remaining = order.getRemainingQuantity();
++        int fillQty = remaining < fillFullThreshold ? remaining : Math.max(1, (remaining + 1) / 2);
++
++        orderMutationLock.lock();
++        try {
++            OrderRecord liveOrder = orderRepository.findById(orderId).orElse(null);
++            if (liveOrder == null || !isOpen(liveOrder) || liveOrder.getRemainingQuantity() == null || liveOrder.getRemainingQuantity() <= 0) {
++                return;
++            }
++            if (!submitTrade(liveOrder, fillQty)) {
++                tradeSubmitFailures.incrementAndGet();
++                incrementEvent("reject");
++                liveOrder.setUpdatedAt(Instant.now());
++                orderRepository.save(liveOrder);
++                return;
++            }
++            applyFill(liveOrder, fillQty, marketPrice, false);
++            orderRepository.save(liveOrder);
++            publishOrderUpdate(liveOrder);
++            autoFillSuccess.incrementAndGet();
++        } finally {
++            orderMutationLock.unlock();
++        }
++    }
++
++    public void publishOrderUpdate(OrderResponse order) {
++        if (order == null || order.getAccountId() == null) {
++            return;
++        }
++        String accountTopic = "/accounts/" + order.getAccountId() + "/orders";
++        try {
++            orderPublisher.publish(accountTopic, order);
++            orderPublisher.publish(ALL_ORDERS_TOPIC, order);
++        } catch (PubSubException ex) {
++            log.warn("Unable to publish order update for {} on {}/{}", order.getOrderId(), accountTopic, ALL_ORDERS_TOPIC, ex);
++        }
++    }
++
++    private void publishOrderUpdate(OrderRecord order) {
++        publishOrderUpdate(OrderResponse.from(order, lastPrices.get(order.getSecurity())));
++    }
++
++    private void applyFill(OrderRecord order, int fillQty, BigDecimal executionPrice, boolean forceFill) {
++        int remainingBefore = order.getRemainingQuantity() == null ? 0 : order.getRemainingQuantity();
++        int remainingAfter = Math.max(0, remainingBefore - fillQty);
++        order.setRemainingQuantity(remainingAfter);
++        order.setLastExecutionPrice(roundPrice(executionPrice));
++        order.setLastFillQuantity(fillQty);
++        order.setUpdatedAt(Instant.now());
++
++        if (remainingAfter == 0) {
++            order.setStatus(OrderStatus.FILLED);
++            incrementEvent("fill");
++        } else {
++            order.setStatus(OrderStatus.PARTIALLY_FILLED);
++            incrementEvent("partial_fill");
++        }
++        if (forceFill) {
++            incrementEvent("force_fill");
++        }
++    }
++
++    private boolean submitTrade(OrderRecord order, int quantity) {
++        try {
++            Map<String, Object> payload = Map.of(
++                "security", order.getSecurity(),
++                "quantity", quantity,
++                "accountId", order.getAccountId(),
++                "side", order.getSide().name()
++            );
++            ResponseEntity<Map> response = restTemplate.postForEntity(tradeServiceUrl, payload, Map.class);
++            return response.getStatusCode().is2xxSuccessful();
++        } catch (Exception e) {
++            return false;
++        }
++    }
++
++    private BigDecimal fetchMarketPrice(String ticker) {
++        if (!StringUtils.hasText(ticker)) {
++            return null;
++        }
++        try {
++            String url = priceServiceUrl + "/prices/" + ticker;
++            Map<?, ?> response = restTemplate.getForObject(url, Map.class);
++            if (response == null) {
++                return null;
++            }
++            Object priceObj = response.get("price");
++            if (priceObj == null) {
++                return null;
++            }
++            return roundPrice(new BigDecimal(priceObj.toString()));
++        } catch (Exception e) {
++            return null;
++        }
++    }
++
++    private boolean filterByStatus(OrderRecord order, String statusFilter) {
++        if ("open".equals(statusFilter)) {
++            return isOpen(order);
++        }
++        if ("all".equals(statusFilter)) {
++            return true;
++        }
++        try {
++            OrderStatus status = OrderStatus.valueOf(statusFilter.toUpperCase(Locale.ROOT));
++            return order.getStatus() == status;
++        } catch (IllegalArgumentException e) {
++            return false;
++        }
++    }
++
++    private boolean isOpen(OrderRecord order) {
++        return OPEN_STATUSES.contains(order.getStatus());
++    }
++
++    private boolean isInTheMoney(OrderRecord order, BigDecimal marketPrice) {
++        if (order.getLimitPrice() == null || marketPrice == null || order.getSide() == null) {
++            return false;
++        }
++        return switch (order.getSide()) {
++            case Buy -> marketPrice.compareTo(order.getLimitPrice()) <= 0;
++            case Sell -> marketPrice.compareTo(order.getLimitPrice()) >= 0;
++        };
++    }
++
++    private void validateCreateRequest(OrderCreateRequest request) {
++        if (request == null
++            || request.getAccountId() == null || request.getAccountId() <= 0
++            || !StringUtils.hasText(request.getSecurity())
++            || request.getSide() == null
++            || request.getQuantity() == null || request.getQuantity() <= 0
++            || request.getLimitPrice() == null || request.getLimitPrice().compareTo(BigDecimal.ZERO) <= 0) {
++            throw new ResponseStatusException(BAD_REQUEST, "invalid order payload");
++        }
++    }
++
++    private String nextOrderId() {
++        return String.format("ord-013-%04d", nextOrderSequence.getAndIncrement());
++    }
++
++    private OrderRecord findOrder(String orderId) {
++        return orderRepository.findById(orderId)
++            .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "order not found"));
++    }
++
++    private BigDecimal roundPrice(BigDecimal input) {
++        if (input == null) {
++            return null;
++        }
++        return input.setScale(3, RoundingMode.HALF_UP);
++    }
++
++    private void initializeData() {
++        if (seedEnabled && orderRepository.count() == 0) {
++            List<OrderRecord> seed = List.of(
++                seedOrder("ord-013-0001", 22214, "IBM", OrderSide.Buy, 1800, 1800, bd("187.250"), OrderStatus.NEW),
++                seedOrder("ord-013-0002", 22214, "MSFT", OrderSide.Sell, 900, 650, bd("412.000"), OrderStatus.PARTIALLY_FILLED),
++                seedOrder("ord-013-0003", 44044, "JPM", OrderSide.Buy, 1200, 1200, bd("191.500"), OrderStatus.NEW),
++                seedOrder("ord-013-0004", 52355, "GS", OrderSide.Sell, 300, 0, bd("498.000"), OrderStatus.FILLED),
++                seedOrder("ord-013-0005", 10031, "NVDA", OrderSide.Buy, 450, 450, bd("905.125"), OrderStatus.NEW),
++                seedOrder("ord-013-0006", 10031, "C", OrderSide.Sell, 1000, 1000, bd("61.500"), OrderStatus.NEW),
++                seedOrder("ord-013-0007", 62654, "META", OrderSide.Sell, 500, 500, bd("507.880"), OrderStatus.NEW)
++            );
++            orderRepository.saveAll(seed);
++        }
++        initializeSequence();
++        refreshCountersFromDatabase();
++    }
++
++    private OrderRecord seedOrder(
++        String orderId,
++        int accountId,
++        String security,
++        OrderSide side,
++        int quantity,
++        int remaining,
++        BigDecimal limitPrice,
++        OrderStatus status
++    ) {
++        Instant now = Instant.now();
++        OrderRecord order = new OrderRecord();
++        order.setOrderId(orderId);
++        order.setAccountId(accountId);
++        order.setSecurity(security);
++        order.setSide(side);
++        order.setQuantity(quantity);
++        order.setRemainingQuantity(remaining);
++        order.setLimitPrice(limitPrice);
++        order.setStatus(status);
++        order.setCreatedAt(now);
++        order.setUpdatedAt(now);
++        return order;
++    }
++
++    private BigDecimal bd(String value) {
++        return new BigDecimal(value);
++    }
++
++    private void initializeSequence() {
++        int maxId = orderRepository.findAllOrderIds().stream()
++            .map(ORDER_ID_PATTERN::matcher)
++            .filter(Matcher::matches)
++            .map(m -> Integer.parseInt(m.group(1)))
++            .max(Integer::compareTo)
++            .orElse(0);
++        nextOrderSequence.set(maxId + 1);
++    }
++
++    private void initializeCounters() {
++        for (String event : List.of("create", "partial_fill", "fill", "cancel", "reject", "force_fill")) {
++            eventCounters.put(event, new AtomicLong(0));
++        }
++    }
++
++    private void refreshCountersFromDatabase() {
++        setCounter("create", orderRepository.count());
++        setCounter("partial_fill", orderRepository.countByStatus(OrderStatus.PARTIALLY_FILLED));
++        setCounter("fill", orderRepository.countByStatus(OrderStatus.FILLED));
++        setCounter("cancel", orderRepository.countByStatus(OrderStatus.CANCELED));
++        setCounter("reject", orderRepository.countByStatus(OrderStatus.REJECTED));
++        setCounter("force_fill", 0);
++    }
++
++    private void incrementEvent(String event) {
++        eventCounters.computeIfAbsent(event, ignored -> new AtomicLong()).incrementAndGet();
++    }
++
++    private long counterValue(String event) {
++        return eventCounters.computeIfAbsent(event, ignored -> new AtomicLong()).get();
++    }
++
++    private void setCounter(String event, long value) {
++        eventCounters.computeIfAbsent(event, ignored -> new AtomicLong()).set(value);
++    }
++
++    private String trimTrailingSlash(String url) {
++        if (!StringUtils.hasText(url)) {
++            return "";
++        }
++        return url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
++    }
++}
+diff --git a/order-matcher/src/main/resources/application.properties b/order-matcher/src/main/resources/application.properties
+new file mode 100644
+index 0000000..6d9b921
+--- /dev/null
++++ b/order-matcher/src/main/resources/application.properties
+@@ -0,0 +1,23 @@
++server.port=${ORDER_MATCHER_PORT:18110}
++
++spring.datasource.url=jdbc:postgresql://${DATABASE_PG_HOST:localhost}:${DATABASE_PG_PORT:5432}/${DATABASE_NAME:traderx}
++spring.datasource.driverClassName=org.postgresql.Driver
++spring.datasource.username=${DATABASE_DBUSER:traderx}
++spring.datasource.password=${DATABASE_DBPASS:traderx}
++spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
++spring.jpa.hibernate.ddl-auto=update
++spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
++spring.jpa.open-in-view=false
++spring.threads.virtual.enabled=true
++
++order.matcher.price-service-url=${PRICE_SERVICE_URL:http://${PRICE_SERVICE_HOST:localhost}:18100}
++order.matcher.trade-service-url=${TRADE_SERVICE_URL:http://${TRADE_SERVICE_HOST:localhost}:18092/trade/}
++order.matcher.tick-ms=${ORDER_MATCHER_TICK_MS:1000}
++order.matcher.fill-full-threshold=${ORDER_FILL_FULL_THRESHOLD:1000}
++order.matcher.seed-enabled=${ORDER_MATCHER_SEED_ENABLED:true}
++trade.feed.address=${TRADE_FEED_ADDRESS:http://${TRADE_FEED_HOST:localhost}:18086}
++
++# To avoid "Request header is too large" when application is backed by oidc proxy.
++server.max-http-request-header-size=1000000
++
++logging.level.root=info
+diff --git a/order-matcher/src/test/java/finos/traderx/ordermatcher/OrderMatcherApplicationTests.java b/order-matcher/src/test/java/finos/traderx/ordermatcher/OrderMatcherApplicationTests.java
+new file mode 100644
+index 0000000..06faac4
+--- /dev/null
++++ b/order-matcher/src/test/java/finos/traderx/ordermatcher/OrderMatcherApplicationTests.java
+@@ -0,0 +1,20 @@
++package finos.traderx.ordermatcher;
++
++import org.junit.jupiter.api.Test;
++import org.springframework.boot.test.context.SpringBootTest;
++
++@SpringBootTest(properties = {
++    "spring.datasource.url=jdbc:h2:mem:ordermatcher;MODE=PostgreSQL;DB_CLOSE_DELAY=-1",
++    "spring.datasource.driverClassName=org.h2.Driver",
++    "spring.datasource.username=sa",
++    "spring.datasource.password=sa",
++    "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
++    "spring.jpa.hibernate.ddl-auto=create-drop"
++})
++class OrderMatcherApplicationTests {
++    @Test
++    void contextLoads() {
++    }
++}
++
+diff --git a/scripts/status-state-008-pricing-awareness-market-data-generated.sh b/scripts/status-state-009-order-management-matcher-generated.sh
+similarity index 60%
+rename from scripts/status-state-008-pricing-awareness-market-data-generated.sh
+rename to scripts/status-state-009-order-management-matcher-generated.sh
+index 93289b9..db391bb 100755
+--- a/scripts/status-state-008-pricing-awareness-market-data-generated.sh
++++ b/scripts/status-state-009-order-management-matcher-generated.sh
+@@ -17,8 +17,9 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
+     exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+   fi
+ fi
+-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-008}"
+-COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/pricing-awareness-market-data/docker-compose.yml"
++COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-009}"
++GRAFANA_PORT="${GRAFANA_PORT:-3001}"
++COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/order-management-matcher/docker-compose.yml"
+ 
+ if ! command -v docker >/dev/null 2>&1; then
+   echo "[error] docker command not found"
+@@ -27,7 +28,7 @@ fi
+ 
+ if [[ ! -f "${COMPOSE_FILE}" ]]; then
+   echo "[info] compose file not found: ${COMPOSE_FILE}"
+-  echo "[hint] run: bash pipeline/generate-state.sh 008-pricing-awareness-market-data"
++  echo "[hint] run: bash pipeline/generate-state.sh 009-order-management-matcher"
+   exit 0
+ fi
+ 
+@@ -39,21 +40,25 @@ http_code_for() {
+   curl -sS -o /dev/null -w "%{http_code}" "${url}" 2>/dev/null || true
+ }
+ 
+-printf "\n%-24s %-8s %s\n" "endpoint" "http" "url"
+-printf "%-24s %-8s %s\n" "------------------------" "--------" "---"
++printf "\n%-30s %-8s %s\n" "endpoint" "http" "url"
++printf "%-30s %-8s %s\n" "------------------------------" "--------" "---"
+ 
+ for target in \
+   "ingress-health|http://localhost:8080/health" \
+   "ingress-ui|http://localhost:8080/" \
+-  "angular-ui|http://localhost:18093/" \
+-  "reference-data|http://localhost:18085/stocks" \
++  "order-matcher-health|http://localhost:18110/health" \
++  "order-matcher-metrics|http://localhost:18110/metrics" \
+   "price-publisher|http://localhost:18100/health" \
+-  "account-service|http://localhost:18088/account/22214" \
+-  "position-service|http://localhost:18090/health/alive" \
++  "nats-monitor|http://localhost:8222/varz" \
++  "grafana|http://localhost:${GRAFANA_PORT}/api/health" \
++  "prometheus|http://localhost:9090/-/ready" \
++  "loki|http://localhost:3100/ready" \
++  "tempo|http://localhost:3200/ready" \
++  "otel-collector|http://localhost:13133/" \
+   "trade-service|http://localhost:18092/v3/api-docs" \
+-  "nats-monitor|http://localhost:8222/varz"; do
++  "position-service|http://localhost:18090/health/alive"; do
+   name="${target%%|*}"
+   url="${target#*|}"
+   code="$(http_code_for "${url}")"
+-  printf "%-24s %-8s %s\n" "${name}" "${code:-000}" "${url}"
++  printf "%-30s %-8s %s\n" "${name}" "${code:-000}" "${url}"
+ done
+diff --git a/scripts/stop-state-008-pricing-awareness-market-data-generated.sh b/scripts/stop-state-009-order-management-matcher-generated.sh
+similarity index 81%
+rename from scripts/stop-state-008-pricing-awareness-market-data-generated.sh
+rename to scripts/stop-state-009-order-management-matcher-generated.sh
+index 5573cc2..10c4ff3 100755
+--- a/scripts/stop-state-008-pricing-awareness-market-data-generated.sh
++++ b/scripts/stop-state-009-order-management-matcher-generated.sh
+@@ -17,8 +17,8 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
+     exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+   fi
+ fi
+-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-008}"
+-COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/pricing-awareness-market-data/docker-compose.yml"
++COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-009}"
++COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/order-management-matcher/docker-compose.yml"
+ 
+ if ! command -v docker >/dev/null 2>&1; then
+   echo "[error] docker command not found"
+@@ -31,4 +31,4 @@ if [[ ! -f "${COMPOSE_FILE}" ]]; then
+ fi
+ 
+ docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" down --remove-orphans
+-echo "[done] state 008 pricing-awareness runtime stopped"
++echo "[done] state 009 order-management runtime stopped"
+diff --git a/web-front-end/angular/main/app/admin/order-admin.component.html b/web-front-end/angular/main/app/admin/order-admin.component.html
+new file mode 100644
+index 0000000..8a7c840
+--- /dev/null
++++ b/web-front-end/angular/main/app/admin/order-admin.component.html
+@@ -0,0 +1,41 @@
++<div class="order-admin-container p-4">
++  <h4 class="mb-2">Order Matcher Admin</h4>
++  <div class="text-muted mb-3">
++    Open orders with live market price stream (<code>pricing.&lt;TICKER&gt;</code>) shown next to strike.
++  </div>
++
++  <div
++    *ngIf="actionMessage"
++    class="alert py-2 px-3"
++    [ngClass]="actionMessage.type === 'success' ? 'alert-success' : 'alert-danger'">
++    {{ actionMessage.text }}
++  </div>
++
++  <div class="row mb-3">
++    <div class="col-sm-4">
++      <div class="alert alert-secondary py-2 px-3 mb-0">
++        Open Orders: <strong>{{ openOrderCount }}</strong>
++      </div>
++    </div>
++    <div class="col-sm-4">
++      <div class="alert alert-secondary py-2 px-3 mb-0">
++        Unfilled Orders: <strong>{{ unfilledOrderCount }}</strong>
++      </div>
++    </div>
++    <div class="col-sm-4">
++      <div class="alert alert-secondary py-2 px-3 mb-0">
++        Remaining Quantity: <strong>{{ totalRemainingQuantity | number:'1.0-0' }}</strong>
++      </div>
++    </div>
++  </div>
++
++  <ag-grid-angular
++    style="width: 100%; height: 520px;"
++    class="ag-theme-alpine"
++    [columnDefs]="columnDefs"
++    [rowData]="rows"
++    [getRowId]="getRowId"
++    (cellClicked)="onCellClicked($event)"
++    (gridReady)="onGridReady($event)">
++  </ag-grid-angular>
++</div>
+diff --git a/web-front-end/angular/main/app/admin/order-admin.component.scss b/web-front-end/angular/main/app/admin/order-admin.component.scss
+new file mode 100644
+index 0000000..43c9cf7
+--- /dev/null
++++ b/web-front-end/angular/main/app/admin/order-admin.component.scss
+@@ -0,0 +1,3 @@
++.order-admin-container {
++  min-height: calc(100vh - 130px);
++}
+diff --git a/web-front-end/angular/main/app/admin/order-admin.component.ts b/web-front-end/angular/main/app/admin/order-admin.component.ts
+new file mode 100644
+index 0000000..133578b
+--- /dev/null
++++ b/web-front-end/angular/main/app/admin/order-admin.component.ts
+@@ -0,0 +1,330 @@
++import { CellClickedEvent, ColDef, GetRowIdParams, GridApi, GridReadyEvent } from 'ag-grid-community';
++import { Component, OnDestroy, OnInit } from '@angular/core';
++import { OrderRecord } from '../model/order.model';
++import { PriceTick } from '../model/trade.model';
++import { OrderAdminService } from '../service/order-admin.service';
++import { TradeFeedService } from '../service/trade-feed.service';
++
++type OrderRow = OrderRecord & {
++    marketPrice?: number;
++    spreadToStrike?: number;
++};
++
++@Component({
++    standalone: false,
++    selector: 'app-order-admin',
++    templateUrl: './order-admin.component.html',
++    styleUrls: ['./order-admin.component.scss']
++})
++export class OrderAdminComponent implements OnInit, OnDestroy {
++    rows: OrderRow[] = [];
++    gridApi?: GridApi<OrderRow>;
++    openOrderCount = 0;
++    unfilledOrderCount = 0;
++    totalRemainingQuantity = 0;
++    actionMessage?: { type: 'success' | 'danger'; text: string };
++    private readonly marketPriceByTicker = new Map<string, number>();
++    private orderUnsubscribeFn?: () => void;
++    private priceUnsubscribeFn?: () => void;
++
++    columnDefs: ColDef<OrderRow>[] = [
++        { headerName: 'ORDER ID', field: 'orderId' },
++        { headerName: 'ACCOUNT', field: 'accountId' },
++        { headerName: 'SECURITY', field: 'security' },
++        { headerName: 'SIDE', field: 'side' },
++        {
++            headerName: 'QTY',
++            field: 'quantity',
++            headerClass: 'ag-right-aligned-header',
++            cellClass: 'ag-right-aligned-cell',
++            valueFormatter: ({ value }) => this.formatInteger(value)
++        },
++        {
++            headerName: 'REMAINING',
++            field: 'remainingQuantity',
++            headerClass: 'ag-right-aligned-header',
++            cellClass: 'ag-right-aligned-cell',
++            valueFormatter: ({ value }) => this.formatInteger(value)
++        },
++        {
++            headerName: 'STRIKE',
++            field: 'limitPrice',
++            headerClass: 'ag-right-aligned-header',
++            cellClass: 'ag-right-aligned-cell',
++            valueFormatter: ({ value }) => this.formatCurrency(value)
++        },
++        {
++            headerName: 'MARKET',
++            field: 'marketPrice',
++            headerClass: 'ag-right-aligned-header',
++            cellClass: 'ag-right-aligned-cell',
++            valueFormatter: ({ value }) => this.formatCurrency(value),
++            cellStyle: ({ data }) => this.marketStyle(data)
++        },
++        {
++            headerName: 'DELTA',
++            field: 'spreadToStrike',
++            headerClass: 'ag-right-aligned-header',
++            cellClass: 'ag-right-aligned-cell',
++            valueFormatter: ({ value }) => this.formatSignedCurrency(value),
++            cellStyle: ({ value }) => this.deltaStyle(value)
++        },
++        { headerName: 'STATUS', field: 'status' },
++        { headerName: 'UPDATED', field: 'updatedAt', valueFormatter: ({ value }) => this.toRelativeTime(value) },
++        {
++            headerName: 'CANCEL',
++            colId: 'cancel',
++            cellRenderer: () => '<button class="btn btn-outline-danger btn-sm">Cancel</button>'
++        },
++        {
++            headerName: 'FORCE FILL',
++            colId: 'forceFill',
++            cellRenderer: () => '<button class="btn btn-outline-success btn-sm">Force Fill</button>'
++        }
++    ];
++
++    constructor(private orderAdminService: OrderAdminService,
++                private tradeFeed: TradeFeedService) {
++        this.getRowId = this.getRowId.bind(this);
++    }
++
++    ngOnInit(): void {
++        this.reloadOpenOrders();
++        this.orderUnsubscribeFn = this.orderAdminService.subscribe('/orders', (order: OrderRecord) => {
++            this.applyOrderUpdate(order);
++        });
++        this.priceUnsubscribeFn = this.tradeFeed.subscribe('pricing.*', (tick: PriceTick) => {
++            this.applyPriceTick(tick);
++        });
++    }
++
++    ngOnDestroy(): void {
++        this.orderUnsubscribeFn?.();
++        this.priceUnsubscribeFn?.();
++    }
++
++    onGridReady(params: GridReadyEvent<OrderRow>) {
++        this.gridApi = params.api;
++        this.gridApi.sizeColumnsToFit();
++    }
++
++    onCellClicked(event: CellClickedEvent<OrderRow>): void {
++        const orderId = event.data?.orderId;
++        if (!orderId) {
++            return;
++        }
++        if (event.colDef.colId === 'cancel') {
++            this.orderAdminService.cancelOrder(orderId).subscribe({
++                next: (res) => {
++                    this.actionMessage = { type: 'success', text: `Canceled ${res.orderId}` };
++                },
++                error: () => {
++                    this.actionMessage = { type: 'danger', text: `Failed to cancel ${orderId}` };
++                }
++            });
++            return;
++        }
++        if (event.colDef.colId === 'forceFill') {
++            this.orderAdminService.forceFillOrder(orderId).subscribe({
++                next: (res) => {
++                    this.actionMessage = { type: 'success', text: `Force-filled ${res.orderId}` };
++                },
++                error: () => {
++                    this.actionMessage = { type: 'danger', text: `Failed to force-fill ${orderId}` };
++                }
++            });
++        }
++    }
++
++    getRowId(params: GetRowIdParams<OrderRow>): string {
++        return params?.data?.orderId ?? 'order-unknown';
++    }
++
++    private reloadOpenOrders() {
++        this.orderAdminService.getOpenOrders().subscribe((orders: OrderRecord[]) => {
++            const rows = (orders ?? []).map((order) => this.withLivePricing(order));
++            this.rows = rows;
++            this.setGridRowData(rows);
++            this.updateSummary(rows);
++        });
++    }
++
++    private applyOrderUpdate(order: OrderRecord): void {
++        if (!order?.orderId) {
++            return;
++        }
++        const terminal = this.isTerminalStatus(order.status);
++        if (terminal) {
++            const filtered = this.rows.filter((row) => row.orderId !== order.orderId);
++            if (filtered.length === this.rows.length) {
++                return;
++            }
++            this.rows = filtered;
++            this.setGridRowData(filtered);
++            this.updateSummary(filtered);
++            return;
++        }
++        const updatedRow = this.withLivePricing(order);
++        const existingIndex = this.rows.findIndex((row) => row.orderId === order.orderId);
++        const nextRows = [...this.rows];
++        if (existingIndex >= 0) {
++            nextRows[existingIndex] = updatedRow;
++        } else {
++            nextRows.unshift(updatedRow);
++        }
++        nextRows.sort((a, b) => this.toEpochMs(b.updatedAt) - this.toEpochMs(a.updatedAt));
++        this.rows = nextRows;
++        this.setGridRowData(nextRows);
++        this.updateSummary(nextRows);
++    }
++
++    private applyPriceTick(tick: PriceTick) {
++        if (!tick?.ticker || tick.price == null || this.rows.length === 0) {
++            return;
++        }
++        this.marketPriceByTicker.set(tick.ticker, Number(tick.price));
++        let changed = false;
++        const updated = this.rows.map((row) => {
++            if (row.security !== tick.ticker) {
++                return row;
++            }
++            changed = true;
++            return this.withLivePricing(row);
++        });
++        if (!changed) {
++            return;
++        }
++        this.rows = updated;
++        this.setGridRowData(updated);
++    }
++
++    private withLivePricing(order: OrderRecord): OrderRow {
++        const limitPrice = Number(order.limitPrice ?? 0);
++        const marketPrice = this.marketPriceByTicker.get(order.security);
++        const spreadToStrike = marketPrice == null ? undefined : Number(marketPrice) - limitPrice;
++        return Object.assign({}, order, {
++            limitPrice,
++            marketPrice: marketPrice == null ? undefined : Number(marketPrice),
++            spreadToStrike
++        });
++    }
++
++    private updateSummary(rows: OrderRow[]) {
++        this.openOrderCount = rows.length;
++        this.unfilledOrderCount = rows.filter((row) => Number(row.remainingQuantity ?? 0) > 0).length;
++        this.totalRemainingQuantity = rows.reduce((sum, row) => sum + Number(row.remainingQuantity ?? 0), 0);
++    }
++
++    private isTerminalStatus(status: string | undefined): boolean {
++        return status === 'FILLED' || status === 'CANCELED' || status === 'REJECTED';
++    }
++
++    private toEpochMs(value: string | Date | undefined): number {
++        if (!value) {
++            return 0;
++        }
++        const ts = new Date(value).getTime();
++        return Number.isFinite(ts) ? ts : 0;
++    }
++
++    private setGridRowData(rows: OrderRow[]) {
++        if (!this.gridApi) {
++            return;
++        }
++        if (typeof (this.gridApi as any).setGridOption === 'function') {
++            (this.gridApi as any).setGridOption('rowData', rows);
++        } else if (typeof (this.gridApi as any).setRowData === 'function') {
++            (this.gridApi as any).setRowData(rows);
++        }
++        this.gridApi.sizeColumnsToFit();
++    }
++
++    private marketStyle(data?: OrderRow): any {
++        if (!data || data.marketPrice == null) {
++            return {};
++        }
++        const market = Number(data.marketPrice);
++        const strike = Number(data.limitPrice);
++        if (!Number.isFinite(market) || !Number.isFinite(strike)) {
++            return {};
++        }
++        const favorable = data.side === 'Buy' ? market <= strike : market >= strike;
++        return { color: favorable ? '#14532d' : '#991b1b', fontWeight: 700 };
++    }
++
++    private deltaStyle(value: any): any {
++        const numeric = Number(value);
++        if (!Number.isFinite(numeric) || numeric === 0) {
++            return {};
++        }
++        return { color: numeric >= 0 ? '#14532d' : '#991b1b', fontWeight: 700 };
++    }
++
++    private formatCurrency(value: any): string {
++        if (value == null || value === '') {
++            return '-';
++        }
++        const numeric = Number(value);
++        if (!Number.isFinite(numeric)) {
++            return '-';
++        }
++        return new Intl.NumberFormat('en-US', {
++            style: 'currency',
++            currency: 'USD',
++            minimumFractionDigits: 3,
++            maximumFractionDigits: 3
++        }).format(numeric);
++    }
++
++    private formatSignedCurrency(value: any): string {
++        if (value == null || value === '') {
++            return '-';
++        }
++        const numeric = Number(value);
++        if (!Number.isFinite(numeric)) {
++            return '-';
++        }
++        const abs = new Intl.NumberFormat('en-US', {
++            style: 'currency',
++            currency: 'USD',
++            minimumFractionDigits: 3,
++            maximumFractionDigits: 3
++        }).format(Math.abs(numeric));
++        return numeric >= 0 ? `+${abs}` : `-${abs}`;
++    }
++
++    private formatInteger(value: any): string {
++        if (value == null || value === '') {
++            return '-';
++        }
++        const numeric = Number(value);
++        if (!Number.isFinite(numeric)) {
++            return '-';
++        }
++        return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(numeric);
++    }
++
++    private toRelativeTime(value: string | Date | undefined): string {
++        if (!value) {
++            return '-';
++        }
++        const ts = new Date(value);
++        if (Number.isNaN(ts.getTime())) {
++            return '-';
++        }
++        const now = new Date();
++        const elapsedMs = now.getTime() - ts.getTime();
++        const elapsedMins = Math.max(0, Math.floor(elapsedMs / 60000));
++        if (elapsedMins < 1) {
++            return 'just now';
++        }
++        if (elapsedMins < 60) {
++            return `${elapsedMins} min ago`;
++        }
++        const elapsedHours = Math.floor(elapsedMins / 60);
++        if (elapsedHours < 24) {
++            return `${elapsedHours} hr ago`;
++        }
++        return ts.toLocaleString();
++    }
++}
+diff --git a/web-front-end/angular/main/app/app.module.ts b/web-front-end/angular/main/app/app.module.ts
+index 906bae4..6c35783 100644
+--- a/web-front-end/angular/main/app/app.module.ts
++++ b/web-front-end/angular/main/app/app.module.ts
+@@ -10,12 +10,21 @@ import { AccountsModule } from './accounts/accounts.module';
+ import { RouterModule } from '@angular/router';
+ import { routes } from './routing';
+ import { PageNotFoundComponent } from './page-not-found.component';
++import { OrderAdminComponent } from './admin/order-admin.component';
++import { AlertModule } from 'ngx-bootstrap/alert';
+ 
+-@NgModule({ declarations: [AppComponent, HeaderComponent, PageNotFoundComponent],
+-    bootstrap: [AppComponent], imports: [BrowserModule,
++@NgModule({
++    declarations: [AppComponent, HeaderComponent, PageNotFoundComponent, OrderAdminComponent],
++    bootstrap: [AppComponent],
++    imports: [
++        BrowserModule,
+         CommonModule,
+         TradeModule,
+         AccountsModule,
+         AgGridModule,
+-        RouterModule.forRoot(routes)], providers: [provideHttpClient(withInterceptorsFromDi(), withJsonpSupport())] })
++        AlertModule.forRoot(),
++        RouterModule.forRoot(routes)
++    ],
++    providers: [provideHttpClient(withInterceptorsFromDi(), withJsonpSupport())]
++})
+ export class AppModule { }
+diff --git a/web-front-end/angular/main/app/header/header.component.html b/web-front-end/angular/main/app/header/header.component.html
+index f5543d2..15b31ef 100644
+--- a/web-front-end/angular/main/app/header/header.component.html
++++ b/web-front-end/angular/main/app/header/header.component.html
+@@ -13,4 +13,7 @@
+     <li class="nav-item">
+         <a class="nav-link" routerLink="/account" routerLinkActive="active">Account</a>
+     </li>
++    <li class="nav-item">
++        <a class="nav-link" routerLink="/admin" routerLinkActive="active">Admin</a>
++    </li>
+ </ul>
+diff --git a/web-front-end/angular/main/app/model/order.model.ts b/web-front-end/angular/main/app/model/order.model.ts
+new file mode 100644
+index 0000000..a2d96f0
+--- /dev/null
++++ b/web-front-end/angular/main/app/model/order.model.ts
+@@ -0,0 +1,23 @@
++export type OrderStatus = 'NEW' | 'PARTIALLY_FILLED' | 'FILLED' | 'CANCELED' | 'REJECTED';
++export type OrderSide = 'Buy' | 'Sell';
++
++export interface OrderRecord {
++    orderId: string;
++    accountId: number;
++    security: string;
++    side: OrderSide;
++    quantity: number;
++    remainingQuantity: number;
++    limitPrice: number;
++    status: OrderStatus;
++    createdAt: string;
++    updatedAt: string;
++}
++
++export interface OrderCreateRequest {
++    accountId: number;
++    security: string;
++    side: OrderSide;
++    quantity: number;
++    limitPrice: number;
++}
+diff --git a/web-front-end/angular/main/app/service/order-admin.service.ts b/web-front-end/angular/main/app/service/order-admin.service.ts
+new file mode 100644
+index 0000000..b9dc36b
+--- /dev/null
++++ b/web-front-end/angular/main/app/service/order-admin.service.ts
+@@ -0,0 +1,51 @@
++import { Injectable } from '@angular/core';
++import { HttpClient, HttpErrorResponse } from '@angular/common/http';
++import { Observable, throwError } from 'rxjs';
++import { catchError } from 'rxjs/operators';
++import { environment } from 'main/environments/environment';
++import { OrderRecord, OrderCreateRequest } from '../model/order.model';
++import { TradeFeedService } from './trade-feed.service';
++
++@Injectable({
++    providedIn: 'root'
++})
++export class OrderAdminService {
++    private readonly ordersUrl = `${environment.orderMatcherUrl}/orders`;
++
++    constructor(private http: HttpClient,
++                private tradeFeed: TradeFeedService) {}
++
++    getOpenOrders(accountId?: number): Observable<OrderRecord[]> {
++        const query = accountId != null ? `?status=open&accountId=${accountId}` : '?status=open';
++        return this.http.get<OrderRecord[]>(`${this.ordersUrl}${query}`).pipe(
++            catchError(this.handleError)
++        );
++    }
++
++    createOrder(order: OrderCreateRequest): Observable<OrderRecord> {
++        return this.http.post<OrderRecord>(this.ordersUrl, order).pipe(
++            catchError(this.handleError)
++        );
++    }
++
++    cancelOrder(orderId: string): Observable<OrderRecord> {
++        return this.http.post<OrderRecord>(`${this.ordersUrl}/${orderId}/cancel`, {}).pipe(
++            catchError(this.handleError)
++        );
++    }
++
++    forceFillOrder(orderId: string): Observable<OrderRecord> {
++        return this.http.post<OrderRecord>(`${this.ordersUrl}/${orderId}/force-fill`, {}).pipe(
++            catchError(this.handleError)
++        );
++    }
++
++    subscribe(topic: string, callback: (order: OrderRecord) => void): () => void {
++        return this.tradeFeed.subscribe(topic, callback);
++    }
++
++    private handleError(error: HttpErrorResponse) {
++        console.error(error);
++        return throwError(() => error);
++    }
++}
+diff --git a/web-front-end/angular/main/app/trade/order-blotter/order-blotter.component.html b/web-front-end/angular/main/app/trade/order-blotter/order-blotter.component.html
+new file mode 100644
+index 0000000..a00d20c
+--- /dev/null
++++ b/web-front-end/angular/main/app/trade/order-blotter/order-blotter.component.html
+@@ -0,0 +1,11 @@
++<h5>Open Orders</h5>
++
++<ag-grid-angular
++    style="width: 100%; height: 420px;"
++    class="ag-theme-alpine"
++    [columnDefs]="columnDefs"
++    [rowData]="rows"
++    (gridReady)="onGridReady($event)"
++    (cellClicked)="onCellClicked($event)"
++    [getRowId]="getRowId">
++</ag-grid-angular>
+diff --git a/web-front-end/angular/main/app/trade/order-blotter/order-blotter.component.ts b/web-front-end/angular/main/app/trade/order-blotter/order-blotter.component.ts
+new file mode 100644
+index 0000000..62cf0a4
+--- /dev/null
++++ b/web-front-end/angular/main/app/trade/order-blotter/order-blotter.component.ts
+@@ -0,0 +1,341 @@
++import { CellClickedEvent, ColDef, GetRowIdParams, GridApi, GridReadyEvent } from 'ag-grid-community';
++import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
++import { Account } from 'main/app/model/account.model';
++import { OrderRecord } from 'main/app/model/order.model';
++import { PriceTick } from 'main/app/model/trade.model';
++import { OrderAdminService } from 'main/app/service/order-admin.service';
++import { TradeFeedService } from 'main/app/service/trade-feed.service';
++
++type OrderRow = OrderRecord & {
++  marketPrice?: number;
++  spreadToStrike?: number;
++  accountDisplayName?: string;
++};
++
++@Component({
++  standalone: false,
++  selector: 'app-order-blotter',
++  templateUrl: './order-blotter.component.html'
++})
++export class OrderBlotterComponent implements OnChanges, OnDestroy {
++  @Input() account?: Account;
++  @Input() allAccountsMode = false;
++  @Input() accountNameById: { [accountId: number]: string } = {};
++
++  rows: OrderRow[] = [];
++  gridApi?: GridApi<OrderRow>;
++  private orderUnsubscribeFn?: () => void;
++  private priceUnsubscribeFn?: () => void;
++  private readonly marketPriceByTicker = new Map<string, number>();
++
++  private readonly baseColumns: ColDef<OrderRow>[] = [
++    { headerName: 'ORDER ID', field: 'orderId' },
++    { headerName: 'SECURITY', field: 'security' },
++    { headerName: 'SIDE', field: 'side' },
++    {
++      headerName: 'QTY',
++      field: 'quantity',
++      headerClass: 'ag-right-aligned-header',
++      cellClass: 'ag-right-aligned-cell',
++      valueFormatter: ({ value }) => this.formatInteger(value)
++    },
++    {
++      headerName: 'REMAINING',
++      field: 'remainingQuantity',
++      headerClass: 'ag-right-aligned-header',
++      cellClass: 'ag-right-aligned-cell',
++      valueFormatter: ({ value }) => this.formatInteger(value)
++    },
++    {
++      headerName: 'STRIKE',
++      field: 'limitPrice',
++      headerClass: 'ag-right-aligned-header',
++      cellClass: 'ag-right-aligned-cell',
++      valueFormatter: ({ value }) => this.formatCurrency(value)
++    },
++    {
++      headerName: 'MARKET',
++      field: 'marketPrice',
++      headerClass: 'ag-right-aligned-header',
++      cellClass: 'ag-right-aligned-cell',
++      valueFormatter: ({ value }) => this.formatCurrency(value),
++      cellStyle: ({ data }) => this.marketStyle(data)
++    },
++    {
++      headerName: 'DELTA',
++      field: 'spreadToStrike',
++      headerClass: 'ag-right-aligned-header',
++      cellClass: 'ag-right-aligned-cell',
++      valueFormatter: ({ value }) => this.formatSignedCurrency(value),
++      cellStyle: ({ value }) => this.deltaStyle(value)
++    },
++    { headerName: 'UPDATED', field: 'updatedAt', valueFormatter: ({ value }) => this.toRelativeTime(value) },
++    {
++      headerName: 'ACTION',
++      colId: 'cancel',
++      cellRenderer: () => '<button class="btn btn-outline-danger btn-sm">Cancel</button>'
++    }
++  ];
++
++  columnDefs: ColDef<OrderRow>[] = [];
++
++  constructor(private orderAdminService: OrderAdminService,
++              private tradeFeed: TradeFeedService) {
++    this.getRowId = this.getRowId.bind(this);
++  }
++
++  ngOnChanges(changes: SimpleChanges): void {
++    if (changes.account || changes.allAccountsMode || changes.accountNameById) {
++      this.configureColumns();
++      this.startScope();
++    }
++  }
++
++  ngOnDestroy(): void {
++    this.orderUnsubscribeFn?.();
++    this.priceUnsubscribeFn?.();
++  }
++
++  onGridReady(params: GridReadyEvent<OrderRow>): void {
++    this.gridApi = params.api;
++    this.configureColumns();
++    this.gridApi.sizeColumnsToFit();
++  }
++
++  onCellClicked(event: CellClickedEvent<OrderRow>): void {
++    if (event.colDef.colId !== 'cancel') {
++      return;
++    }
++    const orderId = event.data?.orderId;
++    if (!orderId) {
++      return;
++    }
++    this.orderAdminService.cancelOrder(orderId).subscribe();
++  }
++
++  getRowId(params: GetRowIdParams<OrderRow>): string {
++    return params?.data?.orderId ?? 'order-unknown';
++  }
++
++  private startScope(): void {
++    this.orderUnsubscribeFn?.();
++    this.priceUnsubscribeFn?.();
++    this.marketPriceByTicker.clear();
++
++    const accountId = this.allAccountsMode ? undefined : this.account?.id;
++    if (!this.allAccountsMode && (!accountId || accountId <= 0)) {
++      this.rows = [];
++      this.setGridRowData([]);
++      return;
++    }
++    this.reloadOpenOrders();
++    const topic = this.allAccountsMode ? '/orders' : `/accounts/${accountId}/orders`;
++    this.orderUnsubscribeFn = this.orderAdminService.subscribe(topic, (order: OrderRecord) => {
++      this.applyOrderUpdate(order);
++    });
++    this.priceUnsubscribeFn = this.tradeFeed.subscribe('pricing.*', (tick: PriceTick) => this.applyPriceTick(tick));
++  }
++
++  private reloadOpenOrders(): void {
++    const accountId = this.allAccountsMode ? undefined : this.account?.id;
++    if (!this.allAccountsMode && (!accountId || accountId <= 0)) {
++      this.rows = [];
++      this.setGridRowData([]);
++      return;
++    }
++    this.orderAdminService.getOpenOrders(accountId).subscribe((orders: OrderRecord[]) => {
++      this.rows = (orders ?? []).map((order) => this.withLivePricing(order));
++      this.setGridRowData(this.rows);
++    });
++  }
++
++  private applyOrderUpdate(order: OrderRecord): void {
++    if (!order?.orderId) {
++      return;
++    }
++    const selectedAccountId = this.account?.id;
++    if (!this.allAccountsMode && selectedAccountId && order.accountId !== selectedAccountId) {
++      return;
++    }
++    if (this.isTerminalStatus(order.status)) {
++      const filtered = this.rows.filter((row) => row.orderId !== order.orderId);
++      if (filtered.length === this.rows.length) {
++        return;
++      }
++      this.rows = filtered;
++      this.setGridRowData(filtered);
++      return;
++    }
++    const updatedRow = this.withLivePricing(order);
++    const existingIndex = this.rows.findIndex((row) => row.orderId === order.orderId);
++    const nextRows = [...this.rows];
++    if (existingIndex >= 0) {
++      nextRows[existingIndex] = updatedRow;
++    } else {
++      nextRows.unshift(updatedRow);
++    }
++    nextRows.sort((a, b) => this.toEpochMs(b.updatedAt) - this.toEpochMs(a.updatedAt));
++    this.rows = nextRows;
++    this.setGridRowData(nextRows);
++  }
++
++  private applyPriceTick(tick: PriceTick): void {
++    if (!tick?.ticker || tick.price == null || this.rows.length === 0) {
++      return;
++    }
++    this.marketPriceByTicker.set(tick.ticker, Number(tick.price));
++    let changed = false;
++    const updated = this.rows.map((row) => {
++      if (row.security !== tick.ticker) {
++        return row;
++      }
++      changed = true;
++      return this.withLivePricing(row);
++    });
++    if (!changed) {
++      return;
++    }
++    this.rows = updated;
++    this.setGridRowData(updated);
++  }
++
++  private withLivePricing(order: OrderRecord): OrderRow {
++    const marketPrice = this.marketPriceByTicker.get(order.security);
++    const limitPrice = Number(order.limitPrice ?? 0);
++    const spreadToStrike = marketPrice == null ? undefined : Number(marketPrice) - limitPrice;
++    const accountDisplayName = this.accountNameById[order.accountId] ?? `#${order.accountId}`;
++    return Object.assign({}, order, {
++      marketPrice: marketPrice == null ? undefined : Number(marketPrice),
++      spreadToStrike,
++      accountDisplayName
++    });
++  }
++
++  private configureColumns(): void {
++    const accountColumn: ColDef<OrderRow>[] = this.allAccountsMode
++      ? [{ headerName: 'ACCOUNT', field: 'accountDisplayName' }]
++      : [];
++    this.columnDefs = [...accountColumn, ...this.baseColumns];
++    if (!this.gridApi) {
++      return;
++    }
++    if (typeof (this.gridApi as any).setGridOption === 'function') {
++      (this.gridApi as any).setGridOption('columnDefs', this.columnDefs);
++    } else if (typeof (this.gridApi as any).setColumnDefs === 'function') {
++      (this.gridApi as any).setColumnDefs(this.columnDefs);
++    }
++  }
++
++  private isTerminalStatus(status: string | undefined): boolean {
++    return status === 'FILLED' || status === 'CANCELED' || status === 'REJECTED';
++  }
++
++  private toEpochMs(value: string | Date | undefined): number {
++    if (!value) {
++      return 0;
++    }
++    const ts = new Date(value).getTime();
++    return Number.isFinite(ts) ? ts : 0;
++  }
++
++  private setGridRowData(rows: OrderRow[]): void {
++    if (!this.gridApi) {
++      return;
++    }
++    if (typeof (this.gridApi as any).setGridOption === 'function') {
++      (this.gridApi as any).setGridOption('rowData', rows);
++    } else if (typeof (this.gridApi as any).setRowData === 'function') {
++      (this.gridApi as any).setRowData(rows);
++    }
++    this.gridApi.sizeColumnsToFit();
++  }
++
++  private marketStyle(data?: OrderRow): any {
++    if (!data || data.marketPrice == null) {
++      return {};
++    }
++    const market = Number(data.marketPrice);
++    const strike = Number(data.limitPrice);
++    if (!Number.isFinite(market) || !Number.isFinite(strike)) {
++      return {};
++    }
++    const favorable = data.side === 'Buy' ? market <= strike : market >= strike;
++    return { color: favorable ? '#14532d' : '#991b1b', fontWeight: 700 };
++  }
++
++  private deltaStyle(value: any): any {
++    const numeric = Number(value);
++    if (!Number.isFinite(numeric) || numeric === 0) {
++      return {};
++    }
++    return { color: numeric >= 0 ? '#14532d' : '#991b1b', fontWeight: 700 };
++  }
++
++  private formatCurrency(value: any): string {
++    if (value == null || value === '') {
++      return '-';
++    }
++    const numeric = Number(value);
++    if (!Number.isFinite(numeric)) {
++      return '-';
++    }
++    return new Intl.NumberFormat('en-US', {
++      style: 'currency',
++      currency: 'USD',
++      minimumFractionDigits: 3,
++      maximumFractionDigits: 3
++    }).format(numeric);
++  }
++
++  private formatSignedCurrency(value: any): string {
++    if (value == null || value === '') {
++      return '-';
++    }
++    const numeric = Number(value);
++    if (!Number.isFinite(numeric)) {
++      return '-';
++    }
++    const abs = new Intl.NumberFormat('en-US', {
++      style: 'currency',
++      currency: 'USD',
++      minimumFractionDigits: 3,
++      maximumFractionDigits: 3
++    }).format(Math.abs(numeric));
++    return numeric >= 0 ? `+${abs}` : `-${abs}`;
++  }
++
++  private formatInteger(value: any): string {
++    if (value == null || value === '') {
++      return '-';
++    }
++    const numeric = Number(value);
++    if (!Number.isFinite(numeric)) {
++      return '-';
++    }
++    return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(numeric);
++  }
++
++  private toRelativeTime(value: string | Date | undefined): string {
++    if (!value) {
++      return '-';
++    }
++    const ts = new Date(value);
++    if (Number.isNaN(ts.getTime())) {
++      return '-';
++    }
++    const now = new Date();
++    const elapsedMs = now.getTime() - ts.getTime();
++    const elapsedMins = Math.max(0, Math.floor(elapsedMs / 60000));
++    if (elapsedMins < 1) {
++      return 'just now';
++    }
++    if (elapsedMins < 60) {
++      return `${elapsedMins} min ago`;
++    }
++    const elapsedHours = Math.floor(elapsedMins / 60);
++    if (elapsedHours < 24) {
++      return `${elapsedHours} hr ago`;
++    }
++    return ts.toLocaleString();
++  }
++}
+diff --git a/web-front-end/angular/main/app/trade/order-ticket/order-ticket.component.html b/web-front-end/angular/main/app/trade/order-ticket/order-ticket.component.html
+new file mode 100644
+index 0000000..d759355
+--- /dev/null
++++ b/web-front-end/angular/main/app/trade/order-ticket/order-ticket.component.html
+@@ -0,0 +1,72 @@
++<div class="p-4">
++    <div class="mb-3 row">
++        <label class="col-sm-2 col-form-label me-3">Account</label>
++        <div class="col-sm-8">
++            <input readonly disabled class="form-control" id="orderAccountLabel" [value]="account?.displayName" />
++        </div>
++    </div>
++    <div class="mb-3 row">
++        <label class="col-sm-2 col-form-label me-3">Security</label>
++        <div class="col-sm-8">
++            <input
++                id="order-stock-input"
++                [minLength]="1"
++                [(ngModel)]="selectedCompany"
++                [typeahead]="filteredStocks"
++                typeaheadOptionField="matchLabel"
++                (typeaheadOnSelect)="onSelect($event)"
++                (blur)="onBlur()"
++                placeholder="Search security"
++                autocomplete="off"
++                autocapitalize="off"
++                autocorrect="off"
++                spellcheck="false"
++                class="form-control"
++            />
++        </div>
++    </div>
++
++    <div class="mb-3 row">
++        <label class="col-sm-2 col-form-label me-3">Live Price</label>
++        <div class="col-sm-8 d-flex align-items-center">
++            <ng-container *ngIf="ticket.security; else noSecuritySelected">
++                <span class="fw-semibold">{{ formatLivePrice() }}</span>
++                <small *ngIf="selectedPriceAsOf" class="text-muted ms-2">as of {{ formatAsOf() }}</small>
++            </ng-container>
++            <ng-template #noSecuritySelected>
++                <span class="text-muted">Select a security</span>
++            </ng-template>
++        </div>
++    </div>
++
++    <div class="mb-3 row">
++        <label class="col-sm-2 col-form-label me-3">Side</label>
++        <div class="col-sm-8">
++            <div class="btn-group">
++                <input type="radio" class="btn-check" name="orderSideButton" value="Buy" id="orderBuyButton" [(ngModel)]="ticket.side" checked #orderBuyButton />
++                <label class="btn" [ngClass]="orderBuyButton.checked ? 'btn-info btn-sm' : 'btn-secondary btn-sm'" for="orderBuyButton">Buy</label>
++                <input type="radio" class="btn-check" name="orderSideButton" value="Sell" id="orderSellButton" [(ngModel)]="ticket.side" #orderSellButton />
++                <label class="btn" [ngClass]="orderSellButton.checked ? 'btn-warning btn-sm' : 'btn-secondary btn-sm'" for="orderSellButton">Sell</label>
++            </div>
++        </div>
++    </div>
++
++    <div class="mb-3 row">
++        <label class="col-sm-2 col-form-label me-3">Quantity</label>
++        <div class="col-sm-8">
++            <input class="form-control d-inline-block" id="orderQuantityField" type="number" [(ngModel)]="ticket.quantity" />
++        </div>
++    </div>
++
++    <div class="mb-3 row">
++        <label class="col-sm-2 col-form-label me-3">Strike Price</label>
++        <div class="col-sm-8">
++            <input class="form-control d-inline-block" id="orderStrikeField" type="number" step="0.001" [(ngModel)]="ticket.limitPrice" />
++        </div>
++    </div>
++
++    <div class="mb-3 row">
++        <button class="btn btn-sm btn-primary col-sm-3 me-2" id="createOrderButton" (click)="onCreate()">Create Order</button>
++        <button class="btn btn-sm btn-secondary col-sm-3" id="cancelOrderButton" (click)="onCancel()">Close</button>
++    </div>
++</div>
+diff --git a/web-front-end/angular/main/app/trade/order-ticket/order-ticket.component.scss b/web-front-end/angular/main/app/trade/order-ticket/order-ticket.component.scss
+new file mode 100644
+index 0000000..5cec825
+--- /dev/null
++++ b/web-front-end/angular/main/app/trade/order-ticket/order-ticket.component.scss
+@@ -0,0 +1,3 @@
++.form-control {
++    width: 220px;
++}
+diff --git a/web-front-end/angular/main/app/trade/order-ticket/order-ticket.component.ts b/web-front-end/angular/main/app/trade/order-ticket/order-ticket.component.ts
+new file mode 100644
+index 0000000..42c4459
+--- /dev/null
++++ b/web-front-end/angular/main/app/trade/order-ticket/order-ticket.component.ts
+@@ -0,0 +1,132 @@
++import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
++import { PriceTick } from 'main/app/model/trade.model';
++import { Stock } from 'main/app/model/symbol.model';
++import { Account } from 'main/app/model/account.model';
++import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
++import { TradeFeedService } from 'main/app/service/trade-feed.service';
++import { OrderCreateRequest } from 'main/app/model/order.model';
++
++@Component({
++  standalone: false,
++  selector: 'app-order-ticket',
++  templateUrl: './order-ticket.component.html',
++  styleUrls: ['./order-ticket.component.scss']
++})
++export class OrderTicketComponent implements OnInit, OnDestroy {
++  @Input() stocks: Stock[] = [];
++  @Input() account: Account | undefined;
++  @Output() create = new EventEmitter<OrderCreateRequest>();
++  @Output() cancel = new EventEmitter<void>();
++
++  selectedCompany?: string = undefined;
++  ticket: OrderCreateRequest = {
++    accountId: 0,
++    security: '',
++    side: 'Buy',
++    quantity: 0,
++    limitPrice: 0
++  };
++  filteredStocks: Array<Stock & { matchLabel: string }> = [];
++  selectedPrice: number | null = null;
++  selectedPriceAsOf: string | null = null;
++  private selectedPriceTicker: string | null = null;
++  private priceStreamUnsubscribeFn?: Function;
++
++  constructor(private tradeFeed: TradeFeedService) {}
++
++  ngOnInit() {
++    this.ticket.accountId = this.account?.id || 0;
++    this.filteredStocks = (this.stocks || []).map((stock) => ({
++      ...stock,
++      matchLabel: this.toMatchLabel(stock)
++    }));
++  }
++
++  ngOnDestroy() {
++    this.priceStreamUnsubscribeFn?.();
++  }
++
++  onSelect(e: TypeaheadMatch): void {
++    const selectedStock = e.item as Stock & { matchLabel?: string };
++    this.ticket.security = selectedStock.ticker;
++    this.selectedCompany = selectedStock.matchLabel || this.toMatchLabel(selectedStock);
++    this.subscribeToTickerPrice(selectedStock.ticker);
++  }
++
++  onBlur(): void {
++    if (this.selectedCompany) {
++      return;
++    }
++    this.ticket.security = '';
++    this.selectedPrice = null;
++    this.selectedPriceAsOf = null;
++    this.selectedPriceTicker = null;
++    this.priceStreamUnsubscribeFn?.();
++    this.priceStreamUnsubscribeFn = undefined;
++  }
++
++  onCreate() {
++    if (!this.ticket.security || this.ticket.quantity <= 0 || this.ticket.limitPrice <= 0) {
++      console.warn('Order ticket is incomplete');
++      return;
++    }
++    this.create.emit({
++      ...this.ticket,
++      security: this.ticket.security.toUpperCase()
++    });
++  }
++
++  onCancel() {
++    this.cancel.emit();
++  }
++
++  formatLivePrice(): string {
++    if (this.selectedPrice == null) {
++      return 'Streaming...';
++    }
++    return new Intl.NumberFormat('en-US', {
++      style: 'currency',
++      currency: 'USD',
++      minimumFractionDigits: 3,
++      maximumFractionDigits: 3
++    }).format(this.selectedPrice);
++  }
++
++  formatAsOf(): string {
++    if (!this.selectedPriceAsOf) {
++      return '';
++    }
++    const ts = new Date(this.selectedPriceAsOf);
++    if (Number.isNaN(ts.getTime())) {
++      return '';
++    }
++    return ts.toLocaleTimeString();
++  }
++
++  private subscribeToTickerPrice(ticker: string): void {
++    if (!ticker) {
++      return;
++    }
++    if (this.selectedPriceTicker === ticker && this.priceStreamUnsubscribeFn) {
++      return;
++    }
++    this.priceStreamUnsubscribeFn?.();
++    this.selectedPrice = null;
++    this.selectedPriceAsOf = null;
++    this.selectedPriceTicker = ticker;
++
++    this.priceStreamUnsubscribeFn = this.tradeFeed.subscribe(`pricing.${ticker}`, (tick: PriceTick) => {
++      if (!tick || tick.ticker !== ticker) {
++        return;
++      }
++      this.selectedPrice = Number(tick.price);
++      this.selectedPriceAsOf = tick.asOf ?? null;
++      if (!this.ticket.limitPrice || this.ticket.limitPrice <= 0) {
++        this.ticket.limitPrice = Number(tick.price);
++      }
++    });
++  }
++
++  private toMatchLabel(stock: Stock): string {
++    return `${stock.ticker} - ${stock.companyName}`;
++  }
++}
+diff --git a/web-front-end/angular/main/app/trade/trade.module.ts b/web-front-end/angular/main/app/trade/trade.module.ts
+index 9a5446c..4cdf5cc 100644
+--- a/web-front-end/angular/main/app/trade/trade.module.ts
++++ b/web-front-end/angular/main/app/trade/trade.module.ts
+@@ -10,11 +10,19 @@ import { AlertModule } from 'ngx-bootstrap/alert';
+ import { PositionBlotterComponent } from './position-blotter/position-blotter.component';
+ import { DropdownModule } from '../dropdown/dropdown.module';
+ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+-
+ import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
++import { OrderTicketComponent } from './order-ticket/order-ticket.component';
++import { OrderBlotterComponent } from './order-blotter/order-blotter.component';
+ 
+ @NgModule({
+-  declarations: [TradeComponent, TradeTicketComponent, TradeBlotterComponent, PositionBlotterComponent],
++  declarations: [
++    TradeComponent,
++    TradeTicketComponent,
++    TradeBlotterComponent,
++    PositionBlotterComponent,
++    OrderTicketComponent,
++    OrderBlotterComponent
++  ],
+   imports: [
+     CommonModule,
+     AgGridModule,
+diff --git a/web-front-end/angular/main/environments/environment.local.ts b/web-front-end/angular/main/environments/environment.local.ts
+index 9b2052e..db263f8 100644
+--- a/web-front-end/angular/main/environments/environment.local.ts
++++ b/web-front-end/angular/main/environments/environment.local.ts
+@@ -5,5 +5,6 @@ export const environment = {
+     tradesUrl:          `//${window.location.host}/trade-service/trade/`,
+     positionsUrl:       `//${window.location.host}/position-service`,
+     peopleUrl:          `//${window.location.host}/people-service`,
++    orderMatcherUrl:    `//${window.location.host}/order-matcher`,
+     tradeFeedUrl:       `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/nats-ws`
+ };
+diff --git a/web-front-end/angular/main/environments/environment.prod.ts b/web-front-end/angular/main/environments/environment.prod.ts
+index b884df5..e462b21 100644
+--- a/web-front-end/angular/main/environments/environment.prod.ts
++++ b/web-front-end/angular/main/environments/environment.prod.ts
+@@ -5,5 +5,6 @@ export const environment = {
+     tradesUrl:          `//${window.location.host}/trade-service/trade/`,
+     positionsUrl:       `//${window.location.host}/position-service`,
+     peopleUrl:          `//${window.location.host}/people-service`,
++    orderMatcherUrl:    `//${window.location.host}/order-matcher`,
+     tradeFeedUrl:       `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/nats-ws`
+ };
+diff --git a/web-front-end/angular/main/environments/environment.ts b/web-front-end/angular/main/environments/environment.ts
+index 9b2052e..db263f8 100644
+--- a/web-front-end/angular/main/environments/environment.ts
++++ b/web-front-end/angular/main/environments/environment.ts
+@@ -5,5 +5,6 @@ export const environment = {
+     tradesUrl:          `//${window.location.host}/trade-service/trade/`,
+     positionsUrl:       `//${window.location.host}/position-service`,
+     peopleUrl:          `//${window.location.host}/people-service`,
++    orderMatcherUrl:    `//${window.location.host}/order-matcher`,
+     tradeFeedUrl:       `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/nats-ws`
+ };
+diff --git a/database/initialSchema.sql b/database/initialSchema.sql
+index d568f5e..7a4d25f 100644
+--- a/database/initialSchema.sql
++++ b/database/initialSchema.sql
+@@ -1,4 +1,5 @@
+ Drop Table Trades IF EXISTS;
++Drop Table OrderBook IF EXISTS;
+ Drop Table AccountUsers IF EXISTS;
+ Drop Table Positions IF EXISTS;
+ Drop Table Accounts IF EXISTS;
+@@ -29,6 +30,22 @@ CREATE TABLE Trades (
+ );
+ Alter Table Trades Add Foreign Key (AccountID) references Accounts(ID);
+ 
++CREATE TABLE OrderBook (
++  OrderId VARCHAR(32) PRIMARY KEY,
++  AccountId INTEGER NOT NULL,
++  Security VARCHAR(16) NOT NULL,
++  Side VARCHAR(16) check (Side in ('Buy','Sell')),
++  Quantity INTEGER NOT NULL check (Quantity > 0),
++  RemainingQuantity INTEGER NOT NULL check (RemainingQuantity >= 0),
++  LimitPrice DECIMAL(18,3) NOT NULL,
++  Status VARCHAR(24) check (Status in ('NEW', 'PARTIALLY_FILLED', 'FILLED', 'CANCELED', 'REJECTED')),
++  CreatedAt TIMESTAMP NOT NULL,
++  UpdatedAt TIMESTAMP NOT NULL,
++  LastExecutionPrice DECIMAL(18,3),
++  LastFillQuantity INTEGER
++);
++CREATE INDEX idx_orderbook_status ON OrderBook(Status);
++CREATE INDEX idx_orderbook_updatedat ON OrderBook(UpdatedAt);
++
+ CREATE SEQUENCE ACCOUNTS_SEQ start with 65000 INCREMENT BY 1;
+ 
+ INSERT into Accounts (ID, DisplayName) VALUES (22214, 'Test Account 20');
+diff --git a/postgres-database-replacement/postgres-init/initialSchema.sql b/postgres-database-replacement/postgres-init/initialSchema.sql
+index bb0f4e7..f255e07 100644
+--- a/postgres-database-replacement/postgres-init/initialSchema.sql
++++ b/postgres-database-replacement/postgres-init/initialSchema.sql
+@@ -1,4 +1,5 @@
+ DROP TABLE IF EXISTS trades;
++DROP TABLE IF EXISTS orderbook;
+ DROP TABLE IF EXISTS accountusers;
+ DROP TABLE IF EXISTS positions;
+ DROP TABLE IF EXISTS accounts;
+@@ -33,6 +34,22 @@ CREATE TABLE trades (
+   state VARCHAR(20) CHECK (state in ('New', 'Processing', 'Settled', 'Cancelled'))
+ );
+ 
++CREATE TABLE orderbook (
++  orderid VARCHAR(32) PRIMARY KEY,
++  accountid INTEGER NOT NULL,
++  security VARCHAR(16) NOT NULL,
++  side VARCHAR(16) CHECK (side in ('Buy', 'Sell')),
++  quantity INTEGER NOT NULL CHECK (quantity > 0),
++  remainingquantity INTEGER NOT NULL CHECK (remainingquantity >= 0),
++  limitprice DECIMAL(18,3) NOT NULL,
++  status VARCHAR(24) CHECK (status in ('NEW', 'PARTIALLY_FILLED', 'FILLED', 'CANCELED', 'REJECTED')),
++  createdat TIMESTAMP NOT NULL,
++  updatedat TIMESTAMP NOT NULL,
++  lastexecutionprice DECIMAL(18,3),
++  lastfillquantity INTEGER
++);
++CREATE INDEX idx_orderbook_status ON orderbook(status);
++CREATE INDEX idx_orderbook_updatedat ON orderbook(updatedat);
++
+ CREATE SEQUENCE accounts_seq START WITH 65000 INCREMENT BY 1;
+ 
+ INSERT INTO accounts (id, displayname) VALUES (22214, 'Test Account 20');
+diff --git a/order-matcher/src/main/java/finos/traderx/messaging/Envelope.java b/order-matcher/src/main/java/finos/traderx/messaging/Envelope.java
+new file mode 100644
+index 0000000..825a702
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/messaging/Envelope.java
+@@ -0,0 +1,11 @@
++package finos.traderx.messaging;
++
++import java.util.Date;
++
++public interface Envelope<T> {
++  String getType();
++  String getTopic();
++  T getPayload();
++  Date getDate();
++  String getFrom();
++}
+diff --git a/order-matcher/src/main/java/finos/traderx/messaging/PubSubException.java b/order-matcher/src/main/java/finos/traderx/messaging/PubSubException.java
+new file mode 100644
+index 0000000..760db57
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/messaging/PubSubException.java
+@@ -0,0 +1,16 @@
++package finos.traderx.messaging;
++
++public class PubSubException extends Exception {
++
++  public PubSubException(String message) {
++    super(message);
++  }
++
++  public PubSubException(String message, Throwable throwable) {
++    super(message, throwable);
++  }
++
++  public PubSubException(Throwable throwable) {
++    super(throwable);
++  }
++}
+diff --git a/order-matcher/src/main/java/finos/traderx/messaging/Publisher.java b/order-matcher/src/main/java/finos/traderx/messaging/Publisher.java
+new file mode 100644
+index 0000000..7044c86
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/messaging/Publisher.java
+@@ -0,0 +1,9 @@
++package finos.traderx.messaging;
++
++public interface Publisher<T> {
++  void publish(T message) throws PubSubException;
++  void publish(String topic, T message) throws PubSubException;
++  boolean isConnected();
++  void connect() throws PubSubException;
++  void disconnect() throws PubSubException;
++}
+diff --git a/order-matcher/src/main/java/finos/traderx/messaging/socketio/SocketIOEnvelope.java b/order-matcher/src/main/java/finos/traderx/messaging/socketio/SocketIOEnvelope.java
+new file mode 100644
+index 0000000..b538b56
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/messaging/socketio/SocketIOEnvelope.java
+@@ -0,0 +1,61 @@
++package finos.traderx.messaging.socketio;
++
++import finos.traderx.messaging.Envelope;
++import java.util.Date;
++
++public class SocketIOEnvelope<T> implements Envelope<T> {
++  private String topic;
++  private T payload;
++  private Date date = new Date();
++  private String from;
++  private String type;
++
++  public SocketIOEnvelope() {}
++
++  public SocketIOEnvelope(String topic, T payload) {
++    this.payload = payload;
++    this.topic = topic;
++    this.type = payload.getClass().getSimpleName();
++  }
++
++  public void setType(String type) {
++    this.type = type;
++  }
++
++  public void setPayload(T payload) {
++    this.payload = payload;
++  }
++
++  public void setTopic(String topic) {
++    this.topic = topic;
++  }
++
++  public void setFrom(String from) {
++    this.from = from;
++  }
++
++  @Override
++  public String getType() {
++    return type;
++  }
++
++  @Override
++  public String getTopic() {
++    return topic;
++  }
++
++  @Override
++  public T getPayload() {
++    return payload;
++  }
++
++  @Override
++  public Date getDate() {
++    return date;
++  }
++
++  @Override
++  public String getFrom() {
++    return from;
++  }
++}
+diff --git a/order-matcher/src/main/java/finos/traderx/messaging/socketio/SocketIOJSONPublisher.java b/order-matcher/src/main/java/finos/traderx/messaging/socketio/SocketIOJSONPublisher.java
+new file mode 100644
+index 0000000..84125bd
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/messaging/socketio/SocketIOJSONPublisher.java
+@@ -0,0 +1,116 @@
++package finos.traderx.messaging.socketio;
++
++import com.fasterxml.jackson.annotation.JsonInclude;
++import com.fasterxml.jackson.databind.ObjectMapper;
++import finos.traderx.messaging.PubSubException;
++import finos.traderx.messaging.Publisher;
++import io.socket.client.IO;
++import io.socket.client.Socket;
++import io.socket.emitter.Emitter;
++import java.net.URI;
++import org.json.JSONObject;
++import org.slf4j.LoggerFactory;
++import org.springframework.beans.factory.InitializingBean;
++
++public abstract class SocketIOJSONPublisher<T> implements Publisher<T>, InitializingBean {
++  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
++      .setSerializationInclusion(JsonInclude.Include.NON_NULL);
++
++  protected IO.Options getIOOptions() {
++    return new IO.Options();
++  }
++
++  org.slf4j.Logger log = LoggerFactory.getLogger(this.getClass().getName());
++
++  boolean connected = false;
++  Socket socket;
++  String socketAddress = "http://localhost:3000";
++  String topic = "/default";
++
++  public void setSocketAddress(String addr) {
++    socketAddress = addr;
++  }
++
++  public void setTopic(String topic) {
++    this.topic = topic;
++  }
++
++  @Override
++  public boolean isConnected() {
++    return connected;
++  }
++
++  @Override
++  public void publish(T message) throws PubSubException {
++    publish(topic, message);
++  }
++
++  @Override
++  public void publish(String topic, T message) throws PubSubException {
++    if (!isConnected()) {
++      throw new PubSubException("Cannot send %s on topic %s - not connected".formatted(message, topic));
++    }
++    try {
++      SocketIOEnvelope<T> envelope = new SocketIOEnvelope<>(topic, message);
++      String msgString = OBJECT_MAPPER.writerFor(SocketIOEnvelope.class).writeValueAsString(envelope);
++      JSONObject obj = new JSONObject(msgString);
++      log.debug("PUBLISH->{}", obj);
++      socket.emit("publish", obj);
++    } catch (Exception x) {
++      throw new PubSubException("Unable to publish on topic " + topic, x);
++    }
++  }
++
++  @Override
++  public void disconnect() throws PubSubException {
++    if (socket != null && isConnected()) {
++      socket.disconnect();
++    }
++    socket = null;
++  }
++
++  @Override
++  public void connect() throws PubSubException {
++    if (socket != null) {
++      socket.disconnect();
++    }
++    try {
++      socket = internalConnect(URI.create(socketAddress));
++    } catch (Exception x) {
++      throw new PubSubException("Cannot socket connection at " + socketAddress, x);
++    }
++  }
++
++  protected Socket internalConnect(URI uri) throws Exception {
++    return IO.socket(uri, getIOOptions());
++  }
++
++  @Override
++  public void afterPropertiesSet() throws Exception {
++    connect();
++    socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
++      @Override
++      public void call(Object... args) {
++        SocketIOJSONPublisher.this.connected = true;
++        log.info("Socket Connected {}", args);
++      }
++    });
++
++    socket.on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
++      @Override
++      public void call(Object... args) {
++        SocketIOJSONPublisher.this.connected = false;
++        log.info("Socket Disconnected {}", args);
++      }
++    });
++
++    socket.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
++      @Override
++      public void call(Object... args) {
++        SocketIOJSONPublisher.this.connected = false;
++        log.info("Connection Error {}", args);
++      }
++    });
++    socket.connect();
++  }
++}
+diff --git a/order-matcher/src/main/java/finos/traderx/ordermatcher/config/PubSubConfig.java b/order-matcher/src/main/java/finos/traderx/ordermatcher/config/PubSubConfig.java
+new file mode 100644
+index 0000000..8cc4445
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/ordermatcher/config/PubSubConfig.java
+@@ -0,0 +1,21 @@
++package finos.traderx.ordermatcher.config;
++
++import finos.traderx.messaging.Publisher;
++import finos.traderx.messaging.socketio.SocketIOJSONPublisher;
++import finos.traderx.ordermatcher.api.OrderResponse;
++import org.springframework.beans.factory.annotation.Value;
++import org.springframework.context.annotation.Bean;
++import org.springframework.context.annotation.Configuration;
++
++@Configuration
++public class PubSubConfig {
++    @Value("${trade.feed.address}")
++    private String tradeFeedAddress;
++
++    @Bean
++    public Publisher<OrderResponse> orderPublisher() {
++        SocketIOJSONPublisher<OrderResponse> publisher = new SocketIOJSONPublisher<>() {};
++        publisher.setSocketAddress(tradeFeedAddress);
++        return publisher;
++    }
++}

@@ -1,3 +1,20 @@
+#TraderSpec#
+**/.run
+generated/**
+!generated/
+!generated/README.md
+/traderX.sln
+TraderSpec/codebase/generated-components/
+TraderSpec/codebase/generated-manifests/
+TraderSpec/codebase/target-generated/
+TraderSpec/codebase/target-generated-specfirst/
+
+# Spec Kit agent working data
+.agents/*
+!.agents/skills/
+!.agents/skills/**
+
+
 HELP.md
 .gradle
 build/
@@ -8,12 +25,10 @@ build/
 # Excluding Local Build folder for company-specific building
 .corp
 
-# Structurizr Lite generated files
-docs/c4/workspace.json
-docs/c4/.structurizr
-
 # Exclude package-lock to avoid company builds overriding standard locations
 package-lock.json
+!website/package-lock.json
+!templates/**/package-lock.json
 yarn.lock
 
 #NodeJS

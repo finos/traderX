@@ -1,0 +1,436 @@
+{
+  "runtime": {
+    "namespace": "traderx",
+    "kind": {
+      "clusterName": "traderx-state-010",
+      "hostPort": 8080,
+      "nodePort": 30080
+    },
+    "edge": {
+      "serviceName": "edge-proxy",
+      "image": "nginx:1.27-alpine",
+      "containerPort": 8080
+    }
+  },
+  "components": [
+    {
+      "name": "database",
+      "image": "postgres:16-alpine",
+      "replicas": 1,
+      "ports": [
+        {
+          "name": "pg",
+          "containerPort": 5432,
+          "servicePort": 5432
+        }
+      ],
+      "env": [
+        {
+          "name": "POSTGRES_DB",
+          "value": "traderx"
+        },
+        {
+          "name": "POSTGRES_USER",
+          "value": "traderx"
+        },
+        {
+          "name": "POSTGRES_PASSWORD",
+          "value": "traderx"
+        }
+      ]
+    },
+    {
+      "name": "nats-broker",
+      "image": "nats:2.10-alpine",
+      "replicas": 1,
+      "ports": [
+        {
+          "name": "client",
+          "containerPort": 4222,
+          "servicePort": 4222
+        },
+        {
+          "name": "monitor",
+          "containerPort": 8222,
+          "servicePort": 8222
+        },
+        {
+          "name": "ws",
+          "containerPort": 8081,
+          "servicePort": 8081
+        }
+      ],
+      "env": []
+    },
+    {
+      "name": "reference-data",
+      "image": "traderx/reference-data:state009",
+      "replicas": 1,
+      "build": {
+        "context": "reference-data",
+        "dockerfile": "Dockerfile.compose"
+      },
+      "ports": [
+        {
+          "name": "http",
+          "containerPort": 18085,
+          "servicePort": 18085
+        }
+      ],
+      "env": [
+        {
+          "name": "REFERENCE_DATA_SERVICE_PORT",
+          "value": "18085"
+        },
+        {
+          "name": "CORS_ALLOWED_ORIGINS",
+          "value": "http://localhost:8080"
+        },
+        {
+          "name": "REFERENCE_DATA_SUPPORTED_TICKERS",
+          "value": "AAPL,MSFT,AMZN,GOOGL,META,NVDA,TSLA,IBM,BAC,C,JPM,GS,MS,UBS,DB,COF,DFS,FNMA,FIS,FNF"
+        }
+      ]
+    },
+    {
+      "name": "people-service",
+      "image": "traderx/people-service:state009",
+      "replicas": 1,
+      "build": {
+        "context": "people-service",
+        "dockerfile": "Dockerfile.compose"
+      },
+      "ports": [
+        {
+          "name": "http",
+          "containerPort": 18089,
+          "servicePort": 18089
+        }
+      ],
+      "env": [
+        {
+          "name": "PEOPLE_SERVICE_PORT",
+          "value": "18089"
+        },
+        {
+          "name": "CORS_ALLOWED_ORIGINS",
+          "value": "http://localhost:8080"
+        }
+      ]
+    },
+    {
+      "name": "account-service",
+      "image": "traderx/account-service:state009",
+      "replicas": 1,
+      "build": {
+        "context": "account-service",
+        "dockerfile": "Dockerfile.compose"
+      },
+      "ports": [
+        {
+          "name": "http",
+          "containerPort": 18088,
+          "servicePort": 18088
+        }
+      ],
+      "env": [
+        {
+          "name": "ACCOUNT_SERVICE_PORT",
+          "value": "18088"
+        },
+        {
+          "name": "DATABASE_PG_HOST",
+          "value": "database"
+        },
+        {
+          "name": "DATABASE_PG_PORT",
+          "value": "5432"
+        },
+        {
+          "name": "DATABASE_NAME",
+          "value": "traderx"
+        },
+        {
+          "name": "DATABASE_DBUSER",
+          "value": "traderx"
+        },
+        {
+          "name": "DATABASE_DBPASS",
+          "value": "traderx"
+        },
+        {
+          "name": "PEOPLE_SERVICE_HOST",
+          "value": "people-service"
+        },
+        {
+          "name": "CORS_ALLOWED_ORIGINS",
+          "value": "http://localhost:8080"
+        }
+      ]
+    },
+    {
+      "name": "position-service",
+      "image": "traderx/position-service:state009",
+      "replicas": 1,
+      "build": {
+        "context": "position-service",
+        "dockerfile": "Dockerfile.compose"
+      },
+      "ports": [
+        {
+          "name": "http",
+          "containerPort": 18090,
+          "servicePort": 18090
+        }
+      ],
+      "env": [
+        {
+          "name": "POSITION_SERVICE_PORT",
+          "value": "18090"
+        },
+        {
+          "name": "DATABASE_PG_HOST",
+          "value": "database"
+        },
+        {
+          "name": "DATABASE_PG_PORT",
+          "value": "5432"
+        },
+        {
+          "name": "DATABASE_NAME",
+          "value": "traderx"
+        },
+        {
+          "name": "DATABASE_DBUSER",
+          "value": "traderx"
+        },
+        {
+          "name": "DATABASE_DBPASS",
+          "value": "traderx"
+        },
+        {
+          "name": "CORS_ALLOWED_ORIGINS",
+          "value": "http://localhost:8080"
+        }
+      ]
+    },
+    {
+      "name": "trade-processor",
+      "image": "traderx/trade-processor:state009",
+      "replicas": 1,
+      "build": {
+        "context": "trade-processor",
+        "dockerfile": "Dockerfile.compose"
+      },
+      "ports": [
+        {
+          "name": "http",
+          "containerPort": 18091,
+          "servicePort": 18091
+        }
+      ],
+      "env": [
+        {
+          "name": "TRADE_PROCESSOR_SERVICE_PORT",
+          "value": "18091"
+        },
+        {
+          "name": "DATABASE_PG_HOST",
+          "value": "database"
+        },
+        {
+          "name": "DATABASE_PG_PORT",
+          "value": "5432"
+        },
+        {
+          "name": "DATABASE_NAME",
+          "value": "traderx"
+        },
+        {
+          "name": "DATABASE_DBUSER",
+          "value": "traderx"
+        },
+        {
+          "name": "DATABASE_DBPASS",
+          "value": "traderx"
+        },
+        {
+          "name": "NATS_BROKER_HOST",
+          "value": "nats-broker"
+        },
+        {
+          "name": "CORS_ALLOWED_ORIGINS",
+          "value": "http://localhost:8080"
+        }
+      ]
+    },
+    {
+      "name": "trade-service",
+      "image": "traderx/trade-service:state009",
+      "replicas": 1,
+      "build": {
+        "context": "trade-service",
+        "dockerfile": "Dockerfile.compose"
+      },
+      "ports": [
+        {
+          "name": "http",
+          "containerPort": 18092,
+          "servicePort": 18092
+        }
+      ],
+      "env": [
+        {
+          "name": "TRADING_SERVICE_PORT",
+          "value": "18092"
+        },
+        {
+          "name": "ACCOUNT_SERVICE_HOST",
+          "value": "account-service"
+        },
+        {
+          "name": "REFERENCE_DATA_HOST",
+          "value": "reference-data"
+        },
+        {
+          "name": "PEOPLE_SERVICE_HOST",
+          "value": "people-service"
+        },
+        {
+          "name": "NATS_BROKER_HOST",
+          "value": "nats-broker"
+        },
+        {
+          "name": "PRICE_SERVICE_HOST",
+          "value": "price-publisher"
+        },
+        {
+          "name": "CORS_ALLOWED_ORIGINS",
+          "value": "http://localhost:8080"
+        }
+      ]
+    },
+    {
+      "name": "price-publisher",
+      "image": "traderx/price-publisher:state009",
+      "replicas": 1,
+      "build": {
+        "context": "price-publisher",
+        "dockerfile": "Dockerfile.compose"
+      },
+      "ports": [
+        {
+          "name": "http",
+          "containerPort": 18100,
+          "servicePort": 18100
+        }
+      ],
+      "env": [
+        {
+          "name": "PRICE_PUBLISHER_PORT",
+          "value": "18100"
+        },
+        {
+          "name": "NATS_BROKER_HOST",
+          "value": "nats-broker"
+        },
+        {
+          "name": "PRICE_BOOTSTRAP_MODE",
+          "value": "snapshot"
+        },
+        {
+          "name": "PRICE_TICKERS",
+          "value": "AAPL,MSFT,AMZN,GOOGL,META,NVDA,TSLA,IBM,BAC,C,JPM,GS,MS,UBS,DB,COF,DFS,FNMA,FIS,FNF"
+        }
+      ]
+    },
+    {
+      "name": "order-matcher",
+      "image": "traderx/order-matcher:state009",
+      "replicas": 1,
+      "build": {
+        "context": "order-matcher",
+        "dockerfile": "Dockerfile.compose"
+      },
+      "ports": [
+        {
+          "name": "http",
+          "containerPort": 18110,
+          "servicePort": 18110
+        }
+      ],
+      "env": [
+        {
+          "name": "ORDER_MATCHER_PORT",
+          "value": "18110"
+        },
+        {
+          "name": "DATABASE_PG_HOST",
+          "value": "database"
+        },
+        {
+          "name": "DATABASE_PG_PORT",
+          "value": "5432"
+        },
+        {
+          "name": "DATABASE_NAME",
+          "value": "traderx"
+        },
+        {
+          "name": "DATABASE_DBUSER",
+          "value": "traderx"
+        },
+        {
+          "name": "DATABASE_DBPASS",
+          "value": "traderx"
+        },
+        {
+          "name": "NATS_BROKER_HOST",
+          "value": "nats-broker"
+        },
+        {
+          "name": "CORS_ALLOWED_ORIGINS",
+          "value": "http://localhost:8080"
+        },
+        {
+          "name": "PRICE_SERVICE_URL",
+          "value": "http://price-publisher:18100"
+        },
+        {
+          "name": "TRADE_SERVICE_URL",
+          "value": "http://trade-service:18092/trade/"
+        },
+        {
+          "name": "ORDER_MATCHER_TICK_MS",
+          "value": "1000"
+        },
+        {
+          "name": "ORDER_FILL_FULL_THRESHOLD",
+          "value": "1000"
+        }
+      ]
+    },
+    {
+      "name": "web-front-end-angular",
+      "image": "traderx/web-front-end-angular:state009",
+      "replicas": 1,
+      "build": {
+        "context": "web-front-end/angular",
+        "dockerfile": "Dockerfile.compose"
+      },
+      "ports": [
+        {
+          "name": "http",
+          "containerPort": 18093,
+          "servicePort": 18093
+        }
+      ],
+      "env": [
+        {
+          "name": "WEB_SERVICE_PORT",
+          "value": "18093"
+        }
+      ]
+    }
+  ]
+}

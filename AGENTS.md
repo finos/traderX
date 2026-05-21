@@ -1,66 +1,106 @@
 # AGENTS.md
 
-This repository is the FINOS TraderX sample trading application. It is intentionally simple, non-production, and designed for local experimentation across a distributed set of services.
+This repository follows a SpecKit-first, multi-state architecture. Agents should use this file as the primary operating contract.
 
-## Start here (project context)
-- `README.md` for overall purpose and run modes.
-- `docs/running.md` for default ports, startup sequences, and environment variables.
-- `docs/README.md`, `docs/overview.md`, and `docs/flows.md` for architecture and sequence flows.
-- `docs/c4/workspace.dsl` for the C4 diagram source (use Structurizr Lite to render).
+## Core Model
 
-## Repository map (service roots)
-- `database/` (H2 database)
-- `reference-data/` (Node/NestJS reference data)
-- `trade-feed/` (Node/Socket.IO pub-sub)
-- `people-service/` (.NET)
-- `account-service/` (Java/Spring Boot)
-- `position-service/` (Java/Spring Boot)
-- `trade-service/` (Java/Spring Boot)
-- `trade-processor/` (Java/Spring Boot)
-- `web-front-end/` (Angular + React clients)
-- `docs/` and `website/` (documentation site)
-- `gitops/` and `ingress/` (K8s/Tilt and ingress config)
+- Learning guides live in `docs/learning/**/*.md` and must include normalized front-matter.
+- State definitions and contracts live in root `specs/NNN-*` feature packs.
+- Contracts and architecture docs are generated from state-local spec artifacts.
+- Learning graph index lives at `docs/learning-paths/index.md`.
 
-## Quick run options
-- Docker Compose (full system): from repo root, `docker compose up` (see `README.md`).
-- Kubernetes/Tilt: see `gitops/local/Tiltfile` and `docs/running.md` for `tilt up`.
-- Manual run: see `docs/running.md` for the recommended startup sequence and port env vars.
+## Generation Concurrency Rule
 
-## Service-level guidance
-- Each service has a `README.md` with run details and prerequisites. Read that before editing.
-- OpenAPI specs are generated at runtime (Swagger) and saved as `*/openapi.json` when you run `scripts/generate-openapi.sh`. Swagger UI is typically exposed at `/swagger-ui.html` (or service-specific Swagger routes).
-- Java services use Gradle wrapper (`./gradlew`) from their service directory.
-- Node services use their local `package.json` scripts.
-- `web-front-end/` contains both Angular and React implementations; check each subfolder's README.
+- Run state generation sequentially; do not run `pipeline/generate-state.sh` for multiple states in parallel by default.
+- Default generation writes to shared targets (`generated/code/target-generated` and `generated/code/components`), so parallel runs can race and corrupt outputs.
+- Use separate `TRADERX_GENERATED_ROOT` values only when intentional isolated workspaces are required.
 
-## When making changes
-- Prefer small, targeted edits in the service you are touching; do not refactor cross-service behavior unless requested.
-- If behavior or APIs change, refresh the OpenAPI specs via `scripts/generate-openapi.sh` and update any relevant docs in `docs/`.
-- Keep the non-production, demo nature of the project in mind.
+## Active State IDs
 
-## Keeping diagrams in sync
-When adding, removing, or changing services or their interactions, update **all** relevant diagrams:
+- `001-baseline-uncontainerized-parity`
+- `002-edge-proxy-uncontainerized`
+- `004-containerized-compose-runtime`
 
-1. **C4 diagram** (`docs/c4/workspace.dsl`) - The Structurizr DSL is the source of truth for architecture. PNG images are auto-rendered by GitHub Actions on push.
-2. **Mermaid diagrams** in `docs/overview.md` (simplified architecture) and `docs/flows.md` (sequence diagrams).
-3. **Component table** in `README.md` if adding/removing services.
+## Learning Doc Front-Matter Contract
 
-The C4 DSL and Mermaid diagrams should stay consistent—if you update one, check if the other needs the same change.
+Every file under `docs/learning/**/*.md` must include:
 
-## Documentation and website
-The project has two content surfaces that may overlap:
-1. **`docs/`** - Markdown files served by Docusaurus (architecture, flows, running instructions)
-2. **`website/src/components/`** - React components for the landing page (feature highlights, intro text)
+```yaml
+---
+title: "<Human friendly title>"
+---
+```
 
-**Avoid duplication**: The landing page is marketing-style (logo, tagline, feature cards, CTAs). The `docs/` folder is the reference material. If you add content, decide which surface it belongs to—don't put the same text in both places.
+Schema: `docs/.schema/frontmatter.json`  
+Validation script: `tools/validate-frontmatter.sh`
 
-**Project history**: When making **major changes** (new services, architectural shifts, significant features), add an entry to `docs/project-history.md`. Minor fixes and routine maintenance do not need to be recorded.
+## Required Contents Per State
 
-**Relative links in docs**: Links like `../account-service` work on GitHub. The Docusaurus remark plugin (`website/src/remark/transformRelativeLinks.js`) converts them to full GitHub URLs at build time. Keep using relative links in `docs/` markdown files.
+Each state feature pack should include:
 
-## Useful files by task
-- Architecture/flows: `docs/overview.md`, `docs/flows.md`, `docs/c4/workspace.dsl`
-- Local run and ports: `docs/running.md`
-- Docker/K8s: `docker-compose.yml`, `gitops/local/Tiltfile`
-- Front-end: `web-front-end/angular/README.md`, `web-front-end/react/README.md`
-- Docs site: `website/README.md`, `docs/`
+- `spec.md` with FR/NFR and scenarios
+- `plan.md` and `tasks.md` for execution
+- `system/**` with requirements, flows, architecture model, and generated architecture docs
+- `README.md` with state intent and scope
+
+## Prompt Pack Status
+
+Legacy `prompts/**` scaffolding has been retired from the active repository surface.
+Use the canonical SpecKit artifacts and docs under `docs/spec-kit/**` instead.
+
+## Custom Overlay Requests (Agent Guidance)
+
+When a user asks how to customize TraderX for a private environment, create an overlay repository, or publish internal generated states:
+
+1. Start from `docs/spec-kit/customizing-traderx.md`.
+2. Use `docs/spec-kit/corporate-environments-guide.md` for strategy and governance framing.
+3. Use `docs/spec-kit/custom-overlay-architecture.md` for implementation contracts:
+   - overlay repository layout
+   - overlay state catalog fields
+   - transform idempotency and ordering
+   - `--dry-run` start-script behavior
+   - `TRADERX_GENERATED_ROOT` output redirection
+   - working-directory anchor rules
+4. Use `docs/spec-kit/custom-environments-guide.md` for environment integration norms:
+   - package management policy
+   - runtime version/tool loading (`env-loader`)
+   - pub/sub replacement decision points
+   - smoke-test `health_hint` usage
+
+Agent operating rules for overlay workflows:
+
+- Keep upstream TraderX canonical; do not place environment-specific deltas in upstream state packs.
+- Prefer additive docs/spec updates and reusable templates over one-off generated output edits.
+- Prefer `examples/custom-overlay-template/` as the default starter.
+- For docs-portal changes, run AFDocs checks against local preview and published URL; prioritize build/pipeline/plugin fixes before broad manual rewrites.
+- Do not hand-edit generated artifacts as a persistent solution.
+- Preserve generated-state branch invariant: one snapshot commit per branch (reset to base + force-push).
+
+## Quality Gates
+
+```bash
+tools/validate-frontmatter.sh
+bash pipeline/speckit/validate-root-spec-kit-gates.sh
+bash pipeline/speckit/validate-speckit-readiness.sh
+bash pipeline/verify-spec-coverage.sh
+```
+
+If docs dependencies are installed:
+
+```bash
+cd website
+npm run build
+```
+
+## Non-Breaking Policy
+
+- Preserve earlier levels while evolving Level 4/5.
+- Favor additive changes and clear migration notes.
+- Never commit secrets or sensitive data.
+
+## Active Technologies
+- Java 21 (Spring Boot services), TypeScript/Node.js (Nest + Socket.IO + Angular), C# (.NET 9), SQL (H2) + Spring Boot, Gradle, NestJS, Socket.IO, ASP.NET Core, Angular, H2 (001-baseline-uncontainerized-parity)
+- H2 over TCP/PG/Web ports (001-baseline-uncontainerized-parity)
+
+## Recent Changes
+- 001-baseline-uncontainerized-parity: Added Java 21 (Spring Boot services), TypeScript/Node.js (Nest + Socket.IO + Angular), C# (.NET 9), SQL (H2) + Spring Boot, Gradle, NestJS, Socket.IO, ASP.NET Core, Angular, H2

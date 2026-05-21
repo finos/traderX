@@ -1,0 +1,31 @@
+profile: custom-internal
+upstream:
+  repository: https://github.com/finos/traderX.git
+  branch: main
+  submodulePath: upstream/traderX
+
+policy:
+  mirroredUpstreamStates:
+    - 004-containerized-compose-runtime
+    - 007-observability-lgtm-compose
+    - 009-order-management-matcher
+  suppressedUpstreamStates:
+    - id: 010-kubernetes-runtime
+      reason: Kubernetes runtime is not currently approved in this environment.
+    - id: 013-radius-kubernetes-platform
+      reason: Radius platform dependencies are not approved in this environment.
+  internalStates:
+    - id: custom-001-managed-postgres-runtime
+      basedOn: 004-containerized-compose-runtime
+      publishBranch: code/generated-state-custom-001-managed-postgres-runtime
+    - id: custom-002-internal-docs-branding
+      basedOn: custom-001-managed-postgres-runtime
+      publishBranch: code/generated-state-custom-002-internal-docs-branding
+
+customRules:
+  - id: RULE-IMG-001
+    description: Public container images are disallowed; use internal registry mirrors.
+  - id: RULE-DB-001
+    description: Containerized Postgres is disallowed; use managed Postgres with certificate authentication.
+  - id: RULE-DOCS-001
+    description: Internal docs portal must show internal distribution banner and internal branding.

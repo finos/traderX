@@ -1,0 +1,171 @@
+{
+  "stateId": "002-edge-proxy-uncontainerized",
+  "title": "Architecture (State 002 Edge Proxy Uncontainerized)",
+  "description": "State 002 keeps uncontainerized services and introduces an edge proxy as the single browser-facing entrypoint.",
+  "inheritsFrom": "001-baseline-uncontainerized-parity",
+  "flowDoc": "../001-baseline-uncontainerized-parity/system/end-to-end-flows.md",
+  "entrypoints": [
+    {
+      "name": "edge-proxy",
+      "url": "http://localhost:18080"
+    },
+    {
+      "name": "angular-upstream",
+      "url": "http://localhost:18093"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "trader",
+      "label": "Trader Browser",
+      "kind": "actor",
+      "description": "User enters only through edge proxy."
+    },
+    {
+      "id": "edge",
+      "label": "Edge Proxy",
+      "kind": "gateway",
+      "description": "Single browser-facing origin."
+    },
+    {
+      "id": "web",
+      "label": "Web Front End Angular",
+      "kind": "frontend",
+      "description": "Served behind edge proxy."
+    },
+    {
+      "id": "account",
+      "label": "Account Service",
+      "kind": "service",
+      "description": "Account and account-user CRUD."
+    },
+    {
+      "id": "position",
+      "label": "Position Service",
+      "kind": "service",
+      "description": "Trades and positions query endpoints."
+    },
+    {
+      "id": "tradeService",
+      "label": "Trade Service",
+      "kind": "service",
+      "description": "Trade submission and validation."
+    },
+    {
+      "id": "referenceData",
+      "label": "Reference Data",
+      "kind": "service",
+      "description": "Ticker lookup/list."
+    },
+    {
+      "id": "people",
+      "label": "People Service",
+      "kind": "service",
+      "description": "Directory lookup and validation."
+    },
+    {
+      "id": "tradeFeed",
+      "label": "Trade Feed",
+      "kind": "messaging",
+      "description": "Socket.IO publish/subscribe bus."
+    },
+    {
+      "id": "tradeProcessor",
+      "label": "Trade Processor",
+      "kind": "service",
+      "description": "Processes new trades and updates positions."
+    },
+    {
+      "id": "database",
+      "label": "Database",
+      "kind": "database",
+      "description": "Persistent account, trade, and position state."
+    }
+  ],
+  "edges": [
+    {
+      "from": "trader",
+      "to": "edge",
+      "label": "Single browser entrypoint"
+    },
+    {
+      "from": "edge",
+      "to": "web",
+      "label": "/"
+    },
+    {
+      "from": "edge",
+      "to": "account",
+      "label": "/account-service"
+    },
+    {
+      "from": "edge",
+      "to": "position",
+      "label": "/position-service"
+    },
+    {
+      "from": "edge",
+      "to": "tradeService",
+      "label": "/trade-service"
+    },
+    {
+      "from": "edge",
+      "to": "referenceData",
+      "label": "/reference-data"
+    },
+    {
+      "from": "edge",
+      "to": "people",
+      "label": "/people-service"
+    },
+    {
+      "from": "edge",
+      "to": "tradeFeed",
+      "label": "/socket.io"
+    },
+    {
+      "from": "tradeService",
+      "to": "account",
+      "label": "Validate account"
+    },
+    {
+      "from": "tradeService",
+      "to": "referenceData",
+      "label": "Validate ticker"
+    },
+    {
+      "from": "tradeService",
+      "to": "tradeFeed",
+      "label": "Publish trades/new"
+    },
+    {
+      "from": "tradeProcessor",
+      "to": "tradeFeed",
+      "label": "Consume and publish updates"
+    },
+    {
+      "from": "tradeProcessor",
+      "to": "database",
+      "label": "Persist trade/position state"
+    },
+    {
+      "from": "account",
+      "to": "people",
+      "label": "Validate person for account-user mapping"
+    },
+    {
+      "from": "account",
+      "to": "database",
+      "label": "Account persistence"
+    },
+    {
+      "from": "position",
+      "to": "database",
+      "label": "Query trades/positions"
+    }
+  ],
+  "notes": [
+    "State 002 preserves baseline functional flows F1-F6.",
+    "Primary delta is topology and origin model, not business behavior."
+  ]
+}

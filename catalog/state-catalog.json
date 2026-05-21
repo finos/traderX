@@ -1,0 +1,400 @@
+{
+  "version": "1.0.0",
+  "apiCatalog": {
+    "mountPath": "/api/docs",
+    "services": [
+      {
+        "id": "account-service",
+        "name": "Account Service",
+        "detectPath": "account-service",
+        "runtimeSpecPath": "/account-service/v3/api-docs",
+        "contractPath": "specs/001-baseline-uncontainerized-parity/contracts/account-service/openapi.yaml"
+      },
+      {
+        "id": "people-service",
+        "name": "People Service",
+        "detectPath": "people-service",
+        "runtimeSpecPath": "/people-service/swagger/v1/swagger.json",
+        "contractPath": "specs/001-baseline-uncontainerized-parity/contracts/people-service/openapi.yaml"
+      },
+      {
+        "id": "position-service",
+        "name": "Position Service",
+        "detectPath": "position-service",
+        "runtimeSpecPath": "/position-service/v3/api-docs",
+        "contractPath": "specs/001-baseline-uncontainerized-parity/contracts/position-service/openapi.yaml"
+      },
+      {
+        "id": "reference-data",
+        "name": "Reference Data",
+        "detectPath": "reference-data",
+        "contractPath": "specs/001-baseline-uncontainerized-parity/contracts/reference-data/openapi.yaml"
+      },
+      {
+        "id": "trade-processor",
+        "name": "Trade Processor",
+        "detectPath": "trade-processor",
+        "runtimeSpecPath": "/trade-processor/v3/api-docs",
+        "contractPath": "specs/001-baseline-uncontainerized-parity/contracts/trade-processor/openapi.yaml"
+      },
+      {
+        "id": "trade-service",
+        "name": "Trade Service",
+        "detectPath": "trade-service",
+        "runtimeSpecPath": "/trade-service/v3/api-docs",
+        "contractPath": "specs/001-baseline-uncontainerized-parity/contracts/trade-service/openapi.yaml"
+      },
+      {
+        "id": "order-matcher",
+        "name": "Order Matcher",
+        "detectPath": "order-matcher",
+        "runtimeSpecPath": "/order-matcher/v3/api-docs"
+      }
+    ]
+  },
+  "docs": {
+    "apiExplorer": {
+      "activeStateId": "001-baseline-uncontainerized-parity"
+    }
+  },
+  "states": [
+    {
+      "id": "001-baseline-uncontainerized-parity",
+      "title": "Simple App - Base Uncontainerized App",
+      "status": "released",
+      "track": "prelude",
+      "convergenceLevel": "none",
+      "isConvergence": false,
+      "dottedParents": [],
+      "primaryLineageRole": "prelude",
+      "featurePack": "specs/001-baseline-uncontainerized-parity",
+      "previous": [],
+      "generation": {
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-from-spec.sh",
+        "runtime": "CORS_ALLOWED_ORIGINS=http://localhost:18093 ./scripts/start-base-uncontainerized-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-001-baseline-uncontainerized-parity",
+        "tag": "generated/001-baseline-uncontainerized-parity/v1"
+      }
+    },
+    {
+      "id": "002-edge-proxy-uncontainerized",
+      "title": "Edge Proxy Uncontainerized",
+      "status": "implemented",
+      "track": "prelude",
+      "convergenceLevel": "none",
+      "isConvergence": false,
+      "dottedParents": [],
+      "primaryLineageRole": "prelude",
+      "featurePack": "specs/002-edge-proxy-uncontainerized",
+      "previous": [
+        "001-baseline-uncontainerized-parity"
+      ],
+      "generation": {
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized",
+        "runtime": "./scripts/start-state-002-edge-proxy-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-002-edge-proxy-uncontainerized",
+        "tag": "generated/002-edge-proxy-uncontainerized/v1"
+      }
+    },
+    {
+      "id": "003-agentic-harness-foundation",
+      "title": "Agentic Harness Foundation",
+      "status": "implemented",
+      "track": "prelude",
+      "convergenceLevel": "none",
+      "isConvergence": false,
+      "dottedParents": [],
+      "primaryLineageRole": "prelude",
+      "featurePack": "specs/003-agentic-harness-foundation",
+      "previous": [
+        "002-edge-proxy-uncontainerized"
+      ],
+      "generation": {
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-state.sh 003-agentic-harness-foundation",
+        "runtime": "./scripts/start-state-003-agentic-harness-foundation-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-003-agentic-harness-foundation",
+        "tag": "generated/003-agentic-harness-foundation/v1"
+      }
+    },
+    {
+      "id": "004-containerized-compose-runtime",
+      "title": "Containerized Compose Runtime (NGINX Ingress)",
+      "status": "implemented",
+      "track": "baseline",
+      "convergenceLevel": "C0",
+      "isConvergence": true,
+      "dottedParents": [],
+      "primaryLineageRole": "canonical",
+      "featurePack": "specs/004-containerized-compose-runtime",
+      "previous": [
+        "003-agentic-harness-foundation"
+      ],
+      "generation": {
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-state.sh 004-containerized-compose-runtime",
+        "runtime": "./scripts/start-state-004-containerized-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-004-containerized-compose-runtime",
+        "tag": "generated/004-containerized-compose-runtime/v1"
+      },
+      "deploy": {
+        "enabled": true,
+        "profile": "aws-ec2-compose",
+        "environment": "demo",
+        "domain": "demo.traderx.finos.org"
+      }
+    },
+    {
+      "id": "005-postgres-database-replacement",
+      "title": "PostgreSQL Database Replacement",
+      "status": "implemented",
+      "track": "architecture",
+      "convergenceLevel": "none",
+      "isConvergence": false,
+      "dottedParents": [],
+      "primaryLineageRole": "canonical",
+      "featurePack": "specs/005-postgres-database-replacement",
+      "decisionRecord": "docs/adr/006-state-005-use-postgres-for-database-replacement.md",
+      "previous": [
+        "004-containerized-compose-runtime"
+      ],
+      "generation": {
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-state.sh 005-postgres-database-replacement",
+        "runtime": "./scripts/start-state-005-postgres-database-replacement-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-005-postgres-database-replacement",
+        "tag": "generated/005-postgres-database-replacement/v1"
+      }
+    },
+    {
+      "id": "006-messaging-nats-replacement",
+      "title": "Messaging Layer Replacement with NATS",
+      "status": "implemented",
+      "track": "architecture",
+      "convergenceLevel": "none",
+      "isConvergence": false,
+      "dottedParents": [],
+      "primaryLineageRole": "canonical",
+      "featurePack": "specs/006-messaging-nats-replacement",
+      "decisionRecord": "docs/adr/005-state-006-use-nats-for-messaging-replacement.md",
+      "previous": [
+        "005-postgres-database-replacement"
+      ],
+      "generation": {
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-state.sh 006-messaging-nats-replacement",
+        "runtime": "./scripts/start-state-006-messaging-nats-replacement-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-006-messaging-nats-replacement",
+        "tag": "generated/006-messaging-nats-replacement/v1"
+      }
+    },
+    {
+      "id": "007-observability-lgtm-compose",
+      "title": "Observability with LGTM on Compose",
+      "status": "implemented",
+      "track": "nonfunctional",
+      "convergenceLevel": "C1",
+      "isConvergence": true,
+      "dottedParents": [],
+      "primaryLineageRole": "canonical",
+      "featurePack": "specs/007-observability-lgtm-compose",
+      "decisionRecord": "docs/adr/007-state-007-adopt-lgtm-observability-stack.md",
+      "previous": [
+        "006-messaging-nats-replacement"
+      ],
+      "generation": {
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-state.sh 007-observability-lgtm-compose",
+        "runtime": "./scripts/start-state-007-observability-lgtm-compose-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-007-observability-lgtm-compose",
+        "tag": "generated/007-observability-lgtm-compose/v1"
+      }
+    },
+    {
+      "id": "008-pricing-awareness-market-data",
+      "title": "Pricing Awareness and Market Data Streaming",
+      "status": "implemented",
+      "track": "functional",
+      "convergenceLevel": "none",
+      "isConvergence": false,
+      "dottedParents": [],
+      "primaryLineageRole": "canonical",
+      "featurePack": "specs/008-pricing-awareness-market-data",
+      "previous": [
+        "007-observability-lgtm-compose"
+      ],
+      "generation": {
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-state.sh 008-pricing-awareness-market-data",
+        "runtime": "./scripts/start-state-008-pricing-awareness-market-data-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-008-pricing-awareness-market-data",
+        "tag": "generated/008-pricing-awareness-market-data/v1"
+      }
+    },
+    {
+      "id": "009-order-management-matcher",
+      "title": "Order Management and Matcher",
+      "status": "implemented",
+      "track": "functional",
+      "convergenceLevel": "C2",
+      "isConvergence": true,
+      "dottedParents": [],
+      "primaryLineageRole": "canonical",
+      "featurePack": "specs/009-order-management-matcher",
+      "previous": [
+        "008-pricing-awareness-market-data"
+      ],
+      "generation": {
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-state.sh 009-order-management-matcher",
+        "runtime": "./scripts/start-state-009-order-management-matcher-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-009-order-management-matcher",
+        "tag": "generated/009-order-management-matcher/v1"
+      },
+      "deploy": {
+        "enabled": true,
+        "profile": "aws-ec2-compose",
+        "environment": "demo-advanced",
+        "domain": "demo-advanced.traderx.finos.org"
+      }
+    },
+    {
+      "id": "010-kubernetes-runtime",
+      "title": "Kubernetes Runtime on C2",
+      "status": "implemented",
+      "track": "devex",
+      "convergenceLevel": "none",
+      "isConvergence": false,
+      "dottedParents": [],
+      "primaryLineageRole": "canonical",
+      "featurePack": "specs/010-kubernetes-runtime",
+      "previous": [
+        "009-order-management-matcher"
+      ],
+      "generation": {
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-state.sh 010-kubernetes-runtime",
+        "runtime": "./scripts/start-state-010-kubernetes-runtime-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-010-kubernetes-runtime",
+        "tag": "generated/010-kubernetes-runtime/v1"
+      }
+    },
+    {
+      "id": "011-tilt-kubernetes-dev-loop",
+      "title": "Tilt Local Dev on Kubernetes",
+      "status": "implemented",
+      "track": "devex",
+      "convergenceLevel": "none",
+      "isConvergence": false,
+      "dottedParents": [],
+      "primaryLineageRole": "canonical",
+      "featurePack": "specs/011-tilt-kubernetes-dev-loop",
+      "previous": [
+        "010-kubernetes-runtime"
+      ],
+      "generation": {
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-state.sh 011-tilt-kubernetes-dev-loop",
+        "runtime": "./scripts/start-state-011-tilt-kubernetes-dev-loop-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-011-tilt-kubernetes-dev-loop",
+        "tag": "generated/011-tilt-kubernetes-dev-loop/v1"
+      }
+    },
+    {
+      "id": "012-platform-convergence-c3",
+      "title": "Platform Convergence C3",
+      "status": "implemented",
+      "track": "devex",
+      "convergenceLevel": "C3",
+      "isConvergence": true,
+      "dottedParents": [
+        "009-order-management-matcher"
+      ],
+      "primaryLineageRole": "canonical",
+      "featurePack": "specs/012-platform-convergence-c3",
+      "decisionRecord": "docs/adr/008-convergence-state-model.md",
+      "previous": [
+        "011-tilt-kubernetes-dev-loop"
+      ],
+      "generation": {
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-state.sh 012-platform-convergence-c3",
+        "runtime": "./scripts/start-state-012-platform-convergence-c3-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-012-platform-convergence-c3",
+        "tag": "generated/012-platform-convergence-c3/v1"
+      }
+    },
+    {
+      "id": "013-radius-kubernetes-platform",
+      "title": "Radius Platform on Kubernetes (Optional)",
+      "status": "implemented",
+      "track": "devex",
+      "convergenceLevel": "none",
+      "isConvergence": false,
+      "dottedParents": [],
+      "primaryLineageRole": "optional",
+      "featurePack": "specs/013-radius-kubernetes-platform",
+      "previous": [
+        "012-platform-convergence-c3"
+      ],
+      "generation": {
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-state.sh 013-radius-kubernetes-platform",
+        "runtime": "./scripts/start-state-013-radius-kubernetes-platform-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-013-radius-kubernetes-platform",
+        "tag": "generated/013-radius-kubernetes-platform/v1"
+      }
+    },
+    {
+      "id": "014-fdc3-intent-interoperability",
+      "title": "FDC3 Intent Interoperability on C3",
+      "status": "implemented",
+      "track": "functional",
+      "convergenceLevel": "none",
+      "isConvergence": false,
+      "dottedParents": [],
+      "primaryLineageRole": "canonical",
+      "featurePack": "specs/014-fdc3-intent-interoperability",
+      "previous": [
+        "012-platform-convergence-c3"
+      ],
+      "generation": {
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-state.sh 014-fdc3-intent-interoperability",
+        "runtime": "./scripts/start-state-014-fdc3-intent-interoperability-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-014-fdc3-intent-interoperability",
+        "tag": "generated/014-fdc3-intent-interoperability/v1"
+      }
+    }
+  ]
+}

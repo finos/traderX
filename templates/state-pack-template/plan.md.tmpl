@@ -1,0 +1,25 @@
+# Implementation Plan: __STATE_ID__
+
+## Scope
+
+- Transition from `__PREVIOUS_STATE__` to `__STATE_ID__`.
+- Track focus: `__TRACK__`.
+- Define requirement deltas and generation/test hooks.
+
+## Deliverables
+
+1. Requirement deltas in `requirements/`.
+2. Contract deltas in `contracts/`.
+3. Supporting artifacts: `research.md`, `data-model.md`, `quickstart.md`.
+4. Architecture and topology deltas in `system/`.
+5. Generation hook implementation in `__GEN_HOOK__`.
+6. Smoke test implementation in `__SMOKE_SCRIPT__`.
+7. If this is a containerized demo-target state, deployment bundle contract + artifacts under `runtime/deploy/<profile>/`.
+
+## Exit Criteria
+
+- Spec and tasks are complete and reviewed.
+- Generation hook produces expected artifacts.
+- Smoke tests pass for this state.
+- For containerized demo-target states, deployment bundle artifacts are generated and dry-run validated.
+- State can be published to `__PUBLISH_BRANCH__`.

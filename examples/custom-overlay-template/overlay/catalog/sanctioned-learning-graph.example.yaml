@@ -1,0 +1,27 @@
+profile: custom-internal
+states:
+  - id: 004-containerized-compose-runtime
+    branch: code/generated-state-004-containerized-compose-runtime
+    role: mirrored-upstream
+  - id: 007-observability-lgtm-compose
+    branch: code/generated-state-007-observability-lgtm-compose
+    role: mirrored-upstream
+  - id: 009-order-management-matcher
+    branch: code/generated-state-009-order-management-matcher
+    role: mirrored-upstream
+  - id: custom-001-managed-postgres-runtime
+    branch: code/generated-state-custom-001-managed-postgres-runtime
+    role: internal-only
+  - id: custom-002-internal-docs-branding
+    branch: code/generated-state-custom-002-internal-docs-branding
+    role: internal-only
+
+edges:
+  - from: 004-containerized-compose-runtime
+    to: 007-observability-lgtm-compose
+  - from: 007-observability-lgtm-compose
+    to: 009-order-management-matcher
+  - from: 009-order-management-matcher
+    to: custom-001-managed-postgres-runtime
+  - from: custom-001-managed-postgres-runtime
+    to: custom-002-internal-docs-branding

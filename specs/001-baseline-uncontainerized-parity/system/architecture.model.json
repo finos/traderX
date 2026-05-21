@@ -1,0 +1,159 @@
+{
+  "stateId": "001-baseline-uncontainerized-parity",
+  "title": "Architecture (State 001 Baseline)",
+  "description": "Baseline pre-containerized architecture with direct browser-to-service calls and Socket.IO trade/position subscriptions.",
+  "flowDoc": "system/end-to-end-flows.md",
+  "entrypoints": [
+    {
+      "name": "web-front-end-angular",
+      "url": "http://localhost:18093"
+    },
+    {
+      "name": "trade-feed",
+      "url": "http://localhost:18086"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "trader",
+      "label": "Trader Browser",
+      "kind": "actor",
+      "description": "Human user interacting with Angular UI."
+    },
+    {
+      "id": "web",
+      "label": "Web Front End Angular",
+      "kind": "frontend",
+      "description": "Browser-hosted UI."
+    },
+    {
+      "id": "account",
+      "label": "Account Service",
+      "kind": "service",
+      "description": "Account and account-user CRUD."
+    },
+    {
+      "id": "position",
+      "label": "Position Service",
+      "kind": "service",
+      "description": "Trades and positions query endpoints."
+    },
+    {
+      "id": "tradeService",
+      "label": "Trade Service",
+      "kind": "service",
+      "description": "Trade submission and validation."
+    },
+    {
+      "id": "referenceData",
+      "label": "Reference Data",
+      "kind": "service",
+      "description": "Ticker lookup/list."
+    },
+    {
+      "id": "people",
+      "label": "People Service",
+      "kind": "service",
+      "description": "Directory lookup and validation."
+    },
+    {
+      "id": "tradeFeed",
+      "label": "Trade Feed",
+      "kind": "messaging",
+      "description": "Socket.IO publish/subscribe bus."
+    },
+    {
+      "id": "tradeProcessor",
+      "label": "Trade Processor",
+      "kind": "service",
+      "description": "Processes new trades and updates positions."
+    },
+    {
+      "id": "database",
+      "label": "Database",
+      "kind": "database",
+      "description": "Persistent account, trade, and position state."
+    }
+  ],
+  "edges": [
+    {
+      "from": "trader",
+      "to": "web",
+      "label": "Uses UI"
+    },
+    {
+      "from": "web",
+      "to": "account",
+      "label": "REST /account + /accountuser"
+    },
+    {
+      "from": "web",
+      "to": "position",
+      "label": "REST /trades + /positions"
+    },
+    {
+      "from": "web",
+      "to": "tradeService",
+      "label": "REST /trade"
+    },
+    {
+      "from": "web",
+      "to": "referenceData",
+      "label": "REST /stocks"
+    },
+    {
+      "from": "web",
+      "to": "people",
+      "label": "REST /People"
+    },
+    {
+      "from": "web",
+      "to": "tradeFeed",
+      "label": "Socket.IO subscribe"
+    },
+    {
+      "from": "tradeService",
+      "to": "account",
+      "label": "Validate account"
+    },
+    {
+      "from": "tradeService",
+      "to": "referenceData",
+      "label": "Validate ticker"
+    },
+    {
+      "from": "tradeService",
+      "to": "tradeFeed",
+      "label": "Publish trades/new"
+    },
+    {
+      "from": "tradeProcessor",
+      "to": "tradeFeed",
+      "label": "Consume and publish updates"
+    },
+    {
+      "from": "tradeProcessor",
+      "to": "database",
+      "label": "Persist trade/position state"
+    },
+    {
+      "from": "account",
+      "to": "people",
+      "label": "Validate person for account-user mapping"
+    },
+    {
+      "from": "account",
+      "to": "database",
+      "label": "Account persistence"
+    },
+    {
+      "from": "position",
+      "to": "database",
+      "label": "Query trades/positions"
+    }
+  ],
+  "notes": [
+    "This state is intentionally pre-ingress and cross-origin.",
+    "CORS behavior is part of baseline non-functional requirements."
+  ]
+}

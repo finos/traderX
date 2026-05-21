@@ -1,0 +1,4865 @@
+diff --git a/ci/state-metadata.json b/ci/state-metadata.json
+index e8e9aef..46d12e9 100644
+--- a/ci/state-metadata.json
++++ b/ci/state-metadata.json
+@@ -1,10 +1,11 @@
+ {
+-  "stateId": "007-observability-lgtm-compose",
+-  "isConvergence": true,
+-  "convergenceLevel": "C1",
+-  "convergenceNamespace": "traderx-c1",
++  "stateId": "008-pricing-awareness-market-data",
++  "isConvergence": false,
++  "convergenceLevel": "none",
++  "convergenceNamespace": "",
+   "modules": {
+     "node": [
++      "price-publisher",
+       "reference-data",
+       "web-front-end/angular"
+     ],
+@@ -44,6 +45,11 @@
+         "dockerfile": "Dockerfile.compose",
+         "imageName": "position-service"
+       },
++      {
++        "directory": "price-publisher",
++        "dockerfile": "Dockerfile.compose",
++        "imageName": "price-publisher"
++      },
+       {
+         "directory": "reference-data",
+         "dockerfile": "Dockerfile.compose",
+diff --git a/database/initialSchema.sql b/database/initialSchema.sql
+index ad8e077..2cc0ab5 100644
+--- a/database/initialSchema.sql
++++ b/database/initialSchema.sql
+@@ -8,7 +8,14 @@ CREATE TABLE Accounts ( ID INTEGER PRIMARY KEY, DisplayName VARCHAR (50) );
+ CREATE TABLE AccountUsers ( AccountID INTEGER NOT NULL, Username VARCHAR(15) NOT NULL, PRIMARY KEY (AccountID,Username));
+ ALTER TABLE AccountUsers ADD FOREIGN KEY (AccountID) References Accounts(ID);
+ 
+-CREATE TABLE Positions ( AccountID INTEGER, Security VARCHAR(15), Updated TIMESTAMP, Quantity INTEGER, Primary Key (AccountID, Security) );
++CREATE TABLE Positions (
++  AccountID INTEGER,
++  Security VARCHAR(15),
++  Updated TIMESTAMP,
++  Quantity INTEGER,
++  AverageCostBasis DECIMAL(18,3),
++  Primary Key (AccountID, Security)
++);
+ Alter Table Positions ADD FOREIGN KEY (AccountID) References Accounts(ID);
+ 
+ CREATE TABLE Trades (
+@@ -19,6 +26,7 @@ CREATE TABLE Trades (
+   Security VARCHAR (15),
+   Side VARCHAR(10) check (Side in ('Buy','Sell')),
+   Quantity INTEGER check Quantity > 0,
++  Price DECIMAL(18,3),
+   State VARCHAR(20) check (State in ('New', 'Processing', 'Settled', 'Cancelled'))
+ );
+ Alter Table Trades Add Foreign Key (AccountID) references Accounts(ID);
+@@ -52,13 +60,13 @@ INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user04');
+ INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user01');
+ INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user06');
+ 
+-INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, State, AccountID) VALUES('TRADE-22214-AABBCC', NOW(), NOW(), 'IBM', 'Sell', 100, 'Settled', 22214);
+-INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, State, AccountID) VALUES('TRADE-22214-DDEEFF', NOW(), NOW(), 'MS', 'Buy', 1000, 'Settled', 22214);
+-INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, State, AccountID) VALUES('TRADE-22214-GGHHII', NOW(), NOW(), 'C', 'Sell', 2000, 'Settled', 22214);
++INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, Price, State, AccountID) VALUES('TRADE-22214-AABBCC', NOW(), NOW(), 'IBM', 'Sell', 100, 136.250, 'Settled', 22214);
++INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, Price, State, AccountID) VALUES('TRADE-22214-DDEEFF', NOW(), NOW(), 'MS', 'Buy', 1000, 95.125, 'Settled', 22214);
++INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, Price, State, AccountID) VALUES('TRADE-22214-GGHHII', NOW(), NOW(), 'C', 'Sell', 2000, 57.500, 'Settled', 22214);
+ 
+-INSERT into Positions (AccountID, Security, Updated, Quantity) VALUES(22214, 'MS',NOW(), 1000);
+-INSERT into Positions (AccountID, Security, Updated, Quantity) VALUES(22214, 'IBM',NOW(), -100);
+-INSERT into Positions (AccountID, Security, Updated, Quantity) VALUES(22214, 'C',NOW(), -2000);
++INSERT into Positions (AccountID, Security, Updated, Quantity, AverageCostBasis) VALUES(22214, 'MS',NOW(), 1000, 95.125);
++INSERT into Positions (AccountID, Security, Updated, Quantity, AverageCostBasis) VALUES(22214, 'IBM',NOW(), -100, 136.250);
++INSERT into Positions (AccountID, Security, Updated, Quantity, AverageCostBasis) VALUES(22214, 'C',NOW(), -2000, 57.500);
+ 
+-INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, State, AccountID) VALUES('TRADE-52355-AABBCC', NOW(), NOW(), 'BAC', 'Sell', 2400, 'Settled', 52355);
+-INSERT into Positions (AccountID, Security, Updated, Quantity) VALUES(52355, 'BAC',NOW(), -2400);
++INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, Price, State, AccountID) VALUES('TRADE-52355-AABBCC', NOW(), NOW(), 'BAC', 'Sell', 2400, 41.125, 'Settled', 52355);
++INSERT into Positions (AccountID, Security, Updated, Quantity, AverageCostBasis) VALUES(52355, 'BAC',NOW(), -2400, 41.125);
+diff --git a/ingress/nginx.traderx.conf.template b/ingress/nginx.traderx.conf.template
+index a1894c3..e5c93d1 100644
+--- a/ingress/nginx.traderx.conf.template
++++ b/ingress/nginx.traderx.conf.template
+@@ -75,6 +75,10 @@ server {
+         proxy_pass ${TRADE_PROCESSOR_URL};
+     }
+ 
++    location /price-publisher/ {
++        proxy_pass ${PRICE_PUBLISHER_URL};
++    }
++
+     location / {
+         proxy_pass ${WEB_FRONTEND_URL};
+         proxy_http_version 1.1;
+         proxy_set_header Upgrade $http_upgrade;
+         proxy_set_header Connection "upgrade";
+     }
+diff --git a/messaging-nats-replacement/README.md b/messaging-nats-replacement/README.md
+deleted file mode 100644
+index d9896f5..0000000
+--- a/messaging-nats-replacement/README.md
++++ /dev/null
+@@ -1,17 +0,0 @@
+-# State 008 Messaging NATS Replacement Runtime
+-
+-Generated compose runtime for:
+-
+-- `specs/006-messaging-nats-replacement`
+-
+-Run:
+-
+-```bash
+-docker compose -f docker-compose.yml up -d --build
+-```
+-
+-Entrypoints:
+-
+-- UI/ingress: `http://localhost:8080`
+-- NATS monitor: `http://localhost:8222/varz`
+-- NATS websocket (ingress proxied): `ws://localhost:8080/nats-ws`
+diff --git a/position-service/src/main/java/finos/traderx/positionservice/model/Position.java b/position-service/src/main/java/finos/traderx/positionservice/model/Position.java
+index 3d278c0..5bf4188 100644
+--- a/position-service/src/main/java/finos/traderx/positionservice/model/Position.java
++++ b/position-service/src/main/java/finos/traderx/positionservice/model/Position.java
+@@ -1,11 +1,13 @@
+ package finos.traderx.positionservice.model;
+ 
++import java.math.BigDecimal;
+ import java.util.Date;
+ 
+ public class Position {
+   private Integer accountId;
+   private String security;
+   private Integer quantity;
++  private BigDecimal averageCostBasis;
+   private Date updated;
+ 
+   public Integer getAccountId() {
+@@ -32,6 +34,14 @@ public class Position {
+     this.quantity = quantity;
+   }
+ 
++  public BigDecimal getAverageCostBasis() {
++    return averageCostBasis;
++  }
++
++  public void setAverageCostBasis(BigDecimal averageCostBasis) {
++    this.averageCostBasis = averageCostBasis;
++  }
++
+   public Date getUpdated() {
+     return updated;
+   }
+diff --git a/position-service/src/main/java/finos/traderx/positionservice/model/Trade.java b/position-service/src/main/java/finos/traderx/positionservice/model/Trade.java
+index b131ba9..3512bb1 100644
+--- a/position-service/src/main/java/finos/traderx/positionservice/model/Trade.java
++++ b/position-service/src/main/java/finos/traderx/positionservice/model/Trade.java
+@@ -1,5 +1,6 @@
+ package finos.traderx.positionservice.model;
+ 
++import java.math.BigDecimal;
+ import java.util.Date;
+ 
+ public class Trade {
+@@ -9,6 +10,7 @@ public class Trade {
+   private String side;
+   private String state;
+   private Integer quantity;
++  private BigDecimal price;
+   private Date updated;
+   private Date created;
+ 
+@@ -60,6 +62,14 @@ public class Trade {
+     this.quantity = quantity;
+   }
+ 
++  public BigDecimal getPrice() {
++    return price;
++  }
++
++  public void setPrice(BigDecimal price) {
++    this.price = price;
++  }
++
+   public Date getUpdated() {
+     return updated;
+   }
+diff --git a/position-service/src/main/java/finos/traderx/positionservice/repository/PositionRepository.java b/position-service/src/main/java/finos/traderx/positionservice/repository/PositionRepository.java
+index 5b46551..0490375 100644
+--- a/position-service/src/main/java/finos/traderx/positionservice/repository/PositionRepository.java
++++ b/position-service/src/main/java/finos/traderx/positionservice/repository/PositionRepository.java
+@@ -1,6 +1,7 @@
+ package finos.traderx.positionservice.repository;
+ 
+ import finos.traderx.positionservice.model.Position;
++import java.math.BigDecimal;
+ import java.util.List;
+ import org.springframework.jdbc.core.JdbcTemplate;
+ import org.springframework.jdbc.core.RowMapper;
+@@ -14,6 +15,8 @@ public class PositionRepository {
+     position.setAccountId(rs.getInt("AccountID"));
+     position.setSecurity(rs.getString("Security"));
+     position.setQuantity(rs.getInt("Quantity"));
++    BigDecimal averageCostBasis = rs.getBigDecimal("AverageCostBasis");
++    position.setAverageCostBasis(averageCostBasis);
+     position.setUpdated(rs.getTimestamp("Updated"));
+     return position;
+   };
+@@ -26,14 +29,14 @@ public class PositionRepository {
+ 
+   public List<Position> findAll() {
+     return jdbcTemplate.query(
+-        "select AccountID, Security, Quantity, Updated from Positions order by AccountID, Security",
++        "select AccountID, Security, Quantity, AverageCostBasis, Updated from Positions order by AccountID, Security",
+         POSITION_ROW_MAPPER
+     );
+   }
+ 
+   public List<Position> findByAccountId(int accountId) {
+     return jdbcTemplate.query(
+-        "select AccountID, Security, Quantity, Updated from Positions where AccountID = ? order by Security",
++        "select AccountID, Security, Quantity, AverageCostBasis, Updated from Positions where AccountID = ? order by Security",
+         POSITION_ROW_MAPPER,
+         accountId
+     );
+diff --git a/position-service/src/main/java/finos/traderx/positionservice/repository/TradeRepository.java b/position-service/src/main/java/finos/traderx/positionservice/repository/TradeRepository.java
+index bb2e027..479b3d6 100644
+--- a/position-service/src/main/java/finos/traderx/positionservice/repository/TradeRepository.java
++++ b/position-service/src/main/java/finos/traderx/positionservice/repository/TradeRepository.java
+@@ -1,6 +1,7 @@
+ package finos.traderx.positionservice.repository;
+ 
+ import finos.traderx.positionservice.model.Trade;
++import java.math.BigDecimal;
+ import java.util.List;
+ import org.springframework.jdbc.core.JdbcTemplate;
+ import org.springframework.jdbc.core.RowMapper;
+@@ -17,6 +18,8 @@ public class TradeRepository {
+     trade.setSide(rs.getString("Side"));
+     trade.setState(rs.getString("State"));
+     trade.setQuantity(rs.getInt("Quantity"));
++    BigDecimal price = rs.getBigDecimal("Price");
++    trade.setPrice(price);
+     trade.setUpdated(rs.getTimestamp("Updated"));
+     trade.setCreated(rs.getTimestamp("Created"));
+     return trade;
+@@ -30,14 +33,14 @@ public class TradeRepository {
+ 
+   public List<Trade> findAll() {
+     return jdbcTemplate.query(
+-        "select ID, AccountID, Security, Side, State, Quantity, Updated, Created from Trades order by Updated desc",
++        "select ID, AccountID, Security, Side, State, Quantity, Price, Updated, Created from Trades order by Updated desc",
+         TRADE_ROW_MAPPER
+     );
+   }
+ 
+   public List<Trade> findByAccountId(int accountId) {
+     return jdbcTemplate.query(
+-        "select ID, AccountID, Security, Side, State, Quantity, Updated, Created from Trades where AccountID = ? order by Updated desc",
++        "select ID, AccountID, Security, Side, State, Quantity, Price, Updated, Created from Trades where AccountID = ? order by Updated desc",
+         TRADE_ROW_MAPPER,
+         accountId
+     );
+diff --git a/postgres-database-replacement/postgres-init/initialSchema.sql b/postgres-database-replacement/postgres-init/initialSchema.sql
+index 18ac6a9..cde3c01 100644
+--- a/postgres-database-replacement/postgres-init/initialSchema.sql
++++ b/postgres-database-replacement/postgres-init/initialSchema.sql
+@@ -21,6 +21,7 @@ CREATE TABLE positions (
+   security VARCHAR(15),
+   updated TIMESTAMP,
+   quantity INTEGER,
++  averagecostbasis DECIMAL(18,3),
+   PRIMARY KEY (accountid, security),
+   FOREIGN KEY (accountid) REFERENCES accounts(id)
+ );
+@@ -33,6 +34,7 @@ CREATE TABLE trades (
+   security VARCHAR(15),
+   side VARCHAR(10) CHECK (side in ('Buy', 'Sell')),
+   quantity INTEGER CHECK (quantity > 0),
++  price DECIMAL(18,3),
+   state VARCHAR(20) CHECK (state in ('New', 'Processing', 'Settled', 'Cancelled'))
+ );
+ 
+@@ -65,13 +67,13 @@ INSERT INTO accountusers (accountid, username) VALUES (44044, 'user04');
+ INSERT INTO accountusers (accountid, username) VALUES (44044, 'user01');
+ INSERT INTO accountusers (accountid, username) VALUES (44044, 'user06');
+ 
+-INSERT INTO trades (id, created, updated, security, side, quantity, state, accountid) VALUES ('TRADE-22214-AABBCC', NOW(), NOW(), 'IBM', 'Sell', 100, 'Settled', 22214);
+-INSERT INTO trades (id, created, updated, security, side, quantity, state, accountid) VALUES ('TRADE-22214-DDEEFF', NOW(), NOW(), 'MS', 'Buy', 1000, 'Settled', 22214);
+-INSERT INTO trades (id, created, updated, security, side, quantity, state, accountid) VALUES ('TRADE-22214-GGHHII', NOW(), NOW(), 'C', 'Sell', 2000, 'Settled', 22214);
++INSERT INTO trades (id, created, updated, security, side, quantity, price, state, accountid) VALUES ('TRADE-22214-AABBCC', NOW(), NOW(), 'IBM', 'Sell', 100, 136.250, 'Settled', 22214);
++INSERT INTO trades (id, created, updated, security, side, quantity, price, state, accountid) VALUES ('TRADE-22214-DDEEFF', NOW(), NOW(), 'MS', 'Buy', 1000, 95.125, 'Settled', 22214);
++INSERT INTO trades (id, created, updated, security, side, quantity, price, state, accountid) VALUES ('TRADE-22214-GGHHII', NOW(), NOW(), 'C', 'Sell', 2000, 57.500, 'Settled', 22214);
+ 
+-INSERT INTO positions (accountid, security, updated, quantity) VALUES (22214, 'MS', NOW(), 1000);
+-INSERT INTO positions (accountid, security, updated, quantity) VALUES (22214, 'IBM', NOW(), -100);
+-INSERT INTO positions (accountid, security, updated, quantity) VALUES (22214, 'C', NOW(), -2000);
++INSERT INTO positions (accountid, security, updated, quantity, averagecostbasis) VALUES (22214, 'MS', NOW(), 1000, 95.125);
++INSERT INTO positions (accountid, security, updated, quantity, averagecostbasis) VALUES (22214, 'IBM', NOW(), -100, 136.250);
++INSERT INTO positions (accountid, security, updated, quantity, averagecostbasis) VALUES (22214, 'C', NOW(), -2000, 57.500);
+ 
+-INSERT INTO trades (id, created, updated, security, side, quantity, state, accountid) VALUES ('TRADE-52355-AABBCC', NOW(), NOW(), 'BAC', 'Sell', 2400, 'Settled', 52355);
+-INSERT INTO positions (accountid, security, updated, quantity) VALUES (52355, 'BAC', NOW(), -2400);
++INSERT INTO trades (id, created, updated, security, side, quantity, price, state, accountid) VALUES ('TRADE-52355-AABBCC', NOW(), NOW(), 'BAC', 'Sell', 2400, 41.125, 'Settled', 52355);
++INSERT INTO positions (accountid, security, updated, quantity, averagecostbasis) VALUES (52355, 'BAC', NOW(), -2400, 41.125);
+diff --git a/price-publisher/Dockerfile.compose b/price-publisher/Dockerfile.compose
+new file mode 100644
+index 0000000..cd089d0
+--- /dev/null
++++ b/price-publisher/Dockerfile.compose
+@@ -0,0 +1,13 @@
++FROM node:20-alpine
++
++WORKDIR /app
++
++COPY package.json ./
++RUN npm install --omit=dev
++
++COPY src ./src
++COPY data ./data
++
++EXPOSE 18100
++
++CMD ["npm", "run", "start"]
+diff --git a/price-publisher/README.md b/price-publisher/README.md
+new file mode 100644
+index 0000000..5e3c4cd
+--- /dev/null
++++ b/price-publisher/README.md
+@@ -0,0 +1,34 @@
++# Price Publisher (State 011)
++
++Publishes synthetic market prices to NATS subjects (`pricing.<TICKER>`) and exposes REST quote endpoints used by trade-service.
++
++## Endpoints
++
++- `GET /health`
++- `GET /prices`
++- `GET /prices/:ticker`
++
++## Bootstrap Modes
++
++- `PRICE_BOOTSTRAP_MODE=snapshot` (default)
++- `PRICE_BOOTSTRAP_MODE=yfinance` (fetches previous market open/close once at startup, then uses synthetic walk)
++
++## Volatility Band Assignment
++
++At startup, each ticker is assigned one synthetic volatility band profile for the lifetime of the process:
++
++- 20% of tickers: may move up to ±4% beyond startup open/close bounds
++- 60% of tickers: may move up to ±2% beyond startup open/close bounds
++- 20% of tickers: constrained strictly between startup open/close bounds
++
++## NATS Subjects
++
++- `pricing.AAPL`
++- `pricing.MSFT`
++- `pricing.<TICKER>`
++
++## Universe Alignment
++
++- `PRICE_TICKERS` controls which symbols are bootstrapped at startup.
++- In state `010` compose, this is wired to shared `SUPPORTED_TICKERS`.
++- `reference-data` uses the same shared list via `REFERENCE_DATA_SUPPORTED_TICKERS`, so every supported symbol has a corresponding price stream and quote endpoint.
+diff --git a/price-publisher/SPEC.manifest.json b/price-publisher/SPEC.manifest.json
+new file mode 100644
+index 0000000..98b6902
+--- /dev/null
++++ b/price-publisher/SPEC.manifest.json
+@@ -0,0 +1,6 @@
++{
++  "componentId": "price-publisher",
++  "stateId": "008-pricing-awareness-market-data",
++  "type": "service",
++  "description": "Synthetic price publisher with optional yfinance bootstrap and NATS topic publication."
++}
+diff --git a/price-publisher/data/snapshot-prices.json b/price-publisher/data/snapshot-prices.json
+new file mode 100644
+index 0000000..d585e1f
+--- /dev/null
++++ b/price-publisher/data/snapshot-prices.json
+@@ -0,0 +1,22 @@
++{
++  "AAPL": { "openPrice": 191.200, "closePrice": 192.800 },
++  "MSFT": { "openPrice": 429.100, "closePrice": 431.600 },
++  "AMZN": { "openPrice": 184.100, "closePrice": 185.500 },
++  "GOOGL": { "openPrice": 165.900, "closePrice": 167.100 },
++  "META": { "openPrice": 499.700, "closePrice": 503.200 },
++  "NVDA": { "openPrice": 901.400, "closePrice": 910.800 },
++  "TSLA": { "openPrice": 169.200, "closePrice": 172.000 },
++  "IBM": { "openPrice": 186.000, "closePrice": 187.400 },
++  "BAC": { "openPrice": 41.100, "closePrice": 41.700 },
++  "C": { "openPrice": 59.200, "closePrice": 58.600 },
++  "JPM": { "openPrice": 194.100, "closePrice": 195.800 },
++  "GS": { "openPrice": 401.700, "closePrice": 404.200 },
++  "MS": { "openPrice": 90.500, "closePrice": 91.100 },
++  "UBS": { "openPrice": 29.400, "closePrice": 29.900 },
++  "DB": { "openPrice": 16.800, "closePrice": 17.050 },
++  "COF": { "openPrice": 149.200, "closePrice": 150.300 },
++  "DFS": { "openPrice": 126.400, "closePrice": 127.650 },
++  "FNMA": { "openPrice": 1.120, "closePrice": 1.145 },
++  "FIS": { "openPrice": 74.700, "closePrice": 75.200 },
++  "FNF": { "openPrice": 49.500, "closePrice": 49.950 }
++}
+diff --git a/price-publisher/package-lock.json b/price-publisher/package-lock.json
+new file mode 100644
+index 0000000..b486f68
+--- /dev/null
++++ b/price-publisher/package-lock.json
+@@ -0,0 +1,969 @@
++{
++  "name": "price-publisher-specfirst",
++  "version": "0.1.0",
++  "lockfileVersion": 3,
++  "requires": true,
++  "packages": {
++    "": {
++      "name": "price-publisher-specfirst",
++      "version": "0.1.0",
++      "license": "Apache-2.0",
++      "dependencies": {
++        "express": "5.2.1",
++        "nats": "2.29.3",
++        "yahoo-finance2": "2.13.3"
++      }
++    },
++    "node_modules/@sinclair/typebox": {
++      "version": "0.32.35",
++      "resolved": "https://registry.npmjs.org/@sinclair/typebox/-/typebox-0.32.35.tgz",
++      "integrity": "sha512-Ul3YyOTU++to8cgNkttakC0dWvpERr6RYoHO2W47DLbFvrwBDJUY31B1sImH6JZSYc4Kt4PyHtoPNu+vL2r2dA==",
++      "license": "MIT"
++    },
++    "node_modules/@types/tough-cookie": {
++      "version": "4.0.5",
++      "resolved": "https://registry.npmjs.org/@types/tough-cookie/-/tough-cookie-4.0.5.tgz",
++      "integrity": "sha512-/Ad8+nIOV7Rl++6f1BdKxFSMgmoqEoYbHRpPcx3JEfv8VRsQe9Z4mCXeJBzxs7mbHY/XOZZuXlRNfhpVPbs6ZA==",
++      "license": "MIT"
++    },
++    "node_modules/accepts": {
++      "version": "2.0.0",
++      "resolved": "https://registry.npmjs.org/accepts/-/accepts-2.0.0.tgz",
++      "integrity": "sha512-5cvg6CtKwfgdmVqY1WIiXKc3Q1bkRqGLi+2W/6ao+6Y7gu/RCwRuAhGEzh5B4KlszSuTLgZYuqFqo5bImjNKng==",
++      "license": "MIT",
++      "dependencies": {
++        "mime-types": "^3.0.0",
++        "negotiator": "^1.0.0"
++      },
++      "engines": {
++        "node": ">= 0.6"
++      }
++    },
++    "node_modules/body-parser": {
++      "version": "2.2.2",
++      "resolved": "https://registry.npmjs.org/body-parser/-/body-parser-2.2.2.tgz",
++      "integrity": "sha512-oP5VkATKlNwcgvxi0vM0p/D3n2C3EReYVX+DNYs5TjZFn/oQt2j+4sVJtSMr18pdRr8wjTcBl6LoV+FUwzPmNA==",
++      "license": "MIT",
++      "dependencies": {
++        "bytes": "^3.1.2",
++        "content-type": "^1.0.5",
++        "debug": "^4.4.3",
++        "http-errors": "^2.0.0",
++        "iconv-lite": "^0.7.0",
++        "on-finished": "^2.4.1",
++        "qs": "^6.14.1",
++        "raw-body": "^3.0.1",
++        "type-is": "^2.0.1"
++      },
++      "engines": {
++        "node": ">=18"
++      },
++      "funding": {
++        "type": "opencollective",
++        "url": "https://opencollective.com/express"
++      }
++    },
++    "node_modules/bytes": {
++      "version": "3.1.2",
++      "resolved": "https://registry.npmjs.org/bytes/-/bytes-3.1.2.tgz",
++      "integrity": "sha512-/Nf7TyzTx6S3yRJObOAV7956r8cr2+Oj8AC5dt8wSP3BQAoeX58NoHyCU8P8zGkNXStjTSi6fzO6F0pBdcYbEg==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 0.8"
++      }
++    },
++    "node_modules/call-bind-apply-helpers": {
++      "version": "1.0.2",
++      "resolved": "https://registry.npmjs.org/call-bind-apply-helpers/-/call-bind-apply-helpers-1.0.2.tgz",
++      "integrity": "sha512-Sp1ablJ0ivDkSzjcaJdxEunN5/XvksFJ2sMBFfq6x0ryhQV/2b/KwFe21cMpmHtPOSij8K99/wSfoEuTObmuMQ==",
++      "license": "MIT",
++      "dependencies": {
++        "es-errors": "^1.3.0",
++        "function-bind": "^1.1.2"
++      },
++      "engines": {
++        "node": ">= 0.4"
++      }
++    },
++    "node_modules/call-bound": {
++      "version": "1.0.4",
++      "resolved": "https://registry.npmjs.org/call-bound/-/call-bound-1.0.4.tgz",
++      "integrity": "sha512-+ys997U96po4Kx/ABpBCqhA9EuxJaQWDQg7295H4hBphv3IZg0boBKuwYpt4YXp6MZ5AmZQnU/tyMTlRpaSejg==",
++      "license": "MIT",
++      "dependencies": {
++        "call-bind-apply-helpers": "^1.0.2",
++        "get-intrinsic": "^1.3.0"
++      },
++      "engines": {
++        "node": ">= 0.4"
++      },
++      "funding": {
++        "url": "https://github.com/sponsors/ljharb"
++      }
++    },
++    "node_modules/content-disposition": {
++      "version": "1.1.0",
++      "resolved": "https://registry.npmjs.org/content-disposition/-/content-disposition-1.1.0.tgz",
++      "integrity": "sha512-5jRCH9Z/+DRP7rkvY83B+yGIGX96OYdJmzngqnw2SBSxqCFPd0w2km3s5iawpGX8krnwSGmF0FW5Nhr0Hfai3g==",
++      "license": "MIT",
++      "engines": {
++        "node": ">=18"
++      },
++      "funding": {
++        "type": "opencollective",
++        "url": "https://opencollective.com/express"
++      }
++    },
++    "node_modules/content-type": {
++      "version": "1.0.5",
++      "resolved": "https://registry.npmjs.org/content-type/-/content-type-1.0.5.tgz",
++      "integrity": "sha512-nTjqfcBFEipKdXCv4YDQWCfmcLZKm81ldF0pAopTvyrFGVbcR6P/VAAd5G7N+0tTr8QqiU0tFadD6FK4NtJwOA==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 0.6"
++      }
++    },
++    "node_modules/cookie": {
++      "version": "0.7.2",
++      "resolved": "https://registry.npmjs.org/cookie/-/cookie-0.7.2.tgz",
++      "integrity": "sha512-yki5XnKuf750l50uGTllt6kKILY4nQ1eNIQatoXEByZ5dWgnKqbnqmTrBE5B4N7lrMJKQ2ytWMiTO2o0v6Ew/w==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 0.6"
++      }
++    },
++    "node_modules/cookie-signature": {
++      "version": "1.2.2",
++      "resolved": "https://registry.npmjs.org/cookie-signature/-/cookie-signature-1.2.2.tgz",
++      "integrity": "sha512-D76uU73ulSXrD1UXF4KE2TMxVVwhsnCgfAyTg9k8P6KGZjlXKrOLe4dJQKI3Bxi5wjesZoFXJWElNWBjPZMbhg==",
++      "license": "MIT",
++      "engines": {
++        "node": ">=6.6.0"
++      }
++    },
++    "node_modules/debug": {
++      "version": "4.4.3",
++      "resolved": "https://registry.npmjs.org/debug/-/debug-4.4.3.tgz",
++      "integrity": "sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==",
++      "license": "MIT",
++      "dependencies": {
++        "ms": "^2.1.3"
++      },
++      "engines": {
++        "node": ">=6.0"
++      },
++      "peerDependenciesMeta": {
++        "supports-color": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/depd": {
++      "version": "2.0.0",
++      "resolved": "https://registry.npmjs.org/depd/-/depd-2.0.0.tgz",
++      "integrity": "sha512-g7nH6P6dyDioJogAAGprGpCtVImJhpPk/roCzdb3fIh61/s/nPsfR6onyMwkCAR/OlC3yBC0lESvUoQEAssIrw==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 0.8"
++      }
++    },
++    "node_modules/dunder-proto": {
++      "version": "1.0.1",
++      "resolved": "https://registry.npmjs.org/dunder-proto/-/dunder-proto-1.0.1.tgz",
++      "integrity": "sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==",
++      "license": "MIT",
++      "dependencies": {
++        "call-bind-apply-helpers": "^1.0.1",
++        "es-errors": "^1.3.0",
++        "gopd": "^1.2.0"
++      },
++      "engines": {
++        "node": ">= 0.4"
++      }
++    },
++    "node_modules/ee-first": {
++      "version": "1.1.1",
++      "resolved": "https://registry.npmjs.org/ee-first/-/ee-first-1.1.1.tgz",
++      "integrity": "sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==",
++      "license": "MIT"
++    },
++    "node_modules/encodeurl": {
++      "version": "2.0.0",
++      "resolved": "https://registry.npmjs.org/encodeurl/-/encodeurl-2.0.0.tgz",
++      "integrity": "sha512-Q0n9HRi4m6JuGIV1eFlmvJB7ZEVxu93IrMyiMsGC0lrMJMWzRgx6WGquyfQgZVb31vhGgXnfmPNNXmxnOkRBrg==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 0.8"
++      }
++    },
++    "node_modules/es-define-property": {
++      "version": "1.0.1",
++      "resolved": "https://registry.npmjs.org/es-define-property/-/es-define-property-1.0.1.tgz",
++      "integrity": "sha512-e3nRfgfUZ4rNGL232gUgX06QNyyez04KdjFrF+LTRoOXmrOgFKDg4BCdsjW8EnT69eqdYGmRpJwiPVYNrCaW3g==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 0.4"
++      }
++    },
++    "node_modules/es-errors": {
++      "version": "1.3.0",
++      "resolved": "https://registry.npmjs.org/es-errors/-/es-errors-1.3.0.tgz",
++      "integrity": "sha512-Zf5H2Kxt2xjTvbJvP2ZWLEICxA6j+hAmMzIlypy4xcBg1vKVnx89Wy0GbS+kf5cwCVFFzdCFh2XSCFNULS6csw==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 0.4"
++      }
++    },
++    "node_modules/es-object-atoms": {
++      "version": "1.1.1",
++      "resolved": "https://registry.npmjs.org/es-object-atoms/-/es-object-atoms-1.1.1.tgz",
++      "integrity": "sha512-FGgH2h8zKNim9ljj7dankFPcICIK9Cp5bm+c2gQSYePhpaG5+esrLODihIorn+Pe6FGJzWhXQotPv73jTaldXA==",
++      "license": "MIT",
++      "dependencies": {
++        "es-errors": "^1.3.0"
++      },
++      "engines": {
++        "node": ">= 0.4"
++      }
++    },
++    "node_modules/escape-html": {
++      "version": "1.0.3",
++      "resolved": "https://registry.npmjs.org/escape-html/-/escape-html-1.0.3.tgz",
++      "integrity": "sha512-NiSupZ4OeuGwr68lGIeym/ksIZMJodUGOSCZ/FSnTxcrekbvqrgdUxlJOMpijaKZVjAJrWrGs/6Jy8OMuyj9ow==",
++      "license": "MIT"
++    },
++    "node_modules/etag": {
++      "version": "1.8.1",
++      "resolved": "https://registry.npmjs.org/etag/-/etag-1.8.1.tgz",
++      "integrity": "sha512-aIL5Fx7mawVa300al2BnEE4iNvo1qETxLrPI/o05L7z6go7fCw1J6EQmbK4FmJ2AS7kgVF/KEZWufBfdClMcPg==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 0.6"
++      }
++    },
++    "node_modules/express": {
++      "version": "5.2.1",
++      "resolved": "https://registry.npmjs.org/express/-/express-5.2.1.tgz",
++      "integrity": "sha512-hIS4idWWai69NezIdRt2xFVofaF4j+6INOpJlVOLDO8zXGpUVEVzIYk12UUi2JzjEzWL3IOAxcTubgz9Po0yXw==",
++      "license": "MIT",
++      "dependencies": {
++        "accepts": "^2.0.0",
++        "body-parser": "^2.2.1",
++        "content-disposition": "^1.0.0",
++        "content-type": "^1.0.5",
++        "cookie": "^0.7.1",
++        "cookie-signature": "^1.2.1",
++        "debug": "^4.4.0",
++        "depd": "^2.0.0",
++        "encodeurl": "^2.0.0",
++        "escape-html": "^1.0.3",
++        "etag": "^1.8.1",
++        "finalhandler": "^2.1.0",
++        "fresh": "^2.0.0",
++        "http-errors": "^2.0.0",
++        "merge-descriptors": "^2.0.0",
++        "mime-types": "^3.0.0",
++        "on-finished": "^2.4.1",
++        "once": "^1.4.0",
++        "parseurl": "^1.3.3",
++        "proxy-addr": "^2.0.7",
++        "qs": "^6.14.0",
++        "range-parser": "^1.2.1",
++        "router": "^2.2.0",
++        "send": "^1.1.0",
++        "serve-static": "^2.2.0",
++        "statuses": "^2.0.1",
++        "type-is": "^2.0.1",
++        "vary": "^1.1.2"
++      },
++      "engines": {
++        "node": ">= 18"
++      },
++      "funding": {
++        "type": "opencollective",
++        "url": "https://opencollective.com/express"
++      }
++    },
++    "node_modules/finalhandler": {
++      "version": "2.1.1",
++      "resolved": "https://registry.npmjs.org/finalhandler/-/finalhandler-2.1.1.tgz",
++      "integrity": "sha512-S8KoZgRZN+a5rNwqTxlZZePjT/4cnm0ROV70LedRHZ0p8u9fRID0hJUZQpkKLzro8LfmC8sx23bY6tVNxv8pQA==",
++      "license": "MIT",
++      "dependencies": {
++        "debug": "^4.4.0",
++        "encodeurl": "^2.0.0",
++        "escape-html": "^1.0.3",
++        "on-finished": "^2.4.1",
++        "parseurl": "^1.3.3",
++        "statuses": "^2.0.1"
++      },
++      "engines": {
++        "node": ">= 18.0.0"
++      },
++      "funding": {
++        "type": "opencollective",
++        "url": "https://opencollective.com/express"
++      }
++    },
++    "node_modules/forwarded": {
++      "version": "0.2.0",
++      "resolved": "https://registry.npmjs.org/forwarded/-/forwarded-0.2.0.tgz",
++      "integrity": "sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 0.6"
++      }
++    },
++    "node_modules/fresh": {
++      "version": "2.0.0",
++      "resolved": "https://registry.npmjs.org/fresh/-/fresh-2.0.0.tgz",
++      "integrity": "sha512-Rx/WycZ60HOaqLKAi6cHRKKI7zxWbJ31MhntmtwMoaTeF7XFH9hhBp8vITaMidfljRQ6eYWCKkaTK+ykVJHP2A==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 0.8"
++      }
++    },
++    "node_modules/function-bind": {
++      "version": "1.1.2",
++      "resolved": "https://registry.npmjs.org/function-bind/-/function-bind-1.1.2.tgz",
++      "integrity": "sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA==",
++      "license": "MIT",
++      "funding": {
++        "url": "https://github.com/sponsors/ljharb"
++      }
++    },
++    "node_modules/get-intrinsic": {
++      "version": "1.3.0",
++      "resolved": "https://registry.npmjs.org/get-intrinsic/-/get-intrinsic-1.3.0.tgz",
++      "integrity": "sha512-9fSjSaos/fRIVIp+xSJlE6lfwhES7LNtKaCBIamHsjr2na1BiABJPo0mOjjz8GJDURarmCPGqaiVg5mfjb98CQ==",
++      "license": "MIT",
++      "dependencies": {
++        "call-bind-apply-helpers": "^1.0.2",
++        "es-define-property": "^1.0.1",
++        "es-errors": "^1.3.0",
++        "es-object-atoms": "^1.1.1",
++        "function-bind": "^1.1.2",
++        "get-proto": "^1.0.1",
++        "gopd": "^1.2.0",
++        "has-symbols": "^1.1.0",
++        "hasown": "^2.0.2",
++        "math-intrinsics": "^1.1.0"
++      },
++      "engines": {
++        "node": ">= 0.4"
++      },
++      "funding": {
++        "url": "https://github.com/sponsors/ljharb"
++      }
++    },
++    "node_modules/get-proto": {
++      "version": "1.0.1",
++      "resolved": "https://registry.npmjs.org/get-proto/-/get-proto-1.0.1.tgz",
++      "integrity": "sha512-sTSfBjoXBp89JvIKIefqw7U2CCebsc74kiY6awiGogKtoSGbgjYE/G/+l9sF3MWFPNc9IcoOC4ODfKHfxFmp0g==",
++      "license": "MIT",
++      "dependencies": {
++        "dunder-proto": "^1.0.1",
++        "es-object-atoms": "^1.0.0"
++      },
++      "engines": {
++        "node": ">= 0.4"
++      }
++    },
++    "node_modules/gopd": {
++      "version": "1.2.0",
++      "resolved": "https://registry.npmjs.org/gopd/-/gopd-1.2.0.tgz",
++      "integrity": "sha512-ZUKRh6/kUFoAiTAtTYPZJ3hw9wNxx+BIBOijnlG9PnrJsCcSjs1wyyD6vJpaYtgnzDrKYRSqf3OO6Rfa93xsRg==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 0.4"
++      },
++      "funding": {
++        "url": "https://github.com/sponsors/ljharb"
++      }
++    },
++    "node_modules/has-symbols": {
++      "version": "1.1.0",
++      "resolved": "https://registry.npmjs.org/has-symbols/-/has-symbols-1.1.0.tgz",
++      "integrity": "sha512-1cDNdwJ2Jaohmb3sg4OmKaMBwuC48sYni5HUw2DvsC8LjGTLK9h+eb1X6RyuOHe4hT0ULCW68iomhjUoKUqlPQ==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 0.4"
++      },
++      "funding": {
++        "url": "https://github.com/sponsors/ljharb"
++      }
++    },
++    "node_modules/hasown": {
++      "version": "2.0.2",
++      "resolved": "https://registry.npmjs.org/hasown/-/hasown-2.0.2.tgz",
++      "integrity": "sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==",
++      "license": "MIT",
++      "dependencies": {
++        "function-bind": "^1.1.2"
++      },
++      "engines": {
++        "node": ">= 0.4"
++      }
++    },
++    "node_modules/http-errors": {
++      "version": "2.0.1",
++      "resolved": "https://registry.npmjs.org/http-errors/-/http-errors-2.0.1.tgz",
++      "integrity": "sha512-4FbRdAX+bSdmo4AUFuS0WNiPz8NgFt+r8ThgNWmlrjQjt1Q7ZR9+zTlce2859x4KSXrwIsaeTqDoKQmtP8pLmQ==",
++      "license": "MIT",
++      "dependencies": {
++        "depd": "~2.0.0",
++        "inherits": "~2.0.4",
++        "setprototypeof": "~1.2.0",
++        "statuses": "~2.0.2",
++        "toidentifier": "~1.0.1"
++      },
++      "engines": {
++        "node": ">= 0.8"
++      },
++      "funding": {
++        "type": "opencollective",
++        "url": "https://opencollective.com/express"
++      }
++    },
++    "node_modules/iconv-lite": {
++      "version": "0.7.2",
++      "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.7.2.tgz",
++      "integrity": "sha512-im9DjEDQ55s9fL4EYzOAv0yMqmMBSZp6G0VvFyTMPKWxiSBHUj9NW/qqLmXUwXrrM7AvqSlTCfvqRb0cM8yYqw==",
++      "license": "MIT",
++      "dependencies": {
++        "safer-buffer": ">= 2.1.2 < 3.0.0"
++      },
++      "engines": {
++        "node": ">=0.10.0"
++      },
++      "funding": {
++        "type": "opencollective",
++        "url": "https://opencollective.com/express"
++      }
++    },
++    "node_modules/inherits": {
++      "version": "2.0.4",
++      "resolved": "https://registry.npmjs.org/inherits/-/inherits-2.0.4.tgz",
++      "integrity": "sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==",
++      "license": "ISC"
++    },
++    "node_modules/ipaddr.js": {
++      "version": "1.9.1",
++      "resolved": "https://registry.npmjs.org/ipaddr.js/-/ipaddr.js-1.9.1.tgz",
++      "integrity": "sha512-0KI/607xoxSToH7GjN1FfSbLoU0+btTicjsQSWQlh/hZykN8KpmMf7uYwPW3R+akZ6R/w18ZlXSHBYXiYUPO3g==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 0.10"
++      }
++    },
++    "node_modules/is-promise": {
++      "version": "4.0.0",
++      "resolved": "https://registry.npmjs.org/is-promise/-/is-promise-4.0.0.tgz",
++      "integrity": "sha512-hvpoI6korhJMnej285dSg6nu1+e6uxs7zG3BYAm5byqDsgJNWwxzM6z6iZiAgQR4TJ30JmBTOwqZUw3WlyH3AQ==",
++      "license": "MIT"
++    },
++    "node_modules/math-intrinsics": {
++      "version": "1.1.0",
++      "resolved": "https://registry.npmjs.org/math-intrinsics/-/math-intrinsics-1.1.0.tgz",
++      "integrity": "sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 0.4"
++      }
++    },
++    "node_modules/media-typer": {
++      "version": "1.1.0",
++      "resolved": "https://registry.npmjs.org/media-typer/-/media-typer-1.1.0.tgz",
++      "integrity": "sha512-aisnrDP4GNe06UcKFnV5bfMNPBUw4jsLGaWwWfnH3v02GnBuXX2MCVn5RbrWo0j3pczUilYblq7fQ7Nw2t5XKw==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 0.8"
++      }
++    },
++    "node_modules/merge-descriptors": {
++      "version": "2.0.0",
++      "resolved": "https://registry.npmjs.org/merge-descriptors/-/merge-descriptors-2.0.0.tgz",
++      "integrity": "sha512-Snk314V5ayFLhp3fkUREub6WtjBfPdCPY1Ln8/8munuLuiYhsABgBVWsozAG+MWMbVEvcdcpbi9R7ww22l9Q3g==",
++      "license": "MIT",
++      "engines": {
++        "node": ">=18"
++      },
++      "funding": {
++        "url": "https://github.com/sponsors/sindresorhus"
++      }
++    },
++    "node_modules/mime-db": {
++      "version": "1.54.0",
++      "resolved": "https://registry.npmjs.org/mime-db/-/mime-db-1.54.0.tgz",
++      "integrity": "sha512-aU5EJuIN2WDemCcAp2vFBfp/m4EAhWJnUNSSw0ixs7/kXbd6Pg64EmwJkNdFhB8aWt1sH2CTXrLxo/iAGV3oPQ==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 0.6"
++      }
++    },
++    "node_modules/mime-types": {
++      "version": "3.0.2",
++      "resolved": "https://registry.npmjs.org/mime-types/-/mime-types-3.0.2.tgz",
++      "integrity": "sha512-Lbgzdk0h4juoQ9fCKXW4by0UJqj+nOOrI9MJ1sSj4nI8aI2eo1qmvQEie4VD1glsS250n15LsWsYtCugiStS5A==",
++      "license": "MIT",
++      "dependencies": {
++        "mime-db": "^1.54.0"
++      },
++      "engines": {
++        "node": ">=18"
++      },
++      "funding": {
++        "type": "opencollective",
++        "url": "https://opencollective.com/express"
++      }
++    },
++    "node_modules/ms": {
++      "version": "2.1.3",
++      "resolved": "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz",
++      "integrity": "sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==",
++      "license": "MIT"
++    },
++    "node_modules/nats": {
++      "version": "2.29.3",
++      "resolved": "https://registry.npmjs.org/nats/-/nats-2.29.3.tgz",
++      "integrity": "sha512-tOQCRCwC74DgBTk4pWZ9V45sk4d7peoE2njVprMRCBXrhJ5q5cYM7i6W+Uvw2qUrcfOSnuisrX7bEx3b3Wx4QA==",
++      "license": "Apache-2.0",
++      "dependencies": {
++        "nkeys.js": "1.1.0"
++      },
++      "engines": {
++        "node": ">= 14.0.0"
++      }
++    },
++    "node_modules/negotiator": {
++      "version": "1.0.0",
++      "resolved": "https://registry.npmjs.org/negotiator/-/negotiator-1.0.0.tgz",
++      "integrity": "sha512-8Ofs/AUQh8MaEcrlq5xOX0CQ9ypTF5dl78mjlMNfOK08fzpgTHQRQPBxcPlEtIw0yRpws+Zo/3r+5WRby7u3Gg==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 0.6"
++      }
++    },
++    "node_modules/nkeys.js": {
++      "version": "1.1.0",
++      "resolved": "https://registry.npmjs.org/nkeys.js/-/nkeys.js-1.1.0.tgz",
++      "integrity": "sha512-tB/a0shZL5UZWSwsoeyqfTszONTt4k2YS0tuQioMOD180+MbombYVgzDUYHlx+gejYK6rgf08n/2Df99WY0Sxg==",
++      "license": "Apache-2.0",
++      "dependencies": {
++        "tweetnacl": "1.0.3"
++      },
++      "engines": {
++        "node": ">=10.0.0"
++      }
++    },
++    "node_modules/object-inspect": {
++      "version": "1.13.4",
++      "resolved": "https://registry.npmjs.org/object-inspect/-/object-inspect-1.13.4.tgz",
++      "integrity": "sha512-W67iLl4J2EXEGTbfeHCffrjDfitvLANg0UlX3wFUUSTx92KXRFegMHUVgSqE+wvhAbi4WqjGg9czysTV2Epbew==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 0.4"
++      },
++      "funding": {
++        "url": "https://github.com/sponsors/ljharb"
++      }
++    },
++    "node_modules/on-finished": {
++      "version": "2.4.1",
++      "resolved": "https://registry.npmjs.org/on-finished/-/on-finished-2.4.1.tgz",
++      "integrity": "sha512-oVlzkg3ENAhCk2zdv7IJwd/QUD4z2RxRwpkcGY8psCVcCYZNq4wYnVWALHM+brtuJjePWiYF/ClmuDr8Ch5+kg==",
++      "license": "MIT",
++      "dependencies": {
++        "ee-first": "1.1.1"
++      },
++      "engines": {
++        "node": ">= 0.8"
++      }
++    },
++    "node_modules/once": {
++      "version": "1.4.0",
++      "resolved": "https://registry.npmjs.org/once/-/once-1.4.0.tgz",
++      "integrity": "sha512-lNaJgI+2Q5URQBkccEKHTQOPaXdUxnZZElQTZY0MFUAuaEqe1E+Nyvgdz/aIyNi6Z9MzO5dv1H8n58/GELp3+w==",
++      "license": "ISC",
++      "dependencies": {
++        "wrappy": "1"
++      }
++    },
++    "node_modules/parseurl": {
++      "version": "1.3.3",
++      "resolved": "https://registry.npmjs.org/parseurl/-/parseurl-1.3.3.tgz",
++      "integrity": "sha512-CiyeOxFT/JZyN5m0z9PfXw4SCBJ6Sygz1Dpl0wqjlhDEGGBP1GnsUVEL0p63hoG1fcj3fHynXi9NYO4nWOL+qQ==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 0.8"
++      }
++    },
++    "node_modules/path-to-regexp": {
++      "version": "8.4.2",
++      "resolved": "https://registry.npmjs.org/path-to-regexp/-/path-to-regexp-8.4.2.tgz",
++      "integrity": "sha512-qRcuIdP69NPm4qbACK+aDogI5CBDMi1jKe0ry5rSQJz8JVLsC7jV8XpiJjGRLLol3N+R5ihGYcrPLTno6pAdBA==",
++      "license": "MIT",
++      "funding": {
++        "type": "opencollective",
++        "url": "https://opencollective.com/express"
++      }
++    },
++    "node_modules/proxy-addr": {
++      "version": "2.0.7",
++      "resolved": "https://registry.npmjs.org/proxy-addr/-/proxy-addr-2.0.7.tgz",
++      "integrity": "sha512-llQsMLSUDUPT44jdrU/O37qlnifitDP+ZwrmmZcoSKyLKvtZxpyV0n2/bD/N4tBAAZ/gJEdZU7KMraoK1+XYAg==",
++      "license": "MIT",
++      "dependencies": {
++        "forwarded": "0.2.0",
++        "ipaddr.js": "1.9.1"
++      },
++      "engines": {
++        "node": ">= 0.10"
++      }
++    },
++    "node_modules/psl": {
++      "version": "1.15.0",
++      "resolved": "https://registry.npmjs.org/psl/-/psl-1.15.0.tgz",
++      "integrity": "sha512-JZd3gMVBAVQkSs6HdNZo9Sdo0LNcQeMNP3CozBJb3JYC/QUYZTnKxP+f8oWRX4rHP5EurWxqAHTSwUCjlNKa1w==",
++      "license": "MIT",
++      "dependencies": {
++        "punycode": "^2.3.1"
++      },
++      "funding": {
++        "url": "https://github.com/sponsors/lupomontero"
++      }
++    },
++    "node_modules/punycode": {
++      "version": "2.3.1",
++      "resolved": "https://registry.npmjs.org/punycode/-/punycode-2.3.1.tgz",
++      "integrity": "sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==",
++      "license": "MIT",
++      "engines": {
++        "node": ">=6"
++      }
++    },
++    "node_modules/qs": {
++      "version": "6.15.1",
++      "resolved": "https://registry.npmjs.org/qs/-/qs-6.15.1.tgz",
++      "integrity": "sha512-6YHEFRL9mfgcAvql/XhwTvf5jKcOiiupt2FiJxHkiX1z4j7WL8J/jRHYLluORvc1XxB5rV20KoeK00gVJamspg==",
++      "license": "BSD-3-Clause",
++      "dependencies": {
++        "side-channel": "^1.1.0"
++      },
++      "engines": {
++        "node": ">=0.6"
++      },
++      "funding": {
++        "url": "https://github.com/sponsors/ljharb"
++      }
++    },
++    "node_modules/querystringify": {
++      "version": "2.2.0",
++      "resolved": "https://registry.npmjs.org/querystringify/-/querystringify-2.2.0.tgz",
++      "integrity": "sha512-FIqgj2EUvTa7R50u0rGsyTftzjYmv/a3hO345bZNrqabNqjtgiDMgmo4mkUjd+nzU5oF3dClKqFIPUKybUyqoQ==",
++      "license": "MIT"
++    },
++    "node_modules/range-parser": {
++      "version": "1.2.1",
++      "resolved": "https://registry.npmjs.org/range-parser/-/range-parser-1.2.1.tgz",
++      "integrity": "sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 0.6"
++      }
++    },
++    "node_modules/raw-body": {
++      "version": "3.0.2",
++      "resolved": "https://registry.npmjs.org/raw-body/-/raw-body-3.0.2.tgz",
++      "integrity": "sha512-K5zQjDllxWkf7Z5xJdV0/B0WTNqx6vxG70zJE4N0kBs4LovmEYWJzQGxC9bS9RAKu3bgM40lrd5zoLJ12MQ5BA==",
++      "license": "MIT",
++      "dependencies": {
++        "bytes": "~3.1.2",
++        "http-errors": "~2.0.1",
++        "iconv-lite": "~0.7.0",
++        "unpipe": "~1.0.0"
++      },
++      "engines": {
++        "node": ">= 0.10"
++      }
++    },
++    "node_modules/requires-port": {
++      "version": "1.0.0",
++      "resolved": "https://registry.npmjs.org/requires-port/-/requires-port-1.0.0.tgz",
++      "integrity": "sha512-KigOCHcocU3XODJxsu8i/j8T9tzT4adHiecwORRQ0ZZFcp7ahwXuRU1m+yuO90C5ZUyGeGfocHDI14M3L3yDAQ==",
++      "license": "MIT"
++    },
++    "node_modules/router": {
++      "version": "2.2.0",
++      "resolved": "https://registry.npmjs.org/router/-/router-2.2.0.tgz",
++      "integrity": "sha512-nLTrUKm2UyiL7rlhapu/Zl45FwNgkZGaCpZbIHajDYgwlJCOzLSk+cIPAnsEqV955GjILJnKbdQC1nVPz+gAYQ==",
++      "license": "MIT",
++      "dependencies": {
++        "debug": "^4.4.0",
++        "depd": "^2.0.0",
++        "is-promise": "^4.0.0",
++        "parseurl": "^1.3.3",
++        "path-to-regexp": "^8.0.0"
++      },
++      "engines": {
++        "node": ">= 18"
++      }
++    },
++    "node_modules/safer-buffer": {
++      "version": "2.1.2",
++      "resolved": "https://registry.npmjs.org/safer-buffer/-/safer-buffer-2.1.2.tgz",
++      "integrity": "sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==",
++      "license": "MIT"
++    },
++    "node_modules/send": {
++      "version": "1.2.1",
++      "resolved": "https://registry.npmjs.org/send/-/send-1.2.1.tgz",
++      "integrity": "sha512-1gnZf7DFcoIcajTjTwjwuDjzuz4PPcY2StKPlsGAQ1+YH20IRVrBaXSWmdjowTJ6u8Rc01PoYOGHXfP1mYcZNQ==",
++      "license": "MIT",
++      "dependencies": {
++        "debug": "^4.4.3",
++        "encodeurl": "^2.0.0",
++        "escape-html": "^1.0.3",
++        "etag": "^1.8.1",
++        "fresh": "^2.0.0",
++        "http-errors": "^2.0.1",
++        "mime-types": "^3.0.2",
++        "ms": "^2.1.3",
++        "on-finished": "^2.4.1",
++        "range-parser": "^1.2.1",
++        "statuses": "^2.0.2"
++      },
++      "engines": {
++        "node": ">= 18"
++      },
++      "funding": {
++        "type": "opencollective",
++        "url": "https://opencollective.com/express"
++      }
++    },
++    "node_modules/serve-static": {
++      "version": "2.2.1",
++      "resolved": "https://registry.npmjs.org/serve-static/-/serve-static-2.2.1.tgz",
++      "integrity": "sha512-xRXBn0pPqQTVQiC8wyQrKs2MOlX24zQ0POGaj0kultvoOCstBQM5yvOhAVSUwOMjQtTvsPWoNCHfPGwaaQJhTw==",
++      "license": "MIT",
++      "dependencies": {
++        "encodeurl": "^2.0.0",
++        "escape-html": "^1.0.3",
++        "parseurl": "^1.3.3",
++        "send": "^1.2.0"
++      },
++      "engines": {
++        "node": ">= 18"
++      },
++      "funding": {
++        "type": "opencollective",
++        "url": "https://opencollective.com/express"
++      }
++    },
++    "node_modules/setprototypeof": {
++      "version": "1.2.0",
++      "resolved": "https://registry.npmjs.org/setprototypeof/-/setprototypeof-1.2.0.tgz",
++      "integrity": "sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==",
++      "license": "ISC"
++    },
++    "node_modules/side-channel": {
++      "version": "1.1.0",
++      "resolved": "https://registry.npmjs.org/side-channel/-/side-channel-1.1.0.tgz",
++      "integrity": "sha512-ZX99e6tRweoUXqR+VBrslhda51Nh5MTQwou5tnUDgbtyM0dBgmhEDtWGP/xbKn6hqfPRHujUNwz5fy/wbbhnpw==",
++      "license": "MIT",
++      "dependencies": {
++        "es-errors": "^1.3.0",
++        "object-inspect": "^1.13.3",
++        "side-channel-list": "^1.0.0",
++        "side-channel-map": "^1.0.1",
++        "side-channel-weakmap": "^1.0.2"
++      },
++      "engines": {
++        "node": ">= 0.4"
++      },
++      "funding": {
++        "url": "https://github.com/sponsors/ljharb"
++      }
++    },
++    "node_modules/side-channel-list": {
++      "version": "1.0.1",
++      "resolved": "https://registry.npmjs.org/side-channel-list/-/side-channel-list-1.0.1.tgz",
++      "integrity": "sha512-mjn/0bi/oUURjc5Xl7IaWi/OJJJumuoJFQJfDDyO46+hBWsfaVM65TBHq2eoZBhzl9EchxOijpkbRC8SVBQU0w==",
++      "license": "MIT",
++      "dependencies": {
++        "es-errors": "^1.3.0",
++        "object-inspect": "^1.13.4"
++      },
++      "engines": {
++        "node": ">= 0.4"
++      },
++      "funding": {
++        "url": "https://github.com/sponsors/ljharb"
++      }
++    },
++    "node_modules/side-channel-map": {
++      "version": "1.0.1",
++      "resolved": "https://registry.npmjs.org/side-channel-map/-/side-channel-map-1.0.1.tgz",
++      "integrity": "sha512-VCjCNfgMsby3tTdo02nbjtM/ewra6jPHmpThenkTYh8pG9ucZ/1P8So4u4FGBek/BjpOVsDCMoLA/iuBKIFXRA==",
++      "license": "MIT",
++      "dependencies": {
++        "call-bound": "^1.0.2",
++        "es-errors": "^1.3.0",
++        "get-intrinsic": "^1.2.5",
++        "object-inspect": "^1.13.3"
++      },
++      "engines": {
++        "node": ">= 0.4"
++      },
++      "funding": {
++        "url": "https://github.com/sponsors/ljharb"
++      }
++    },
++    "node_modules/side-channel-weakmap": {
++      "version": "1.0.2",
++      "resolved": "https://registry.npmjs.org/side-channel-weakmap/-/side-channel-weakmap-1.0.2.tgz",
++      "integrity": "sha512-WPS/HvHQTYnHisLo9McqBHOJk2FkHO/tlpvldyrnem4aeQp4hai3gythswg6p01oSoTl58rcpiFAjF2br2Ak2A==",
++      "license": "MIT",
++      "dependencies": {
++        "call-bound": "^1.0.2",
++        "es-errors": "^1.3.0",
++        "get-intrinsic": "^1.2.5",
++        "object-inspect": "^1.13.3",
++        "side-channel-map": "^1.0.1"
++      },
++      "engines": {
++        "node": ">= 0.4"
++      },
++      "funding": {
++        "url": "https://github.com/sponsors/ljharb"
++      }
++    },
++    "node_modules/statuses": {
++      "version": "2.0.2",
++      "resolved": "https://registry.npmjs.org/statuses/-/statuses-2.0.2.tgz",
++      "integrity": "sha512-DvEy55V3DB7uknRo+4iOGT5fP1slR8wQohVdknigZPMpMstaKJQWhwiYBACJE3Ul2pTnATihhBYnRhZQHGBiRw==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 0.8"
++      }
++    },
++    "node_modules/toidentifier": {
++      "version": "1.0.1",
++      "resolved": "https://registry.npmjs.org/toidentifier/-/toidentifier-1.0.1.tgz",
++      "integrity": "sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==",
++      "license": "MIT",
++      "engines": {
++        "node": ">=0.6"
++      }
++    },
++    "node_modules/tough-cookie": {
++      "version": "4.1.4",
++      "resolved": "https://registry.npmjs.org/tough-cookie/-/tough-cookie-4.1.4.tgz",
++      "integrity": "sha512-Loo5UUvLD9ScZ6jh8beX1T6sO1w2/MpCRpEP7V280GKMVUQ0Jzar2U3UJPsrdbziLEMMhu3Ujnq//rhiFuIeag==",
++      "license": "BSD-3-Clause",
++      "dependencies": {
++        "psl": "^1.1.33",
++        "punycode": "^2.1.1",
++        "universalify": "^0.2.0",
++        "url-parse": "^1.5.3"
++      },
++      "engines": {
++        "node": ">=6"
++      }
++    },
++    "node_modules/tough-cookie-file-store": {
++      "version": "2.0.3",
++      "resolved": "https://registry.npmjs.org/tough-cookie-file-store/-/tough-cookie-file-store-2.0.3.tgz",
++      "integrity": "sha512-sMpZVcmFf6EYFHFFl+SYH4W1/OnXBYMGDsv2IlbQ2caHyFElW/UR/gpj/KYU1JwmP4dE9xqwv2+vWcmlXHojSw==",
++      "license": "MIT",
++      "dependencies": {
++        "tough-cookie": "^4.0.0"
++      },
++      "engines": {
++        "node": ">=6"
++      }
++    },
++    "node_modules/tweetnacl": {
++      "version": "1.0.3",
++      "resolved": "https://registry.npmjs.org/tweetnacl/-/tweetnacl-1.0.3.tgz",
++      "integrity": "sha512-6rt+RN7aOi1nGMyC4Xa5DdYiukl2UWCbcJft7YhxReBGQD7OAM8Pbxw6YMo4r2diNEA8FEmu32YOn9rhaiE5yw==",
++      "license": "Unlicense"
++    },
++    "node_modules/type-is": {
++      "version": "2.0.1",
++      "resolved": "https://registry.npmjs.org/type-is/-/type-is-2.0.1.tgz",
++      "integrity": "sha512-OZs6gsjF4vMp32qrCbiVSkrFmXtG/AZhY3t0iAMrMBiAZyV9oALtXO8hsrHbMXF9x6L3grlFuwW2oAz7cav+Gw==",
++      "license": "MIT",
++      "dependencies": {
++        "content-type": "^1.0.5",
++        "media-typer": "^1.1.0",
++        "mime-types": "^3.0.0"
++      },
++      "engines": {
++        "node": ">= 0.6"
++      }
++    },
++    "node_modules/universalify": {
++      "version": "0.2.0",
++      "resolved": "https://registry.npmjs.org/universalify/-/universalify-0.2.0.tgz",
++      "integrity": "sha512-CJ1QgKmNg3CwvAv/kOFmtnEN05f0D/cn9QntgNOQlQF9dgvVTHj3t+8JPdjqawCHk7V/KA+fbUqzZ9XWhcqPUg==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 4.0.0"
++      }
++    },
++    "node_modules/unpipe": {
++      "version": "1.0.0",
++      "resolved": "https://registry.npmjs.org/unpipe/-/unpipe-1.0.0.tgz",
++      "integrity": "sha512-pjy2bYhSsufwWlKwPc+l3cN7+wuJlK6uz0YdJEOlQDbl6jo/YlPi4mb8agUkVC8BF7V8NuzeyPNqRksA3hztKQ==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 0.8"
++      }
++    },
++    "node_modules/url-parse": {
++      "version": "1.5.10",
++      "resolved": "https://registry.npmjs.org/url-parse/-/url-parse-1.5.10.tgz",
++      "integrity": "sha512-WypcfiRhfeUP9vvF0j6rw0J3hrWrw6iZv3+22h6iRMJ/8z1Tj6XfLP4DsUix5MhMPnXpiHDoKyoZ/bdCkwBCiQ==",
++      "license": "MIT",
++      "dependencies": {
++        "querystringify": "^2.1.1",
++        "requires-port": "^1.0.0"
++      }
++    },
++    "node_modules/vary": {
++      "version": "1.1.2",
++      "resolved": "https://registry.npmjs.org/vary/-/vary-1.1.2.tgz",
++      "integrity": "sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 0.8"
++      }
++    },
++    "node_modules/wrappy": {
++      "version": "1.0.2",
++      "resolved": "https://registry.npmjs.org/wrappy/-/wrappy-1.0.2.tgz",
++      "integrity": "sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==",
++      "license": "ISC"
++    },
++    "node_modules/yahoo-finance2": {
++      "version": "2.13.3",
++      "resolved": "https://registry.npmjs.org/yahoo-finance2/-/yahoo-finance2-2.13.3.tgz",
++      "integrity": "sha512-ZECy6wQ7ymT08nVrxqQf+gwmINJ4/ECLyq+vM3SQmH3HWzje5DX1WX5YcZpWpWi4KXdmo2Vuk9OAdrTP09nE4g==",
++      "license": "MIT",
++      "dependencies": {
++        "@sinclair/typebox": "^0.32.27",
++        "@types/tough-cookie": "^4.0.2",
++        "tough-cookie": "^4.1.2",
++        "tough-cookie-file-store": "^2.0.3"
++      },
++      "bin": {
++        "yahoo-finance": "bin/yahoo-finance.js"
++      },
++      "engines": {
++        "node": ">=18.0.0"
++      }
++    }
++  },
++  "traderxPackageJsonSha256": "bf1e71647a9ec6c34071839d9c58d7970421c5fc638bb28723ec5bdca076b9e1"
++}
+diff --git a/price-publisher/package.json b/price-publisher/package.json
+new file mode 100644
+index 0000000..aed738b
+--- /dev/null
++++ b/price-publisher/package.json
+@@ -0,0 +1,16 @@
++{
++  "name": "price-publisher-specfirst",
++  "version": "0.1.0",
++  "private": true,
++  "license": "Apache-2.0",
++  "description": "TraderX synthetic market price publisher for state 011",
++  "main": "src/main.js",
++  "scripts": {
++    "start": "node src/main.js"
++  },
++  "dependencies": {
++    "express": "5.2.1",
++    "nats": "2.29.3",
++    "yahoo-finance2": "2.13.3"
++  }
++}
+diff --git a/price-publisher/src/main.js b/price-publisher/src/main.js
+new file mode 100644
+index 0000000..4957d15
+--- /dev/null
++++ b/price-publisher/src/main.js
+@@ -0,0 +1,312 @@
++const fs = require('fs');
++const path = require('path');
++const express = require('express');
++const { connect } = require('nats');
++const yahooFinance = require('yahoo-finance2').default;
++
++const PORT = Number(process.env.PRICE_PUBLISHER_PORT || '18100');
++const NATS_URL = process.env.NATS_ADDRESS || `nats://${process.env.NATS_BROKER_HOST || 'localhost'}:4222`;
++const BOOTSTRAP_MODE = (process.env.PRICE_BOOTSTRAP_MODE || 'snapshot').toLowerCase();
++const PUBLISH_INTERVAL_MIN_MS = Number(process.env.PRICE_PUBLISH_INTERVAL_MIN_MS || '750');
++const PUBLISH_INTERVAL_MAX_MS = Number(process.env.PRICE_PUBLISH_INTERVAL_MAX_MS || '1500');
++const PUBLISH_BATCH_RATIO = Number(process.env.PRICE_PUBLISH_BATCH_RATIO || '0.25');
++const TICKERS = (process.env.PRICE_TICKERS || 'AAPL,MSFT,AMZN,GOOGL,META,NVDA,TSLA,IBM,BAC,C')
++  .split(',')
++  .map((ticker) => ticker.trim().toUpperCase())
++  .filter(Boolean);
++
++const SNAPSHOT_PATH = path.join(__dirname, '..', 'data', 'snapshot-prices.json');
++
++const app = express();
++const state = {
++  source: BOOTSTRAP_MODE,
++  nats: null,
++  prices: new Map(),
++  volatilityBands: new Map()
++};
++
++const VOLATILITY_PROFILES = [
++  { name: 'extended_4pct', upperRoll: 0.20, overflowPct: 0.04 },
++  { name: 'extended_2pct', upperRoll: 0.80, overflowPct: 0.02 },
++  { name: 'strict', upperRoll: 1.00, overflowPct: 0.00 }
++];
++
++function normalizePublishConfig() {
++  const minMs = Number.isFinite(PUBLISH_INTERVAL_MIN_MS) && PUBLISH_INTERVAL_MIN_MS > 0
++    ? Math.floor(PUBLISH_INTERVAL_MIN_MS)
++    : 750;
++  const maxMsCandidate = Number.isFinite(PUBLISH_INTERVAL_MAX_MS) && PUBLISH_INTERVAL_MAX_MS > 0
++    ? Math.floor(PUBLISH_INTERVAL_MAX_MS)
++    : 1500;
++  const maxMs = Math.max(minMs, maxMsCandidate);
++  const ratio = Number.isFinite(PUBLISH_BATCH_RATIO)
++    ? Math.min(1, Math.max(0.01, PUBLISH_BATCH_RATIO))
++    : 0.25;
++  return { minMs, maxMs, ratio };
++}
++
++function round3(value) {
++  return Math.round(Number(value) * 1000) / 1000;
++}
++
++function clamp(value, low, high) {
++  return Math.max(low, Math.min(high, value));
++}
++
++function loadSnapshot() {
++  try {
++    return JSON.parse(fs.readFileSync(SNAPSHOT_PATH, 'utf8'));
++  } catch (err) {
++    return {};
++  }
++}
++
++function createFallbackQuote(ticker) {
++  const basis = 100 + Math.random() * 50;
++  return {
++    ticker,
++    openPrice: round3(basis),
++    closePrice: round3(basis * (0.99 + Math.random() * 0.02)),
++    price: round3(basis),
++    source: 'fallback'
++  };
++}
++
++function normalizeQuote(ticker, openPrice, closePrice, source) {
++  const safeOpen = Number.isFinite(openPrice) ? Number(openPrice) : undefined;
++  const safeClose = Number.isFinite(closePrice) ? Number(closePrice) : undefined;
++  const open = round3(safeOpen ?? safeClose ?? 100);
++  const close = round3(safeClose ?? safeOpen ?? open);
++  return {
++    ticker,
++    openPrice: open,
++    closePrice: close,
++    price: close,
++    source
++  };
++}
++
++function chooseVolatilityProfile() {
++  const roll = Math.random();
++  for (const profile of VOLATILITY_PROFILES) {
++    if (roll <= profile.upperRoll) {
++      return profile;
++    }
++  }
++  return VOLATILITY_PROFILES[VOLATILITY_PROFILES.length - 1];
++}
++
++function shuffleInPlace(items) {
++  for (let i = items.length - 1; i > 0; i -= 1) {
++    const j = Math.floor(Math.random() * (i + 1));
++    [items[i], items[j]] = [items[j], items[i]];
++  }
++  return items;
++}
++
++function buildVolatilityBand(quote, profile) {
++  const baselineLow = Math.min(Number(quote.openPrice), Number(quote.closePrice));
++  const baselineHigh = Math.max(Number(quote.openPrice), Number(quote.closePrice));
++  const low = round3(baselineLow * (1 - profile.overflowPct));
++  const high = round3(baselineHigh * (1 + profile.overflowPct));
++  return {
++    profile: profile.name,
++    overflowPct: profile.overflowPct,
++    low,
++    high
++  };
++}
++
++function ensureVolatilityBand(ticker, quote) {
++  if (!state.volatilityBands.has(ticker)) {
++    const profile = chooseVolatilityProfile();
++    state.volatilityBands.set(ticker, buildVolatilityBand(quote, profile));
++  }
++  return state.volatilityBands.get(ticker);
++}
++
++function assignStartupVolatilityBands() {
++  const tickers = shuffleInPlace(Array.from(state.prices.keys()));
++  const total = tickers.length;
++  if (total === 0) {
++    return;
++  }
++
++  const countExtended4 = Math.floor(total * 0.2);
++  const countStrict = Math.floor(total * 0.2);
++  const countExtended2 = total - countExtended4 - countStrict;
++
++  const assignments = [
++    ...Array(countExtended4).fill('extended_4pct'),
++    ...Array(countExtended2).fill('extended_2pct'),
++    ...Array(countStrict).fill('strict')
++  ];
++
++  for (let i = 0; i < tickers.length; i += 1) {
++    const ticker = tickers[i];
++    const quote = state.prices.get(ticker);
++    if (!quote) {
++      continue;
++    }
++    const profileName = assignments[i] || 'extended_2pct';
++    const profile = VOLATILITY_PROFILES.find((entry) => entry.name === profileName) || VOLATILITY_PROFILES[1];
++    state.volatilityBands.set(ticker, buildVolatilityBand(quote, profile));
++  }
++}
++
++async function loadFromYahoo(ticker, snapshotEntry) {
++  const quote = await yahooFinance.quote(ticker);
++  const open = Number(quote.regularMarketOpen);
++  const close = Number(quote.regularMarketPreviousClose ?? quote.regularMarketPrice);
++  if (!Number.isFinite(open) && !Number.isFinite(close)) {
++    throw new Error('yfinance quote missing open/close');
++  }
++  return normalizeQuote(ticker, open, close, 'yfinance');
++}
++
++async function bootstrapPrices() {
++  const snapshot = loadSnapshot();
++  for (const ticker of TICKERS) {
++    const snapshotEntry = snapshot[ticker];
++    if (BOOTSTRAP_MODE === 'yfinance') {
++      try {
++        const quote = await loadFromYahoo(ticker, snapshotEntry);
++        state.prices.set(ticker, quote);
++        ensureVolatilityBand(ticker, quote);
++        continue;
++      } catch (err) {
++        // fall through to snapshot/fallback
++      }
++    }
++
++    if (snapshotEntry) {
++      const quote = normalizeQuote(ticker, Number(snapshotEntry.openPrice), Number(snapshotEntry.closePrice), 'snapshot');
++      state.prices.set(ticker, quote);
++      ensureVolatilityBand(ticker, quote);
++    } else {
++      const quote = createFallbackQuote(ticker);
++      state.prices.set(ticker, quote);
++      ensureVolatilityBand(ticker, quote);
++    }
++  }
++}
++
++function updateTick(ticker) {
++  const current = state.prices.get(ticker) || createFallbackQuote(ticker);
++  const band = ensureVolatilityBand(ticker, current);
++  const low = band.low;
++  const high = band.high;
++  const drift = current.price * (Math.random() * 0.01 - 0.005);
++  const nextPrice = round3(clamp(current.price + drift, low, high));
++  const next = {
++    ...current,
++    price: nextPrice
++  };
++  state.prices.set(ticker, next);
++  return next;
++}
++
++function toPayload(quote) {
++  return {
++    ticker: quote.ticker,
++    price: quote.price,
++    openPrice: quote.openPrice,
++    closePrice: quote.closePrice,
++    asOf: new Date().toISOString(),
++    source: quote.source
++  };
++}
++
++function publishTick(quote) {
++  if (!state.nats) {
++    return;
++  }
++  const topic = `pricing.${quote.ticker}`;
++  const envelope = {
++    topic,
++    payload: toPayload(quote),
++    date: new Date().toISOString(),
++    from: 'price-publisher',
++    type: 'PriceTick'
++  };
++  state.nats.publish(topic, Buffer.from(JSON.stringify(envelope)));
++}
++
++function pickRandomSubset(items, count) {
++  const shuffled = shuffleInPlace([...items]);
++  return shuffled.slice(0, Math.max(1, Math.min(count, items.length)));
++}
++
++function schedulePublishLoop() {
++  const publishCfg = normalizePublishConfig();
++  const loop = () => {
++    const tickers = Array.from(state.prices.keys());
++    if (tickers.length > 0) {
++      const batchSize = Math.max(1, Math.ceil(tickers.length * publishCfg.ratio));
++      const selected = pickRandomSubset(tickers, batchSize);
++      for (const ticker of selected) {
++        const quote = updateTick(ticker);
++        publishTick(quote);
++      }
++    }
++    const delayMs = publishCfg.minMs + Math.floor(Math.random() * (publishCfg.maxMs - publishCfg.minMs + 1));
++    setTimeout(loop, delayMs);
++  };
++  setTimeout(loop, 600);
++}
++
++function ensureTicker(ticker) {
++  const normalized = String(ticker || '').trim().toUpperCase();
++  if (!normalized) {
++    return null;
++  }
++  if (!state.prices.has(normalized)) {
++    const quote = createFallbackQuote(normalized);
++    state.prices.set(normalized, quote);
++    ensureVolatilityBand(normalized, quote);
++  }
++  return state.prices.get(normalized);
++}
++
++app.get('/health', (_req, res) => {
++  const profileCounts = {};
++  for (const band of state.volatilityBands.values()) {
++    profileCounts[band.profile] = (profileCounts[band.profile] || 0) + 1;
++  }
++  res.json({
++    status: 'ok',
++    source: state.source,
++    tickers: Array.from(state.prices.keys()).length,
++    publish: normalizePublishConfig(),
++    volatilityBands: profileCounts
++  });
++});
++
++app.get('/prices', (_req, res) => {
++  const rows = Array.from(state.prices.values()).map((quote) => toPayload(quote));
++  res.json({ prices: rows });
++});
++
++app.get('/prices/:ticker', (req, res) => {
++  const quote = ensureTicker(req.params.ticker);
++  if (!quote) {
++    res.status(404).json({ message: 'ticker not found' });
++    return;
++  }
++  res.json(toPayload(quote));
++});
++
++async function main() {
++  await bootstrapPrices();
++  assignStartupVolatilityBands();
++  state.nats = await connect({ servers: NATS_URL, maxReconnectAttempts: -1 });
++  schedulePublishLoop();
++  app.listen(PORT, () => {
++    console.log(`price-publisher listening on :${PORT}`);
++  });
++}
++
++main().catch((err) => {
++  console.error(err);
++  process.exit(1);
++});
+diff --git a/pricing-awareness-market-data/README.md b/pricing-awareness-market-data/README.md
+new file mode 100644
+index 0000000..648a189
+--- /dev/null
++++ b/pricing-awareness-market-data/README.md
+@@ -0,0 +1,21 @@
++## TraderX State 008 Runtime
++
++This directory defines the compose runtime for:
++
++- `008-pricing-awareness-market-data`
++
++It extends observability runtime with:
++
++- Live market data publishing via `price-publisher`
++- Price-aware trade stamping and position cost basis updates
++- Trader UI valuation and mark-to-market enhancements
++
++Primary endpoints:
++
++- TraderX UI: `http://localhost:8080`
++- Grafana: `http://localhost:3001` (local login credentials)
++- Prometheus: `http://localhost:9090`
++- Loki: `http://localhost:3100`
++- Tempo: `http://localhost:3200`
++- NATS monitor: `http://localhost:8222/varz`
++- Price publisher: `http://localhost:18100/health`
+diff --git a/messaging-nats-replacement/docker-compose.yml b/pricing-awareness-market-data/docker-compose.yml
+similarity index 53%
+rename from messaging-nats-replacement/docker-compose.yml
+rename to pricing-awareness-market-data/docker-compose.yml
+index ba4a919..cc3a0ef 100644
+--- a/messaging-nats-replacement/docker-compose.yml
++++ b/pricing-awareness-market-data/docker-compose.yml
+@@ -1,4 +1,4 @@
+-name: traderx-state-007
++name: traderx-state-008
+ 
+ services:
+   database:
+@@ -25,6 +25,10 @@ services:
+     environment:
+       REFERENCE_DATA_SERVICE_PORT: "18085"
+       CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
++      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
++      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
++      REFERENCE_DATA_SUPPORTED_TICKERS: "${SUPPORTED_TICKERS:-AAPL,MSFT,AMZN,GOOGL,META,NVDA,TSLA,IBM,BAC,C,JPM,GS,MS,UBS,DB,COF,DFS,FNMA,FIS,FNF}"
+     ports:
+       - "18085:18085"
+     depends_on:
+@@ -40,6 +44,20 @@ services:
+       - "8222:8222"
+       - "8081:8081"
+ 
++  price-publisher:
++    build:
++      context: ../price-publisher
++      dockerfile: Dockerfile.compose
++    environment:
++      PRICE_PUBLISHER_PORT: "18100"
++      NATS_BROKER_HOST: "nats-broker"
++      PRICE_BOOTSTRAP_MODE: "${PRICE_BOOTSTRAP_MODE:-snapshot}"
++      PRICE_TICKERS: "${SUPPORTED_TICKERS:-AAPL,MSFT,AMZN,GOOGL,META,NVDA,TSLA,IBM,BAC,C,JPM,GS,MS,UBS,DB,COF,DFS,FNMA,FIS,FNF}"
++    ports:
++      - "18100:18100"
++    depends_on:
++      - nats-broker
++
+   people-service:
+     build:
+       context: ../people-service
+@@ -47,6 +65,9 @@ services:
+     environment:
+       PEOPLE_SERVICE_PORT: "18089"
+       CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
++      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
++      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
+     ports:
+       - "18089:18089"
+ 
+@@ -63,6 +84,9 @@ services:
+       DATABASE_DBPASS: "traderx"
+       PEOPLE_SERVICE_HOST: "people-service"
+       CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
++      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
++      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
+     ports:
+       - "18088:18088"
+     depends_on:
+@@ -83,6 +107,9 @@ services:
+       DATABASE_DBUSER: "traderx"
+       DATABASE_DBPASS: "traderx"
+       CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
++      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
++      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
+     ports:
+       - "18090:18090"
+     depends_on:
+@@ -102,6 +129,9 @@ services:
+       DATABASE_DBPASS: "traderx"
+       NATS_BROKER_HOST: "nats-broker"
+       CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
++      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
++      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
+     ports:
+       - "18091:18091"
+     depends_on:
+@@ -120,7 +150,11 @@ services:
+       REFERENCE_DATA_HOST: "reference-data"
+       PEOPLE_SERVICE_HOST: "people-service"
+       NATS_BROKER_HOST: "nats-broker"
++      PRICE_SERVICE_HOST: "price-publisher"
+       CORS_ALLOWED_ORIGINS: "http://localhost:8080"
++      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
++      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
++      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
+     ports:
+       - "18092:18092"
+     depends_on:
+@@ -128,6 +162,7 @@ services:
+       - reference-data
+       - people-service
+       - nats-broker
++      - price-publisher
+       - trade-processor
+ 
+   web-front-end-angular:
+@@ -145,6 +180,7 @@ services:
+       - position-service
+       - people-service
+       - nats-broker
++      - price-publisher
+ 
+   ingress:
+     build:
+@@ -159,6 +195,7 @@ services:
+       POSITION_SERVICE_URL: "http://position-service:18090/"
+       TRADE_PROCESSOR_URL: "http://trade-processor:18091/"
+       TRADE_SERVICE_URL: "http://trade-service:18092/"
++      PRICE_PUBLISHER_URL: "http://price-publisher:18100/"
+       WEB_FRONTEND_URL: "http://web-front-end-angular:18093/"
+     ports:
+       - "8080:8080"
+@@ -171,5 +208,80 @@ services:
+       - people-service
+       - nats-broker
+ 
++  otel-collector:
++    image: otel/opentelemetry-collector-contrib:0.103.1
++    command: ["--config=/etc/otelcol-contrib/config.yaml"]
++    volumes:
++      - ./observability/otel-collector/config.yaml:/etc/otelcol-contrib/config.yaml:ro
++    ports:
++      - "4317:4317"
++      - "4318:4318"
++      - "8888:8888"
++      - "8889:8889"
++      - "13133:13133"
++    depends_on:
++      - tempo
++
++  blackbox-exporter:
++    image: prom/blackbox-exporter:v0.25.0
++    command: ["--config.file=/etc/blackbox_exporter/config.yml"]
++    volumes:
++      - ./observability/blackbox/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
++    ports:
++      - "9115:9115"
++
++  prometheus:
++    image: prom/prometheus:v2.53.2
++    command: ["--config.file=/etc/prometheus/prometheus.yml", "--web.enable-lifecycle"]
++    volumes:
++      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
++    ports:
++      - "9090:9090"
++    depends_on:
++      - blackbox-exporter
++      - otel-collector
++
++  loki:
++    image: grafana/loki:2.9.8
++    command: ["-config.file=/etc/loki/config.yaml"]
++    volumes:
++      - ./observability/loki/config.yaml:/etc/loki/config.yaml:ro
++    ports:
++      - "3100:3100"
++
++  promtail:
++    image: grafana/promtail:2.9.8
++    command: ["-config.file=/etc/promtail/config.yaml"]
++    volumes:
++      - ./observability/promtail/config.yaml:/etc/promtail/config.yaml:ro
++      - /var/run/docker.sock:/var/run/docker.sock:ro
++    depends_on:
++      - loki
++
++  tempo:
++    image: grafana/tempo:2.5.0
++    command: ["-config.file=/etc/tempo/config.yaml"]
++    volumes:
++      - ./observability/tempo/config.yaml:/etc/tempo/config.yaml:ro
++    ports:
++      - "3200:3200"
++
++  grafana:
++    image: grafana/grafana:11.1.0
++    environment:
++      GF_SECURITY_ADMIN_USER: "admin"
++      GF_SECURITY_ADMIN_PASSWORD: "admin"
++      GF_USERS_ALLOW_SIGN_UP: "false"
++      GF_AUTH_ANONYMOUS_ENABLED: "false"
++    volumes:
++      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
++      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
++    ports:
++      - "${GRAFANA_PORT:-3001}:3000"
++    depends_on:
++      - prometheus
++      - loki
++      - tempo
++
+ volumes:
+   postgres_state_009_data:
+diff --git a/messaging-nats-replacement/nats/nats.conf b/pricing-awareness-market-data/nats/nats.conf
+similarity index 100%
+rename from messaging-nats-replacement/nats/nats.conf
+rename to pricing-awareness-market-data/nats/nats.conf
+diff --git a/pricing-awareness-market-data/observability/blackbox/blackbox.yml b/pricing-awareness-market-data/observability/blackbox/blackbox.yml
+new file mode 100644
+index 0000000..981da60
+--- /dev/null
++++ b/pricing-awareness-market-data/observability/blackbox/blackbox.yml
+@@ -0,0 +1,6 @@
++modules:
++  http_2xx:
++    prober: http
++    timeout: 5s
++    http:
++      preferred_ip_protocol: "ip4"
+diff --git a/pricing-awareness-market-data/observability/grafana/dashboards/traderx-logs-errors.json b/pricing-awareness-market-data/observability/grafana/dashboards/traderx-logs-errors.json
+new file mode 100644
+index 0000000..7322a5d
+--- /dev/null
++++ b/pricing-awareness-market-data/observability/grafana/dashboards/traderx-logs-errors.json
+@@ -0,0 +1,158 @@
++{
++  "panels": [
++    {
++      "datasource": {
++        "type": "loki",
++        "uid": "loki"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "unit": "lines/s"
++        }
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 0,
++        "y": 0
++      },
++      "id": 1,
++      "options": {
++        "legend": {
++          "displayMode": "table",
++          "placement": "bottom"
++        }
++      },
++      "targets": [
++        {
++          "expr": "sum by (service) (rate({compose_project=\"traderx-state-007\",service=~\"$service\"}[1m]))",
++          "refId": "A"
++        }
++      ],
++      "title": "Log Throughput by Service",
++      "type": "timeseries"
++    },
++    {
++      "datasource": {
++        "type": "loki",
++        "uid": "loki"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "unit": "lines/s"
++        }
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 12,
++        "y": 0
++      },
++      "id": 2,
++      "options": {
++        "legend": {
++          "displayMode": "table",
++          "placement": "bottom"
++        }
++      },
++      "targets": [
++        {
++          "expr": "sum by (service) (rate({compose_project=\"traderx-state-007\",service=~\"$service\"} |~ \"(?i)(error|warn|exception|fail)\" [1m]))",
++          "refId": "A"
++        }
++      ],
++      "title": "Error/Warn Throughput by Service",
++      "type": "timeseries"
++    },
++    {
++      "datasource": {
++        "type": "loki",
++        "uid": "loki"
++      },
++      "gridPos": {
++        "h": 10,
++        "w": 24,
++        "x": 0,
++        "y": 8
++      },
++      "id": 3,
++      "options": {
++        "enableLogDetails": true,
++        "showLabels": true,
++        "showTime": true,
++        "wrapLogMessage": true
++      },
++      "targets": [
++        {
++          "expr": "{compose_project=\"traderx-state-007\",service=~\"$service\"}",
++          "refId": "A"
++        }
++      ],
++      "title": "Live Logs (Selected Services)",
++      "type": "logs"
++    },
++    {
++      "datasource": {
++        "type": "loki",
++        "uid": "loki"
++      },
++      "gridPos": {
++        "h": 10,
++        "w": 24,
++        "x": 0,
++        "y": 18
++      },
++      "id": 4,
++      "options": {
++        "enableLogDetails": true,
++        "showLabels": true,
++        "showTime": true,
++        "wrapLogMessage": true
++      },
++      "targets": [
++        {
++          "expr": "{compose_project=\"traderx-state-007\",service=~\"$service\"} |~ \"(?i)(error|warn|exception|fail)\"",
++          "refId": "A"
++        }
++      ],
++      "title": "Error Focus",
++      "type": "logs"
++    }
++  ],
++  "refresh": "10s",
++  "schemaVersion": 39,
++  "tags": [
++    "traderx",
++    "logs",
++    "provisioned"
++  ],
++  "templating": {
++    "list": [
++      {
++        "current": {
++          "text": "All",
++          "value": [
++            "$__all"
++          ]
++        },
++        "datasource": {
++          "type": "loki",
++          "uid": "loki"
++        },
++        "includeAll": true,
++        "label": "Service",
++        "multi": true,
++        "name": "service",
++        "query": "label_values({compose_project=\"traderx-state-007\"}, service)",
++        "type": "query"
++      }
++    ]
++  },
++  "time": {
++    "from": "now-30m",
++    "to": "now"
++  },
++  "timezone": "browser",
++  "title": "TraderX Logs & Errors",
++  "uid": "traderx-logs-errors"
++}
+diff --git a/pricing-awareness-market-data/observability/grafana/dashboards/traderx-message-bus-connectivity.json b/pricing-awareness-market-data/observability/grafana/dashboards/traderx-message-bus-connectivity.json
+new file mode 100644
+index 0000000..4c57225
+--- /dev/null
++++ b/pricing-awareness-market-data/observability/grafana/dashboards/traderx-message-bus-connectivity.json
+@@ -0,0 +1,44 @@
++{
++  "uid": "traderx-message-bus-connectivity",
++  "title": "TraderX Message Bus Connectivity",
++  "schemaVersion": 39,
++  "refresh": "10s",
++  "tags": ["traderx", "messaging", "health", "prometheus", "provisioned"],
++  "time": { "from": "now-30m", "to": "now" },
++  "panels": [
++    {
++      "id": 1,
++      "type": "timeseries",
++      "title": "Message Bus Connectivity (1=Connected)",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 0 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "traderx_messagebus_connected",
++          "legendFormat": "{{component}}/{{role}}"
++        }
++      ],
++      "fieldConfig": {
++        "defaults": {
++          "min": 0,
++          "max": 1,
++          "thresholds": {
++            "mode": "absolute",
++            "steps": [
++              { "color": "red", "value": null },
++              { "color": "green", "value": 1 }
++            ]
++          }
++        }
++      },
++      "options": {
++        "legend": {
++          "displayMode": "table",
++          "placement": "bottom",
++          "showLegend": true
++        }
++      }
++    }
++  ]
++}
+diff --git a/pricing-awareness-market-data/observability/grafana/dashboards/traderx-observability-control-plane.json b/pricing-awareness-market-data/observability/grafana/dashboards/traderx-observability-control-plane.json
+new file mode 100644
+index 0000000..317449a
+--- /dev/null
++++ b/pricing-awareness-market-data/observability/grafana/dashboards/traderx-observability-control-plane.json
+@@ -0,0 +1,268 @@
++{
++  "panels": [
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "max": 1,
++          "min": 0,
++          "thresholds": {
++            "mode": "absolute",
++            "steps": [
++              {
++                "color": "red",
++                "value": null
++              },
++              {
++                "color": "green",
++                "value": 1
++              }
++            ]
++          }
++        }
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 0,
++        "y": 0
++      },
++      "id": 1,
++      "targets": [
++        {
++          "expr": "up{job=\"prometheus\"}",
++          "refId": "A"
++        }
++      ],
++      "title": "Prometheus Up",
++      "type": "stat"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "unit": "none"
++        }
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 6,
++        "y": 0
++      },
++      "id": 2,
++      "targets": [
++        {
++          "expr": "sum(up{job=\"otel-collector\"})",
++          "refId": "A"
++        }
++      ],
++      "title": "OTel Collector Targets Up",
++      "type": "stat"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "max": 1,
++          "min": 0,
++          "thresholds": {
++            "mode": "absolute",
++            "steps": [
++              {
++                "color": "red",
++                "value": null
++              },
++              {
++                "color": "green",
++                "value": 1
++              }
++            ]
++          }
++        }
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 12,
++        "y": 0
++      },
++      "id": 3,
++      "targets": [
++        {
++          "expr": "up{job=\"blackbox-exporter\"}",
++          "refId": "A"
++        }
++      ],
++      "title": "Blackbox Exporter Up",
++      "type": "stat"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "unit": "none"
++        }
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 18,
++        "y": 0
++      },
++      "id": 4,
++      "targets": [
++        {
++          "expr": "sum(otelcol_exporter_queue_size)",
++          "refId": "A"
++        }
++      ],
++      "title": "OTel Exporter Queue Size",
++      "type": "stat"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "unit": "bytes"
++        }
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 0,
++        "y": 4
++      },
++      "id": 5,
++      "options": {
++        "legend": {
++          "displayMode": "table",
++          "placement": "bottom"
++        }
++      },
++      "targets": [
++        {
++          "expr": "process_resident_memory_bytes{job=~\"prometheus|blackbox-exporter\"}",
++          "refId": "A"
++        },
++        {
++          "expr": "otelcol_process_memory_rss",
++          "refId": "B"
++        }
++      ],
++      "title": "Observability Process RSS",
++      "type": "timeseries"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "unit": "none"
++        }
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 12,
++        "y": 4
++      },
++      "id": 6,
++      "options": {
++        "legend": {
++          "displayMode": "table",
++          "placement": "bottom"
++        }
++      },
++      "targets": [
++        {
++          "expr": "otelcol_exporter_queue_size",
++          "refId": "A"
++        },
++        {
++          "expr": "otelcol_exporter_queue_capacity",
++          "refId": "B"
++        }
++      ],
++      "title": "OTel Exporter Queue (size/capacity)",
++      "type": "timeseries"
++    },
++    {
++      "datasource": {
++        "type": "loki",
++        "uid": "loki"
++      },
++      "gridPos": {
++        "h": 10,
++        "w": 24,
++        "x": 0,
++        "y": 12
++      },
++      "id": 7,
++      "options": {
++        "enableLogDetails": true,
++        "showLabels": true,
++        "showTime": true,
++        "wrapLogMessage": true
++      },
++      "targets": [
++        {
++          "expr": "{compose_project=\"traderx-state-007\",service=~\"grafana|loki|tempo|otel-collector|prometheus|promtail\"}",
++          "refId": "A"
++        }
++      ],
++      "title": "Control Plane Logs (Grafana/Loki/Tempo/OTel/Prometheus)",
++      "type": "logs"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "gridPos": {
++        "h": 6,
++        "w": 24,
++        "x": 0,
++        "y": 22
++      },
++      "id": 8,
++      "options": {
++        "content": "### Tempo is wired and ready\n- Data source: **Tempo**\n- Open Explore with Tempo selected and run TraceQL search: `{}`\n- In this base state, spans appear once services emit OTLP traces (current stack is ready for that next step).",
++        "mode": "markdown"
++      },
++      "title": "Tempo / Trace Exploration",
++      "type": "text"
++    }
++  ],
++  "refresh": "10s",
++  "schemaVersion": 39,
++  "tags": [
++    "traderx",
++    "observability",
++    "provisioned"
++  ],
++  "time": {
++    "from": "now-30m",
++    "to": "now"
++  },
++  "timezone": "browser",
++  "title": "TraderX Observability Control Plane",
++  "uid": "traderx-obs-control-plane"
++}
+diff --git a/pricing-awareness-market-data/observability/grafana/dashboards/traderx-overview.json b/pricing-awareness-market-data/observability/grafana/dashboards/traderx-overview.json
+new file mode 100644
+index 0000000..655096a
+--- /dev/null
++++ b/pricing-awareness-market-data/observability/grafana/dashboards/traderx-overview.json
+@@ -0,0 +1,128 @@
++{
++  "id": null,
++  "uid": "traderx-obs-011-overview",
++  "title": "TraderX Observability Overview (State 012)",
++  "tags": ["traderx", "state-011", "observability"],
++  "timezone": "browser",
++  "schemaVersion": 39,
++  "version": 1,
++  "refresh": "10s",
++  "time": {
++    "from": "now-30m",
++    "to": "now"
++  },
++  "panels": [
++    {
++      "id": 1,
++      "type": "stat",
++      "title": "Overall Endpoint Availability",
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "avg(probe_success{job=\"traderx-http-probe\"})"
++        }
++      ],
++      "options": {
++        "reduceOptions": {
++          "calcs": ["lastNotNull"],
++          "fields": "",
++          "values": false
++        }
++      }
++    },
++    {
++      "id": 2,
++      "type": "timeseries",
++      "title": "Endpoint Probe Success by Instance",
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "gridPos": { "h": 8, "w": 18, "x": 6, "y": 0 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "probe_success{job=\"traderx-http-probe\"}",
++          "legendFormat": "{{instance}}"
++        }
++      ]
++    },
++    {
++      "id": 3,
++      "type": "timeseries",
++      "title": "Probe P95 Latency (seconds)",
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "histogram_quantile(0.95, sum by (le, instance) (rate(probe_duration_seconds_bucket{job=\"traderx-http-probe\"}[5m])))",
++          "legendFormat": "{{instance}}"
++        }
++      ]
++    },
++    {
++      "id": 4,
++      "type": "table",
++      "title": "Latest HTTP Status by Endpoint",
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "max by (instance) (probe_http_status_code{job=\"traderx-http-probe\"})",
++          "format": "table",
++          "instant": true
++        }
++      ]
++    },
++    {
++      "id": 5,
++      "type": "timeseries",
++      "title": "Container Log Throughput (lines / 5m)",
++      "datasource": {
++        "type": "loki",
++        "uid": "loki"
++      },
++      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 14 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "sum by (service) (count_over_time({job=\"traderx-docker\", service=~\".+\"}[5m]))"
++        }
++      ]
++    },
++    {
++      "id": 6,
++      "type": "logs",
++      "title": "Live Container Logs",
++      "datasource": {
++        "type": "loki",
++        "uid": "loki"
++      },
++      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 14 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "{job=\"traderx-docker\"}"
++        }
++      ],
++      "options": {
++        "showLabels": true,
++        "showTime": true,
++        "sortOrder": "Descending"
++      }
++    }
++  ]
++}
+diff --git a/pricing-awareness-market-data/observability/grafana/dashboards/traderx-runtime-health.json b/pricing-awareness-market-data/observability/grafana/dashboards/traderx-runtime-health.json
+new file mode 100644
+index 0000000..678e98b
+--- /dev/null
++++ b/pricing-awareness-market-data/observability/grafana/dashboards/traderx-runtime-health.json
+@@ -0,0 +1,298 @@
++{
++  "panels": [
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "decimals": 2,
++          "thresholds": {
++            "mode": "absolute",
++            "steps": [
++              {
++                "color": "red",
++                "value": null
++              },
++              {
++                "color": "orange",
++                "value": 95
++              },
++              {
++                "color": "green",
++                "value": 99
++              }
++            ]
++          },
++          "unit": "percent"
++        }
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 0,
++        "y": 0
++      },
++      "id": 1,
++      "targets": [
++        {
++          "expr": "100 * avg_over_time(probe_success{job=\"traderx-http-probe\"}[5m])",
++          "refId": "A"
++        }
++      ],
++      "title": "Endpoint Availability % (5m)",
++      "type": "stat"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "thresholds": {
++            "mode": "absolute",
++            "steps": [
++              {
++                "color": "green",
++                "value": null
++              },
++              {
++                "color": "red",
++                "value": 1
++              }
++            ]
++          },
++          "unit": "none"
++        }
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 6,
++        "y": 0
++      },
++      "id": 2,
++      "targets": [
++        {
++          "expr": "count(probe_success{job=\"traderx-http-probe\"} == 0)",
++          "refId": "A"
++        }
++      ],
++      "title": "Failing Endpoints (now)",
++      "type": "stat"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "unit": "none"
++        }
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 12,
++        "y": 0
++      },
++      "id": 3,
++      "targets": [
++        {
++          "expr": "count(probe_success{job=\"traderx-http-probe\"})",
++          "refId": "A"
++        }
++      ],
++      "title": "Monitored Endpoints",
++      "type": "stat"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "decimals": 3,
++          "thresholds": {
++            "mode": "absolute",
++            "steps": [
++              {
++                "color": "green",
++                "value": null
++              },
++              {
++                "color": "orange",
++                "value": 0.5
++              },
++              {
++                "color": "red",
++                "value": 1.5
++              }
++            ]
++          },
++          "unit": "s"
++        }
++      },
++      "gridPos": {
++        "h": 4,
++        "w": 6,
++        "x": 18,
++        "y": 0
++      },
++      "id": 4,
++      "targets": [
++        {
++          "expr": "quantile_over_time(0.95, probe_duration_seconds{job=\"traderx-http-probe\"}[5m])",
++          "refId": "A"
++        }
++      ],
++      "title": "Probe p95 Latency (5m)",
++      "type": "stat"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "max": 1,
++          "min": 0
++        }
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 0,
++        "y": 4
++      },
++      "id": 5,
++      "options": {
++        "legend": {
++          "displayMode": "table",
++          "placement": "bottom"
++        }
++      },
++      "targets": [
++        {
++          "expr": "probe_success{job=\"traderx-http-probe\"}",
++          "refId": "A"
++        }
++      ],
++      "title": "Endpoint Up/Down by Target",
++      "type": "timeseries"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "decimals": 3,
++          "unit": "s"
++        }
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 12,
++        "y": 4
++      },
++      "id": 6,
++      "options": {
++        "legend": {
++          "displayMode": "table",
++          "placement": "bottom"
++        }
++      },
++      "targets": [
++        {
++          "expr": "probe_duration_seconds{job=\"traderx-http-probe\"}",
++          "refId": "A"
++        }
++      ],
++      "title": "Probe Duration by Target",
++      "type": "timeseries"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 0,
++        "y": 12
++      },
++      "id": 7,
++      "options": {
++        "showHeader": true
++      },
++      "targets": [
++        {
++          "expr": "probe_success{job=\"traderx-http-probe\"}",
++          "instant": true,
++          "refId": "A"
++        }
++      ],
++      "title": "Current Endpoint Status",
++      "type": "table"
++    },
++    {
++      "datasource": {
++        "type": "prometheus",
++        "uid": "prometheus"
++      },
++      "fieldConfig": {
++        "defaults": {
++          "unit": "none"
++        }
++      },
++      "gridPos": {
++        "h": 8,
++        "w": 12,
++        "x": 12,
++        "y": 12
++      },
++      "id": 8,
++      "options": {
++        "legend": {
++          "displayMode": "table",
++          "placement": "bottom"
++        }
++      },
++      "targets": [
++        {
++          "expr": "otelcol_exporter_queue_size",
++          "refId": "A"
++        },
++        {
++          "expr": "otelcol_exporter_queue_capacity",
++          "refId": "B"
++        }
++      ],
++      "title": "Collector Queue Size",
++      "type": "timeseries"
++    }
++  ],
++  "refresh": "10s",
++  "schemaVersion": 39,
++  "tags": [
++    "traderx",
++    "runtime",
++    "provisioned"
++  ],
++  "time": {
++    "from": "now-30m",
++    "to": "now"
++  },
++  "timezone": "browser",
++  "title": "TraderX Runtime Health",
++  "uid": "traderx-runtime-health"
++}
+diff --git a/pricing-awareness-market-data/observability/grafana/dashboards/traderx-spring-actuator-overview.json b/pricing-awareness-market-data/observability/grafana/dashboards/traderx-spring-actuator-overview.json
+new file mode 100644
+index 0000000..56a48c6
+--- /dev/null
++++ b/pricing-awareness-market-data/observability/grafana/dashboards/traderx-spring-actuator-overview.json
+@@ -0,0 +1,76 @@
++{
++  "uid": "traderx-spring-actuator-overview",
++  "title": "TraderX Spring Actuator Overview",
++  "schemaVersion": 39,
++  "refresh": "10s",
++  "tags": ["traderx", "spring", "prometheus", "provisioned"],
++  "time": { "from": "now-30m", "to": "now" },
++  "templating": {
++    "list": [
++      {
++        "name": "instance",
++        "type": "query",
++        "label": "Instance",
++        "datasource": { "type": "prometheus", "uid": "prometheus" },
++        "query": "label_values(up{job=\"traderx-spring-boot-actuator\"}, instance)",
++        "includeAll": true,
++        "multi": true,
++        "current": { "text": "All", "value": ["$__all"] }
++      }
++    ]
++  },
++  "panels": [
++    {
++      "id": 1,
++      "type": "timeseries",
++      "title": "HTTP Request Rate (req/s)",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
++      "targets": [
++        { "refId": "A", "expr": "sum by (instance) (rate(http_server_requests_seconds_count{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}[5m]))" }
++      ]
++    },
++    {
++      "id": 2,
++      "type": "timeseries",
++      "title": "HTTP p95 Latency (s)",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
++      "targets": [
++        { "refId": "A", "expr": "histogram_quantile(0.95, sum by (instance, le) (rate(http_server_requests_seconds_bucket{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}[5m])))" }
++      ]
++    },
++    {
++      "id": 3,
++      "type": "timeseries",
++      "title": "JVM Heap Used (bytes)",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
++      "targets": [
++        { "refId": "A", "expr": "sum by (instance) (jvm_memory_used_bytes{job=\"traderx-spring-boot-actuator\",area=\"heap\",instance=~\"$instance\"})" }
++      ]
++    },
++    {
++      "id": 4,
++      "type": "stat",
++      "title": "Actuator Targets Up",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
++      "targets": [
++        { "refId": "A", "expr": "sum(up{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"})" }
++      ],
++      "fieldConfig": {
++        "defaults": {
++          "min": 0,
++          "thresholds": {
++            "mode": "absolute",
++            "steps": [
++              { "color": "red", "value": null },
++              { "color": "green", "value": 1 }
++            ]
++          }
++        }
++      }
++    }
++  ]
++}
+diff --git a/pricing-awareness-market-data/observability/grafana/dashboards/traderx-spring-service-sli.json b/pricing-awareness-market-data/observability/grafana/dashboards/traderx-spring-service-sli.json
+new file mode 100644
+index 0000000..233af92
+--- /dev/null
++++ b/pricing-awareness-market-data/observability/grafana/dashboards/traderx-spring-service-sli.json
+@@ -0,0 +1,108 @@
++{
++  "uid": "traderx-spring-service-sli",
++  "title": "TraderX Spring Service SLI",
++  "schemaVersion": 39,
++  "refresh": "10s",
++  "tags": ["traderx", "spring", "sli", "prometheus", "provisioned"],
++  "time": { "from": "now-30m", "to": "now" },
++  "templating": {
++    "list": [
++      {
++        "name": "instance",
++        "type": "query",
++        "label": "Instance",
++        "datasource": { "type": "prometheus", "uid": "prometheus" },
++        "query": "label_values(up{job=\"traderx-spring-boot-actuator\"}, instance)",
++        "includeAll": true,
++        "multi": true,
++        "current": { "text": "All", "value": ["$__all"] }
++      }
++    ]
++  },
++  "panels": [
++    {
++      "id": 1,
++      "type": "stat",
++      "title": "Scrape Target Availability Ratio",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "sum(up{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}) / clamp_min(count(up{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}), 1)"
++        }
++      ],
++      "fieldConfig": {
++        "defaults": {
++          "min": 0,
++          "max": 1,
++          "unit": "percentunit",
++          "thresholds": {
++            "mode": "absolute",
++            "steps": [
++              { "color": "red", "value": null },
++              { "color": "yellow", "value": 0.9 },
++              { "color": "green", "value": 1.0 }
++            ]
++          }
++        }
++      }
++    },
++    {
++      "id": 2,
++      "type": "timeseries",
++      "title": "HTTP 5xx Rate (req/s)",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 6, "w": 18, "x": 6, "y": 0 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "sum by (instance) (rate(http_server_requests_seconds_count{job=\"traderx-spring-boot-actuator\",status=~\"5..\",instance=~\"$instance\"}[5m]))"
++        }
++      ],
++      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
++    },
++    {
++      "id": 3,
++      "type": "timeseries",
++      "title": "Process CPU Usage (%)",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "100 * max by (instance) (process_cpu_usage{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"})"
++        }
++      ],
++      "fieldConfig": { "defaults": { "unit": "percent", "min": 0 } }
++    },
++    {
++      "id": 4,
++      "type": "timeseries",
++      "title": "GC Pause p95 (s)",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "histogram_quantile(0.95, sum by (instance, le) (rate(jvm_gc_pause_seconds_bucket{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}[5m])))"
++        }
++      ],
++      "fieldConfig": { "defaults": { "unit": "s" } }
++    },
++    {
++      "id": 5,
++      "type": "timeseries",
++      "title": "Live Threads",
++      "datasource": { "type": "prometheus", "uid": "prometheus" },
++      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 14 },
++      "targets": [
++        {
++          "refId": "A",
++          "expr": "max by (instance) (jvm_threads_live_threads{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"})"
++        }
++      ],
++      "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
++    }
++  ]
++}
+diff --git a/pricing-awareness-market-data/observability/grafana/provisioning/dashboards/dashboards.yaml b/pricing-awareness-market-data/observability/grafana/provisioning/dashboards/dashboards.yaml
+new file mode 100644
+index 0000000..74cc9a0
+--- /dev/null
++++ b/pricing-awareness-market-data/observability/grafana/provisioning/dashboards/dashboards.yaml
+@@ -0,0 +1,11 @@
++apiVersion: 1
++
++providers:
++  - name: TraderX Dashboards
++    orgId: 1
++    folder: TraderX
++    type: file
++    disableDeletion: false
++    updateIntervalSeconds: 30
++    options:
++      path: /var/lib/grafana/dashboards
+diff --git a/pricing-awareness-market-data/observability/grafana/provisioning/datasources/datasources.yaml b/pricing-awareness-market-data/observability/grafana/provisioning/datasources/datasources.yaml
+new file mode 100644
+index 0000000..caf551f
+--- /dev/null
++++ b/pricing-awareness-market-data/observability/grafana/provisioning/datasources/datasources.yaml
+@@ -0,0 +1,27 @@
++apiVersion: 1
++
++datasources:
++  - name: Prometheus
++    uid: prometheus
++    type: prometheus
++    access: proxy
++    url: http://prometheus:9090
++    isDefault: true
++
++  - name: Loki
++    uid: loki
++    type: loki
++    access: proxy
++    url: http://loki:3100
++
++  - name: Tempo
++    uid: tempo
++    type: tempo
++    access: proxy
++    url: http://tempo:3200
++    jsonData:
++      httpMethod: GET
++      tracesToLogs:
++        datasourceUid: loki
++      serviceMap:
++        datasourceUid: prometheus
+diff --git a/pricing-awareness-market-data/observability/loki/config.yaml b/pricing-awareness-market-data/observability/loki/config.yaml
+new file mode 100644
+index 0000000..4fcbd67
+--- /dev/null
++++ b/pricing-awareness-market-data/observability/loki/config.yaml
+@@ -0,0 +1,31 @@
++auth_enabled: false
++
++server:
++  http_listen_port: 3100
++  grpc_listen_port: 9096
++
++common:
++  path_prefix: /tmp/loki
++  storage:
++    filesystem:
++      chunks_directory: /tmp/loki/chunks
++      rules_directory: /tmp/loki/rules
++  replication_factor: 1
++  ring:
++    kvstore:
++      store: inmemory
++
++schema_config:
++  configs:
++    - from: "2024-01-01"
++      store: tsdb
++      object_store: filesystem
++      schema: v13
++      index:
++        prefix: index_
++        period: 24h
++
++limits_config:
++  allow_structured_metadata: false
++  reject_old_samples: true
++  reject_old_samples_max_age: 168h
+diff --git a/pricing-awareness-market-data/observability/otel-collector/config.yaml b/pricing-awareness-market-data/observability/otel-collector/config.yaml
+new file mode 100644
+index 0000000..18604ee
+--- /dev/null
++++ b/pricing-awareness-market-data/observability/otel-collector/config.yaml
+@@ -0,0 +1,37 @@
++extensions:
++  health_check:
++    endpoint: 0.0.0.0:13133
++
++receivers:
++  otlp:
++    protocols:
++      grpc:
++        endpoint: 0.0.0.0:4317
++      http:
++        endpoint: 0.0.0.0:4318
++
++processors:
++  batch:
++    timeout: 1s
++
++exporters:
++  logging:
++    verbosity: normal
++  prometheus:
++    endpoint: 0.0.0.0:8889
++  otlp/tempo:
++    endpoint: tempo:4317
++    tls:
++      insecure: true
++
++service:
++  extensions: [health_check]
++  pipelines:
++    traces:
++      receivers: [otlp]
++      processors: [batch]
++      exporters: [otlp/tempo, logging]
++    metrics:
++      receivers: [otlp]
++      processors: [batch]
++      exporters: [prometheus, logging]
+diff --git a/pricing-awareness-market-data/observability/prometheus/prometheus.yml b/pricing-awareness-market-data/observability/prometheus/prometheus.yml
+new file mode 100644
+index 0000000..1ae9556
+--- /dev/null
++++ b/pricing-awareness-market-data/observability/prometheus/prometheus.yml
+@@ -0,0 +1,47 @@
++global:
++  scrape_interval: 15s
++  evaluation_interval: 15s
++
++scrape_configs:
++  - job_name: prometheus
++    static_configs:
++      - targets: ["prometheus:9090"]
++
++  - job_name: otel-collector
++    static_configs:
++      - targets: ["otel-collector:8888", "otel-collector:8889", "otel-collector:13133"]
++
++  - job_name: blackbox-exporter
++    static_configs:
++      - targets: ["blackbox-exporter:9115"]
++
++  - job_name: traderx-spring-boot-actuator
++    metrics_path: /actuator/prometheus
++    static_configs:
++      - targets: ["account-service:18088", "position-service:18090", "trade-processor:18091", "trade-service:18092"]
++
++  - job_name: traderx-http-probe
++    metrics_path: /probe
++    params:
++      module: [http_2xx]
++    static_configs:
++      - targets:
++          - http://ingress:8080/health
++          - http://ingress:8080/
++          - http://database:18084/
++          - http://reference-data:18085/stocks
++          - http://account-service:18088/account/22214
++          - http://people-service:18089/swagger
++          - http://position-service:18090/health/alive
++          - http://trade-processor:18091/health
++          - http://trade-service:18092/v3/api-docs
++          - http://web-front-end-angular:18093/
++          - http://price-publisher:18100/health
++          - http://trade-feed:18086/
++    relabel_configs:
++      - source_labels: [__address__]
++        target_label: __param_target
++      - source_labels: [__param_target]
++        target_label: instance
++      - target_label: __address__
++        replacement: blackbox-exporter:9115
+diff --git a/pricing-awareness-market-data/observability/promtail/config.yaml b/pricing-awareness-market-data/observability/promtail/config.yaml
+new file mode 100644
+index 0000000..7ffa433
+--- /dev/null
++++ b/pricing-awareness-market-data/observability/promtail/config.yaml
+@@ -0,0 +1,25 @@
++server:
++  http_listen_port: 9080
++  grpc_listen_port: 0
++
++positions:
++  filename: /tmp/positions.yaml
++
++clients:
++  - url: http://loki:3100/loki/api/v1/push
++
++scrape_configs:
++  - job_name: traderx-docker
++    docker_sd_configs:
++      - host: unix:///var/run/docker.sock
++        refresh_interval: 10s
++    relabel_configs:
++      - source_labels: [__meta_docker_container_name]
++        regex: "/(.*)"
++        target_label: container
++      - source_labels: [__meta_docker_container_label_com_docker_compose_service]
++        target_label: service
++      - source_labels: [__meta_docker_container_label_com_docker_compose_project]
++        target_label: compose_project
++      - target_label: job
++        replacement: traderx-docker
+diff --git a/pricing-awareness-market-data/observability/tempo/config.yaml b/pricing-awareness-market-data/observability/tempo/config.yaml
+new file mode 100644
+index 0000000..0ac9f9f
+--- /dev/null
++++ b/pricing-awareness-market-data/observability/tempo/config.yaml
+@@ -0,0 +1,24 @@
++server:
++  http_listen_port: 3200
++
++distributor:
++  receivers:
++    otlp:
++      protocols:
++        grpc:
++          endpoint: 0.0.0.0:4317
++        http:
++          endpoint: 0.0.0.0:4318
++
++ingester:
++  max_block_duration: 5m
++
++compactor:
++  compaction:
++    block_retention: 24h
++
++storage:
++  trace:
++    backend: local
++    local:
++      path: /tmp/tempo/traces
+diff --git a/scripts/status-state-007-observability-lgtm-compose-generated.sh b/scripts/status-state-008-pricing-awareness-market-data-generated.sh
+similarity index 66%
+rename from scripts/status-state-007-observability-lgtm-compose-generated.sh
+rename to scripts/status-state-008-pricing-awareness-market-data-generated.sh
+index ac7aba2..b1a45b3 100755
+--- a/scripts/status-state-007-observability-lgtm-compose-generated.sh
++++ b/scripts/status-state-008-pricing-awareness-market-data-generated.sh
+@@ -17,9 +17,8 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
+     exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+   fi
+ fi
+-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-007}"
+-GRAFANA_PORT="${GRAFANA_PORT:-3001}"
+-COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/observability-lgtm-compose/docker-compose.yml"
++COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-008}"
++COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/pricing-awareness-market-data/docker-compose.yml"
+ 
+ if ! command -v docker >/dev/null 2>&1; then
+   echo "[error] docker command not found"
+@@ -28,7 +27,7 @@ fi
+ 
+ if [[ ! -f "${COMPOSE_FILE}" ]]; then
+   echo "[info] compose file not found: ${COMPOSE_FILE}"
+-  echo "[hint] run: bash pipeline/generate-state.sh 007-observability-lgtm-compose"
++  echo "[hint] run: bash pipeline/generate-state.sh 008-pricing-awareness-market-data"
+   exit 0
+ fi
+ 
+@@ -40,23 +39,21 @@ http_code_for() {
+   curl -sS -o /dev/null -w "%{http_code}" "${url}" 2>/dev/null || true
+ }
+ 
+-printf "\n%-28s %-8s %s\n" "endpoint" "http" "url"
+-printf "%-28s %-8s %s\n" "----------------------------" "--------" "---"
++printf "\n%-24s %-8s %s\n" "endpoint" "http" "url"
++printf "%-24s %-8s %s\n" "------------------------" "--------" "---"
+ 
+ for target in \
+   "ingress-health|http://localhost:8080/health" \
+   "ingress-ui|http://localhost:8080/" \
+-  "grafana|http://localhost:${GRAFANA_PORT}/api/health" \
+-  "prometheus|http://localhost:9090/-/ready" \
+-  "loki|http://localhost:3100/ready" \
+-  "tempo|http://localhost:3200/ready" \
+-  "otel-collector|http://localhost:13133/" \
++  "angular-ui|http://localhost:18093/" \
+   "reference-data|http://localhost:18085/stocks" \
++  "price-publisher|http://localhost:18100/health" \
+   "account-service|http://localhost:18088/account/22214" \
+   "position-service|http://localhost:18090/health/alive" \
+-  "trade-service|http://localhost:18092/v3/api-docs"; do
++  "trade-service|http://localhost:18092/v3/api-docs" \
++  "nats-monitor|http://localhost:8222/varz"; do
+   name="${target%%|*}"
+   url="${target#*|}"
+   code="$(http_code_for "${url}")"
+-  printf "%-28s %-8s %s\n" "${name}" "${code:-000}" "${url}"
++  printf "%-24s %-8s %s\n" "${name}" "${code:-000}" "${url}"
+ done
+diff --git a/scripts/stop-state-007-observability-lgtm-compose-generated.sh b/scripts/stop-state-008-pricing-awareness-market-data-generated.sh
+similarity index 81%
+rename from scripts/stop-state-007-observability-lgtm-compose-generated.sh
+rename to scripts/stop-state-008-pricing-awareness-market-data-generated.sh
+index 993202c..5573cc2 100755
+--- a/scripts/stop-state-007-observability-lgtm-compose-generated.sh
++++ b/scripts/stop-state-008-pricing-awareness-market-data-generated.sh
+@@ -17,8 +17,8 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
+     exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+   fi
+ fi
+-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-007}"
+-COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/observability-lgtm-compose/docker-compose.yml"
++COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-008}"
++COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/pricing-awareness-market-data/docker-compose.yml"
+ 
+ if ! command -v docker >/dev/null 2>&1; then
+   echo "[error] docker command not found"
+@@ -31,4 +31,4 @@ if [[ ! -f "${COMPOSE_FILE}" ]]; then
+ fi
+ 
+ docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" down --remove-orphans
+-echo "[done] state 007 observability runtime stopped"
++echo "[done] state 008 pricing-awareness runtime stopped"
+diff --git a/trade-processor/src/main/java/finos/traderx/tradeprocessor/model/Position.java b/trade-processor/src/main/java/finos/traderx/tradeprocessor/model/Position.java
+index d13586f..4917649 100644
+--- a/trade-processor/src/main/java/finos/traderx/tradeprocessor/model/Position.java
++++ b/trade-processor/src/main/java/finos/traderx/tradeprocessor/model/Position.java
+@@ -7,6 +7,8 @@ import jakarta.persistence.IdClass;
+ import jakarta.persistence.Table;
+ import java.io.Serial;
+ import java.io.Serializable;
++import java.math.BigDecimal;
++import java.math.RoundingMode;
+ import java.util.Date;
+ 
+ @Entity
+@@ -28,6 +30,9 @@ public class Position implements Serializable {
+   @Column(name = "QUANTITY")
+   private Integer quantity;
+ 
++  @Column(name = "AVERAGECOSTBASIS", precision = 18, scale = 3)
++  private BigDecimal averageCostBasis;
++
+   @Column(name = "UPDATED")
+   private Date updated;
+ 
+@@ -55,6 +60,14 @@ public class Position implements Serializable {
+     this.quantity = quantity;
+   }
+ 
++  public BigDecimal getAverageCostBasis() {
++    return averageCostBasis;
++  }
++
++  public void setAverageCostBasis(BigDecimal averageCostBasis) {
++    this.averageCostBasis = averageCostBasis == null ? null : averageCostBasis.setScale(3, RoundingMode.HALF_UP);
++  }
++
+   public Date getUpdated() {
+     return updated;
+   }
+diff --git a/trade-processor/src/main/java/finos/traderx/tradeprocessor/model/Trade.java b/trade-processor/src/main/java/finos/traderx/tradeprocessor/model/Trade.java
+index 4aea163..a6dced0 100644
+--- a/trade-processor/src/main/java/finos/traderx/tradeprocessor/model/Trade.java
++++ b/trade-processor/src/main/java/finos/traderx/tradeprocessor/model/Trade.java
+@@ -8,6 +8,8 @@ import jakarta.persistence.Id;
+ import jakarta.persistence.Table;
+ import java.io.Serial;
+ import java.io.Serializable;
++import java.math.BigDecimal;
++import java.math.RoundingMode;
+ import java.util.Date;
+ 
+ @Entity
+@@ -38,6 +40,9 @@ public class Trade implements Serializable {
+   @Column(name = "QUANTITY")
+   private Integer quantity;
+ 
++  @Column(name = "PRICE", precision = 18, scale = 3)
++  private BigDecimal price;
++
+   @Column(name = "UPDATED")
+   private Date updated;
+ 
+@@ -92,6 +97,14 @@ public class Trade implements Serializable {
+     this.quantity = quantity;
+   }
+ 
++  public BigDecimal getPrice() {
++    return price;
++  }
++
++  public void setPrice(BigDecimal price) {
++    this.price = price == null ? null : price.setScale(3, RoundingMode.HALF_UP);
++  }
++
+   public Date getUpdated() {
+     return updated;
+   }
+diff --git a/trade-processor/src/main/java/finos/traderx/tradeprocessor/model/TradeOrder.java b/trade-processor/src/main/java/finos/traderx/tradeprocessor/model/TradeOrder.java
+index 7fa7cb8..80630fc 100644
+--- a/trade-processor/src/main/java/finos/traderx/tradeprocessor/model/TradeOrder.java
++++ b/trade-processor/src/main/java/finos/traderx/tradeprocessor/model/TradeOrder.java
+@@ -1,11 +1,15 @@
+ package finos.traderx.tradeprocessor.model;
+ 
++import java.math.BigDecimal;
++import java.math.RoundingMode;
++
+ public class TradeOrder {
+ 
+   private String id;
+   private String state;
+   private String security;
+   private Integer quantity;
++  private BigDecimal price;
+   private Integer accountId;
+   private TradeSide side;
+ 
+@@ -59,6 +63,14 @@ public class TradeOrder {
+     this.quantity = quantity;
+   }
+ 
++  public BigDecimal getPrice() {
++    return price;
++  }
++
++  public void setPrice(BigDecimal price) {
++    this.price = price == null ? null : price.setScale(3, RoundingMode.HALF_UP);
++  }
++
+   public TradeSide getSide() {
+     return side;
+   }
+diff --git a/trade-processor/src/main/java/finos/traderx/tradeprocessor/service/TradeService.java b/trade-processor/src/main/java/finos/traderx/tradeprocessor/service/TradeService.java
+index eaa6e76..d4e5003 100644
+--- a/trade-processor/src/main/java/finos/traderx/tradeprocessor/service/TradeService.java
++++ b/trade-processor/src/main/java/finos/traderx/tradeprocessor/service/TradeService.java
+@@ -10,6 +10,8 @@ import finos.traderx.tradeprocessor.model.TradeSide;
+ import finos.traderx.tradeprocessor.model.TradeState;
+ import finos.traderx.tradeprocessor.repository.PositionRepository;
+ import finos.traderx.tradeprocessor.repository.TradeRepository;
++import java.math.BigDecimal;
++import java.math.RoundingMode;
+ import java.util.Date;
+ import java.util.UUID;
+ import org.slf4j.Logger;
+@@ -47,6 +49,8 @@ public class TradeService {
+     trade.setSecurity(order.getSecurity());
+     trade.setSide(order.getSide());
+     trade.setQuantity(order.getQuantity());
++    BigDecimal executionPrice = (order.getPrice() == null ? BigDecimal.ZERO : order.getPrice()).setScale(3, RoundingMode.HALF_UP);
++    trade.setPrice(executionPrice);
+     trade.setCreated(new Date());
+     trade.setUpdated(new Date());
+     trade.setState(TradeState.New);
+@@ -57,10 +61,25 @@ public class TradeService {
+       position.setAccountId(order.getAccountId());
+       position.setSecurity(order.getSecurity());
+       position.setQuantity(0);
++      position.setAverageCostBasis(BigDecimal.ZERO.setScale(3, RoundingMode.HALF_UP));
+     }
+ 
++    int oldQuantity = position.getQuantity() == null ? 0 : position.getQuantity();
++    BigDecimal oldAverage = position.getAverageCostBasis() == null
++        ? BigDecimal.ZERO.setScale(3, RoundingMode.HALF_UP)
++        : position.getAverageCostBasis().setScale(3, RoundingMode.HALF_UP);
++
+     int signedQuantity = ((order.getSide() == TradeSide.Buy) ? 1 : -1) * trade.getQuantity();
+-    position.setQuantity(position.getQuantity() + signedQuantity);
++    int newQuantity = oldQuantity + signedQuantity;
++    position.setQuantity(newQuantity);
++
++    BigDecimal oldNotional = oldAverage.multiply(BigDecimal.valueOf(oldQuantity));
++    BigDecimal tradeNotional = executionPrice.multiply(BigDecimal.valueOf(signedQuantity));
++    BigDecimal newNotional = oldNotional.add(tradeNotional);
++    BigDecimal newAverage = newQuantity == 0
++        ? BigDecimal.ZERO.setScale(3, RoundingMode.HALF_UP)
++        : newNotional.divide(BigDecimal.valueOf(newQuantity), 3, RoundingMode.HALF_UP);
++    position.setAverageCostBasis(newAverage);
+     position.setUpdated(new Date());
+ 
+     tradeRepository.save(trade);
+diff --git a/trade-service/openapi.yaml b/trade-service/openapi.yaml
+index 34cff6d..433ecd1 100644
+--- a/trade-service/openapi.yaml
++++ b/trade-service/openapi.yaml
+@@ -43,6 +43,10 @@ components:
+           type: integer
+           format: int32
+           example: 100
++        price:
++          type: number
++          format: double
++          example: 142.375
+         accountId:
+           type: integer
+           format: int32
+diff --git a/trade-service/src/main/java/finos/traderx/tradeservice/controller/TradeOrderController.java b/trade-service/src/main/java/finos/traderx/tradeservice/controller/TradeOrderController.java
+index 269f5e7..be6ee41 100644
+--- a/trade-service/src/main/java/finos/traderx/tradeservice/controller/TradeOrderController.java
++++ b/trade-service/src/main/java/finos/traderx/tradeservice/controller/TradeOrderController.java
+@@ -4,6 +4,7 @@ import finos.traderx.messaging.PubSubException;
+ import finos.traderx.messaging.Publisher;
+ import finos.traderx.tradeservice.exceptions.ResourceNotFoundException;
+ import finos.traderx.tradeservice.model.Account;
++import finos.traderx.tradeservice.model.PriceQuote;
+ import finos.traderx.tradeservice.model.Security;
+ import finos.traderx.tradeservice.model.TradeOrder;
+ import io.swagger.v3.oas.annotations.Operation;
+@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
+ import org.springframework.web.bind.annotation.RestController;
+ import org.springframework.web.client.HttpClientErrorException;
+ import org.springframework.web.client.RestTemplate;
++import java.math.BigDecimal;
++import java.math.RoundingMode;
+ 
+ @RestController
+ @RequestMapping(value = "/trade", produces = "application/json")
+@@ -34,6 +37,9 @@ public class TradeOrderController {
+   @Value("${account.service.url}")
+   private String accountServiceAddress;
+ 
++  @Value("${price.service.url}")
++  private String priceServiceAddress;
++
+   public TradeOrderController(Publisher<TradeOrder> tradePublisher) {
+     this.tradePublisher = tradePublisher;
+   }
+@@ -50,6 +56,8 @@ public class TradeOrderController {
+       throw new ResourceNotFoundException(tradeOrder.getAccountId() + " not found in Account service.");
+     } else {
+       try {
++        BigDecimal executionPrice = fetchExecutionPrice(tradeOrder.getSecurity());
++        tradeOrder.setPrice(executionPrice);
+         log.info("Trade is valid. Submitting {}", tradeOrder);
+         tradePublisher.publish("/trades", tradeOrder);
+         return ResponseEntity.ok(tradeOrder);
+@@ -90,4 +98,21 @@ public class TradeOrderController {
+       return false;
+     }
+   }
++
++  private BigDecimal fetchExecutionPrice(String ticker) {
++    String url = this.priceServiceAddress + "/prices/" + ticker;
++    try {
++      ResponseEntity<PriceQuote> response = this.restTemplate.getForEntity(url, PriceQuote.class);
++      PriceQuote quote = response.getBody();
++      if (quote == null || quote.getPrice() == null) {
++        throw new ResourceNotFoundException("Price quote missing for ticker " + ticker);
++      }
++      return quote.getPrice().setScale(3, RoundingMode.HALF_UP);
++    } catch (HttpClientErrorException ex) {
++      if (ex.getRawStatusCode() == 404) {
++        throw new ResourceNotFoundException("Price quote unavailable for ticker " + ticker);
++      }
++      throw ex;
++    }
++  }
+ }
+diff --git a/trade-service/src/main/java/finos/traderx/tradeservice/model/PriceQuote.java b/trade-service/src/main/java/finos/traderx/tradeservice/model/PriceQuote.java
+new file mode 100644
+index 0000000..f039dd3
+--- /dev/null
++++ b/trade-service/src/main/java/finos/traderx/tradeservice/model/PriceQuote.java
+@@ -0,0 +1,60 @@
++package finos.traderx.tradeservice.model;
++
++import java.math.BigDecimal;
++
++public class PriceQuote {
++  private String ticker;
++  private BigDecimal price;
++  private BigDecimal openPrice;
++  private BigDecimal closePrice;
++  private String asOf;
++  private String source;
++
++  public String getTicker() {
++    return ticker;
++  }
++
++  public void setTicker(String ticker) {
++    this.ticker = ticker;
++  }
++
++  public BigDecimal getPrice() {
++    return price;
++  }
++
++  public void setPrice(BigDecimal price) {
++    this.price = price;
++  }
++
++  public BigDecimal getOpenPrice() {
++    return openPrice;
++  }
++
++  public void setOpenPrice(BigDecimal openPrice) {
++    this.openPrice = openPrice;
++  }
++
++  public BigDecimal getClosePrice() {
++    return closePrice;
++  }
++
++  public void setClosePrice(BigDecimal closePrice) {
++    this.closePrice = closePrice;
++  }
++
++  public String getAsOf() {
++    return asOf;
++  }
++
++  public void setAsOf(String asOf) {
++    this.asOf = asOf;
++  }
++
++  public String getSource() {
++    return source;
++  }
++
++  public void setSource(String source) {
++    this.source = source;
++  }
++}
+diff --git a/trade-service/src/main/java/finos/traderx/tradeservice/model/TradeOrder.java b/trade-service/src/main/java/finos/traderx/tradeservice/model/TradeOrder.java
+index b3ad2d3..7c060fe 100644
+--- a/trade-service/src/main/java/finos/traderx/tradeservice/model/TradeOrder.java
++++ b/trade-service/src/main/java/finos/traderx/tradeservice/model/TradeOrder.java
+@@ -1,12 +1,15 @@
+ package finos.traderx.tradeservice.model;
+ 
+ import com.fasterxml.jackson.annotation.JsonAlias;
++import java.math.BigDecimal;
++import java.math.RoundingMode;
+ 
+ public class TradeOrder {
+   private String id;
+   private String state;
+   private String security;
+   private Integer quantity;
++  private BigDecimal price;
+ 
+   @JsonAlias("accountID")
+   private Integer accountId;
+@@ -63,6 +66,14 @@ public class TradeOrder {
+     this.quantity = quantity;
+   }
+ 
++  public BigDecimal getPrice() {
++    return price;
++  }
++
++  public void setPrice(BigDecimal price) {
++    this.price = price == null ? null : price.setScale(3, RoundingMode.HALF_UP);
++  }
++
+   public TradeSide getSide() {
+     return side;
+   }
+diff --git a/trade-service/src/main/resources/application.properties b/trade-service/src/main/resources/application.properties
+index ce60435..76aa785 100644
+--- a/trade-service/src/main/resources/application.properties
++++ b/trade-service/src/main/resources/application.properties
+@@ -5,6 +5,7 @@ spring.threads.virtual.enabled=true
+ people.service.url=${PEOPLE_SERVICE_URL:http://${PEOPLE_SERVICE_HOST:localhost}:18089}
+ account.service.url=${ACCOUNT_SERVICE_URL:http://${ACCOUNT_SERVICE_HOST:localhost}:18088}
+ reference.data.service.url=${REFERENCE_DATA_SERVICE_URL:http://${REFERENCE_DATA_HOST:localhost}:18085}
++price.service.url=${PRICE_SERVICE_URL:http://${PRICE_SERVICE_HOST:localhost}:18100}
+ 
+ nats.address=${NATS_ADDRESS:nats://${NATS_BROKER_HOST:localhost}:4222}
+ 
+diff --git a/web-front-end/angular/main/app/model/trade.model.ts b/web-front-end/angular/main/app/model/trade.model.ts
+index ec8d3a6..967e50b 100644
+--- a/web-front-end/angular/main/app/model/trade.model.ts
++++ b/web-front-end/angular/main/app/model/trade.model.ts
+@@ -1,8 +1,10 @@
+ export interface Trade {
+     accountid: number;
++    accountId?: number;
+     created: Date;
+     id: string;
+     quantity: number;
++    price?: number;
+     security: string;
+     side: Side;
+     state: State;
+@@ -23,8 +25,15 @@ export enum State {
+ 
+ export interface Position {
+     accountid: number;
++    accountId?: number;
+     quantity: number;
+     security: string;
++    averageCostBasis?: number;
++    openPrice?: number;
++    marketPrice?: number;
++    marketValue?: number;
++    costBasisValue?: number;
++    pnl?: number;
+     updated: Date;
+ }
+ 
+@@ -34,3 +43,18 @@ export interface TradeTicket {
+     security: string;
+     accountId: number;
+ }
++
++export interface PriceTick {
++    ticker: string;
++    price: number;
++    openPrice: number;
++    closePrice: number;
++    asOf: string;
++    source: string;
++}
++
++export interface PortfolioSummary {
++    totalMarketValue: number;
++    totalCostBasis: number;
++    totalPnl: number;
++}
+diff --git a/web-front-end/angular/main/app/service/position.service.ts b/web-front-end/angular/main/app/service/position.service.ts
+index 83e673b..64b7c09 100644
+--- a/web-front-end/angular/main/app/service/position.service.ts
++++ b/web-front-end/angular/main/app/service/position.service.ts
+@@ -1,7 +1,7 @@
+ import { Injectable } from '@angular/core';
+ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+ import { Observable, throwError } from 'rxjs';
+-import { catchError, retry, tap } from 'rxjs/operators';
++import { catchError } from 'rxjs/operators';
+ import { Trade, Position } from '../model/trade.model';
+ import { environment } from 'main/environments/environment';
+ 
+diff --git a/web-front-end/angular/main/app/service/price-snapshot.service.ts b/web-front-end/angular/main/app/service/price-snapshot.service.ts
+new file mode 100644
+index 0000000..019005a
+--- /dev/null
++++ b/web-front-end/angular/main/app/service/price-snapshot.service.ts
+@@ -0,0 +1,72 @@
++import { Injectable } from '@angular/core';
++import { HttpClient } from '@angular/common/http';
++import { PriceTick } from '../model/trade.model';
++import { Observable, of } from 'rxjs';
++import { catchError, map } from 'rxjs/operators';
++
++@Injectable({
++  providedIn: 'root'
++})
++export class PriceSnapshotService {
++  private readonly baseUrl = '/price-publisher';
++
++  constructor(private http: HttpClient) {}
++
++  getPrice(ticker: string): Observable<PriceTick | null> {
++    const normalizedTicker = this.normalizeTicker(ticker);
++    if (!normalizedTicker) {
++      return of(null);
++    }
++    return this.http.get<PriceTick>(`${this.baseUrl}/prices/${encodeURIComponent(normalizedTicker)}`).pipe(
++      map((snapshot) => this.normalizeSnapshot(snapshot, normalizedTicker)),
++      catchError(() => of(null))
++    );
++  }
++
++  getPrices(tickers: string[]): Observable<PriceTick[]> {
++    const normalizedTickers = Array.from(new Set((tickers || [])
++      .map((ticker) => this.normalizeTicker(ticker))
++      .filter((ticker): ticker is string => !!ticker)));
++
++    if (normalizedTickers.length === 0) {
++      return of([]);
++    }
++
++    const tickerFilter = new Set(normalizedTickers);
++    return this.http.get<PriceTick[]>(`${this.baseUrl}/prices`).pipe(
++      map((snapshots) => (snapshots || [])
++        .map((snapshot) => this.normalizeSnapshot(snapshot))
++        .filter((snapshot): snapshot is PriceTick => !!snapshot && tickerFilter.has(snapshot.ticker))),
++      catchError(() => of([]))
++    );
++  }
++
++  private normalizeTicker(ticker: string | null | undefined): string | null {
++    const normalized = String(ticker || '').trim().toUpperCase();
++    return normalized || null;
++  }
++
++  private normalizeSnapshot(snapshot: PriceTick | null | undefined, fallbackTicker?: string): PriceTick | null {
++    if (!snapshot || typeof snapshot !== 'object') {
++      return null;
++    }
++
++    const normalizedTicker = this.normalizeTicker(snapshot.ticker) || this.normalizeTicker(fallbackTicker || '');
++    const normalizedPrice = Number((snapshot as any).price);
++    const normalizedOpen = Number((snapshot as any).openPrice ?? normalizedPrice);
++    const normalizedClose = Number((snapshot as any).closePrice ?? normalizedPrice);
++
++    if (!normalizedTicker || !Number.isFinite(normalizedPrice)) {
++      return null;
++    }
++
++    return {
++      ticker: normalizedTicker,
++      price: normalizedPrice,
++      openPrice: Number.isFinite(normalizedOpen) ? normalizedOpen : normalizedPrice,
++      closePrice: Number.isFinite(normalizedClose) ? normalizedClose : normalizedPrice,
++      asOf: typeof (snapshot as any).asOf === 'string' ? (snapshot as any).asOf : '',
++      source: typeof (snapshot as any).source === 'string' ? (snapshot as any).source : 'snapshot'
++    };
++  }
++}
+diff --git a/web-front-end/angular/main/app/trade/position-blotter/position-blotter.component.ts b/web-front-end/angular/main/app/trade/position-blotter/position-blotter.component.ts
+index 0672052..a010ba0 100644
+--- a/web-front-end/angular/main/app/trade/position-blotter/position-blotter.component.ts
++++ b/web-front-end/angular/main/app/trade/position-blotter/position-blotter.component.ts
+@@ -1,10 +1,11 @@
+-import { ColDef, GridApi, GridReadyEvent, GetRowIdParams } from 'ag-grid-community';
+-import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
++import { ColDef, GridApi, GridReadyEvent, GetRowIdParams, RowClickedEvent } from 'ag-grid-community';
++import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
+ import { Account } from 'main/app/model/account.model';
+-import { Position } from 'main/app/model/trade.model';
++import { PortfolioSummary, Position, PriceTick } from 'main/app/model/trade.model';
+ import { PositionService } from 'main/app/service/position.service';
+ import { Observable } from 'rxjs';
+ import { TradeFeedService } from 'main/app/service/trade-feed.service';
++import { PriceSnapshotService } from 'main/app/service/price-snapshot.service';
+ 
+ @Component({
+     standalone: false,
+@@ -16,12 +17,19 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
+   @Input() account?: Account;
+   @Input() allAccountsMode = false;
+   @Input() accountIds: number[] = [];
++  @Input() securityFilter = '';
++  @Output() summaryChange = new EventEmitter<PortfolioSummary>();
++  @Output() securitySelected = new EventEmitter<string>();
+   positions$: Observable<Position[]>;
+   positions: any = [];
+   gridApi: GridApi;
+   pendingPosition: any[] = [];
+   isPending = true;
+   socketUnSubscribeFns: Function[] = [];
++  priceStreamUnsubscribeFn?: Function;
++  private readonly marketPriceByTicker = new Map<string, number>();
++  private readonly marketPriceAsOfByTicker = new Map<string, number>();
++  private readonly openPriceByTicker = new Map<string, number>();
+ 
+   columnDefs: ColDef[] = [
+     {
+@@ -31,33 +39,87 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
+     {
+       headerName: 'QUANTITY',
+       field: 'quantity',
+-      enableCellChangeFlash: true
++      enableCellChangeFlash: true,
++      headerClass: 'ag-right-aligned-header',
++      cellClass: 'ag-right-aligned-cell',
++      valueFormatter: ({ value }) => this.formatInteger(value)
++    },
++    {
++      headerName: 'AVG COST',
++      field: 'averageCostBasis',
++      headerClass: 'ag-right-aligned-header',
++      cellClass: 'ag-right-aligned-cell',
++      valueFormatter: ({ value }) => this.formatCurrency(value)
++    },
++    {
++      headerName: 'OPEN',
++      field: 'openPrice',
++      headerClass: 'ag-right-aligned-header',
++      cellClass: 'ag-right-aligned-cell',
++      valueFormatter: ({ value }) => this.formatCurrency(value)
++    },
++    {
++      headerName: 'MKT PRICE',
++      field: 'marketPrice',
++      enableCellChangeFlash: true,
++      headerClass: 'ag-right-aligned-header',
++      cellClass: 'ag-right-aligned-cell',
++      cellStyle: ({ value, data }) => this.getMarketPriceCellStyle(value, data?.openPrice),
++      valueFormatter: ({ value, data }) => this.formatMarketPrice(value, data?.openPrice)
++    },
++    {
++      headerName: 'POSITION VALUE',
++      field: 'marketValue',
++      enableCellChangeFlash: true,
++      headerClass: 'ag-right-aligned-header',
++      cellClass: 'ag-right-aligned-cell',
++      cellStyle: ({ data }) => this.getPositionValueCellStyle(data?.marketValue, data?.costBasisValue),
++      valueFormatter: ({ value }) => this.formatCurrency(value)
++    },
++    {
++      headerName: 'P&L',
++      field: 'pnl',
++      enableCellChangeFlash: true,
++      headerClass: 'ag-right-aligned-header',
++      cellClass: 'ag-right-aligned-cell',
++      cellStyle: ({ value }) => this.getPnlCellStyle(value),
++      valueFormatter: ({ value }) => this.formatCurrency(value)
+     }
+   ];
+ 
+-  constructor(private tradeService: PositionService,
+-    private tradeFeed: TradeFeedService) {
++  constructor(
++    private tradeService: PositionService,
++    private tradeFeed: TradeFeedService,
++    private priceSnapshots: PriceSnapshotService
++  ) {
+     this.getRowId = this.getRowId.bind(this);
+   }
+ 
+   ngOnChanges(change: SimpleChanges) {
+     const scopeChanged = !!change.account || !!change.allAccountsMode || !!change.accountIds;
++    if (change.securityFilter && !scopeChanged) {
++      this.applySecurityFilter();
++    }
+     if (scopeChanged) {
+       this.loadScope();
+     }
+   }
+ 
+   processPendingPositions() {
+-    this.pendingPosition.forEach((position) => this.update(position));
++    this.pendingPosition.forEach((position: any) => this.update(position));
+     this.pendingPosition = [];
+     this.isPending = false;
+   }
+ 
+   updatePosition(data: any) {
++    if (this.allAccountsMode) {
++      this.refreshAllAccountsPositions();
++      return;
++    }
+     if (this.isPending) {
+       this.pendingPosition.push(data);
+     } else {
+-      this.update(data);
++      this.update(this.recomputePosition(data));
+     }
+   }
+ 
+@@ -71,33 +133,55 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
+       return;
+     }
+ 
++    const recomputed = this.recomputePosition(data);
+     const row = this.gridApi.getRowNode(this.toRowId(security));
+     let positionData;
+     if (row) {
+       positionData = {
+-        update: [Object.assign(row.data, { quantity: data.quantity, updated: data.updated })]
++        update: [Object.assign(row.data, recomputed)]
+       };
+     } else {
+       positionData = {
+         add: [{
+-          accountid: data.accountid ?? data.accountId,
+-          quantity: data.quantity,
++          accountid: recomputed.accountid ?? recomputed.accountId,
++          accountId: recomputed.accountId ?? recomputed.accountid,
++          quantity: recomputed.quantity,
+           security,
+-          updated: data.updated
++          averageCostBasis: recomputed.averageCostBasis,
++          openPrice: recomputed.openPrice,
++          marketPrice: recomputed.marketPrice,
++          marketValue: recomputed.marketValue,
++          costBasisValue: recomputed.costBasisValue,
++          pnl: recomputed.pnl,
++          updated: recomputed.updated
+         }],
+         addIndex: 0
+       };
+     }
+     this.gridApi.applyTransaction(positionData);
++    this.emitSummary();
+   }
+ 
+   onGridReady(params: GridReadyEvent) {
+     console.log('position blotter is ready...');
+     this.gridApi = params.api;
++    this.applySecurityFilter();
+     this.gridApi.sizeColumnsToFit();
++    this.emitSummary();
++  }
++
++  onRowClicked(event: RowClickedEvent) {
++    const security = String((event?.data as any)?.security || '').trim().toUpperCase();
++    if (!security) {
++      return;
++    }
++    this.securitySelected.emit(security);
+   }
+ 
+   getRowId(params: GetRowIdParams<any>):string {
++    if (!params?.data?.security) {
++      return 'Position-unknown';
++    }
+     return this.toRowId(params.data.security);
+   }
+ 
+@@ -107,11 +191,46 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
+ 
+   ngOnDestroy() {
+     this.clearSubscriptions();
++    this.priceStreamUnsubscribeFn?.();
++  }
++
++  private updateMarketPrice(tick: PriceTick) {
++    if (!tick?.ticker || tick.price == null) {
++      return;
++    }
++    if (!this.applyMarketPriceUpdate(tick.ticker, tick.price, tick.asOf ?? null)) {
++      return;
++    }
++    if (tick.openPrice != null && Number.isFinite(Number(tick.openPrice))) {
++      this.openPriceByTicker.set(String(tick.ticker || '').trim().toUpperCase(), Number(tick.openPrice));
++    }
++    if (!this.gridApi) {
++      return;
++    }
++    const normalizedTicker = String(tick.ticker || '').trim().toUpperCase();
++    const row = this.gridApi.getRowNode(this.toRowId(normalizedTicker));
++    if (!row) {
++      return;
++    }
++    this.update(Object.assign({}, row.data, {
++      marketPrice: Number(tick.price),
++      openPrice: this.openPriceByTicker.get(normalizedTicker),
++      security: normalizedTicker
++    }));
+   }
+ 
+   private loadScope() {
+     this.clearSubscriptions();
+     this.isPending = true;
++    this.marketPriceByTicker.clear();
++    this.marketPriceAsOfByTicker.clear();
++    this.openPriceByTicker.clear();
++    this.pendingPosition = [];
++
++    this.priceStreamUnsubscribeFn?.();
++    this.priceStreamUnsubscribeFn = this.tradeFeed.subscribe('pricing.*', (data: PriceTick) => {
++      this.updateMarketPrice(data);
++    });
+ 
+     if (this.allAccountsMode) {
+       this.refreshAllAccountsPositions();
+@@ -127,14 +246,15 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
+     const accountId = this.account?.id;
+     if (!accountId || accountId <= 0) {
+       this.positions = [];
+-      this.pendingPosition = [];
+       this.isPending = false;
++      this.emitSummary();
+       return;
+     }
+ 
+     this.tradeService.getPositions(accountId).subscribe((positions: Position[]) => {
+-      this.positions = positions ?? [];
++      this.positions = (positions ?? []).map((position: any) => this.recomputePosition(position));
+       this.processPendingPositions();
++      this.bootstrapSnapshotPrices(this.positions.map((position: any) => position.security));
+     }, () => {
+       this.isPending = false;
+     });
+@@ -153,34 +273,126 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
+       if (this.gridApi) {
+         this.setGridRowData(merged);
+       }
+-      this.pendingPosition = [];
+       this.isPending = false;
++      this.emitSummary();
++      this.bootstrapSnapshotPrices(merged.map((position: any) => position.security));
+     }, () => {
+       this.isPending = false;
+     });
+   }
+ 
++  private bootstrapSnapshotPrices(tickers: string[]): void {
++    this.priceSnapshots.getPrices(tickers).subscribe((snapshots) => {
++      let changed = false;
++      for (const snapshot of snapshots || []) {
++        if (!snapshot || !snapshot.ticker || snapshot.price == null) {
++          continue;
++        }
++        if (this.applyMarketPriceUpdate(snapshot.ticker, snapshot.price, snapshot.asOf ?? null)) {
++          changed = true;
++        }
++        if (snapshot.openPrice != null && Number.isFinite(Number(snapshot.openPrice))) {
++          this.openPriceByTicker.set(String(snapshot.ticker || '').trim().toUpperCase(), Number(snapshot.openPrice));
++        }
++      }
++      if (!changed) {
++        return;
++      }
++      if (this.allAccountsMode) {
++        this.refreshAllAccountsPositions();
++      } else {
++        this.positions = (this.positions || []).map((position: any) => this.recomputePosition(position));
++        this.setGridRowData(this.positions);
++        this.emitSummary();
++      }
++    });
++  }
++
++  private applyMarketPriceUpdate(ticker: string, price: number, asOf: string | null): boolean {
++    const normalizedTicker = String(ticker || '').trim().toUpperCase();
++    const numericPrice = Number(price);
++    if (!normalizedTicker || !Number.isFinite(numericPrice)) {
++      return false;
++    }
++
++    const nextEpoch = this.toPriceEpoch(asOf);
++    const currentEpoch = this.marketPriceAsOfByTicker.get(normalizedTicker);
++    if (nextEpoch != null) {
++      if (currentEpoch != null && nextEpoch < currentEpoch) {
++        return false;
++      }
++      this.marketPriceAsOfByTicker.set(normalizedTicker, nextEpoch);
++    } else if (currentEpoch != null) {
++      return false;
++    }
++
++    this.marketPriceByTicker.set(normalizedTicker, numericPrice);
++    return true;
++  }
++
+   private mergePositionsBySecurity(positions: Position[]): any[] {
+-    const grouped = new Map<string, any>();
+-    for (const position of positions) {
+-      const security = (position as any)?.security;
++    const grouped = new Map<string, {
++      security: string;
++      quantity: number;
++      costBasisValue: number;
++      averageCostBasis: number;
++      openPrice: number;
++      marketPrice: number;
++      marketValue: number;
++      pnl: number;
++      updated: any;
++    }>();
++
++    for (const rawPosition of positions) {
++      const recomputed = this.recomputePosition(rawPosition);
++      const security = recomputed?.security;
+       if (!security) {
+         continue;
+       }
+-      const quantity = Number((position as any).quantity ?? 0);
+-      const updated = (position as any).updated;
+       if (!grouped.has(security)) {
+         grouped.set(security, {
+           security,
+           quantity: 0,
+-          updated
++          costBasisValue: 0,
++          averageCostBasis: 0,
++          openPrice: 0,
++          marketPrice: 0,
++          marketValue: 0,
++          pnl: 0,
++          updated: recomputed.updated
+         });
+       }
+-      const row = grouped.get(security);
++      const row = grouped.get(security)!;
++      const quantity = Number(recomputed.quantity ?? 0);
++      const costBasisValue = Number(recomputed.costBasisValue ?? 0);
++      const openPrice = Number(recomputed.openPrice ?? 0);
+       row.quantity += quantity;
+-      row.updated = updated ?? row.updated;
++      row.costBasisValue += costBasisValue;
++      row.openPrice = openPrice || row.openPrice;
++      row.updated = recomputed.updated ?? row.updated;
+     }
+-    return Array.from(grouped.values()).sort((a, b) => String(a.security).localeCompare(String(b.security)));
++
++    const rows = Array.from(grouped.values()).map((row) => {
++      const averageCostBasis = row.quantity !== 0 ? row.costBasisValue / row.quantity : 0;
++      const openPrice = Number(this.openPriceByTicker.get(row.security) ?? row.openPrice ?? averageCostBasis);
++      const marketPrice = Number(this.marketPriceByTicker.get(row.security) ?? averageCostBasis);
++      const marketValue = row.quantity * marketPrice;
++      const pnl = marketValue - row.costBasisValue;
++      return {
++        security: row.security,
++        quantity: row.quantity,
++        averageCostBasis,
++        openPrice,
++        marketPrice,
++        marketValue,
++        costBasisValue: row.costBasisValue,
++        pnl,
++        updated: row.updated
++      };
++    });
++
++    rows.sort((a, b) => String(a.security).localeCompare(String(b.security)));
++    return rows;
+   }
+ 
+   private clearSubscriptions() {
+@@ -199,7 +411,199 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
+     } else if (typeof (this.gridApi as any).setRowData === 'function') {
+       (this.gridApi as any).setRowData(rows);
+     }
++    this.applySecurityFilter();
+     this.gridApi.sizeColumnsToFit();
+   }
+ 
++  private recomputePosition(position: any): any {
++    if (!position || !position.security) {
++      return position;
++    }
++    const security = String(position.security || '').trim().toUpperCase();
++    const quantity = Number(position.quantity ?? 0);
++    const averageCostBasis = Number(position.averageCostBasis ?? position.averagecostbasis ?? 0);
++    const openPrice = Number(position.openPrice ?? this.openPriceByTicker.get(security) ?? averageCostBasis);
++    const marketPrice = Number(position.marketPrice ?? this.marketPriceByTicker.get(security) ?? averageCostBasis);
++    const marketValue = quantity * marketPrice;
++    const costBasisValue = quantity * averageCostBasis;
++    const pnl = marketValue - costBasisValue;
++
++    return Object.assign({}, position, {
++      security,
++      quantity,
++      averageCostBasis,
++      openPrice,
++      marketPrice,
++      marketValue,
++      costBasisValue,
++      pnl
++    });
++  }
++
++  private toPriceEpoch(asOf: string | null | undefined): number | null {
++    if (!asOf) {
++      return null;
++    }
++    const ts = new Date(asOf).getTime();
++    return Number.isFinite(ts) ? ts : null;
++  }
++
++  private emitSummary() {
++    if (!this.gridApi) {
++      return;
++    }
++
++    const totals: PortfolioSummary = {
++      totalMarketValue: 0,
++      totalCostBasis: 0,
++      totalPnl: 0
++    };
++
++    this.gridApi.forEachNode((node) => {
++      if (!node.data?.security) {
++        return;
++      }
++      totals.totalMarketValue += Number(node.data.marketValue ?? 0);
++      totals.totalCostBasis += Number(node.data.costBasisValue ?? 0);
++      totals.totalPnl += Number(node.data.pnl ?? 0);
++    });
++
++    this.summaryChange.emit(totals);
++  }
++
++  private applySecurityFilter() {
++    if (!this.gridApi) {
++      return;
++    }
++    const filterValue = String(this.securityFilter || '').trim().toUpperCase();
++    if (typeof (this.gridApi as any).setGridOption === 'function') {
++      (this.gridApi as any).setGridOption('quickFilterText', filterValue);
++      return;
++    }
++    if (typeof (this.gridApi as any).setQuickFilter === 'function') {
++      (this.gridApi as any).setQuickFilter(filterValue);
++    }
++  }
++
++  private formatCurrency(value: any): string {
++    if (value == null || value === '') {
++      return '-';
++    }
++    const numeric = Number(value);
++    if (!Number.isFinite(numeric)) {
++      return '-';
++    }
++    return new Intl.NumberFormat('en-US', {
++      style: 'currency',
++      currency: 'USD',
++      minimumFractionDigits: 2,
++      maximumFractionDigits: 2
++    }).format(numeric);
++  }
++
++  private formatInteger(value: any): string {
++    if (value == null || value === '') {
++      return '-';
++    }
++    const numeric = Number(value);
++    if (!Number.isFinite(numeric)) {
++      return '-';
++    }
++    return new Intl.NumberFormat('en-US', {
++      maximumFractionDigits: 0
++    }).format(numeric);
++  }
++
++  private formatMarketPrice(value: any, openPrice: any): string {
++    const market = Number(value);
++    if (!Number.isFinite(market)) {
++      return '-';
++    }
++    const open = Number(openPrice);
++    if (!Number.isFinite(open)) {
++      return this.formatCurrency(market);
++    }
++    const marker = market > open ? '▲' : market < open ? '▼' : '■';
++    return `${marker} ${this.formatCurrency(market)}`;
++  }
++
++  private getMarketPriceCellStyle(value: any, openPrice: any): { [key: string]: string } {
++    const market = Number(value);
++    const open = Number(openPrice);
++    if (!Number.isFinite(market) || !Number.isFinite(open)) {
++      return {};
++    }
++    if (market < open) {
++      return {
++        color: '#8B0000',
++        backgroundColor: '#FFE4EC',
++        fontWeight: '700'
++      };
++    }
++    if (market > open) {
++      return {
++        color: '#006400',
++        backgroundColor: '#E6F4EA',
++        fontWeight: '700'
++      };
++    }
++    return {
++      color: '#1F2937',
++      backgroundColor: '#F3F4F6',
++      fontWeight: '700'
++    };
++  }
++
++  private getPositionValueCellStyle(marketValue: any, costBasisValue: any): { [key: string]: string } {
++    const market = Number(marketValue);
++    const cost = Number(costBasisValue);
++    if (!Number.isFinite(market) || !Number.isFinite(cost)) {
++      return {};
++    }
++    if (market < cost) {
++      return {
++        color: '#8B0000',
++        backgroundColor: '#FFE4EC',
++        fontWeight: '700'
++      };
++    }
++    if (market > cost) {
++      return {
++        color: '#006400',
++        backgroundColor: '#E6F4EA',
++        fontWeight: '700'
++      };
++    }
++    return {
++      color: '#1F2937',
++      backgroundColor: '#F3F4F6',
++      fontWeight: '700'
++    };
++  }
++
++  private getPnlCellStyle(value: any): { [key: string]: string } {
++    const numeric = Number(value);
++    if (!Number.isFinite(numeric)) {
++      return { fontWeight: '700' };
++    }
++    if (numeric < 0) {
++      return {
++        fontWeight: '700',
++        color: '#8B0000',
++        backgroundColor: '#FFE4EC'
++      };
++    }
++    if (numeric > 0) {
++      return {
++        fontWeight: '700',
++        color: '#006400',
++        backgroundColor: '#E6F4EA'
++      };
++    }
++    return {
++      fontWeight: '700',
++      color: '#1F2937',
++      backgroundColor: '#F3F4F6'
++    };
++  }
+ }
+diff --git a/web-front-end/angular/main/app/trade/trade-blotter/trade-blotter.component.ts b/web-front-end/angular/main/app/trade/trade-blotter/trade-blotter.component.ts
+index fc23aa2..4190ae8 100644
+--- a/web-front-end/angular/main/app/trade/trade-blotter/trade-blotter.component.ts
++++ b/web-front-end/angular/main/app/trade/trade-blotter/trade-blotter.component.ts
+@@ -23,15 +23,24 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
+     isPending = true;
+     socketUnSubscribeFns: Function[] = [];
+     columnDefs: ColDef[] = [];
+-
+     private readonly baseColumns: ColDef[] = [
+         {
+             headerName: 'SECURITY',
+             field: 'security'
+         },
++        {
++            headerName: 'PRICE',
++            field: 'price',
++            headerClass: 'ag-right-aligned-header',
++            cellClass: 'ag-right-aligned-cell',
++            valueFormatter: ({ value }) => this.formatCurrency(value)
++        },
+         {
+             headerName: 'QUANTITY',
+-            field: 'quantity'
++            field: 'quantity',
++            headerClass: 'ag-right-aligned-header',
++            cellClass: 'ag-right-aligned-cell',
++            valueFormatter: ({ value }) => this.formatInteger(value)
+         },
+         {
+             headerName: 'SIDE',
+@@ -41,6 +50,11 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
+             headerName: 'STATE',
+             field: 'state',
+             enableCellChangeFlash: true
++        },
++        {
++            headerName: 'EXECUTED',
++            field: 'created',
++            valueFormatter: ({ value }) => this.toRelativeTime(value)
+         }
+     ];
+ 
+@@ -66,6 +80,9 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
+     }
+ 
+     getRowId(params: GetRowIdParams<any>):string {
++        if (!params?.data?.id) {
++            return 'Trade-unknown';
++        }
+         return  `Trade-${params.data.id}`;
+     }
+ 
+@@ -89,16 +106,24 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
+         let tradeData;
+         if (row) {
+             tradeData = {
+-                update: [Object.assign(row.data, { state: tradeWithDisplay.state, accountDisplayName: tradeWithDisplay.accountDisplayName })]
++                update: [Object.assign(row.data, {
++                    state: tradeWithDisplay.state,
++                    price: tradeWithDisplay.price,
++                    updated: tradeWithDisplay.updated,
++                    created: tradeWithDisplay.created,
++                    accountDisplayName: tradeWithDisplay.accountDisplayName
++                })]
+             };
+         } else {
+             tradeData = {
+                 add: [{
+                     accountid: tradeWithDisplay.accountid,
++                    accountId: tradeWithDisplay.accountId,
+                     accountDisplayName: tradeWithDisplay.accountDisplayName,
+                     created: tradeWithDisplay.created,
+                     id: tradeWithDisplay.id,
+                     quantity: tradeWithDisplay.quantity,
++                    price: tradeWithDisplay.price,
+                     security: tradeWithDisplay.security,
+                     side: tradeWithDisplay.side,
+                     state: tradeWithDisplay.state,
+@@ -169,9 +194,9 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
+     }
+ 
+     private withAccountDisplay(data: Trade): Trade & { accountDisplayName: string } {
+-        const accountId = Number((data as any).accountid ?? 0);
++        const accountId = Number((data as any).accountId ?? (data as any).accountid ?? 0);
+         const accountDisplayName = this.accountNameById[accountId] ?? `#${accountId}`;
+-        return Object.assign({}, data, { accountid: accountId, accountDisplayName });
++        return Object.assign({}, data, { accountId, accountid: accountId, accountDisplayName });
+     }
+ 
+     private configureColumns() {
+@@ -191,7 +216,60 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
+         this.gridApi.sizeColumnsToFit();
+     }
+ 
+-    private toRowId(id: string | number | undefined): string {
+-        return `Trade-${id ?? 'unknown'}`;
++    private toRowId(id: string): string {
++        return `Trade-${id}`;
++    }
++
++    private toRelativeTime(value: Date | string | undefined): string {
++        if (!value) {
++            return '-';
++        }
++        const timestamp = new Date(value);
++        if (Number.isNaN(timestamp.getTime())) {
++            return '-';
++        }
++        const now = new Date();
++        if (now.toDateString() !== timestamp.toDateString()) {
++            return timestamp.toLocaleString();
++        }
++        const elapsedMs = now.getTime() - timestamp.getTime();
++        const elapsedMins = Math.max(0, Math.floor(elapsedMs / 60000));
++        if (elapsedMins < 1) {
++            return 'just now';
++        }
++        if (elapsedMins < 60) {
++            return `${elapsedMins} min ago`;
++        }
++        const hours = Math.floor(elapsedMins / 60);
++        return `${hours} hr ago`;
++    }
++
++    private formatCurrency(value: any): string {
++        if (value == null || value === '') {
++            return '-';
++        }
++        const numeric = Number(value);
++        if (!Number.isFinite(numeric)) {
++            return '-';
++        }
++        return new Intl.NumberFormat('en-US', {
++            style: 'currency',
++            currency: 'USD',
++            minimumFractionDigits: 3,
++            maximumFractionDigits: 3
++        }).format(numeric);
++    }
++
++    private formatInteger(value: any): string {
++        if (value == null || value === '') {
++            return '-';
++        }
++        const numeric = Number(value);
++        if (!Number.isFinite(numeric)) {
++            return '-';
++        }
++        return new Intl.NumberFormat('en-US', {
++            maximumFractionDigits: 0
++        }).format(numeric);
+     }
+ }
+diff --git a/web-front-end/angular/main/app/trade/trade-ticket/trade-ticket.component.ts b/web-front-end/angular/main/app/trade/trade-ticket/trade-ticket.component.ts
+index e1fd0d3..18ed117 100644
+--- a/web-front-end/angular/main/app/trade/trade-ticket/trade-ticket.component.ts
++++ b/web-front-end/angular/main/app/trade/trade-ticket/trade-ticket.component.ts
+@@ -1,8 +1,10 @@
+-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+-import { TradeTicket } from 'main/app/model/trade.model';
++import { Component, Input, Output, EventEmitter, OnChanges, OnInit, OnDestroy, SimpleChanges } from '@angular/core';
++import { PriceTick, TradeTicket } from 'main/app/model/trade.model';
+ import { Stock } from 'main/app/model/symbol.model';
+ import { Account } from 'main/app/model/account.model';
+ import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
++import { TradeFeedService } from 'main/app/service/trade-feed.service';
++import { PriceSnapshotService } from 'main/app/service/price-snapshot.service';
+ 
+ @Component({
+     standalone: false,
+@@ -10,10 +12,11 @@ import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
+   templateUrl: './trade-ticket.component.html',
+   styleUrls: ['./trade-ticket.component.scss']
+ })
+-export class TradeTicketComponent implements OnInit {
++export class TradeTicketComponent implements OnInit, OnChanges, OnDestroy {
+ 
+   @Input() stocks: Stock[];
+   @Input() account: Account | undefined;
++  @Input() presetSecurity = '';
+ 
+   @Output() create = new EventEmitter<TradeTicket>();
+   @Output() cancel = new EventEmitter();
+@@ -21,6 +24,16 @@ export class TradeTicketComponent implements OnInit {
+   selectedCompany?: string = undefined;
+   ticket: TradeTicket;
+   filteredStocks: Array<Stock & { matchLabel: string }> = [];
++  selectedPrice: number | null = null;
++  selectedPriceAsOf: string | null = null;
++  private selectedPriceTicker: string | null = null;
++  private selectedPriceAsOfEpoch = 0;
++  private priceStreamUnsubscribeFn?: Function;
++
++  constructor(
++    private tradeFeed: TradeFeedService,
++    private priceSnapshots: PriceSnapshotService
++  ) {}
+ 
+   ngOnInit() {
+     this.ticket = {
+@@ -34,24 +47,51 @@ export class TradeTicketComponent implements OnInit {
+       ...stock,
+       matchLabel: this.toMatchLabel(stock)
+     }));
++
++    this.applyPresetSecurity(this.presetSecurity);
+   }
+ 
++  ngOnChanges(changes: SimpleChanges): void {
++    if (changes.stocks) {
++      this.filteredStocks = (this.stocks || []).map((stock) => ({
++        ...stock,
++        matchLabel: this.toMatchLabel(stock)
++      }));
++    }
++    if (changes.account && this.ticket) {
++      this.ticket.accountId = this.account?.id || 0;
++    }
++    if (changes.presetSecurity && this.ticket) {
++      this.applyPresetSecurity(changes.presetSecurity.currentValue);
++    }
++  }
++
++  ngOnDestroy() {
++    this.priceStreamUnsubscribeFn?.();
++  }
+ 
+   onSelect(e: TypeaheadMatch): void {
+     console.log('Selected value: ', e.value);
+     const selectedStock = e.item as Stock & { matchLabel?: string };
+     this.ticket.security = selectedStock.ticker;
+     this.selectedCompany = selectedStock.matchLabel || this.toMatchLabel(selectedStock);
++    this.subscribeToTickerPrice(selectedStock.ticker);
+   }
+ 
+   onBlur(): void {
+     if (this.selectedCompany) return;
+     this.ticket.security = '';
++    this.selectedPrice = null;
++    this.selectedPriceAsOf = null;
++    this.selectedPriceAsOfEpoch = 0;
++    this.selectedPriceTicker = null;
++    this.priceStreamUnsubscribeFn?.();
++    this.priceStreamUnsubscribeFn = undefined;
+   }
+ 
+   onCreate() {
+     if (!this.ticket.security || !this.ticket.quantity) {
+-      console.warn('Either security is not selected or quanity is not set!')
++      console.warn('Either security is not selected or quanity is not set!');
+       return;
+     }
+     console.log('create tradeTicket', this.ticket);
+@@ -62,7 +102,109 @@ export class TradeTicketComponent implements OnInit {
+     this.cancel.emit();
+   }
+ 
++  formatLivePrice(): string {
++    if (this.selectedPrice == null) {
++      return 'Streaming...';
++    }
++    return new Intl.NumberFormat('en-US', {
++      style: 'currency',
++      currency: 'USD',
++      minimumFractionDigits: 3,
++      maximumFractionDigits: 3
++    }).format(this.selectedPrice);
++  }
++
++  formatAsOf(): string {
++    if (!this.selectedPriceAsOf) {
++      return '';
++    }
++    const ts = new Date(this.selectedPriceAsOf);
++    if (Number.isNaN(ts.getTime())) {
++      return '';
++    }
++    return ts.toLocaleTimeString();
++  }
++
++  private subscribeToTickerPrice(ticker: string): void {
++    const normalizedTicker = String(ticker || '').trim().toUpperCase();
++    if (!normalizedTicker) {
++      return;
++    }
++
++    if (this.selectedPriceTicker === normalizedTicker && this.priceStreamUnsubscribeFn) {
++      return;
++    }
++
++    this.priceStreamUnsubscribeFn?.();
++    this.selectedPrice = null;
++    this.selectedPriceAsOf = null;
++    this.selectedPriceAsOfEpoch = 0;
++    this.selectedPriceTicker = normalizedTicker;
++
++    this.priceSnapshots.getPrice(normalizedTicker).subscribe((snapshot) => {
++      if (!snapshot) {
++        return;
++      }
++      this.applyPriceCandidate(normalizedTicker, snapshot.price, snapshot.asOf ?? null);
++    });
++
++    this.priceStreamUnsubscribeFn = this.tradeFeed.subscribe(`pricing.${normalizedTicker}`, (tick: PriceTick) => {
++      if (!tick || String(tick.ticker || '').trim().toUpperCase() !== normalizedTicker) {
++        return;
++      }
++      this.applyPriceCandidate(normalizedTicker, tick.price, tick.asOf ?? null);
++    });
++  }
++
++  private applyPriceCandidate(ticker: string, price: number, asOf: string | null): void {
++    if (this.selectedPriceTicker !== ticker) {
++      return;
++    }
++    const numericPrice = Number(price);
++    if (!Number.isFinite(numericPrice)) {
++      return;
++    }
++
++    const asOfEpoch = this.toEpochMs(asOf);
++    if (asOfEpoch != null) {
++      if (asOfEpoch < this.selectedPriceAsOfEpoch) {
++        return;
++      }
++      this.selectedPriceAsOfEpoch = asOfEpoch;
++    } else if (this.selectedPriceAsOfEpoch > 0) {
++      return;
++    }
++
++    this.selectedPrice = numericPrice;
++    this.selectedPriceAsOf = asOf || null;
++  }
++
++  private toEpochMs(asOf: string | null | undefined): number | null {
++    if (!asOf) {
++      return null;
++    }
++    const ts = new Date(asOf).getTime();
++    return Number.isFinite(ts) ? ts : null;
++  }
++
+   private toMatchLabel(stock: Stock): string {
+     return `${stock.ticker} - ${stock.companyName}`;
+   }
++
++  private applyPresetSecurity(rawSecurity: string): void {
++    const normalized = String(rawSecurity || '').trim().toUpperCase();
++    if (!normalized || !this.ticket) {
++      return;
++    }
++    const matched = (this.stocks || []).find((stock) => String(stock.ticker || '').toUpperCase() === normalized);
++    if (matched) {
++      this.ticket.security = matched.ticker;
++      this.selectedCompany = this.toMatchLabel(matched);
++      this.subscribeToTickerPrice(matched.ticker);
++      return;
++    }
++    this.ticket.security = normalized;
++    this.selectedCompany = normalized;
++    this.subscribeToTickerPrice(normalized);
++  }
+ }

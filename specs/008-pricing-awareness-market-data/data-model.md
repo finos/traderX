@@ -1,0 +1,20 @@
+# Data Model: Pricing Awareness and Market Data Streaming
+
+## Scope
+
+State `008` extends functional behavior with pricing-aware fields and valuation calculations.
+
+## Entity Impact
+
+- Added:
+  - Trade price capture at execution/settlement time.
+  - Position valuation fields (market value, cost basis, P&L projections).
+  - Price quote freshness field (`asOf`) on snapshot and stream payloads for deterministic client-side ordering.
+- Changed:
+  - Position aggregation logic includes price-aware computation outputs.
+  - UI bootstrap flow combines snapshot seed + stream continuation using `max(asOf)` merge semantics per ticker.
+- Removed: none
+
+## Notes
+
+This state introduces additive functional data for valuation while retaining compatibility with existing account/trade/position workflow boundaries.

@@ -1,0 +1,8 @@
+{
+  "label": "Pipeline",
+  "position": 50,
+  "link": {
+    "type": "generated-index",
+    "title": "Generation Pipeline"
+  }
+}

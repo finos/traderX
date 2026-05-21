@@ -17,7 +17,9 @@ TraderX is a simple, distributed reference application for exploring trading wor
 - `home.mdx`, `roadmap.mdx`, `running.md`, and `project-history.md` are Docusaurus site pages.
 - `c4/` contains the original C4 DSL and rendered image.
 
-## When updating documentation
-- Keep diagrams in `overview.md` and `flows.md` in sync with service behavior.
-- If APIs change, refresh the generated OpenAPI specs (`*/openapi.json`) with `scripts/generate-openapi.sh` and link any new endpoints.
-- Prefer small, focused edits that keep the docs approachable for first-time users.
+You can view more details here:
+* [Generated State Branches](spec-kit/generated-state-branches.md)
+* [Learning Guides](learning/index.md)
+* [Overview](overview.md)
+* [State 001 Architecture](/specs/baseline-uncontainerized-parity/system/architecture)
+* [State 001 Flows](/specs/baseline-uncontainerized-parity/system/end-to-end-flows)

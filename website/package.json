@@ -6,8 +6,12 @@
     "clear": "docusaurus clear",
     "start": "docusaurus start",
     "swizzle": "docusaurus swizzle",
-    "build": "docusaurus build",
-    "publish-gh-pages": "docusaurus deploy"
+    "build": "docusaurus build && node ./scripts/normalize-llms-links.mjs",
+    "publish-gh-pages": "docusaurus deploy",
+    "gen:api-docs": "mkdir -p ../generated/api-docs && rm -rf ../generated/api-docs/account-service ../generated/api-docs/people-service ../generated/api-docs/position-service ../generated/api-docs/reference-data ../generated/api-docs/trade-processor ../generated/api-docs/trade-service && docusaurus gen-api-docs account-service && docusaurus gen-api-docs people-service && docusaurus gen-api-docs position-service && docusaurus gen-api-docs reference-data && docusaurus gen-api-docs trade-processor && docusaurus gen-api-docs trade-service && npm run gen:api-overviews && npm run gen:api-index && npm run gen:api-sidebar",
+    "gen:api-overviews": "node ./scripts/enrich-api-service-overviews.mjs",
+    "gen:api-index": "node ./scripts/generate-api-index.mjs",
+    "gen:api-sidebar": "node ./scripts/generate-api-sidebar.mjs"
   },
   "dependencies": {
     "@docusaurus/core": "^3.2.0",
@@ -16,14 +20,27 @@
     "ajv": "^8.12.0",
     "classnames": "^2.5.1",
     "clsx": "^2.0.0",
+    "docusaurus-lunr-search": "^3.6.0",
+    "docusaurus-plugin-openapi-docs": "^4.7.1",
+    "docusaurus-theme-openapi-docs": "^4.7.1",
+    "lunr": "^2.3.9",
+    "path-browserify": "^1.0.1",
     "prism-react-renderer": "^2.3.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "unist-util-visit": "^5.1.0"
   },
   "devDependencies": {
+    "docusaurus-plugin-llms": "^0.3.0",
     "eslint": "^8.0.0",
     "eslint-plugin-react": "^7.23.2"
+  },
+  "overrides": {
+    "lodash": "^4.18.1",
+    "postcss": "^8.5.13",
+    "serialize-javascript": "^7.0.5",
+    "uuid": "^14.0.0",
+    "yaml": "^2.8.3"
   },
   "browserslist": {
     "production": [

@@ -36,8 +36,16 @@ function Home() {
                 'button button--outline button--secondary button--lg',
                 styles.getStarted
               )}
-              to={'https://demo.traderx.finos.org'}>
-              Live Demo
+              to={'docs/blog'}>
+              Blog
+            </Link>
+            <Link
+              className={classnames(
+                'button button--outline button--secondary button--lg',
+                styles.getStarted
+              )}
+              to={'/docs/spec-kit/live-environments'}>
+              Live Demos
             </Link>
             <Link
               className={classnames(
@@ -45,7 +53,7 @@ function Home() {
                 styles.getStarted
               )}
               to={'https://github.com/finos/traderX'}>
-              GITHUB
+              GitHub
             </Link>
           </div>
         </div>

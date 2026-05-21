@@ -1,0 +1,225 @@
+:host {
+    display: block;
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    background: var(--bs-body-bg, #ffffff);
+}
+
+.header-shell {
+    border-bottom: 1px solid rgba(15, 23, 42, 0.12);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+}
+
+.header-nav {
+    min-height: 64px;
+}
+
+.top-bar-content {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: space-between;
+}
+
+.brand-group {
+    align-items: center;
+    display: flex;
+    gap: 0.65rem;
+    min-width: 0;
+}
+
+.header-brand-logo {
+    width: 50px;
+}
+
+.header-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.system-group {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-left: auto;
+}
+
+.message-bus-indicator {
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    border-radius: 999px;
+    display: inline-flex;
+    font-size: 0.76rem;
+    font-weight: 600;
+    gap: 0.38rem;
+    line-height: 1;
+    padding: 0.24rem 0.62rem;
+}
+
+.message-bus-dot {
+    border-radius: 999px;
+    display: inline-block;
+    height: 0.55rem;
+    width: 0.55rem;
+}
+
+.message-bus-connected {
+    background: rgba(25, 135, 84, 0.18);
+    color: #dcfce7;
+}
+
+.message-bus-connected .message-bus-dot {
+    background: #22c55e;
+}
+
+.message-bus-connecting {
+    background: rgba(251, 191, 36, 0.2);
+    color: #fef3c7;
+}
+
+.message-bus-connecting .message-bus-dot {
+    background: #f59e0b;
+}
+
+.message-bus-disconnected {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fee2e2;
+}
+
+.message-bus-disconnected .message-bus-dot {
+    background: #ef4444;
+}
+
+.message-bus-notice {
+    color: #d1fae5;
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.system-dropdown-toggle {
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    min-width: 6.25rem;
+}
+
+.system-dropdown .dropdown-menu {
+    min-width: 12rem;
+}
+
+.system-dropdown .dropdown-item.active {
+    background-color: rgba(13, 110, 253, 0.15);
+    color: #0a58ca;
+}
+
+.finos-logo {
+    display: block;
+    width: 30px;
+}
+
+.header-tabs {
+    display: flex;
+    align-items: center;
+    margin-top: 0 !important;
+}
+
+.functional-tabs {
+    padding-inline: 0.75rem;
+}
+
+.header-fdc3-slot {
+    margin-left: auto;
+    padding: 0.2rem 0;
+}
+
+.header-fdc3-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    max-width: min(56vw, 520px);
+    padding: 0.2rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid rgba(15, 23, 42, 0.18);
+    line-height: 1.1;
+    font-size: 0.78rem;
+}
+
+.header-fdc3-label {
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.header-fdc3-message {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.header-fdc3-pill-connected {
+    background: rgba(25, 135, 84, 0.12);
+    color: #14532d;
+}
+
+.header-fdc3-pill-disconnected {
+    background: rgba(255, 193, 7, 0.18);
+    color: #7c2d12;
+}
+
+@media (max-width: 768px) {
+    .header-title {
+        font-size: 1rem;
+    }
+
+    .header-brand-logo {
+        width: 38px;
+    }
+
+    .system-group {
+        justify-content: flex-end;
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .message-bus-indicator {
+        order: 1;
+        width: 100%;
+    }
+
+    .message-bus-notice {
+        order: 2;
+        width: 100%;
+    }
+
+    .system-dropdown {
+        order: 3;
+    }
+
+    .finos-logo {
+        margin-left: auto;
+        order: 4;
+        width: 24px;
+    }
+
+    .header-tabs {
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+
+    .header-fdc3-slot {
+        margin-left: auto;
+        width: 100%;
+        padding-bottom: 0.35rem;
+    }
+
+    .header-fdc3-pill {
+        display: flex;
+        max-width: none;
+        width: 100%;
+    }
+}

@@ -1,18 +1,49 @@
 ---
 id: home
-title: "TraderX Docs"
+title: "TraderX Portal"
 ---
 
-Welcome to TraderX, a simple, distributed trading app used for demos, experimentation, and education.
+# TraderX Documentation Portal
 
-## Quick links
-- [Architecture overview](overview.md)
-- [Sequence flows](flows.md)
-- [Service map](code.md)
-- [Build & Run guide](running.md)
+TraderX is a SpecKit-first reference trading system.
 
-## What to read first
-If you are new to the project, start with the overview and flows to understand how the services interact. Then jump into the service map to find the codebase you want to explore.
+## Start Here
 
-## Build or run
-The project supports Docker Compose (easiest), Kubernetes/Tilt, and manual runs. See the [Build & Run guide](running.md) for all options.
+1. Read the project orientation:
+   - [Getting Started](/docs/spec-kit/getting-started-with-traderx)
+2. Generate and run the baseline from requirements:
+   - [Spec Kit Generation Guide](/docs/spec-kit/spec-kit-generation-guide)
+3. Understand the end-to-end workflow and quality gates:
+   - [GitHub Spec Kit Workflow](/docs/spec-kit/spec-kit-workflow)
+
+## Browse Canonical Sources
+
+- [Feature Specs Catalog](/specs)
+- [Spec Kit Constitution and Templates](/specify/memory/constitution)
+- [API Explorer (Runtime)](/docs/spec-kit/api-explorer)
+
+## Where Is All The Code?
+
+All TraderX state code lives in this same repository. The canonical source is specs in `main`, and runnable code snapshots are published as generated-state branches and tags.
+
+- [Generated State Branches Guide](/docs/spec-kit/generated-state-branches)
+- [Generated-State Branches on GitHub](https://github.com/finos/traderX/branches/all?query=code%2Fgenerated-state-)
+- [Generated-State Tags on GitHub](https://github.com/finos/traderX/tags?query=generated%2F)
+- [State Catalog (`catalog/state-catalog.json`)](https://github.com/finos/traderX/blob/main/catalog/state-catalog.json)
+
+## Live Demos
+
+- [TraderX Demo (State 004)](https://demo.traderx.finos.org)
+- [TraderX Advanced Demo (State 009)](https://demo-advanced.traderx.finos.org)
+- [Live Environments Registry](/docs/spec-kit/live-environments)
+
+## Architecture Decisions
+
+- [Project ADRs (Architecture Decision Records)](/docs/adr)
+- ADRs follow the [MADR format/specification](https://github.com/adr/madr)
+
+## Learning Paths and Future States
+
+- [Learning Guides](/docs/learning)
+- [Learning Paths](/docs/learning-paths)
+- [SpecKit Strategy for State Transitions](/docs/spec-kit/spec-kit-learning-path-strategy)

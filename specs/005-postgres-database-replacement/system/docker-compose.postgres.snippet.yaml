@@ -1,0 +1,17 @@
+services:
+  database:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: "traderx"
+      POSTGRES_USER: "traderx"
+      POSTGRES_PASSWORD: "traderx"
+    ports:
+      - "18083:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U traderx -d traderx" ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - postgres_state_009_data:/var/lib/postgresql/data
+      - ./postgres-init/initialSchema.sql:/docker-entrypoint-initdb.d/001-initialSchema.sql:ro

@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://traderspec.finos.org/schema/component-generation-manifest.schema.json",
+  "title": "TraderSpec Component Generation Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "generatedAtUtc",
+    "component",
+    "runtime",
+    "contracts",
+    "traceability",
+    "constraints"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "generatedAtUtc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "language",
+        "framework",
+        "buildTool",
+        "sourcePath",
+        "targetPath",
+        "notes"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "language": {
+          "type": "string"
+        },
+        "framework": {
+          "type": "string"
+        },
+        "buildTool": {
+          "type": "string"
+        },
+        "sourcePath": {
+          "type": "string"
+        },
+        "targetPath": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "defaultPort",
+        "dependsOn",
+        "requiredEnv"
+      ],
+      "properties": {
+        "defaultPort": {
+          "type": "integer"
+        },
+        "dependsOn": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "requiredEnv": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "contracts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "primary"
+      ],
+      "properties": {
+        "primary": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "traceability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requirements",
+        "stories",
+        "acceptanceCriteria",
+        "flows",
+        "verificationRefs"
+      ],
+      "properties": {
+        "requirements": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^(SYS-FR|SYS-NFR)-[0-9]{3}$"
+          }
+        },
+        "stories": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^US-[0-9]{3}$"
+          }
+        },
+        "acceptanceCriteria": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^AC-[0-9]{3}$"
+          }
+        },
+        "flows": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "verificationRefs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preIngressCorsRequired"
+      ],
+      "properties": {
+        "preIngressCorsRequired": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
