@@ -1,0 +1,24 @@
+{
+  "stateId": "004-containerized-compose-runtime",
+  "appliesToDescendants": true,
+  "removedArtifacts": [
+    {
+      "id": "legacy-node-edge-proxy",
+      "targetPaths": [
+        "edge-proxy",
+        "generated/code/components/edge-proxy-specfirst"
+      ],
+      "componentsPaths": [
+        "edge-proxy-specfirst"
+      ],
+      "forbiddenScriptPatterns": [
+        "start-state-002-edge-proxy-generated\\.sh",
+        "stop-state-002-edge-proxy-generated\\.sh",
+        "status-state-002-edge-proxy-generated\\.sh",
+        "scripts/start-state-002-edge-proxy-generated\\.sh",
+        "scripts/stop-state-002-edge-proxy-generated\\.sh",
+        "scripts/status-state-002-edge-proxy-generated\\.sh"
+      ]
+    }
+  ]
+}

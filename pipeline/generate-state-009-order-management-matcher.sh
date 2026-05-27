@@ -5,6 +5,14 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 STATE_ID="009-order-management-matcher"
 PARENT_STATE_ID="008-pricing-awareness-market-data"
 
+# This file is a state hook used by pipeline/generate-state.sh. When invoked
+# directly, delegate to the canonical entrypoint so post-generation installers
+# (runtime harness/env wrappers/CI assets/docs refresh) run for state 009.
+if (( ${TRADERX_GENERATION_DEPTH:-0} == 0 )); then
+  echo "[info] delegating direct invocation to pipeline/generate-state.sh ${STATE_ID}"
+  exec bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+fi
+
 echo "[info] generating parent state ${PARENT_STATE_ID} for ${STATE_ID}"
 bash "${ROOT}/pipeline/generate-state.sh" "${PARENT_STATE_ID}"
 bash "${ROOT}/pipeline/apply-state-patchset.sh" "${STATE_ID}"

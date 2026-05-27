@@ -58,6 +58,11 @@ copy_script_if_exists() {
   fi
 }
 
+# Grafana dashboard helper scripts are shared by observability states and must
+# be available inside generated runtime roots.
+copy_script_if_exists "start-grafana-traderx-dashboards.sh"
+copy_script_if_exists "star-grafana-traderx-dashboards.sh"
+
 inject_containerized_web_ui_vite_guard() {
   local overlay_test_script="${SCRIPTS_DST}/test-web-angular-overlay.sh"
   [[ -f "${overlay_test_script}" ]] || return 0
@@ -282,6 +287,147 @@ link_component "trade-processor" "trade-processor"
 link_component "trade-service" "trade-service"
 link_component "web-front-end-angular" "web-front-end/angular"
 link_component "edge-proxy" "edge-proxy"
+
+resolve_generated_script_for_action() {
+  local action="$1"
+  local state_num="${STATE_ID%%-*}"
+  local candidate=""
+  case "${action}" in
+    start|stop|status)
+      candidate="${action}-state-${STATE_ID}-generated.sh"
+      ;;
+    test)
+      candidate="test-state-${STATE_ID}.sh"
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+
+  if [[ -f "${SCRIPTS_DST}/${candidate}" ]]; then
+    printf '%s\n' "${candidate}"
+    return 0
+  fi
+
+  case "${action}" in
+    start|stop|status)
+      candidate="$(find "${SCRIPTS_DST}" -maxdepth 1 -type f -name "${action}-state-${state_num}-*-generated.sh" -print | sed "s#^${SCRIPTS_DST}/##" | sort | head -n 1 || true)"
+      ;;
+    test)
+      candidate="$(find "${SCRIPTS_DST}" -maxdepth 1 -type f -name "test-state-${state_num}-*.sh" -print | sed "s#^${SCRIPTS_DST}/##" | sort | head -n 1 || true)"
+      ;;
+  esac
+  if [[ -n "${candidate}" && -f "${SCRIPTS_DST}/${candidate}" ]]; then
+    printf '%s\n' "${candidate}"
+    return 0
+  fi
+
+  case "${action}" in
+    start)
+      candidate="start-base-uncontainerized-generated.sh"
+      ;;
+    stop)
+      candidate="stop-base-uncontainerized-generated.sh"
+      ;;
+    status)
+      candidate="status-base-uncontainerized-generated.sh"
+      ;;
+    test)
+      candidate=""
+      ;;
+  esac
+
+  if [[ -n "${candidate}" && -f "${SCRIPTS_DST}/${candidate}" ]]; then
+    printf '%s\n' "${candidate}"
+    return 0
+  fi
+  return 1
+}
+
+validate_wrapper_compose_project_alignment() {
+  local action="$1"
+  local target_script="$2"
+  local state_num="${STATE_ID%%-*}"
+  [[ "${state_num}" =~ ^[0-9]+$ ]] || return 0
+
+  local script_path="${SCRIPTS_DST}/${target_script}"
+  [[ -f "${script_path}" ]] || return 0
+
+  if ! rg -q '^COMPOSE_PROJECT_NAME=' "${script_path}"; then
+    return 0
+  fi
+
+  local expected="traderx-state-${state_num}"
+  if ! rg -q "${expected}" "${script_path}"; then
+    echo "[fail] ${action} wrapper target compose project mismatch for ${STATE_ID}: ${target_script}"
+    echo "[hint] expected default compose project name to include: ${expected}"
+    exit 1
+  fi
+}
+
+write_env_wrapper_script() {
+  local wrapper_name="$1"
+  local action="$2"
+  local target_script="$3"
+  local wrapper_path="${TARGET_ROOT}/${wrapper_name}"
+
+  {
+    printf '%s\n' '#!/usr/bin/env bash'
+    printf '%s\n' 'set -euo pipefail'
+    printf '%s\n\n' 'ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"'
+    printf '%s\n' "# Wrapper purpose: stable, state-local ${action} entrypoint."
+    printf '%s\n' '# This may delegate across multiple numbered state scripts to maximize reuse.'
+    printf '%s\n' "# Execution flow: scripts/${target_script}"
+    printf '\nexec "${ROOT}/scripts/%s" "$@"\n' "${target_script}"
+  } > "${wrapper_path}"
+  chmod +x "${wrapper_path}"
+}
+
+write_test_env_wrapper_without_target() {
+  cat > "${TARGET_ROOT}/test-env.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+echo "[info] no state-specific test entrypoint was detected for this generated runtime."
+if [[ -d "${ROOT}/scripts" ]]; then
+  echo "[hint] available test scripts:"
+  ls "${ROOT}/scripts"/test-state-*.sh 2>/dev/null || true
+fi
+exit 2
+EOF
+  chmod +x "${TARGET_ROOT}/test-env.sh"
+}
+
+write_env_entrypoint_wrappers() {
+  local start_target stop_target status_target test_target
+
+  start_target="$(resolve_generated_script_for_action start || true)"
+  stop_target="$(resolve_generated_script_for_action stop || true)"
+  status_target="$(resolve_generated_script_for_action status || true)"
+  test_target="$(resolve_generated_script_for_action test || true)"
+
+  if [[ -z "${start_target}" || -z "${stop_target}" || -z "${status_target}" ]]; then
+    echo "[fail] missing mandatory runtime scripts for env wrappers in ${STATE_ID}"
+    echo "[hint] expected start/stop/status scripts under ${SCRIPTS_DST}"
+    exit 1
+  fi
+
+  validate_wrapper_compose_project_alignment "start" "${start_target}"
+  validate_wrapper_compose_project_alignment "stop" "${stop_target}"
+  validate_wrapper_compose_project_alignment "status" "${status_target}"
+
+  write_env_wrapper_script "start-env.sh" "start" "${start_target}"
+  write_env_wrapper_script "stop-env.sh" "stop" "${stop_target}"
+  write_env_wrapper_script "status-env.sh" "status" "${status_target}"
+  if [[ -n "${test_target}" ]]; then
+    write_env_wrapper_script "test-env.sh" "test" "${test_target}"
+  else
+    write_test_env_wrapper_without_target
+  fi
+}
+
+write_env_entrypoint_wrappers
 
 cat > "${SCRIPTS_DST}/README.runtime-harness.md" <<EOM
 # Generated Runtime Harness

@@ -24,4 +24,9 @@ if [[ -d "${RUNTIME_OVERRIDES_DIR}" ]]; then
   rsync -a "${RUNTIME_OVERRIDES_DIR}/" "${TARGET_ROOT}/"
 fi
 
+# State 006 replaces the legacy trade-feed service with NATS. Remove the
+# superseded component directory so downstream states do not carry stale
+# lockfiles or runtime artifacts.
+rm -rf "${TARGET_ROOT}/trade-feed"
+
 echo "[ok] rendered state 006 micrometer dependency overrides"

@@ -241,7 +241,7 @@ index 97b46a6..ba4a919 100644
 -      dockerfile: Dockerfile.compose
 -    environment:
 -      TRADE_FEED_PORT: "18086"
--      CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+-      CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-*}"
 +  nats-broker:
 +    image: nats:2.10-alpine
 +    command: ["-c", "/etc/nats/nats.conf"]
@@ -267,7 +267,7 @@ index 97b46a6..ba4a919 100644
 +      DATABASE_DBUSER: "traderx"
 +      DATABASE_DBPASS: "traderx"
        PEOPLE_SERVICE_HOST: "people-service"
-       CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+       CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-*}"
      ports:
        - "18088:18088"
      depends_on:
@@ -291,7 +291,7 @@ index 97b46a6..ba4a919 100644
 +      DATABASE_NAME: "traderx"
 +      DATABASE_DBUSER: "traderx"
 +      DATABASE_DBPASS: "traderx"
-       CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+       CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-*}"
      ports:
        - "18090:18090"
      depends_on:
@@ -314,7 +314,7 @@ index 97b46a6..ba4a919 100644
 +      DATABASE_DBUSER: "traderx"
 +      DATABASE_DBPASS: "traderx"
 +      NATS_BROKER_HOST: "nats-broker"
-       CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+       CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-*}"
      ports:
        - "18091:18091"
      depends_on:
@@ -333,7 +333,7 @@ index 97b46a6..ba4a919 100644
        PEOPLE_SERVICE_HOST: "people-service"
 -      TRADE_FEED_HOST: "trade-feed"
 +      NATS_BROKER_HOST: "nats-broker"
-       CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+       CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-*}"
      ports:
        - "18092:18092"
 @@ -110,7 +127,7 @@ services:
@@ -357,7 +357,7 @@ index 97b46a6..ba4a919 100644
 @@ -135,9 +152,8 @@ services:
        dockerfile: Dockerfile.compose
      environment:
-       NGINX_HOST: "localhost"
+       NGINX_HOST: "${TRADERX_FQDN:-localhost}"
 -      DATABASE_URL: "http://database:18084/"
 +      DATABASE_URL: "http://database:5432/"
        REFERENCE_DATA_URL: "http://reference-data:18085/"
@@ -765,7 +765,7 @@ deleted file mode 100644
 index d9ef000..0000000
 --- a/trade-feed/package.json
 +++ /dev/null
-@@ -1,15 +0,0 @@
+@@ -1,18 +0,0 @@
 -{
 -  "name": "@traderspec/trade-feed-specfirst",
 -  "version": "0.1.0",
@@ -779,6 +779,9 @@ index d9ef000..0000000
 -    "socket.io": "^4.8.1",
 -    "socket.io-client": "^4.8.3",
 -    "winston": "^3.17.0"
+-  },
+-  "overrides": {
+-    "ws": "8.20.1"
 -  }
 -}
 diff --git a/trade-processor/build.gradle b/trade-processor/build.gradle

@@ -124,7 +124,7 @@ wait_for_http "loki" "http://localhost:3100/ready" || exit 1
 wait_for_http "tempo" "http://localhost:3200/ready" || exit 1
 wait_for_http "otel-collector-health" "http://localhost:13133/" || exit 1
 
-bash "${REPO_ROOT}/scripts/star-grafana-traderx-dashboards.sh" \
+bash "${REPO_ROOT}/scripts/start-grafana-traderx-dashboards.sh" \
   "http://localhost:${GRAFANA_PORT}" \
   "admin" \
   "admin" \

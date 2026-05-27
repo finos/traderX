@@ -9,11 +9,19 @@ TARGET_ROOT="${GENERATED_ROOT}/code/target-generated"
 RUNTIME_OVERRIDES_ROOT="${ROOT}/specs/${STATE_ID}/generation/runtime-overrides"
 
 echo "[info] generating parent state ${PARENT_STATE_ID} for ${STATE_ID}"
-bash "${ROOT}/pipeline/generate-state.sh" "${PARENT_STATE_ID}"
+# Ensure parent runtime normalization also runs in deeper nested generation.
+# State 006 overlay patches are authored against normalized compose env shape.
+TRADERX_RUNTIME_NORMALIZE_IN_NESTED_GENERATION=1 \
+  bash "${ROOT}/pipeline/generate-state.sh" "${PARENT_STATE_ID}"
 bash "${ROOT}/pipeline/apply-state-patchset.sh" "${STATE_ID}"
 if [[ -d "${RUNTIME_OVERRIDES_ROOT}" ]]; then
   rsync -a "${RUNTIME_OVERRIDES_ROOT}/" "${TARGET_ROOT}/"
 fi
+
+# State 006 replaces trade-feed with NATS; remove the legacy runtime directory
+# even when full render hooks are skipped in nested generation.
+rm -rf "${TARGET_ROOT}/trade-feed"
+
 if (( ${TRADERX_GENERATION_DEPTH:-1} == 1 )) || [[ "${TRADERX_RENDER_STATE_006_IN_NESTED_GENERATION:-0}" == "1" ]]; then
   bash "${ROOT}/pipeline/render-state-006-messaging-nats-replacement.sh"
 else

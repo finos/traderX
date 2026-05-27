@@ -50,6 +50,8 @@
 - NFR-323: Reverse-proxy websocket route mappings in that snippet SHALL be state-aware and SHALL mirror the generated ingress transport contract for the emitted state (for example, include `/nats-ws` for NATS lineage and avoid emitting superseded Socket.IO-only paths when they are no longer active in-state).
 - NFR-324: Generated `aws-ec2-compose` deploy bundles SHALL include host prerequisite setup scripts (`host-setup-check.sh` and `host-setup-install.sh`) to validate/install required host tooling before deploy execution.
 - NFR-325: Generated deploy-bundle clone defaults for public FINOS generated-state branches SHALL use tokenless repository URLs; token-authenticated clone guidance MAY be documented only as optional for private overlays/forks.
+- NFR-326: Generated runtime env wrappers (`start-env.sh`, `status-env.sh`, `stop-env.sh`, `test-env.sh`) SHALL resolve to the active generated state entrypoints for the emitted state and SHALL NOT remain pinned to legacy parent-state scripts.
+- NFR-327: Component-removal lifecycle contracts for this and later states SHALL be declared in state spec/generation artifacts and enforced during generation so removed component paths and legacy wrapper references are pruned from post-removal states unless explicitly reintroduced by a later approved state spec.
 
 ## Success Criteria
 
@@ -69,3 +71,5 @@
 - SC-314: Generated deployment bundle nginx snippet includes websocket upgrade route coverage needed by runtime state lineage.
 - SC-315: For state snapshots where ingress transport is NATS websocket, the generated reverse-proxy snippet includes `/nats-ws`; for snapshots where ingress transport is Socket.IO, the snippet includes Socket.IO routes, with no stale transport-only routes emitted.
 - SC-316: Generated `runtime/deploy/aws-ec2-compose/` output includes `host-setup-check.sh` and `host-setup-install.sh`, and both scripts support `--dry-run` execution paths.
+- SC-317: For emitted state snapshots, `start-env.sh`, `status-env.sh`, and `stop-env.sh` delegate to scripts matching the active state id/numbered entrypoint lineage for that state.
+- SC-318: State `004+` generation fails if declared-pruned legacy artifacts (for example Node `edge-proxy`) or their forbidden wrapper references persist after generation.
