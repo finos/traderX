@@ -30,6 +30,8 @@
 - NFR-704: Messaging topology SHALL support wildcard subscription patterns for account-scoped streams.
 - NFR-705: Architecture SHALL remain incrementally extensible for optional JetStream durability in future states.
 - NFR-706: This state SHALL preserve state `005` ingress and compose simplicity constraints unless explicitly changed.
+- NFR-707: When replacing Socket.IO `trade-feed` with NATS, generation SHALL prune legacy `trade-feed` runtime/component artifacts from this and descendant states unless a later approved state spec explicitly restores them.
+- NFR-708: Post-prune state outputs SHALL not contain stale runtime harness references that imply `trade-feed` remains active (for example legacy component links under `generated/code/components`).
 
 ## Success Criteria
 
@@ -38,3 +40,4 @@
 - SC-703: Conformance and smoke requirements for messaging replacement are documented.
 - SC-704: Generation hook and smoke script paths exist for state `006`.
 - SC-705: Frontend position blotter realtime updates do not create duplicate rows for the same security.
+- SC-706: Generated outputs for state `006+` exclude legacy `trade-feed` component directories/symlinks and fail generation if those artifacts persist post-prune.

@@ -113,6 +113,11 @@ EOT
     ;;
 esac
 
+# Enforce state lifecycle pruning contracts: once components are removed by an
+# approved state spec, generated outputs for that and descendant states must
+# prune those artifacts and avoid stale references.
+bash "${ROOT}/pipeline/prune-generated-state-removed-assets.sh" "${STATE_ID}" "${TARGET_ROOT}" "${COMPONENTS_ROOT}"
+
 # Validate dependency version targets across generated outputs. Dependency
 # versions are canonical in templates/patches and catalog/dependency-version-targets.json.
 # Optional apply mode is provided only for explicit bulk remediation.

@@ -8,6 +8,7 @@ TARGET_ROOT="${2:-${GENERATED_ROOT}/code/target-generated}"
 PATCH_DIR="${ROOT}/specs/${STATE_ID}/generation/patches"
 APPLY_SCOPE_ROOT="${TARGET_ROOT}"
 APPLY_DIR_PREFIX=""
+CAN_USE_3WAY=0
 
 if [[ -z "${STATE_ID}" ]]; then
   echo "usage: bash pipeline/apply-state-patchset.sh <state-id> [target-root]"
@@ -25,6 +26,7 @@ if [[ ! -d "${PATCH_DIR}" ]]; then
 fi
 
 if git -C "${TARGET_ROOT}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  CAN_USE_3WAY=1
   APPLY_SCOPE_ROOT="$(git -C "${TARGET_ROOT}" rev-parse --show-toplevel)"
   if [[ "${TARGET_ROOT}" != "${APPLY_SCOPE_ROOT}" ]]; then
     case "${TARGET_ROOT}" in
@@ -71,10 +73,14 @@ apply_patch_with_fallback() {
   fi
 
   echo "[warn] direct apply failed, retrying with 3-way merge: ${patch_file}"
-  if git -C "${APPLY_SCOPE_ROOT}" apply --3way --check "${apply_args[@]}" "${patch_file}"; then
-    git -C "${APPLY_SCOPE_ROOT}" apply --3way "${apply_args[@]}" "${patch_file}"
-    echo "[apply-3way] ${patch_file}"
-    return 0
+  if (( CAN_USE_3WAY == 1 )); then
+    if git -C "${APPLY_SCOPE_ROOT}" apply --3way --check "${apply_args[@]}" "${patch_file}"; then
+      git -C "${APPLY_SCOPE_ROOT}" apply --3way "${apply_args[@]}" "${patch_file}"
+      echo "[apply-3way] ${patch_file}"
+      return 0
+    fi
+  else
+    echo "[info] skipping 3-way merge fallback (target root is not a git worktree): ${APPLY_SCOPE_ROOT}"
   fi
 
   echo "[fail] unable to apply patch even with 3-way merge: ${patch_file}"
