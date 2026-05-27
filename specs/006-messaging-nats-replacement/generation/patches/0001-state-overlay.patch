@@ -765,7 +765,7 @@ deleted file mode 100644
 index d9ef000..0000000
 --- a/trade-feed/package.json
 +++ /dev/null
-@@ -1,15 +0,0 @@
+@@ -1,18 +0,0 @@
 -{
 -  "name": "@traderspec/trade-feed-specfirst",
 -  "version": "0.1.0",

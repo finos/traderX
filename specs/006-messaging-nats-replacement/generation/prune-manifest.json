@@ -1,0 +1,19 @@
+{
+  "stateId": "006-messaging-nats-replacement",
+  "appliesToDescendants": true,
+  "removedArtifacts": [
+    {
+      "id": "legacy-trade-feed",
+      "targetPaths": [
+        "trade-feed",
+        "generated/code/components/trade-feed-specfirst"
+      ],
+      "componentsPaths": [
+        "trade-feed-specfirst"
+      ],
+      "forbiddenScriptPatterns": [
+        "generated/code/components/trade-feed-specfirst"
+      ]
+    }
+  ]
+}

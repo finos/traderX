@@ -14,6 +14,13 @@ bash "${ROOT}/pipeline/generate-state.sh" "${PARENT_STATE_ID}"
 # target-generated/generated/code/components; clear them so the 004 patchset
 # can apply deterministic link definitions without add/add conflicts.
 rm -rf "${TARGET_ROOT}/generated/code/components"
+# Parent state wrappers are intentionally rewritten by the 004+ lineage; remove
+# inherited env wrappers so patch add operations stay conflict-free.
+rm -f \
+  "${TARGET_ROOT}/start-env.sh" \
+  "${TARGET_ROOT}/status-env.sh" \
+  "${TARGET_ROOT}/stop-env.sh" \
+  "${TARGET_ROOT}/test-env.sh"
 bash "${ROOT}/pipeline/apply-state-patchset.sh" "${STATE_ID}"
 
 # State 004+ deployment targets should not run Angular dev server (Vite HMR)
