@@ -9,7 +9,10 @@ TARGET_ROOT="${GENERATED_ROOT}/code/target-generated"
 RUNTIME_OVERRIDES_ROOT="${ROOT}/specs/${STATE_ID}/generation/runtime-overrides"
 
 echo "[info] generating parent state ${PARENT_STATE_ID} for ${STATE_ID}"
-bash "${ROOT}/pipeline/generate-state.sh" "${PARENT_STATE_ID}"
+# Ensure parent runtime normalization also runs in deeper nested generation.
+# State 006 overlay patches are authored against normalized compose env shape.
+TRADERX_RUNTIME_NORMALIZE_IN_NESTED_GENERATION=1 \
+  bash "${ROOT}/pipeline/generate-state.sh" "${PARENT_STATE_ID}"
 bash "${ROOT}/pipeline/apply-state-patchset.sh" "${STATE_ID}"
 if [[ -d "${RUNTIME_OVERRIDES_ROOT}" ]]; then
   rsync -a "${RUNTIME_OVERRIDES_ROOT}/" "${TARGET_ROOT}/"
