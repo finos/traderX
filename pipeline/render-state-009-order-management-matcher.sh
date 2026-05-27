@@ -74,6 +74,27 @@ ensure_observability_ingress_routes() {
   mv "${tmp_file}" "${ingress_file}"
 }
 
+ensure_order_matcher_ingress_route() {
+  local ingress_file="$1"
+  local tmp_file
+  if rg -q "location /order-matcher/" "${ingress_file}"; then
+    return 0
+  fi
+
+  tmp_file="$(mktemp)"
+  awk '
+    !added && $0 ~ /^[[:space:]]*location (\/grafana\/|= \/grafana|\/ \{)/ {
+      print "    location /order-matcher/ {"
+      print "        proxy_pass ${ORDER_MATCHER_URL};"
+      print "    }"
+      print ""
+      added = 1
+    }
+    { print }
+  ' "${ingress_file}" > "${tmp_file}"
+  mv "${tmp_file}" "${ingress_file}"
+}
+
 install_order_matcher_nats_publisher() {
   local order_matcher_root="${TARGET_ROOT}/order-matcher"
   local gradle_file="${order_matcher_root}/build.gradle"
@@ -374,6 +395,7 @@ if [[ "${GEN_DEPTH}" == "1" ]]; then
 else
   echo "[info] nested generation depth=${GEN_DEPTH}; skipping ingress observability route mutation"
 fi
+ensure_order_matcher_ingress_route "${INGRESS_FILE}"
 
 mkdir -p "${DASHBOARD_DIR}"
 cat > "${DASHBOARD_DIR}/traderx-spring-actuator-overview.json" <<'EOF'

@@ -37,21 +37,6 @@ index 46d12e9..6e929e5 100644
        {
          "directory": "people-service",
          "dockerfile": "Dockerfile.compose",
-diff --git a/ingress/nginx.traderx.conf.template b/ingress/nginx.traderx.conf.template
-index e5c93d1..473983b 100644
---- a/ingress/nginx.traderx.conf.template
-+++ b/ingress/nginx.traderx.conf.template
-@@ -78,6 +78,10 @@ server {
-         proxy_pass ${PRICE_PUBLISHER_URL};
-     }
- 
-+    location /order-matcher/ {
-+        proxy_pass ${ORDER_MATCHER_URL};
-+    }
-+
-     location / {
-         proxy_pass ${WEB_FRONTEND_URL};
-         proxy_http_version 1.1;
 diff --git a/order-management-matcher/README.md b/order-management-matcher/README.md
 new file mode 100644
 index 0000000..6d5fff2
