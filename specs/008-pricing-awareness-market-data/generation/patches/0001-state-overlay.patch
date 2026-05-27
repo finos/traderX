@@ -1916,6 +1916,8 @@ index ba4a919..cc3a0ef 100644
 +  promtail:
 +    image: grafana/promtail:2.9.8
 +    command: ["-config.file=/etc/promtail/config.yaml"]
++    environment:
++      DOCKER_API_VERSION: "${TRADERX_PROMTAIL_DOCKER_API_VERSION:-1.44}"
 +    volumes:
 +      - ./observability/promtail/config.yaml:/etc/promtail/config.yaml:ro
 +      - /var/run/docker.sock:/var/run/docker.sock:ro
