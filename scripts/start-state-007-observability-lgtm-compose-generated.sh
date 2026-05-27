@@ -13,10 +13,29 @@ fi
 STATE_ID="007-observability-lgtm-compose"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-007}"
 GRAFANA_PORT="${GRAFANA_PORT:-3001}"
+GRAFANA_INGRESS_URL="${TRADERX_GRAFANA_INGRESS_URL:-http://localhost:8080/grafana}"
 COMPOSE_DIR="${GENERATED_ROOT}/code/target-generated/observability-lgtm-compose"
 COMPOSE_FILE="${COMPOSE_DIR}/docker-compose.yml"
 DRY_RUN=0
 SKIP_BUILD=0
+
+random_alnum() {
+  local length="${1:-16}"
+  local value
+  set +o pipefail
+  value="$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c "${length}")"
+  set -o pipefail
+  printf '%s' "${value}"
+}
+
+if [[ -z "${TRADERX_GRAFANA_ADMIN_USER:-}" ]]; then
+  export TRADERX_GRAFANA_ADMIN_USER="traderx-admin-$(random_alnum 6 | tr 'A-Z' 'a-z')"
+fi
+if [[ -z "${TRADERX_GRAFANA_ADMIN_PASSWORD:-}" ]]; then
+  export TRADERX_GRAFANA_ADMIN_PASSWORD="$(random_alnum 24)"
+fi
+export TRADERX_GRAFANA_ANONYMOUS_ENABLED="${TRADERX_GRAFANA_ANONYMOUS_ENABLED:-true}"
+export TRADERX_GRAFANA_ANONYMOUS_ORG_ROLE="${TRADERX_GRAFANA_ANONYMOUS_ORG_ROLE:-Viewer}"
 
 while (( "$#" )); do
   case "$1" in
@@ -118,13 +137,14 @@ wait_for_http "tempo" "http://localhost:3200/ready" || exit 1
 wait_for_http "otel-collector-health" "http://localhost:13133/" || exit 1
 
 bash "${REPO_ROOT}/scripts/star-grafana-traderx-dashboards.sh" \
-  "http://localhost:${GRAFANA_PORT}" \
-  "admin" \
-  "admin" \
+  "${GRAFANA_INGRESS_URL}" \
+  "${TRADERX_GRAFANA_ADMIN_USER}" \
+  "${TRADERX_GRAFANA_ADMIN_PASSWORD}" \
   "TraderX" \
   "traderx-obs-006-overview" || true
 
 echo "[done] state 007 observability runtime started"
 echo "[ui] http://localhost:8080"
 echo "[api-explorer] http://localhost:8080/api/docs"
-echo "[grafana] http://localhost:${GRAFANA_PORT} (local login credentials)"
+echo "[grafana] http://localhost:${GRAFANA_PORT} (anonymous ${TRADERX_GRAFANA_ANONYMOUS_ORG_ROLE})"
+echo "[grafana-admin] user=${TRADERX_GRAFANA_ADMIN_USER} pass=${TRADERX_GRAFANA_ADMIN_PASSWORD}"

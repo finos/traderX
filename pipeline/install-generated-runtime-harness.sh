@@ -230,6 +230,9 @@ case "${STATE_ID}" in
     ;;
 esac
 
+# Helper used by observability start scripts to star provisioned Grafana dashboards.
+copy_script_if_exists "star-grafana-traderx-dashboards.sh"
+
 case "${STATE_ID}" in
   004-*|005-*|006-*|007-*|008-*|009-*|010-*|011-*|012-*|013-*|014-*)
     gen_depth="${TRADERX_GENERATION_DEPTH:-0}"
@@ -769,8 +772,7 @@ EOF
       cat <<'EOF'
 - UI (ingress): `http://localhost:8080`
 - API explorer (ingress): `http://localhost:8080/api/docs`
-- Grafana (ingress): `http://localhost:8080/grafana` (admin/admin)
-- Grafana (direct): `http://localhost:3001`
+- Grafana (ingress): `http://localhost:8080/grafana` (anonymous viewer)
 - Prometheus: `http://localhost:9090`
 - Loki: `http://localhost:3100`
 - Tempo: `http://localhost:3200`
@@ -780,8 +782,7 @@ EOF
       cat <<'EOF'
 - UI (ingress): `http://localhost:8080`
 - API explorer (ingress): `http://localhost:8080/api/docs`
-- Grafana (ingress): `http://localhost:8080/grafana` (admin/admin)
-- Grafana (direct): `http://localhost:3001`
+- Grafana (ingress): `http://localhost:8080/grafana` (anonymous viewer)
 - Prometheus: `http://localhost:9090`
 - Order matcher health: `http://localhost:18110/health`
 - Order matcher metrics: `http://localhost:18110/metrics`
@@ -794,7 +795,7 @@ EOF
 - Trade page: `http://localhost:8080/trade`
 - Account service route: `http://localhost:8080/account-service/account/22214`
 - Position service route: `http://localhost:8080/position-service/positions/22214`
-- Grafana (ingress): `http://localhost:8080/grafana` (admin/admin)
+- Grafana (ingress): `http://localhost:8080/grafana` (anonymous viewer)
 - Prometheus (ingress): `http://localhost:8080/prometheus`
 EOF
       ;;
@@ -805,7 +806,7 @@ EOF
 - Trade page: `http://localhost:8080/trade`
 - Account service route: `http://localhost:8080/account-service/account/22214`
 - Position service route: `http://localhost:8080/position-service/positions/22214`
-- Grafana (ingress): `http://localhost:8080/grafana` (admin/admin)
+- Grafana (ingress): `http://localhost:8080/grafana` (anonymous viewer)
 - Prometheus (ingress): `http://localhost:8080/prometheus`
 - Sail sidecar UI: `http://localhost:8090`
 EOF
@@ -854,6 +855,178 @@ This directory is generated output.
 EOF
 }
 
+resolve_env_wrapper_target() {
+  local action="$1"
+  case "${STATE_ID}" in
+    001-baseline-uncontainerized-parity)
+      case "${action}" in
+        start) echo "start-base-uncontainerized-generated.sh" ;;
+        stop) echo "stop-base-uncontainerized-generated.sh" ;;
+        status) echo "status-base-uncontainerized-generated.sh" ;;
+      esac
+      ;;
+    002-edge-proxy-uncontainerized)
+      case "${action}" in
+        start) echo "start-state-002-edge-proxy-generated.sh" ;;
+        stop) echo "stop-state-002-edge-proxy-generated.sh" ;;
+        status) echo "status-state-002-edge-proxy-generated.sh" ;;
+        test) echo "test-state-002-edge-proxy.sh" ;;
+      esac
+      ;;
+    003-agentic-harness-foundation)
+      case "${action}" in
+        start) echo "start-state-003-agentic-harness-foundation-generated.sh" ;;
+        stop) echo "stop-state-003-agentic-harness-foundation-generated.sh" ;;
+        status) echo "status-state-003-agentic-harness-foundation-generated.sh" ;;
+        test) echo "test-state-003-agentic-harness-foundation.sh" ;;
+      esac
+      ;;
+    004-containerized-compose-runtime)
+      case "${action}" in
+        start) echo "start-state-004-containerized-generated.sh" ;;
+        stop) echo "stop-state-004-containerized-generated.sh" ;;
+        status) echo "status-state-004-containerized-generated.sh" ;;
+        test) echo "test-state-004-containerized.sh" ;;
+      esac
+      ;;
+    005-postgres-database-replacement)
+      case "${action}" in
+        start) echo "start-state-005-postgres-database-replacement-generated.sh" ;;
+        stop) echo "stop-state-005-postgres-database-replacement-generated.sh" ;;
+        status) echo "status-state-005-postgres-database-replacement-generated.sh" ;;
+        test) echo "test-state-005-postgres-database-replacement.sh" ;;
+      esac
+      ;;
+    006-messaging-nats-replacement)
+      case "${action}" in
+        start) echo "start-state-006-messaging-nats-replacement-generated.sh" ;;
+        stop) echo "stop-state-006-messaging-nats-replacement-generated.sh" ;;
+        status) echo "status-state-006-messaging-nats-replacement-generated.sh" ;;
+        test) echo "test-state-006-messaging-nats-replacement.sh" ;;
+      esac
+      ;;
+    007-observability-lgtm-compose)
+      case "${action}" in
+        start) echo "start-state-007-observability-lgtm-compose-generated.sh" ;;
+        stop) echo "stop-state-007-observability-lgtm-compose-generated.sh" ;;
+        status) echo "status-state-007-observability-lgtm-compose-generated.sh" ;;
+        test) echo "test-state-007-observability-lgtm-compose.sh" ;;
+      esac
+      ;;
+    008-pricing-awareness-market-data)
+      case "${action}" in
+        start) echo "start-state-008-pricing-awareness-market-data-generated.sh" ;;
+        stop) echo "stop-state-008-pricing-awareness-market-data-generated.sh" ;;
+        status) echo "status-state-008-pricing-awareness-market-data-generated.sh" ;;
+        test) echo "test-state-008-pricing-awareness-market-data.sh" ;;
+      esac
+      ;;
+    009-order-management-matcher)
+      case "${action}" in
+        start) echo "start-state-009-order-management-matcher-generated.sh" ;;
+        stop) echo "stop-state-009-order-management-matcher-generated.sh" ;;
+        status) echo "status-state-009-order-management-matcher-generated.sh" ;;
+        test) echo "test-state-009-order-management-matcher.sh" ;;
+      esac
+      ;;
+    010-kubernetes-runtime)
+      case "${action}" in
+        start) echo "start-state-010-kubernetes-runtime-generated.sh" ;;
+        stop) echo "stop-state-010-kubernetes-runtime-generated.sh" ;;
+        status) echo "status-state-010-kubernetes-runtime-generated.sh" ;;
+        test) echo "test-state-010-kubernetes-runtime.sh" ;;
+      esac
+      ;;
+    011-tilt-kubernetes-dev-loop)
+      case "${action}" in
+        start) echo "start-state-011-tilt-kubernetes-dev-loop-generated.sh" ;;
+        stop) echo "stop-state-011-tilt-kubernetes-dev-loop-generated.sh" ;;
+        status) echo "status-state-011-tilt-kubernetes-dev-loop-generated.sh" ;;
+        test) echo "test-state-011-tilt-kubernetes-dev-loop.sh" ;;
+      esac
+      ;;
+    012-platform-convergence-c3)
+      case "${action}" in
+        start) echo "start-state-012-platform-convergence-c3-generated.sh" ;;
+        stop) echo "stop-state-012-platform-convergence-c3-generated.sh" ;;
+        status) echo "status-state-012-platform-convergence-c3-generated.sh" ;;
+        test) echo "test-state-012-platform-convergence-c3.sh" ;;
+      esac
+      ;;
+    013-radius-kubernetes-platform)
+      case "${action}" in
+        start) echo "start-state-013-radius-kubernetes-platform-generated.sh" ;;
+        stop) echo "stop-state-013-radius-kubernetes-platform-generated.sh" ;;
+        status) echo "status-state-013-radius-kubernetes-platform-generated.sh" ;;
+        test) echo "test-state-013-radius-kubernetes-platform.sh" ;;
+      esac
+      ;;
+    014-fdc3-intent-interoperability)
+      case "${action}" in
+        start) echo "start-state-014-fdc3-intent-interoperability-generated.sh" ;;
+        stop) echo "stop-state-014-fdc3-intent-interoperability-generated.sh" ;;
+        status) echo "status-state-014-fdc3-intent-interoperability-generated.sh" ;;
+        test) echo "test-state-014-fdc3-intent-interoperability.sh" ;;
+      esac
+      ;;
+  esac
+}
+
+write_env_wrapper_script() {
+  local wrapper_name="$1"
+  local action_label="$2"
+  local target_script="$3"
+  cat > "${TARGET_ROOT}/${wrapper_name}" <<EOF
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
+
+# Wrapper purpose: stable, state-local ${action_label} entrypoint.
+# This may delegate across multiple numbered state scripts to maximize reuse.
+# Execution flow: scripts/${target_script}
+
+exec "\${ROOT}/scripts/${target_script}" "\$@"
+EOF
+  chmod +x "${TARGET_ROOT}/${wrapper_name}"
+}
+
+write_test_env_wrapper_without_target() {
+  cat > "${TARGET_ROOT}/test-env.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+echo "[info] no state-specific test entrypoint was detected for this snapshot."
+if [[ -d "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/scripts" ]]; then
+  echo "[hint] available test scripts:"
+  ls "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/scripts"/test-state-*.sh 2>/dev/null || true
+fi
+exit 2
+EOF
+  chmod +x "${TARGET_ROOT}/test-env.sh"
+}
+
+write_generated_env_wrappers() {
+  local start_target stop_target status_target test_target
+  start_target="$(resolve_env_wrapper_target start || true)"
+  stop_target="$(resolve_env_wrapper_target stop || true)"
+  status_target="$(resolve_env_wrapper_target status || true)"
+  test_target="$(resolve_env_wrapper_target test || true)"
+
+  if [[ -z "${start_target}" || -z "${stop_target}" || -z "${status_target}" ]]; then
+    echo "[fail] unable to resolve start/stop/status env wrappers for ${STATE_ID}"
+    exit 1
+  fi
+
+  write_env_wrapper_script "start-env.sh" "start" "${start_target}"
+  write_env_wrapper_script "stop-env.sh" "stop" "${stop_target}"
+  write_env_wrapper_script "status-env.sh" "status" "${status_target}"
+
+  if [[ -n "${test_target}" && -f "${SCRIPTS_DST}/${test_target}" ]]; then
+    write_env_wrapper_script "test-env.sh" "test" "${test_target}"
+  else
+    write_test_env_wrapper_without_target
+  fi
+}
+
 write_generated_runbook
 if generated_runtime_urls_markdown >/tmp/traderx-runtime-urls.$$; then
   {
@@ -865,5 +1038,9 @@ if generated_runtime_urls_markdown >/tmp/traderx-runtime-urls.$$; then
   rm -f /tmp/traderx-runtime-urls.$$
 fi
 write_generated_agentic_docs
+state_num="${STATE_ID%%-*}"
+if [[ "${state_num}" =~ ^[0-9]+$ ]] && (( 10#${state_num} >= 4 )); then
+  write_generated_env_wrappers
+fi
 
 echo "[ok] installed generated runtime harness for ${STATE_ID} at ${SCRIPTS_DST}"
