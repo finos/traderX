@@ -1,0 +1,63 @@
+{
+  "generatedAtUtc": "2026-05-28T05:18:48.297Z",
+  "stateId": "004-containerized-compose-runtime",
+  "mountPath": "/api/docs",
+  "pubSubInspectorEnabled": false,
+  "services": [
+    {
+      "id": "account-service",
+      "name": "Account Service",
+      "specUrl": "/account-service/v3/api-docs",
+      "runtimeSpecPath": "/account-service/v3/api-docs",
+      "runtimeBasePath": "/account-service",
+      "contractUrl": "/api/docs/contracts/account-service-openapi.yaml",
+      "interactive": true
+    },
+    {
+      "id": "people-service",
+      "name": "People Service",
+      "specUrl": "/people-service/swagger/v1/swagger.json",
+      "runtimeSpecPath": "/people-service/swagger/v1/swagger.json",
+      "runtimeBasePath": "/people-service",
+      "contractUrl": "/api/docs/contracts/people-service-openapi.yaml",
+      "interactive": true
+    },
+    {
+      "id": "position-service",
+      "name": "Position Service",
+      "specUrl": "/position-service/v3/api-docs",
+      "runtimeSpecPath": "/position-service/v3/api-docs",
+      "runtimeBasePath": "/position-service",
+      "contractUrl": "/api/docs/contracts/position-service-openapi.yaml",
+      "interactive": true
+    },
+    {
+      "id": "reference-data",
+      "name": "Reference Data",
+      "specUrl": "/api/docs/contracts/reference-data-openapi.yaml",
+      "runtimeSpecPath": null,
+      "runtimeBasePath": null,
+      "contractUrl": "/api/docs/contracts/reference-data-openapi.yaml",
+      "interactive": false
+    },
+    {
+      "id": "trade-processor",
+      "name": "Trade Processor",
+      "specUrl": "/trade-processor/v3/api-docs",
+      "runtimeSpecPath": "/trade-processor/v3/api-docs",
+      "runtimeBasePath": "/trade-processor",
+      "contractUrl": "/api/docs/contracts/trade-processor-openapi.yaml",
+      "interactive": true
+    },
+    {
+      "id": "trade-service",
+      "name": "Trade Service",
+      "specUrl": "/trade-service/v3/api-docs",
+      "runtimeSpecPath": "/trade-service/v3/api-docs",
+      "runtimeBasePath": "/trade-service",
+      "contractUrl": "/api/docs/contracts/trade-service-openapi.yaml",
+      "interactive": true
+    }
+  ],
+  "messagingSubjects": []
+}

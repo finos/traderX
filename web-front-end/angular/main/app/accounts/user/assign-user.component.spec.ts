@@ -8,6 +8,7 @@ import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
 import { map, noop, Observable, Observer, of, switchMap, tap } from 'rxjs';
 
 @Component({
+    standalone: false,
     selector: 'app-assign-user',
     templateUrl: 'assign-user.component.html'
 })

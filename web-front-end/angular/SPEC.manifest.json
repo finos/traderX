@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAtUtc": "2026-05-28T04:59:10Z",
+  "generatedAtUtc": "2026-03-31T12:59:32Z",
   "component": {
     "id": "web-front-end-angular",
     "kind": "ui",
@@ -14,8 +14,7 @@
   "runtime": {
     "defaultPort": 18093,
     "dependsOn": ["account-service","trade-service","position-service","reference-data","people-service","trade-feed","trade-processor"],
-    "requiredEnv": ["WEB_SERVICE_PORT"],
-    "healthHint": "http://<host>:18093/"
+    "requiredEnv": ["WEB_SERVICE_PORT"]
   },
   "contracts": {
     "primary": null

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAtUtc": "2026-05-28T04:59:10Z",
+  "generatedAtUtc": "2026-03-31T12:59:32Z",
   "component": {
     "id": "trade-processor",
     "kind": "service",
@@ -9,13 +9,12 @@
     "buildTool": "Gradle",
     "sourcePath": "generated/code/components/trade-processor-specfirst",
     "targetPath": "apps/trade-processor",
-    "notes": "\"Consumes /trades topic"
+    "notes": "Consumes /trades topic, persists trades/positions, and publishes account trade/position updates."
   },
   "runtime": {
     "defaultPort": 18091,
     "dependsOn": ["database","trade-feed"],
-    "requiredEnv": ["TRADE_PROCESSOR_SERVICE_PORT","DATABASE_TCP_HOST","DATABASE_TCP_PORT","DATABASE_NAME","DATABASE_DBUSER","DATABASE_DBPASS","TRADE_FEED_ADDRESS","TRADE_FEED_HOST","CORS_ALLOWED_ORIGINS"],
-    "healthHint": "persists trades/positions, and publishes account trade/position updates.\",\"http://<host>:18091/v3/api-docs\""
+    "requiredEnv": ["TRADE_PROCESSOR_SERVICE_PORT","DATABASE_TCP_HOST","DATABASE_TCP_PORT","DATABASE_NAME","DATABASE_DBUSER","DATABASE_DBPASS","TRADE_FEED_ADDRESS","TRADE_FEED_HOST","CORS_ALLOWED_ORIGINS"]
   },
   "contracts": {
     "primary": "specs/001-baseline-uncontainerized-parity/contracts/trade-processor/openapi.yaml"

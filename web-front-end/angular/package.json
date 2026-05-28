@@ -4,14 +4,12 @@
   "scripts": {
     "ng": "ng",
     "lint": "ng lint",
-    "start-dev": "cross-env NODE_ENV=development node serve-angular-dev.js",
-    "start": "ng build --base-href=. --configuration production --output-path=./dist --aot --output-hashing=all && node serve-angular-dist.js",
+    "start-prod": "ng serve --host 0.0.0.0 --disable-host-check --configuration=production --port ${WEB_SERVICE_PORT:-18093}",
+    "start": "ng serve --host 0.0.0.0 --disable-host-check --port ${WEB_SERVICE_PORT:-18093}",
     "build": "cross-env NG_CLI_ANALYTICS=ci ng build --base-href=. --configuration production --output-path=./dist --aot --output-hashing=all",
     "buildlocal": "cross-env NG_CLI_ANALYTICS=ci ng build --base-href=. --configuration local --output-path=./dist --aot --output-hashing=all",
     "test": "ng test --code-coverage --watch=true",
-    "test:ci": "ng test --code-coverage --watch=false --browsers=ChromeHeadlessNoSandbox",
-    "sbom": "cyclonedx-npm --output-file build/reports/sbom.json --output-format JSON",
-    "sbom:xml": "cyclonedx-npm --output-file build/reports/sbom.xml --output-format XML"
+    "test:ci": "ng test --code-coverage --watch=false --browsers=ChromeHeadlessNoSandbox"
   },
   "private": true,
   "license": "Apache-2.0",
@@ -32,14 +30,6 @@
     "socket.io-client": "^4.8.3",
     "tslib": "^2.7.0",
     "zone.js": "^0.15.0"
-  },
-  "overrides": {
-    "ws": "8.20.1",
-    "postcss": "^8.5.13",
-    "serialize-javascript": "^7.0.5",
-    "tar": "^7.5.13",
-    "uuid": "^14.0.0",
-    "qs": "6.15.2"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^19.2.20",
@@ -62,5 +52,13 @@
     "serve-handler": "^6.1.5",
     "ts-node": "^10.9.2",
     "typescript": "~5.8.2"
+  },
+  "overrides": {
+    "postcss": "^8.5.13",
+    "qs": "6.15.2",
+    "serialize-javascript": "^7.0.5",
+    "tar": "^7.5.13",
+    "uuid": "^14.0.0",
+    "ws": "8.20.1"
   }
 }
