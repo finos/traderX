@@ -1,6 +1,6 @@
 {
-  "generatedAtUtc": "2026-05-28T05:21:00.246Z",
-  "stateId": "008-pricing-awareness-market-data",
+  "generatedAtUtc": "2026-05-28T05:21:40.007Z",
+  "stateId": "009-order-management-matcher",
   "mountPath": "/api/docs",
   "pubSubInspectorEnabled": true,
   "services": [
@@ -57,6 +57,15 @@
       "runtimeBasePath": "/trade-service",
       "contractUrl": "/api/docs/contracts/trade-service-openapi.yaml",
       "interactive": true
+    },
+    {
+      "id": "order-matcher",
+      "name": "Order Matcher",
+      "specUrl": "/order-matcher/v3/api-docs",
+      "runtimeSpecPath": "/order-matcher/v3/api-docs",
+      "runtimeBasePath": "/order-matcher",
+      "contractUrl": null,
+      "interactive": true
     }
   ],
   "messagingSubjects": [
@@ -87,6 +96,20 @@
       "wildcard": true,
       "parameterized": true,
       "prefillPattern": "pricing.{TICKER}"
+    },
+    {
+      "subject": "/accounts/<accountId>/orders",
+      "pattern": "/accounts/<accountId>/orders",
+      "wildcard": false,
+      "parameterized": true,
+      "prefillPattern": "/accounts/{accountId}/orders"
+    },
+    {
+      "subject": "/orders",
+      "pattern": "/orders",
+      "wildcard": false,
+      "parameterized": false,
+      "prefillPattern": "/orders"
     }
   ]
 }

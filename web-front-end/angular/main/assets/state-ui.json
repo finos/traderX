@@ -1,10 +1,10 @@
 {
-  "stateId": "008-pricing-awareness-market-data",
-  "stateTitle": "Pricing Awareness and Market Data Streaming",
+  "stateId": "009-order-management-matcher",
+  "stateTitle": "Order Management and Matcher",
   "stateTrack": "functional",
-  "generatedAtUtc": "2026-05-28T05:21:00.357Z",
-  "sourceBranch": "code/generated-state-008-pricing-awareness-market-data",
-  "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-008-pricing-awareness-market-data",
+  "generatedAtUtc": "2026-05-28T05:21:40.127Z",
+  "sourceBranch": "code/generated-state-009-order-management-matcher",
+  "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-009-order-management-matcher",
   "lineageLinkUrl": "https://github.com/finos/traderX/blob/main/docs/learning-paths/index.md",
   "apiExplorerUrl": "/api/docs",
   "pubSubInspectorUrl": "/api/docs/pubsub-inspector.html",
@@ -14,6 +14,13 @@
     "pubSubInspector": true
   },
   "previousStates": [
+    {
+      "id": "008-pricing-awareness-market-data",
+      "title": "Pricing Awareness and Market Data Streaming",
+      "sourceBranch": "code/generated-state-008-pricing-awareness-market-data",
+      "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-008-pricing-awareness-market-data",
+      "summary": "Introduces Pricing Awareness and Market Data Streaming on the functional track."
+    },
     {
       "id": "007-observability-lgtm-compose",
       "title": "Observability with LGTM on Compose",
@@ -125,6 +132,14 @@
       "id": "price-publisher",
       "name": "Price Publisher",
       "url": "/price-publisher/health",
+      "expectedStatuses": [
+        200
+      ]
+    },
+    {
+      "id": "order-matcher",
+      "name": "Order Matcher",
+      "url": "/order-matcher/health",
       "expectedStatuses": [
         200
       ]
