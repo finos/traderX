@@ -1741,7 +1741,8 @@ index 0000000..648a189
 +Primary endpoints:
 +
 +- TraderX UI: `http://localhost:8080`
-+- Grafana: `http://localhost:3001` (local login credentials)
++- Grafana dashboards: `http://localhost:8080/grafana/` (anonymous Viewer)
++- Grafana local admin: `http://localhost:3001` (start script prints credentials)
 +- Prometheus: `http://localhost:9090`
 +- Loki: `http://localhost:3100`
 +- Tempo: `http://localhost:3200`

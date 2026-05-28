@@ -669,6 +669,13 @@ Smoke test:
 ```bash
 ./scripts/test-state-007-observability-lgtm-compose.sh
 ```
+
+Grafana access:
+
+- Public dashboards: `http://localhost:8080/grafana/`
+- Local admin URL: `http://localhost:3001`
+- The start script prints the active local admin credential.
+- Default convention: user from `TRADERX_GRAFANA_ADMIN_USER` or `traderx-admin`; password from `TRADERX_GRAFANA_ADMIN_PASSWORD` or `traderx-state-007`.
 EOF
       ;;
     008-pricing-awareness-market-data)
@@ -699,6 +706,13 @@ Smoke test:
 ./scripts/test-state-008-pricing-awareness-market-data.sh --skip-messaging
 ./scripts/test-messaging-008-pricing-awareness-market-data.sh
 ```
+
+Grafana access:
+
+- Public dashboards: `http://localhost:8080/grafana/`
+- Local admin URL: `http://localhost:3001`
+- The start script prints the active local admin credential.
+- Default convention: user from `TRADERX_GRAFANA_ADMIN_USER` or `traderx-admin`; password from `TRADERX_GRAFANA_ADMIN_PASSWORD` or `traderx-state-008`.
 EOF
       ;;
     009-order-management-matcher)
@@ -729,6 +743,13 @@ Smoke test:
 ./scripts/test-state-009-order-management-matcher.sh --skip-messaging
 ./scripts/test-messaging-009-order-management-matcher.sh
 ```
+
+Grafana access:
+
+- Public dashboards: `http://localhost:8080/grafana/`
+- Local admin URL: `http://localhost:3001`
+- The start script prints the active local admin credential.
+- Default convention: user from `TRADERX_GRAFANA_ADMIN_USER` or `traderx-admin`; password from `TRADERX_GRAFANA_ADMIN_PASSWORD` or `traderx-state-009`.
 EOF
       ;;
     010-kubernetes-runtime)
@@ -904,7 +925,7 @@ EOF
 - Account service Swagger (edge): `http://localhost:18080/account-service/v3/api-docs`
 EOF
       ;;
-    004-containerized-compose-runtime|005-postgres-database-replacement|006-messaging-nats-replacement|008-pricing-awareness-market-data)
+    004-containerized-compose-runtime|005-postgres-database-replacement|006-messaging-nats-replacement)
       cat <<'EOF'
 - UI (ingress): `http://localhost:8080`
 - API explorer (ingress): `http://localhost:8080/api/docs`
@@ -913,12 +934,23 @@ EOF
 - Position service health: `http://localhost:18090/health/alive`
 EOF
       ;;
+    008-pricing-awareness-market-data)
+      cat <<'EOF'
+- UI (ingress): `http://localhost:8080`
+- API explorer (ingress): `http://localhost:8080/api/docs`
+- Grafana dashboards (ingress): `http://localhost:8080/grafana/`
+- Grafana local admin: `http://localhost:3001`
+- Prometheus: `http://localhost:9090`
+- Trade service Swagger: `http://localhost:18092/v3/api-docs`
+- Price publisher health: `http://localhost:18100/health`
+EOF
+      ;;
     007-observability-lgtm-compose)
       cat <<'EOF'
 - UI (ingress): `http://localhost:8080`
 - API explorer (ingress): `http://localhost:8080/api/docs`
-- Grafana (ingress): `http://localhost:8080/grafana` (admin/admin)
-- Grafana (direct): `http://localhost:3001`
+- Grafana dashboards (ingress): `http://localhost:8080/grafana/`
+- Grafana local admin: `http://localhost:3001`
 - Prometheus: `http://localhost:9090`
 - Loki: `http://localhost:3100`
 - Tempo: `http://localhost:3200`
@@ -928,8 +960,8 @@ EOF
       cat <<'EOF'
 - UI (ingress): `http://localhost:8080`
 - API explorer (ingress): `http://localhost:8080/api/docs`
-- Grafana (ingress): `http://localhost:8080/grafana` (admin/admin)
-- Grafana (direct): `http://localhost:3001`
+- Grafana dashboards (ingress): `http://localhost:8080/grafana/`
+- Grafana local admin: `http://localhost:3001`
 - Prometheus: `http://localhost:9090`
 - Order matcher health: `http://localhost:18110/health`
 - Order matcher metrics: `http://localhost:18110/metrics`
@@ -942,7 +974,7 @@ EOF
 - Trade page: `http://localhost:8080/trade`
 - Account service route: `http://localhost:8080/account-service/account/22214`
 - Position service route: `http://localhost:8080/position-service/positions/22214`
-- Grafana (ingress): `http://localhost:8080/grafana` (admin/admin)
+- Grafana (ingress): `http://localhost:8080/grafana`
 - Prometheus (ingress): `http://localhost:8080/prometheus`
 EOF
       ;;
@@ -953,7 +985,7 @@ EOF
 - Trade page: `http://localhost:8080/trade`
 - Account service route: `http://localhost:8080/account-service/account/22214`
 - Position service route: `http://localhost:8080/position-service/positions/22214`
-- Grafana (ingress): `http://localhost:8080/grafana` (admin/admin)
+- Grafana (ingress): `http://localhost:8080/grafana`
 - Prometheus (ingress): `http://localhost:8080/prometheus`
 - Sail sidecar UI: `http://localhost:8090`
 EOF
