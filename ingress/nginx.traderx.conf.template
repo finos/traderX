@@ -75,6 +75,30 @@ server {
         proxy_pass ${TRADE_PROCESSOR_URL};
     }
 
+    location = /grafana {
+        return 301 /grafana/;
+    }
+
+    location /grafana/ {
+        proxy_pass http://grafana:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Prefix /grafana;
+    }
+
+    location = /prometheus {
+        return 301 /prometheus/;
+    }
+
+    location /prometheus/ {
+        proxy_pass http://prometheus:9090;
+        proxy_http_version 1.1;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Prefix /prometheus;
+    }
+
     location = /api/docs {
         return 301 /api/docs/;
     }

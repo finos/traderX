@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This generated codebase is a reproducible runtime snapshot for state `006-messaging-nats-replacement`.
+This generated codebase is a reproducible runtime snapshot for state `007-observability-lgtm-compose`.
 
 - Treat this snapshot as generated output; expect regeneration to replace it.
 - Use this branch for local experimentation and runtime validation.

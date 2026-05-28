@@ -10,8 +10,9 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
     exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
   fi
 fi
-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-006}"
-COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/messaging-nats-replacement/docker-compose.yml"
+COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-007}"
+GRAFANA_PORT="${GRAFANA_PORT:-3001}"
+COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/observability-lgtm-compose/docker-compose.yml"
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "[error] docker command not found"
@@ -20,7 +21,7 @@ fi
 
 if [[ ! -f "${COMPOSE_FILE}" ]]; then
   echo "[info] compose file not found: ${COMPOSE_FILE}"
-  echo "[hint] run: bash pipeline/generate-state.sh 006-messaging-nats-replacement"
+  echo "[hint] run: bash pipeline/generate-state.sh 007-observability-lgtm-compose"
   exit 0
 fi
 
@@ -32,20 +33,23 @@ http_code_for() {
   curl -sS -o /dev/null -w "%{http_code}" "${url}" 2>/dev/null || true
 }
 
-printf "\n%-24s %-8s %s\n" "endpoint" "http" "url"
-printf "%-24s %-8s %s\n" "------------------------" "--------" "---"
+printf "\n%-28s %-8s %s\n" "endpoint" "http" "url"
+printf "%-28s %-8s %s\n" "----------------------------" "--------" "---"
 
 for target in \
   "ingress-health|http://localhost:8080/health" \
   "ingress-ui|http://localhost:8080/" \
-  "angular-ui|http://localhost:18093/" \
+  "grafana|http://localhost:${GRAFANA_PORT}/api/health" \
+  "prometheus|http://localhost:9090/-/ready" \
+  "loki|http://localhost:3100/ready" \
+  "tempo|http://localhost:3200/ready" \
+  "otel-collector|http://localhost:13133/" \
   "reference-data|http://localhost:18085/stocks" \
   "account-service|http://localhost:18088/account/22214" \
   "position-service|http://localhost:18090/health/alive" \
-  "trade-service|http://localhost:18092/v3/api-docs" \
-  "nats-monitor|http://localhost:8222/varz"; do
+  "trade-service|http://localhost:18092/v3/api-docs"; do
   name="${target%%|*}"
   url="${target#*|}"
   code="$(http_code_for "${url}")"
-  printf "%-24s %-8s %s\n" "${name}" "${code:-000}" "${url}"
+  printf "%-28s %-8s %s\n" "${name}" "${code:-000}" "${url}"
 done

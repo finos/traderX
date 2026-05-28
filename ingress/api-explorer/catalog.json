@@ -1,6 +1,6 @@
 {
-  "generatedAtUtc": "2026-05-28T05:19:48.752Z",
-  "stateId": "006-messaging-nats-replacement",
+  "generatedAtUtc": "2026-05-28T05:20:21.209Z",
+  "stateId": "007-observability-lgtm-compose",
   "mountPath": "/api/docs",
   "pubSubInspectorEnabled": true,
   "services": [
