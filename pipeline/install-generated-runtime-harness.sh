@@ -38,6 +38,7 @@ fi
 # Local helper lib used by some runtime tests.
 cp "${SCRIPTS_SRC}/lib/resolve-socketio-client-path.sh" "${SCRIPTS_DST}/lib/"
 cp "${SCRIPTS_SRC}/lib/generated-state-detection.sh" "${SCRIPTS_DST}/lib/"
+cp "${SCRIPTS_SRC}/lib/observability-runtime.sh" "${SCRIPTS_DST}/lib/"
 if [[ -f "${SCRIPTS_SRC}/lib/runtime-common.ps1" ]]; then
   cp "${SCRIPTS_SRC}/lib/runtime-common.ps1" "${SCRIPTS_DST}/lib/"
 fi
@@ -257,6 +258,7 @@ for script in "${SCRIPTS_DST}"/*.sh; do
 done
 chmod +x "${SCRIPTS_DST}/lib/resolve-socketio-client-path.sh"
 chmod +x "${SCRIPTS_DST}/lib/generated-state-detection.sh"
+chmod +x "${SCRIPTS_DST}/lib/observability-runtime.sh"
 
 for script in "${SCRIPTS_DST}"/*.ps1; do
   [[ -f "${script}" ]] || continue

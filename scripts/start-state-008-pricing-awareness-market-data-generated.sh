@@ -3,6 +3,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
+source "${REPO_ROOT}/scripts/lib/observability-runtime.sh"
 
 if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
   LOCAL_RUNTIME_SCRIPT="${GENERATED_ROOT}/code/target-generated/scripts/$(basename "${BASH_SOURCE[0]}")"
@@ -12,6 +13,8 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
 fi
 STATE_ID="008-pricing-awareness-market-data"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-008}"
+GRAFANA_PORT="${GRAFANA_PORT:-3001}"
+export GRAFANA_PORT
 COMPOSE_DIR="${GENERATED_ROOT}/code/target-generated/pricing-awareness-market-data"
 COMPOSE_FILE="${COMPOSE_DIR}/docker-compose.yml"
 DRY_RUN=0
@@ -49,6 +52,8 @@ if [[ -z "${DOCKER_BUILDKIT:-}" ]]; then
   echo "[info] DOCKER_BUILDKIT not set; defaulting to 1 for Docker cache mounts"
 fi
 
+traderx_configure_observability_runtime "${STATE_ID}"
+
 if [[ "${TRADERX_SKIP_GENERATE:-0}" != "1" ]]; then
   bash "${REPO_ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
 else
@@ -59,6 +64,8 @@ fi
   echo "[error] compose file not found: ${COMPOSE_FILE}"
   exit 1
 }
+
+traderx_print_observability_runtime_summary
 
 if (( DRY_RUN == 1 )); then
   if (( SKIP_BUILD == 1 )); then
@@ -116,7 +123,12 @@ wait_for_http "position-service" "http://localhost:18090/health/alive" || exit 1
 wait_for_http "trade-service" "http://localhost:18092/v3/api-docs" || exit 1
 wait_for_http "ingress" "http://localhost:8080/health" || exit 1
 wait_for_http "ingress-ui" "http://localhost:8080" || exit 1
+wait_for_http "grafana" "http://localhost:${GRAFANA_PORT}/api/health" || exit 1
+wait_for_http "prometheus" "http://localhost:9090/-/ready" || exit 1
+wait_for_http "loki" "http://localhost:3100/ready" || exit 1
 
 echo "[done] state 008 pricing-awareness runtime started"
 echo "[ui] http://localhost:8080"
 echo "[api-explorer] http://localhost:8080/api/docs"
+echo "[grafana] http://localhost:${GRAFANA_PORT} (local admin login)"
+echo "[grafana-public] http://localhost:8080/grafana/ (anonymous Viewer dashboards)"
