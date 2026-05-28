@@ -5,5 +5,5 @@ export const environment = {
     tradesUrl:          `//${window.location.host}/trade-service/trade/`,
     positionsUrl:       `//${window.location.host}/position-service`,
     peopleUrl:          `//${window.location.host}/people-service`,
-    tradeFeedUrl:       `//${window.location.host}`
+    tradeFeedUrl:       `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/nats-ws`
 };
