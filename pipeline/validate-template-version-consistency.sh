@@ -224,6 +224,29 @@ while IFS=$'\t' read -r npm_dep npm_target; do
   (( seen > 0 )) || fail "npm target ${npm_dep} not found under templates/"
 done < <(jq -r '.npm.dependencies | to_entries[] | [.key, .value] | @tsv' "${TARGETS_FILE}")
 
+while IFS=$'\t' read -r npm_dep npm_target; do
+  [[ -n "${npm_dep}" && -n "${npm_target}" ]] || continue
+  seen=0
+  while IFS= read -r package_file; do
+    actual="$(jq -r --arg dep "${npm_dep}" '(.overrides[$dep] // empty)' "${package_file}")"
+    if [[ -z "${actual}" ]]; then
+      continue
+    fi
+    seen=$((seen + 1))
+    [[ "${actual}" == "${npm_target}" ]] || fail "npm override target mismatch for ${npm_dep} in ${package_file}: expected ${npm_target}, found ${actual}"
+  done < <(find "${TEMPLATES_ROOT}" -type f -name package.json ! -path '*/node_modules/*' -print | sort)
+  (( seen > 0 )) || fail "npm override target ${npm_dep} not found under templates/"
+done < <(jq -r '(.npm.overrides // {}) | to_entries[] | [.key, .value] | @tsv' "${TARGETS_FILE}")
+
+while IFS= read -r package_file; do
+  while IFS=$'\t' read -r npm_dep npm_actual; do
+    [[ -n "${npm_dep}" && -n "${npm_actual}" ]] || continue
+    npm_target="$(jq -r --arg dep "${npm_dep}" '(.npm.overrides // {})[$dep] // empty' "${TARGETS_FILE}")"
+    [[ -n "${npm_target}" ]] || fail "template npm override ${npm_dep} in ${package_file} is not declared in ${TARGETS_FILE}"
+    [[ "${npm_actual}" == "${npm_target}" ]] || fail "template npm override ${npm_dep} in ${package_file} does not match catalog target: expected ${npm_target}, found ${npm_actual}"
+  done < <(jq -r '(.overrides // {}) | to_entries[] | [.key, (.value | tostring)] | @tsv' "${package_file}")
+done < <(find "${TEMPLATES_ROOT}" -type f -name package.json ! -path '*/node_modules/*' -print | sort)
+
 while IFS=$'\t' read -r nuget_dep nuget_target; do
   [[ -n "${nuget_dep}" && -n "${nuget_target}" ]] || continue
   seen=0

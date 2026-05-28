@@ -181,6 +181,7 @@ As a developer, I need startup commands to report what state is currently genera
 - **NFR-009 (Runtime State Detection)**: State runtime/start scripts MUST detect the currently generated state id before startup and emit explicit guidance for mismatch handling (including clean-rebuild guidance when moving backwards in lineage).
 - **NFR-010 (Optional Auto-Regeneration)**: Runtime/start scripts MUST support an explicit opt-in mode to auto-regenerate the expected state before startup when mismatch is detected.
 - **NFR-011 (Lifecycle Script Contract)**: Generated states MUST expose separated lifecycle commands for build, start, stop, and readiness checks. For uncontainerized states this is `start --build-only`, `start`, `stop`, and `smoke`; for containerized/Kubernetes states `--skip-build` is the accepted build/start separation mode.
+- **NFR-012 (Dependency Version Target Discipline)**: Any shared dependency version pin or override introduced to address a common library/version concern MUST be declared in `catalog/dependency-version-targets.json` before template, generated-state, or patchset changes are accepted. Template/catalog smoke checks MUST run before top-level state generation proceeds, and generated-output/branch dependency smoke checks MUST run before generated-state publication or merge gates.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -212,6 +213,7 @@ As a developer, I need startup commands to report what state is currently genera
 - **SC-014**: UI smoke checks verify header title format includes active state id and `About` navigation is present.
 - **SC-015**: UI smoke checks verify About page renders state id, generation timestamp, source branch, prior-state lineage summaries, and API explorer link.
 - **SC-016**: Runtime startup scripts demonstrate state-mismatch detection output for matched and mismatched generated outputs, including optional regenerate mode.
+- **SC-017**: Dependency version target smoke checks fail if a shared template dependency override is missing from the catalog, if a generated package/build file drifts from a catalog target, or if selected generated-state branches do not propagate the target.
 
 ## Assumptions
 

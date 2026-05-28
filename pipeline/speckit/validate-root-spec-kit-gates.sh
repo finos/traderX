@@ -93,7 +93,7 @@ if [[ -d "${TRADERSPEC_ROOT}/speckit/contracts" ]]; then
 fi
 
 bash "${REPO_ROOT}/pipeline/validate-state-doc-consistency.sh"
-bash "${REPO_ROOT}/pipeline/validate-template-version-consistency.sh"
+bash "${REPO_ROOT}/pipeline/smoke-dependency-version-targets.sh"
 bash "${REPO_ROOT}/pipeline/validate-generated-state-lineage-invariants.sh" --policy-only
 bash "${REPO_ROOT}/pipeline/validate-sail-pin-contract.sh"
 

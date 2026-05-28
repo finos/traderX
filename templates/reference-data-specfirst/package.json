@@ -21,5 +21,8 @@
     "@types/node": "^22.13.14",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
+  },
+  "overrides": {
+    "qs": "6.15.2"
   }
 }
