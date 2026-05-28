@@ -103,6 +103,13 @@ if [[ -n "${MINIKUBE_DRIVER}" ]]; then
   start_args+=(--minikube-driver "${MINIKUBE_DRIVER}")
 fi
 
+# Preserve published-image controls for downstream runtime scripts and GHCR bundle validation.
+if [[ "${TRADERX_USE_PUBLISHED_IMAGES:-0}" == "1" ]]; then
+  export TRADERX_USE_PUBLISHED_IMAGES=1
+  export TRADERX_PUBLISHED_NAMESPACE="${TRADERX_PUBLISHED_NAMESPACE:-traderx-c3}"
+  export TRADERX_PUBLISHED_TAG="${TRADERX_PUBLISHED_TAG:-latest}"
+fi
+
 runtime_scripts_dir="${REPO_ROOT}/scripts"
 state_010_start_script="${runtime_scripts_dir}/start-state-010-kubernetes-runtime-generated.sh"
 "${state_010_start_script}" "${start_args[@]}"

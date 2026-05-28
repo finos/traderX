@@ -122,6 +122,13 @@ if [[ -n "${MINIKUBE_DRIVER}" ]]; then
   start_args+=(--minikube-driver "${MINIKUBE_DRIVER}")
 fi
 
+# Preserve published-image controls for downstream runtime scripts and GHCR bundle validation.
+if [[ "${TRADERX_USE_PUBLISHED_IMAGES:-0}" == "1" ]]; then
+  export TRADERX_USE_PUBLISHED_IMAGES=1
+  export TRADERX_PUBLISHED_NAMESPACE="${TRADERX_PUBLISHED_NAMESPACE:-}"
+  export TRADERX_PUBLISHED_TAG="${TRADERX_PUBLISHED_TAG:-}"
+fi
+
 runtime_scripts_dir="${REPO_ROOT}/scripts"
 state_012_start_script="${runtime_scripts_dir}/start-state-012-platform-convergence-c3-generated.sh"
 TRADERX_SKIP_GENERATE=1 "${state_012_start_script}" "${start_args[@]}"
