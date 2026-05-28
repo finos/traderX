@@ -1263,7 +1263,7 @@ index 0000000..7b87e12
 +      "id": null,
 +      "uid": "traderx-nats-messaging-overview",
 +      "title": "TraderX NATS Messaging Overview",
-+      "tags": ["traderx", "state-012", "nats", "messaging", "provisioned"],
++      "tags": ["traderx", "nats", "messaging", "provisioned"],
 +      "timezone": "browser",
 +      "schemaVersion": 39,
 +      "version": 1,
@@ -1554,7 +1554,6 @@ index 0000000..7b87e12
 +      "title": "TraderX Order Management Observability",
 +      "tags": [
 +        "traderx",
-+        "state-013",
 +        "orders",
 +        "provisioned"
 +      ],
@@ -1809,9 +1808,9 @@ index 0000000..7b87e12
 +  traderx-pricing-observability.json: |
 +    {
 +      "id": null,
-+      "uid": "traderx-obs-012-pricing",
-+      "title": "TraderX Pricing + Observability (State 013)",
-+      "tags": ["traderx", "state-012", "pricing", "observability"],
++      "uid": "traderx-pricing-observability",
++      "title": "TraderX Pricing + Observability",
++      "tags": ["traderx", "pricing", "observability", "market-data"],
 +      "timezone": "browser",
 +      "schemaVersion": 39,
 +      "version": 1,
@@ -1963,7 +1962,7 @@ index 0000000..7b87e12
 +      "id": null,
 +      "uid": "traderx-pricing-pipeline-health",
 +      "title": "TraderX Pricing Pipeline Health",
-+      "tags": ["traderx", "state-012", "pricing", "nats", "provisioned"],
++      "tags": ["traderx", "pricing", "messaging", "provisioned"],
 +      "timezone": "browser",
 +      "schemaVersion": 39,
 +      "version": 1,

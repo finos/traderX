@@ -59,7 +59,8 @@ index 0000000..6d5fff2
 +Primary endpoints:
 +
 +- TraderX UI: `http://localhost:8080`
-+- Grafana: `http://localhost:3001` (local login credentials)
++- Grafana dashboards: `http://localhost:8080/grafana/` (anonymous Viewer)
++- Grafana local admin: `http://localhost:3001` (start script prints credentials)
 +- Prometheus: `http://localhost:9090`
 +- Loki: `http://localhost:3100`
 +- Tempo: `http://localhost:3200`
@@ -596,7 +597,7 @@ index 0000000..e4bf22c
 +  "id": null,
 +  "uid": "traderx-nats-messaging-overview",
 +  "title": "TraderX NATS Messaging Overview",
-+  "tags": ["traderx", "state-012", "nats", "messaging", "provisioned"],
++  "tags": ["traderx", "nats", "messaging", "provisioned"],
 +  "timezone": "browser",
 +  "schemaVersion": 39,
 +  "version": 1,
@@ -897,7 +898,6 @@ index 0000000..64cbf62
 +  "title": "TraderX Order Management Observability",
 +  "tags": [
 +    "traderx",
-+    "state-013",
 +    "orders",
 +    "provisioned"
 +  ],
@@ -1162,9 +1162,9 @@ index 0000000..8398cb2
 @@ -0,0 +1,151 @@
 +{
 +  "id": null,
-+  "uid": "traderx-obs-012-pricing",
-+  "title": "TraderX Pricing + Observability (State 013)",
-+  "tags": ["traderx", "state-012", "pricing", "observability"],
++  "uid": "traderx-pricing-observability",
++  "title": "TraderX Pricing + Observability",
++  "tags": ["traderx", "pricing", "observability", "market-data"],
 +  "timezone": "browser",
 +  "schemaVersion": 39,
 +  "version": 1,
@@ -1321,7 +1321,7 @@ index 0000000..c3cd057
 +  "id": null,
 +  "uid": "traderx-pricing-pipeline-health",
 +  "title": "TraderX Pricing Pipeline Health",
-+  "tags": ["traderx", "state-012", "pricing", "nats", "provisioned"],
++  "tags": ["traderx", "pricing", "messaging", "provisioned"],
 +  "timezone": "browser",
 +  "schemaVersion": 39,
 +  "version": 1,
