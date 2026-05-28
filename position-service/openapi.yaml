@@ -1,0 +1,59 @@
+openapi: 3.0.1
+info:
+  title: FINOS TraderX Position Service (Spec-First)
+  version: 0.1.0
+paths:
+  /trades/{accountId}:
+    get:
+      operationId: getTradesByAccountId
+      summary: Get trades for account
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+  /trades/:
+    get:
+      operationId: getAllTrades
+      summary: Get all trades
+      responses:
+        "200":
+          description: OK
+  /positions/{accountId}:
+    get:
+      operationId: getPositionsByAccountId
+      summary: Get positions for account
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+  /positions/:
+    get:
+      operationId: getAllPositions
+      summary: Get all positions
+      responses:
+        "200":
+          description: OK
+  /health/ready:
+    get:
+      operationId: healthReady
+      summary: Readiness health probe
+      responses:
+        "200":
+          description: OK
+  /health/alive:
+    get:
+      operationId: healthAlive
+      summary: Liveness health probe
+      responses:
+        "200":
+          description: OK

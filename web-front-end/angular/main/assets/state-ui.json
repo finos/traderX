@@ -1,0 +1,67 @@
+{
+  "stateId": "001-baseline-uncontainerized-parity",
+  "stateTitle": "Simple App - Base Uncontainerized App",
+  "stateTrack": "prelude",
+  "generatedAtUtc": "2026-05-28T05:12:23.698Z",
+  "sourceBranch": "code/generated-state-001-baseline-uncontainerized-parity",
+  "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-001-baseline-uncontainerized-parity",
+  "lineageLinkUrl": "https://github.com/finos/traderX/blob/main/docs/learning-paths/index.md",
+  "apiExplorerUrl": "/api/docs",
+  "pubSubInspectorUrl": "/api/docs/pubsub-inspector.html",
+  "features": {
+    "statusPage": false,
+    "apiExplorer": false,
+    "pubSubInspector": false
+  },
+  "previousStates": [],
+  "statusChecks": [
+    {
+      "id": "account-service",
+      "name": "Account Service",
+      "url": "http://localhost:18088/account/22214",
+      "expectedStatuses": [
+        200
+      ]
+    },
+    {
+      "id": "reference-data",
+      "name": "Reference Data",
+      "url": "http://localhost:18085/stocks",
+      "expectedStatuses": [
+        200
+      ]
+    },
+    {
+      "id": "position-service",
+      "name": "Position Service",
+      "url": "http://localhost:18090/health/alive",
+      "expectedStatuses": [
+        200
+      ]
+    },
+    {
+      "id": "trade-service",
+      "name": "Trade Service",
+      "url": "http://localhost:18092/v3/api-docs",
+      "expectedStatuses": [
+        200
+      ]
+    },
+    {
+      "id": "people-service",
+      "name": "People Service",
+      "url": "http://localhost:18089/People/GetPerson?LogonId=user01",
+      "expectedStatuses": [
+        200
+      ]
+    },
+    {
+      "id": "trade-feed",
+      "name": "Trade Feed (Socket.IO)",
+      "url": "http://localhost:18086/socket.io/?EIO=4&transport=polling",
+      "expectedStatuses": [
+        200
+      ]
+    }
+  ]
+}
