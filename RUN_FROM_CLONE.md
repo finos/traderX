@@ -5,13 +5,12 @@ Prerequisites:
 - kubectl
 - jq
 - Kind (default) or Minikube
-- Tilt (optional, for interactive dev loop)
 
-Start convergence runtime:
+Start baseline runtime (inherited from state 010):
 
 ```bash
-./scripts/start-state-012-platform-convergence-c3-generated.sh
-./scripts/start-state-012-platform-convergence-c3-generated.sh --skip-build
+./scripts/start-state-010-kubernetes-runtime-generated.sh
+./scripts/start-state-010-kubernetes-runtime-generated.sh --skip-build
 ```
 
 Inherited runtime endpoints:
@@ -20,15 +19,16 @@ Inherited runtime endpoints:
 - Grafana: `http://localhost:8080/grafana` (admin/admin)
 - Prometheus: `http://localhost:8080/prometheus`
 
-State 012 artifact pack:
-- `tilt-kubernetes-dev-loop/tilt/Tiltfile`
-- `tilt-kubernetes-dev-loop/tilt/tilt-settings.json`
+State 013 artifact pack:
+- `radius-kubernetes-platform/radius/app.bicep`
+- `radius-kubernetes-platform/radius/bicepconfig.json`
+- `radius-kubernetes-platform/radius/.rad/rad.yaml`
 
-Status / stop:
+Optional Radius flow:
 
 ```bash
-./scripts/status-state-012-platform-convergence-c3-generated.sh
-./scripts/stop-state-012-platform-convergence-c3-generated.sh
+cd radius-kubernetes-platform/radius
+rad run app.bicep
 ```
 
 ## Stable Entrypoints

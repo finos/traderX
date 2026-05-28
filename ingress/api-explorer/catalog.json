@@ -1,6 +1,6 @@
 {
-  "generatedAtUtc": "2026-05-28T05:32:24.228Z",
-  "stateId": "012-platform-convergence-c3",
+  "generatedAtUtc": "2026-05-28T05:33:16.281Z",
+  "stateId": "013-radius-kubernetes-platform",
   "mountPath": "/api/docs",
   "pubSubInspectorEnabled": true,
   "services": [
