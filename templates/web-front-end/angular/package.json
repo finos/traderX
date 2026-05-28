@@ -38,7 +38,8 @@
     "postcss": "^8.5.13",
     "serialize-javascript": "^7.0.5",
     "tar": "^7.5.13",
-    "uuid": "^14.0.0"
+    "uuid": "^14.0.0",
+    "qs": "6.15.2"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^19.2.20",

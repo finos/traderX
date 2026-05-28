@@ -163,10 +163,11 @@ Required rule:
 
 1. Baseline component defaults are maintained in `templates/**` (for example Java `build.gradle`, Gradle wrapper, and shared runtime/library versions).
 2. Derived state deviations are maintained in state patchsets under `specs/<state>/generation/patches/*.patch`.
-3. Post-generation mutation scripts are not allowed in steady-state generation; canonical templates and patchsets must fully define output content.
-4. Version targets are declared in `catalog/dependency-version-targets.json` and must pass before publish:
+3. Ad hoc post-generation mutation scripts are not allowed in steady-state generation; canonical templates, patchsets, and catalog-backed policy sync steps must define output content.
+4. Version targets are declared in `catalog/dependency-version-targets.json` and must pass before publish. New shared dependency pins belong in this catalog first, including npm override pins; template npm overrides that are not cataloged fail validation. npm override targets are materialized during generation for modules whose lockfiles resolve the target package.
 
 ```bash
+bash pipeline/smoke-dependency-version-targets.sh
 bash pipeline/validate-template-version-consistency.sh
 bash pipeline/validate-generated-dependency-targets.sh generated/code/components generated/code/target-generated
 bash pipeline/validate-generated-branch-dependency-consistency.sh
