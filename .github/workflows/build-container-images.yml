@@ -1,0 +1,66 @@
+name: Build Container Images (No Publish)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - code/generated-state-*
+    paths:
+      - '**/Dockerfile'
+      - '**/Dockerfile.compose'
+      - '.github/workflows/build-container-images.yml'
+
+jobs:
+  build-container-images:
+    name: Build ${{ matrix.image_name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - directory: account-service
+            dockerfile: Dockerfile.compose
+            image_name: account-service
+          - directory: database
+            dockerfile: Dockerfile.compose
+            image_name: database
+          - directory: ingress
+            dockerfile: Dockerfile.compose
+            image_name: ingress
+          - directory: people-service
+            dockerfile: Dockerfile.compose
+            image_name: people-service
+          - directory: position-service
+            dockerfile: Dockerfile.compose
+            image_name: position-service
+          - directory: price-publisher
+            dockerfile: Dockerfile.compose
+            image_name: price-publisher
+          - directory: reference-data
+            dockerfile: Dockerfile.compose
+            image_name: reference-data
+          - directory: trade-processor
+            dockerfile: Dockerfile.compose
+            image_name: trade-processor
+          - directory: trade-service
+            dockerfile: Dockerfile.compose
+            image_name: trade-service
+          - directory: web-front-end/angular
+            dockerfile: Dockerfile.compose
+            image_name: web-front-end-angular
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build image (no publish)
+        run: |
+          docker build \
+            -f "${{ matrix.directory }}/${{ matrix.dockerfile }}" \
+            -t "traderx-local/${{ matrix.image_name }}:${{ github.sha }}" \
+            "${{ matrix.directory }}"
+      - name: Scan built image
+        uses: crazy-max/ghaction-container-scan@v3
+        with:
+          image: traderx-local/${{ matrix.image_name }}:${{ github.sha }}
+          severity: HIGH

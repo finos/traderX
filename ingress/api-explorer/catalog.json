@@ -1,6 +1,6 @@
 {
-  "generatedAtUtc": "2026-05-28T05:20:21.209Z",
-  "stateId": "007-observability-lgtm-compose",
+  "generatedAtUtc": "2026-05-28T05:21:00.246Z",
+  "stateId": "008-pricing-awareness-market-data",
   "mountPath": "/api/docs",
   "pubSubInspectorEnabled": true,
   "services": [
@@ -61,46 +61,32 @@
   ],
   "messagingSubjects": [
     {
-      "subject": "trades.new",
-      "pattern": "trades.new",
+      "subject": "/trades",
+      "pattern": "/trades",
       "wildcard": false,
       "parameterized": false,
-      "prefillPattern": "trades.new"
+      "prefillPattern": "/trades"
     },
     {
-      "subject": "trades.processed",
-      "pattern": "trades.processed",
-      "wildcard": false,
-      "parameterized": false,
-      "prefillPattern": "trades.processed"
-    },
-    {
-      "subject": "trades.account.<accountId>.updated",
-      "pattern": "trades.account.<accountId>.updated",
+      "subject": "/accounts/<accountId>/trades",
+      "pattern": "/accounts/<accountId>/trades",
       "wildcard": false,
       "parameterized": true,
-      "prefillPattern": "trades.account.{accountId}.updated"
+      "prefillPattern": "/accounts/{accountId}/trades"
     },
     {
-      "subject": "positions.account.<accountId>.updated",
-      "pattern": "positions.account.<accountId>.updated",
+      "subject": "/accounts/<accountId>/positions",
+      "pattern": "/accounts/<accountId>/positions",
       "wildcard": false,
       "parameterized": true,
-      "prefillPattern": "positions.account.{accountId}.updated"
+      "prefillPattern": "/accounts/{accountId}/positions"
     },
     {
-      "subject": "trades.account.<accountId>.*",
-      "pattern": "trades.account.<accountId>.*",
-      "wildcard": false,
+      "subject": "pricing.<TICKER>",
+      "pattern": "pricing.*",
+      "wildcard": true,
       "parameterized": true,
-      "prefillPattern": "trades.account.{accountId}.*"
-    },
-    {
-      "subject": "positions.account.<accountId>.*",
-      "pattern": "positions.account.<accountId>.*",
-      "wildcard": false,
-      "parameterized": true,
-      "prefillPattern": "positions.account.{accountId}.*"
+      "prefillPattern": "pricing.{TICKER}"
     }
   ]
 }

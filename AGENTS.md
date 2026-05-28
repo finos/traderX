@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This generated codebase is a reproducible runtime snapshot for state `007-observability-lgtm-compose`.
+This generated codebase is a reproducible runtime snapshot for state `008-pricing-awareness-market-data`.
 
 - Treat this snapshot as generated output; expect regeneration to replace it.
 - Use this branch for local experimentation and runtime validation.

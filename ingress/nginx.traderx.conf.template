@@ -75,6 +75,10 @@ server {
         proxy_pass ${TRADE_PROCESSOR_URL};
     }
 
+    location /price-publisher/ {
+        proxy_pass ${PRICE_PUBLISHER_URL};
+    }
+
     location = /grafana {
         return 301 /grafana/;
     }
