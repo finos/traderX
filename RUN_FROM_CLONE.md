@@ -7,11 +7,11 @@ Prerequisites:
 - Kind (default) or Minikube
 - Tilt (optional, for interactive dev loop)
 
-Start baseline runtime (inherited from state 010):
+Start convergence runtime:
 
 ```bash
-./scripts/start-state-010-kubernetes-runtime-generated.sh
-./scripts/start-state-010-kubernetes-runtime-generated.sh --skip-build
+./scripts/start-state-012-platform-convergence-c3-generated.sh
+./scripts/start-state-012-platform-convergence-c3-generated.sh --skip-build
 ```
 
 Inherited runtime endpoints:
@@ -20,15 +20,15 @@ Inherited runtime endpoints:
 - Grafana: `http://localhost:8080/grafana` (admin/admin)
 - Prometheus: `http://localhost:8080/prometheus`
 
-State 011 artifact pack:
+State 012 artifact pack:
 - `tilt-kubernetes-dev-loop/tilt/Tiltfile`
 - `tilt-kubernetes-dev-loop/tilt/tilt-settings.json`
 
-Optional Tilt flow:
+Status / stop:
 
 ```bash
-cd tilt-kubernetes-dev-loop/tilt
-tilt up
+./scripts/status-state-012-platform-convergence-c3-generated.sh
+./scripts/stop-state-012-platform-convergence-c3-generated.sh
 ```
 
 ## Stable Entrypoints
