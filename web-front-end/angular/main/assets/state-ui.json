@@ -1,10 +1,10 @@
 {
-  "stateId": "002-edge-proxy-uncontainerized",
-  "stateTitle": "Edge Proxy Uncontainerized",
+  "stateId": "003-agentic-harness-foundation",
+  "stateTitle": "Agentic Harness Foundation",
   "stateTrack": "prelude",
-  "generatedAtUtc": "2026-05-28T05:13:48.069Z",
-  "sourceBranch": "code/generated-state-002-edge-proxy-uncontainerized",
-  "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-002-edge-proxy-uncontainerized",
+  "generatedAtUtc": "2026-05-28T05:15:23.582Z",
+  "sourceBranch": "code/generated-state-003-agentic-harness-foundation",
+  "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-003-agentic-harness-foundation",
   "lineageLinkUrl": "https://github.com/finos/traderX/blob/main/docs/learning-paths/index.md",
   "apiExplorerUrl": "/api/docs",
   "pubSubInspectorUrl": "/api/docs/pubsub-inspector.html",
@@ -14,6 +14,13 @@
     "pubSubInspector": false
   },
   "previousStates": [
+    {
+      "id": "002-edge-proxy-uncontainerized",
+      "title": "Edge Proxy Uncontainerized",
+      "sourceBranch": "code/generated-state-002-edge-proxy-uncontainerized",
+      "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-002-edge-proxy-uncontainerized",
+      "summary": "Introduces Edge Proxy Uncontainerized on the prelude track."
+    },
     {
       "id": "001-baseline-uncontainerized-parity",
       "title": "Simple App - Base Uncontainerized App",

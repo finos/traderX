@@ -1,10 +1,10 @@
 {
-  "stateId": "002-edge-proxy-uncontainerized",
-  "stateTitle": "Edge Proxy Uncontainerized",
+  "stateId": "003-agentic-harness-foundation",
+  "stateTitle": "Agentic Harness Foundation",
   "stateStatus": "implemented",
-  "featurePack": "specs/002-edge-proxy-uncontainerized",
-  "previousStates": ["001-baseline-uncontainerized-parity"],
-  "nextStates": ["003-agentic-harness-foundation"],
+  "featurePack": "specs/003-agentic-harness-foundation",
+  "previousStates": ["002-edge-proxy-uncontainerized"],
+  "nextStates": ["004-containerized-compose-runtime"],
   "isConvergenceState": false,
   "convergenceLevel": "none",
   "lineageRole": "prelude",
@@ -13,7 +13,7 @@
   "nextConvergenceState": "004-containerized-compose-runtime",
   "sourceBranch": "codex/address-actions-cves-20260528",
   "sourceCommit": "0313dc7bf828e4933b788834802bda10b8200bf5",
-  "generatedAtUtc": "2026-05-28T05:15:00Z",
-  "generationEntryPoint": "bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized",
-  "publishTagHint": "generated/002-edge-proxy-uncontainerized/v1"
+  "generatedAtUtc": "2026-05-28T05:16:35Z",
+  "generationEntryPoint": "bash pipeline/generate-state.sh 003-agentic-harness-foundation",
+  "publishTagHint": "generated/003-agentic-harness-foundation/v1"
 }
