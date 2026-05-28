@@ -100,7 +100,7 @@ Primary endpoints:
 
 - TraderX UI: `http://localhost:8080`
 - API Explorer: `http://localhost:8080/api/docs`
-- Grafana: `http://localhost:8080/grafana` (admin/admin)
+- Grafana: `http://localhost:8080/grafana`
 - Prometheus: `http://localhost:8080/prometheus`
 EOF
 
