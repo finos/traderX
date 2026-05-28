@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
+
+if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
+  LOCAL_RUNTIME_SCRIPT="${GENERATED_ROOT}/code/target-generated/scripts/$(basename "${BASH_SOURCE[0]}")"
+  if [[ -x "${LOCAL_RUNTIME_SCRIPT}" ]]; then
+    exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+  fi
+fi
+
+EDGE_URL="${1:-http://localhost:18080}"
+EXPECTED_STATE="002-edge-proxy-uncontainerized"
+
+source "${REPO_ROOT}/scripts/lib/generated-state-detection.sh"
+echo "[check] generated output state metadata"
+traderx_report_generated_state "${EXPECTED_STATE}" "${GENERATED_ROOT}" >/dev/null || {
+  echo "[error] generated output does not match expected state ${EXPECTED_STATE}"
+  exit 1
+}
+
+echo "[check] edge-proxy health endpoint"
+curl -sS -i "${EDGE_URL}/health" | sed -n '1,20p'
+
+echo "[check] proxied UI root"
+curl -sS -i "${EDGE_URL}/" | sed -n '1,20p'
+
+echo "[check] proxied account-service endpoint"
+account_headers="$(curl -sS -i "${EDGE_URL}/account-service/account/22214" | sed -n '1,25p')"
+echo "${account_headers}"
+printf '%s\n' "${account_headers}" | grep -q "HTTP/1.1 200" || {
+  echo "[error] expected 200 from proxied account-service endpoint"
+  exit 1
+}
+
+echo "[check] proxied reference-data endpoint"
+stocks_headers="$(curl -sS -i "${EDGE_URL}/reference-data/stocks" | sed -n '1,25p')"
+echo "${stocks_headers}"
+printf '%s\n' "${stocks_headers}" | grep -q "HTTP/1.1 200" || {
+  echo "[error] expected 200 from proxied reference-data endpoint"
+  exit 1
+}
+
+echo "[check] proxied trade-service unknown ticker validation"
+status_code="$(curl -sS -o /tmp/traderx-state-002-trade.out -w "%{http_code}" \
+  -H "Content-Type: application/json" \
+  -d '{"security":"NOTREAL","quantity":1,"accountId":22214,"side":"Buy"}' \
+  "${EDGE_URL}/trade-service/trade")"
+cat /tmp/traderx-state-002-trade.out
+echo
+rm -f /tmp/traderx-state-002-trade.out
+if [[ "${status_code}" != "404" ]]; then
+  echo "[error] expected 404 for unknown ticker via edge proxy, got ${status_code}"
+  exit 1
+fi
+
+echo "[check] web-front-end state-aware UX contract"
+"${REPO_ROOT}/scripts/test-web-angular-baseline-ux-contract.sh" "${GENERATED_ROOT}/code/target-generated/web-front-end/angular"
+
+echo "[done] state 002 edge-proxy smoke tests passed"
