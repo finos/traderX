@@ -19,7 +19,25 @@ bash pipeline/generate-state.sh 007-observability-lgtm-compose
 ./scripts/test-state-007-observability-lgtm-compose.sh
 ```
 
-## 4) Stop Runtime
+## 4) Inspect Grafana
+
+```bash
+# Anonymous Viewer dashboards through ingress:
+open http://localhost:8080/grafana/
+
+# Local admin access uses state-scoped defaults printed by the start script:
+open http://localhost:3001
+```
+
+Override local admin credentials when needed:
+
+```bash
+TRADERX_GRAFANA_ADMIN_USER=my-admin \
+TRADERX_GRAFANA_ADMIN_PASSWORD='change-me' \
+./scripts/start-state-007-observability-lgtm-compose-generated.sh
+```
+
+## 5) Stop Runtime
 
 ```bash
 ./scripts/stop-state-007-observability-lgtm-compose-generated.sh

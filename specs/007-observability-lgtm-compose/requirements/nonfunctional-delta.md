@@ -18,7 +18,9 @@ Document NFR changes introduced by this state.
 
 ## Security / Compliance
 
-- No authentication hardening added in this state; Grafana uses local development credentials by default.
+- Grafana dashboards are publicly readable through ingress using anonymous Viewer access for demos.
+- Grafana administrator credentials use state-scoped non-`admin/admin` defaults and remain overrideable with `TRADERX_GRAFANA_ADMIN_USER` and `TRADERX_GRAFANA_ADMIN_PASSWORD`.
+- Promtail Docker discovery uses a Docker API version exported by the generated runtime harness from the local Docker daemon, with `TRADERX_PROMTAIL_DOCKER_API_VERSION` as the explicit override.
 - State is intended for local learning environments, not production deployment.
 - As convergence level `C1`, this state requires container build/publish CI with namespace `ghcr.io/finos/traderx-c1/<component>`.
 - Generated artifacts must include a GHCR run bundle so users can run the `C1` environment from published images.

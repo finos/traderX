@@ -55,6 +55,8 @@
 - NFR-01317: Browser-offered API explorer and pub/sub inspector links in this state SHALL resolve with non-404 responses and browser-renderable content types (HTML for pages, JSON for catalog payloads).
 - NFR-01318: As a demo-target containerized state, generated snapshots SHALL include a deployment bundle under `runtime/deploy/` for profile-scoped environment rollout scripts and runbooks.
 - NFR-01319: Deployment bundle scripts SHALL be dry-run-capable, rely on env vars for environment-specific values, and SHALL NOT include embedded secrets/tokens.
+- NFR-01320: Inherited observability ingress routes SHALL keep Grafana dashboards anonymously readable as Viewer-only demo surfaces while retaining non-default state-scoped admin credentials for local administration.
+- NFR-01321: Generated runtime startup SHALL configure Promtail with the local Docker daemon API version by default so Loki log ingestion is not blocked by Docker client/server API mismatch.
 
 ## Success Criteria
 
@@ -72,3 +74,5 @@
 - SC-01312: Smoke checks validate `/api/docs/pubsub-inspector.html` availability (no-extension compatibility path included), URL/content-type contracts, and topic metadata coverage against `system/messaging-subject-map.md`.
 - SC-01313: Smoke checks validate that the generated frontend still satisfies the inherited state-aware header/System-menu contract after the `Admin` tab extension.
 - SC-01314: Generated snapshot contains deployment-bundle assets for demo rollout and those assets pass local dry-run validation.
+- SC-01315: State `009` Grafana dashboard URLs under `/grafana/` load through ingress without login and datasource API requests remain same-origin.
+- SC-01316: State `009` Promtail logs do not contain Docker API mismatch errors when launched through the generated runtime harness on a supported Docker host.

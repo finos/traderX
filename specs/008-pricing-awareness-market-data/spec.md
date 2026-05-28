@@ -74,6 +74,7 @@
 - NFR-1012: Generated topic-button data for the inspector SHALL be pipeline-derived from the state's cumulative messaging subject map, not manually curated.
 - NFR-1013: Pub/sub inspector UI responsiveness SHALL remain acceptable at sustained 2000-message buffer occupancy.
 - NFR-1014: Browser-offered documentation/tool URLs (`/api/docs/`, `pubSubInspectorUrl`, and API explorer nav links) SHALL return non-404 responses with browser-renderable content types (HTML for pages, JSON for catalog payloads).
+- NFR-1015: Inherited observability ingress routes SHALL preserve Grafana anonymous Viewer access, non-default state-scoped admin credentials, and deterministic Promtail Docker API version selection from state `007`.
 
 ## Success Criteria
 
@@ -91,3 +92,4 @@
 - SC-1012: Inspector feed displays delivery topic plus wildcard subscription context (`pricing.*`-style) where applicable.
 - SC-1013: Inspector enforces 2000-message buffer cap with FIFO eviction while session-total counter continues increasing.
 - SC-1014: API explorer and pub/sub inspector each expose a working top-right link to TraderX main app web root (`/`), and main-app metadata-driven menus/pages expose inspector link when enabled.
+- SC-1015: `http://localhost:8080/grafana/` remains anonymously readable after state `008` generation and startup.
