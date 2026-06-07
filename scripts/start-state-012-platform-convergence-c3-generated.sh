@@ -63,7 +63,12 @@ while (( "$#" )); do
 done
 
 if [[ "${TRADERX_SKIP_GENERATE:-0}" != "1" ]]; then
-  bash "${REPO_ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+  generate_state_script="${REPO_ROOT}/pipeline/${TRADERX_GENERATE_STATE_SCRIPT_BASENAME:-generate-state.sh}"
+  if [[ -f "${generate_state_script}" ]]; then
+    bash "${generate_state_script}" "${STATE_ID}"
+  else
+    echo "[warn] generation script not found: ${generate_state_script}; continuing with existing artifacts"
+  fi
 else
   echo "[info] skipping state generation for ${STATE_ID} (TRADERX_SKIP_GENERATE=1)"
 fi
@@ -98,7 +103,16 @@ if [[ -n "${MINIKUBE_DRIVER}" ]]; then
   start_args+=(--minikube-driver "${MINIKUBE_DRIVER}")
 fi
 
-"${REPO_ROOT}/scripts/start-state-010-kubernetes-runtime-generated.sh" "${start_args[@]}"
+# Preserve published-image controls for downstream runtime scripts and GHCR bundle validation.
+if [[ "${TRADERX_USE_PUBLISHED_IMAGES:-0}" == "1" ]]; then
+  export TRADERX_USE_PUBLISHED_IMAGES=1
+  export TRADERX_PUBLISHED_NAMESPACE="${TRADERX_PUBLISHED_NAMESPACE:-traderx-c3}"
+  export TRADERX_PUBLISHED_TAG="${TRADERX_PUBLISHED_TAG:-latest}"
+fi
+
+runtime_scripts_dir="${REPO_ROOT}/scripts"
+state_010_start_script="${runtime_scripts_dir}/start-state-010-kubernetes-runtime-generated.sh"
+"${state_010_start_script}" "${start_args[@]}"
 
 if (( DRY_RUN == 1 )); then
   echo "[dry-run] tilt assets validated at ${TILT_DIR}"

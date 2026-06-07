@@ -282,6 +282,11 @@ done < <(jq -r '.npm.dependencies | to_entries[] | [.key, .value] | @tsv' "${TAR
 
 while IFS=$'\t' read -r dep expected; do
   [[ -n "${dep}" && -n "${expected}" ]] || continue
+  assert_target "npm" "overrides" "${dep}" "${expected}"
+done < <(jq -r '(.npm.overrides // {}) | to_entries[] | [.key, .value] | @tsv' "${TARGETS_FILE}")
+
+while IFS=$'\t' read -r dep expected; do
+  [[ -n "${dep}" && -n "${expected}" ]] || continue
   assert_target "nuget" "PackageReference" "${dep}" "${expected}"
 done < <(jq -r '.nuget.packages | to_entries[] | [.key, .value] | @tsv' "${TARGETS_FILE}")
 

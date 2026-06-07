@@ -113,6 +113,18 @@ if [[ "${state_num}" -ge 2 ]]; then
 fi
 
 run_core_gates() {
+  echo "[step] smoke dependency version targets"
+  smoke_args=(--generated --target-root "${TARGET_ROOT}" --components-root "${COMPONENTS_ROOT}")
+  if [[ "${SKIP_BRANCH_CONSISTENCY}" == "1" ]]; then
+    echo "[warn] skipping generated-branch dependency consistency in smoke (--skip-branch-consistency)"
+  else
+    smoke_args+=(--branch-consistency --states "${STATE_ID}")
+    if [[ "${ALLOW_MISSING_BRANCHES}" == "1" ]]; then
+      smoke_args+=(--allow-missing-branches)
+    fi
+  fi
+  bash "${ROOT}/pipeline/smoke-dependency-version-targets.sh" "${smoke_args[@]}"
+
   echo "[step] validate generated state contracts"
   bash "${ROOT}/pipeline/validate-generated-state-contracts.sh" "${TARGET_ROOT}"
 
@@ -125,16 +137,6 @@ run_core_gates() {
     fi
   fi
 
-  echo "[step] validate template dependency/version consistency"
-  bash "${ROOT}/pipeline/validate-template-version-consistency.sh"
-
-  local dep_roots=("${TARGET_ROOT}")
-  if [[ -d "${COMPONENTS_ROOT}" ]]; then
-    dep_roots+=("${COMPONENTS_ROOT}")
-  fi
-  echo "[step] validate generated dependency targets"
-  bash "${ROOT}/pipeline/validate-generated-dependency-targets.sh" "${dep_roots[@]}"
-
   if [[ "${state_num}" -ge 2 ]]; then
     echo "[step] validate generated UI status checks"
     bash "${ROOT}/pipeline/validate-generated-ui-status-checks.sh" "${STATE_ID}" "${TARGET_ROOT}" "${COMPONENTS_ROOT}"
@@ -143,16 +145,6 @@ run_core_gates() {
   echo "[step] validate generated state lineage policy matrix"
   bash "${ROOT}/pipeline/validate-generated-state-lineage-invariants.sh" --policy-only
 
-  if [[ "${SKIP_BRANCH_CONSISTENCY}" == "1" ]]; then
-    echo "[warn] skipping generated-branch dependency consistency (--skip-branch-consistency)"
-  else
-    echo "[step] validate generated-branch dependency consistency"
-    args=(--states "${STATE_ID}")
-    if [[ "${ALLOW_MISSING_BRANCHES}" == "1" ]]; then
-      args+=(--allow-missing-branches)
-    fi
-    bash "${ROOT}/pipeline/validate-generated-branch-dependency-consistency.sh" "${args[@]}"
-  fi
 }
 
 read_state_arrays() {

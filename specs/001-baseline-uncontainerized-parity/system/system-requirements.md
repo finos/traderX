@@ -30,5 +30,5 @@
 - `SYS-NFR-006` Angular UI branding assets and FINOS/TraderX identity SHALL remain intact in baseline UI generation.
 - `SYS-NFR-007` Spec-first generation SHALL not require hydration from deleted legacy source trees.
 - `SYS-NFR-008` Trade and position blotters SHALL keep responsive readability through side-by-side layout with wrap and minimum pane width constraints.
-- `SYS-NFR-009` Dependency upgrade targets SHALL be declared in canonical repository artifacts and MUST propagate to all generated state releases; generation and validation gates SHALL fail when target versions do not propagate.
+- `SYS-NFR-009` Dependency upgrade targets SHALL be declared in canonical repository artifacts before template or patchset version changes are accepted, and MUST propagate to all generated state releases. Template smoke checks SHALL run before top-level state generation, and generated-output/branch validation gates SHALL fail before merge or publish when target versions do not propagate.
 - `SYS-NFR-010` Generated states SHALL enforce a lifecycle script contract with distinct build/start/stop/readiness commands. Uncontainerized states SHALL provide `start --build-only`; containerized/Kubernetes states SHALL provide `--skip-build` or equivalent build/start separation mode.

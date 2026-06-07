@@ -16,6 +16,10 @@ if [[ -z "${STATE_ID}" ]]; then
   exit 1
 fi
 
+if (( GEN_DEPTH == 1 )); then
+  bash "${ROOT}/pipeline/smoke-dependency-version-targets.sh"
+fi
+
 # Top-level generation must run exclusively because state generation writes to
 # shared output roots by default (`generated/code/target-generated` and
 # `generated/code/components`).
@@ -122,6 +126,7 @@ bash "${ROOT}/pipeline/prune-generated-state-removed-assets.sh" "${STATE_ID}" "$
 # versions are canonical in templates/patches and catalog/dependency-version-targets.json.
 # Optional apply mode is provided only for explicit bulk remediation.
 if (( GEN_DEPTH == 1 )) || [[ "${TRADERX_REFRESH_JAVA_BASELINE_IN_NESTED_GENERATION:-0}" == "1" ]]; then
+  bash "${ROOT}/pipeline/sync-node-dependency-overrides.sh" "${COMPONENTS_ROOT}" "${TARGET_ROOT}"
   if [[ "${TRADERX_APPLY_JAVA_DEPENDENCY_TARGETS:-0}" == "1" ]]; then
     bash "${ROOT}/pipeline/refresh-generated-java-dependency-baseline.sh" "${COMPONENTS_ROOT}" "${TARGET_ROOT}"
   fi

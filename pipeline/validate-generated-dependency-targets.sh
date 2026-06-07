@@ -138,6 +138,22 @@ done < <(jq -r '.npm.dependencies | to_entries[] | [.key, .value] | @tsv' "${TAR
 while IFS=$'\t' read -r dep expected; do
   [[ -n "${dep}" && -n "${expected}" ]] || continue
   seen=0
+  while IFS= read -r package_file; do
+    [[ -f "${package_file}" ]] || continue
+    actual="$(jq -r --arg dep "${dep}" '(.overrides[$dep] // empty)' "${package_file}")"
+    if [[ -z "${actual}" ]]; then
+      continue
+    fi
+    seen=$((seen + 1))
+    check_equals "npm override ${dep}" "${package_file}" "${expected}" "${actual}"
+  done < <(rg -N "" "${tmp_files}" | rg 'package\.json$' || true)
+
+  (( seen > 0 )) || fail "npm override target ${dep} not found in generated package.json files"
+done < <(jq -r '(.npm.overrides // {}) | to_entries[] | [.key, .value] | @tsv' "${TARGETS_FILE}")
+
+while IFS=$'\t' read -r dep expected; do
+  [[ -n "${dep}" && -n "${expected}" ]] || continue
+  seen=0
   while IFS= read -r csproj_file; do
     [[ -f "${csproj_file}" ]] || continue
     actual="$(sed -n "s/.*<PackageReference Include=\"${dep}\" Version=\"\\([^\"]*\\)\".*/\\1/p" "${csproj_file}" | head -n1)"

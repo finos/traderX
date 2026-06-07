@@ -55,7 +55,7 @@ package_manifest_matches_lockfile() {
   local package_file="$1"
   local lock_file="$2"
 
-  jq -n \
+  jq -e -n \
     --slurpfile pkg "${package_file}" \
     --slurpfile lock "${lock_file}" '
       ($pkg[0] // {}) as $p |
@@ -66,7 +66,8 @@ package_manifest_matches_lockfile() {
       (($p.dependencies // {}) == ($r.dependencies // {})) and
       (($p.devDependencies // {}) == ($r.devDependencies // {})) and
       (($p.optionalDependencies // {}) == ($r.optionalDependencies // {})) and
-      (($p.peerDependencies // {}) == ($r.peerDependencies // {}))
+      (($p.peerDependencies // {}) == ($r.peerDependencies // {})) and
+      (($p.overrides // {}) == ($r.overrides // {}))
     ' >/dev/null
 }
 
