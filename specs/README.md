@@ -22,6 +22,10 @@ This repository now uses the GitHub Spec Kit canonical structure at repo root:
 - `013-radius-kubernetes-platform`
 - `014-fdc3-intent-interoperability`
 
+## Portal Feature Packs
+
+- `015-docs-portal-homepage`
+
 ## References
 
 State lineage and generated-branch publish conventions are tracked in:

@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TraderX | The FINOS Innovation Sandbox</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+        
+        :root {
+            --finos-header-blue: #008cc1;
+            --finos-cyan: #00b0d2;
+            --finos-dark: #0f172a;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
+            color: #334155;
+            overflow-x: hidden;
+        }
+
+        .mono { font-family: 'JetBrains+Mono', monospace; }
+
+        /* Typography */
+        .section-title {
+            color: var(--finos-cyan);
+            font-size: 1.875rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        /* Sticky Tabs styling */
+        .tab-btn {
+            position: relative;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        
+        .tab-btn.active {
+            color: var(--finos-header-blue);
+            font-weight: 700;
+        }
+        
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--finos-header-blue);
+            border-radius: 3px 3px 0 0;
+            box-shadow: 0 -2px 10px rgba(0, 140, 193, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out forwards;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Card Styling for Light Theme */
+        .light-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .light-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Code Blocks */
+        pre {
+            background: #0f172a !important;
+            color: #f8fafc;
+            border-radius: 0 0 0.5rem 0.5rem;
+            padding: 1.25rem;
+            overflow-x: auto;
+            font-size: 0.875rem;
+            border: 1px solid #334155;
+            border-top: none;
+        }
+        
+        .code-header {
+            background: #f1f5f9;
+            padding: 0.5rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-bottom: 1px solid #cbd5e1;
+            border-radius: 0.5rem 0.5rem 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Track Badges */
+        .track-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            display: inline-block;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Top Banner -->
+    <div class="bg-[#0f172a] text-white text-xs md:text-sm py-2 text-center font-medium">
+        Welcome to the new TraderX docs. Read the <a href="#" class="underline hover:text-sky-300 transition-colors">engineering migration story</a>.
+    </div>
+
+    <!-- Header / Hero Section -->
+    <header class="bg-[#008cc1] text-white pb-20">
+        <!-- Navigation -->
+        <nav class="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
+            <div class="flex items-center gap-3">
+                <!-- TraderX Logo -->
+                <svg viewBox="0 0 100 100" class="w-8 h-8 text-white fill-current">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M15 0C6.716 0 0 6.716 0 15v70c0 8.284 6.716 15 15 15h70c8.284 0 15-6.716 15-15V15c0-8.284-6.716-15-15-15H15zm0 8h70c3.866 0 7 3.134 7 7v70c0 3.866-3.134 7-7 7H15c-3.866 0-7-3.134-7-7V15c0-3.866 3.134-7 7-7z"/>
+                    <polygon points="18,22 45,50 18,78" />
+                    <polygon points="82,22 55,50 82,78" />
+                    <polygon points="35,16 65,16 50,31" />
+                    <polygon points="35,84 65,84 50,69" />
+                </svg>
+                <span class="text-xl font-bold tracking-tight">TraderX</span>
+            </div>
+            
+            <div class="flex items-center gap-5 text-sm font-medium">
+                <button class="hover:text-sky-200 transition-colors bg-white/20 px-3 py-1.5 rounded-full flex items-center gap-2">
+                    <i class="fa-solid fa-magnifying-glass"></i> <span class="hidden md:inline">Search Ctrl+K</span>
+                </button>
+                <a href="https://github.com/finos/traderX" target="_blank" class="hover:text-sky-200 transition-colors hidden md:flex items-center gap-1">
+                    GitHub <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                </a>
+                <button class="hover:text-sky-200 transition-colors">
+                    <i class="fa-regular fa-sun text-lg"></i>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Hero Content -->
+        <div class="flex flex-col items-center justify-center pt-16 pb-8 text-center px-4 animate__animated animate__fadeIn">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 mb-8 text-xs font-bold tracking-widest text-[#008cc1] uppercase bg-white rounded-full shadow-sm">
+                <i class="fa-solid fa-code-branch"></i> Spec-Driven Transformation Complete
+            </div>
+
+            <div class="flex items-center justify-center gap-6 mb-10">
+                <svg viewBox="0 0 100 100" class="w-24 h-24 md:w-32 md:h-32 text-slate-900 fill-current">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M15 0C6.716 0 0 6.716 0 15v70c0 8.284 6.716 15 15 15h70c8.284 0 15-6.716 15-15V15c0-8.284-6.716-15-15-15H15zm0 8h70c3.866 0 7 3.134 7 7v70c0 3.866-3.134 7-7 7H15c-3.866 0-7-3.134-7-7V15c0-3.866 3.134-7 7-7z"/>
+                    <polygon points="18,22 45,50 18,78" />
+                    <polygon points="82,22 55,50 82,78" />
+                    <polygon points="35,16 65,16 50,31" />
+                    <polygon points="35,84 65,84 50,69" />
+                </svg>
+                <span class="text-6xl md:text-8xl font-black text-slate-900 tracking-tighter">TraderX</span>
+            </div>
+
+            <p class="text-lg text-white/90 max-w-2xl mx-auto leading-relaxed mb-10 font-medium">
+                TraderX has evolved from a monolithic codebase into a comprehensive Knowledge Graph. Powered by Spec-Driven Development, it serves as the ultimate "Pet Store" for testing, learning, and integrating FINOS standards across parallel architectural states.
+            </p>
+
+            <div class="flex flex-wrap justify-center gap-4">
+                <a href="https://demo.traderx.finos.org" target="_blank" class="border-2 border-white bg-white text-[#008cc1] font-bold rounded-md px-8 py-2.5 hover:bg-slate-100 transition-colors">Live Demos</a>
+                <a href="https://github.com/finos/traderX" target="_blank" class="border-2 border-white text-white font-bold rounded-md px-8 py-2.5 hover:bg-white/10 transition-colors">GitHub Repository</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sticky Tabs Navigation -->
+    <div class="sticky top-0 z-40 bg-white/90 backdrop-blur-lg border-b border-slate-200 shadow-sm">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="flex overflow-x-auto hide-scrollbar gap-2">
+                <button class="tab-btn active px-6 py-5 text-slate-500 hover:text-[#008cc1] font-medium" data-target="tab-what">
+                    <i class="fa-solid fa-layer-group mr-2"></i>What is TraderX?
+                </button>
+                <button class="tab-btn px-6 py-5 text-slate-500 hover:text-[#008cc1] font-medium" data-target="tab-paths">
+                    <i class="fa-solid fa-route mr-2"></i>Canonical Learning Path
+                </button>
+                <button class="tab-btn px-6 py-5 text-slate-500 hover:text-[#008cc1] font-medium" data-target="tab-sdd">
+                    <i class="fa-solid fa-laptop-code mr-2"></i>Spec-Driven Development
+                </button>
+                <button class="tab-btn px-6 py-5 text-slate-500 hover:text-[#008cc1] font-medium" data-target="tab-speckit">
+                    <i class="fa-solid fa-robot mr-2"></i>What is Spec Kit?
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="py-16 px-6 bg-slate-50/50 min-h-screen">
+        <div class="max-w-6xl mx-auto">
+
+            <!-- ==========================================
+                 TAB 1: WHAT IS TRADERX
+            =========================================== -->
+            <div id="tab-what" class="tab-content active space-y-16">
+                <div class="text-center max-w-3xl mx-auto">
+                    <h2 class="section-title">The "Trading Application Pet Store"</h2>
+                    <p class="text-slate-600 leading-relaxed text-lg">
+                        In software training, a "pet store" is a simplified, manageable application. <strong>TraderX</strong> mimics the core functionalities of complex trading platforms found at major FSIs, but is built approachably so it can run locally on a laptop.
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="light-card p-8 border-t-4 border-[#008cc1]">
+                        <div class="w-12 h-12 bg-sky-100 rounded-lg flex items-center justify-center text-2xl text-[#008cc1] mb-5">
+                            <i class="fa-solid fa-bullseye"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-slate-800">The Goal</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">To provide a safe experimentation sandbox. Bridge the theory-practice gap by translating abstract concepts into practical solutions without relying solely on slide decks.</p>
+                    </div>
+                    <div class="light-card p-8 border-t-4 border-[#00b0d2]">
+                        <div class="w-12 h-12 bg-cyan-100 rounded-lg flex items-center justify-center text-2xl text-[#00b0d2] mb-5">
+                            <i class="fa-solid fa-handshake"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-slate-800">Serving FINOS</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">Accelerate adoption of FINOS standards by providing a unified, tangible showcase. Evaluators can assess how projects like FDC3 or CDM fit into a relatable architecture.</p>
+                    </div>
+                    <div class="light-card p-8 border-t-4 border-slate-700">
+                        <div class="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center text-2xl text-slate-700 mb-5">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-slate-800">The Audiences</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">Serves new developers learning fundamentals, tech teams testing integrations, and business stakeholders needing real-time visual demos of proposed investments.</p>
+                    </div>
+                </div>
+
+                <!-- Live Demos & New Features -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-10 shadow-sm">
+                    <h3 class="text-2xl font-bold mb-8 text-center text-slate-800">Explore the Live Sandboxes</h3>
+                    <div class="grid md:grid-cols-3 gap-10">
+                        <div class="text-center group">
+                            <a href="https://demo.traderx.finos.org" target="_blank" class="inline-flex h-16 w-16 items-center justify-center mb-4 rounded-full bg-blue-50 text-[#008cc1] group-hover:bg-[#008cc1] group-hover:text-white transition-all shadow-sm">
+                                <i class="fa-solid fa-desktop text-2xl"></i>
+                            </a>
+                            <h4 class="font-bold text-slate-800 mb-2">Standard Demo</h4>
+                            <p class="text-sm text-slate-600">The baseline containerized runtime (State 004). Perfect for understanding the core TraderX architecture.</p>
+                        </div>
+                        <div class="text-center group">
+                            <a href="https://demoadvanced.traderx.finos.org" target="_blank" class="inline-flex h-16 w-16 items-center justify-center mb-4 rounded-full bg-purple-50 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-all shadow-sm">
+                                <i class="fa-solid fa-bolt text-2xl"></i>
+                            </a>
+                            <h4 class="font-bold text-slate-800 mb-2">Advanced Demo</h4>
+                            <p class="text-sm text-slate-600">Features the live <strong>PubSub Inspector</strong>, algorithmic order filling (State 009), and real-time market data streaming.</p>
+                        </div>
+                        <div class="text-center group">
+                            <a href="https://finos.github.io/traderX/LLMs.txt" target="_blank" class="inline-flex h-16 w-16 items-center justify-center mb-4 rounded-full bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-sm">
+                                <i class="fa-solid fa-robot text-2xl"></i>
+                            </a>
+                            <h4 class="font-bold text-slate-800 mb-2">LLM-Native Docs</h4>
+                            <p class="text-sm text-slate-600">Our Docusaurus site automatically generates an <code>LLMs.txt</code> sitemap, allowing AI agents to natively consume our specs.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 TAB 2: CANONICAL LEARNING PATH
+            =========================================== -->
+            <div id="tab-paths" class="tab-content">
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <h2 class="section-title">The Canonical Learning Path</h2>
+                    <p class="text-slate-600 leading-relaxed text-lg">
+                        We've moved beyond theoretical "Swim Lanes." The official learning path is now governed by the <strong>State Catalog</strong> in our Spec-Driven repository. Each state is a fully runnable snapshot demonstrating a specific architectural evolution.
+                    </p>
+                </div>
+
+                <div class="relative border-l-2 border-slate-200 ml-4 md:ml-8 mt-8 space-y-12 pb-8">
+                    
+                    <!-- Phase 1 -->
+                    <div class="relative pl-8">
+                        <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-[#008cc1] border-2 border-white shadow-sm"></div>
+                        <span class="track-badge bg-blue-100 text-[#008cc1] border border-blue-200">Phase 1: Foundation (C0)</span>
+                        <h3 class="text-xl font-bold text-slate-800 mb-4 mt-2">Establishing the Baseline</h3>
+                        <div class="grid sm:grid-cols-2 gap-5">
+                            <div class="light-card p-5">
+                                <div class="font-mono text-sm text-[#008cc1] font-bold mb-2">001-baseline-uncontainerized</div>
+                                <p class="text-sm text-slate-600">The uncontainerized "digital lemonade stand" for learning core business logic.</p>
+                            </div>
+                            <div class="light-card p-5">
+                                <div class="font-mono text-sm text-[#008cc1] font-bold mb-2">002-edge-proxy</div>
+                                <p class="text-sm text-slate-600">Introduces a basic NGINX edge proxy for routing requests.</p>
+                            </div>
+                            <div class="light-card p-5">
+                                <div class="font-mono text-sm text-[#008cc1] font-bold mb-2">003-agentic-harness-foundation</div>
+                                <p class="text-sm text-slate-600">Test harnesses and foundational specs preparing the app for AI agents.</p>
+                            </div>
+                            <div class="light-card p-5 bg-blue-50 border-[#008cc1]/30">
+                                <div class="flex flex-wrap gap-2 items-center mb-2">
+                                    <div class="font-mono text-sm font-bold text-slate-800">004-compose-runtime</div>
+                                    <span class="bg-[#008cc1] text-white px-2 py-0.5 rounded text-xs font-bold">Convergence C0</span>
+                                </div>
+                                <p class="text-sm text-slate-600">The clean starting point for multi-container development. <em>(Powers demo.traderx.finos.org)</em></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Phase 2 -->
+                    <div class="relative pl-8">
+                        <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-purple-500 border-2 border-white shadow-sm"></div>
+                        <span class="track-badge bg-purple-100 text-purple-700 border border-purple-200">Phase 2: Infrastructure (C1)</span>
+                        <h3 class="text-xl font-bold text-slate-800 mb-4 mt-2">Hardening the Core</h3>
+                        <div class="grid sm:grid-cols-2 gap-5">
+                            <div class="light-card p-5">
+                                <div class="font-mono text-sm text-purple-600 font-bold mb-2">005-postgres-database</div>
+                                <p class="text-sm text-slate-600">Replaces ephemeral memory with Postgres for durable state persistence.</p>
+                            </div>
+                            <div class="light-card p-5">
+                                <div class="font-mono text-sm text-purple-600 font-bold mb-2">006-messaging-nats</div>
+                                <p class="text-sm text-slate-600">Swaps the basic message bus for the enterprise-grade NATS broker.</p>
+                            </div>
+                            <div class="light-card p-5 bg-purple-50 border-purple-300 sm:col-span-2">
+                                <div class="flex flex-wrap gap-2 items-center mb-2">
+                                    <div class="font-mono text-sm font-bold text-slate-800">007-observability-lgtm-compose</div>
+                                    <span class="bg-purple-600 text-white px-2 py-0.5 rounded text-xs font-bold">Convergence C1</span>
+                                </div>
+                                <p class="text-sm text-slate-600">Injects the full LGTM (Loki, Grafana, Tempo, Mimir) observability stack into Compose.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Phase 3 -->
+                    <div class="relative pl-8">
+                        <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-[#00b0d2] border-2 border-white shadow-sm"></div>
+                        <span class="track-badge bg-cyan-100 text-[#00b0d2] border border-cyan-200">Phase 3: Functionality (C2)</span>
+                        <h3 class="text-xl font-bold text-slate-800 mb-4 mt-2">Advanced Business Logic</h3>
+                        <div class="grid sm:grid-cols-2 gap-5">
+                            <div class="light-card p-5">
+                                <div class="font-mono text-sm text-[#00b0d2] font-bold mb-2">008-pricing-awareness</div>
+                                <p class="text-sm text-slate-600">Adds real-time market data streams and UI price ticking via WebSockets.</p>
+                            </div>
+                            <div class="light-card p-5 bg-cyan-50 border-cyan-300">
+                                <div class="flex flex-wrap gap-2 items-center mb-2">
+                                    <div class="font-mono text-sm font-bold text-slate-800">009-order-matcher</div>
+                                    <span class="bg-[#00b0d2] text-white px-2 py-0.5 rounded text-xs font-bold">Convergence C2</span>
+                                </div>
+                                <p class="text-sm text-slate-600">Algorithmic order filling. <em>(Powers demoadvanced.traderx.finos.org)</em></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Phase 4 & 5 -->
+                    <div class="relative pl-8">
+                        <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white shadow-sm"></div>
+                        <span class="track-badge bg-emerald-100 text-emerald-700 border border-emerald-200">Phase 4 & 5: Platform & Ecosystem</span>
+                        <h3 class="text-xl font-bold text-slate-800 mb-4 mt-2">Convergence & Interoperability</h3>
+                        <div class="grid sm:grid-cols-2 gap-5">
+                            <div class="light-card p-5">
+                                <div class="font-mono text-sm text-emerald-600 font-bold mb-2">010-kubernetes-runtime</div>
+                                <p class="text-sm text-slate-600">Migrates the compose runtime to a full Kubernetes cluster.</p>
+                            </div>
+                            <div class="light-card p-5">
+                                <div class="font-mono text-sm text-emerald-600 font-bold mb-2">011-tilt-local-dev</div>
+                                <p class="text-sm text-slate-600">Introduces Tilt.dev for rapid local Kubernetes development and inner-loop optimization.</p>
+                            </div>
+                            <div class="light-card p-5 bg-emerald-50 border-emerald-300">
+                                <div class="flex flex-wrap gap-2 items-center mb-2">
+                                    <div class="font-mono text-sm font-bold text-slate-800">012-platform-convergence</div>
+                                    <span class="bg-emerald-600 text-white px-2 py-0.5 rounded text-xs font-bold">Convergence C3</span>
+                                </div>
+                                <p class="text-sm text-slate-600">The fully converged modern Kubernetes architecture.</p>
+                            </div>
+                            <div class="light-card p-5">
+                                <div class="font-mono text-sm text-emerald-600 font-bold mb-2">013-radius-platform</div>
+                                <p class="text-sm text-slate-600">Experimental state exploring Microsoft Radius application deployment abstractions.</p>
+                            </div>
+                            <div class="light-card p-5 sm:col-span-2 border-l-4 border-emerald-500">
+                                <div class="font-mono text-sm text-emerald-600 font-bold mb-2">014-fdc3-intent-interoperability</div>
+                                <p class="text-sm text-slate-600">FINOS FDC3 adoption, featuring inter-app intents running inside the Sail desktop agent.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 TAB 3: SPEC DRIVEN DEVELOPMENT
+            =========================================== -->
+            <div id="tab-sdd" class="tab-content space-y-12">
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <h2 class="section-title">Eliminating Fork Drift with SDD</h2>
+                    <p class="text-slate-600 leading-relaxed text-lg">
+                        To maintain 14+ distinct learning states without creating an unmergeable nightmare of branches, we moved to <strong>Spec-Driven Development</strong>. The <code>main</code> branch contains NO runtime code—only specifications. The runtime code is deterministically generated into isolated <code>code/generated-state-*</code> branches.
+                    </p>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <!-- Snippet 1 -->
+                    <div class="light-card overflow-hidden flex flex-col">
+                        <div class="code-header">
+                            <span class="font-bold text-sm text-slate-700"><i class="fa-solid fa-code text-[#008cc1] mr-2"></i>Real-time Push vs. Polling (State 009)</span>
+                            <span class="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded font-semibold">Angular / Socket.IO</span>
+                        </div>
+                        <div class="p-5 bg-white border-b border-slate-200">
+                            <p class="text-sm text-slate-600">Instead of HTTP polling, State 009 uses SDD to wire the Order Matcher directly to the PubSub messaging bus. The front-end is spec'd to subscribe dynamically to trades, orders, and positions.</p>
+                        </div>
+                        <pre class="flex-grow"><code class="language-typescript">// web-front-end/angular/main/app/trade/order-blotter
+// Real-time updates replace the 5000ms polling loop
+const unsub = this.orderAdminService.subscribe(
+  `/accounts/${accountId}/orders`,
+  (order: OrderRecord) => this.applyOrderUpdate(order)
+);
+this.subscriptions.add({ unsubscribe: unsub });</code></pre>
+                    </div>
+
+                    <!-- Snippet 2 -->
+                    <div class="light-card overflow-hidden flex flex-col">
+                        <div class="code-header">
+                            <span class="font-bold text-sm text-slate-700"><i class="fa-solid fa-file-contract text-[#008cc1] mr-2"></i>Environment Contracts</span>
+                            <span class="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded font-semibold">TypeScript</span>
+                        </div>
+                        <div class="p-5 bg-white border-b border-slate-200">
+                            <p class="text-sm text-slate-600">SDD enforces structural completeness at compile time by requiring all generated UI states to adhere to an Environment Interface, preventing silent runtime failures.</p>
+                        </div>
+                        <pre class="flex-grow"><code class="language-typescript">export interface Environment {
+  production: boolean;
+  accountUrl: string;
+  refrenceDataUrl: string; // Intentional typo matching legacy
+  tradesUrl: string;
+  positionsUrl: string;
+}</code></pre>
+                    </div>
+
+                    <!-- Security Audits -->
+                    <div class="light-card overflow-hidden lg:col-span-2 border-l-4 border-amber-500">
+                        <div class="bg-amber-50 px-6 py-4 border-b border-amber-200 flex items-center">
+                            <i class="fa-solid fa-shield-halved text-amber-500 text-xl mr-3"></i>
+                            <span class="font-bold text-lg text-slate-800">Backpatching & Security Audits</span>
+                        </div>
+                        <div class="p-6 bg-white">
+                            <p class="text-base text-slate-600 mb-5 leading-relaxed">
+                                We utilize Spec-Driven Development to maintain security baselines across the ecosystem. Tools like <strong>Backpatch</strong> run through our generated branches, seamlessly upgrading dependencies (e.g., Spring Boot, Netty) in Artifactory while automatically logging justification metadata to prevent scanner false positives.
+                            </p>
+                            <ul class="text-sm text-slate-600 space-y-3 list-disc pl-6 marker:text-amber-500">
+                                <li><strong>CVE SLAs:</strong> Dependencies are strictly tracked in the <code>Constitution</code> matrices.</li>
+                                <li><strong>LLM-Native Docs:</strong> Documentation is isolated and compiled directly to Docusaurus, generating an <code>LLMs.txt</code> sitemap for AI consumption.</li>
+                                <li><strong>Never touch the codebase:</strong> PRs strictly target the Spec files. The generators do the rest.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==========================================
+                 TAB 4: WHAT IS SPEC KIT?
+            =========================================== -->
+            <div id="tab-speckit" class="tab-content space-y-12">
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <h2 class="section-title">The GitHub Spec Kit Engine</h2>
+                    <p class="text-slate-600 leading-relaxed text-lg">
+                        Spec Kit replaces non-deterministic "AI vibe coding" with a highly structured pipeline. AI assists with reasoning and technical decomposition, but <strong>deterministic patch scripts</strong> control the exact files emitted.
+                    </p>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-16">
+                    <!-- Left: Pipeline Steps -->
+                    <div class="space-y-10 relative ml-4 mt-4">
+                        <div class="absolute left-[1.15rem] top-6 bottom-6 w-0.5 bg-slate-200 z-0"></div>
+                        
+                        <div class="relative z-10 flex gap-6">
+                            <div class="w-10 h-10 rounded-full bg-white border-2 border-[#008cc1] flex items-center justify-center font-bold text-[#008cc1] shadow-sm flex-shrink-0">1</div>
+                            <div class="pt-1">
+                                <h4 class="text-lg font-bold text-slate-800"><span class="font-mono text-[#008cc1]">speckit.init</span></h4>
+                                <p class="text-sm text-slate-600 mt-2 leading-relaxed">Establishes the repository's <code>Constitution</code>. Encodes corporate guardrails (AIGF v2.0), branch protection rules, and dependency matrices (e.g., Backpatch enforcement).</p>
+                            </div>
+                        </div>
+
+                        <div class="relative z-10 flex gap-6">
+                            <div class="w-10 h-10 rounded-full bg-white border-2 border-[#008cc1] flex items-center justify-center font-bold text-[#008cc1] shadow-sm flex-shrink-0">2</div>
+                            <div class="pt-1">
+                                <h4 class="text-lg font-bold text-slate-800"><span class="font-mono text-[#008cc1]">speckit.specify</span></h4>
+                                <p class="text-sm text-slate-600 mt-2 leading-relaxed">Collaborate with an LLM to translate business directives into a strict <code>requirements.yml</code>, defining API contracts, flows, and testing parameters.</p>
+                            </div>
+                        </div>
+
+                        <div class="relative z-10 flex gap-6">
+                            <div class="w-10 h-10 rounded-full bg-white border-2 border-[#008cc1] flex items-center justify-center font-bold text-[#008cc1] shadow-sm flex-shrink-0">3</div>
+                            <div class="pt-1">
+                                <h4 class="text-lg font-bold text-slate-800"><span class="font-mono text-[#008cc1]">speckit.plan & .tasks</span></h4>
+                                <p class="text-sm text-slate-600 mt-2 leading-relaxed">The system slices the specification into human-reviewable, atomic engineering tasks to prevent context-destroying mega-commits.</p>
+                            </div>
+                        </div>
+
+                        <div class="relative z-10 flex gap-6">
+                            <div class="w-10 h-10 rounded-full bg-white border-2 border-[#008cc1] flex items-center justify-center font-bold text-[#008cc1] shadow-sm flex-shrink-0">4</div>
+                            <div class="pt-1">
+                                <h4 class="text-lg font-bold text-slate-800"><span class="font-mono text-[#008cc1]">speckit.implement</span></h4>
+                                <p class="text-sm text-slate-600 mt-2 leading-relaxed">Executes the generation. Target code branches are built deterministically from patch files. CI/CD automatically deploys the containers.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Code blocks -->
+                    <div class="space-y-8">
+                        <div class="light-card overflow-hidden">
+                            <div class="code-header">
+                                <span class="font-bold text-sm text-slate-700">Example: The Constitution</span>
+                                <span class="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded font-semibold font-mono">YAML</span>
+                            </div>
+                            <pre class="!m-0"><code class="language-yaml text-sky-200"># .speckit/constitution.yml
+governance:
+  compliance:
+    - rule: "AIGF_v2.0_AIR_OP_005"
+      enforcement: strict
+      description: "Foundation Model versions must be pinned."
+  architecture:
+    - rule: "NO_LOCAL_STATE"
+      description: "Microservices must use external persistence."</code></pre>
+                        </div>
+                        
+                        <div class="light-card overflow-hidden">
+                            <div class="code-header">
+                                <span class="font-bold text-sm text-slate-700">Visualizing Overlays</span>
+                                <span class="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded font-semibold font-mono">Mermaid</span>
+                            </div>
+                            <div class="p-4 bg-white border-b border-slate-200 text-sm text-slate-600 leading-relaxed">
+                                Overlays track their divergence and convergence points natively using Mermaid schemas embedded directly in the docs.
+                            </div>
+                            <pre class="!m-0"><code class="language-yaml text-purple-200">flowchart TB
+  %% Convergence mapping
+  FINOS_002_EdgeProxy -.->|converges| CORP_002_CustomMessaging
+
+  classDef upstream dashed yellow border
+  classDef feature fill:#green</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-12 border-t border-slate-200 bg-slate-50 relative z-10">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6 text-slate-500 text-sm">
+            <div class="flex items-center gap-4">
+                <!-- FINOS Logo SVG -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 100" class="h-8 fill-slate-700">
+                    <path d="M47.7,21.8H12.9v19.4h30v11.5h-30v25.5H1.4V10.3h46.3V21.8z M70.3,10.3h11.5v67.9H70.3V10.3z M144.1,10.3h12.5v67.9h-10.7 l-38.3-46v46H96.1V10.3h10.8l37.2,44.7V10.3z M171.7,44.3c0-20.2,14.6-35.3,34.8-35.3c20.2,0,34.8,15.1,34.8,35.3 s-14.6,35.3-34.8,35.3C186.2,79.6,171.7,64.5,171.7,44.3z M229.4,44.3c0-13.8-9.8-24.1-22.9-24.1c-13.1,0-22.9,10.3-22.9,24.1 c0,13.8,9.8,24.1,22.9,24.1C219.6,68.4,229.4,58.1,229.4,44.3z M256.4,66.1l7.1-9.5c8.3,6.2,18.8,9.9,29.3,9.9 c9.2,0,13.9-3.4,13.9-8.4c0-5.5-5.9-7.3-17.5-10.4c-14.6-3.9-24.3-9.5-24.3-21.7c0-11.4,9.6-17.2,24.1-17.2 c11.5,0,21.7,3.6,28.8,8.8l-6.8,10.1c-7.2-4.9-15.6-7.8-22.8-7.8c-7.3,0-11.7,3.2-11.7,7.2c0,5.1,5.3,6.8,16.5,9.8 c15.2,4.1,25.3,9.8,25.3,22.2c0,11.5-9.2,19.6-26.1,19.6C278.4,78.7,265.8,74.1,256.4,66.1z"/>
+                </svg>
+                <div class="border-l border-slate-300 h-8"></div>
+                <div>
+                    <p class="font-semibold text-slate-700">© 2026 FINOS Foundation.</p>
+                    <p class="text-xs mt-0.5">Built using GitHub Spec Kit v1.4.2</p>
+                </div>
+            </div>
+            <div class="flex gap-6 font-medium">
+                <a href="https://github.com/finos/traderX" target="_blank" class="hover:text-[#008cc1] transition-colors"><i class="fa-brands fa-github mr-1"></i> Repository</a>
+                <a href="https://calendar.finos.org" target="_blank" class="hover:text-[#008cc1] transition-colors"><i class="fa-regular fa-calendar mr-1"></i> Project Calls</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Tab Switching Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Remove active from all
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+
+                    // Add active to clicked
+                    btn.classList.add('active');
+                    const targetId = btn.getAttribute('data-target');
+                    document.getElementById(targetId).classList.add('active');
+                    
+                    // Smooth scroll up a bit if scrolled down
+                    const tabNav = document.querySelector('.sticky');
+                    if(window.scrollY > tabNav.offsetTop) {
+                        window.scrollTo({
+                            top: tabNav.offsetTop - 10,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
