@@ -846,7 +846,7 @@ index 0000000..549bccf
 @@ -0,0 +1,39 @@
 +plugins {
 +  id 'java'
-+  id 'org.springframework.boot' version '3.5.14'
++  id 'org.springframework.boot' version '3.5.15'
 +  id 'io.spring.dependency-management' version '1.1.7'
 +}
 +
@@ -866,13 +866,13 @@ index 0000000..549bccf
 +dependencies {
 +  implementation 'org.springframework.boot:spring-boot-starter-web'
 +  implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-+  implementation 'com.h2database:h2:2.3.232'
++  implementation 'com.h2database:h2:2.4.240'
 +  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
 +
-+  implementation ('ch.qos.logback:logback-core:1.5.32') {
-+    because 'version brought in by spring boot 3.5.14 affected by CVE-2024-12798'
++  implementation ('ch.qos.logback:logback-core:1.5.34') {
++    because 'version brought in by spring boot 3.5.15 affected by CVE-2024-12798'
 +  }
-+  implementation 'ch.qos.logback:logback-classic:1.5.32'
++  implementation 'ch.qos.logback:logback-classic:1.5.34'
 +  implementation 'org.apache.logging.log4j:log4j-api:2.25.4'
 +  implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.25.4'
 +  implementation 'org.apache.commons:commons-lang3:3.20.0'
@@ -1994,7 +1994,7 @@ index 0000000..2b4b698
 +}
 +
 +dependencies {
-+  implementation 'com.h2database:h2:2.3.232'
++  implementation 'com.h2database:h2:2.4.240'
 +}
 +
 +application {
@@ -3201,7 +3201,7 @@ index 0000000..0d06b87
 @@ -0,0 +1,39 @@
 +plugins {
 +  id 'java'
-+  id 'org.springframework.boot' version '3.5.14'
++  id 'org.springframework.boot' version '3.5.15'
 +  id 'io.spring.dependency-management' version '1.1.7'
 +}
 +
@@ -3221,13 +3221,13 @@ index 0000000..0d06b87
 +dependencies {
 +  implementation 'org.springframework.boot:spring-boot-starter-web'
 +  implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-+  implementation 'com.h2database:h2:2.3.232'
++  implementation 'com.h2database:h2:2.4.240'
 +  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
 +
-+  implementation ('ch.qos.logback:logback-core:1.5.32') {
-+    because 'version brought in by spring boot 3.5.14 affected by CVE-2024-12798'
++  implementation ('ch.qos.logback:logback-core:1.5.34') {
++    because 'version brought in by spring boot 3.5.15 affected by CVE-2024-12798'
 +  }
-+  implementation 'ch.qos.logback:logback-classic:1.5.32'
++  implementation 'ch.qos.logback:logback-classic:1.5.34'
 +  implementation 'org.apache.logging.log4j:log4j-api:2.25.4'
 +  implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.25.4'
 +  implementation 'org.apache.commons:commons-lang3:3.20.0'
@@ -5993,7 +5993,7 @@ index 0000000..2eab1b0
 +      "dependencies": {
 +        "baseline-browser-mapping": "^2.10.12",
 +        "caniuse-lite": "^1.0.30001782",
-+        "electron-to-chromium": "^1.5.328",
++        "electron-to-chromium": "^1.5.348",
 +        "node-releases": "^2.0.36",
 +        "update-browserslist-db": "^1.2.3"
 +      },
@@ -18548,7 +18548,7 @@ index 0000000..33e775c
 +        "cors": "~2.8.5",
 +        "debug": "~4.4.1",
 +        "engine.io-parser": "~5.2.1",
-+        "ws": "8.20.1"
++        "ws": "8.21.0"
 +      },
 +      "engines": {
 +        "node": ">=10.2.0"
@@ -18563,7 +18563,7 @@ index 0000000..33e775c
 +        "@socket.io/component-emitter": "~3.1.0",
 +        "debug": "~4.4.1",
 +        "engine.io-parser": "~5.2.1",
-+        "ws": "8.20.1",
++        "ws": "8.21.0",
 +        "xmlhttprequest-ssl": "~2.1.1"
 +      }
 +    },
@@ -19337,7 +19337,7 @@ index 0000000..33e775c
 +      "license": "MIT",
 +      "dependencies": {
 +        "debug": "~4.4.1",
-+        "ws": "8.20.1"
++        "ws": "8.21.0"
 +      }
 +    },
 +    "node_modules/socket.io-client": {
@@ -19549,8 +19549,8 @@ index 0000000..33e775c
 +      "license": "ISC"
 +    },
 +    "node_modules/ws": {
-+      "version": "8.20.1",
-+      "resolved": "https://registry.npmjs.org/ws/-/ws-8.20.1.tgz",
++      "version": "8.21.0",
++      "resolved": "https://registry.npmjs.org/ws/-/ws-8.21.0.tgz",
 +      "integrity": "sha512-It4dO0K5v//JtTXuPkfEOaI3uUN87iYPnqo/ZzqCoG3g8uhA66QUMs/SrM0YK7/NAu+r4LMh/9dq2A7k+rHs+w==",
 +      "license": "MIT",
 +      "engines": {
@@ -19601,7 +19601,7 @@ index 0000000..d9ef000
 +    "winston": "^3.17.0"
 +  },
 +  "overrides": {
-+    "ws": "8.20.1"
++    "ws": "8.21.0"
 +  }
 +}
 diff --git a/trade-processor/Dockerfile b/trade-processor/Dockerfile
@@ -19704,7 +19704,7 @@ index 0000000..83ce3bb
 @@ -0,0 +1,52 @@
 +plugins {
 +  id 'java'
-+  id 'org.springframework.boot' version '3.5.14'
++  id 'org.springframework.boot' version '3.5.15'
 +  id 'io.spring.dependency-management' version '1.1.7'
 +}
 +
@@ -19724,7 +19724,7 @@ index 0000000..83ce3bb
 +dependencies {
 +  implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 +  implementation 'org.springframework.boot:spring-boot-starter-web'
-+  implementation 'com.h2database:h2:2.3.232'
++  implementation 'com.h2database:h2:2.4.240'
 +  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
 +
 +  implementation('org.json:json:20240303') {
@@ -19735,10 +19735,10 @@ index 0000000..83ce3bb
 +    exclude group: 'org.json', module: 'json'
 +  }
 +  implementation 'com.squareup.okhttp3:okhttp:4.12.0'
-+  implementation ('ch.qos.logback:logback-core:1.5.32') {
-+    because 'version brought in by spring boot 3.5.14 affected by CVE-2024-12798'
++  implementation ('ch.qos.logback:logback-core:1.5.34') {
++    because 'version brought in by spring boot 3.5.15 affected by CVE-2024-12798'
 +  }
-+  implementation 'ch.qos.logback:logback-classic:1.5.32'
++  implementation 'ch.qos.logback:logback-classic:1.5.34'
 +  implementation 'org.apache.logging.log4j:log4j-api:2.25.4'
 +  implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.25.4'
 +  implementation 'org.apache.commons:commons-lang3:3.20.0'
@@ -21107,7 +21107,7 @@ index 0000000..8262ceb
 @@ -0,0 +1,56 @@
 +plugins {
 +  id 'java'
-+  id 'org.springframework.boot' version '3.5.14'
++  id 'org.springframework.boot' version '3.5.15'
 +  id 'io.spring.dependency-management' version '1.1.7'
 +}
 +
@@ -21131,7 +21131,7 @@ index 0000000..8262ceb
 +dependencies {
 +  implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 +  implementation 'org.springframework.boot:spring-boot-starter-web'
-+  implementation 'com.h2database:h2:2.3.232'
++  implementation 'com.h2database:h2:2.4.240'
 +  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
 +
 +  implementation('org.json:json:20240303') {
@@ -21142,10 +21142,10 @@ index 0000000..8262ceb
 +    exclude group: 'org.json', module: 'json'
 +  }
 +  implementation 'com.squareup.okhttp3:okhttp:4.12.0'
-+  implementation ('ch.qos.logback:logback-core:1.5.32') {
-+    because 'version brought in by spring boot 3.5.14 affected by CVE-2024-12798'
++  implementation ('ch.qos.logback:logback-core:1.5.34') {
++    because 'version brought in by spring boot 3.5.15 affected by CVE-2024-12798'
 +  }
-+  implementation 'ch.qos.logback:logback-classic:1.5.32'
++  implementation 'ch.qos.logback:logback-classic:1.5.34'
 +  implementation 'org.apache.logging.log4j:log4j-api:2.25.4'
 +  implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.25.4'
 +  implementation 'org.apache.commons:commons-lang3:3.20.0'
@@ -26927,7 +26927,7 @@ index 0000000..22fbba9
 +        "karma-chrome-launcher": "~3.2.0",
 +        "karma-coverage": "~2.2.1",
 +        "karma-jasmine": "~5.1.0",
-+        "karma-jasmine-html-reporter": "~2.1.0",
++        "karma-jasmine-html-reporter": "~2.2.0",
 +        "karma-junit-reporter": "^2.0.1",
 +        "puppeteer": "^23.8.0",
 +        "serve-handler": "^6.1.5",
@@ -33739,7 +33739,7 @@ index 0000000..22fbba9
 +      "dependencies": {
 +        "baseline-browser-mapping": "^2.10.12",
 +        "caniuse-lite": "^1.0.30001782",
-+        "electron-to-chromium": "^1.5.328",
++        "electron-to-chromium": "^1.5.348",
 +        "node-releases": "^2.0.36",
 +        "update-browserslist-db": "^1.2.3"
 +      },
@@ -35067,7 +35067,7 @@ index 0000000..22fbba9
 +        "cors": "~2.8.5",
 +        "debug": "~4.4.1",
 +        "engine.io-parser": "~5.2.1",
-+        "ws": "8.20.1"
++        "ws": "8.21.0"
 +      },
 +      "engines": {
 +        "node": ">=10.2.0"
@@ -35082,13 +35082,13 @@ index 0000000..22fbba9
 +        "@socket.io/component-emitter": "~3.1.0",
 +        "debug": "~4.4.1",
 +        "engine.io-parser": "~5.2.1",
-+        "ws": "8.20.1",
++        "ws": "8.21.0",
 +        "xmlhttprequest-ssl": "~2.1.1"
 +      }
 +    },
 +    "node_modules/engine.io-client/node_modules/ws": {
-+      "version": "8.20.1",
-+      "resolved": "https://registry.npmjs.org/ws/-/ws-8.20.1.tgz",
++      "version": "8.21.0",
++      "resolved": "https://registry.npmjs.org/ws/-/ws-8.21.0.tgz",
 +      "integrity": "sha512-It4dO0K5v//JtTXuPkfEOaI3uUN87iYPnqo/ZzqCoG3g8uhA66QUMs/SrM0YK7/NAu+r4LMh/9dq2A7k+rHs+w==",
 +      "license": "MIT",
 +      "engines": {
@@ -35117,8 +35117,8 @@ index 0000000..22fbba9
 +      }
 +    },
 +    "node_modules/engine.io/node_modules/ws": {
-+      "version": "8.20.1",
-+      "resolved": "https://registry.npmjs.org/ws/-/ws-8.20.1.tgz",
++      "version": "8.21.0",
++      "resolved": "https://registry.npmjs.org/ws/-/ws-8.21.0.tgz",
 +      "integrity": "sha512-It4dO0K5v//JtTXuPkfEOaI3uUN87iYPnqo/ZzqCoG3g8uhA66QUMs/SrM0YK7/NAu+r4LMh/9dq2A7k+rHs+w==",
 +      "dev": true,
 +      "license": "MIT",
@@ -40927,12 +40927,12 @@ index 0000000..22fbba9
 +      "license": "MIT",
 +      "dependencies": {
 +        "debug": "~4.4.1",
-+        "ws": "8.20.1"
++        "ws": "8.21.0"
 +      }
 +    },
 +    "node_modules/socket.io-adapter/node_modules/ws": {
-+      "version": "8.20.1",
-+      "resolved": "https://registry.npmjs.org/ws/-/ws-8.20.1.tgz",
++      "version": "8.21.0",
++      "resolved": "https://registry.npmjs.org/ws/-/ws-8.21.0.tgz",
 +      "integrity": "sha512-It4dO0K5v//JtTXuPkfEOaI3uUN87iYPnqo/ZzqCoG3g8uhA66QUMs/SrM0YK7/NAu+r4LMh/9dq2A7k+rHs+w==",
 +      "dev": true,
 +      "license": "MIT",
@@ -43030,7 +43030,7 @@ index 0000000..41b4bb5
 +    "karma-chrome-launcher": "~3.2.0",
 +    "karma-coverage": "~2.2.1",
 +    "karma-jasmine": "~5.1.0",
-+    "karma-jasmine-html-reporter": "~2.1.0",
++    "karma-jasmine-html-reporter": "~2.2.0",
 +    "karma-junit-reporter": "^2.0.1",
 +    "puppeteer": "^23.8.0",
 +    "serve-handler": "^6.1.5",
