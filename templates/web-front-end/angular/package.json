@@ -61,6 +61,6 @@
     "puppeteer": "^23.8.0",
     "serve-handler": "^6.1.5",
     "ts-node": "^10.9.2",
-    "typescript": "~5.8.2"
+    "typescript": "~5.9.0"
   }
 }
