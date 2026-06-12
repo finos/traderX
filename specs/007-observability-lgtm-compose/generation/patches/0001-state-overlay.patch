@@ -2111,6 +2111,6 @@ index d7a9ae1..5540073 100644
    implementation 'org.springframework.boot:spring-boot-starter-web'
 +  implementation 'org.springframework.boot:spring-boot-starter-actuator'
 +  runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
-   implementation 'com.h2database:h2:2.3.232'
+   implementation 'com.h2database:h2:2.4.240'
    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
    implementation 'io.nats:jnats:2.20.5'

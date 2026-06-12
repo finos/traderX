@@ -781,7 +781,7 @@ index d9ef000..0000000
 -    "winston": "^3.17.0"
 -  },
 -  "overrides": {
--    "ws": "8.20.1"
+-    "ws": "8.21.0"
 -  }
 -}
 diff --git a/trade-processor/build.gradle b/trade-processor/build.gradle
@@ -1179,7 +1179,7 @@ index 5693071..d7a9ae1 100644
 +++ b/trade-service/build.gradle
 @@ -24,6 +24,7 @@ dependencies {
    implementation 'org.springframework.boot:spring-boot-starter-web'
-   implementation 'com.h2database:h2:2.3.232'
+   implementation 'com.h2database:h2:2.4.240'
    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
 +  implementation 'io.nats:jnats:2.20.5'
  

@@ -194,11 +194,11 @@ index 7c23724..5edadfd 100644
  dependencies {
    implementation 'org.springframework.boot:spring-boot-starter-web'
    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
--  implementation 'com.h2database:h2:2.3.232'
+-  implementation 'com.h2database:h2:2.4.240'
 +  implementation 'org.postgresql:postgresql:42.7.11'
    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
  
-   implementation ('ch.qos.logback:logback-core:1.5.32') {
+   implementation ('ch.qos.logback:logback-core:1.5.34') {
 diff --git a/account-service/src/main/java/finos/traderx/accountservice/repository/AccountRepository.java b/account-service/src/main/java/finos/traderx/accountservice/repository/AccountRepository.java
 index dc66544..22d0aac 100644
 --- a/account-service/src/main/java/finos/traderx/accountservice/repository/AccountRepository.java
@@ -253,11 +253,11 @@ index 060d4f8..cddccee 100644
  dependencies {
    implementation 'org.springframework.boot:spring-boot-starter-web'
    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
--  implementation 'com.h2database:h2:2.3.232'
+-  implementation 'com.h2database:h2:2.4.240'
 +  implementation 'org.postgresql:postgresql:42.7.11'
    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
  
-   implementation ('ch.qos.logback:logback-core:1.5.32') {
+   implementation ('ch.qos.logback:logback-core:1.5.34') {
 diff --git a/position-service/src/main/resources/application.properties b/position-service/src/main/resources/application.properties
 index 908d7f3..8e4ca07 100644
 --- a/position-service/src/main/resources/application.properties
@@ -724,7 +724,7 @@ index 10c246e..b3a7648 100644
  dependencies {
    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
    implementation 'org.springframework.boot:spring-boot-starter-web'
--  implementation 'com.h2database:h2:2.3.232'
+-  implementation 'com.h2database:h2:2.4.240'
 +  implementation 'org.postgresql:postgresql:42.7.11'
    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
  
