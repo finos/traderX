@@ -18,6 +18,7 @@ The portal publishes three repository sources:
 
 - Root specs catalog: `/specs`
 - Baseline feature pack: `/specs/baseline-uncontainerized-parity`
+- Docs portal homepage feature pack: `/specs/docs-portal-homepage`
 - State docs map (flows + architecture): `/docs/spec-kit/state-docs`
 - Learning guides for generated code states: `/docs/learning`
 - OpenAPI API Explorer (runtime): `/api/docs` (served by running state ingress/edge)
@@ -30,6 +31,22 @@ The portal publishes three repository sources:
 - EC2 Compose host prerequisites: `/docs/spec-kit/aws-ec2-compose-prerequisites`
 - EC2 Kubernetes host prerequisites (planned profile): `/docs/spec-kit/aws-ec2-kubernetes-prerequisites`
 - Learning-path visuals: `/docs/learning-paths`
+
+## Homepage Contract
+
+The Docusaurus root route `/` is the TraderX reference architecture portal homepage. It replaces the former default Docusaurus homepage and the standalone `new_website/traderx.html` prototype.
+
+Maintaining spec:
+
+- Feature pack: `/specs/docs-portal-homepage`
+- Contract: `/specs/docs-portal-homepage/system/homepage-contract`
+
+Homepage source rules:
+
+- Generated state blocks are sourced from `catalog/state-catalog.json`.
+- Live demo blocks are sourced from `catalog/live-environments.json` and joined to the state catalog by `stateId`.
+- State cards must link to canonical specs, architecture, runtime docs, learning guides, generated code branches, and ADRs when declared in the catalog.
+- Footer source claims must distinguish catalog-backed state data from curated homepage copy.
 
 ## Official GitHub Spec Kit
 
