@@ -11,7 +11,7 @@
   "dependencies": {
     "express": "5.2.1",
     "nats": "2.29.3",
-    "yahoo-finance2": "2.13.3"
+    "yahoo-finance2": "2.14.0"
   },
   "overrides": {
     "qs": "6.15.2"
