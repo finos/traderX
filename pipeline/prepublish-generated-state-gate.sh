@@ -104,11 +104,12 @@ done
 
 state_num="${STATE_ID%%-*}"
 [[ "${state_num}" =~ ^[0-9]+$ ]] || fail "invalid state id format: ${STATE_ID}"
+state_num_decimal=$((10#${state_num}))
 
 [[ -d "${TARGET_ROOT}" ]] || fail "target root not found: ${TARGET_ROOT}"
 
 STATE_METADATA="${TARGET_ROOT}/ci/state-metadata.json"
-if [[ "${state_num}" -ge 2 ]]; then
+if [[ "${state_num_decimal}" -ge 2 ]]; then
   [[ -f "${STATE_METADATA}" ]] || fail "missing state metadata: ${STATE_METADATA}"
 fi
 
@@ -128,7 +129,7 @@ run_core_gates() {
   echo "[step] validate generated state contracts"
   bash "${ROOT}/pipeline/validate-generated-state-contracts.sh" "${TARGET_ROOT}"
 
-  if [[ "${state_num}" -ge 2 ]]; then
+  if [[ "${state_num_decimal}" -ge 2 ]]; then
     if [[ "${SKIP_COMPILE_PREFLIGHT}" == "1" ]]; then
       echo "[warn] skipping generated compile preflight (--skip-compile-preflight)"
     else
@@ -137,7 +138,7 @@ run_core_gates() {
     fi
   fi
 
-  if [[ "${state_num}" -ge 2 ]]; then
+  if [[ "${state_num_decimal}" -ge 2 ]]; then
     echo "[step] validate generated UI status checks"
     bash "${ROOT}/pipeline/validate-generated-ui-status-checks.sh" "${STATE_ID}" "${TARGET_ROOT}" "${COMPONENTS_ROOT}"
   fi
@@ -322,7 +323,7 @@ run_cve_scan() {
 
 run_core_gates
 
-if [[ "${state_num}" -ge 2 ]]; then
+if [[ "${state_num_decimal}" -ge 2 ]]; then
   read_state_arrays
   run_license_scan
   run_container_build_preflight
