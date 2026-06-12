@@ -31,7 +31,7 @@
     "unist-util-visit": "^5.1.0"
   },
   "devDependencies": {
-    "docusaurus-plugin-llms": "^0.3.0",
+    "docusaurus-plugin-llms": "^0.4.0",
     "eslint": "^8.0.0",
     "eslint-plugin-react": "^7.23.2"
   },
