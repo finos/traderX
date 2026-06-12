@@ -12,7 +12,7 @@ export default function Footer() {
           <img src="/img/finos/finos-blue.png" alt="FINOS" className={styles.footerFinosLogo} />
           <span />
           <div>
-            <p>Copyright 2026 Fintech Open Source Foundation.</p>
+            <p>Copyright &copy; 2026 Fintech Open Source Foundation.</p>
             <small>
               Homepage state list sourced from{' '}
               <ExternalLink href={catalogSource.catalogUrl}>
