@@ -2,7 +2,7 @@
   "java": {
     "sourceCompatibility": "21",
     "plugins": {
-      "org.springframework.boot": "3.5.14",
+      "org.springframework.boot": "3.5.15",
       "io.spring.dependency-management": "1.1.7"
     },
     "properties": {
