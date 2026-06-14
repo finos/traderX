@@ -5,6 +5,9 @@ INGRESS_URL="http://localhost:8080"
 ORDER_MATCHER_PORT="${ORDER_MATCHER_PORT:-18110}"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-009}"
 GRAFANA_PORT="${GRAFANA_PORT:-3001}"
+GRAFANA_ADMIN_USER="${TRADERX_GRAFANA_ADMIN_USER:-traderx-admin}"
+GRAFANA_ADMIN_PASSWORD="${TRADERX_GRAFANA_ADMIN_PASSWORD:-traderx-state-009}"
+GRAFANA_ADMIN_AUTH="${GRAFANA_ADMIN_USER}:${GRAFANA_ADMIN_PASSWORD}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
 SKIP_MESSAGING=0
@@ -159,7 +162,7 @@ echo "[info] required order metrics detected"
 
 echo "[check] grafana order dashboards provisioned"
 dashboard_uids_raw="$(
-  curl -sS -u admin:admin "http://localhost:${GRAFANA_PORT}/api/search?query=TraderX&type=dash-db" \
+  curl -sS -u "${GRAFANA_ADMIN_AUTH}" "http://localhost:${GRAFANA_PORT}/api/search?query=TraderX&type=dash-db" \
   | jq -r '.[].uid'
 )"
 if [[ -z "${dashboard_uids_raw}" ]]; then
@@ -169,7 +172,7 @@ fi
 order_metrics_dashboard_uid=""
 while IFS= read -r dashboard_uid; do
   [[ -z "${dashboard_uid}" ]] && continue
-  dashboard_payload="$(curl -sS -u admin:admin "http://localhost:${GRAFANA_PORT}/api/dashboards/uid/${dashboard_uid}")"
+  dashboard_payload="$(curl -sS -u "${GRAFANA_ADMIN_AUTH}" "http://localhost:${GRAFANA_PORT}/api/dashboards/uid/${dashboard_uid}")"
   dashboard_text="$(echo "${dashboard_payload}" | jq -r '.dashboard | tostring')"
   if printf '%s\n' "${dashboard_text}" | rg -q 'traderx_orders_open_total|traderx_order_events_total'; then
     order_metrics_dashboard_uid="${dashboard_uid}"
@@ -186,7 +189,7 @@ echo "[check] grafana includes order + spring actuator SLI dashboard coverage"
 order_sli_dashboard_uid=""
 while IFS= read -r dashboard_uid; do
   [[ -z "${dashboard_uid}" ]] && continue
-  dashboard_payload="$(curl -sS -u admin:admin "http://localhost:${GRAFANA_PORT}/api/dashboards/uid/${dashboard_uid}")"
+  dashboard_payload="$(curl -sS -u "${GRAFANA_ADMIN_AUTH}" "http://localhost:${GRAFANA_PORT}/api/dashboards/uid/${dashboard_uid}")"
   dashboard_text="$(echo "${dashboard_payload}" | jq -r '.dashboard | tostring')"
   if printf '%s\n' "${dashboard_text}" | rg -q 'traderx_order_match_latency_seconds_bucket|http_server_requests_seconds_count'; then
     order_sli_dashboard_uid="${dashboard_uid}"
@@ -203,7 +206,7 @@ echo "[check] grafana includes message bus connectivity panel query"
 message_bus_dashboard_uid=""
 while IFS= read -r dashboard_uid; do
   [[ -z "${dashboard_uid}" ]] && continue
-  dashboard_payload="$(curl -sS -u admin:admin "http://localhost:${GRAFANA_PORT}/api/dashboards/uid/${dashboard_uid}")"
+  dashboard_payload="$(curl -sS -u "${GRAFANA_ADMIN_AUTH}" "http://localhost:${GRAFANA_PORT}/api/dashboards/uid/${dashboard_uid}")"
   dashboard_text="$(echo "${dashboard_payload}" | jq -r '.dashboard | tostring')"
   if printf '%s\n' "${dashboard_text}" | rg -q 'traderx_messagebus_connected'; then
     message_bus_dashboard_uid="${dashboard_uid}"
@@ -527,7 +530,7 @@ echo "[check] grafana loki datasource has non-empty log streams in order-managem
 now_ms=$(($(date +%s) * 1000))
 from_ms=$((now_ms - 15 * 60 * 1000))
 loki_total_query_result="$(
-  curl -sS -u admin:admin -H 'Content-Type: application/json' -X POST "http://localhost:${GRAFANA_PORT}/api/ds/query" \
+  curl -sS -u "${GRAFANA_ADMIN_AUTH}" -H 'Content-Type: application/json' -X POST "http://localhost:${GRAFANA_PORT}/api/ds/query" \
     -d "{\"from\":\"${from_ms}\",\"to\":\"${now_ms}\",\"queries\":[{\"refId\":\"A\",\"datasource\":{\"uid\":\"loki\",\"type\":\"loki\"},\"expr\":\"sum(count_over_time({compose_project=\\\"${COMPOSE_PROJECT_NAME}\\\"}[5m]))\",\"queryType\":\"range\",\"intervalMs\":1000,\"maxDataPoints\":500}]}"
 )"
 loki_total_query_error="$(echo "${loki_total_query_result}" | jq -r '.results.A.error // empty')"
@@ -543,7 +546,7 @@ fi
 
 echo "[check] dashboard service-filtered logs are present (nats/pricing/control-plane/order)"
 loki_service_query_result="$(
-  curl -sS -u admin:admin -H 'Content-Type: application/json' -X POST "http://localhost:${GRAFANA_PORT}/api/ds/query" \
+  curl -sS -u "${GRAFANA_ADMIN_AUTH}" -H 'Content-Type: application/json' -X POST "http://localhost:${GRAFANA_PORT}/api/ds/query" \
     -d "{\"from\":\"${from_ms}\",\"to\":\"${now_ms}\",\"queries\":[{\"refId\":\"A\",\"datasource\":{\"uid\":\"loki\",\"type\":\"loki\"},\"expr\":\"sum(count_over_time({compose_project=\\\"${COMPOSE_PROJECT_NAME}\\\",service=~\\\"nats-broker|price-publisher|trade-service|trade-processor|position-service|order-matcher|web-front-end-angular|grafana|loki|tempo|otel-collector|prometheus|promtail\\\"}[10m]))\",\"queryType\":\"range\",\"intervalMs\":1000,\"maxDataPoints\":500}]}"
 )"
 loki_service_query_error="$(echo "${loki_service_query_result}" | jq -r '.results.A.error // empty')"

@@ -4,6 +4,10 @@ set -euo pipefail
 INGRESS_URL="http://localhost:8080"
 ORIGIN="http://localhost:8080"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-008}"
+GRAFANA_PORT="${GRAFANA_PORT:-3001}"
+GRAFANA_ADMIN_USER="${TRADERX_GRAFANA_ADMIN_USER:-traderx-admin}"
+GRAFANA_ADMIN_PASSWORD="${TRADERX_GRAFANA_ADMIN_PASSWORD:-traderx-state-008}"
+GRAFANA_ADMIN_AUTH="${GRAFANA_ADMIN_USER}:${GRAFANA_ADMIN_PASSWORD}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
 SKIP_MESSAGING=0
@@ -200,13 +204,13 @@ fi
 if docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" ps --status running --services | grep -q '^grafana$'; then
   echo "[check] grafana includes message bus connectivity dashboard/panel query"
   dashboard_uids_raw="$(
-    curl -sS -u admin:admin "http://localhost:3001/api/search?query=TraderX&type=dash-db" \
+    curl -sS -u "${GRAFANA_ADMIN_AUTH}" "http://localhost:${GRAFANA_PORT}/api/search?query=TraderX&type=dash-db" \
     | jq -r '.[].uid'
   )"
   message_bus_dashboard_uid=""
   while IFS= read -r dashboard_uid; do
     [[ -z "${dashboard_uid}" ]] && continue
-    dashboard_payload="$(curl -sS -u admin:admin "http://localhost:3001/api/dashboards/uid/${dashboard_uid}")"
+    dashboard_payload="$(curl -sS -u "${GRAFANA_ADMIN_AUTH}" "http://localhost:${GRAFANA_PORT}/api/dashboards/uid/${dashboard_uid}")"
     dashboard_text="$(echo "${dashboard_payload}" | jq -r '.dashboard | tostring')"
     if printf '%s\n' "${dashboard_text}" | rg -q 'traderx_messagebus_connected'; then
       message_bus_dashboard_uid="${dashboard_uid}"
@@ -227,7 +231,7 @@ if docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" 
   now_ms=$(($(date +%s) * 1000))
   from_ms=$((now_ms - 15 * 60 * 1000))
   loki_total_query_result="$(
-    curl -sS -u admin:admin -H 'Content-Type: application/json' -X POST "http://localhost:${GRAFANA_PORT:-3001}/api/ds/query" \
+    curl -sS -u "${GRAFANA_ADMIN_AUTH}" -H 'Content-Type: application/json' -X POST "http://localhost:${GRAFANA_PORT}/api/ds/query" \
       -d "{\"from\":\"${from_ms}\",\"to\":\"${now_ms}\",\"queries\":[{\"refId\":\"A\",\"datasource\":{\"uid\":\"loki\",\"type\":\"loki\"},\"expr\":\"sum(count_over_time({compose_project=\\\"${COMPOSE_PROJECT_NAME}\\\"}[5m]))\",\"queryType\":\"range\",\"intervalMs\":1000,\"maxDataPoints\":500}]}"
   )"
   loki_total_query_error="$(echo "${loki_total_query_result}" | jq -r '.results.A.error // empty')"
@@ -243,7 +247,7 @@ if docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" 
 
   echo "[check] dashboard service-filtered pricing pipeline logs are present"
   loki_service_query_result="$(
-    curl -sS -u admin:admin -H 'Content-Type: application/json' -X POST "http://localhost:${GRAFANA_PORT:-3001}/api/ds/query" \
+    curl -sS -u "${GRAFANA_ADMIN_AUTH}" -H 'Content-Type: application/json' -X POST "http://localhost:${GRAFANA_PORT}/api/ds/query" \
       -d "{\"from\":\"${from_ms}\",\"to\":\"${now_ms}\",\"queries\":[{\"refId\":\"A\",\"datasource\":{\"uid\":\"loki\",\"type\":\"loki\"},\"expr\":\"sum(count_over_time({compose_project=\\\"${COMPOSE_PROJECT_NAME}\\\",service=~\\\"price-publisher|trade-service|trade-processor|position-service|nats-broker|web-front-end-angular\\\"}[10m]))\",\"queryType\":\"range\",\"intervalMs\":1000,\"maxDataPoints\":500}]}"
   )"
   loki_service_query_error="$(echo "${loki_service_query_result}" | jq -r '.results.A.error // empty')"
