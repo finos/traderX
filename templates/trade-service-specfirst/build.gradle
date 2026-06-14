@@ -26,8 +26,8 @@ dependencies {
   implementation 'org.springframework.boot:spring-boot-starter-web'
   implementation 'com.h2database:h2:2.4.240'
   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
-  implementation 'org.apache.logging.log4j:log4j-api:2.25.4'
-  implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.25.4'
+  implementation 'org.apache.logging.log4j:log4j-api:2.26.0'
+  implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.26.0'
 
   implementation('org.json:json:20240303') {
     because 'previous versions are affected by multiple CVE'
