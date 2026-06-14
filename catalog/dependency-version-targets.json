@@ -22,6 +22,11 @@
     "distributionVersion": "8.14.5",
     "distributionSha256Sum": "6f74b601422d6d6fc4e1f9a1ab6522f642c2fdcbc15ae33ebd30ba3d7198e854"
   },
+  "docker": {
+    "images": {
+      "nats": "2.14-alpine"
+    }
+  },
   "npm": {
     "dependencies": {
       "jasmine-core": "~5.13.0"

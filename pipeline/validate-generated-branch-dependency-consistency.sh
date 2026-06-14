@@ -74,6 +74,22 @@ resolve_ref() {
   return 1
 }
 
+extract_yaml_image_tags() {
+  local file="$1"
+  local image_name="$2"
+  local escaped
+  escaped="$(printf '%s' "${image_name}" | sed 's/[][(){}.+*?^$|\\/]/\\&/g')"
+  rg -o --pcre2 "image\\s*:\\s*['\"]?${escaped}:\\K[^'\"\\s]+" "${file}" || true
+}
+
+extract_json_image_tags() {
+  local file="$1"
+  local image_name="$2"
+  local escaped
+  escaped="$(printf '%s' "${image_name}" | sed 's/[][(){}.+*?^$|\\/]/\\&/g')"
+  rg -o --pcre2 "\"image\"\\s*:\\s*\"${escaped}:\\K[^\"]+" "${file}" || true
+}
+
 rows_file="$(mktemp)"
 keys_file="$(mktemp)"
 trap 'rm -f "${rows_file}" "${keys_file}"' EXIT
@@ -231,8 +247,26 @@ while IFS=$'\t' read -r state_id publish_branch; do
           printf 'nuget\t%s\tPackageReference\t%s\t%s\t%s\n' "${file_path}" "${pkg}" "${state_id}" "${ver}" >> "${rows_file}"
         done
       rm -f "${tmp_csproj}"
+      continue
     fi
-  done < <(git -C "${ROOT}" ls-tree -r --name-only "${ref}" | rg '(build\.gradle|gradle-wrapper\.properties|package\.json|\.csproj)$' || true)
+
+    if [[ "${file_path}" == *.yml || "${file_path}" == *.yaml || "${file_path}" == *kubernetes-runtime.spec.json ]]; then
+      tmp_manifest="$(mktemp)"
+      git -C "${ROOT}" show "${ref}:${file_path}" > "${tmp_manifest}"
+      while IFS=$'\t' read -r image_name _expected; do
+        [[ -n "${image_name}" ]] || continue
+        while IFS= read -r actual_tag; do
+          [[ -n "${actual_tag}" ]] || continue
+          printf 'docker\t%s\timage\t%s\t%s\t%s\n' "${file_path}" "${image_name}" "${state_id}" "${actual_tag}" >> "${rows_file}"
+        done < <(extract_yaml_image_tags "${tmp_manifest}" "${image_name}")
+        while IFS= read -r actual_tag; do
+          [[ -n "${actual_tag}" ]] || continue
+          printf 'docker\t%s\timage\t%s\t%s\t%s\n' "${file_path}" "${image_name}" "${state_id}" "${actual_tag}" >> "${rows_file}"
+        done < <(extract_json_image_tags "${tmp_manifest}" "${image_name}")
+      done < <(jq -r '(.docker.images // {}) | to_entries[] | [.key, .value] | @tsv' "${TARGETS_FILE}")
+      rm -f "${tmp_manifest}"
+    fi
+  done < <(git -C "${ROOT}" ls-tree -r --name-only "${ref}" | rg '(build\.gradle|gradle-wrapper\.properties|package\.json|\.csproj|\.ya?ml|kubernetes-runtime\.spec\.json)$' || true)
 
 done < <(jq -r "${state_query} | [.id, .publish.branch] | @tsv" "${CATALOG}")
 
@@ -289,5 +323,10 @@ while IFS=$'\t' read -r dep expected; do
   [[ -n "${dep}" && -n "${expected}" ]] || continue
   assert_target "nuget" "PackageReference" "${dep}" "${expected}"
 done < <(jq -r '.nuget.packages | to_entries[] | [.key, .value] | @tsv' "${TARGETS_FILE}")
+
+while IFS=$'\t' read -r image_name expected; do
+  [[ -n "${image_name}" && -n "${expected}" ]] || continue
+  assert_target "docker" "image" "${image_name}" "${expected}"
+done < <(jq -r '(.docker.images // {}) | to_entries[] | [.key, .value] | @tsv' "${TARGETS_FILE}")
 
 echo "[ok] generated dependency consistency and targets validated across ${scanned_states} state branch(es)"
