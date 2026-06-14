@@ -2,7 +2,6 @@
 
 const projectName = 'TraderX'
 const projectSlug = 'traderX'
-const copyrightOwner = 'FINOS - The Fintech Open Source Foundation'
 const docsUrl = process.env.DOCUSAURUS_URL || 'https://traderx.finos.org'
 const docsBaseUrl = process.env.DOCUSAURUS_BASE_URL || '/'
 
@@ -64,14 +63,6 @@ module.exports = {
   },
   themes: ['@docusaurus/theme-mermaid'],
   themeConfig: {
-    announcementBar: {
-      id: 'traderx-v2-welcome',
-      backgroundColor: '#0b3a5e',
-      textColor: '#ffffff',
-      isCloseable: false,
-      content:
-        'Welcome to the new <strong>TraderX</strong> docs. Read the <a href="/docs/blog/2026-03-29-traderx-speckit-migration"><strong>engineering migration story</strong></a>.',
-    },
     navbar: {
       title: `TraderX`,
       logo: {
@@ -87,17 +78,17 @@ module.exports = {
         {to: '/docs/learning', label: 'Learning', position: 'right'},
         {type: 'search', position: 'right'},
         {
-          href: 'https://github.com/finos/',
+          href: repoUrl,
           label: 'GitHub',
           position: 'right',
         }
       ],
     },
     footer: {
-      copyright: `Copyright © ${new Date().getFullYear()} TraderX - ${copyrightOwner}`,
+      copyright: `Copyright © ${new Date().getFullYear()} Fintech Open Source Foundation.`,
       logo: {
-        alt: 'FINOS Logo',
-        src: 'img/favicon/favicon-finos.ico',
+        alt: 'Fintech Open Source Foundation Logo',
+        src: 'img/finos/finos-white.png',
         href: 'https://finos.org'
       },
       links: [
@@ -127,6 +118,10 @@ module.exports = {
             {
               label: 'Specs',
               to: '/specs',
+            },
+            {
+              label: 'Source Code',
+              to: repoUrl,
             }
           ]
         },

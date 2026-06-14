@@ -124,10 +124,6 @@
   transition: color 160ms ease, background 160ms ease;
 }
 
-.navIcon {
-  display: inline-flex;
-}
-
 .icon {
   display: inline-block;
   height: 1.1em;

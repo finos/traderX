@@ -26,10 +26,6 @@ function HeroNav() {
       </Link>
 
       <div className={styles.navLinks}>
-        <ExternalLink href="https://www.finos.org" className={styles.finosNavBadge}>
-          <img src="/img/finos/finos-white.png" alt="FINOS" />
-          <span>A FINOS project</span>
-        </ExternalLink>
         {internalNav.map((item) => (
           <Link key={item.to} to={item.to} className={styles.navLink}>
             {item.label === 'Blog' && <Icon name="blog" />}
@@ -40,9 +36,10 @@ function HeroNav() {
           GitHub
           <Icon name="external" />
         </ExternalLink>
-        <span className={styles.navIcon} aria-hidden="true">
-          <Icon name="sun" />
-        </span>
+        <ExternalLink href="https://www.finos.org" className={styles.finosNavBadge}>
+          <img src="/img/finos/finos-white.png" alt="" />
+          <span>FINOS</span>
+        </ExternalLink>
       </div>
     </nav>
   );
