@@ -101,6 +101,7 @@ function WhatPanel() {
             <article key={card.title} className={styles.demoCard}>
               <SmartLink
                 to={card.to}
+                href={card.href}
                 className={clsx(styles.demoIconLink, styles[`tone-${card.tone}`])}
               >
                 <Icon name={card.icon} />
