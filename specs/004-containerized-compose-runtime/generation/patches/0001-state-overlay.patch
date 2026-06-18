@@ -22229,7 +22229,7 @@ index 0000000..2980cc5
 +                "test": {
 +                    "builder": "@angular-devkit/build-angular:karma",
 +                    "options": {
-+                        "polyfills": ["zone.js", "zone.js/testing"],
++                        "polyfills": ["zone.js", "zone.js/testing", "main/app/ag-grid-setup.ts"],
 +                        "tsConfig": "tsconfig.spec.json",
 +                        "karmaConfig": "karma.conf.js",
 +                        "inlineStyleLanguage": "scss",
@@ -22356,6 +22356,16 @@ index 0000000..6e0beca
 +    </div>
 +</div>
 \ No newline at end of file
+diff --git a/web-front-end/angular/main/app/ag-grid-setup.ts b/web-front-end/angular/main/app/ag-grid-setup.ts
+new file mode 100644
+index 0000000..6f4aa47
+--- /dev/null
++++ b/web-front-end/angular/main/app/ag-grid-setup.ts
+@@ -0,0 +1,4 @@
++import { AllCommunityModule, ModuleRegistry, provideGlobalGridOptions } from 'ag-grid-community';
++
++ModuleRegistry.registerModules([AllCommunityModule]);
++provideGlobalGridOptions({ theme: 'legacy' });
 diff --git a/web-front-end/angular/main/app/accounts/account.component.scss b/web-front-end/angular/main/app/accounts/account.component.scss
 new file mode 100644
 index 0000000..e69de29
@@ -26700,6 +26710,7 @@ index 0000000..207c6dd
 +import { enableProdMode } from '@angular/core';
 +import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 +
++import './app/ag-grid-setup';
 +import { AppModule } from './app/app.module';
 +import { environment } from './environments/environment';
 +
@@ -26903,8 +26914,8 @@ index 0000000..22fbba9
 +        "@angular/platform-browser": "^19.2.20",
 +        "@angular/platform-browser-dynamic": "^19.2.20",
 +        "@angular/router": "^19.2.20",
-+        "ag-grid-angular": "^32.2.1",
-+        "ag-grid-community": "^32.2.1",
++        "ag-grid-angular": "^35.0.0",
++        "ag-grid-community": "^35.0.0",
 +        "bootstrap": "^5.3.8",
 +        "ngx-bootstrap": "^19.0.2",
 +        "rxjs": "^7.8.1",
@@ -43006,8 +43017,8 @@ index 0000000..41b4bb5
 +    "@angular/platform-browser": "^19.2.20",
 +    "@angular/platform-browser-dynamic": "^19.2.20",
 +    "@angular/router": "^19.2.20",
-+    "ag-grid-angular": "^32.2.1",
-+    "ag-grid-community": "^32.2.1",
++    "ag-grid-angular": "^35.0.0",
++    "ag-grid-community": "^35.0.0",
 +    "bootstrap": "^5.3.8",
 +    "ngx-bootstrap": "^19.0.2",
 +    "rxjs": "^7.8.1",
@@ -43136,7 +43147,8 @@ index 0000000..28ff48b
 +    },
 +    "files": [
 +        "main/test.ts",
-+        "main/polyfills.ts"
++        "main/polyfills.ts",
++        "main/app/ag-grid-setup.ts"
 +    ],
 +    "include": [
 +        "main/**/*.spec.ts",
