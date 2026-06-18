@@ -24,6 +24,8 @@
   },
   "npm": {
     "dependencies": {
+      "ag-grid-angular": "^35.0.0",
+      "ag-grid-community": "^35.0.0",
       "jasmine-core": "~5.13.0"
     },
     "overrides": {

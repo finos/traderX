@@ -9,7 +9,8 @@
     },
     "files": [
         "main/test.ts",
-        "main/polyfills.ts"
+        "main/polyfills.ts",
+        "main/app/ag-grid-setup.ts"
     ],
     "include": [
         "main/**/*.spec.ts",
