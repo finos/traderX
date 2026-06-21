@@ -83,38 +83,6 @@ server {
         proxy_pass ${ORDER_MATCHER_URL};
     }
 
-    location = /grafana {
-        return 301 /grafana/;
-    }
-
-    location /grafana/ {
-        proxy_pass http://grafana:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-Host $host;
-        proxy_set_header X-Forwarded-Server $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Forwarded-Prefix /grafana;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-    }
-
-    location = /prometheus {
-        return 301 /prometheus/;
-    }
-
-    location /prometheus/ {
-        proxy_pass http://prometheus:9090;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-Host $host;
-        proxy_set_header X-Forwarded-Server $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Forwarded-Prefix /prometheus;
-    }
-
     location = /api/docs {
         return 301 /api/docs/;
     }

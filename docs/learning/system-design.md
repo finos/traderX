@@ -1,57 +1,49 @@
 # System Design
 
-State: `009-order-management-matcher`
+State: `010-kubernetes-runtime`
 
 ## Design Intent
 
-Pricing + observability runtime extended with order management, matcher flow, and order-specific telemetry.
+State 010 preserves state 009 browser/API routing behavior while running all services on a local Kubernetes cluster.
 
 ## Runtime Topology / Flow (Spec Extract)
 
-# Runtime Topology: 009-order-management-matcher
+# Runtime Topology: 010-kubernetes-runtime
 
-Parent state: `008-pricing-awareness-market-data`
+Parent state: `009-order-management-matcher`
 
-Describe runtime topology and network/data flow changes introduced by this state.
+State `010` preserves parent-state functional behavior while moving runtime orchestration to Kubernetes.
 
 ## Entrypoints
 
-- App ingress: `http://localhost:8080`
-- Grafana: `http://localhost:3001`
-- Grafana through ingress: `http://localhost:8080/grafana/`
-- Prometheus: `http://localhost:9090`
-- NATS monitor: `http://localhost:8222/varz`
-- Order matcher health: `http://localhost:<order-matcher-port>/health`
-- Order matcher metrics: `http://localhost:<order-matcher-port>/metrics`
+- Browser/UI/API entrypoint: `http://localhost:8080`
+- Edge health: `http://localhost:8080/health`
+- Edge service model: Kubernetes `NodePort` service mapped by local cluster provider settings.
 
 ## Components
 
-- Inherits pricing runtime from `008` and observability baseline from `007`.
-- Adds order components:
-  - `order-matcher` (Java/Spring Boot matching + persistence + metrics)
-  - order-management API handlers integrated with backend flow
-  - trader UI order ticket + account open-orders blotter
-  - Admin UI view for cross-account order operations
-- Extends observability concerns:
-  - Prometheus target coverage for order matcher endpoints
-  - Grafana dashboards for order queue depth, events, and matcher latency
-  - Loki log streams for order matcher and admin operations
+- Namespace: `traderx`
+- Edge:
+  - `edge-proxy` deployment (NGINX)
+  - `edge-proxy` service (`NodePort`)
+  - `edge-proxy-config` ConfigMap generated from `system/nginx-edge.conf`
+- Core services and supporting components are inherited from state `009` and rendered as Kubernetes Deployments/Services.
+- Observability stack inherited from state `009` is rendered as Kubernetes Deployments/Services:
+  - `grafana`, `prometheus`, `loki`, `tempo`, `otel-collector`, `blackbox-exporter`
 
 ## Networking
 
-- Admin UI requests order APIs through existing ingress.
-- Order matcher writes order lifecycle to shared DB and submits fills through trade-service API.
-- Trade processor and position service consume matcher-generated trades via existing integration path.
-- Prometheus scrapes order matcher metrics and probes order endpoints via blackbox exporter.
-- Prometheus also scrapes Spring Boot actuator metrics (`/actuator/prometheus`) for all compatible services in this state.
-- Grafana queries Prometheus/Loki/Tempo for order-management views.
-- Grafana dashboards remain anonymously readable as Viewer-only demo surfaces through `/grafana/`, while admin login uses generated state-scoped credentials.
-- Promtail uses the Docker daemon API version exported by the generated runtime harness unless `TRADERX_PROMTAIL_DOCKER_API_VERSION` is explicitly set.
+- Browser traffic enters through `edge-proxy` only.
+- Path prefixes remain stable across inherited API routes and websocket routes.
+- Observability entrypoints remain available through edge routes:
+  - `/grafana`
+  - `/prometheus`
+- Inter-service traffic uses Kubernetes service DNS names.
 
 ## Startup / Health Order
 
-1. Start inherited state `008` runtime (app + LGTM).
-2. Start `order-matcher` and validate `/health` and `/metrics`.
-3. Ensure ingress routes order-management APIs and admin UI path.
-4. Verify Prometheus discovers order targets and required metric families.
-5. Verify Grafana has order-specific dashboards provisioned.
+1. Ensure target local cluster exists (Kind default; optional Minikube).
+2. Build/load state images for the selected provider.
+3. Apply generated manifests.
+4. Wait for deployment availability.
+5. Probe edge health and UI routes.
