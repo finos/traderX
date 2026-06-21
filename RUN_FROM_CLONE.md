@@ -5,28 +5,30 @@ Prerequisites:
 - kubectl
 - jq
 - Kind (default) or Minikube
+- Tilt (optional, for interactive dev loop)
 
-Start:
+Start baseline runtime (inherited from state 010):
 
 ```bash
 ./scripts/start-state-010-kubernetes-runtime-generated.sh
 ./scripts/start-state-010-kubernetes-runtime-generated.sh --skip-build
-# optional:
-# ./scripts/start-state-010-kubernetes-runtime-generated.sh --provider minikube --minikube-profile traderx-state-010
 ```
 
-Endpoints:
+Inherited runtime endpoints:
 - UI / edge: `http://localhost:8080`
 - API explorer (edge): `http://localhost:8080/api/docs`
-- Edge health: `http://localhost:8080/health`
 - Grafana: `http://localhost:8080/grafana`
 - Prometheus: `http://localhost:8080/prometheus`
 
-Status / stop:
+State 011 artifact pack:
+- `tilt-kubernetes-dev-loop/tilt/Tiltfile`
+- `tilt-kubernetes-dev-loop/tilt/tilt-settings.json`
+
+Optional Tilt flow:
 
 ```bash
-./scripts/status-state-010-kubernetes-runtime-generated.sh
-./scripts/stop-state-010-kubernetes-runtime-generated.sh
+cd tilt-kubernetes-dev-loop/tilt
+tilt up
 ```
 
 ## Stable Entrypoints

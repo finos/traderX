@@ -1,6 +1,6 @@
 {
-  "generatedAtUtc": "2026-06-21T11:19:25.944Z",
-  "stateId": "010-kubernetes-runtime",
+  "generatedAtUtc": "2026-06-21T11:20:09.036Z",
+  "stateId": "011-tilt-kubernetes-dev-loop",
   "mountPath": "/api/docs",
   "pubSubInspectorEnabled": true,
   "services": [

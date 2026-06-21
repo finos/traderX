@@ -1,10 +1,10 @@
 {
-  "stateId": "010-kubernetes-runtime",
-  "stateTitle": "Kubernetes Runtime on C2",
+  "stateId": "011-tilt-kubernetes-dev-loop",
+  "stateTitle": "Tilt Local Dev on Kubernetes",
   "stateTrack": "devex",
-  "generatedAtUtc": "2026-06-21T11:19:26.088Z",
-  "sourceBranch": "code/generated-state-010-kubernetes-runtime",
-  "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-010-kubernetes-runtime",
+  "generatedAtUtc": "2026-06-21T11:20:09.180Z",
+  "sourceBranch": "code/generated-state-011-tilt-kubernetes-dev-loop",
+  "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-011-tilt-kubernetes-dev-loop",
   "lineageLinkUrl": "https://github.com/finos/traderX/blob/main/docs/learning-paths/index.md",
   "apiExplorerUrl": "/api/docs",
   "pubSubInspectorUrl": "/api/docs/pubsub-inspector.html",
@@ -14,6 +14,13 @@
     "pubSubInspector": true
   },
   "previousStates": [
+    {
+      "id": "010-kubernetes-runtime",
+      "title": "Kubernetes Runtime on C2",
+      "sourceBranch": "code/generated-state-010-kubernetes-runtime",
+      "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-010-kubernetes-runtime",
+      "summary": "Introduces Kubernetes Runtime on C2 on the devex track."
+    },
     {
       "id": "009-order-management-matcher",
       "title": "Order Management and Matcher",

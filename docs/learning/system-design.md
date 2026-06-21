@@ -1,49 +1,36 @@
 # System Design
 
-State: `010-kubernetes-runtime`
+State: `011-tilt-kubernetes-dev-loop`
 
 ## Design Intent
 
-State 010 preserves state 009 browser/API routing behavior while running all services on a local Kubernetes cluster.
+State 011 preserves state 010 Kubernetes runtime while introducing Tilt for local developer automation.
 
 ## Runtime Topology / Flow (Spec Extract)
 
-# Runtime Topology: 010-kubernetes-runtime
+# Runtime Topology: 011-tilt-kubernetes-dev-loop
 
-Parent state: `009-order-management-matcher`
+Parent state: `010-kubernetes-runtime`
 
-State `010` preserves parent-state functional behavior while moving runtime orchestration to Kubernetes.
+State `011` reuses runtime topology from state `010` and adds Tilt as local orchestration/dev loop.
 
 ## Entrypoints
 
-- Browser/UI/API entrypoint: `http://localhost:8080`
-- Edge health: `http://localhost:8080/health`
-- Edge service model: Kubernetes `NodePort` service mapped by local cluster provider settings.
+- Browser/UI/API entrypoint remains `http://localhost:8080` (inherited).
+- Developer control entrypoint is Tilt (`tilt up`) for local iteration.
 
 ## Components
 
-- Namespace: `traderx`
-- Edge:
-  - `edge-proxy` deployment (NGINX)
-  - `edge-proxy` service (`NodePort`)
-  - `edge-proxy-config` ConfigMap generated from `system/nginx-edge.conf`
-- Core services and supporting components are inherited from state `009` and rendered as Kubernetes Deployments/Services.
-- Observability stack inherited from state `009` is rendered as Kubernetes Deployments/Services:
-  - `grafana`, `prometheus`, `loki`, `tempo`, `otel-collector`, `blackbox-exporter`
+- Core TraderX services remain the same as state `010`.
+- Added dev tooling layer:
+  - Tiltfile and related local Kubernetes orchestration metadata.
 
 ## Networking
 
-- Browser traffic enters through `edge-proxy` only.
-- Path prefixes remain stable across inherited API routes and websocket routes.
-- Observability entrypoints remain available through edge routes:
-  - `/grafana`
-  - `/prometheus`
-- Inter-service traffic uses Kubernetes service DNS names.
+- Service routes and path prefixes remain unchanged from state `010`.
+- Local developer workflow can use Tilt-managed forwards/log streaming without changing service contracts.
 
 ## Startup / Health Order
 
-1. Ensure target local cluster exists (Kind default; optional Minikube).
-2. Build/load state images for the selected provider.
-3. Apply generated manifests.
-4. Wait for deployment availability.
-5. Probe edge health and UI routes.
+- Baseline deployment readiness model remains Kubernetes-native.
+- Tilt automates build/deploy/reload sequencing for iterative local development.

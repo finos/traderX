@@ -1,10 +1,10 @@
 {
-  "stateId": "010-kubernetes-runtime",
-  "stateTitle": "Kubernetes Runtime on C2",
+  "stateId": "011-tilt-kubernetes-dev-loop",
+  "stateTitle": "Tilt Local Dev on Kubernetes",
   "stateStatus": "implemented",
-  "featurePack": "specs/010-kubernetes-runtime",
-  "previousStates": ["009-order-management-matcher"],
-  "nextStates": ["011-tilt-kubernetes-dev-loop"],
+  "featurePack": "specs/011-tilt-kubernetes-dev-loop",
+  "previousStates": ["010-kubernetes-runtime"],
+  "nextStates": ["012-platform-convergence-c3"],
   "isConvergenceState": false,
   "convergenceLevel": "none",
   "lineageRole": "canonical",
@@ -13,7 +13,7 @@
   "nextConvergenceState": "012-platform-convergence-c3",
   "sourceBranch": "main",
   "sourceCommit": "f0056d6753b9a76295ce40ede1f32c30bd2c5f27",
-  "generatedAtUtc": "2026-06-21T11:19:29Z",
-  "generationEntryPoint": "bash pipeline/generate-state.sh 010-kubernetes-runtime",
-  "publishTagHint": "generated/010-kubernetes-runtime/v1"
+  "generatedAtUtc": "2026-06-21T11:20:12Z",
+  "generationEntryPoint": "bash pipeline/generate-state.sh 011-tilt-kubernetes-dev-loop",
+  "publishTagHint": "generated/011-tilt-kubernetes-dev-loop/v1"
 }
