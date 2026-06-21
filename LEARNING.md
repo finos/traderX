@@ -1,12 +1,11 @@
-# Learning Guide For 006-messaging-nats-replacement
+# Learning Guide For 007-observability-lgtm-compose
 
 This snapshot is code-first output. Canonical intent remains in SpecKit artifacts.
 
 ## Learning Focus
 
-- Understand focused messaging-layer replacement on top of stable runtime.
-- Compare NATS subject topology to prior Socket.IO channel patterns.
-- Validate realtime behavior parity while changing transport internals.
+- Review state metadata and runtime instructions.
+- Trace state intent back to canonical SpecKit artifacts.
 
 ## Read In This Snapshot
 
@@ -18,9 +17,9 @@ This snapshot is code-first output. Canonical intent remains in SpecKit artifact
 
 ## Canonical Spec Sources
 
-- Feature pack: `specs/006-messaging-nats-replacement`
+- Feature pack: `specs/007-observability-lgtm-compose`
 - State docs map route: `/docs/spec-kit/state-docs`
-- Learning guide route: `/docs/learning/state-006-messaging-nats-replacement`
-- Learning guide markdown path in source branch: `docs/learning/state-006-messaging-nats-replacement.md`
-- Source branch feature pack (exact commit): https://github.com/finos/traderX/tree/072c53d558884d7b14142168239860086c7cdee2/specs/006-messaging-nats-replacement
-- Source branch learning guide (exact commit): https://github.com/finos/traderX/blob/072c53d558884d7b14142168239860086c7cdee2/docs/learning/state-006-messaging-nats-replacement.md
+- Learning guide route: `/docs/learning/state-007-observability-lgtm-compose`
+- Learning guide markdown path in source branch: `docs/learning/state-007-observability-lgtm-compose.md`
+- Source branch feature pack (exact commit): https://github.com/finos/traderX/tree/f0056d6753b9a76295ce40ede1f32c30bd2c5f27/specs/007-observability-lgtm-compose
+- Source branch learning guide (exact commit): https://github.com/finos/traderX/blob/f0056d6753b9a76295ce40ede1f32c30bd2c5f27/docs/learning/state-007-observability-lgtm-compose.md

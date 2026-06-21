@@ -1,14 +1,12 @@
 # Functional Testing Guide
 
-State: `006-messaging-nats-replacement`
+State: `007-observability-lgtm-compose`
 
 This guide captures intended functional behavior for this generated snapshot branch.
 
 ## What Should Work
 
-- Builds on state `004` and preserves containerized ingress runtime behavior.
-- Replaces Socket.IO trade-feed with NATS broker for backend and browser streaming.
-- Preserves baseline user-visible behavior while changing messaging transport.
+- Generated code snapshot for TraderX state transition.
 
 ## Suggested Functional Validation
 
@@ -20,14 +18,14 @@ This guide captures intended functional behavior for this generated snapshot bra
 ## Smoke Test Commands
 
 ```bash
-./scripts/test-state-006-messaging-nats-replacement.sh
+./scripts/test-state-007-observability-lgtm-compose.sh
 ```
 
 ## Canonical References
 
-- Spec pack: `specs/006-messaging-nats-replacement`
+- Spec pack: `specs/007-observability-lgtm-compose`
 - Runtime guide: [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
 - Snapshot learning guide: [LEARNING.md](./LEARNING.md)
 - Snapshot metadata: [STATE.md](./STATE.md)
 - Canonical Getting Started (main): https://github.com/finos/traderX/blob/main/docs/spec-kit/getting-started-with-traderx.md
-- Canonical SpecKit docs (source commit): https://github.com/finos/traderX/tree/072c53d558884d7b14142168239860086c7cdee2/docs/spec-kit
+- Canonical SpecKit docs (source commit): https://github.com/finos/traderX/tree/f0056d6753b9a76295ce40ede1f32c30bd2c5f27/docs/spec-kit

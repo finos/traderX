@@ -1,0 +1,90 @@
+name: traderx-007-observability-lgtm-compose-ghcr
+
+services:
+  database:
+    extends:
+      file: ../../../observability-lgtm-compose/docker-compose.yml
+      service: database
+  reference-data:
+    extends:
+      file: ../../../observability-lgtm-compose/docker-compose.yml
+      service: reference-data
+    image: ghcr.io/finos/traderx-c1/reference-data:${TRADERX_IMAGE_TAG:-latest}
+    build: null
+  nats-broker:
+    extends:
+      file: ../../../observability-lgtm-compose/docker-compose.yml
+      service: nats-broker
+  people-service:
+    extends:
+      file: ../../../observability-lgtm-compose/docker-compose.yml
+      service: people-service
+    image: ghcr.io/finos/traderx-c1/people-service:${TRADERX_IMAGE_TAG:-latest}
+    build: null
+  account-service:
+    extends:
+      file: ../../../observability-lgtm-compose/docker-compose.yml
+      service: account-service
+    image: ghcr.io/finos/traderx-c1/account-service:${TRADERX_IMAGE_TAG:-latest}
+    build: null
+  position-service:
+    extends:
+      file: ../../../observability-lgtm-compose/docker-compose.yml
+      service: position-service
+    image: ghcr.io/finos/traderx-c1/position-service:${TRADERX_IMAGE_TAG:-latest}
+    build: null
+  trade-processor:
+    extends:
+      file: ../../../observability-lgtm-compose/docker-compose.yml
+      service: trade-processor
+    image: ghcr.io/finos/traderx-c1/trade-processor:${TRADERX_IMAGE_TAG:-latest}
+    build: null
+  trade-service:
+    extends:
+      file: ../../../observability-lgtm-compose/docker-compose.yml
+      service: trade-service
+    image: ghcr.io/finos/traderx-c1/trade-service:${TRADERX_IMAGE_TAG:-latest}
+    build: null
+  web-front-end-angular:
+    extends:
+      file: ../../../observability-lgtm-compose/docker-compose.yml
+      service: web-front-end-angular
+    image: ghcr.io/finos/traderx-c1/web-front-end-angular:${TRADERX_IMAGE_TAG:-latest}
+    build: null
+  ingress:
+    extends:
+      file: ../../../observability-lgtm-compose/docker-compose.yml
+      service: ingress
+    image: ghcr.io/finos/traderx-c1/ingress:${TRADERX_IMAGE_TAG:-latest}
+    build: null
+  otel-collector:
+    extends:
+      file: ../../../observability-lgtm-compose/docker-compose.yml
+      service: otel-collector
+  blackbox-exporter:
+    extends:
+      file: ../../../observability-lgtm-compose/docker-compose.yml
+      service: blackbox-exporter
+  prometheus:
+    extends:
+      file: ../../../observability-lgtm-compose/docker-compose.yml
+      service: prometheus
+  loki:
+    extends:
+      file: ../../../observability-lgtm-compose/docker-compose.yml
+      service: loki
+  promtail:
+    extends:
+      file: ../../../observability-lgtm-compose/docker-compose.yml
+      service: promtail
+  tempo:
+    extends:
+      file: ../../../observability-lgtm-compose/docker-compose.yml
+      service: tempo
+  grafana:
+    extends:
+      file: ../../../observability-lgtm-compose/docker-compose.yml
+      service: grafana
+
+volumes:
+  postgres_state_009_data: {}
