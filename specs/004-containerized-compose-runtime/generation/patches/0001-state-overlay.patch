@@ -14484,7 +14484,7 @@ index bfc886c..0000000
 -echo "[done] state 005 postgres-database runtime smoke tests passed"
 diff --git a/scripts/test-state-006-messaging-nats-replacement.sh b/scripts/test-state-006-messaging-nats-replacement.sh
 deleted file mode 100755
-index 6e8dc4b..0000000
+index 972eb1c..0000000
 --- a/scripts/test-state-006-messaging-nats-replacement.sh
 +++ /dev/null
 @@ -1,359 +0,0 @@
@@ -14510,7 +14510,7 @@ index 6e8dc4b..0000000
 -    exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
 -  fi
 -fi
--COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/messaging-nats-replacement/docker-compose.yml"
+-COMPOSE_FILE="${TRADERX_COMPOSE_FILE:-${GENERATED_ROOT}/code/target-generated/messaging-nats-replacement/docker-compose.yml}"
 -
 -if ! command -v docker >/dev/null 2>&1; then
 -  echo "[error] docker command not found"
@@ -14849,7 +14849,7 @@ index 6e8dc4b..0000000
 -echo "[done] state 006 messaging-nats runtime smoke tests passed"
 diff --git a/scripts/test-state-007-observability-lgtm-compose.sh b/scripts/test-state-007-observability-lgtm-compose.sh
 deleted file mode 100755
-index 185c016..0000000
+index 4e982cb..0000000
 --- a/scripts/test-state-007-observability-lgtm-compose.sh
 +++ /dev/null
 @@ -1,210 +0,0 @@
@@ -15059,7 +15059,7 @@ index 185c016..0000000
 -fi
 -
 -echo "[check] baseline behavior under observability runtime"
--COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-007}"
+-TRADERX_COMPOSE_FILE="${COMPOSE_FILE}" COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME}" \
 -  "${REPO_ROOT}/scripts/test-state-006-messaging-nats-replacement.sh" "${INGRESS_URL}" "${ORIGIN}"
 -
 -echo "[done] state 007 observability runtime smoke tests passed"
