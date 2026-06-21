@@ -25,6 +25,7 @@
 - NFR-01105: As convergence level `C3`, generated state branches MUST include `.github/workflows/build-and-publish.yml` for container image publication.
 - NFR-01106: `C3` image publication namespace MUST use `ghcr.io/finos/traderx-c3/<component>` with immutable commit-SHA tags plus `latest`.
 - NFR-01107: Generated artifacts MUST include a GHCR run bundle for running this state from published images.
+- NFR-01108: C3 generated-runtime workflows SHALL inherit the Kubernetes rollout-plus-service-readiness preflight from state `010`, including published-image timeout guidance for Apple Silicon.
 
 ## Success Criteria
 
@@ -32,3 +33,4 @@
 - SC-01102: Convergence policy validation gates pass.
 - SC-01103: Generated snapshot metadata and README include convergence neighborhood details.
 - SC-01104: Generated branch artifacts include `C3` build/publish workflow and GHCR run-bundle assets.
+- SC-01105: C3 smoke validation does not begin behavioral assertions until inherited Kubernetes rollouts and ingress service readiness checks pass.

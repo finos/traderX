@@ -31,6 +31,8 @@
 - NFR-407: NGINX edge routes SHALL forward standard ingress headers (`X-Forwarded-For`, `X-Forwarded-Host`, `X-Forwarded-Proto`, and route-specific `X-Forwarded-Prefix`) to upstream services.
 - NFR-408: Kubernetes deployment-bundle profile contract SHALL be `aws-ec2-k8s` for `010+` runtime lineage when deployment bundles are enabled, with profile assets and smoke checks generated from canonical spec/generator sources.
 - NFR-409: Until `aws-ec2-k8s` generator support is implemented, Kubernetes states SHALL keep deployment-bundle metadata disabled (`deploy.enabled=false`) to avoid emitting Compose-scoped deploy artifacts for Kubernetes runtime.
+- NFR-410: Kubernetes runtime smoke readiness SHALL treat rollout/deployment availability as necessary but not sufficient; generated start/status/test paths SHALL provide an ingress-level service readiness checkoff before smoke tests, demos, or scanner preflights run.
+- NFR-411: Deployed Kubernetes edge routing SHALL reject known frontend dev-only paths such as `/@vite/client` and `/@fs/*` instead of serving them through the Angular SPA fallback.
 
 ## Success Criteria
 
@@ -39,3 +41,5 @@
 - SC-403: `./scripts/test-state-010-kubernetes-runtime.sh` passes core ingress/API/UI smoke checks and inherited observability checks (`/grafana`, `/prometheus`), including `order-matcher` ingress health and orders listing endpoints.
 - SC-404: Catalog metadata marks state `010` as implemented with canonical runtime commands.
 - SC-405: Spec/docs define `aws-ec2-k8s` deploy-profile contract and enablement criteria before any Kubernetes-state deployment bundle opt-in.
+- SC-406: Runtime readiness evidence includes Kubernetes rollout status plus ingress checks for edge/UI, representative API services, order matcher, Grafana, and Prometheus before behavioral smoke assertions execute.
+- SC-407: State smoke checks fail if deployed dev-only frontend paths such as `/@vite/client` return HTTP 200.

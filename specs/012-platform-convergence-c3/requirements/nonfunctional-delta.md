@@ -24,7 +24,8 @@ This state preserves C3 convergence semantics on top of state `011`.
 ## Reliability / Observability
 
 - Tilt provides consolidated service logs/status and rapid failure feedback.
-- Baseline readiness/health semantics inherited from state `011` remain unchanged.
+- Baseline readiness/health semantics inherited from state `011` include the state `010` Kubernetes readiness preflight: rollout status is necessary but not sufficient, and smoke tests wait for ingress-level service readiness before behavioral assertions.
+- Published-image C3 runs on Apple Silicon should expect slower JVM startup under amd64 emulation and use the documented readiness timeout budget before smoke tests or scanner preflights.
 - Inherited observability entrypoints from state `011` remain required:
   - `http://localhost:8080/grafana`
   - `http://localhost:8080/prometheus`

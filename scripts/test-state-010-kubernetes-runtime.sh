@@ -3,6 +3,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
+source "${REPO_ROOT}/scripts/lib/kubernetes-smoke-readiness.sh"
 
 if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
   LOCAL_RUNTIME_SCRIPT="${GENERATED_ROOT}/code/target-generated/scripts/$(basename "${BASH_SOURCE[0]}")"
@@ -106,7 +107,13 @@ check_message_bus_health_endpoint() {
 
 echo "[check] kubernetes deployments available in namespace ${NAMESPACE}"
 kubectl get deployments -n "${NAMESPACE}"
-kubectl wait --for=condition=Available deployment --all -n "${NAMESPACE}" --timeout=180s >/dev/null
+kubectl wait --for=condition=Available deployment --all -n "${NAMESPACE}" --timeout="${TRADERX_K8S_DEPLOYMENT_WAIT_TIMEOUT:-300s}" >/dev/null
+traderx_k8s_rollout_status_all "${NAMESPACE}" "${BUILD_PLAN}" "${TRADERX_K8S_ROLLOUT_TIMEOUT:-300s}"
+
+echo "[check] application readiness through ingress"
+traderx_wait_for_traderx_ingress_readiness \
+  "${INGRESS_URL}" \
+  "$(traderx_k8s_smoke_ready_timeout)"
 
 echo "[check] edge health endpoint"
 health_headers="$(curl -sS -i "${INGRESS_URL}/health" | sed -n '1,20p')"
@@ -115,6 +122,15 @@ printf '%s\n' "${health_headers}" | grep -q "HTTP/1.1 200" || {
   echo "[error] expected HTTP 200 from ${INGRESS_URL}/health"
   exit 1
 }
+
+echo "[check] deployed UI dev-only paths are rejected"
+for dev_only_path in "/@vite/client" "/@fs/package.json"; do
+  dev_only_status="$(curl -sS -o /dev/null -w "%{http_code}" "${INGRESS_URL}${dev_only_path}")"
+  if [[ "${dev_only_status}" == "200" ]]; then
+    echo "[error] expected non-200 for deployed dev-only path ${INGRESS_URL}${dev_only_path}"
+    exit 1
+  fi
+done
 
 echo "[check] edge account-service path"
 account_headers="$(curl -sS -i "${INGRESS_URL}/account-service/account/22214" | sed -n '1,25p')"

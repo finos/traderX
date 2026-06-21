@@ -3,6 +3,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
+source "${REPO_ROOT}/scripts/lib/kubernetes-smoke-readiness.sh"
 
 if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
   LOCAL_RUNTIME_SCRIPT="${GENERATED_ROOT}/code/target-generated/scripts/$(basename "${BASH_SOURCE[0]}")"
@@ -364,9 +365,7 @@ fi
 
 echo "[wait] deployments available in namespace ${namespace}"
 kubectl wait --for=condition=Available deployment --all -n "${namespace}" --timeout=600s
-if kubectl get daemonset/promtail -n "${namespace}" >/dev/null 2>&1; then
-  kubectl rollout status daemonset/promtail -n "${namespace}" --timeout=300s >/dev/null
-fi
+traderx_k8s_rollout_status_all "${namespace}" "${BUILD_PLAN}" "${TRADERX_K8S_ROLLOUT_TIMEOUT:-600s}"
 
 if [[ "${K8S_PROVIDER}" == "minikube" ]]; then
   stop_minikube_port_forward
@@ -375,26 +374,9 @@ if [[ "${K8S_PROVIDER}" == "minikube" ]]; then
   echo "$!" > "${PORT_FORWARD_PID_FILE}"
 fi
 
-wait_for_http() {
-  local name="$1"
-  local url="$2"
-  local attempts=90
-  local i
-  for ((i=1; i<=attempts; i++)); do
-    if curl -fsS "${url}" >/dev/null 2>&1; then
-      echo "[ready] ${name} ${url}"
-      return 0
-    fi
-    sleep 2
-  done
-  echo "[error] timeout waiting for ${name} at ${url}"
-  return 1
-}
-
-wait_for_http "edge-health" "http://localhost:${host_port}/health"
-wait_for_http "edge-ui" "http://localhost:${host_port}/"
-wait_for_http "grafana-health" "http://localhost:${host_port}/grafana/api/health"
-wait_for_http "prometheus-ready" "http://localhost:${host_port}/prometheus/-/ready"
+traderx_wait_for_traderx_ingress_readiness \
+  "http://localhost:${host_port}" \
+  "$(traderx_k8s_smoke_ready_timeout)"
 
 echo "[done] state 010 kubernetes runtime started"
 echo "[provider] ${K8S_PROVIDER}"

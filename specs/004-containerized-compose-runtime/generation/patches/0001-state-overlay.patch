@@ -873,8 +873,8 @@ index 0000000..549bccf
 +    because 'version brought in by spring boot 3.5.15 affected by CVE-2024-12798'
 +  }
 +  implementation 'ch.qos.logback:logback-classic:1.5.34'
-+  implementation 'org.apache.logging.log4j:log4j-api:2.25.4'
-+  implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.25.4'
++  implementation 'org.apache.logging.log4j:log4j-api:2.26.0'
++  implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.26.0'
 +  implementation 'org.apache.commons:commons-lang3:3.20.0'
 +
 +  testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -3228,8 +3228,8 @@ index 0000000..0d06b87
 +    because 'version brought in by spring boot 3.5.15 affected by CVE-2024-12798'
 +  }
 +  implementation 'ch.qos.logback:logback-classic:1.5.34'
-+  implementation 'org.apache.logging.log4j:log4j-api:2.25.4'
-+  implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.25.4'
++  implementation 'org.apache.logging.log4j:log4j-api:2.26.0'
++  implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.26.0'
 +  implementation 'org.apache.commons:commons-lang3:3.20.0'
 +
 +  testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -15971,10 +15971,10 @@ index 9ea3c78..0000000
 -echo "[done] state 009 order-management observability smoke tests passed"
 diff --git a/scripts/test-state-010-kubernetes-runtime.sh b/scripts/test-state-010-kubernetes-runtime.sh
 deleted file mode 100755
-index ef1f9ff..0000000
+index ba36dbf..0000000
 --- a/scripts/test-state-010-kubernetes-runtime.sh
 +++ /dev/null
-@@ -1,333 +0,0 @@
+@@ -1,349 +0,0 @@
 -#!/usr/bin/env bash
 -set -euo pipefail
 -
@@ -15987,6 +15987,7 @@ index ef1f9ff..0000000
 -
 -REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 -GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
+-source "${REPO_ROOT}/scripts/lib/kubernetes-smoke-readiness.sh"
 -
 -if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
 -  LOCAL_RUNTIME_SCRIPT="${GENERATED_ROOT}/code/target-generated/scripts/$(basename "${BASH_SOURCE[0]}")"
@@ -16090,7 +16091,13 @@ index ef1f9ff..0000000
 -
 -echo "[check] kubernetes deployments available in namespace ${NAMESPACE}"
 -kubectl get deployments -n "${NAMESPACE}"
--kubectl wait --for=condition=Available deployment --all -n "${NAMESPACE}" --timeout=180s >/dev/null
+-kubectl wait --for=condition=Available deployment --all -n "${NAMESPACE}" --timeout="${TRADERX_K8S_DEPLOYMENT_WAIT_TIMEOUT:-300s}" >/dev/null
+-traderx_k8s_rollout_status_all "${NAMESPACE}" "${BUILD_PLAN}" "${TRADERX_K8S_ROLLOUT_TIMEOUT:-300s}"
+-
+-echo "[check] application readiness through ingress"
+-traderx_wait_for_traderx_ingress_readiness \
+-  "${INGRESS_URL}" \
+-  "$(traderx_k8s_smoke_ready_timeout)"
 -
 -echo "[check] edge health endpoint"
 -health_headers="$(curl -sS -i "${INGRESS_URL}/health" | sed -n '1,20p')"
@@ -16099,6 +16106,15 @@ index ef1f9ff..0000000
 -  echo "[error] expected HTTP 200 from ${INGRESS_URL}/health"
 -  exit 1
 -}
+-
+-echo "[check] deployed UI dev-only paths are rejected"
+-for dev_only_path in "/@vite/client" "/@fs/package.json"; do
+-  dev_only_status="$(curl -sS -o /dev/null -w "%{http_code}" "${INGRESS_URL}${dev_only_path}")"
+-  if [[ "${dev_only_status}" == "200" ]]; then
+-    echo "[error] expected non-200 for deployed dev-only path ${INGRESS_URL}${dev_only_path}"
+-    exit 1
+-  fi
+-done
 -
 -echo "[check] edge account-service path"
 -account_headers="$(curl -sS -i "${INGRESS_URL}/account-service/account/22214" | sed -n '1,25p')"
@@ -19749,8 +19765,8 @@ index 0000000..83ce3bb
 +    because 'version brought in by spring boot 3.5.15 affected by CVE-2024-12798'
 +  }
 +  implementation 'ch.qos.logback:logback-classic:1.5.34'
-+  implementation 'org.apache.logging.log4j:log4j-api:2.25.4'
-+  implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.25.4'
++  implementation 'org.apache.logging.log4j:log4j-api:2.26.0'
++  implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.26.0'
 +  implementation 'org.apache.commons:commons-lang3:3.20.0'
 +
 +  testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -21156,8 +21172,8 @@ index 0000000..8262ceb
 +    because 'version brought in by spring boot 3.5.15 affected by CVE-2024-12798'
 +  }
 +  implementation 'ch.qos.logback:logback-classic:1.5.34'
-+  implementation 'org.apache.logging.log4j:log4j-api:2.25.4'
-+  implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.25.4'
++  implementation 'org.apache.logging.log4j:log4j-api:2.26.0'
++  implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.26.0'
 +  implementation 'org.apache.commons:commons-lang3:3.20.0'
 +
 +  testImplementation 'org.springframework.boot:spring-boot-starter-test'
