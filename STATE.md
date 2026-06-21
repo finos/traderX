@@ -1,11 +1,11 @@
 # TraderX Generated State Snapshot
 
-- State ID: `005-postgres-database-replacement`
-- Title: `PostgreSQL Database Replacement`
+- State ID: `006-messaging-nats-replacement`
+- Title: `Messaging Layer Replacement with NATS`
 - Status: `implemented`
-- Feature Pack: `specs/005-postgres-database-replacement`
-- Previous States: `["004-containerized-compose-runtime"]`
-- Next States: `["006-messaging-nats-replacement"]`
+- Feature Pack: `specs/006-messaging-nats-replacement`
+- Previous States: `["005-postgres-database-replacement"]`
+- Next States: `["007-observability-lgtm-compose"]`
 - Convergence State: `false`
 - Convergence Level: `none`
 - Lineage Role: `canonical`
@@ -13,8 +13,8 @@
 - Previous Convergence State: `004-containerized-compose-runtime`
 - Next Convergence State: `007-observability-lgtm-compose`
 - Source Branch: `main`
-- Source Commit: `072c53d558884d7b14142168239860086c7cdee2`
-- Generated At (UTC): `2026-06-21T08:52:38Z`
-- Suggested Tag: `generated/005-postgres-database-replacement/v1`
+- Source Commit: `f0056d6753b9a76295ce40ede1f32c30bd2c5f27`
+- Generated At (UTC): `2026-06-21T11:25:02Z`
+- Suggested Tag: `generated/006-messaging-nats-replacement/v1`
 
 Machine-readable metadata: `.traderx-state/state.json`

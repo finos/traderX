@@ -1,10 +1,10 @@
 {
-  "stateId": "005-postgres-database-replacement",
-  "stateTitle": "PostgreSQL Database Replacement",
+  "stateId": "006-messaging-nats-replacement",
+  "stateTitle": "Messaging Layer Replacement with NATS",
   "stateStatus": "implemented",
-  "featurePack": "specs/005-postgres-database-replacement",
-  "previousStates": ["004-containerized-compose-runtime"],
-  "nextStates": ["006-messaging-nats-replacement"],
+  "featurePack": "specs/006-messaging-nats-replacement",
+  "previousStates": ["005-postgres-database-replacement"],
+  "nextStates": ["007-observability-lgtm-compose"],
   "isConvergenceState": false,
   "convergenceLevel": "none",
   "lineageRole": "canonical",
@@ -12,8 +12,8 @@
   "previousConvergenceState": "004-containerized-compose-runtime",
   "nextConvergenceState": "007-observability-lgtm-compose",
   "sourceBranch": "main",
-  "sourceCommit": "072c53d558884d7b14142168239860086c7cdee2",
-  "generatedAtUtc": "2026-06-21T08:52:38Z",
-  "generationEntryPoint": "bash pipeline/generate-state.sh 005-postgres-database-replacement",
-  "publishTagHint": "generated/005-postgres-database-replacement/v1"
+  "sourceCommit": "f0056d6753b9a76295ce40ede1f32c30bd2c5f27",
+  "generatedAtUtc": "2026-06-21T11:25:02Z",
+  "generationEntryPoint": "bash pipeline/generate-state.sh 006-messaging-nats-replacement",
+  "publishTagHint": "generated/006-messaging-nats-replacement/v1"
 }

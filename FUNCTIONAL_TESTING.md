@@ -1,14 +1,14 @@
 # Functional Testing Guide
 
-State: `005-postgres-database-replacement`
+State: `006-messaging-nats-replacement`
 
 This guide captures intended functional behavior for this generated snapshot branch.
 
 ## What Should Work
 
 - Builds on state `004` and preserves containerized ingress runtime behavior.
-- Replaces H2 runtime database with PostgreSQL container + deterministic init SQL.
-- Preserves baseline REST/event contracts and user-visible behavior.
+- Replaces Socket.IO trade-feed with NATS broker for backend and browser streaming.
+- Preserves baseline user-visible behavior while changing messaging transport.
 
 ## Suggested Functional Validation
 
@@ -20,14 +20,14 @@ This guide captures intended functional behavior for this generated snapshot bra
 ## Smoke Test Commands
 
 ```bash
-./scripts/test-state-005-postgres-database-replacement.sh
+./scripts/test-state-006-messaging-nats-replacement.sh
 ```
 
 ## Canonical References
 
-- Spec pack: `specs/005-postgres-database-replacement`
+- Spec pack: `specs/006-messaging-nats-replacement`
 - Runtime guide: [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
 - Snapshot learning guide: [LEARNING.md](./LEARNING.md)
 - Snapshot metadata: [STATE.md](./STATE.md)
 - Canonical Getting Started (main): https://github.com/finos/traderX/blob/main/docs/spec-kit/getting-started-with-traderx.md
-- Canonical SpecKit docs (source commit): https://github.com/finos/traderX/tree/072c53d558884d7b14142168239860086c7cdee2/docs/spec-kit
+- Canonical SpecKit docs (source commit): https://github.com/finos/traderX/tree/f0056d6753b9a76295ce40ede1f32c30bd2c5f27/docs/spec-kit
