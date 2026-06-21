@@ -42,7 +42,7 @@ public class AccountRepository {
   public Account save(Account account) {
     Integer accountId = account.getId();
     if (accountId == null || accountId <= 0) {
-      Integer generatedId = jdbcTemplate.queryForObject("select next value for ACCOUNTS_SEQ", Integer.class);
+      Integer generatedId = jdbcTemplate.queryForObject("select nextval('accounts_seq')", Integer.class);
       jdbcTemplate.update("insert into Accounts (ID, DisplayName) values (?, ?)", generatedId, account.getDisplayName());
       account.setId(generatedId);
       return account;
