@@ -46,7 +46,7 @@
     "@angular/cli": "^20.3.25",
     "@angular/compiler-cli": "^20.3.25",
     "@angular/language-service": "^20.3.25",
-    "@faker-js/faker": "^9.0.3",
+    "@faker-js/faker": "^10.0.0",
     "@types/jasmine": "^5.1.4",
     "@types/node": "^22.9.0",
     "cross-env": "^7.0.3",
