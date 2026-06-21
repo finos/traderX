@@ -36,8 +36,11 @@ This state changes runtime and operations model while keeping baseline functiona
 
 ## Reliability / Observability
 
-- Startup scripts gate readiness by waiting for Kubernetes deployment availability and edge health endpoint.
-- State status script provides deployment/pod/service visibility plus ingress health probes.
+- Startup scripts gate readiness by waiting for Kubernetes deployment availability, rollout status, and ingress-level service readiness checkoff.
+- State status script provides deployment/pod/service visibility plus ingress health probes, and can run the same canonical readiness preflight with `--wait-ready`.
+- Smoke tests run the readiness preflight before behavioral assertions so transient `502 Bad Gateway` responses during JVM warm-up are not reported as functional regressions.
+- The readiness timeout defaults are configurable through `TRADERX_SMOKE_READY_TIMEOUT` and `TRADERX_SMOKE_READY_INTERVAL`.
+- Deployed edge routing rejects known frontend dev-only paths such as `/@vite/client` and `/@fs/*` instead of serving them as SPA fallback routes.
 - Inherited observability capabilities from state `009-order-management-matcher` are preserved through ingress-routed endpoints:
   - Grafana: `http://localhost:8080/grafana`
   - Prometheus: `http://localhost:8080/prometheus`

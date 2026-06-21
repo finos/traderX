@@ -102,6 +102,10 @@ while IFS= read -r readme; do
   expected_compose_ref="runtime/ghcr/${state_id}/docker-compose.ghcr.yml"
   compose_file="${bundle_dir}/docker-compose.ghcr.yml"
   images_lock="${bundle_dir}/images.lock"
+  readme_skips_generation=0
+  if grep -Eq 'TRADERX_SKIP_GENERATE=1|--skip-generate' "${readme}"; then
+    readme_skips_generation=1
+  fi
 
   if [[ ! -f "${images_lock}" ]]; then
     echo "[fail] ${readme_rel}: missing runtime/ghcr/${state_id}/images.lock"
@@ -152,7 +156,8 @@ while IFS= read -r readme; do
     fi
 
     entry_script_rel="${expected_script#./}"
-    if (( ENFORCE_CLONE_SCRIPT_CHECKS == 1 )) && [[ ! -f "${TARGET_ROOT}/pipeline/generate-state.sh" ]] && references_pipeline_generate "${entry_script_rel}"; then
+    if (( ENFORCE_CLONE_SCRIPT_CHECKS == 1 )) && [[ ! -f "${TARGET_ROOT}/pipeline/generate-state.sh" ]] \
+      && (( readme_skips_generation == 0 )) && references_pipeline_generate "${entry_script_rel}"; then
       echo "[fail] ${readme_rel}: ${expected_script} depends on pipeline/generate-state.sh, but that file is not present in this bundle root"
       ((errors += 1))
     fi

@@ -8,3 +8,4 @@ Rationale:
 - It preserves the baseline functional behavior while introducing a stable deployment substrate.
 - It provides the cleanest handoff point for architecture, functional, and platform deltas.
 - As the convergence baseline, it establishes the `C0+` CI policy: convergence states publish container images via build/publish workflow plus GHCR run-bundle artifacts.
+- It keeps generated patchsets aligned with current dependency security targets so descendant convergence states inherit a clean runtime baseline.

@@ -1153,7 +1153,7 @@ EOF
 - Account service Swagger (edge): `http://localhost:18080/account-service/v3/api-docs`
 EOF
       ;;
-    004-containerized-compose-runtime|005-postgres-database-replacement|006-messaging-nats-replacement|008-pricing-awareness-market-data)
+    004-containerized-compose-runtime|005-postgres-database-replacement|006-messaging-nats-replacement)
       cat <<'EOF'
 - UI (ingress): `http://localhost:8080`
 - API explorer (ingress): `http://localhost:8080/api/docs`
@@ -1162,12 +1162,23 @@ EOF
 - Position service health: `http://localhost:18090/health/alive`
 EOF
       ;;
+    008-pricing-awareness-market-data)
+      cat <<'EOF'
+- UI (ingress): `http://localhost:8080`
+- API explorer (ingress): `http://localhost:8080/api/docs`
+- Grafana dashboards (ingress): `http://localhost:8080/grafana/`
+- Grafana local admin: `http://localhost:3001`
+- Prometheus: `http://localhost:9090`
+- Trade service Swagger: `http://localhost:18092/v3/api-docs`
+- Price publisher health: `http://localhost:18100/health`
+EOF
+      ;;
     007-observability-lgtm-compose)
       cat <<'EOF'
 - UI (ingress): `http://localhost:8080`
 - API explorer (ingress): `http://localhost:8080/api/docs`
-- Grafana (ingress): `http://localhost:8080/grafana` (admin/admin)
-- Grafana (direct): `http://localhost:3001`
+- Grafana dashboards (ingress): `http://localhost:8080/grafana/`
+- Grafana local admin: `http://localhost:3001`
 - Prometheus: `http://localhost:9090`
 - Loki: `http://localhost:3100`
 - Tempo: `http://localhost:3200`
@@ -1177,8 +1188,8 @@ EOF
       cat <<'EOF'
 - UI (ingress): `http://localhost:8080`
 - API explorer (ingress): `http://localhost:8080/api/docs`
-- Grafana (ingress): `http://localhost:8080/grafana` (admin/admin)
-- Grafana (direct): `http://localhost:3001`
+- Grafana dashboards (ingress): `http://localhost:8080/grafana/`
+- Grafana local admin: `http://localhost:3001`
 - Prometheus: `http://localhost:9090`
 - Order matcher health: `http://localhost:18110/health`
 - Order matcher metrics: `http://localhost:18110/metrics`
@@ -1191,13 +1202,48 @@ EOF
 - Trade page: `http://localhost:8080/trade`
 - Account service route: `http://localhost:8080/account-service/account/22214`
 - Position service route: `http://localhost:8080/position-service/positions/22214`
-- Grafana (ingress): `http://localhost:8080/grafana` (admin/admin)
+- Grafana (ingress): `http://localhost:8080/grafana`
 - Prometheus (ingress): `http://localhost:8080/prometheus`
 EOF
       ;;
     *)
       cat <<'EOF'
 - Use `./scripts/status-*.sh` for this state to print active endpoint URLs.
+EOF
+      ;;
+  esac
+}
+
+grafana_access_markdown() {
+  case "${STATE_ID}" in
+    007-observability-lgtm-compose)
+      cat <<'EOF'
+## Grafana Access
+
+- Public dashboards: `http://localhost:8080/grafana/`
+- Local admin URL: `http://localhost:3001`
+- The start script prints the active local admin credential.
+- Default convention: user from `TRADERX_GRAFANA_ADMIN_USER` or `traderx-admin`; password from `TRADERX_GRAFANA_ADMIN_PASSWORD` or `traderx-state-007`.
+EOF
+      ;;
+    008-pricing-awareness-market-data)
+      cat <<'EOF'
+## Grafana Access
+
+- Public dashboards: `http://localhost:8080/grafana/`
+- Local admin URL: `http://localhost:3001`
+- The start script prints the active local admin credential.
+- Default convention: user from `TRADERX_GRAFANA_ADMIN_USER` or `traderx-admin`; password from `TRADERX_GRAFANA_ADMIN_PASSWORD` or `traderx-state-008`.
+EOF
+      ;;
+    009-order-management-matcher)
+      cat <<'EOF'
+## Grafana Access
+
+- Public dashboards: `http://localhost:8080/grafana/`
+- Local admin URL: `http://localhost:3001`
+- The start script prints the active local admin credential.
+- Default convention: user from `TRADERX_GRAFANA_ADMIN_USER` or `traderx-admin`; password from `TRADERX_GRAFANA_ADMIN_PASSWORD` or `traderx-state-009`.
 EOF
       ;;
   esac
@@ -2760,7 +2806,7 @@ Endpoints:
 - UI / edge: `http://localhost:8080`
 - API explorer (edge): `http://localhost:8080/api/docs`
 - Edge health: `http://localhost:8080/health`
-- Grafana: `http://localhost:8080/grafana` (admin/admin)
+- Grafana: `http://localhost:8080/grafana`
 - Prometheus: `http://localhost:8080/prometheus`
 
 Status / stop:
@@ -2791,7 +2837,7 @@ Start baseline runtime (inherited from state 010):
 Inherited runtime endpoints:
 - UI / edge: `http://localhost:8080`
 - API explorer (edge): `http://localhost:8080/api/docs`
-- Grafana: `http://localhost:8080/grafana` (admin/admin)
+- Grafana: `http://localhost:8080/grafana`
 - Prometheus: `http://localhost:8080/prometheus`
 
 State 013 artifact pack:
@@ -2828,7 +2874,7 @@ Start baseline runtime (inherited from state 010):
 Inherited runtime endpoints:
 - UI / edge: `http://localhost:8080`
 - API explorer (edge): `http://localhost:8080/api/docs`
-- Grafana: `http://localhost:8080/grafana` (admin/admin)
+- Grafana: `http://localhost:8080/grafana`
 - Prometheus: `http://localhost:8080/prometheus`
 
 State 011 artifact pack:
@@ -2864,7 +2910,7 @@ Start convergence runtime:
 Inherited runtime endpoints:
 - UI / edge: `http://localhost:8080`
 - API explorer (edge): `http://localhost:8080/api/docs`
-- Grafana: `http://localhost:8080/grafana` (admin/admin)
+- Grafana: `http://localhost:8080/grafana`
 - Prometheus: `http://localhost:8080/prometheus`
 
 State 012 artifact pack:
@@ -2939,10 +2985,16 @@ Endpoints:
 - UI / ingress: `http://localhost:8080`
 - API explorer (ingress): `http://localhost:8080/api/docs`
 - Ingress health: `http://localhost:8080/health`
-- Grafana: `http://localhost:3001`
+- Grafana dashboards: `http://localhost:8080/grafana/`
+- Grafana local admin: `http://localhost:3001`
 - Prometheus: `http://localhost:9090`
 - Loki: `http://localhost:3100`
 - Tempo: `http://localhost:3200`
+
+Grafana access:
+- Dashboards are anonymous Viewer surfaces through ingress.
+- The start script prints the active local admin credential.
+- Default convention: user from `TRADERX_GRAFANA_ADMIN_USER` or `traderx-admin`; password from `TRADERX_GRAFANA_ADMIN_PASSWORD` or `traderx-state-007`.
 
 Status / stop:
 
@@ -3027,8 +3079,14 @@ Endpoints:
 - API explorer (ingress): `http://localhost:8080/api/docs`
 - Ingress health: `http://localhost:8080/health`
 - Order matcher health: `http://localhost:18110/health`
-- Grafana: `http://localhost:3001`
+- Grafana dashboards: `http://localhost:8080/grafana/`
+- Grafana local admin: `http://localhost:3001`
 - Prometheus: `http://localhost:9090`
+
+Grafana access:
+- Dashboards are anonymous Viewer surfaces through ingress.
+- The start script prints the active local admin credential.
+- Default convention: user from `TRADERX_GRAFANA_ADMIN_USER` or `traderx-admin`; password from `TRADERX_GRAFANA_ADMIN_PASSWORD` or `traderx-state-009`.
 
 Smoke test:
 
@@ -3064,8 +3122,15 @@ Endpoints:
 - UI / ingress: `http://localhost:8080`
 - API explorer (ingress): `http://localhost:8080/api/docs`
 - Ingress health: `http://localhost:8080/health`
+- Grafana dashboards: `http://localhost:8080/grafana/`
+- Grafana local admin: `http://localhost:3001`
 - NATS monitor: `http://localhost:8222/varz`
 - Price publisher: `http://localhost:18100/prices`
+
+Grafana access:
+- Dashboards are anonymous Viewer surfaces through ingress.
+- The start script prints the active local admin credential.
+- Default convention: user from `TRADERX_GRAFANA_ADMIN_USER` or `traderx-admin`; password from `TRADERX_GRAFANA_ADMIN_PASSWORD` or `traderx-state-008`.
 
 Smoke test:
 
@@ -3554,6 +3619,8 @@ $(api_explorer_markdown)
 ## Interactive URLs
 
 $(interactive_urls_markdown)
+
+$(grafana_access_markdown)
 
 Detailed clone-first instructions: [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
 Functional validation guide: [FUNCTIONAL_TESTING.md](./FUNCTIONAL_TESTING.md)

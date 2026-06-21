@@ -8,6 +8,7 @@ Describe runtime topology and network/data flow changes introduced by this state
 
 - App ingress: `http://localhost:8080`
 - Grafana: `http://localhost:3001`
+- Grafana through ingress: `http://localhost:8080/grafana/`
 - Prometheus: `http://localhost:9090`
 - NATS monitor: `http://localhost:8222/varz`
 - Order matcher health: `http://localhost:<order-matcher-port>/health`
@@ -34,6 +35,8 @@ Describe runtime topology and network/data flow changes introduced by this state
 - Prometheus scrapes order matcher metrics and probes order endpoints via blackbox exporter.
 - Prometheus also scrapes Spring Boot actuator metrics (`/actuator/prometheus`) for all compatible services in this state.
 - Grafana queries Prometheus/Loki/Tempo for order-management views.
+- Grafana dashboards remain anonymously readable as Viewer-only demo surfaces through `/grafana/`, while admin login uses generated state-scoped credentials.
+- Promtail uses the Docker daemon API version exported by the generated runtime harness unless `TRADERX_PROMTAIL_DOCKER_API_VERSION` is explicitly set.
 
 ## Startup / Health Order
 

@@ -38,6 +38,9 @@ curl -s "http://localhost:${ORDER_MATCHER_PORT}/metrics" | rg "traderx_orders_op
 # order matcher health
 curl -s "http://localhost:${ORDER_MATCHER_PORT}/health"
 
-# dashboard landing
+# anonymous dashboard landing through ingress
+open http://localhost:8080/grafana/
+
+# local admin login, using credentials printed by the start script
 open http://localhost:3001
 ```

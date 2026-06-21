@@ -3,6 +3,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
+source "${REPO_ROOT}/scripts/lib/observability-runtime.sh"
 
 if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
   LOCAL_RUNTIME_SCRIPT="${GENERATED_ROOT}/code/target-generated/scripts/$(basename "${BASH_SOURCE[0]}")"
@@ -13,6 +14,7 @@ fi
 STATE_ID="007-observability-lgtm-compose"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-007}"
 GRAFANA_PORT="${GRAFANA_PORT:-3001}"
+export GRAFANA_PORT
 COMPOSE_DIR="${GENERATED_ROOT}/code/target-generated/observability-lgtm-compose"
 COMPOSE_FILE="${COMPOSE_DIR}/docker-compose.yml"
 DRY_RUN=0
@@ -50,6 +52,8 @@ if [[ -z "${DOCKER_BUILDKIT:-}" ]]; then
   echo "[info] DOCKER_BUILDKIT not set; defaulting to 1 for Docker cache mounts"
 fi
 
+traderx_configure_observability_runtime "${STATE_ID}"
+
 if [[ "${TRADERX_SKIP_GENERATE:-0}" != "1" ]]; then
   bash "${REPO_ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
 else
@@ -60,6 +64,8 @@ fi
   echo "[error] compose file not found: ${COMPOSE_FILE}"
   exit 1
 }
+
+traderx_print_observability_runtime_summary
 
 if (( DRY_RUN == 1 )); then
   if (( SKIP_BUILD == 1 )); then
@@ -119,12 +125,13 @@ wait_for_http "otel-collector-health" "http://localhost:13133/" || exit 1
 
 bash "${REPO_ROOT}/scripts/start-grafana-traderx-dashboards.sh" \
   "http://localhost:${GRAFANA_PORT}" \
-  "admin" \
-  "admin" \
+  "${TRADERX_GRAFANA_ADMIN_USER}" \
+  "${TRADERX_GRAFANA_ADMIN_PASSWORD}" \
   "TraderX" \
   "traderx-obs-006-overview" || true
 
 echo "[done] state 007 observability runtime started"
 echo "[ui] http://localhost:8080"
 echo "[api-explorer] http://localhost:8080/api/docs"
-echo "[grafana] http://localhost:${GRAFANA_PORT} (local login credentials)"
+echo "[grafana] http://localhost:${GRAFANA_PORT} (local admin login)"
+echo "[grafana-public] http://localhost:8080/grafana/ (anonymous Viewer dashboards)"
