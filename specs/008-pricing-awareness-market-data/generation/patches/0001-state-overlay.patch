@@ -3256,12 +3256,11 @@ index 0000000..1ae9556
 +      - targets:
 +          - http://ingress:8080/health
 +          - http://ingress:8080/
-+          - http://database:18084/
 +          - http://reference-data:18085/stocks
 +          - http://account-service:18088/account/22214
 +          - http://people-service:18089/swagger
 +          - http://position-service:18090/health/alive
-+          - http://trade-processor:18091/health
++          - http://trade-processor:18091/system/health
 +          - http://trade-service:18092/v3/api-docs
 +          - http://web-front-end-angular:18093/
 +          - http://price-publisher:18100/health
