@@ -4,6 +4,6 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Wrapper purpose: stable, state-local status entrypoint.
 # This may delegate across multiple numbered state scripts to maximize reuse.
-# Execution flow: scripts/status-state-005-postgres-database-replacement-generated.sh
+# Execution flow: scripts/status-state-006-messaging-nats-replacement-generated.sh
 
-exec "${ROOT}/scripts/status-state-005-postgres-database-replacement-generated.sh" "$@"
+exec "${ROOT}/scripts/status-state-006-messaging-nats-replacement-generated.sh" "$@"

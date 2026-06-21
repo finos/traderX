@@ -1,6 +1,6 @@
 # Generated Docs
 
-This folder provides generated learning-oriented documentation for state `005-postgres-database-replacement`.
+This folder provides generated learning-oriented documentation for state `006-messaging-nats-replacement`.
 
 - [Learning Index](./learning/README.md)
 - [Component List](./learning/component-list.md)

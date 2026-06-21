@@ -4,41 +4,41 @@ This branch is an auto-published generated-code snapshot for FINOS TraderX.
 
 ![linux/mac support](https://badgen.net/badge/linux%2Fmac/supported/green?icon=linux) ![windows support](https://badgen.net/badge/windows/not%20supported/red?icon=windows)
 
-- State ID: `005-postgres-database-replacement`
-- State Title: `PostgreSQL Database Replacement`
+- State ID: `006-messaging-nats-replacement`
+- State Title: `Messaging Layer Replacement with NATS`
 - Status: `implemented`
-- Suggested Version Tag: `generated/005-postgres-database-replacement/v1`
+- Suggested Version Tag: `generated/006-messaging-nats-replacement/v1`
 - Source Branch: `main`
 - Source Commit: `072c53d558884d7b14142168239860086c7cdee2`
-- Generated At (UTC): `2026-06-21T08:52:38Z`
+- Generated At (UTC): `2026-06-21T08:55:58Z`
 
 ## State Summary
 
 - Builds on state `004` and preserves containerized ingress runtime behavior.
-- Replaces H2 runtime database with PostgreSQL container + deterministic init SQL.
-- Preserves baseline REST/event contracts and user-visible behavior.
+- Replaces Socket.IO trade-feed with NATS broker for backend and browser streaming.
+- Preserves baseline user-visible behavior while changing messaging transport.
 
 ## State Lineage
 
 ```mermaid
 flowchart LR
-  S_CUR["005-postgres-database-replacement (current)"]
+  S_CUR["006-messaging-nats-replacement (current)"]
   style S_CUR fill:#2e7d32,stroke:#1b5e20,color:#ffffff,stroke-width:2px
-  S_PREV_004_containerized_compose_runtime["004-containerized-compose-runtime"] --> S_CUR
-  click S_PREV_004_containerized_compose_runtime href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-004-containerized-compose-runtime" "Open branch"
-  S_CUR --> S_NEXT_006_messaging_nats_replacement["006-messaging-nats-replacement"]
-  click S_NEXT_006_messaging_nats_replacement href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-006-messaging-nats-replacement" "Open branch"
-  click S_CUR href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-005-postgres-database-replacement" "Open current branch"
+  S_PREV_005_postgres_database_replacement["005-postgres-database-replacement"] --> S_CUR
+  click S_PREV_005_postgres_database_replacement href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-005-postgres-database-replacement" "Open branch"
+  S_CUR --> S_NEXT_007_observability_lgtm_compose["007-observability-lgtm-compose"]
+  click S_NEXT_007_observability_lgtm_compose href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-007-observability-lgtm-compose" "Open branch"
+  click S_CUR href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-006-messaging-nats-replacement" "Open current branch"
 ```
 
 | Direction | State | Branch | Compare |
 | --- | --- | --- | --- |
-| Previous | `004-containerized-compose-runtime` | [code/generated-state-004-containerized-compose-runtime](https://github.com/finos/traderX/tree/code%2Fgenerated-state-004-containerized-compose-runtime) | 🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-004-containerized-compose-runtime...code%2Fgenerated-state-005-postgres-database-replacement) |
-| Next | `006-messaging-nats-replacement` | [code/generated-state-006-messaging-nats-replacement](https://github.com/finos/traderX/tree/code%2Fgenerated-state-006-messaging-nats-replacement) | 🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-005-postgres-database-replacement...code%2Fgenerated-state-006-messaging-nats-replacement) |
+| Previous | `005-postgres-database-replacement` | [code/generated-state-005-postgres-database-replacement](https://github.com/finos/traderX/tree/code%2Fgenerated-state-005-postgres-database-replacement) | 🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-005-postgres-database-replacement...code%2Fgenerated-state-006-messaging-nats-replacement) |
+| Next | `007-observability-lgtm-compose` | [code/generated-state-007-observability-lgtm-compose](https://github.com/finos/traderX/tree/code%2Fgenerated-state-007-observability-lgtm-compose) | 🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-006-messaging-nats-replacement...code%2Fgenerated-state-007-observability-lgtm-compose) |
 
 State sets:
-- Previous states: `004-containerized-compose-runtime`
-- Next states: `006-messaging-nats-replacement`
+- Previous states: `005-postgres-database-replacement`
+- Next states: `007-observability-lgtm-compose`
 
 ## Convergence Status
 
@@ -46,22 +46,22 @@ State sets:
 - Convergence level: `none`
 - Lineage role: `canonical`
 - Dotted-line parents: `none`
-- Previous convergence milestone: [004-containerized-compose-runtime](https://github.com/finos/traderX/tree/code%2Fgenerated-state-004-containerized-compose-runtime) (🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-004-containerized-compose-runtime...code%2Fgenerated-state-005-postgres-database-replacement))
-- Next convergence milestone: [007-observability-lgtm-compose](https://github.com/finos/traderX/tree/code%2Fgenerated-state-007-observability-lgtm-compose) (🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-005-postgres-database-replacement...code%2Fgenerated-state-007-observability-lgtm-compose))
+- Previous convergence milestone: [004-containerized-compose-runtime](https://github.com/finos/traderX/tree/code%2Fgenerated-state-004-containerized-compose-runtime) (🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-004-containerized-compose-runtime...code%2Fgenerated-state-006-messaging-nats-replacement))
+- Next convergence milestone: [007-observability-lgtm-compose](https://github.com/finos/traderX/tree/code%2Fgenerated-state-007-observability-lgtm-compose) (🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-006-messaging-nats-replacement...code%2Fgenerated-state-007-observability-lgtm-compose))
 
 ### Convergence Neighborhood
 
 ```mermaid
 flowchart LR
-  C_CUR["005-postgres-database-replacement (current)"]
+  C_CUR["006-messaging-nats-replacement (current)"]
   style C_CUR fill:#2e7d32,stroke:#1b5e20,color:#ffffff,stroke-width:2px
   C_PREV_004_containerized_compose_runtime["004-containerized-compose-runtime"] --> C_CUR
   click C_PREV_004_containerized_compose_runtime href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-004-containerized-compose-runtime" "Open branch"
-  %% compare: https://github.com/finos/traderX/compare/code%2Fgenerated-state-004-containerized-compose-runtime...code%2Fgenerated-state-005-postgres-database-replacement
+  %% compare: https://github.com/finos/traderX/compare/code%2Fgenerated-state-004-containerized-compose-runtime...code%2Fgenerated-state-006-messaging-nats-replacement
   C_CUR --> C_NEXT_007_observability_lgtm_compose["007-observability-lgtm-compose"]
   click C_NEXT_007_observability_lgtm_compose href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-007-observability-lgtm-compose" "Open branch"
-  %% compare: https://github.com/finos/traderX/compare/code%2Fgenerated-state-005-postgres-database-replacement...code%2Fgenerated-state-007-observability-lgtm-compose
-  click C_CUR href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-005-postgres-database-replacement" "Open current branch"
+  %% compare: https://github.com/finos/traderX/compare/code%2Fgenerated-state-006-messaging-nats-replacement...code%2Fgenerated-state-007-observability-lgtm-compose
+  click C_CUR href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-006-messaging-nats-replacement" "Open current branch"
 ```
 
 ## Runtime Guidance
@@ -69,17 +69,17 @@ flowchart LR
 Run directly from this generated snapshot branch:
 
 ```bash
-./scripts/start-state-005-postgres-database-replacement-generated.sh
+./scripts/start-state-006-messaging-nats-replacement-generated.sh
 ```
 
 UI/ingress endpoint: `http://localhost:8080`
-PostgreSQL endpoint: `localhost:18083`
+NATS monitor endpoint: `http://localhost:8222/varz`
 
 Status / stop:
 
 ```bash
-./scripts/status-state-005-postgres-database-replacement-generated.sh
-./scripts/stop-state-005-postgres-database-replacement-generated.sh
+./scripts/status-state-006-messaging-nats-replacement-generated.sh
+./scripts/stop-state-006-messaging-nats-replacement-generated.sh
 ```
 
 ## API Explorer
@@ -112,12 +112,12 @@ Functional validation guide: [FUNCTIONAL_TESTING.md](./FUNCTIONAL_TESTING.md)
 
 Canonical source-of-truth is maintained in the SpecKit authoring branch, not in this code snapshot branch.
 
-- Feature pack: `specs/005-postgres-database-replacement`
-- Generation entrypoint: `bash pipeline/generate-state.sh 005-postgres-database-replacement`
+- Feature pack: `specs/006-messaging-nats-replacement`
+- Generation entrypoint: `bash pipeline/generate-state.sh 006-messaging-nats-replacement`
 - Developer learning guide for this snapshot: [LEARNING.md](./LEARNING.md)
 - Functional validation guide: [FUNCTIONAL_TESTING.md](./FUNCTIONAL_TESTING.md)
 - Snapshot metadata: [STATE.md](./STATE.md), [state.json](./.traderx-state/state.json)
 - Canonical Getting Started (main): https://github.com/finos/traderX/blob/main/docs/spec-kit/getting-started-with-traderx.md
 - Source commit: https://github.com/finos/traderX/commit/072c53d558884d7b14142168239860086c7cdee2
-- Feature pack at source commit: https://github.com/finos/traderX/tree/072c53d558884d7b14142168239860086c7cdee2/specs/005-postgres-database-replacement
+- Feature pack at source commit: https://github.com/finos/traderX/tree/072c53d558884d7b14142168239860086c7cdee2/specs/006-messaging-nats-replacement
 - SpecKit docs at source commit: https://github.com/finos/traderX/tree/072c53d558884d7b14142168239860086c7cdee2/docs/spec-kit

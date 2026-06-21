@@ -16,7 +16,6 @@ jobs:
       matrix:
         module_folder:
           - reference-data
-          - trade-feed
           - web-front-end/angular
     steps:
       - uses: actions/checkout@v4
