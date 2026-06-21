@@ -1,14 +1,14 @@
 # Functional Testing Guide
 
-State: `003-agentic-harness-foundation`
+State: `004-containerized-compose-runtime`
 
 This guide captures intended functional behavior for this generated snapshot branch.
 
 ## What Should Work
 
-- Builds on state `002` while preserving uncontainerized edge-proxy runtime behavior.
-- Adds generated repository harness metadata (`AGENTS.md`, `ARCHITECTURE.md`, `CONTRIBUTING.md`).
-- Clarifies contribution flow: durable enhancements belong in upstream specs/state packs.
+- Builds on state `003` by moving runtime to Docker Compose.
+- Uses NGINX ingress (`ingress` service) as the browser/API/WebSocket entrypoint.
+- Preserves baseline functional behavior while changing runtime/ops model.
 
 ## Suggested Functional Validation
 
@@ -20,14 +20,16 @@ This guide captures intended functional behavior for this generated snapshot bra
 ## Smoke Test Commands
 
 ```bash
-./scripts/test-state-003-agentic-harness-foundation.sh
+ls ./scripts/test-state-*.sh
 ```
+
+Use the script matching this state id when available.
 
 ## Canonical References
 
-- Spec pack: `specs/003-agentic-harness-foundation`
+- Spec pack: `specs/004-containerized-compose-runtime`
 - Runtime guide: [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
 - Snapshot learning guide: [LEARNING.md](./LEARNING.md)
 - Snapshot metadata: [STATE.md](./STATE.md)
 - Canonical Getting Started (main): https://github.com/finos/traderX/blob/main/docs/spec-kit/getting-started-with-traderx.md
-- Canonical SpecKit docs (source commit): https://github.com/finos/traderX/tree/0b2e1068c66159c48378bd81d55f5a41a7131da1/docs/spec-kit
+- Canonical SpecKit docs (source commit): https://github.com/finos/traderX/tree/072c53d558884d7b14142168239860086c7cdee2/docs/spec-kit

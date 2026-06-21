@@ -1,10 +1,10 @@
 {
-  "stateId": "003-agentic-harness-foundation",
-  "stateTitle": "Agentic Harness Foundation",
-  "stateTrack": "prelude",
-  "generatedAtUtc": "2026-06-21T07:55:58.732Z",
-  "sourceBranch": "code/generated-state-003-agentic-harness-foundation",
-  "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-003-agentic-harness-foundation",
+  "stateId": "004-containerized-compose-runtime",
+  "stateTitle": "Containerized Compose Runtime (NGINX Ingress)",
+  "stateTrack": "baseline",
+  "generatedAtUtc": "2026-06-21T08:47:39.380Z",
+  "sourceBranch": "code/generated-state-004-containerized-compose-runtime",
+  "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-004-containerized-compose-runtime",
   "lineageLinkUrl": "https://github.com/finos/traderX/blob/main/docs/learning-paths/index.md",
   "apiExplorerUrl": "/api/docs",
   "pubSubInspectorUrl": "/api/docs/pubsub-inspector.html",
@@ -14,6 +14,13 @@
     "pubSubInspector": false
   },
   "previousStates": [
+    {
+      "id": "003-agentic-harness-foundation",
+      "title": "Agentic Harness Foundation",
+      "sourceBranch": "code/generated-state-003-agentic-harness-foundation",
+      "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-003-agentic-harness-foundation",
+      "summary": "Introduces Agentic Harness Foundation on the prelude track."
+    },
     {
       "id": "002-edge-proxy-uncontainerized",
       "title": "Edge Proxy Uncontainerized",

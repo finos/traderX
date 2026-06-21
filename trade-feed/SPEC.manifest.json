@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAtUtc": "2026-06-21T07:52:13Z",
+  "generatedAtUtc": "2026-03-31T12:59:32Z",
   "component": {
     "id": "trade-feed",
     "kind": "service",
@@ -14,8 +14,7 @@
   "runtime": {
     "defaultPort": 18086,
     "dependsOn": [],
-    "requiredEnv": ["TRADE_FEED_PORT","CORS_ALLOWED_ORIGINS"],
-    "healthHint": "tcp://<host>:18086 (TCP reachability)"
+    "requiredEnv": ["TRADE_FEED_PORT","CORS_ALLOWED_ORIGINS"]
   },
   "contracts": {
     "primary": null

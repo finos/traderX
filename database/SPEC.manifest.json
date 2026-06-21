@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAtUtc": "2026-06-21T07:52:13Z",
+  "generatedAtUtc": "2026-03-31T12:59:32Z",
   "component": {
     "id": "database",
     "kind": "service",
@@ -14,8 +14,7 @@
   "runtime": {
     "defaultPort": 18082,
     "dependsOn": [],
-    "requiredEnv": ["DATABASE_WEB_HOSTNAMES"],
-    "healthHint": "tcp://<host>:18082 (TCP reachability, not HTTP)"
+    "requiredEnv": ["DATABASE_WEB_HOSTNAMES"]
   },
   "contracts": {
     "primary": null
