@@ -1,7 +1,7 @@
 # Compose snippet for state 006 (conceptual delta)
 services:
   nats-broker:
-    image: nats:2.14-alpine
+    image: nats:2.10-alpine
     command:
       - "--http_port=8222"
       - "--ws"

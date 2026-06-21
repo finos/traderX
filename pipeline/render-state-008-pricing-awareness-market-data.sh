@@ -2,6 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "${ROOT}/pipeline/dependency-targets.sh"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${ROOT}/generated}"
 TARGET_ROOT="${GENERATED_ROOT}/code/target-generated"
 STATE_DIR="${TARGET_ROOT}/pricing-awareness-market-data"
@@ -69,6 +70,7 @@ require_file "${COMPOSE_FILE}"
 require_file "${INGRESS_FILE}"
 
 perl -0pi -e 's/^name:\s*traderx-state-\d+/name: traderx-state-008/m' "${COMPOSE_FILE}"
+traderx_normalize_yaml_image_tag "${ROOT}" "${COMPOSE_FILE}" "nats"
 bash "${ROOT}/pipeline/normalize-observability-runtime.sh" "008" "${COMPOSE_FILE}"
 
 GEN_DEPTH="${TRADERX_GENERATION_DEPTH:-1}"

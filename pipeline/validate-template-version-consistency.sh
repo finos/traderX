@@ -62,22 +62,6 @@ extract_dependency_version() {
   rg -o --pcre2 "'${escaped}:\\K[^']+" "${file}" | head -n1 || true
 }
 
-extract_yaml_image_tags() {
-  local file="$1"
-  local image_name="$2"
-  local escaped
-  escaped="$(printf '%s' "${image_name}" | sed 's/[][(){}.+*?^$|\\/]/\\&/g')"
-  rg -o --pcre2 "image\\s*:\\s*['\"]?${escaped}:\\K[^'\"\\s]+" "${file}" || true
-}
-
-extract_json_image_tags() {
-  local file="$1"
-  local image_name="$2"
-  local escaped
-  escaped="$(printf '%s' "${image_name}" | sed 's/[][(){}.+*?^$|\\/]/\\&/g')"
-  rg -o --pcre2 "\"image\"\\s*:\\s*\"${escaped}:\\K[^\"]+" "${file}" || true
-}
-
 spring_build_files=()
 while IFS= read -r file; do
   if rg -q "id 'org\\.springframework\\.boot' version" "${file}"; then
@@ -276,24 +260,5 @@ while IFS=$'\t' read -r nuget_dep nuget_target; do
   done < <(find "${TEMPLATES_ROOT}" -type f -name '*.csproj' -print | sort)
   (( seen > 0 )) || fail "NuGet target ${nuget_dep} not found under templates/"
 done < <(jq -r '.nuget.packages | to_entries[] | [.key, .value] | @tsv' "${TARGETS_FILE}")
-
-while IFS=$'\t' read -r image_name image_target; do
-  [[ -n "${image_name}" && -n "${image_target}" ]] || continue
-  seen=0
-  while IFS= read -r manifest_file; do
-    while IFS= read -r actual; do
-      [[ -n "${actual}" ]] || continue
-      seen=$((seen + 1))
-      [[ "${actual}" == "${image_target}" ]] || fail "docker image target mismatch for ${image_name} in ${manifest_file}: expected ${image_target}, found ${actual}"
-    done < <(extract_yaml_image_tags "${manifest_file}" "${image_name}")
-
-    while IFS= read -r actual; do
-      [[ -n "${actual}" ]] || continue
-      seen=$((seen + 1))
-      [[ "${actual}" == "${image_target}" ]] || fail "docker image target mismatch for ${image_name} in ${manifest_file}: expected ${image_target}, found ${actual}"
-    done < <(extract_json_image_tags "${manifest_file}" "${image_name}")
-  done < <(find "${TEMPLATES_ROOT}" -type f \( -name '*.yml' -o -name '*.yaml' -o -name '*.json' \) -print | sort)
-  (( seen > 0 )) || fail "docker image target ${image_name}:${image_target} not found under templates/"
-done < <(jq -r '(.docker.images // {}) | to_entries[] | [.key, .value] | @tsv' "${TARGETS_FILE}")
 
 echo "[ok] template dependency targets validated (spring=${unique_boot_versions}, java=${unique_java_majors}, gradle=${unique_wrapper_versions})"

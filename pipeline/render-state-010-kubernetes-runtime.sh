@@ -2,11 +2,13 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "${ROOT}/pipeline/dependency-targets.sh"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${ROOT}/generated}"
 TARGET_ROOT="${GENERATED_ROOT}/code/target-generated"
 STATE_DIR="${TARGET_ROOT}/kubernetes-runtime"
 MANIFEST_DIR="${STATE_DIR}/manifests/base"
-SPEC_JSON="${ROOT}/specs/010-kubernetes-runtime/system/kubernetes-runtime.spec.json"
+SPEC_SOURCE_JSON="${ROOT}/specs/010-kubernetes-runtime/system/kubernetes-runtime.spec.json"
+SPEC_JSON="$(mktemp)"
 NGINX_CONF="${ROOT}/specs/010-kubernetes-runtime/system/nginx-edge.conf"
 SQL_SOURCE="${TARGET_ROOT}/postgres-database-replacement/postgres-init/initialSchema.sql"
 NATS_CONF_SOURCE="${TARGET_ROOT}/pricing-awareness-market-data/nats/nats.conf"
@@ -21,8 +23,10 @@ GRAFANA_DASHBOARD_PROVIDER_SOURCE="${OBS_SOURCE_DIR}/grafana/provisioning/dashbo
 GRAFANA_DASHBOARDS_DIR="${OBS_SOURCE_DIR}/grafana/dashboards"
 LOG_COMPOSE_PROJECT_LABEL="traderx-state-009"
 
+trap 'rm -f "${SPEC_JSON}"' EXIT
+
 for required in \
-  "${SPEC_JSON}" \
+  "${SPEC_SOURCE_JSON}" \
   "${NGINX_CONF}" \
   "${SQL_SOURCE}" \
   "${NATS_CONF_SOURCE}" \
@@ -42,6 +46,10 @@ for required in \
     exit 1
   }
 done
+
+jq --arg image "$(traderx_docker_image_ref "${ROOT}" "nats")" \
+  '(.components[] | select(.name == "nats-broker") | .image) = $image' \
+  "${SPEC_SOURCE_JSON}" > "${SPEC_JSON}"
 
 dashboard_count="$(find "${GRAFANA_DASHBOARDS_DIR}" -maxdepth 1 -type f -name '*.json' | wc -l | tr -d ' ')"
 if [[ "${dashboard_count}" == "0" ]]; then

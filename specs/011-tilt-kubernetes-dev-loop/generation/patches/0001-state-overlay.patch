@@ -973,7 +973,7 @@ index 0000000..e73ec97
 +    spec:
 +      containers:
 +        - name: nats-broker
-+          image: nats:2.14-alpine
++          image: nats:2.10-alpine
 +          imagePullPolicy: IfNotPresent
 +          ports:
 +            - name: client

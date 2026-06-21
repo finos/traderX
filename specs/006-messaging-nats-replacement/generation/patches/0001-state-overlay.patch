@@ -243,7 +243,7 @@ index 97b46a6..ba4a919 100644
 -      TRADE_FEED_PORT: "18086"
 -      CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-*}"
 +  nats-broker:
-+    image: nats:2.14-alpine
++    image: nats:2.10-alpine
 +    command: ["-c", "/etc/nats/nats.conf"]
 +    volumes:
 +      - ./nats/nats.conf:/etc/nats/nats.conf:ro
