@@ -2,6 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "${ROOT}/pipeline/dependency-targets.sh"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${ROOT}/generated}"
 TARGET_ROOT="${GENERATED_ROOT}/code/target-generated"
 STATE_DIR="${TARGET_ROOT}/observability-lgtm-compose"
@@ -89,6 +90,7 @@ done
 
 # Keep generated compose metadata aligned with this state id for manual `docker compose` flows.
 perl -0pi -e 's/^name:\s*traderx-state-\d+/name: traderx-state-007/m' "${COMPOSE_FILE}"
+traderx_normalize_yaml_image_tag "${ROOT}" "${COMPOSE_FILE}" "nats"
 
 bash "${ROOT}/pipeline/normalize-observability-runtime.sh" "007" "${COMPOSE_FILE}"
 

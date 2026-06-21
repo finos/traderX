@@ -2,6 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "${ROOT}/pipeline/dependency-targets.sh"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${ROOT}/generated}"
 TARGET_ROOT="${GENERATED_ROOT}/code/target-generated"
 STATE_DIR="${TARGET_ROOT}/order-management-matcher"
@@ -361,6 +362,7 @@ EOF
 require_file "${COMPOSE_FILE}"
 require_file "${PROMETHEUS_FILE}"
 require_file "${INGRESS_FILE}"
+traderx_normalize_yaml_image_tag "${ROOT}" "${COMPOSE_FILE}" "nats"
 
 for service in account-service position-service trade-processor trade-service order-matcher; do
   ensure_gradle_prometheus_support "${TARGET_ROOT}/${service}/build.gradle"

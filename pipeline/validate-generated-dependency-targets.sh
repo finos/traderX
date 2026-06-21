@@ -28,7 +28,7 @@ trap 'rm -f "${tmp_files}"' EXIT
 for scan_root in "$@"; do
   [[ -d "${scan_root}" ]] || continue
   find "${scan_root}" -type f \
-    \( -name 'build.gradle' -o -name 'gradle-wrapper.properties' -o -name 'package.json' -o -name '*.csproj' \) \
+    \( -name 'build.gradle' -o -name 'gradle-wrapper.properties' -o -name 'package.json' -o -name '*.csproj' -o -name '*.yml' -o -name '*.yaml' -o -name '*.json' \) \
     ! -path '*/node_modules/*' \
     -print >> "${tmp_files}"
 done
@@ -45,6 +45,22 @@ check_equals() {
   if [[ "${actual}" != "${expected}" ]]; then
     fail "${label} mismatch in ${file}: expected ${expected}, found ${actual}"
   fi
+}
+
+extract_yaml_image_tags() {
+  local file="$1"
+  local image_name="$2"
+  local escaped
+  escaped="$(printf '%s' "${image_name}" | sed 's/[][(){}.+*?^$|\\/]/\\&/g')"
+  rg -o --pcre2 "image\\s*:\\s*['\"]?${escaped}:\\K[^'\"\\s]+" "${file}" || true
+}
+
+extract_json_image_tags() {
+  local file="$1"
+  local image_name="$2"
+  local escaped
+  escaped="$(printf '%s' "${image_name}" | sed 's/[][(){}.+*?^$|\\/]/\\&/g')"
+  rg -o --pcre2 "\"image\"\\s*:\\s*\"${escaped}:\\K[^\"]+" "${file}" || true
 }
 
 JAVA_BOOT_TARGET="$(jq -er '.java.plugins["org.springframework.boot"]' "${TARGETS_FILE}")"
@@ -166,5 +182,22 @@ while IFS=$'\t' read -r dep expected; do
 
   (( seen > 0 )) || fail "NuGet target ${dep} not found in generated csproj files"
 done < <(jq -r '.nuget.packages | to_entries[] | [.key, .value] | @tsv' "${TARGETS_FILE}")
+
+while IFS=$'\t' read -r image_name expected_tag; do
+  [[ -n "${image_name}" && -n "${expected_tag}" ]] || continue
+  while IFS= read -r manifest_file; do
+    [[ -f "${manifest_file}" ]] || continue
+
+    while IFS= read -r actual_tag; do
+      [[ -n "${actual_tag}" ]] || continue
+      check_equals "Docker image ${image_name}" "${manifest_file}" "${expected_tag}" "${actual_tag}"
+    done < <(extract_yaml_image_tags "${manifest_file}" "${image_name}")
+
+    while IFS= read -r actual_tag; do
+      [[ -n "${actual_tag}" ]] || continue
+      check_equals "Docker image ${image_name}" "${manifest_file}" "${expected_tag}" "${actual_tag}"
+    done < <(extract_json_image_tags "${manifest_file}" "${image_name}")
+  done < <(rg -N "" "${tmp_files}" | rg '(\.ya?ml|\.json)$' || true)
+done < <(jq -r '(.docker.images // {}) | to_entries[] | [.key, .value] | @tsv' "${TARGETS_FILE}")
 
 echo "[ok] dependency targets validated for generated roots ($# root(s))"

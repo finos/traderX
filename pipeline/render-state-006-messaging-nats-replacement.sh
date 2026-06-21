@@ -2,9 +2,11 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "${ROOT}/pipeline/dependency-targets.sh"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${ROOT}/generated}"
 TARGET_ROOT="${GENERATED_ROOT}/code/target-generated"
 RUNTIME_OVERRIDES_DIR="${ROOT}/specs/006-messaging-nats-replacement/generation/runtime-overrides"
+COMPOSE_FILE="${TARGET_ROOT}/messaging-nats-replacement/docker-compose.yml"
 
 ensure_micrometer_core() {
   local gradle_file="$1"
@@ -28,5 +30,7 @@ fi
 # superseded component directory so downstream states do not carry stale
 # lockfiles or runtime artifacts.
 rm -rf "${TARGET_ROOT}/trade-feed"
+
+traderx_normalize_yaml_image_tag "${ROOT}" "${COMPOSE_FILE}" "nats"
 
 echo "[ok] rendered state 006 micrometer dependency overrides"
