@@ -108,6 +108,7 @@ jobs:
         module_folder:
           - account-service
           - database
+          - order-matcher
           - position-service
           - trade-processor
           - trade-service
@@ -169,6 +170,9 @@ jobs:
           - directory: ingress
             dockerfile: Dockerfile.compose
             image_name: ingress
+          - directory: order-matcher
+            dockerfile: Dockerfile.compose
+            image_name: order-matcher
           - directory: people-service
             dockerfile: Dockerfile.compose
             image_name: people-service

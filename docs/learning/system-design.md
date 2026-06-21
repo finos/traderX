@@ -1,46 +1,57 @@
 # System Design
 
-State: `008-pricing-awareness-market-data`
+State: `009-order-management-matcher`
 
 ## Design Intent
 
-State 008 builds on NATS-based runtime from 006 and adds synthetic market pricing, trade execution price stamping, position cost basis aggregation, and frontend valuation.
+Pricing + observability runtime extended with order management, matcher flow, and order-specific telemetry.
 
 ## Runtime Topology / Flow (Spec Extract)
 
-# Runtime Topology: 008 Pricing Awareness and Market Data
+# Runtime Topology: 009-order-management-matcher
 
-Parent state: `007-observability-lgtm-compose`
+Parent state: `008-pricing-awareness-market-data`
+
+Describe runtime topology and network/data flow changes introduced by this state.
 
 ## Entrypoints
 
-- Browser/UI ingress: `http://localhost:8080`
-- NATS client port (internal compose network): `4222`
-- NATS monitoring (optional local): `8222`
-- NATS websocket ingress path (proxied): `/nats-ws`
-- Price publisher REST: `http://localhost:18100`
+- App ingress: `http://localhost:8080`
+- Grafana: `http://localhost:3001`
+- Grafana through ingress: `http://localhost:8080/grafana/`
+- Prometheus: `http://localhost:9090`
+- NATS monitor: `http://localhost:8222/varz`
+- Order matcher health: `http://localhost:<order-matcher-port>/health`
+- Order matcher metrics: `http://localhost:<order-matcher-port>/metrics`
 
 ## Components
 
-- `nats-broker` remains core messaging bus from state `006`.
-- `price-publisher` publishes `pricing.<TICKER>` market ticks.
-- `trade-service` enriches orders with execution `price` via `price-publisher`.
-- `trade-processor` persists `trade.price` and `position.averageCostBasis`.
-- `web-front-end-angular` subscribes to account updates and `pricing.*`.
+- Inherits pricing runtime from `008` and observability baseline from `007`.
+- Adds order components:
+  - `order-matcher` (Java/Spring Boot matching + persistence + metrics)
+  - order-management API handlers integrated with backend flow
+  - trader UI order ticket + account open-orders blotter
+  - Admin UI view for cross-account order operations
+- Extends observability concerns:
+  - Prometheus target coverage for order matcher endpoints
+  - Grafana dashboards for order queue depth, events, and matcher latency
+  - Loki log streams for order matcher and admin operations
 
 ## Networking
 
-- Service-to-service messaging uses NATS TCP over compose network.
-- Browser real-time stream uses WebSocket upgrade through ingress path `/nats-ws`.
-- Price publisher is available via ingress path `/price-publisher/` and direct local port `18100`.
+- Admin UI requests order APIs through existing ingress.
+- Order matcher writes order lifecycle to shared DB and submits fills through trade-service API.
+- Trade processor and position service consume matcher-generated trades via existing integration path.
+- Prometheus scrapes order matcher metrics and probes order endpoints via blackbox exporter.
+- Prometheus also scrapes Spring Boot actuator metrics (`/actuator/prometheus`) for all compatible services in this state.
+- Grafana queries Prometheus/Loki/Tempo for order-management views.
+- Grafana dashboards remain anonymously readable as Viewer-only demo surfaces through `/grafana/`, while admin login uses generated state-scoped credentials.
+- Promtail uses the Docker daemon API version exported by the generated runtime harness unless `TRADERX_PROMTAIL_DOCKER_API_VERSION` is explicitly set.
 
 ## Startup / Health Order
 
-- `nats-broker` and `price-publisher` must be healthy before trade-service startup.
-- Frontend may start before broker/price streams, but subscriptions must retry until available.
-
-## Source-of-Truth Files
-
-- `system/messaging-subject-map.md`
-- `system/docker-compose.nats.snippet.yaml`
-- `system/ingress-nginx.nats-ws.snippet.conf`
+1. Start inherited state `008` runtime (app + LGTM).
+2. Start `order-matcher` and validate `/health` and `/metrics`.
+3. Ensure ingress routes order-management APIs and admin UI path.
+4. Verify Prometheus discovers order targets and required metric families.
+5. Verify Grafana has order-specific dashboards provisioned.

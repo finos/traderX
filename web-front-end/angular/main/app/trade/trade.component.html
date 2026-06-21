@@ -12,15 +12,24 @@
             </app-ngx-dropdown>
         </div>
         <div class="trade-ticket mb-4">
-            <button type="button" id="createTicketBtn" class="btn btn-sm btn-primary mb-2" (click)="openTicket(ticketComponent)" [disabled]="isAllAccountsSelected">
-                Create Trade Ticket
-            </button>
-            <div *ngIf="isAllAccountsSelected" class="text-muted small mb-2">
-                Trade ticket is disabled in <strong>All Accounts</strong> mode.
+            <div class="d-flex flex-wrap gap-2 mb-2">
+                <button type="button" id="createTicketBtn" class="btn btn-sm btn-primary" (click)="openTicket(tradeTicketTemplate)" [disabled]="isAllAccountsSelected">
+                    Create Trade Ticket
+                </button>
+                <button type="button" id="createOrderBtn" class="btn btn-sm btn-outline-primary" (click)="openOrderTicket(orderTicketTemplate)" [disabled]="isAllAccountsSelected">
+                    Create Order
+                </button>
             </div>
-            <ng-template #ticketComponent>
+            <div *ngIf="isAllAccountsSelected" class="text-muted small mb-2">
+                Ticket creation is disabled in <strong>All Accounts</strong> mode.
+            </div>
+            <ng-template #tradeTicketTemplate>
                 <app-trade-ticket [stocks]="stocks" [account]="accountModel" (create)="createTradeTicket($event)" (cancel)="closeTicket()">
                 </app-trade-ticket>
+            </ng-template>
+            <ng-template #orderTicketTemplate>
+                <app-order-ticket [stocks]="stocks" [account]="accountModel" [presetSecurity]="selectedOrderSecurity" (create)="createOrderTicket($event)" (cancel)="closeTicket()">
+                </app-order-ticket>
             </ng-template>
             <alert
                 *ngIf="createTicketResponse"
@@ -30,6 +39,15 @@
                 (onClosed)="onCloseAlert()"
             >
                 {{ createTicketResponse | json }}</alert
+            >
+            <alert
+                *ngIf="createOrderResponse"
+                [type]="createOrderResponse.orderId ? 'success' : 'danger'"
+                [dismissible]="true"
+                [dismissOnTimeout]="3000"
+                (onClosed)="onCloseOrderAlert()"
+            >
+                {{ createOrderResponse | json }}</alert
             >
         </div>
     </div>
@@ -48,5 +66,14 @@
             [accountIds]="accountIds"
             class="position-blotter-items">
         </app-position-blotter>
+    </div>
+
+    <div class="order-blotter mt-4">
+        <app-order-blotter
+            [account]="accountModel"
+            [allAccountsMode]="isAllAccountsSelected"
+            [accountNameById]="accountNameById"
+            (securitySelected)="onOrderSecuritySelected($event)">
+        </app-order-blotter>
     </div>
 </div>

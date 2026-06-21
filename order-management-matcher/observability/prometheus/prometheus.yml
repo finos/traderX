@@ -1,0 +1,56 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["prometheus:9090"]
+
+  - job_name: otel-collector
+    static_configs:
+      - targets: ["otel-collector:8888", "otel-collector:8889", "otel-collector:13133"]
+
+  - job_name: blackbox-exporter
+    static_configs:
+      - targets: ["blackbox-exporter:9115"]
+
+  - job_name: traderx-spring-boot-actuator
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["account-service:18088", "position-service:18090", "trade-processor:18091", "trade-service:18092", "order-matcher:18110"]
+
+  - job_name: traderx-http-probe
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - http://ingress:8080/health
+          - http://ingress:8080/
+          - http://database:18084/
+          - http://reference-data:18085/stocks
+          - http://price-publisher:18100/health
+          - http://price-publisher:18100/prices/IBM
+          - http://account-service:18088/account/22214
+          - http://people-service:18089/swagger
+          - http://position-service:18090/health/alive
+          - http://trade-processor:18091/health
+          - http://trade-service:18092/v3/api-docs
+          - http://web-front-end-angular:18093/
+          - http://nats-broker:8222/varz
+          - http://order-matcher:18110/health
+          - http://order-matcher:18110/orders/open-count
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+
+  - job_name: order-matcher
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["order-matcher:18110"]
