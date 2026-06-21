@@ -197,7 +197,7 @@ if ! awk "BEGIN {exit !(${loki_service_last} > 0)}"; then
 fi
 
 echo "[check] baseline behavior under observability runtime"
-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-007}"
+TRADERX_COMPOSE_FILE="${COMPOSE_FILE}" COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME}" \
   "${REPO_ROOT}/scripts/test-state-006-messaging-nats-replacement.sh" "${INGRESS_URL}" "${ORIGIN}"
 
 echo "[done] state 007 observability runtime smoke tests passed"
