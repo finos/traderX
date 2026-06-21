@@ -1,24 +1,40 @@
 {
-  "stateId": "001-baseline-uncontainerized-parity",
-  "stateTitle": "Simple App - Base Uncontainerized App",
+  "stateId": "002-edge-proxy-uncontainerized",
+  "stateTitle": "Edge Proxy Uncontainerized",
   "stateTrack": "prelude",
-  "generatedAtUtc": "2026-06-21T07:52:50.777Z",
-  "sourceBranch": "code/generated-state-001-baseline-uncontainerized-parity",
-  "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-001-baseline-uncontainerized-parity",
+  "generatedAtUtc": "2026-06-21T07:54:09.839Z",
+  "sourceBranch": "code/generated-state-002-edge-proxy-uncontainerized",
+  "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-002-edge-proxy-uncontainerized",
   "lineageLinkUrl": "https://github.com/finos/traderX/blob/main/docs/learning-paths/index.md",
   "apiExplorerUrl": "/api/docs",
   "pubSubInspectorUrl": "/api/docs/pubsub-inspector.html",
   "features": {
-    "statusPage": false,
-    "apiExplorer": false,
+    "statusPage": true,
+    "apiExplorer": true,
     "pubSubInspector": false
   },
-  "previousStates": [],
+  "previousStates": [
+    {
+      "id": "001-baseline-uncontainerized-parity",
+      "title": "Simple App - Base Uncontainerized App",
+      "sourceBranch": "code/generated-state-001-baseline-uncontainerized-parity",
+      "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-001-baseline-uncontainerized-parity",
+      "summary": "Introduces Simple App - Base Uncontainerized App on the prelude track."
+    }
+  ],
   "statusChecks": [
+    {
+      "id": "edge-health",
+      "name": "Edge/Ingress Health",
+      "url": "/health",
+      "expectedStatuses": [
+        200
+      ]
+    },
     {
       "id": "account-service",
       "name": "Account Service",
-      "url": "http://localhost:18088/account/22214",
+      "url": "/account-service/account/22214",
       "expectedStatuses": [
         200
       ]
@@ -26,7 +42,7 @@
     {
       "id": "reference-data",
       "name": "Reference Data",
-      "url": "http://localhost:18085/stocks",
+      "url": "/reference-data/stocks",
       "expectedStatuses": [
         200
       ]
@@ -34,7 +50,7 @@
     {
       "id": "position-service",
       "name": "Position Service",
-      "url": "http://localhost:18090/health/alive",
+      "url": "/position-service/health/alive",
       "expectedStatuses": [
         200
       ]
@@ -42,7 +58,7 @@
     {
       "id": "trade-service",
       "name": "Trade Service",
-      "url": "http://localhost:18092/v3/api-docs",
+      "url": "/trade-service/v3/api-docs",
       "expectedStatuses": [
         200
       ]
@@ -50,7 +66,7 @@
     {
       "id": "people-service",
       "name": "People Service",
-      "url": "http://localhost:18089/People/GetPerson?LogonId=user01",
+      "url": "/people-service/People/GetPerson?LogonId=user01",
       "expectedStatuses": [
         200
       ]
@@ -58,7 +74,7 @@
     {
       "id": "trade-feed",
       "name": "Trade Feed (Socket.IO)",
-      "url": "http://localhost:18086/socket.io/?EIO=4&transport=polling",
+      "url": "/socket.io/?EIO=4&transport=polling",
       "expectedStatuses": [
         200
       ]

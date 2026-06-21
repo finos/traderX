@@ -1,0 +1,19 @@
+{
+  "name": "traderx-edge-proxy-specfirst",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Spec-first generated edge proxy for TraderX state 002",
+  "license": "Apache-2.0",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "follow-redirects": "^1.16.0",
+    "http-proxy-middleware": "^3.0.3"
+  },
+  "overrides": {
+    "qs": "6.15.2"
+  }
+}
