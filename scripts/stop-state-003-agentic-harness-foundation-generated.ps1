@@ -20,7 +20,7 @@ if ([string]::IsNullOrWhiteSpace($runRoot)) {
     $runRoot = "/var/tmp/$userName/traderx"
   }
 }
-$runDir = Join-Path $runRoot 'state-002-edge-proxy'
+$runDir = Join-Path $runRoot 'state-003-agentic-harness-foundation'
 
 $pidFile = Join-Path (Join-Path $runDir 'pids') 'edge-proxy.pid'
 $pid = Read-PidFile -PidFile $pidFile

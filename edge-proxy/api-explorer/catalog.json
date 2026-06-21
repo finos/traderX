@@ -1,6 +1,6 @@
 {
-  "generatedAtUtc": "2026-06-21T07:54:09.757Z",
-  "stateId": "002-edge-proxy-uncontainerized",
+  "generatedAtUtc": "2026-06-21T07:55:58.647Z",
+  "stateId": "003-agentic-harness-foundation",
   "mountPath": "/api/docs",
   "pubSubInspectorEnabled": false,
   "services": [],
