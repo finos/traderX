@@ -1,12 +1,14 @@
 # Functional Testing Guide
 
-State: `007-observability-lgtm-compose`
+State: `008-pricing-awareness-market-data`
 
 This guide captures intended functional behavior for this generated snapshot branch.
 
 ## What Should Work
 
-- Generated code snapshot for TraderX state transition.
+- Builds on state `007` and preserves NATS-based messaging + compose ingress runtime behavior.
+- Adds market pricing stream, trade execution price stamping, and position average cost basis aggregation.
+- Extends UI blotters with pricing/value/P&L visualization while preserving baseline trade/account workflows.
 
 ## Suggested Functional Validation
 
@@ -18,12 +20,16 @@ This guide captures intended functional behavior for this generated snapshot bra
 ## Smoke Test Commands
 
 ```bash
-./scripts/test-state-007-observability-lgtm-compose.sh
+./scripts/test-state-008-pricing-awareness-market-data.sh
+```
+```bash
+./scripts/test-state-008-pricing-awareness-market-data.sh --skip-messaging
+./scripts/test-messaging-008-pricing-awareness-market-data.sh
 ```
 
 ## Canonical References
 
-- Spec pack: `specs/007-observability-lgtm-compose`
+- Spec pack: `specs/008-pricing-awareness-market-data`
 - Runtime guide: [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
 - Snapshot learning guide: [LEARNING.md](./LEARNING.md)
 - Snapshot metadata: [STATE.md](./STATE.md)

@@ -43,6 +43,10 @@ components:
           type: integer
           format: int32
           example: 100
+        price:
+          type: number
+          format: double
+          example: 142.375
         accountId:
           type: integer
           format: int32

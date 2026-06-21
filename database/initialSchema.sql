@@ -8,7 +8,14 @@ CREATE TABLE Accounts ( ID INTEGER PRIMARY KEY, DisplayName VARCHAR (50) );
 CREATE TABLE AccountUsers ( AccountID INTEGER NOT NULL, Username VARCHAR(15) NOT NULL, PRIMARY KEY (AccountID,Username));
 ALTER TABLE AccountUsers ADD FOREIGN KEY (AccountID) References Accounts(ID);
 
-CREATE TABLE Positions ( AccountID INTEGER, Security VARCHAR(15), Updated TIMESTAMP, Quantity INTEGER, Primary Key (AccountID, Security) );
+CREATE TABLE Positions (
+  AccountID INTEGER,
+  Security VARCHAR(15),
+  Updated TIMESTAMP,
+  Quantity INTEGER,
+  AverageCostBasis DECIMAL(18,3),
+  Primary Key (AccountID, Security)
+);
 Alter Table Positions ADD FOREIGN KEY (AccountID) References Accounts(ID);
 
 CREATE TABLE Trades (
@@ -19,6 +26,7 @@ CREATE TABLE Trades (
   Security VARCHAR (15),
   Side VARCHAR(10) check (Side in ('Buy','Sell')),
   Quantity INTEGER check Quantity > 0,
+  Price DECIMAL(18,3),
   State VARCHAR(20) check (State in ('New', 'Processing', 'Settled', 'Cancelled'))
 );
 Alter Table Trades Add Foreign Key (AccountID) references Accounts(ID);
@@ -52,13 +60,13 @@ INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user04');
 INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user01');
 INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user06');
 
-INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, State, AccountID) VALUES('TRADE-22214-AABBCC', NOW(), NOW(), 'IBM', 'Sell', 100, 'Settled', 22214);
-INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, State, AccountID) VALUES('TRADE-22214-DDEEFF', NOW(), NOW(), 'MS', 'Buy', 1000, 'Settled', 22214);
-INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, State, AccountID) VALUES('TRADE-22214-GGHHII', NOW(), NOW(), 'C', 'Sell', 2000, 'Settled', 22214);
+INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, Price, State, AccountID) VALUES('TRADE-22214-AABBCC', NOW(), NOW(), 'IBM', 'Sell', 100, 136.250, 'Settled', 22214);
+INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, Price, State, AccountID) VALUES('TRADE-22214-DDEEFF', NOW(), NOW(), 'MS', 'Buy', 1000, 95.125, 'Settled', 22214);
+INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, Price, State, AccountID) VALUES('TRADE-22214-GGHHII', NOW(), NOW(), 'C', 'Sell', 2000, 57.500, 'Settled', 22214);
 
-INSERT into Positions (AccountID, Security, Updated, Quantity) VALUES(22214, 'MS',NOW(), 1000);
-INSERT into Positions (AccountID, Security, Updated, Quantity) VALUES(22214, 'IBM',NOW(), -100);
-INSERT into Positions (AccountID, Security, Updated, Quantity) VALUES(22214, 'C',NOW(), -2000);
+INSERT into Positions (AccountID, Security, Updated, Quantity, AverageCostBasis) VALUES(22214, 'MS',NOW(), 1000, 95.125);
+INSERT into Positions (AccountID, Security, Updated, Quantity, AverageCostBasis) VALUES(22214, 'IBM',NOW(), -100, 136.250);
+INSERT into Positions (AccountID, Security, Updated, Quantity, AverageCostBasis) VALUES(22214, 'C',NOW(), -2000, 57.500);
 
-INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, State, AccountID) VALUES('TRADE-52355-AABBCC', NOW(), NOW(), 'BAC', 'Sell', 2400, 'Settled', 52355);
-INSERT into Positions (AccountID, Security, Updated, Quantity) VALUES(52355, 'BAC',NOW(), -2400);
+INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, Price, State, AccountID) VALUES('TRADE-52355-AABBCC', NOW(), NOW(), 'BAC', 'Sell', 2400, 41.125, 'Settled', 52355);
+INSERT into Positions (AccountID, Security, Updated, Quantity, AverageCostBasis) VALUES(52355, 'BAC',NOW(), -2400, 41.125);

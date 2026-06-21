@@ -1,30 +1,34 @@
 # Component Diagram
 
-State: `007-observability-lgtm-compose`
+State: `008-pricing-awareness-market-data`
 
 ```mermaid
 flowchart LR
-  developer["Developer"]
-  app_runtime["TraderX App Runtime (State 006)"]
-  obs_runtime["Observability Runtime"]
+  trader["Trader Browser"]
   ingress["NGINX Ingress"]
-  core_services["Core Services"]
-  prometheus["Prometheus"]
-  blackbox["Blackbox Exporter"]
-  loki["Loki"]
-  promtail["Promtail"]
-  tempo["Tempo"]
-  otel["OpenTelemetry Collector"]
-  grafana["Grafana"]
+  web["Web Front End Angular"]
+  nats["NATS Broker"]
+  pricePublisher["Price Publisher"]
+  tradeService["Trade Service"]
+  tradeProcessor["Trade Processor"]
+  account["Account Service"]
+  position["Position Service"]
+  referenceData["Reference Data"]
+  people["People Service"]
+  database["Database"]
 
-  developer -->|Uses TraderX| ingress
-  ingress -->|Routes API/UI traffic| core_services
-  blackbox -->|HTTP probes| core_services
-  prometheus -->|Scrapes probe metrics| blackbox
-  promtail -->|Ships logs| loki
-  otel -->|Exports traces| tempo
-  developer -->|Views observability dashboards| grafana
-  grafana -->|Queries metrics| prometheus
-  grafana -->|Queries logs| loki
-  grafana -->|Queries traces| tempo
+  trader -->|Single browser entrypoint| ingress
+  ingress -->|/| web
+  ingress -->|/price-publisher| pricePublisher
+  ingress -->|/nats-ws (WS upgrade)| nats
+  tradeService -->|Validate ticker| referenceData
+  tradeService -->|Validate account| account
+  tradeService -->|Fetch execution price| pricePublisher
+  tradeService -->|Publish /trades| nats
+  tradeProcessor -->|Consume /trades, publish account updates| nats
+  pricePublisher -->|Publish pricing.<TICKER>| nats
+  web -->|Subscribe account + pricing topics| nats
+  tradeProcessor -->|Persist trades + positions| database
+  position -->|Query trades + positions| database
+  account -->|Validate person| people
 ```
