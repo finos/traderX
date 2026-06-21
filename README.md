@@ -4,62 +4,58 @@ This branch is an auto-published generated-code snapshot for FINOS TraderX.
 
 ![linux/mac support](https://badgen.net/badge/linux%2Fmac/supported/green?icon=linux) ![windows support](https://badgen.net/badge/windows/not%20supported/red?icon=windows)
 
-- State ID: `012-platform-convergence-c3`
-- State Title: `Platform Convergence C3`
+- State ID: `014-fdc3-intent-interoperability`
+- State Title: `FDC3 Intent Interoperability on C3`
 - Status: `implemented`
-- Suggested Version Tag: `generated/012-platform-convergence-c3/v1`
+- Suggested Version Tag: `generated/014-fdc3-intent-interoperability/v1`
 - Source Branch: `main`
 - Source Commit: `f0056d6753b9a76295ce40ede1f32c30bd2c5f27`
-- Generated At (UTC): `2026-06-21T11:21:54Z`
+- Generated At (UTC): `2026-06-21T11:23:35Z`
 
 ## State Summary
 
-- Generated code snapshot for TraderX state transition.
+- Builds on state `012` and preserves C3 runtime behavior.
+- Adds TraderX app-side FDC3 flows plus a local Sail sidecar and two-tab demo profile.
+- Keeps interoperability payloads canonical (`fdc3.instrument.id.ticker`) and tracks Sail-specific workaround logic as technical debt.
 
 ## State Lineage
 
 ```mermaid
 flowchart LR
-  S_CUR["012-platform-convergence-c3 (current)"]
+  S_CUR["014-fdc3-intent-interoperability (current)"]
   style S_CUR fill:#2e7d32,stroke:#1b5e20,color:#ffffff,stroke-width:2px
-  S_PREV_011_tilt_kubernetes_dev_loop["011-tilt-kubernetes-dev-loop"] --> S_CUR
-  click S_PREV_011_tilt_kubernetes_dev_loop href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-011-tilt-kubernetes-dev-loop" "Open branch"
-  S_CUR --> S_NEXT_013_radius_kubernetes_platform["013-radius-kubernetes-platform"]
-  click S_NEXT_013_radius_kubernetes_platform href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-013-radius-kubernetes-platform" "Open branch"
-  S_CUR --> S_NEXT_014_fdc3_intent_interoperability["014-fdc3-intent-interoperability"]
-  click S_NEXT_014_fdc3_intent_interoperability href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-014-fdc3-intent-interoperability" "Open branch"
-  click S_CUR href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-012-platform-convergence-c3" "Open current branch"
+  S_PREV_012_platform_convergence_c3["012-platform-convergence-c3"] --> S_CUR
+  click S_PREV_012_platform_convergence_c3 href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-012-platform-convergence-c3" "Open branch"
+  click S_CUR href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-014-fdc3-intent-interoperability" "Open current branch"
 ```
 
 | Direction | State | Branch | Compare |
 | --- | --- | --- | --- |
-| Previous | `011-tilt-kubernetes-dev-loop` | [code/generated-state-011-tilt-kubernetes-dev-loop](https://github.com/finos/traderX/tree/code%2Fgenerated-state-011-tilt-kubernetes-dev-loop) | 🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-011-tilt-kubernetes-dev-loop...code%2Fgenerated-state-012-platform-convergence-c3) |
-| Next | `013-radius-kubernetes-platform` | [code/generated-state-013-radius-kubernetes-platform](https://github.com/finos/traderX/tree/code%2Fgenerated-state-013-radius-kubernetes-platform) | 🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-012-platform-convergence-c3...code%2Fgenerated-state-013-radius-kubernetes-platform) |
-| Next | `014-fdc3-intent-interoperability` | [code/generated-state-014-fdc3-intent-interoperability](https://github.com/finos/traderX/tree/code%2Fgenerated-state-014-fdc3-intent-interoperability) | 🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-012-platform-convergence-c3...code%2Fgenerated-state-014-fdc3-intent-interoperability) |
+| Previous | `012-platform-convergence-c3` | [code/generated-state-012-platform-convergence-c3](https://github.com/finos/traderX/tree/code%2Fgenerated-state-012-platform-convergence-c3) | 🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-012-platform-convergence-c3...code%2Fgenerated-state-014-fdc3-intent-interoperability) |
 
 State sets:
-- Previous states: `011-tilt-kubernetes-dev-loop`
-- Next states: `013-radius-kubernetes-platform, 014-fdc3-intent-interoperability`
+- Previous states: `012-platform-convergence-c3`
+- Next states: `none`
 
 ## Convergence Status
 
-- Convergence state: `true`
-- Convergence level: `C3`
+- Convergence state: `false`
+- Convergence level: `none`
 - Lineage role: `canonical`
-- Dotted-line parents: `009-order-management-matcher`
-- Previous convergence milestone: [009-order-management-matcher](https://github.com/finos/traderX/tree/code%2Fgenerated-state-009-order-management-matcher) (🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-009-order-management-matcher...code%2Fgenerated-state-012-platform-convergence-c3))
+- Dotted-line parents: `none`
+- Previous convergence milestone: [012-platform-convergence-c3](https://github.com/finos/traderX/tree/code%2Fgenerated-state-012-platform-convergence-c3) (🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-012-platform-convergence-c3...code%2Fgenerated-state-014-fdc3-intent-interoperability))
 - Next convergence milestone: `none`
 
 ### Convergence Neighborhood
 
 ```mermaid
 flowchart LR
-  C_CUR["012-platform-convergence-c3 (current)"]
+  C_CUR["014-fdc3-intent-interoperability (current)"]
   style C_CUR fill:#2e7d32,stroke:#1b5e20,color:#ffffff,stroke-width:2px
-  C_PREV_009_order_management_matcher["009-order-management-matcher"] --> C_CUR
-  click C_PREV_009_order_management_matcher href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-009-order-management-matcher" "Open branch"
-  %% compare: https://github.com/finos/traderX/compare/code%2Fgenerated-state-009-order-management-matcher...code%2Fgenerated-state-012-platform-convergence-c3
-  click C_CUR href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-012-platform-convergence-c3" "Open current branch"
+  C_PREV_012_platform_convergence_c3["012-platform-convergence-c3"] --> C_CUR
+  click C_PREV_012_platform_convergence_c3 href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-012-platform-convergence-c3" "Open branch"
+  %% compare: https://github.com/finos/traderX/compare/code%2Fgenerated-state-012-platform-convergence-c3...code%2Fgenerated-state-014-fdc3-intent-interoperability
+  click C_CUR href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-014-fdc3-intent-interoperability" "Open current branch"
 ```
 
 ## Runtime Guidance
@@ -72,13 +68,7 @@ See `RUN_FROM_CLONE.md` for clone-first runtime instructions.
 
 ## Interactive URLs
 
-- UI (ingress): `http://localhost:8080`
-- API explorer (ingress): `http://localhost:8080/api/docs`
-- Trade page: `http://localhost:8080/trade`
-- Account service route: `http://localhost:8080/account-service/account/22214`
-- Position service route: `http://localhost:8080/position-service/positions/22214`
-- Grafana (ingress): `http://localhost:8080/grafana`
-- Prometheus (ingress): `http://localhost:8080/prometheus`
+- Use `./scripts/status-*.sh` for this state to print active endpoint URLs.
 
 
 
@@ -98,12 +88,12 @@ Functional validation guide: [FUNCTIONAL_TESTING.md](./FUNCTIONAL_TESTING.md)
 
 Canonical source-of-truth is maintained in the SpecKit authoring branch, not in this code snapshot branch.
 
-- Feature pack: `specs/012-platform-convergence-c3`
-- Generation entrypoint: `bash pipeline/generate-state.sh 012-platform-convergence-c3`
+- Feature pack: `specs/014-fdc3-intent-interoperability`
+- Generation entrypoint: `bash pipeline/generate-state.sh 014-fdc3-intent-interoperability`
 - Developer learning guide for this snapshot: [LEARNING.md](./LEARNING.md)
 - Functional validation guide: [FUNCTIONAL_TESTING.md](./FUNCTIONAL_TESTING.md)
 - Snapshot metadata: [STATE.md](./STATE.md), [state.json](./.traderx-state/state.json)
 - Canonical Getting Started (main): https://github.com/finos/traderX/blob/main/docs/spec-kit/getting-started-with-traderx.md
 - Source commit: https://github.com/finos/traderX/commit/f0056d6753b9a76295ce40ede1f32c30bd2c5f27
-- Feature pack at source commit: https://github.com/finos/traderX/tree/f0056d6753b9a76295ce40ede1f32c30bd2c5f27/specs/012-platform-convergence-c3
+- Feature pack at source commit: https://github.com/finos/traderX/tree/f0056d6753b9a76295ce40ede1f32c30bd2c5f27/specs/014-fdc3-intent-interoperability
 - SpecKit docs at source commit: https://github.com/finos/traderX/tree/f0056d6753b9a76295ce40ede1f32c30bd2c5f27/docs/spec-kit

@@ -1,10 +1,10 @@
 {
-  "stateId": "012-platform-convergence-c3",
-  "stateTitle": "Platform Convergence C3",
-  "stateTrack": "devex",
-  "generatedAtUtc": "2026-06-21T11:21:50.320Z",
-  "sourceBranch": "code/generated-state-012-platform-convergence-c3",
-  "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-012-platform-convergence-c3",
+  "stateId": "014-fdc3-intent-interoperability",
+  "stateTitle": "FDC3 Intent Interoperability on C3",
+  "stateTrack": "functional",
+  "generatedAtUtc": "2026-06-21T11:23:30.620Z",
+  "sourceBranch": "code/generated-state-014-fdc3-intent-interoperability",
+  "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-014-fdc3-intent-interoperability",
   "lineageLinkUrl": "https://github.com/finos/traderX/blob/main/docs/learning-paths/index.md",
   "apiExplorerUrl": "/api/docs",
   "pubSubInspectorUrl": "/api/docs/pubsub-inspector.html",
@@ -14,6 +14,13 @@
     "pubSubInspector": true
   },
   "previousStates": [
+    {
+      "id": "012-platform-convergence-c3",
+      "title": "Platform Convergence C3",
+      "sourceBranch": "code/generated-state-012-platform-convergence-c3",
+      "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-012-platform-convergence-c3",
+      "summary": "Introduces Platform Convergence C3 on the devex track."
+    },
     {
       "id": "011-tilt-kubernetes-dev-loop",
       "title": "Tilt Local Dev on Kubernetes",

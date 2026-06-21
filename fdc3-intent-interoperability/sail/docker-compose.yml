@@ -1,0 +1,23 @@
+name: traderx-state-014-sail
+
+services:
+  sail:
+    image: node:20-bookworm
+    working_dir: /workspace/runtime-cache
+    restart: unless-stopped
+    environment:
+      SAIL_REPO_URL: "${SAIL_REPO_URL:-https://github.com/finos/FDC3-Sail.git}"
+      SAIL_REPO_REF: "${SAIL_REPO_REF:-4990547b06090eee167bbcadf850844e458babd5}"
+      SAIL_REPO_COMMIT: "${SAIL_REPO_COMMIT:-}"
+      SAIL_TRADERX_URL: "${SAIL_TRADERX_URL:-http://localhost:8080}"
+      SAIL_HTTP_PORT: "${SAIL_HTTP_PORT:-8090}"
+      SAIL_EXAMPLE_PORT_RANGE_START: "${SAIL_EXAMPLE_PORT_RANGE_START:-4010}"
+      SAIL_EXAMPLE_PORT_RANGE_END: "${SAIL_EXAMPLE_PORT_RANGE_END:-4065}"
+    command: ["/bin/bash", "/workspace/bootstrap/run-sail.sh"]
+    volumes:
+      - ./runtime-cache:/workspace/runtime-cache
+      - ./bootstrap:/workspace/bootstrap:ro
+      - ./appd:/workspace/appd:ro
+    ports:
+      - "${SAIL_HTTP_PORT:-8090}:8090"
+      - "${SAIL_EXAMPLE_PORT_RANGE_START:-4010}-${SAIL_EXAMPLE_PORT_RANGE_END:-4065}:4010-4065"

@@ -1,0 +1,65 @@
+{
+  "message": "OK",
+  "applications": [
+    {
+      "appId": "traderx-web",
+      "name": "TraderX",
+      "title": "TraderX",
+      "description": "TraderX UI for blotters and ticket workflows",
+      "type": "web",
+      "details": {
+        "url": "__TRADERX_URL__/trade"
+      },
+      "hostManifests": {
+        "sail": {
+          "injectApi": "2.0"
+        }
+      },
+      "version": "0.1.0",
+      "publisher": "FINOS",
+      "icons": [
+        {
+          "src": "https://finos.org/wp-content/uploads/2018/03/finos-icon.svg"
+        }
+      ],
+      "interop": {
+        "intents": {
+          "listensFor": {
+            "ViewOrders": {
+              "displayName": "View Orders",
+              "contexts": [
+                "fdc3.instrument"
+              ]
+            },
+            "TraderX.CreateTradeTicket": {
+              "displayName": "Create Trade Ticket",
+              "contexts": [
+                "fdc3.instrument"
+              ]
+            },
+            "TraderX.CreateOrderTicket": {
+              "displayName": "Create Order Ticket",
+              "contexts": [
+                "fdc3.instrument"
+              ]
+            }
+          },
+          "raises": {
+            "ViewChart": {
+              "displayName": "View Chart",
+              "contexts": [
+                "fdc3.instrument"
+              ]
+            },
+            "ViewQuote": {
+              "displayName": "View Quote",
+              "contexts": [
+                "fdc3.instrument"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
+}
