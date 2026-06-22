@@ -1,0 +1,987 @@
+{
+    "$schema": "https://calm.finos.org/release/1.2/meta/calm.json",
+    "unique-id": "trading-system",
+    "name": "Trading System",
+    "description": "An event-driven trading system that allows employees to create accounts, execute trades, and view positions on these accounts.",
+    "metadata": [
+        {
+            "name": "Trading System",
+            "description": "An event-driven trading system that allows employees to create accounts, execute trades, and view positions on these accounts.",
+            "version": "0.1.0",
+            "created-by": "Trading System Team - Copilot"
+        }
+    ],
+    "nodes": [
+        {
+            "unique-id": "trader",
+            "node-type": "actor",
+            "name": "Trader",
+            "description": "Managing Accounts and Creating Trades"
+        },
+        {
+            "unique-id": "web-gui",
+            "node-type": "webclient",
+            "name": "Web GUI",
+            "description": "Allows employees to manage accounts and book trades.",
+            "metadata": {
+                "technology": "HTML and JavaScript and NodeJS"
+            }
+        },
+        {
+            "unique-id": "trading-services",
+            "node-type": "service",
+            "name": "Trading Services",
+            "description": "Allows employees create and update trades",
+            "interfaces": [
+                {
+                    "unique-id": "trading-services-api",
+                    "name": "Trading Services REST API",
+                    "description": "HTTP API for submitting and validating trade orders",
+                    "protocol": "HTTPS",
+                    "port": 18092,
+                    "schema": {
+                        "specification": "OpenAPI",
+                        "operations": [
+                            {
+                                "path": "/trade/",
+                                "method": "POST",
+                                "description": "Submit a new trade order with validation against reference data service and account service"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "metadata": {
+                "technology": "Java and Spring Boot"
+            }
+        },
+        {
+            "unique-id": "account-service",
+            "node-type": "service",
+            "name": "Account Service",
+            "description": "Allows employees to manage accounts",
+            "interfaces": [
+                {
+                    "unique-id": "account-service-api",
+                    "name": "Account Service REST API",
+                    "description": "HTTP API for managing accounts and account-user associations",
+                    "protocol": "HTTPS",
+                    "port": 18088,
+                    "schema": {
+                        "specification": "OpenAPI",
+                        "operations": [
+                            {
+                                "path": "/account/",
+                                "method": "GET",
+                                "description": "Get all accounts"
+                            },
+                            {
+                                "path": "/account/{id}",
+                                "method": "GET",
+                                "description": "Get account by ID"
+                            },
+                            {
+                                "path": "/account/",
+                                "method": "POST",
+                                "description": "Create new account"
+                            },
+                            {
+                                "path": "/account/",
+                                "method": "PUT",
+                                "description": "Update existing account"
+                            },
+                            {
+                                "path": "/accountuser/",
+                                "method": "GET",
+                                "description": "Get all account users"
+                            },
+                            {
+                                "path": "/accountuser/{id}",
+                                "method": "GET",
+                                "description": "Get account user by ID"
+                            },
+                            {
+                                "path": "/accountuser/",
+                                "method": "POST",
+                                "description": "Create account user association"
+                            },
+                            {
+                                "path": "/accountuser/",
+                                "method": "PUT",
+                                "description": "Update account user association"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "metadata": {
+                "technology": "Java and Spring Boot"
+            }
+        },
+        {
+            "unique-id": "position-service",
+            "node-type": "service",
+            "name": "Position Service",
+            "description": "View all trades and positions for an account",
+            "interfaces": [
+                {
+                    "unique-id": "position-service-api",
+                    "name": "Position Service REST API",
+                    "description": "HTTP API for retrieving trades and positions by account",
+                    "protocol": "HTTPS",
+                    "port": 18090,
+                    "schema": {
+                        "specification": "OpenAPI",
+                        "operations": [
+                            {
+                                "path": "/positions/",
+                                "method": "GET",
+                                "description": "Get all positions"
+                            },
+                            {
+                                "path": "/positions/{accountId}",
+                                "method": "GET",
+                                "description": "Get positions for specific account"
+                            },
+                            {
+                                "path": "/trades/",
+                                "method": "GET",
+                                "description": "Get all trades"
+                            },
+                            {
+                                "path": "/trades/{accountId}",
+                                "method": "GET",
+                                "description": "Get trades for specific account"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "metadata": {
+                "technology": "Python and Flask"
+            }
+        },
+        {
+            "unique-id": "people-service",
+            "node-type": "service",
+            "name": "People Service",
+            "description": "Provides user details",
+            "interfaces": [
+                {
+                    "unique-id": "people-service-api",
+                    "name": "People Service REST API",
+                    "description": "HTTP API for user search and validation against directory",
+                    "protocol": "HTTPS",
+                    "port": 18089,
+                    "schema": {
+                        "specification": "OpenAPI",
+                        "operations": [
+                            {
+                                "path": "/People/GetPerson",
+                                "method": "GET",
+                                "description": "Get person by logonId or employeeId"
+                            },
+                            {
+                                "path": "/People/GetMatchingPeople",
+                                "method": "GET",
+                                "description": "Search people by logonId or fullName"
+                            },
+                            {
+                                "path": "/People/ValidatePerson",
+                                "method": "GET",
+                                "description": "Validate person exists in directory"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "metadata": {
+                "technology": ".NET Core"
+            }
+        },
+        {
+            "unique-id": "reference-data-service",
+            "node-type": "service",
+            "name": "Reference Data Service",
+            "description": "Provides REST API to securities reference data",
+            "interfaces": [
+                {
+                    "unique-id": "reference-data-service-api",
+                    "name": "Reference Data Service REST API",
+                    "description": "HTTP API for retrieving tradeable securities and ticker validation",
+                    "protocol": "HTTPS",
+                    "port": 18085,
+                    "schema": {
+                        "specification": "OpenAPI",
+                        "operations": [
+                            {
+                                "path": "/stocks",
+                                "method": "GET",
+                                "description": "Get all tradeable securities"
+                            },
+                            {
+                                "path": "/stocks/{ticker}",
+                                "method": "GET",
+                                "description": "Get security by ticker symbol"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "metadata": {
+                "technology": "NodeJS"
+            }
+        },
+        {
+            "unique-id": "trade-processor",
+            "node-type": "service",
+            "name": "Trade Processor",
+            "description": "Process incoming trade requests, settle, and persist",
+            "interfaces": [
+                {
+                    "unique-id": "trade-processor-api",
+                    "name": "Trade Processor REST API",
+                    "description": "HTTP API for direct trade processing (primarily operates via trade feed)",
+                    "protocol": "HTTPS",
+                    "port": 18091,
+                    "schema": {
+                        "specification": "OpenAPI",
+                        "operations": [
+                            {
+                                "path": "/tradeservice/order",
+                                "method": "POST",
+                                "description": "Process trade order directly"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "metadata": {
+                "technology": "Java and Spring Boot"
+            }
+        },
+        {
+            "unique-id": "database",
+            "node-type": "database",
+            "name": "Database",
+            "description": "Stores account, trade, and position state.",
+            "metadata": {
+                "technology": "H2 Standalone"
+            }
+        },
+        {
+            "unique-id": "user-directory",
+            "node-type": "ldap",
+            "name": "User Directory",
+            "description": "Golden source of User Data",
+            "metadata": {
+                "technology": "External"
+            }
+        },
+        {
+            "unique-id": "reference-data-csv",
+            "node-type": "datastore",
+            "name": "CSV File",
+            "description": "CSV file containing ticker symbols and security reference data",
+            "metadata": {
+                "technology": "CSV File"
+            }
+        },
+        {
+            "unique-id": "messagebus",
+            "node-type": "service",
+            "name": "Trade Feed",
+            "description": "Message bus for streaming updates to trades and positions",
+            "interfaces": [
+                {
+                    "unique-id": "messagebus-websocket",
+                    "name": "Trade Feed WebSocket API",
+                    "description": "WebSocket/SocketIO interface for pub-sub messaging of trade and position events",
+                    "protocol": "WebSocket",
+                    "port": 18086,
+                    "schema": {
+                        "specification": "SocketIO",
+                        "operations": [
+                            {
+                                "event": "subscribe",
+                                "direction": "inbound",
+                                "description": "Subscribe to a topic to receive real-time updates (e.g., /trades, /accounts/{id}/trades, /accounts/{id}/positions)"
+                            },
+                            {
+                                "event": "unsubscribe",
+                                "direction": "inbound",
+                                "description": "Unsubscribe from a topic to stop receiving updates"
+                            },
+                            {
+                                "event": "publish",
+                                "direction": "inbound",
+                                "description": "Publish a message to a topic for broadcast to all subscribers"
+                            },
+                            {
+                                "event": "publish",
+                                "direction": "outbound",
+                                "description": "Receive published messages from subscribed topics including trade events and position updates"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "unique-id": "trade-feed-viewer",
+                    "name": "Trade Feed Viewer",
+                    "description": "HTML interface for monitoring real-time trade feed messages",
+                    "protocol": "HTTPS",
+                    "port": 18086,
+                    "schema": {
+                        "specification": "HTML",
+                        "operations": [
+                            {
+                                "path": "/",
+                                "method": "GET",
+                                "description": "Serve HTML viewer page for monitoring trade feed messages"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "metadata": {
+                "technology": "SocketIO"
+            }
+        },
+        {
+            "unique-id": "trading-system",
+            "node-type": "system",
+            "name": "Trading System",
+            "description": "Allows employees to create accounts, and execute trades and view positions on these accounts."
+        }
+    ],
+    "relationships": [
+        {
+            "unique-id": "trading-system-composition",
+            "description": "Trading System is composed of all internal components including services, data stores, and user interfaces",
+            "relationship-type": {
+                "composed-of": {
+                    "container": "trading-system",
+                    "nodes": [
+                        "web-gui",
+                        "trading-services",
+                        "account-service",
+                        "position-service",
+                        "people-service",
+                        "reference-data-service",
+                        "trade-processor",
+                        "database",
+                        "messagebus"
+                    ]
+                }
+            }
+        },
+        {
+            "unique-id": "trader-web-gui",
+            "description": "Manage Accounts, Execute Trades, View Trade Status / Positions",
+            "relationship-type": {
+                "interacts": {
+                    "actor": "trader",
+                    "nodes": [
+                        "web-gui"
+                    ]
+                }
+            }
+        },
+        {
+            "unique-id": "web-gui-account-service",
+            "description": "Creates/Updates Accounts. Gets list of accounts",
+            "relationship-type": {
+                "connects": {
+                    "source": {
+                        "node": "web-gui"
+                    },
+                    "destination": {
+                        "node": "account-service"
+                    }
+                }
+            },
+            "protocol": "HTTPS"
+        },
+        {
+            "unique-id": "web-gui-position-service",
+            "description": "Loads positions for account",
+            "relationship-type": {
+                "connects": {
+                    "source": {
+                        "node": "web-gui"
+                    },
+                    "destination": {
+                        "node": "position-service"
+                    }
+                }
+            },
+            "protocol": "HTTPS"
+        },
+        {
+            "unique-id": "web-gui-reference-data-service",
+            "description": "Looks up securities to assist with creating a trade ticket",
+            "relationship-type": {
+                "connects": {
+                    "source": {
+                        "node": "web-gui"
+                    },
+                    "destination": {
+                        "node": "reference-data-service"
+                    }
+                }
+            },
+            "protocol": "HTTPS"
+        },
+        {
+            "unique-id": "web-gui-trading-service",
+            "description": "Creates new Trades and Cancel existing trades",
+            "relationship-type": {
+                "connects": {
+                    "source": {
+                        "node": "web-gui"
+                    },
+                    "destination": {
+                        "node": "trading-services"
+                    }
+                }
+            },
+            "protocol": "HTTPS"
+        },
+        {
+            "unique-id": "web-gui-people-service",
+            "description": "Looks up people data based on typeahead from GUI",
+            "relationship-type": {
+                "connects": {
+                    "source": {
+                        "node": "web-gui"
+                    },
+                    "destination": {
+                        "node": "people-service"
+                    }
+                }
+            },
+            "protocol": "HTTPS"
+        },
+        {
+            "unique-id": "trading-service-reference-data-service",
+            "description": "Validates securities when creating trades",
+            "relationship-type": {
+                "connects": {
+                    "source": {
+                        "node": "trading-services"
+                    },
+                    "destination": {
+                        "node": "reference-data-service"
+                    }
+                }
+            },
+            "protocol": "HTTPS"
+        },
+        {
+            "unique-id": "trading-service-account-service",
+            "description": "Validates accounts when creating trades",
+            "relationship-type": {
+                "connects": {
+                    "source": {
+                        "node": "trading-services"
+                    },
+                    "destination": {
+                        "node": "account-service"
+                    }
+                }
+            },
+            "protocol": "HTTPS"
+        },
+        {
+            "unique-id": "people-service-user-directory",
+            "description": "Looks up people data",
+            "relationship-type": {
+                "connects": {
+                    "source": {
+                        "node": "people-service"
+                    },
+                    "destination": {
+                        "node": "user-directory"
+                    }
+                }
+            },
+            "protocol": "LDAP"
+        },
+        {
+            "unique-id": "reference-data-service-csv",
+            "description": "Loads ticker symbols from CSV file at startup",
+            "relationship-type": {
+                "connects": {
+                    "source": {
+                        "node": "reference-data-service"
+                    },
+                    "destination": {
+                        "node": "reference-data-csv"
+                    }
+                }
+            }
+        },
+        {
+            "unique-id": "account-service-database",
+            "description": "CRUD operations around accounts.",
+            "relationship-type": {
+                "connects": {
+                    "source": {
+                        "node": "account-service"
+                    },
+                    "destination": {
+                        "node": "database"
+                    }
+                }
+            },
+            "protocol": "JDBC"
+        },
+        {
+            "unique-id": "account-service-people-service",
+            "description": "Validates People IDs when creating/modifying accounts",
+            "relationship-type": {
+                "connects": {
+                    "source": {
+                        "node": "account-service"
+                    },
+                    "destination": {
+                        "node": "people-service"
+                    }
+                }
+            },
+            "protocol": "HTTPS"
+        },
+        {
+            "unique-id": "position-service-database",
+            "description": "Looks up default positions for a given account",
+            "relationship-type": {
+                "connects": {
+                    "source": {
+                        "node": "position-service"
+                    },
+                    "destination": {
+                        "node": "database"
+                    }
+                }
+            },
+            "protocol": "JDBC"
+        },
+        {
+            "unique-id": "trade-processor-database",
+            "description": "Looks up current positions when bootstraping state, persist trade state and position state",
+            "relationship-type": {
+                "connects": {
+                    "source": {
+                        "node": "trade-processor"
+                    },
+                    "destination": {
+                        "node": "database"
+                    }
+                }
+            },
+            "protocol": "JDBC"
+        },
+        {
+            "unique-id": "trading-service-messagebus",
+            "description": "Publishes updates to trades and positions after persisting in the DB",
+            "relationship-type": {
+                "connects": {
+                    "source": {
+                        "node": "trading-services"
+                    },
+                    "destination": {
+                        "node": "messagebus"
+                    }
+                }
+            }
+        },
+        {
+            "unique-id": "messagebus-trade-processor",
+            "description": "Processes incoming trade requests, persist, and publish updates",
+            "relationship-type": {
+                "connects": {
+                    "source": {
+                        "node": "messagebus"
+                    },
+                    "destination": {
+                        "node": "trade-processor"
+                    }
+                }
+            }
+        },
+        {
+            "unique-id": "trade-processor-messagebus",
+            "description": "Processes incoming trade requests, persist, and publish updates",
+            "relationship-type": {
+                "connects": {
+                    "source": {
+                        "node": "trade-processor"
+                    },
+                    "destination": {
+                        "node": "messagebus"
+                    }
+                }
+            }
+        },
+        {
+            "unique-id": "web-gui-messagebus",
+            "description": "Subscribes to trade/position updates feed for currently viewed account",
+            "relationship-type": {
+                "connects": {
+                    "source": {
+                        "node": "web-gui"
+                    },
+                    "destination": {
+                        "node": "messagebus"
+                    }
+                }
+            },
+            "protocol": "WebSocket"
+        }
+    ],
+    "flows": [
+        {
+            "unique-id": "load-accounts-flow",
+            "name": "Load List of Accounts",
+            "description": "Web GUI retrieves and displays the list of all trading accounts",
+            "transitions": [
+                {
+                    "relationship-unique-id": "web-gui-account-service",
+                    "sequence-number": 1,
+                    "description": "Web GUI requests list of accounts from Account Service",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "account-service-database",
+                    "sequence-number": 2,
+                    "description": "Account Service queries Database for all accounts",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "account-service-database",
+                    "sequence-number": 3,
+                    "description": "Database returns account list to Account Service",
+                    "direction": "destination-to-source"
+                },
+                {
+                    "relationship-unique-id": "web-gui-account-service",
+                    "sequence-number": 4,
+                    "description": "Account Service returns account list to Web GUI for display",
+                    "direction": "destination-to-source"
+                }
+            ]
+        },
+        {
+            "unique-id": "bootstrap-blotter-flow",
+            "name": "Bootstrap Trade and Position Blotter",
+            "description": "Initialize the blotter with current trades and positions, then subscribe to live updates",
+            "transitions": [
+                {
+                    "relationship-unique-id": "web-gui-position-service",
+                    "sequence-number": 1,
+                    "description": "Web GUI requests trades and positions for selected account",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "position-service-database",
+                    "sequence-number": 2,
+                    "description": "Position Service queries Database for trades and positions",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "position-service-database",
+                    "sequence-number": 3,
+                    "description": "Database returns initial dataset to Position Service",
+                    "direction": "destination-to-source"
+                },
+                {
+                    "relationship-unique-id": "web-gui-position-service",
+                    "sequence-number": 4,
+                    "description": "Position Service returns initial data to Web GUI",
+                    "direction": "destination-to-source"
+                },
+                {
+                    "relationship-unique-id": "web-gui-messagebus",
+                    "sequence-number": 5,
+                    "description": "Web GUI subscribes to Message Bus for live trade and position updates",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "web-gui-messagebus",
+                    "sequence-number": 6,
+                    "description": "Message Bus publishes trade and position updates to Web GUI",
+                    "direction": "destination-to-source"
+                }
+            ]
+        },
+        {
+            "unique-id": "submit-trade-flow",
+            "name": "Submit Trade Ticket",
+            "description": "User submits a trade order with validation against reference data service and account service",
+            "transitions": [
+                {
+                    "relationship-unique-id": "web-gui-reference-data-service",
+                    "sequence-number": 1,
+                    "description": "Web GUI retrieves list of valid tickers from Reference Data Service",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "web-gui-reference-data-service",
+                    "sequence-number": 2,
+                    "description": "Reference Data Service returns ticker list to Web GUI",
+                    "direction": "destination-to-source"
+                },
+                {
+                    "relationship-unique-id": "web-gui-trading-service",
+                    "sequence-number": 3,
+                    "description": "User submits trade request with account, ticker, side, and quantity",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "trading-service-reference-data-service",
+                    "sequence-number": 4,
+                    "description": "Trading Service validates ticker with Reference Data Service",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "trading-service-reference-data-service",
+                    "sequence-number": 5,
+                    "description": "Reference Data Service returns validation result to Trading Service",
+                    "direction": "destination-to-source"
+                },
+                {
+                    "relationship-unique-id": "trading-service-account-service",
+                    "sequence-number": 6,
+                    "description": "Trading Service validates account with Account Service",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "trading-service-account-service",
+                    "sequence-number": 7,
+                    "description": "Account Service returns validation result to Trading Service",
+                    "direction": "destination-to-source"
+                },
+                {
+                    "relationship-unique-id": "trading-service-messagebus",
+                    "sequence-number": 8,
+                    "description": "Trading Service publishes new trade event to Message Bus",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "web-gui-trading-service",
+                    "sequence-number": 9,
+                    "description": "Trading Service returns completion response to Web GUI",
+                    "direction": "destination-to-source"
+                }
+            ]
+        },
+        {
+            "unique-id": "process-trade-flow",
+            "name": "Process Trade Event",
+            "description": "Trade Processor handles new trade events, updates database, and publishes position updates",
+            "transitions": [
+                {
+                    "relationship-unique-id": "messagebus-trade-processor",
+                    "sequence-number": 1,
+                    "description": "Message Bus delivers new trade event to Trade Processor",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "trade-processor-database",
+                    "sequence-number": 2,
+                    "description": "Trade Processor inserts trade into Database",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "trade-processor-messagebus",
+                    "sequence-number": 3,
+                    "description": "Trade Processor publishes account-specific trade event to Message Bus",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "web-gui-messagebus",
+                    "sequence-number": 4,
+                    "description": "Message Bus forwards trade event to Web GUI",
+                    "direction": "destination-to-source"
+                },
+                {
+                    "relationship-unique-id": "trade-processor-database",
+                    "sequence-number": 5,
+                    "description": "Trade Processor updates trade as executed",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "trade-processor-database",
+                    "sequence-number": 6,
+                    "description": "Trade Processor inserts or updates position",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "trade-processor-messagebus",
+                    "sequence-number": 7,
+                    "description": "Trade Processor publishes trade event update to Message Bus",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "web-gui-messagebus",
+                    "sequence-number": 8,
+                    "description": "Message Bus forwards trade update to Web GUI",
+                    "direction": "destination-to-source"
+                },
+                {
+                    "relationship-unique-id": "trade-processor-messagebus",
+                    "sequence-number": 9,
+                    "description": "Trade Processor publishes position event to Message Bus",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "web-gui-messagebus",
+                    "sequence-number": 10,
+                    "description": "Message Bus forwards position update to Web GUI",
+                    "direction": "destination-to-source"
+                }
+            ]
+        },
+        {
+            "unique-id": "manage-account-flow",
+            "name": "Add or Update Account",
+            "description": "Create a new trading account or update existing account information",
+            "transitions": [
+                {
+                    "relationship-unique-id": "web-gui-account-service",
+                    "sequence-number": 1,
+                    "description": "Web GUI sends account creation or update request to Account Service",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "account-service-database",
+                    "sequence-number": 2,
+                    "description": "Account Service writes new or updated account information to Database",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "web-gui-account-service",
+                    "sequence-number": 3,
+                    "description": "Account Service returns success or failure response to Web GUI",
+                    "direction": "destination-to-source"
+                }
+            ]
+        },
+        {
+            "unique-id": "manage-account-users-flow",
+            "name": "Add or Update Users to Account",
+            "description": "Associate users with trading accounts by searching the user directory and updating mappings",
+            "transitions": [
+                {
+                    "relationship-unique-id": "web-gui-account-service",
+                    "sequence-number": 1,
+                    "description": "Web GUI retrieves current list of associated people from Account Service",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "account-service-database",
+                    "sequence-number": 2,
+                    "description": "Account Service queries Database for account-user mappings",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "account-service-database",
+                    "sequence-number": 3,
+                    "description": "Database returns current user associations",
+                    "direction": "destination-to-source"
+                },
+                {
+                    "relationship-unique-id": "web-gui-account-service",
+                    "sequence-number": 4,
+                    "description": "Account Service returns user list to Web GUI",
+                    "direction": "destination-to-source"
+                },
+                {
+                    "relationship-unique-id": "web-gui-people-service",
+                    "sequence-number": 5,
+                    "description": "Web GUI searches for users through People Service",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "people-service-user-directory",
+                    "sequence-number": 6,
+                    "description": "People Service queries User Directory for matching users",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "people-service-user-directory",
+                    "sequence-number": 7,
+                    "description": "User Directory returns matching records to People Service",
+                    "direction": "destination-to-source"
+                },
+                {
+                    "relationship-unique-id": "web-gui-people-service",
+                    "sequence-number": 8,
+                    "description": "People Service returns search results to Web GUI",
+                    "direction": "destination-to-source"
+                },
+                {
+                    "relationship-unique-id": "web-gui-account-service",
+                    "sequence-number": 9,
+                    "description": "Web GUI requests Account Service to add selected user to account",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "account-service-people-service",
+                    "sequence-number": 10,
+                    "description": "Account Service validates username with People Service",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "account-service-people-service",
+                    "sequence-number": 11,
+                    "description": "People Service returns validation result to Account Service",
+                    "direction": "destination-to-source"
+                },
+                {
+                    "relationship-unique-id": "account-service-database",
+                    "sequence-number": 12,
+                    "description": "Account Service updates account-user mapping in Database",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "web-gui-account-service",
+                    "sequence-number": 13,
+                    "description": "Account Service returns success or failure response to Web GUI",
+                    "direction": "destination-to-source"
+                }
+            ]
+        },
+        {
+            "unique-id": "bootstrap-reference-data-service-flow",
+            "name": "Reference Data Service Bootstrap",
+            "description": "Load ticker list from CSV file at startup and provide it to the Web GUI",
+            "transitions": [
+                {
+                    "relationship-unique-id": "reference-data-service-csv",
+                    "sequence-number": 1,
+                    "description": "Reference Data Service loads CSV file at startup",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "reference-data-service-csv",
+                    "sequence-number": 2,
+                    "description": "CSV File returns ticker list to Reference Data Service",
+                    "direction": "destination-to-source"
+                },
+                {
+                    "relationship-unique-id": "web-gui-reference-data-service",
+                    "sequence-number": 3,
+                    "description": "Web GUI requests ticker list from Reference Data Service",
+                    "direction": "source-to-destination"
+                },
+                {
+                    "relationship-unique-id": "web-gui-reference-data-service",
+                    "sequence-number": 4,
+                    "description": "Reference Data Service returns loaded ticker data to Web GUI",
+                    "direction": "destination-to-source"
+                }
+            ]
+        }
+    ]
+}

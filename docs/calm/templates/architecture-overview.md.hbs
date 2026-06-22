@@ -1,0 +1,42 @@
+## Architecture Overview
+
+{{#if metadata}}
+{{#each metadata}}
+- **{{@key}}:** {{.}}
+{{/each}}
+{{/if}}
+
+{{block-architecture}}
+
+## Single Service
+{{block-architecture focus-nodes="reference-data-service "}}
+
+{{table nodes["reference-data-service"] orientation="vertical" sections="overview, metadata"}}
+
+## Multiple Services No Database
+{{block-architecture focus-nodes="reference-data-service, web-gui, account-service, people-service"}}
+
+{{table nodes["reference-data-service"] orientation="vertical" sections="overview, metadata"}}
+{{table nodes["web-gui"] orientation="vertical" sections="overview, metadata"}}
+{{table nodes["account-service"] orientation="vertical" sections="overview, metadata"}}
+{{table nodes["people-service"] orientation="vertical" sections="overview, metadata"}}
+
+## Multiple Services With Database
+{{block-architecture focus-nodes="reference-data-service, web-gui, account-service, people-service, database"}}
+
+{{table nodes["reference-data-service"] orientation="vertical" sections="overview, metadata"}}
+{{table nodes["web-gui"] orientation="vertical" sections="overview, metadata"}}
+{{table nodes["account-service"] orientation="vertical" sections="overview, metadata"}}
+{{table nodes["people-service"] orientation="vertical" sections="overview, metadata"}}
+{{table nodes["database"] orientation="vertical" sections="overview, metadata"}}
+
+## Multiple Services With Trade Feed
+{{block-architecture focus-nodes="reference-data-service, web-gui, account-service, people-service, database, messagebus"}}
+
+{{table nodes["reference-data-service"] orientation="vertical" sections="overview, metadata"}}
+{{table nodes["web-gui"] orientation="vertical" sections="overview, metadata"}}
+{{table nodes["account-service"] orientation="vertical" sections="overview, metadata"}}
+{{table nodes["people-service"] orientation="vertical" sections="overview, metadata"}}
+{{table nodes["database"] orientation="vertical" sections="overview, metadata"}}
+{{table nodes["messagebus"] orientation="vertical" sections="overview, metadata"}}
+
