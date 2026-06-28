@@ -1,0 +1,73 @@
+.mini-traderx {
+    min-height: 100vh;
+    padding: 8px;
+    background: #f6f8fb;
+    color: #172033;
+}
+
+.mini-traderx-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.title-group h2 {
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.2;
+}
+
+.fdc3-status {
+    margin-top: 2px;
+    color: #5d6b82;
+    font-size: 11px;
+    line-height: 1.25;
+}
+
+.metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.metric {
+    min-width: 0;
+    border: 1px solid #d9e1ec;
+    border-radius: 4px;
+    background: #ffffff;
+    padding: 6px 8px;
+}
+
+.metric span {
+    display: block;
+    color: #68758b;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.metric strong {
+    display: block;
+    overflow-wrap: anywhere;
+    margin-top: 2px;
+    font-size: 13px;
+    line-height: 1.2;
+}
+
+.positive {
+    color: #0f7a45;
+}
+
+.negative {
+    color: #b42318;
+}
+
+.positions {
+    border: 1px solid #d9e1ec;
+    border-radius: 4px;
+    background: #ffffff;
+    padding: 6px;
+}

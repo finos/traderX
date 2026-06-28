@@ -28,12 +28,6 @@ describe('Fdc3TickerCompatibilityBridgeService', () => {
         });
     });
 
-    it('should keep TradingView ticker payloads as bare canonical symbols', () => {
-        expect(service.toTradingViewTicker('c')).toEqual('C');
-        expect(service.toTradingViewTicker('msft')).toEqual('MSFT');
-        expect(service.toTradingViewTicker('ORCL')).toEqual('ORCL');
-    });
-
     it('should use bare ticker for ViewInstrument intent context', () => {
         expect(service.toViewInstrumentIntentContext('c')).toEqual({
             type: 'fdc3.instrument',

@@ -40,10 +40,6 @@ export class Fdc3TickerCompatibilityBridgeService {
         return this.normalizeTicker(rawInteropTicker);
     }
 
-    toTradingViewTicker(rawTraderxTicker: string | null | undefined): string | undefined {
-        return this.normalizeTicker(rawTraderxTicker);
-    }
-
     toInstrumentContext(rawTraderxTicker: string | null | undefined): Fdc3InstrumentContext | undefined {
         const interopTicker = this.toInteropTicker(rawTraderxTicker);
         if (!interopTicker) {

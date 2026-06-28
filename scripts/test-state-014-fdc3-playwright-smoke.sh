@@ -59,6 +59,10 @@ const { chromium } = require(playwrightModule);
 const traderxUrl = process.argv[2];
 const tradingViewUrl = process.argv[3];
 const timeoutMs = Number(process.argv[4] || 90000);
+const sailUrl = process.env.TRADERX_SAIL_URL || "";
+const launcherUrl = process.env.TRADERX_SAIL_LAUNCHER_URL || "http://localhost:4040";
+const sailTradingViewUrl = process.env.TRADERX_SAIL_TRADINGVIEW_URL || "http://localhost:4023/?mode=chart";
+const sailPricerUrl = process.env.TRADERX_SAIL_PRICER_URL || "http://localhost:4020/";
 
 const assert = (condition, message) => {
   if (!condition) {
@@ -70,6 +74,7 @@ const installMockAgent = async (page) => {
   await page.addInitScript(() => {
     const contextListeners = [];
     const intentListeners = new Map();
+    const intentListenerRegistrations = [];
     const channelChangedListeners = [];
     const baseChannel = {
       id: "One",
@@ -99,6 +104,13 @@ const installMockAgent = async (page) => {
     const addContextListener = (contextType, handler) => {
       const listener = { contextType: contextType || null, handler };
       contextListeners.push(listener);
+      const current = window.__fdc3CurrentContext;
+      if (current && (!listener.contextType || listener.contextType === current.type)) {
+        Promise.resolve().then(() => {
+          handler(current);
+          window.__fdc3DeliveredContexts.push(current);
+        });
+      }
       return {
         unsubscribe: () => {
           const idx = contextListeners.indexOf(listener);
@@ -109,14 +121,19 @@ const installMockAgent = async (page) => {
       };
     };
 
-    const addIntentListener = (intent, handler) => {
+    const addIntentListener = (intent, contextType, handler) => {
       const listeners = intentListeners.get(intent) || [];
-      listeners.push(handler);
+      const registration = { intent, contextType, handler };
+      listeners.push(registration);
       intentListeners.set(intent, listeners);
+      intentListenerRegistrations.push({
+        intent,
+        contextType,
+      });
       return {
         unsubscribe: () => {
           const arr = intentListeners.get(intent) || [];
-          const idx = arr.indexOf(handler);
+          const idx = arr.indexOf(registration);
           if (idx >= 0) {
             arr.splice(idx, 1);
           }
@@ -137,19 +154,26 @@ const installMockAgent = async (page) => {
 
     const receiveIntent = (intent, context) => {
       const listeners = intentListeners.get(intent) || [];
-      for (const handler of listeners) {
-        handler(context);
+      for (const listener of listeners) {
+        const contextTypes = Array.isArray(listener.contextType)
+          ? listener.contextType
+          : [listener.contextType].filter(Boolean);
+        if (contextTypes.length === 0 || contextTypes.includes(context?.type)) {
+          listener.handler(context);
+        }
       }
     };
 
     window.__fdc3CapturedBroadcasts = [];
     window.__fdc3CurrentContext = null;
     window.__fdc3DeliveredContexts = [];
-    window.__fdc3ReceiveContext = receiveContext;
-    window.__fdc3ReceiveIntent = receiveIntent;
-    window.fdc3 = {
-      getInfo: async () => ({
-        fdc3Version: "2.2",
+    window.__fdc3IntentListenerRegistrations = intentListenerRegistrations;
+	    window.__fdc3ReceiveContext = receiveContext;
+	    window.__fdc3ReceiveIntent = receiveIntent;
+	    window.fdc3 = {
+	      getAgent: async () => window.fdc3,
+	      getInfo: async () => ({
+	        fdc3Version: "3.0",
         provider: "traderx-playwright-smoke-mock",
       }),
       broadcast: async (context) => {
@@ -161,12 +185,17 @@ const installMockAgent = async (page) => {
         window.__fdc3CurrentContext = context || null;
         window.__fdc3CapturedBroadcasts.push(context);
         receiveIntent(intent, context);
-        return { intent };
+        return {
+          intent,
+          getResult: async () => undefined,
+        };
       },
       addContextListener: async (contextType, handler) =>
         addContextListener(contextType, handler),
       addIntentListener: async (intent, handler) =>
-        addIntentListener(intent, handler),
+        addIntentListener(intent, null, handler),
+      addIntentListenerWithContext: async (intent, contextType, handler) =>
+        addIntentListener(intent, contextType, handler),
       addEventListener: async (eventType, handler) => {
         if (eventType === "userChannelChanged") {
           channelChangedListeners.push(handler);
@@ -249,6 +278,293 @@ const clickTickerCell = async (page, ticker) => {
   await locator.click();
 };
 
+const validateSailUi = async (context) => {
+  if (!sailUrl) {
+    return;
+  }
+
+  const launcherPage = await context.newPage();
+  try {
+    await launcherPage.goto(launcherUrl, { waitUntil: "domcontentloaded", timeout: timeoutMs });
+    await launcherPage.waitForFunction(() => {
+      return (document.body?.innerText || "").includes("TraderX Intent Launcher");
+    }, undefined, { timeout: 10000 });
+    const launcherText = await launcherPage.evaluate(() => document.body?.innerText || "");
+    assert(
+      launcherText.includes("Create Trade Ticket") && launcherText.includes("Create Order Ticket"),
+      `TraderX Intent Launcher did not render expected controls:\n${launcherText.slice(0, 1200)}`,
+    );
+  } finally {
+    await launcherPage.close();
+  }
+
+  const tradingViewDirectPage = await context.newPage();
+  try {
+    await tradingViewDirectPage.goto(sailTradingViewUrl, { waitUntil: "domcontentloaded", timeout: timeoutMs });
+    await tradingViewDirectPage.waitForFunction(() => {
+      const text = document.body?.innerText || "";
+      return text.includes("chart |") || text.includes("Track all markets on TradingView");
+    }, undefined, { timeout: 15000 });
+    const text = await tradingViewDirectPage.evaluate(() => document.body?.innerText || "");
+    assert(
+      text.includes("chart |") || text.includes("Track all markets on TradingView"),
+      `TradingView widget did not render expected shell:\n${text.slice(0, 1200)}`,
+    );
+  } finally {
+    await tradingViewDirectPage.close();
+  }
+
+  const pricerDirectPage = await context.newPage();
+  try {
+    await pricerDirectPage.goto(sailPricerUrl, { waitUntil: "domcontentloaded", timeout: timeoutMs });
+    await pricerDirectPage.waitForFunction(() => {
+      const text = document.body?.innerText || "";
+      return text.includes("Pricer") && text.includes("TSLA");
+    }, undefined, { timeout: 15000 });
+  } finally {
+    await pricerDirectPage.close();
+  }
+
+  const page = await context.newPage();
+  const runtimeErrors = [];
+  page.on("pageerror", (error) => {
+    runtimeErrors.push(error?.stack || error?.message || String(error));
+  });
+  page.on("console", (message) => {
+    if (message.type() === "error") {
+      runtimeErrors.push(message.text());
+    }
+  });
+  try {
+    await page.goto(sailUrl, { waitUntil: "domcontentloaded", timeout: timeoutMs });
+    await page.waitForFunction(() => {
+      const iframeSrcs = Array.from(document.querySelectorAll("iframe"))
+        .map((frame) => String(frame.getAttribute("src") || ""));
+      return (
+	        iframeSrcs.some((src) => src.includes("localhost:8080/trade")) &&
+        iframeSrcs.some((src) => src.includes("localhost:8080/mini-traderx")) &&
+        iframeSrcs.some((src) => src.includes("localhost:4040")) &&
+        iframeSrcs.some((src) => src.includes("localhost:4023") && src.includes("mode=chart")) &&
+        iframeSrcs.some((src) => src.includes("localhost:4023") && src.includes("mode=symbol-info")) &&
+        iframeSrcs.some((src) => src.includes("localhost:4023") && src.includes("mode=fundamentals"))
+      );
+    }, undefined, { timeout: 30000 });
+
+    const demoState = await page.evaluate(() => {
+      const text = document.body?.innerText || "";
+      const iframeSrcs = Array.from(document.querySelectorAll("iframe"))
+        .map((frame) => String(frame.getAttribute("src") || ""));
+      const hasViteOverlay =
+        text.includes("[plugin:vite:import-analysis]") ||
+        text.includes("Failed to resolve import");
+      return {
+        text,
+        iframeSrcs,
+	        hasViteOverlay,
+	        hasTraderX: text.includes("TraderX"),
+        hasMiniTraderX: text.includes("Mini TraderX"),
+        hasLauncher: text.includes("TraderX Intent Launcher"),
+        hasTradingViewChart: text.includes("Trading View Chart"),
+        hasTradingViewSymbolInfo: text.includes("Trading View Symbol Info"),
+        hasTradingViewFundamentals: text.includes("Trading View Fundamentals"),
+      };
+    });
+	    assert(!demoState.hasViteOverlay, `Sail UI rendered a Vite import overlay:\n${demoState.text.slice(0, 1200)}`);
+	    assert(demoState.hasTraderX, `Sail demo workspace missing TraderX:\n${demoState.text.slice(0, 1200)}`);
+    assert(demoState.hasMiniTraderX, `Sail demo workspace missing Mini TraderX:\n${demoState.text.slice(0, 1200)}`);
+    assert(demoState.hasLauncher, `Sail demo workspace missing TraderX Intent Launcher:\n${demoState.text.slice(0, 1200)}`);
+    assert(demoState.hasTradingViewChart, `Sail demo workspace missing Trading View Chart:\n${demoState.text.slice(0, 1200)}`);
+    assert(demoState.hasTradingViewSymbolInfo, `Sail demo workspace missing Trading View Symbol Info:\n${demoState.text.slice(0, 1200)}`);
+    assert(demoState.hasTradingViewFundamentals, `Sail demo workspace missing Trading View Fundamentals:\n${demoState.text.slice(0, 1200)}`);
+
+	    const traderFrame = page.frames().find(frame => frame.url().includes("localhost:8080/trade"));
+	    const miniTraderFrame = page.frames().find(frame => frame.url().includes("localhost:8080/mini-traderx"));
+    const demoLauncherFrame = page.frames().find(frame => frame.url().includes("localhost:4040"));
+    const chartFrame = page.frames().find(frame => frame.url().includes("localhost:4023") && frame.url().includes("mode=chart"));
+    const symbolInfoFrame = page.frames().find(frame => frame.url().includes("localhost:4023") && frame.url().includes("mode=symbol-info"));
+    const fundamentalsFrame = page.frames().find(frame => frame.url().includes("localhost:4023") && frame.url().includes("mode=fundamentals"));
+    assert(traderFrame, "Sail demo workspace did not expose a TraderX frame");
+    assert(miniTraderFrame, "Sail demo workspace did not expose a Mini TraderX frame");
+    assert(demoLauncherFrame, "Sail demo workspace did not expose a TraderX Intent Launcher frame");
+    assert(chartFrame, "Sail demo workspace did not expose a Trading View Chart frame");
+    assert(symbolInfoFrame, "Sail demo workspace did not expose a Trading View Symbol Info frame");
+    assert(fundamentalsFrame, "Sail demo workspace did not expose a Trading View Fundamentals frame");
+
+    await demoLauncherFrame.getByText("TraderX Intent Launcher").waitFor({ timeout: 20000 });
+    await miniTraderFrame.getByText("Mini TraderX").waitFor({ timeout: 20000 });
+    await chartFrame.locator(".traderx-tradingview-status").first().waitFor({ timeout: 20000 });
+    await symbolInfoFrame.locator(".traderx-tradingview-status").first().waitFor({ timeout: 20000 });
+    await fundamentalsFrame.locator(".traderx-tradingview-status").first().waitFor({ timeout: 20000 });
+    await traderFrame.evaluate(async () => {
+      await window.fdc3.broadcast({
+        type: "fdc3.instrument",
+        id: { ticker: "MSFT" },
+      });
+    });
+    await demoLauncherFrame.getByText("Received instrument context (MSFT)").waitFor({ timeout: 25000 });
+    await chartFrame.locator(".traderx-tradingview-status").filter({ hasText: "Received fdc3.instrument (MSFT)" }).first().waitFor({ timeout: 25000 });
+    await symbolInfoFrame.locator(".traderx-tradingview-status").filter({ hasText: "Received fdc3.instrument (MSFT)" }).first().waitFor({ timeout: 25000 });
+    await fundamentalsFrame.locator(".traderx-tradingview-status").filter({ hasText: "Received fdc3.instrument (MSFT)" }).first().waitFor({ timeout: 25000 });
+    await miniTraderFrame.getByText("MSFT").first().waitFor({ timeout: 25000 });
+
+	    await traderFrame.evaluate(async () => {
+	      await window.fdc3.broadcast({
+	        type: "traderx.account",
+	        id: { accountId: "0" },
+	        name: "All Accounts",
+	      });
+	    });
+	    await miniTraderFrame.getByText("All Accounts").first().waitFor({ timeout: 25000 });
+
+    const demoRelevantRuntimeErrors = runtimeErrors.filter((message) =>
+      /api\.getState is not a function|ChannelSelector|Uncaught TypeError|Failed to resolve import|\[plugin:vite:import-analysis\]/i.test(message),
+    );
+    assert(
+      demoRelevantRuntimeErrors.length === 0,
+      `Sail UI reported runtime errors after launching the TraderX demo workspace:\n${demoRelevantRuntimeErrors.join("\n\n")}`,
+    );
+    console.log(`[ok] Sail v3 UI rendered TraderX demo workspace: ${sailUrl}`);
+    console.log("[ok] Sail demo workspace mounted TraderX, Mini TraderX, launcher, TradingView Chart, Symbol Info, and Fundamentals");
+    console.log("[ok] Sail demo workspace delivered real fdc3.instrument broadcast to launcher, Mini TraderX, and TradingView panels");
+	    console.log("[ok] Sail demo workspace delivered real traderx.account broadcast to Mini TraderX");
+    return;
+
+    await page.waitForFunction(() => {
+      const text = document.body?.innerText || "";
+      return text.includes("Welcome to Sail") || text.includes("[plugin:vite:import-analysis]");
+    }, undefined, { timeout: 20000 });
+
+    const state = await page.evaluate(() => {
+      const text = document.body?.innerText || "";
+      const hasViteOverlay =
+        text.includes("[plugin:vite:import-analysis]") ||
+        text.includes("Failed to resolve import");
+      return {
+        text,
+        hasViteOverlay,
+        hasWelcome: text.includes("Welcome to Sail"),
+        hasBrowseDirectory: text.includes("Browse App Directory"),
+      };
+    });
+
+    assert(!state.hasViteOverlay, `Sail UI rendered a Vite import overlay:\n${state.text.slice(0, 1200)}`);
+    assert(state.hasWelcome, `Sail UI did not render the welcome screen:\n${state.text.slice(0, 1200)}`);
+    assert(state.hasBrowseDirectory, `Sail UI did not render App Directory controls:\n${state.text.slice(0, 1200)}`);
+
+    await page.getByRole("button", { name: "Browse App Directory" }).click();
+    await page.waitForFunction(() => {
+      const text = document.body?.innerText || "";
+      return text.includes("App Directory") && text.includes("TraderX");
+    }, undefined, { timeout: 20000 });
+
+    const directoryState = await page.evaluate(() => {
+      const text = document.body?.innerText || "";
+      return {
+        text,
+        hasTraderX: text.includes("TraderX"),
+        hasLauncher: text.includes("TraderX Intent Launcher"),
+        hasTradingViewChart: text.includes("Trading View Chart"),
+        hasTradingViewMarketData: text.includes("Trading View Market Data"),
+        hasPricer: text.includes("Pricer"),
+        hasConformance: text.includes("FDC3 Conformance Framework"),
+        hasDeadDefaultApps:
+          text.includes("Portfolio Management System") ||
+          text.includes("Order Management System") ||
+          text.includes("Advanced Chart"),
+      };
+    });
+    assert(directoryState.hasTraderX, `Sail App Directory missing TraderX:\n${directoryState.text.slice(0, 1200)}`);
+    assert(directoryState.hasLauncher, `Sail App Directory missing TraderX Intent Launcher:\n${directoryState.text.slice(0, 1200)}`);
+    assert(directoryState.hasTradingViewChart, `Sail App Directory missing Trading View Chart:\n${directoryState.text.slice(0, 1200)}`);
+    assert(directoryState.hasTradingViewMarketData, `Sail App Directory missing Trading View Market Data:\n${directoryState.text.slice(0, 1200)}`);
+    assert(directoryState.hasPricer, `Sail App Directory missing Pricer:\n${directoryState.text.slice(0, 1200)}`);
+    assert(directoryState.hasConformance, `Sail App Directory missing FINOS conformance apps:\n${directoryState.text.slice(0, 1200)}`);
+    assert(!directoryState.hasDeadDefaultApps, `Sail App Directory still exposes unstarted sample apps:\n${directoryState.text.slice(0, 1200)}`);
+
+    await page.getByText("TraderX", { exact: true }).click();
+    await page.waitForFunction(() => {
+      return Array.from(document.querySelectorAll("iframe")).some((frame) =>
+        String(frame.getAttribute("src") || "").includes("/trade"),
+      );
+    }, undefined, { timeout: 20000 });
+    await page.waitForTimeout(1000);
+
+    await page.evaluate(() => localStorage.clear());
+    await page.goto(`${sailUrl}${sailUrl.includes("?") ? "&" : "?"}smokeReset=${Date.now()}`, {
+      waitUntil: "domcontentloaded",
+      timeout: timeoutMs,
+    });
+    await page.waitForFunction(() => {
+      const text = document.body?.innerText || "";
+      return text.includes("Welcome to Sail") && text.includes("Browse App Directory");
+    }, undefined, { timeout: 20000 });
+    await page.getByRole("button", { name: "Browse App Directory" }).click();
+    await page.waitForFunction(() => {
+      const text = document.body?.innerText || "";
+      return text.includes("App Directory") && text.includes("Trading View Chart");
+    }, undefined, { timeout: 20000 });
+    await page.getByText("Trading View Chart", { exact: true }).click();
+    await page.waitForFunction(() => {
+      return Array.from(document.querySelectorAll("iframe")).some((frame) =>
+        String(frame.getAttribute("src") || "").includes("localhost:4023") &&
+        String(frame.getAttribute("src") || "").includes("mode=chart"),
+      );
+    }, undefined, { timeout: 20000 });
+    const tradingViewFrame = page.frames().find(frame => frame.url().includes("localhost:4023") && frame.url().includes("mode=chart"));
+    assert(tradingViewFrame, "Sail created a TradingView iframe but Playwright could not resolve its frame");
+    await tradingViewFrame.waitForFunction(() => {
+      const text = document.body?.innerText || "";
+      return text.includes("chart |") || text.includes("Track all markets on TradingView");
+    }, undefined, { timeout: 15000 });
+    await page.waitForTimeout(1000);
+
+    await page.evaluate(() => localStorage.clear());
+    await page.goto(`${sailUrl}${sailUrl.includes("?") ? "&" : "?"}smokeReset=${Date.now()}`, {
+      waitUntil: "domcontentloaded",
+      timeout: timeoutMs,
+    });
+    await page.waitForFunction(() => {
+      const text = document.body?.innerText || "";
+      return text.includes("Welcome to Sail") && text.includes("Browse App Directory");
+    }, undefined, { timeout: 20000 });
+    await page.getByRole("button", { name: "Browse App Directory" }).click();
+    await page.waitForFunction(() => {
+      const text = document.body?.innerText || "";
+      return text.includes("App Directory") && text.includes("TraderX Intent Launcher");
+    }, undefined, { timeout: 20000 });
+    await page.getByText("TraderX Intent Launcher", { exact: true }).click();
+    await page.waitForFunction(() => {
+      return Array.from(document.querySelectorAll("iframe")).some((frame) =>
+        String(frame.getAttribute("src") || "").includes("localhost:4040"),
+      );
+    }, undefined, { timeout: 20000 });
+    const launcherFrame = page.frames().find(frame => frame.url().includes("localhost:4040"));
+    assert(launcherFrame, "Sail created a launcher iframe but Playwright could not resolve its frame");
+    await launcherFrame.waitForFunction(() => {
+      return (document.body?.innerText || "").includes("TraderX Intent Launcher");
+    }, undefined, { timeout: 10000 });
+    const launcherFrameText = await launcherFrame.evaluate(() => document.body?.innerText || "");
+    assert(
+      launcherFrameText.includes("Create Trade Ticket") &&
+        launcherFrameText.includes("Create Order Ticket"),
+      `Sail launcher iframe did not render expected controls:\n${launcherFrameText.slice(0, 1200)}`,
+    );
+    await page.waitForTimeout(1000);
+
+    const relevantRuntimeErrors = runtimeErrors.filter((message) =>
+      /api\.getState is not a function|ChannelSelector|Uncaught TypeError|Failed to resolve import|\[plugin:vite:import-analysis\]/i.test(message),
+    );
+    assert(
+      relevantRuntimeErrors.length === 0,
+      `Sail UI reported runtime errors after launching TraderX:\n${relevantRuntimeErrors.join("\n\n")}`,
+    );
+    console.log(`[ok] Sail v3 UI rendered without Vite overlay: ${sailUrl}`);
+    console.log("[ok] Sail App Directory exposes TraderX, launcher, TradingView, Pricer, and conformance apps without dead local demo ports");
+  } finally {
+    await page.close();
+  }
+};
+
 (async () => {
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext();
@@ -256,6 +572,8 @@ const clickTickerCell = async (page, ticker) => {
   const tradingViewPage = await context.newPage();
 
   try {
+    await validateSailUi(context);
+
     await installMockAgent(traderxPage);
     await installMockAgent(tradingViewPage);
 
@@ -263,15 +581,57 @@ const clickTickerCell = async (page, ticker) => {
       traderxPage.goto(traderxUrl, { waitUntil: "domcontentloaded", timeout: timeoutMs }),
       tradingViewPage.goto(tradingViewUrl, { waitUntil: "domcontentloaded", timeout: timeoutMs })
     ]);
+    await tradingViewPage.evaluate(async () => {
+      await window.fdc3.addContextListener("fdc3.instrument", () => {});
+    });
 
-    await traderxPage.getByText("FDC3 connected", { exact: false }).first().waitFor({ timeout: 20000 });
+	    await traderxPage.waitForFunction(() => {
+	      const registrations = Array.isArray(window.__fdc3IntentListenerRegistrations)
+	        ? window.__fdc3IntentListenerRegistrations
+	        : [];
+	      return [
+	        "ViewOrders",
+	        "TraderX.CreateTradeTicket",
+	        "TraderX.CreateOrderTicket",
+	      ].every((intent) => registrations.some((entry) => entry?.intent === intent));
+	    }, undefined, { timeout: 20000 });
 
-    const selectedTicker = await resolveTickerFromGrid(traderxPage, 45000);
-    await clickTickerCell(traderxPage, selectedTicker);
+	    const intentRegistrations = await traderxPage.evaluate(() => {
+	      return Array.isArray(window.__fdc3IntentListenerRegistrations)
+	        ? window.__fdc3IntentListenerRegistrations
+	        : [];
+    });
+    for (const intent of [
+      "ViewOrders",
+      "TraderX.CreateTradeTicket",
+      "TraderX.CreateOrderTicket",
+    ]) {
+      const registration = intentRegistrations.find((entry) => entry?.intent === intent);
+      assert(registration, `expected v3 intent registration for ${intent}`);
+      const contextTypes = Array.isArray(registration.contextType)
+        ? registration.contextType
+        : [registration.contextType];
+      assert(
+        contextTypes.includes("fdc3.instrument"),
+        `expected ${intent} to register with fdc3.instrument context filter, got ${JSON.stringify(registration.contextType)}`,
+      );
+    }
 
-    await traderxPage.waitForFunction(() => {
-      return Array.isArray(window.__fdc3CapturedBroadcasts) && window.__fdc3CapturedBroadcasts.length > 0;
-    }, undefined, { timeout: 20000 });
+	    const selectedTicker = await resolveTickerFromGrid(traderxPage, 45000);
+	    const broadcastCountBeforeTickerClick = await traderxPage.evaluate(() => {
+	      return Array.isArray(window.__fdc3CapturedBroadcasts)
+	        ? window.__fdc3CapturedBroadcasts.length
+	        : 0;
+	    });
+	    await clickTickerCell(traderxPage, selectedTicker);
+
+	    await traderxPage.waitForFunction((baselineCount) => {
+	      if (!Array.isArray(window.__fdc3CapturedBroadcasts)) {
+	        return false;
+	      }
+	      const last = window.__fdc3CapturedBroadcasts[window.__fdc3CapturedBroadcasts.length - 1];
+	      return window.__fdc3CapturedBroadcasts.length > baselineCount && last?.type === "fdc3.instrument";
+	    }, broadcastCountBeforeTickerClick, { timeout: 20000 });
 
     const outboundContext = await traderxPage.evaluate(() => {
       return window.__fdc3CapturedBroadcasts[window.__fdc3CapturedBroadcasts.length - 1];
@@ -306,11 +666,11 @@ const clickTickerCell = async (page, ticker) => {
     });
     assert(
       deliveredContext?.type === "fdc3.instrument",
-      `expected TradingView-delivered type=fdc3.instrument, got ${JSON.stringify(deliveredContext)}`,
+      `expected Sail-delivered type=fdc3.instrument, got ${JSON.stringify(deliveredContext)}`,
     );
     assert(
       String(deliveredContext?.id?.ticker || "").toUpperCase() === selectedTicker,
-      `expected TradingView-delivered ticker=${selectedTicker}, got ${JSON.stringify(deliveredContext)}`,
+      `expected Sail-delivered ticker=${selectedTicker}, got ${JSON.stringify(deliveredContext)}`,
     );
 
     const inboundTicker = "MSFT";

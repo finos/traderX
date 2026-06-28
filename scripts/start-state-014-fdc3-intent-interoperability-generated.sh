@@ -17,7 +17,7 @@ SAIL_DIR="${STATE_DIR}/sail"
 SAIL_COMPOSE_FILE="${SAIL_DIR}/docker-compose.yml"
 SAIL_PROJECT_NAME="${SAIL_PROJECT_NAME:-traderx-state-014-sail}"
 SAIL_HTTP_PORT="${SAIL_HTTP_PORT:-8090}"
-SAIL_RUNTIME_APPD="${SAIL_DIR}/runtime-cache/FDC3-Sail/packages/fdc3-example-apps/directory/generated/fdc3-example-apps.json"
+SAIL_RUNTIME_APPD="${SAIL_DIR}/runtime-cache/FDC3-Sail/packages/sail-web/fixtures/traderx-appd.json"
 
 DRY_RUN=0
 SKIP_BUILD=0
@@ -91,8 +91,6 @@ for required in \
   "${SAIL_DIR}/bootstrap/run-sail.sh" \
   "${SAIL_DIR}/bootstrap/apply-tradingview-overrides.sh" \
   "${SAIL_DIR}/bootstrap/sail-pin.env" \
-  "${SAIL_DIR}/bootstrap/overrides/web/default-client-state.json" \
-  "${SAIL_DIR}/bootstrap/overrides/traderx-intent-launcher/src/main.tsx" \
   "${SAIL_DIR}/bootstrap/merge-traderx-appd.sh" \
   "${SAIL_DIR}/appd/traderx.appd.v2.json"; do
   [[ -f "${required}" ]] || {
@@ -174,7 +172,7 @@ wait_for_http() {
   return 1
 }
 
-wait_for_http "sail-ui" "http://localhost:${SAIL_HTTP_PORT}/html/" || exit 1
+wait_for_http "sail-ui" "http://localhost:${SAIL_HTTP_PORT}/" || exit 1
 
 if [[ -f "${SAIL_RUNTIME_APPD}" ]]; then
   if rg -q '"appId"\s*:\s*"traderx-web"' "${SAIL_RUNTIME_APPD}"; then

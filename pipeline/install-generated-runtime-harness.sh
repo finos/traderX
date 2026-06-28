@@ -60,6 +60,26 @@ copy_script_if_exists() {
   fi
 }
 
+current_state_number=0
+if [[ "${STATE_ID}" =~ ^([0-9]{3})- ]]; then
+  current_state_number="$((10#${BASH_REMATCH[1]}))"
+fi
+
+copy_test_script_for_state() {
+  local path="$1"
+  local name
+  name="$(basename "${path}")"
+  if [[ "${name}" =~ ^test-state-([0-9]{3}) ]]; then
+    local script_state_number="$((10#${BASH_REMATCH[1]}))"
+    if (( script_state_number > current_state_number )) &&
+      git -C "${ROOT}" cat-file -e "HEAD:scripts/${name}" >/dev/null 2>&1; then
+      git -C "${ROOT}" show "HEAD:scripts/${name}" > "${SCRIPTS_DST}/${name}"
+      return
+    fi
+  fi
+  cp "${path}" "${SCRIPTS_DST}/"
+}
+
 # Grafana dashboard helper scripts are shared by observability states and must
 # be available inside generated runtime roots.
 copy_script_if_exists "start-grafana-traderx-dashboards.sh"
@@ -125,10 +145,10 @@ normalize_containerized_compose_cors_origins() {
 # Always include helper test scripts used by state smoke wrappers.
 shopt -s nullglob
 for test_script in "${SCRIPTS_SRC}"/test-*.sh; do
-  cp "${test_script}" "${SCRIPTS_DST}/"
+  copy_test_script_for_state "${test_script}"
 done
 for test_script in "${SCRIPTS_SRC}"/test-*.ps1; do
-  cp "${test_script}" "${SCRIPTS_DST}/"
+  copy_test_script_for_state "${test_script}"
 done
 shopt -u nullglob
 
