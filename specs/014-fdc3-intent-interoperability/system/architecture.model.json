@@ -10,6 +10,10 @@
       "url": "http://localhost:8080"
     },
     {
+      "name": "mini-traderx",
+      "url": "http://localhost:8080/mini-traderx"
+    },
+    {
       "name": "sail-ui",
       "url": "http://localhost:8090"
     }
@@ -35,6 +39,12 @@
       "description": "NGINX ingress for TraderX UI/API traffic."
     },
     {
+      "id": "traderxDirectory",
+      "label": "TraderX App Directory",
+      "kind": "component",
+      "description": "TraderX-owned FDC3 App Directory source for core TraderX, Mini TraderX, and TraderX Intent Launcher."
+    },
+    {
       "id": "sailSidecar",
       "label": "Sail Sidecar",
       "kind": "service",
@@ -42,15 +52,15 @@
     },
     {
       "id": "sailDirectory",
-      "label": "Sail App Directory Profile",
+      "label": "Aggregated App Directories",
       "kind": "component",
-      "description": "Seeded app-directory records for TraderX and demo apps."
+      "description": "Sail-consumed directory sources for TraderX-owned apps, TradingView/Pricer demos, and FINOS conformance apps."
     },
     {
       "id": "demoApps",
       "label": "Demo FDC3 Apps",
       "kind": "service",
-      "description": "Chart/quote/workbench apps participating in ticker workflows."
+      "description": "Mini TraderX, local TraderX Intent Launcher, frameable TradingView/Pricer apps, and FINOS conformance apps participating in ticker/account workflows."
     },
     {
       "id": "orderApi",
@@ -89,6 +99,21 @@
       "label": "Uses Sail app launcher/resolver"
     },
     {
+      "from": "traderxIngress",
+      "to": "traderxDirectory",
+      "label": "Serves TraderX-owned /v2/apps metadata"
+    },
+    {
+      "from": "traderxDirectory",
+      "to": "sailDirectory",
+      "label": "TraderX, Mini TraderX, launcher records"
+    },
+    {
+      "from": "demoApps",
+      "to": "sailDirectory",
+      "label": "TradingView/Pricer directory source"
+    },
+    {
       "from": "sailDirectory",
       "to": "sailSidecar",
       "label": "Provides app/intents/context metadata"
@@ -101,7 +126,7 @@
     {
       "from": "traderxUi",
       "to": "sailSidecar",
-      "label": "Broadcasts fdc3.instrument and raises intents"
+      "label": "Broadcasts fdc3.instrument/traderx.account and raises intents"
     },
     {
       "from": "sailSidecar",
@@ -143,6 +168,8 @@
     "FDC3 integration is additive and frontend-scoped.",
     "No backend API or schema changes are required for core interoperability behavior.",
     "Sail sidecar is intentionally outside TraderX ingress to keep concerns separated.",
+    "TraderX-hosted App Directory metadata is intentionally behind TraderX ingress because it describes TraderX-owned apps and routes.",
+    "Sail should aggregate app-directory sources rather than owning every app record locally.",
     "Degraded mode preserves baseline workflows when DesktopAgent is unavailable."
   ]
 }

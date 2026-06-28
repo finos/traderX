@@ -12,7 +12,7 @@ Define an implementation-ready interoperability layer that lets TraderX particip
 - `system/runtime-topology.md`
 - state `009` order-management and blotter interaction patterns (ticker-centric order/trade/position UX)
 - state `012` convergence baseline/runtime expectations
-- FINOS FDC3 2.2 intent/context usage patterns for app-level integration
+- FINOS FDC3 `3.0.0-alpha.2` intent/context usage patterns for app-level integration
 - local Sail runtime behavior and app-directory model (browser mode)
 
 ## Key Decisions
@@ -41,4 +41,4 @@ Define an implementation-ready interoperability layer that lets TraderX particip
 - Risk: Sail setup drift makes demos brittle.
   - Mitigation: version app-directory assets in-state and provide scripted startup checks.
 - Risk: widget-specific symbology requirements leak into TraderX frontend and create app-coupled payload behavior.
-  - Mitigation: keep TraderX payloads canonical (`ticker` only) and isolate widget-specific symbol qualification inside Sail-side TradingView override assets applied at startup.
+  - Mitigation: keep TraderX payloads canonical (`ticker` only) and isolate any Sail v3 beta compatibility patching inside generated Sail bootstrap assets applied at startup.

@@ -11,7 +11,7 @@ This pack defines a functional interoperability layer on top of the C3 convergen
 
 Primary intent:
 
-- make TraderX an FDC3 2.2-capable application that can exchange ticker context with desktop ecosystem apps,
+- make TraderX an FDC3 `3.0.0-alpha.2`-capable application that can exchange ticker context with desktop ecosystem apps,
 - support intent-driven ticket launch workflows (trade and order ticket prefilled from ticker context),
 - preserve existing TraderX trade/order/position behavior when FDC3 is unavailable,
 - provide deterministic tests that demonstrate FDC3 behavior against mocked and real demo-agent environments.

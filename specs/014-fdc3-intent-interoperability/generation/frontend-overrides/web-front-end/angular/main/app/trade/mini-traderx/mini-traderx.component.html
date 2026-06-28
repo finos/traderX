@@ -1,0 +1,48 @@
+<div class="mini-traderx">
+    <header class="mini-traderx-header">
+        <div class="title-group">
+            <h2>Mini TraderX</h2>
+            <div class="fdc3-status">{{ status }}</div>
+        </div>
+        <app-ngx-dropdown
+            name="miniAccount"
+            [items]="accounts"
+            itemKey="displayName"
+            [selectedItem]="accountModel"
+            placeholder="Select Account"
+            (selectedItemChange)="onAccountChange($event)">
+        </app-ngx-dropdown>
+    </header>
+
+    <section class="metrics">
+        <div class="metric">
+            <span>Instrument</span>
+            <strong>{{ selectedTicker || 'None' }}</strong>
+        </div>
+        <div class="metric">
+            <span>Price</span>
+            <strong>{{ priceDisplay }}</strong>
+        </div>
+        <div class="metric">
+            <span>Position Value</span>
+            <strong>{{ summary.totalMarketValue | currency:'USD':'symbol':'1.2-2' }}</strong>
+        </div>
+        <div class="metric">
+            <span>P&amp;L</span>
+            <strong [ngClass]="summary.totalPnl >= 0 ? 'positive' : 'negative'">
+                {{ summary.totalPnl | currency:'USD':'symbol':'1.2-2' }}
+            </strong>
+        </div>
+    </section>
+
+    <section class="positions">
+        <app-position-blotter
+            [account]="accountModel"
+            [allAccountsMode]="isAllAccountsSelected"
+            [accountIds]="accountIds"
+            [securityFilter]="selectedTicker"
+            (securitySelected)="onSecuritySelected($event)"
+            (summaryChange)="onSummaryChange($event)">
+        </app-position-blotter>
+    </section>
+</div>

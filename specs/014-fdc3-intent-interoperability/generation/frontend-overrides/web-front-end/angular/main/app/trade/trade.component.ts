@@ -10,7 +10,7 @@ import { PositionService } from '../service/position.service';
 import { TradeFeedService } from '../service/trade-feed.service';
 import { OrderAdminService } from '../service/order-admin.service';
 import { OrderCreateRequest } from '../model/order.model';
-import { Fdc3InteropService, Fdc3InboundEvent } from '../service/fdc3-interop.service';
+import { Fdc3AccountEvent, Fdc3InteropService, Fdc3InboundEvent } from '../service/fdc3-interop.service';
 
 @Component({
     standalone: false,
@@ -58,6 +58,7 @@ export class TradeComponent implements OnInit, OnDestroy {
     private priceStreamUnsubscribeFn?: Function;
     private readonly interopSubscriptions = new Subscription();
     private account = new Subject<Account>();
+    private pendingAccountId?: number;
 
     constructor(private accountService: AccountService,
         private symbolService: SymbolService,
@@ -76,7 +77,11 @@ export class TradeComponent implements OnInit, OnDestroy {
             }, {} as { [accountId: number]: string });
             this.accountIds = this.realAccounts.map((account) => account.id);
             this.accounts = [this.allAccountsOption, ...this.realAccounts];
-            this.setAccount(this.realAccounts[5] ?? this.realAccounts[0] ?? this.allAccountsOption);
+            const pendingAccount = this.pendingAccountId == null
+                ? undefined
+                : this.accounts.find((account) => Number(account.id) === this.pendingAccountId);
+            this.setAccount(pendingAccount ?? this.realAccounts[5] ?? this.realAccounts[0] ?? this.allAccountsOption, pendingAccount == null);
+            this.pendingAccountId = undefined;
         });
         this.symbolService.getStocks().subscribe((stocks) => this.stocks = stocks);
         this.loadAllPositions();
@@ -92,7 +97,7 @@ export class TradeComponent implements OnInit, OnDestroy {
     }
 
     onAccountChange(account: Account) {
-        account && this.setAccount(account);
+        account && this.setAccount(account, true);
     }
 
     getAccountName(item: Account) {
@@ -172,7 +177,7 @@ export class TradeComponent implements OnInit, OnDestroy {
         this.activeBlotter = mode;
     }
 
-    private setAccount(account: Account) {
+    private setAccount(account: Account, publishSelection = false) {
         this.accountModel = account;
         this.account.next(account);
         this.accountSummary = {
@@ -180,6 +185,11 @@ export class TradeComponent implements OnInit, OnDestroy {
             totalCostBasis: 0,
             totalPnl: 0
         };
+        if (publishSelection) {
+            this.fdc3Interop.publishAccountSelection(account).catch((error) => {
+                console.warn('[fdc3] failed to broadcast account context', error);
+            });
+        }
         this.portfolioSummary = {
             totalMarketValue: 0,
             totalCostBasis: 0,
@@ -246,6 +256,24 @@ export class TradeComponent implements OnInit, OnDestroy {
                 this.handleInboundInteropEvent(event);
             })
         );
+        this.interopSubscriptions.add(
+            this.fdc3Interop.accountEvents$.subscribe((event) => {
+                this.handleInboundAccountEvent(event);
+            })
+        );
+    }
+
+    private handleInboundAccountEvent(event: Fdc3AccountEvent): void {
+        const accountId = Number(event?.accountId);
+        if (!Number.isFinite(accountId)) {
+            return;
+        }
+        const account = this.accounts.find((candidate) => Number(candidate.id) === accountId);
+        if (!account) {
+            this.pendingAccountId = accountId;
+            return;
+        }
+        this.setAccount(account, false);
     }
 
     private handleInboundInteropEvent(event: Fdc3InboundEvent): void {
@@ -285,7 +313,7 @@ export class TradeComponent implements OnInit, OnDestroy {
         }
         const firstRealAccount = this.realAccounts[0];
         if (firstRealAccount) {
-            this.setAccount(firstRealAccount);
+            this.setAccount(firstRealAccount, true);
         }
     }
 }
