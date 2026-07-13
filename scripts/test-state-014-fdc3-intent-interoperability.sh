@@ -22,7 +22,8 @@ STATE_DIR="${GENERATED_ROOT}/code/target-generated/fdc3-intent-interoperability"
 SAIL_DIR="${STATE_DIR}/sail"
 SAIL_COMPOSE_FILE="${SAIL_DIR}/docker-compose.yml"
 SAIL_PROJECT_NAME="${SAIL_PROJECT_NAME:-traderx-state-014-sail}"
-SAIL_RUNTIME_APPD="${SAIL_DIR}/runtime-cache/FDC3-Sail/packages/sail-web/fixtures/traderx-appd.json"
+SAIL_TRADERX_FIXTURE="${SAIL_DIR}/runtime-cache/FDC3-Sail/packages/sail-web/fixtures/traderx-appd.json"
+SAIL_TOOLBOX_APPD_URL="${SAIL_TOOLBOX_APPD_URL:-http://localhost:4005/static/generated/fdc3-example-apps.json}"
 TRADERX_FRONTEND_APPD="${GENERATED_ROOT}/code/target-generated/web-front-end/angular/main/fdc3/appd/v2/apps"
 TRADERX_APPD_URL="${INGRESS_URL%/}/fdc3/appd/v2/apps"
 
@@ -42,7 +43,7 @@ for required in \
   "${STATE_DIR}/README.md" \
   "${SAIL_COMPOSE_FILE}" \
   "${SAIL_DIR}/bootstrap/run-sail.sh" \
-  "${SAIL_DIR}/bootstrap/apply-tradingview-overrides.sh" \
+  "${SAIL_DIR}/bootstrap/apply-sail-demo-compat.sh" \
   "${SAIL_DIR}/bootstrap/merge-traderx-appd.sh" \
   "${TRADERX_FRONTEND_APPD}" \
   "${SAIL_DIR}/appd/traderx.appd.v2.json"; do
@@ -121,13 +122,13 @@ printf '%s\n' "${sail_headers}" | grep -q "HTTP/1.1 200" || {
   exit 1
 }
 
-if [[ ! -f "${SAIL_RUNTIME_APPD}" ]]; then
-  echo "[error] missing Sail generated app directory: ${SAIL_RUNTIME_APPD}"
+if [[ ! -f "${SAIL_TRADERX_FIXTURE}" ]]; then
+  echo "[error] missing Sail TraderX fixture: ${SAIL_TRADERX_FIXTURE}"
   exit 1
 fi
 
-echo "[check] Sail app directory contains TraderX FDC3 v3 handler metadata"
-node - "${SAIL_RUNTIME_APPD}" <<'NODE'
+echo "[check] Sail TraderX fixture contains TraderX FDC3 v3 handler metadata"
+node - "${SAIL_TRADERX_FIXTURE}" <<'NODE'
 const fs = require("node:fs");
 const appdPath = process.argv[2];
 const doc = JSON.parse(fs.readFileSync(appdPath, "utf8"));
@@ -149,18 +150,6 @@ const launcher = apps.find((app) => app.appId === "traderx-intent-launcher");
 if (!launcher) {
   throw new Error("missing traderx-intent-launcher app record in Sail directory");
 }
-const tradingViewChart = apps.find((app) => app.appId === "trading-view-chart-1");
-if (!tradingViewChart) {
-  throw new Error("missing trading-view-chart-1 app record in Sail directory");
-}
-const tradingViewMarketData = apps.find((app) => app.appId === "trading-view-market-data-1");
-if (!tradingViewMarketData) {
-  throw new Error("missing trading-view-market-data-1 app record in Sail directory");
-}
-const pricer = apps.find((app) => app.appId === "pricer");
-if (!pricer) {
-  throw new Error("missing pricer app record in Sail directory");
-}
 
 const traderxUrl = traderx?.details?.url;
 if (typeof traderxUrl !== "string" || !traderxUrl.endsWith("/trade")) {
@@ -173,18 +162,6 @@ if (typeof miniTraderxUrl !== "string" || !miniTraderxUrl.endsWith("/mini-trader
 const launcherUrl = launcher?.details?.url;
 if (typeof launcherUrl !== "string" || !launcherUrl.endsWith(":4040/")) {
   throw new Error(`TraderX launcher URL should point at localhost:4040; got ${launcherUrl}`);
-}
-const chartUrl = tradingViewChart?.details?.url;
-if (typeof chartUrl !== "string" || !chartUrl.includes("localhost:4023") || !chartUrl.includes("mode=chart")) {
-  throw new Error(`TradingView chart URL should point at localhost:4023/?mode=chart; got ${chartUrl}`);
-}
-const marketDataUrl = tradingViewMarketData?.details?.url;
-if (typeof marketDataUrl !== "string" || !marketDataUrl.includes("localhost:4023") || !marketDataUrl.includes("mode=market-data")) {
-  throw new Error(`TradingView market data URL should point at localhost:4023/?mode=market-data; got ${marketDataUrl}`);
-}
-const pricerUrl = pricer?.details?.url;
-if (typeof pricerUrl !== "string" || !pricerUrl.endsWith(":4020/")) {
-  throw new Error(`Pricer URL should point at localhost:4020; got ${pricerUrl}`);
 }
 
 const hostManifests = traderx?.hostManifests ?? {};
@@ -225,8 +202,49 @@ for (const app of [
   }
 }
 
-console.log(`[ok] Sail TraderX fixture apps=${apps.length}, traderx=true, mini=true, launcher=true, tradingview=true, pricer=true`);
+console.log(`[ok] Sail TraderX fixture apps=${apps.length}, traderx=true, mini=true, launcher=true`);
 NODE
+
+echo "[check] FDC3 toolbox AppD exposes TradingView/Pricer apps"
+toolbox_appd_file="$(mktemp)"
+toolbox_appd_code="$(curl -sS -o "${toolbox_appd_file}" -w "%{http_code}" "${SAIL_TOOLBOX_APPD_URL}" || true)"
+if [[ "${toolbox_appd_code}" != "200" ]]; then
+  rm -f "${toolbox_appd_file}"
+  echo "[error] expected 200 from FDC3 toolbox AppD endpoint ${SAIL_TOOLBOX_APPD_URL}, got ${toolbox_appd_code}"
+  exit 1
+fi
+
+node - "${toolbox_appd_file}" <<'NODE'
+const fs = require("node:fs");
+const appdPath = process.argv[2];
+const doc = JSON.parse(fs.readFileSync(appdPath, "utf8"));
+const apps = Array.isArray(doc.applications) ? doc.applications : [];
+const byId = new Map(apps.map((app) => [app.appId, app]));
+
+for (const appId of ["trading-view-chart-1", "trading-view-market-data-1", "pricer"]) {
+  if (!byId.has(appId)) {
+    throw new Error(`FDC3 toolbox AppD missing ${appId}`);
+  }
+}
+
+const chartUrl = byId.get("trading-view-chart-1")?.details?.url;
+if (typeof chartUrl !== "string" || !chartUrl.includes("localhost:4023") || !chartUrl.includes("mode=chart")) {
+  throw new Error(`TradingView chart URL should point at localhost:4023/?mode=chart; got ${chartUrl}`);
+}
+
+const marketDataUrl = byId.get("trading-view-market-data-1")?.details?.url;
+if (typeof marketDataUrl !== "string" || !marketDataUrl.includes("localhost:4023") || !marketDataUrl.includes("mode=market-data")) {
+  throw new Error(`TradingView market data URL should point at localhost:4023/?mode=market-data; got ${marketDataUrl}`);
+}
+
+const pricerUrl = byId.get("pricer")?.details?.url;
+if (typeof pricerUrl !== "string" || !pricerUrl.endsWith(":4020/")) {
+  throw new Error(`Pricer URL should point at localhost:4020; got ${pricerUrl}`);
+}
+
+console.log(`[ok] FDC3 toolbox AppD apps=${apps.length}, tradingview=true, pricer=true`);
+NODE
+rm -f "${toolbox_appd_file}"
 
 echo "[check] Sail is directly reachable and not served from TraderX ingress"
 ingress_sail_probe_file="$(mktemp)"

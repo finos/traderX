@@ -29,7 +29,7 @@ Interop note for this state:
 
 - TraderX publishes canonical `fdc3.instrument.id.ticker` (bare symbol).
 - TraderX owns the App Directory records for core TraderX, Mini TraderX, and TraderX Intent Launcher.
-- Sail v3 beta bootstrap patching currently injects equivalent app records, ports the frameable TradingView/Pricer demos from FDC3-Sail `main`, restores FINOS conformance apps, and aligns generated packages to FDC3 `3.0.0-alpha.2`.
+- Sail v3 beta bootstrap patching currently injects equivalent TraderX app records, starts the canonical `@finos/fdc3-example-apps@3.0.0-alpha.2` toolbox runner for TradingView/Pricer apps, restores FINOS conformance apps, and aligns generated packages to FDC3 `3.0.0-alpha.2`.
 - Target Sail behavior is multiple App Directory sources, configured at startup for repeatable demos and editable through a Sail GUI during a session.
 
 ## 3) Run Interop Smoke Tests

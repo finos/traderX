@@ -59,7 +59,7 @@ Artifacts:
 - Sail sidecar compose: `sail/docker-compose.yml`
 - Sail bootstrap scripts: `sail/bootstrap/*.sh`
 - Sail pin manifest: `sail/bootstrap/sail-pin.env`
-- Sail v3 bootstrap patcher: `sail/bootstrap/apply-tradingview-overrides.sh`
+- Sail v3 bootstrap patcher: `sail/bootstrap/apply-sail-demo-compat.sh`
 - TraderX app directory overlay: `sail/appd/traderx.appd.v2.json`
 - Sail runtime cache root: `sail/runtime-cache/`
 
@@ -84,9 +84,9 @@ Run state smoke tests:
 Demo script:
 
 1. Open Sail at `http://localhost:8090/` and verify the Sail v3 workspace loads:
-2. Confirm the TraderX, TraderX Intent Launcher, TradingView, Pricer, and FINOS conformance app directory entries are available in the Sail app directory.
+2. Confirm the TraderX, TraderX Intent Launcher, FDC3 toolbox TradingView/Pricer, and FINOS conformance app directory entries are available in the Sail app directory.
 3. Launch TraderX from Sail and verify it connects with `@finos/fdc3@3.0.0-alpha.2` `getAgent()`.
-4. Launch Trading View Chart or Pricer from Sail and verify the app is framed in the Sail workspace.
+4. Launch Trading View Chart or Pricer from Sail and verify the toolbox app is framed in the Sail workspace.
 5. Change selected ticker in TraderX blotters and verify Sail-hosted apps update via `fdc3.instrument` context or intent routing.
 
 Known demo workarounds / technical debt:
@@ -104,16 +104,18 @@ services:
     working_dir: /workspace/runtime-cache
     restart: unless-stopped
     environment:
-      SAIL_REPO_URL: "${SAIL_REPO_URL:-https://github.com/finos/FDC3-Sail.git}"
-      SAIL_REPO_REF: "${SAIL_REPO_REF:-sail-v3-beta}"
+      SAIL_REPO_URL: "${SAIL_REPO_URL:-https://github.com/DovOps/FDC3-Sail.git}"
+      SAIL_REPO_REF: "${SAIL_REPO_REF:-codex/state014-demo-runtime}"
       SAIL_REPO_COMMIT: "${SAIL_REPO_COMMIT:-}"
       SAIL_TRADERX_URL: "${SAIL_TRADERX_URL:-http://localhost:8080}"
-      VITE_SAIL_APP_DIRECTORY_URLS: "${VITE_SAIL_APP_DIRECTORY_URLS:-http://localhost:8080/fdc3/appd/v2/apps}"
+      VITE_SAIL_APP_DIRECTORY_URLS: "${VITE_SAIL_APP_DIRECTORY_URLS:-http://localhost:8080/fdc3/appd/v2/apps,http://localhost:4005/static/generated/fdc3-example-apps.json}"
       SAIL_HTTP_PORT: "${SAIL_HTTP_PORT:-8090}"
       SAIL_INTENT_LAUNCHER_URL: "${SAIL_INTENT_LAUNCHER_URL:-http://localhost:4040}"
       SAIL_TRADINGVIEW_URL: "${SAIL_TRADINGVIEW_URL:-http://localhost:4023}"
       SAIL_PRICER_URL: "${SAIL_PRICER_URL:-http://localhost:4020}"
-      SAIL_EXAMPLE_PORT_RANGE_START: "${SAIL_EXAMPLE_PORT_RANGE_START:-4010}"
+      SAIL_EXAMPLE_APPD_URL: "${SAIL_EXAMPLE_APPD_URL:-http://localhost:4005/static/generated/fdc3-example-apps.json}"
+      SAIL_FDC3_EXAMPLE_APPS_VERSION: "${SAIL_FDC3_EXAMPLE_APPS_VERSION:-3.0.0-alpha.2}"
+      SAIL_EXAMPLE_PORT_RANGE_START: "${SAIL_EXAMPLE_PORT_RANGE_START:-4005}"
       SAIL_EXAMPLE_PORT_RANGE_END: "${SAIL_EXAMPLE_PORT_RANGE_END:-4065}"
     command: ["/bin/bash", "/workspace/bootstrap/run-sail.sh"]
     volumes:
@@ -122,7 +124,7 @@ services:
       - ./appd:/workspace/appd:ro
     ports:
       - "${SAIL_HTTP_PORT:-8090}:3000"
-      - "${SAIL_EXAMPLE_PORT_RANGE_START:-4010}-${SAIL_EXAMPLE_PORT_RANGE_END:-4065}:4010-4065"
+      - "${SAIL_EXAMPLE_PORT_RANGE_START:-4005}-${SAIL_EXAMPLE_PORT_RANGE_END:-4065}:4005-4065"
 EOF
 
 cat > "${SAIL_BOOTSTRAP_DIR}/run-sail.sh" <<'EOF'
@@ -135,13 +137,15 @@ if [[ -f "${SAIL_PIN_FILE}" ]]; then
   source "${SAIL_PIN_FILE}"
 fi
 
-SAIL_REPO_URL="${SAIL_REPO_URL:-${SAIL_PIN_REPO_URL:-https://github.com/finos/FDC3-Sail.git}}"
+SAIL_REPO_URL="${SAIL_REPO_URL:-${SAIL_PIN_REPO_URL:-https://github.com/DovOps/FDC3-Sail.git}}"
 SAIL_REPO_REF="${SAIL_REPO_REF:-${SAIL_PIN_REPO_REF:-${SAIL_PINNED_REF:-${SAIL_PIN_TRACKING_REF:-main}}}}"
 SAIL_REPO_REF="${SAIL_REPO_REF#origin/}"
 SAIL_REPO_COMMIT="${SAIL_REPO_COMMIT:-${SAIL_PIN_REPO_COMMIT:-${SAIL_PINNED_REF:-}}}"
 SAIL_REPO_DIR="${SAIL_REPO_DIR:-/workspace/runtime-cache/FDC3-Sail}"
 SAIL_TRADERX_URL="${SAIL_TRADERX_URL:-http://localhost:8080}"
-export VITE_SAIL_APP_DIRECTORY_URLS="${VITE_SAIL_APP_DIRECTORY_URLS:-${SAIL_TRADERX_URL%/}/fdc3/appd/v2/apps}"
+SAIL_EXAMPLE_APPD_URL="${SAIL_EXAMPLE_APPD_URL:-http://localhost:4005/static/generated/fdc3-example-apps.json}"
+SAIL_FDC3_EXAMPLE_APPS_VERSION="${SAIL_FDC3_EXAMPLE_APPS_VERSION:-3.0.0-alpha.2}"
+export VITE_SAIL_APP_DIRECTORY_URLS="${VITE_SAIL_APP_DIRECTORY_URLS:-${SAIL_TRADERX_URL%/}/fdc3/appd/v2/apps,${SAIL_EXAMPLE_APPD_URL}}"
 SAIL_TRADERX_APPD="/workspace/appd/traderx.appd.v2.json"
 
 mkdir -p "$(dirname "${SAIL_REPO_DIR}")"
@@ -169,29 +173,23 @@ fi
 
 cd "${SAIL_REPO_DIR}"
 
-if [[ -x /workspace/bootstrap/apply-tradingview-overrides.sh ]]; then
+if [[ -x /workspace/bootstrap/apply-sail-demo-compat.sh ]]; then
   echo "[info] applying state-014 Sail overrides"
-  /workspace/bootstrap/apply-tradingview-overrides.sh "${SAIL_REPO_DIR}"
+  /workspace/bootstrap/apply-sail-demo-compat.sh "${SAIL_REPO_DIR}"
 fi
 
 echo "[info] installing Sail dependencies"
 rm -rf node_modules
 npm install --no-audit --no-fund
 npm --prefix "${SAIL_REPO_DIR}/packages/traderx-sail-intent-launcher" install --no-audit --no-fund
-npm --prefix "${SAIL_REPO_DIR}/packages/traderx-sail-tradingview" install --no-audit --no-fund
-npm --prefix "${SAIL_REPO_DIR}/packages/traderx-sail-pricer" install --no-audit --no-fund
 
 echo "[start] launching TraderX intent launcher"
 npm --prefix "${SAIL_REPO_DIR}/packages/traderx-sail-intent-launcher" run dev -- --host 0.0.0.0 &
 LAUNCHER_PID=$!
 
-echo "[start] launching TradingView widget examples"
-npm --prefix "${SAIL_REPO_DIR}/packages/traderx-sail-tradingview" run dev -- --host 0.0.0.0 &
-TRADINGVIEW_PID=$!
-
-echo "[start] launching Pricer example"
-npm --prefix "${SAIL_REPO_DIR}/packages/traderx-sail-pricer" run dev -- --host 0.0.0.0 &
-PRICER_PID=$!
+echo "[start] launching FDC3 toolbox example apps"
+npx --yes "@finos/fdc3-example-apps@${SAIL_FDC3_EXAMPLE_APPS_VERSION}" &
+EXAMPLE_APPS_PID=$!
 
 echo "[start] launching Sail v3 browser desktop agent"
 npm run dev &
@@ -199,14 +197,13 @@ WEB_PID=$!
 
 cleanup() {
   kill "${LAUNCHER_PID}" >/dev/null 2>&1 || true
-  kill "${TRADINGVIEW_PID}" >/dev/null 2>&1 || true
-  kill "${PRICER_PID}" >/dev/null 2>&1 || true
+  kill "${EXAMPLE_APPS_PID}" >/dev/null 2>&1 || true
   kill "${WEB_PID}" >/dev/null 2>&1 || true
 }
 trap cleanup EXIT INT TERM
 
 set +e
-wait -n "${LAUNCHER_PID}" "${TRADINGVIEW_PID}" "${PRICER_PID}" "${WEB_PID}"
+wait -n "${LAUNCHER_PID}" "${EXAMPLE_APPS_PID}" "${WEB_PID}"
 status="$?"
 set -e
 
@@ -216,7 +213,7 @@ fi
 exit "${status}"
 EOF
 
-cat > "${SAIL_BOOTSTRAP_DIR}/apply-tradingview-overrides.sh" <<'EOF'
+cat > "${SAIL_BOOTSTRAP_DIR}/apply-sail-demo-compat.sh" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -226,8 +223,6 @@ TARGET_TRADERX_APPD="${SAIL_REPO_DIR}/packages/sail-web/fixtures/traderx-appd.js
 SAIL_WEB_MAIN="${SAIL_REPO_DIR}/packages/sail-web/src/main.tsx"
 SAIL_WEB_VITE_CONFIG="${SAIL_REPO_DIR}/packages/sail-web/vite.config.ts"
 SAIL_INTENT_LAUNCHER_DIR="${SAIL_REPO_DIR}/packages/traderx-sail-intent-launcher"
-SAIL_TRADINGVIEW_DIR="${SAIL_REPO_DIR}/packages/traderx-sail-tradingview"
-SAIL_PRICER_DIR="${SAIL_REPO_DIR}/packages/traderx-sail-pricer"
 SAIL_INTENT_LAUNCHER_URL="${SAIL_INTENT_LAUNCHER_URL:-http://localhost:4040}"
 
 mkdir -p "${SAIL_INTENT_LAUNCHER_DIR}/src" "${SAIL_INTENT_LAUNCHER_DIR}/public"
@@ -508,806 +503,6 @@ cat > "${SAIL_INTENT_LAUNCHER_DIR}/public/icon.svg" <<'SVG'
 </svg>
 SVG
 
-mkdir -p "${SAIL_TRADINGVIEW_DIR}/src/modes" "${SAIL_TRADINGVIEW_DIR}/public"
-cat > "${SAIL_TRADINGVIEW_DIR}/package.json" <<'JSON'
-{
-  "name": "@traderx/sail-tradingview",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "dev": "vite --port 4023",
-    "build": "vite build"
-  },
-  "dependencies": {
-    "@finos/fdc3": "3.0.0-alpha.2",
-    "@vitejs/plugin-react": "^5.1.3",
-    "vite": "^7.3.0",
-    "typescript": "^5.9.3",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3"
-  },
-  "devDependencies": {
-    "@types/react": "^19.2.7",
-    "@types/react-dom": "^19.2.3"
-  }
-}
-JSON
-cat > "${SAIL_TRADINGVIEW_DIR}/index.html" <<'HTML'
-<!doctype html>
-<html lang="en">
-  <head>
-    <title>FDC3 TradingView Widget</title>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script type="module" src="/src/index.tsx"></script>
-  </head>
-  <body>
-    <div id="app">Loading TradingView widget...</div>
-  </body>
-</html>
-HTML
-cat > "${SAIL_TRADINGVIEW_DIR}/src/common.ts" <<'TS'
-export type TradingViewIntent = {
-  name: string
-  update: (context: unknown, state: unknown) => unknown
-}
-
-export type TradingViewListener = {
-  name: string
-  update: (context: unknown, state: unknown) => unknown
-}
-
-export type TradingViewMode = {
-  name: string
-  script: string
-  innerHTML: (state: unknown) => string
-  initialState: unknown
-  intents: TradingViewIntent[]
-  listeners: TradingViewListener[]
-}
-
-const tickerExchangeMap: Record<string, string> = {
-  AAPL: "NASDAQ:AAPL",
-  AMZN: "NASDAQ:AMZN",
-  BAC: "NYSE:BAC",
-  C: "NYSE:C",
-  COF: "NYSE:COF",
-  DB: "NYSE:DB",
-  DFS: "NYSE:DFS",
-  FIS: "NYSE:FIS",
-  FNF: "NYSE:FNF",
-  FNMA: "OTC:FNMA",
-  GOOGL: "NASDAQ:GOOGL",
-  GS: "NYSE:GS",
-  IBM: "NYSE:IBM",
-  JPM: "NYSE:JPM",
-  META: "NASDAQ:META",
-  MS: "NYSE:MS",
-  MSFT: "NASDAQ:MSFT",
-  NVDA: "NASDAQ:NVDA",
-  TSLA: "NASDAQ:TSLA",
-  UBS: "NYSE:UBS",
-}
-
-export const extractTicker = (context: unknown) => {
-  const candidate = context as { type?: unknown; id?: { ticker?: unknown } } | null | undefined
-  if (candidate?.type !== "fdc3.instrument" || typeof candidate.id?.ticker !== "string") {
-    return null
-  }
-  const normalized = candidate.id.ticker.trim().toUpperCase()
-  return normalized.length > 0 ? normalized : null
-}
-
-export const toTradingViewSymbol = (ticker: string) =>
-  tickerExchangeMap[ticker.toUpperCase()] ?? ticker.toUpperCase()
-
-export const singleSymbolFromContext = (context: unknown, fallback: unknown) => {
-  const ticker = extractTicker(context)
-  return ticker ? toTradingViewSymbol(ticker) : fallback
-}
-
-export const appendSymbolFromContext = (
-  context: unknown,
-  state: unknown,
-  makeEntry: (symbol: string, ticker: string) => unknown,
-) => {
-  const ticker = extractTicker(context)
-  if (!ticker) return state
-  const symbol = toTradingViewSymbol(ticker)
-  const list = Array.isArray(state) ? state : []
-  return [...list.filter(item => JSON.stringify(item) !== JSON.stringify(makeEntry(symbol, ticker))), makeEntry(symbol, ticker)]
-}
-TS
-cat > "${SAIL_TRADINGVIEW_DIR}/src/modes/chart.ts" <<'TS'
-import { singleSymbolFromContext, type TradingViewMode } from "../common"
-
-export const chartMode: TradingViewMode = {
-  name: "chart",
-  script: "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js",
-  innerHTML: state => `{
-    "autosize": true,
-    "symbol": ${JSON.stringify(state)},
-    "interval": "D",
-    "timezone": "Etc/UTC",
-    "theme": "light",
-    "style": "1",
-    "locale": "en",
-    "allow_symbol_change": false,
-    "calendar": false,
-    "support_host": "https://www.tradingview.com"
-  }`,
-  initialState: "NASDAQ:TSLA",
-  intents: [
-    { name: "ViewChart", update: context => singleSymbolFromContext(context, "NASDAQ:TSLA") },
-  ],
-  listeners: [
-    { name: "fdc3.instrument", update: context => singleSymbolFromContext(context, "NASDAQ:TSLA") },
-  ],
-}
-TS
-cat > "${SAIL_TRADINGVIEW_DIR}/src/modes/fundamentals.ts" <<'TS'
-import { singleSymbolFromContext, type TradingViewMode } from "../common"
-
-export const fundamentalsMode: TradingViewMode = {
-  name: "fundamentals",
-  script: "https://s3.tradingview.com/external-embedding/embed-widget-financials.js",
-  innerHTML: state => `{
-    "isTransparent": false,
-    "largeChartUrl": "",
-    "displayMode": "regular",
-    "width": "100%",
-    "height": "100%",
-    "colorTheme": "light",
-    "symbol": ${JSON.stringify(state)},
-    "locale": "en"
-  }`,
-  initialState: "NASDAQ:TSLA",
-  intents: [
-    { name: "ViewInstrument", update: context => singleSymbolFromContext(context, "NASDAQ:TSLA") },
-    { name: "ViewChart", update: context => singleSymbolFromContext(context, "NASDAQ:TSLA") },
-  ],
-  listeners: [
-    { name: "fdc3.instrument", update: context => singleSymbolFromContext(context, "NASDAQ:TSLA") },
-  ],
-}
-TS
-cat > "${SAIL_TRADINGVIEW_DIR}/src/modes/market-data.ts" <<'TS'
-import { appendSymbolFromContext, type TradingViewMode } from "../common"
-
-export const marketDataMode: TradingViewMode = {
-  name: "market-data",
-  script: "https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js",
-  innerHTML: state => `{
-    "symbolsGroups": [{
-      "name": "Instruments",
-      "originalName": "Instruments",
-      "symbols": ${JSON.stringify(state)}
-    }],
-    "width": "100%",
-    "height": "100%",
-    "showSymbolLogo": true,
-    "isTransparent": false,
-    "colorTheme": "light",
-    "locale": "en"
-  }`,
-  initialState: [
-    { name: "NASDAQ:AAPL", displayName: "Apple" },
-    { name: "NASDAQ:MSFT", displayName: "Microsoft" },
-    { name: "NYSE:JPM", displayName: "JPMorgan" },
-  ],
-  intents: [
-    { name: "ViewInstrument", update: (context, state) => appendSymbolFromContext(context, state, (symbol, ticker) => ({ name: symbol, displayName: ticker })) },
-    { name: "ViewChart", update: (context, state) => appendSymbolFromContext(context, state, (symbol, ticker) => ({ name: symbol, displayName: ticker })) },
-    { name: "ViewQuote", update: (context, state) => appendSymbolFromContext(context, state, (symbol, ticker) => ({ name: symbol, displayName: ticker })) },
-  ],
-  listeners: [
-    { name: "fdc3.instrument", update: (context, state) => appendSymbolFromContext(context, state, (symbol, ticker) => ({ name: symbol, displayName: ticker })) },
-  ],
-}
-TS
-cat > "${SAIL_TRADINGVIEW_DIR}/src/modes/symbol-info.ts" <<'TS'
-import { singleSymbolFromContext, type TradingViewMode } from "../common"
-
-export const symbolInfoMode: TradingViewMode = {
-  name: "symbol-info",
-  script: "https://s3.tradingview.com/external-embedding/embed-widget-symbol-info.js",
-  innerHTML: state => `{
-    "autosize": true,
-    "symbol": ${JSON.stringify(state)},
-    "locale": "en",
-    "colorTheme": "light",
-    "isTransparent": false
-  }`,
-  initialState: "NASDAQ:TSLA",
-  intents: [
-    { name: "ViewInstrument", update: context => singleSymbolFromContext(context, "NASDAQ:TSLA") },
-    { name: "ViewChart", update: context => singleSymbolFromContext(context, "NASDAQ:TSLA") },
-  ],
-  listeners: [
-    { name: "fdc3.instrument", update: context => singleSymbolFromContext(context, "NASDAQ:TSLA") },
-  ],
-}
-TS
-cat > "${SAIL_TRADINGVIEW_DIR}/src/modes/tickers.ts" <<'TS'
-import { appendSymbolFromContext, type TradingViewMode } from "../common"
-
-export const tickersMode: TradingViewMode = {
-  name: "tickers",
-  script: "https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js",
-  innerHTML: state => `{
-    "symbols": ${JSON.stringify(state)},
-    "showSymbolLogo": true,
-    "isTransparent": false,
-    "displayMode": "adaptive",
-    "colorTheme": "light",
-    "locale": "en"
-  }`,
-  initialState: [
-    { proName: "NASDAQ:AAPL", title: "Apple" },
-    { proName: "NASDAQ:MSFT", title: "Microsoft" },
-    { proName: "NYSE:BAC", title: "Bank of America" },
-  ],
-  intents: [
-    { name: "ViewInstrument", update: (context, state) => appendSymbolFromContext(context, state, (symbol, ticker) => ({ proName: symbol, title: ticker })) },
-    { name: "ViewChart", update: (context, state) => appendSymbolFromContext(context, state, (symbol, ticker) => ({ proName: symbol, title: ticker })) },
-    { name: "ViewQuote", update: (context, state) => appendSymbolFromContext(context, state, (symbol, ticker) => ({ proName: symbol, title: ticker })) },
-  ],
-  listeners: [
-    { name: "fdc3.instrument", update: (context, state) => appendSymbolFromContext(context, state, (symbol, ticker) => ({ proName: symbol, title: ticker })) },
-  ],
-}
-TS
-cat > "${SAIL_TRADINGVIEW_DIR}/src/TradingViewWidget.tsx" <<'TSX'
-import React, { memo, useEffect, useMemo, useRef, useState } from "react"
-import { getAgent, type DesktopAgent } from "@finos/fdc3"
-import { extractTicker, type TradingViewMode } from "./common"
-import { chartMode } from "./modes/chart"
-import { fundamentalsMode } from "./modes/fundamentals"
-import { marketDataMode } from "./modes/market-data"
-import { symbolInfoMode } from "./modes/symbol-info"
-import { tickersMode } from "./modes/tickers"
-
-type ListenerLike = {
-  unsubscribe?: () => void
-}
-
-type UserChannelLike = {
-  id?: string
-  getCurrentContext?: (contextType?: string) => Promise<unknown> | unknown
-}
-
-const modes: TradingViewMode[] = [
-  chartMode,
-  symbolInfoMode,
-  fundamentalsMode,
-  tickersMode,
-  marketDataMode,
-]
-
-const ensureUserChannel = async (agent: DesktopAgent): Promise<UserChannelLike | null> => {
-  const channelAgent = agent as DesktopAgent & {
-    getCurrentChannel?: () => Promise<UserChannelLike | null> | UserChannelLike | null
-    getUserChannels?: () => Promise<UserChannelLike[]> | UserChannelLike[]
-    joinUserChannel?: (channelId: string) => Promise<void> | void
-  }
-  if (!channelAgent.getCurrentChannel || !channelAgent.getUserChannels || !channelAgent.joinUserChannel) {
-    return null
-  }
-  const current = await Promise.resolve(channelAgent.getCurrentChannel())
-  if (current?.id) return current
-  const channels = await Promise.resolve(channelAgent.getUserChannels())
-  const defaultChannel = Array.isArray(channels) ? channels[0] : undefined
-  if (!defaultChannel?.id) return null
-  await Promise.resolve(channelAgent.joinUserChannel(defaultChannel.id))
-  return (await Promise.resolve(channelAgent.getCurrentChannel())) ?? defaultChannel
-}
-
-const applyUpdate = (mode: TradingViewMode, update: (context: unknown, state: unknown) => unknown) =>
-  (context: unknown) => {
-    window.dispatchEvent(
-      new CustomEvent("traderx-tradingview-state", {
-        detail: { mode: mode.name, update, context },
-      }),
-    )
-  }
-
-function TradingViewWidget({ mode }: { mode: string }) {
-  const containerRef = useRef<HTMLDivElement | null>(null)
-  const listenersRef = useRef<ListenerLike[]>([])
-  const modeProps = useMemo(() => modes.find(candidate => candidate.name === mode) ?? chartMode, [mode])
-  const [state, setState] = useState(modeProps.initialState)
-  const [status, setStatus] = useState("Connecting to Sail...")
-
-  useEffect(() => {
-    setState(modeProps.initialState)
-  }, [modeProps])
-
-  useEffect(() => {
-    const handler = (event: Event) => {
-      const custom = event as CustomEvent<{
-        mode: string
-        update: (context: unknown, state: unknown) => unknown
-        context: unknown
-      }>
-      if (custom.detail?.mode !== modeProps.name) return
-      setState(previous => custom.detail.update(custom.detail.context, previous))
-    }
-    window.addEventListener("traderx-tradingview-state", handler)
-    return () => window.removeEventListener("traderx-tradingview-state", handler)
-  }, [modeProps.name])
-
-  useEffect(() => {
-    let mounted = true
-    const connect = async () => {
-      try {
-        const agent = await getAgent()
-        if (!mounted) return
-        const currentChannel = await ensureUserChannel(agent)
-        setStatus(`Connected to Sail${currentChannel?.id ? ` (${currentChannel.id})` : ""}`)
-
-        const currentContext =
-          (await currentChannel?.getCurrentContext?.("fdc3.instrument")) ??
-          (await agent.getCurrentContext?.("fdc3.instrument"))
-        if (currentContext) {
-          modeProps.listeners.forEach(listener =>
-            setState(previous => listener.update(currentContext, previous)),
-          )
-        }
-
-        for (const intent of modeProps.intents) {
-          const listener = await ((agent as DesktopAgent).addIntentListenerWithContext?.(
-            intent.name,
-            "fdc3.instrument",
-            context => {
-              const ticker = extractTicker(context)
-              setStatus(`${intent.name} handled${ticker ? ` (${ticker})` : ""}`)
-              applyUpdate(modeProps, intent.update)(context)
-            },
-          ) ?? agent.addIntentListener(intent.name, context => {
-            const ticker = extractTicker(context)
-            setStatus(`${intent.name} handled${ticker ? ` (${ticker})` : ""}`)
-            applyUpdate(modeProps, intent.update)(context)
-          }))
-          listenersRef.current.push(listener)
-        }
-
-        for (const listenerDefinition of modeProps.listeners) {
-          const listener = await agent.addContextListener(listenerDefinition.name, context => {
-            const ticker = extractTicker(context)
-            setStatus(`Received ${listenerDefinition.name}${ticker ? ` (${ticker})` : ""}`)
-            applyUpdate(modeProps, listenerDefinition.update)(context)
-          })
-          listenersRef.current.push(listener)
-        }
-
-        const channelListener = await agent.addEventListener?.("userChannelChanged", async () => {
-          const channel = await ensureUserChannel(agent)
-          const channelContext = await channel?.getCurrentContext?.("fdc3.instrument")
-          if (channelContext) {
-            modeProps.listeners.forEach(listener =>
-              setState(previous => listener.update(channelContext, previous)),
-            )
-          }
-        })
-        if (channelListener) listenersRef.current.push(channelListener)
-      } catch (error) {
-        console.error("[traderx-sail-tradingview] failed to connect", error)
-        setStatus(error instanceof Error ? error.message : "Failed to connect to Sail")
-      }
-    }
-
-    void connect()
-    return () => {
-      mounted = false
-      listenersRef.current.forEach(listener => listener.unsubscribe?.())
-      listenersRef.current = []
-    }
-  }, [modeProps])
-
-  useEffect(() => {
-    const container = containerRef.current
-    if (!container) return
-    const oldScript = document.getElementById("tradingview-widget-script")
-    oldScript?.parentElement?.removeChild(oldScript)
-    const widget = container.querySelector(".tradingview-widget-container__widget")
-    if (widget) widget.innerHTML = ""
-
-    const script = document.createElement("script")
-    script.id = "tradingview-widget-script"
-    script.src = modeProps.script
-    script.type = "text/javascript"
-    script.async = true
-    script.text = modeProps.innerHTML(state)
-    container.appendChild(script)
-  }, [modeProps, state])
-
-  return (
-    <main className="traderx-tradingview-shell">
-      <div className="traderx-tradingview-status">{modeProps.name} | {status}</div>
-      <div className="tradingview-widget-container" ref={containerRef}>
-        <div className="tradingview-widget-container__widget" />
-        <div className="tradingview-widget-copyright">
-          <a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank">
-            <span className="blue-text">Track all markets on TradingView</span>
-          </a>
-        </div>
-      </div>
-    </main>
-  )
-}
-
-export default memo(TradingViewWidget)
-TSX
-cat > "${SAIL_TRADINGVIEW_DIR}/src/index.tsx" <<'TSX'
-import React from "react"
-import { createRoot } from "react-dom/client"
-import TradingViewWidget from "./TradingViewWidget"
-import "./styles.css"
-
-const mode = new URLSearchParams(window.location.search).get("mode") ?? "chart"
-const container = document.getElementById("app")
-if (!container) {
-  throw new Error("Missing #app container")
-}
-createRoot(container).render(<TradingViewWidget mode={mode} />)
-TSX
-cat > "${SAIL_TRADINGVIEW_DIR}/src/styles.css" <<'CSS'
-html,
-body,
-#app {
-  height: 100%;
-  margin: 0;
-}
-
-.traderx-tradingview-shell {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: #ffffff;
-  color: #131722;
-  font-family: Arial, sans-serif;
-}
-
-.traderx-tradingview-status {
-  padding: 6px 10px;
-  border-bottom: 1px solid #e0e3eb;
-  color: #5d667b;
-  font-size: 12px;
-  line-height: 16px;
-}
-
-.tradingview-widget-container {
-  flex: 1;
-  min-height: 0;
-  width: 100%;
-}
-
-.tradingview-widget-container__widget {
-  height: calc(100% - 32px);
-  width: 100%;
-}
-
-.tradingview-widget-copyright {
-  height: 32px;
-  display: flex;
-  align-items: center;
-  padding: 0 10px;
-  font-size: 12px;
-}
-
-.tradingview-widget-copyright a {
-  color: #2962ff;
-  text-decoration: none;
-}
-CSS
-cat > "${SAIL_TRADINGVIEW_DIR}/public/icon.svg" <<'SVG'
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
-  <rect width="96" height="96" rx="18" fill="#2962ff"/>
-  <path d="M20 60c10-22 22-30 35-18 8 7 13 7 21-2" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
-  <circle cx="31" cy="35" r="10" fill="#fff"/>
-</svg>
-SVG
-
-mkdir -p "${SAIL_PRICER_DIR}/src" "${SAIL_PRICER_DIR}/public"
-cat > "${SAIL_PRICER_DIR}/package.json" <<'JSON'
-{
-  "name": "@traderx/sail-pricer",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "dev": "vite --port 4020",
-    "build": "vite build"
-  },
-  "dependencies": {
-    "@finos/fdc3": "3.0.0-alpha.2",
-    "vite": "^7.3.0",
-    "typescript": "^5.9.3"
-  }
-}
-JSON
-cat > "${SAIL_PRICER_DIR}/index.html" <<'HTML'
-<!doctype html>
-<html lang="en">
-  <head>
-    <title>Pricer</title>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script type="module" src="/src/main.ts"></script>
-  </head>
-  <body>
-    <main class="shell">
-      <header>
-        <h1>Pricer</h1>
-        <select id="chooser" aria-label="Ticker"></select>
-      </header>
-      <section id="price" class="price-box d2"></section>
-      <p id="status" class="status">Connecting to Sail...</p>
-    </main>
-  </body>
-</html>
-HTML
-cat > "${SAIL_PRICER_DIR}/src/main.ts" <<'TS'
-import { getAgent, type DesktopAgent } from "@finos/fdc3"
-import "./styles.css"
-
-enum Direction {
-  UP,
-  DOWN,
-  NONE,
-}
-
-type Price = {
-  ticker: string
-  price: number
-  direction: Direction
-}
-
-const calculateInitialPrice = (ticker: string) =>
-  (ticker.split("").map(char => char.charCodeAt(0)).reduce((a, b) => a + b * 7, 0) % 5000) / 100
-
-const extractTicker = (context: unknown) => {
-  const candidate = context as { type?: unknown; id?: { ticker?: unknown } } | null | undefined
-  if (candidate?.type !== "fdc3.instrument" || typeof candidate.id?.ticker !== "string") return null
-  const normalized = candidate.id.ticker.trim().toUpperCase()
-  return normalized.length > 0 ? normalized : null
-}
-
-type UserChannelLike = {
-  id?: string
-  getCurrentContext?: (contextType?: string) => Promise<unknown> | unknown
-}
-
-const ensureUserChannel = async (agent: DesktopAgent): Promise<UserChannelLike | null> => {
-  const channelAgent = agent as DesktopAgent & {
-    getCurrentChannel?: () => Promise<UserChannelLike | null> | UserChannelLike | null
-    getUserChannels?: () => Promise<UserChannelLike[]> | UserChannelLike[]
-    joinUserChannel?: (channelId: string) => Promise<void> | void
-  }
-  if (!channelAgent.getCurrentChannel || !channelAgent.getUserChannels || !channelAgent.joinUserChannel) {
-    return null
-  }
-  const current = await Promise.resolve(channelAgent.getCurrentChannel())
-  if (current?.id) return current
-  const channels = await Promise.resolve(channelAgent.getUserChannels())
-  const defaultChannel = Array.isArray(channels) ? channels[0] : undefined
-  if (!defaultChannel?.id) return null
-  await Promise.resolve(channelAgent.joinUserChannel(defaultChannel.id))
-  return (await Promise.resolve(channelAgent.getCurrentChannel())) ?? defaultChannel
-}
-
-const prices: Price[] = ["TSLA", "MSFT", "AAPL", "IBM", "BAC", "JPM"].map(ticker => ({
-  ticker,
-  price: calculateInitialPrice(ticker),
-  direction: Direction.NONE,
-}))
-
-let onScreenPrice = prices[0]
-
-const status = document.getElementById("status")!
-const chooser = document.getElementById("chooser") as HTMLSelectElement
-const box = document.getElementById("price")!
-
-function getPrice(ticker: string) {
-  let price = prices.find(candidate => candidate.ticker === ticker)
-  if (!price) {
-    price = { ticker, price: calculateInitialPrice(ticker), direction: Direction.NONE }
-    prices.push(price)
-  }
-  return price
-}
-
-function redrawChooser() {
-  chooser.replaceChildren()
-  prices.forEach(price => {
-    const option = document.createElement("option")
-    option.selected = price === onScreenPrice
-    option.textContent = price.ticker
-    option.value = price.ticker
-    chooser.appendChild(option)
-  })
-}
-
-function redrawPrice() {
-  box.replaceChildren()
-  box.className = `price-box d${onScreenPrice.direction}`
-  const ticker = document.createElement("div")
-  ticker.className = "ticker"
-  ticker.textContent = onScreenPrice.ticker
-  const price = document.createElement("div")
-  price.className = "price"
-  price.textContent = onScreenPrice.price.toFixed(2)
-  box.append(ticker, price)
-}
-
-function changePrice(ticker: string) {
-  onScreenPrice = getPrice(ticker)
-  redrawChooser()
-  redrawPrice()
-}
-
-function recalculate() {
-  prices.forEach(price => {
-    const old = price.price
-    const change = 0.01 * (0.5 - Math.random())
-    price.price += change
-    price.direction =
-      price.price.toFixed(2) === old.toFixed(2)
-        ? Direction.NONE
-        : change > 0
-          ? Direction.UP
-          : Direction.DOWN
-  })
-}
-
-chooser.addEventListener("change", () => {
-  changePrice(chooser.value)
-})
-
-setInterval(() => {
-  recalculate()
-  redrawPrice()
-  redrawChooser()
-}, 2000)
-
-redrawChooser()
-redrawPrice()
-
-getAgent()
-  .then(async agent => {
-    const currentChannel = await ensureUserChannel(agent)
-    status.textContent = `Connected to Sail${currentChannel?.id ? ` (${currentChannel.id})` : ""}`
-    const currentContext =
-      (await currentChannel?.getCurrentContext?.("fdc3.instrument")) ??
-      (await agent.getCurrentContext?.("fdc3.instrument"))
-    const currentTicker = extractTicker(currentContext)
-    if (currentTicker) {
-      changePrice(currentTicker)
-      status.textContent = `Synced context for ${currentTicker}`
-    }
-    const contextListener = await agent.addContextListener("fdc3.instrument", context => {
-      const ticker = extractTicker(context)
-      if (ticker) {
-        changePrice(ticker)
-        status.textContent = `Received context for ${ticker}`
-      }
-    })
-    const quoteListener = await (agent.addIntentListenerWithContext?.(
-      "ViewQuote",
-      "fdc3.instrument",
-      context => {
-        const ticker = extractTicker(context)
-        if (ticker) {
-          changePrice(ticker)
-          status.textContent = `ViewQuote handled for ${ticker}`
-        }
-      },
-    ) ?? agent.addIntentListener("ViewQuote", context => {
-      const ticker = extractTicker(context)
-      if (ticker) {
-        changePrice(ticker)
-        status.textContent = `ViewQuote handled for ${ticker}`
-      }
-    }))
-    const channelListener = await agent.addEventListener?.("userChannelChanged", async () => {
-      const channel = await ensureUserChannel(agent)
-      const channelContext = await channel?.getCurrentContext?.("fdc3.instrument")
-      const ticker = extractTicker(channelContext)
-      if (ticker) {
-        changePrice(ticker)
-        status.textContent = `Synced context for ${ticker}`
-      }
-    })
-    window.addEventListener("beforeunload", () => {
-      contextListener.unsubscribe?.()
-      quoteListener.unsubscribe?.()
-      channelListener?.unsubscribe?.()
-    })
-  })
-  .catch(error => {
-    console.error("[traderx-sail-pricer] failed to connect", error)
-    status.textContent = error instanceof Error ? error.message : "Failed to connect to Sail"
-  })
-TS
-cat > "${SAIL_PRICER_DIR}/src/styles.css" <<'CSS'
-html,
-body {
-  margin: 0;
-  min-height: 100%;
-  background: #f8fafc;
-  font-family: Arial, sans-serif;
-}
-
-.shell {
-  min-height: 100vh;
-  box-sizing: border-box;
-  padding: 18px;
-  color: #111827;
-}
-
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 18px;
-}
-
-h1 {
-  margin: 0;
-  font-size: 22px;
-}
-
-select {
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  padding: 8px 10px;
-  background: #fff;
-}
-
-.price-box {
-  border-radius: 8px;
-  padding: 28px 18px;
-  color: #fff;
-  text-align: center;
-}
-
-.d0 {
-  background: #15803d;
-}
-
-.d1 {
-  background: #b91c1c;
-}
-
-.d2 {
-  background: #334155;
-}
-
-.ticker {
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.price {
-  margin-top: 8px;
-  font-size: 46px;
-  font-weight: 800;
-}
-
-.status {
-  color: #475569;
-  font-size: 13px;
-}
-CSS
-cat > "${SAIL_PRICER_DIR}/public/icon.svg" <<'SVG'
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
-  <rect width="96" height="96" rx="18" fill="#0f172a"/>
-  <text x="48" y="58" text-anchor="middle" font-family="Arial" font-size="34" font-weight="800" fill="#67e8f9">$</text>
-</svg>
-SVG
-
 node - "${SAIL_REPO_DIR}" <<'NODE'
 const fs = require('node:fs');
 const path = require('node:path');
@@ -1319,12 +514,6 @@ rootPackage.workspaces = Array.isArray(rootPackage.workspaces) ? rootPackage.wor
 if (!rootPackage.workspaces.includes('packages/traderx-sail-intent-launcher')) {
   rootPackage.workspaces.push('packages/traderx-sail-intent-launcher');
 }
-if (!rootPackage.workspaces.includes('packages/traderx-sail-tradingview')) {
-  rootPackage.workspaces.push('packages/traderx-sail-tradingview');
-}
-if (!rootPackage.workspaces.includes('packages/traderx-sail-pricer')) {
-  rootPackage.workspaces.push('packages/traderx-sail-pricer');
-}
 fs.writeFileSync(rootPackageFile, `${JSON.stringify(rootPackage, null, 2)}\n`, 'utf8');
 
 const packageFiles = [
@@ -1334,9 +523,7 @@ const packageFiles = [
   'packages/sail-desktop-agent/package.json',
   'packages/sail-platform-api/package.json',
   'packages/sail-conformance-harness/package.json',
-  'packages/traderx-sail-intent-launcher/package.json',
-  'packages/traderx-sail-tradingview/package.json',
-  'packages/traderx-sail-pricer/package.json'
+  'packages/traderx-sail-intent-launcher/package.json'
 ].map((file) => path.join(root, file)).filter((file) => fs.existsSync(file));
 
 for (const packageFile of packageFiles) {
@@ -1368,8 +555,6 @@ const appdPath = process.argv[2];
 const repoDir = process.argv[3];
 const traderxUrl = process.env.SAIL_TRADERX_URL || 'http://localhost:8080';
 const launcherUrl = process.env.SAIL_INTENT_LAUNCHER_URL || 'http://localhost:4040';
-const tradingViewUrl = process.env.SAIL_TRADINGVIEW_URL || 'http://localhost:4023';
-const pricerUrl = process.env.SAIL_PRICER_URL || 'http://localhost:4020';
 const traderxTradeUrl = `${traderxUrl.replace(/\/+$/, '')}/trade`;
 const traderxMiniUrl = `${traderxUrl.replace(/\/+$/, '')}/mini-traderx`;
 const doc = JSON.parse(fs.readFileSync(appdPath, 'utf8'));
@@ -1452,175 +637,6 @@ appsById.set('traderx-intent-launcher', {
     },
   },
 });
-const tradingViewApps = [
-  {
-    appId: 'trading-view-symbol-info-1',
-    name: 'Trading View Symbol Info',
-    title: 'Trading View Symbol Info',
-    description: 'Frameable TradingView symbol info widget ported from FDC3-Sail main.',
-    mode: 'symbol-info',
-    screenshot: 'symbol-info',
-    listensFor: {
-      ViewInstrument: {
-        contexts: ['fdc3.instrument'],
-        displayName: 'View Instrument',
-      },
-      ViewChart: {
-        contexts: ['fdc3.instrument'],
-        displayName: 'View Chart',
-      },
-    },
-  },
-  {
-    appId: 'trading-view-chart-1',
-    name: 'Trading View Chart',
-    title: 'Trading View Chart',
-    description: 'Frameable TradingView advanced chart widget ported from FDC3-Sail main.',
-    mode: 'chart',
-    screenshot: 'chart',
-    listensFor: {
-      ViewChart: {
-        contexts: ['fdc3.instrument'],
-        displayName: 'View Chart',
-      },
-    },
-  },
-  {
-    appId: 'trading-view-fundamentals-1',
-    name: 'Trading View Fundamentals',
-    title: 'Trading View Fundamentals',
-    description: 'Frameable TradingView financials widget ported from FDC3-Sail main.',
-    mode: 'fundamentals',
-    screenshot: 'fundamentals',
-    listensFor: {
-      ViewInstrument: {
-        contexts: ['fdc3.instrument'],
-        displayName: 'View Instrument',
-      },
-      ViewChart: {
-        contexts: ['fdc3.instrument'],
-        displayName: 'View Chart',
-      },
-    },
-  },
-  {
-    appId: 'trading-view-tickers-1',
-    name: 'Trading View Tickers',
-    title: 'Trading View Tickers',
-    description: 'Frameable TradingView ticker tape widget ported from FDC3-Sail main.',
-    mode: 'tickers',
-    screenshot: 'tickers',
-    listensFor: {
-      ViewInstrument: {
-        contexts: ['fdc3.instrument'],
-        displayName: 'View Instrument',
-      },
-      ViewChart: {
-        contexts: ['fdc3.instrument'],
-        displayName: 'View Chart',
-      },
-      ViewQuote: {
-        contexts: ['fdc3.instrument'],
-        displayName: 'View Quote',
-      },
-    },
-  },
-  {
-    appId: 'trading-view-market-data-1',
-    name: 'Trading View Market Data',
-    title: 'Trading View Market Data',
-    description: 'Frameable TradingView market quotes widget ported from FDC3-Sail main.',
-    mode: 'market-data',
-    screenshot: 'market-data',
-    listensFor: {
-      ViewInstrument: {
-        contexts: ['fdc3.instrument'],
-        displayName: 'View Instrument',
-      },
-      ViewChart: {
-        contexts: ['fdc3.instrument'],
-        displayName: 'View Chart',
-      },
-      ViewQuote: {
-        contexts: ['fdc3.instrument'],
-        displayName: 'View Quote',
-      },
-    },
-  },
-];
-for (const app of tradingViewApps) {
-  const baseUrl = tradingViewUrl.replace(/\/+$/, '');
-  appsById.set(app.appId, {
-    appId: app.appId,
-    name: app.name,
-    title: app.title,
-    description: app.description,
-    type: 'web',
-    details: {
-      url: `${baseUrl}/?mode=${app.mode}`,
-    },
-    hostManifests: {},
-    version: '0.1.0',
-    publisher: 'FINOS',
-    icons: [
-      {
-        src: `${baseUrl}/icon.svg`,
-      },
-    ],
-    screenshots: [
-      {
-        src: `${baseUrl}/?mode=${app.mode}`,
-        label: 'Live widget',
-      },
-    ],
-    interop: {
-      intents: {
-        listensFor: app.listensFor,
-        raises: {},
-      },
-      userChannels: {
-        broadcasts: ['fdc3.instrument'],
-        listensFor: ['fdc3.instrument'],
-      },
-    },
-  });
-}
-{
-  const baseUrl = pricerUrl.replace(/\/+$/, '');
-  appsById.set('pricer', {
-    appId: 'pricer',
-    name: 'Pricer',
-    title: 'Pricer',
-    description: 'Frameable price demo app ported from FDC3-Sail main.',
-    type: 'web',
-    details: {
-      url: `${baseUrl}/`,
-    },
-    hostManifests: {},
-    version: '0.1.0',
-    publisher: 'FINOS',
-    icons: [
-      {
-        src: `${baseUrl}/icon.svg`,
-      },
-    ],
-    interop: {
-      intents: {
-        listensFor: {
-          ViewQuote: {
-            displayName: 'View Quote',
-            contexts: ['fdc3.instrument'],
-          },
-        },
-        raises: {},
-      },
-      userChannels: {
-        broadcasts: [],
-        listensFor: ['fdc3.instrument'],
-      },
-    },
-  });
-}
 doc.applications = Array.from(appsById.values()).map((app) => {
   if (app.appId !== 'traderx-web') {
     return app;
@@ -1723,7 +739,7 @@ const createTraderXDemoWorkspace = (): Workspace => {
         appId: "trading-view-symbol-info-1",
         title: "Trading View Symbol Info",
         url: "http://localhost:4023/?mode=symbol-info",
-        icon: "http://localhost:4023/icon.svg",
+        icon: "http://localhost:4023/tradingview-icon.png",
       },
       {
         panelId: "traderx-intent-launcher-demo",
@@ -1737,14 +753,14 @@ const createTraderXDemoWorkspace = (): Workspace => {
         appId: "trading-view-chart-1",
         title: "Trading View Chart",
         url: "http://localhost:4023/?mode=chart",
-        icon: "http://localhost:4023/icon.svg",
+        icon: "http://localhost:4023/tradingview-icon.png",
       },
       {
         panelId: "trading-view-fundamentals-demo",
         appId: "trading-view-fundamentals-1",
         title: "Trading View Fundamentals",
         url: "http://localhost:4023/?mode=fundamentals",
-        icon: "http://localhost:4023/icon.svg",
+        icon: "http://localhost:4023/tradingview-icon.png",
       },
     ].map(panel => [panel.panelId, panel])
   )
@@ -2335,7 +1351,7 @@ bash "${ROOT}/pipeline/refresh-generated-node-lockfiles.sh" "${TARGET_FRONTEND_D
 
 chmod +x \
   "${SAIL_BOOTSTRAP_DIR}/run-sail.sh" \
-  "${SAIL_BOOTSTRAP_DIR}/apply-tradingview-overrides.sh" \
+  "${SAIL_BOOTSTRAP_DIR}/apply-sail-demo-compat.sh" \
   "${SAIL_BOOTSTRAP_DIR}/merge-traderx-appd.sh"
 
 echo "[done] rendered state 014 Sail artifacts into ${STATE_DIR}"

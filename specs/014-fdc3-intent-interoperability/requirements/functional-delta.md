@@ -20,7 +20,7 @@ Document only functional behavior changes introduced by this state.
   - TraderX Intent Launcher app for raising ticket intents from the current `fdc3.instrument`
 - Sail app-directory aggregation profile that includes:
   - the TraderX-owned App Directory source
-  - frameable TradingView widget apps and Pricer app ported from FDC3-Sail `main`
+  - canonical FDC3 toolbox TradingView widget apps and Pricer app
   - FINOS conformance apps from the Sail v3 branch for standards-oriented validation.
 - Sail v3 workspace bootstrap can temporarily inject TraderX, Mini TraderX, the TraderX launcher, TradingView, and Pricer into the Sail app directory fixture until Sail exposes stable multi-App Directory startup configuration.
 - Sail multi-App Directory target behavior covers both preconfigured sources (for example environment-variable driven demo setup) and GUI-driven source add/remove during a demo session.

@@ -19,7 +19,7 @@
 - [ ] T01417 Add integration tests using mocked DesktopAgent APIs (`getAgent`, `broadcast`, `raiseIntent`, listeners).
 - [x] T01418 Add local Sail sidecar runtime assets (container definition, app-directory files, start/status/stop wrappers).
 - [x] T01419 Add TraderX AppD entry for Sail with intent/context declarations and launch metadata.
-- [x] T01420 Include reachable Sail demo apps (TraderX Intent Launcher + frameable TradingView/Pricer apps + FINOS conformance apps) in local directory profile and verify compatibility.
+- [x] T01420 Include reachable Sail demo apps (TraderX Intent Launcher + canonical FDC3 toolbox TradingView/Pricer apps + FINOS conformance apps) in local directory profile and verify compatibility.
 - [ ] T01421 Add E2E verification for TraderX to Sail demo flows.
 - [x] T01422 Implement and harden `scripts/test-state-014-fdc3-intent-interoperability.sh`.
 - [ ] T01423 Finalize generation hook summary/output and ensure render artifacts are deterministic.

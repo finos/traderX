@@ -17,7 +17,8 @@ SAIL_DIR="${STATE_DIR}/sail"
 SAIL_COMPOSE_FILE="${SAIL_DIR}/docker-compose.yml"
 SAIL_PROJECT_NAME="${SAIL_PROJECT_NAME:-traderx-state-014-sail}"
 SAIL_HTTP_PORT="${SAIL_HTTP_PORT:-8090}"
-SAIL_RUNTIME_APPD="${SAIL_DIR}/runtime-cache/FDC3-Sail/packages/sail-web/fixtures/traderx-appd.json"
+SAIL_TRADERX_FIXTURE="${SAIL_DIR}/runtime-cache/FDC3-Sail/packages/sail-web/fixtures/traderx-appd.json"
+SAIL_TOOLBOX_APPD_URL="${SAIL_TOOLBOX_APPD_URL:-http://localhost:4005/static/generated/fdc3-example-apps.json}"
 
 DRY_RUN=0
 SKIP_BUILD=0
@@ -89,7 +90,7 @@ for required in \
   "${STATE_DIR}/README.md" \
   "${SAIL_COMPOSE_FILE}" \
   "${SAIL_DIR}/bootstrap/run-sail.sh" \
-  "${SAIL_DIR}/bootstrap/apply-tradingview-overrides.sh" \
+  "${SAIL_DIR}/bootstrap/apply-sail-demo-compat.sh" \
   "${SAIL_DIR}/bootstrap/sail-pin.env" \
   "${SAIL_DIR}/bootstrap/merge-traderx-appd.sh" \
   "${SAIL_DIR}/appd/traderx.appd.v2.json"; do
@@ -173,15 +174,16 @@ wait_for_http() {
 }
 
 wait_for_http "sail-ui" "http://localhost:${SAIL_HTTP_PORT}/" || exit 1
+wait_for_http "fdc3-toolbox-appd" "${SAIL_TOOLBOX_APPD_URL}" || exit 1
 
-if [[ -f "${SAIL_RUNTIME_APPD}" ]]; then
-  if rg -q '"appId"\s*:\s*"traderx-web"' "${SAIL_RUNTIME_APPD}"; then
+if [[ -f "${SAIL_TRADERX_FIXTURE}" ]]; then
+  if rg -q '"appId"\s*:\s*"traderx-web"' "${SAIL_TRADERX_FIXTURE}"; then
     echo "[ready] TraderX app directory record seeded in Sail"
   else
-    echo "[warn] Sail app directory is present but TraderX record not detected yet: ${SAIL_RUNTIME_APPD}"
+    echo "[warn] Sail TraderX fixture is present but TraderX record not detected yet: ${SAIL_TRADERX_FIXTURE}"
   fi
 else
-  echo "[warn] Sail generated app directory not found yet: ${SAIL_RUNTIME_APPD}"
+  echo "[warn] Sail TraderX fixture not found yet: ${SAIL_TRADERX_FIXTURE}"
 fi
 
 echo "[done] state 014 demo runtime started"

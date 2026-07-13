@@ -31,7 +31,7 @@ flowchart LR
   trader -->|"Uses Sail app launcher/resolver"| sailSidecar
   traderxIngress -->|"Serves TraderX-owned /v2/apps metadata"| traderxDirectory
   traderxDirectory -->|"TraderX, Mini TraderX, launcher records"| sailDirectory
-  demoApps -->|"TradingView/Pricer directory source"| sailDirectory
+  demoApps -->|"FDC3 toolbox directory source"| sailDirectory
   sailDirectory -->|"Provides app/intents/context metadata"| sailSidecar
   sailSidecar -->|"Routes contexts/intents to TraderX"| traderxUi
   traderxUi -->|"Broadcasts fdc3.instrument/traderx.account and raises intents"| sailSidecar
@@ -53,8 +53,8 @@ flowchart LR
 | `traderxIngress` | gateway | TraderX Ingress | NGINX ingress for TraderX UI/API traffic. |
 | `traderxDirectory` | component | TraderX App Directory | TraderX-owned FDC3 App Directory source for core TraderX, Mini TraderX, and TraderX Intent Launcher. |
 | `sailSidecar` | service | Sail Sidecar | Local Sail desktop-agent runtime hosted outside TraderX ingress. |
-| `sailDirectory` | component | Aggregated App Directories | Sail-consumed directory sources for TraderX-owned apps, TradingView/Pricer demos, and FINOS conformance apps. |
-| `demoApps` | service | Demo FDC3 Apps | Mini TraderX, local TraderX Intent Launcher, frameable TradingView/Pricer apps, and FINOS conformance apps participating in ticker/account workflows. |
+| `sailDirectory` | component | Aggregated App Directories | Sail-consumed directory sources for TraderX-owned apps, FDC3 toolbox TradingView/Pricer demos, and FINOS conformance apps. |
+| `demoApps` | service | Demo FDC3 Apps | Mini TraderX, local TraderX Intent Launcher, FDC3 toolbox TradingView/Pricer apps, and FINOS conformance apps participating in ticker/account workflows. |
 | `orderApi` | service | Order Matcher API | Order listing and lifecycle endpoints used by order flows. |
 | `tradeApi` | service | Trade Service API | Trade creation/query endpoints used by trade ticket flows. |
 | `positionApi` | service | Position Service API | Position/blotter data source for symbol-selected rows. |
