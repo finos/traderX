@@ -145,6 +145,8 @@ SAIL_REPO_DIR="${SAIL_REPO_DIR:-/workspace/runtime-cache/FDC3-Sail}"
 SAIL_TRADERX_URL="${SAIL_TRADERX_URL:-http://localhost:8080}"
 SAIL_EXAMPLE_APPD_URL="${SAIL_EXAMPLE_APPD_URL:-http://localhost:4005/static/generated/fdc3-example-apps.json}"
 SAIL_FDC3_EXAMPLE_APPS_VERSION="${SAIL_FDC3_EXAMPLE_APPS_VERSION:-3.0.0-alpha.2}"
+SAIL_FDC3_EXAMPLE_APPS_DIR="${SAIL_FDC3_EXAMPLE_APPS_DIR:-/workspace/runtime-cache/fdc3-example-apps-runtime}"
+SAIL_FDC3_EXAMPLE_APPS_PACKAGE_DIR="${SAIL_FDC3_EXAMPLE_APPS_DIR}/node_modules/@finos/fdc3-example-apps"
 export VITE_SAIL_APP_DIRECTORY_URLS="${VITE_SAIL_APP_DIRECTORY_URLS:-${SAIL_TRADERX_URL%/}/fdc3/appd/v2/apps,${SAIL_EXAMPLE_APPD_URL}}"
 SAIL_TRADERX_APPD="/workspace/appd/traderx.appd.v2.json"
 
@@ -182,13 +184,19 @@ echo "[info] installing Sail dependencies"
 rm -rf node_modules
 npm install --no-audit --no-fund
 npm --prefix "${SAIL_REPO_DIR}/packages/traderx-sail-intent-launcher" install --no-audit --no-fund
+mkdir -p "${SAIL_FDC3_EXAMPLE_APPS_DIR}"
+npm --prefix "${SAIL_FDC3_EXAMPLE_APPS_DIR}" install --no-audit --no-fund "@finos/fdc3-example-apps@${SAIL_FDC3_EXAMPLE_APPS_VERSION}"
+if [[ -x /workspace/bootstrap/patch-fdc3-example-apps.sh ]]; then
+  echo "[info] applying state-014 FDC3 toolbox example app overrides"
+  /workspace/bootstrap/patch-fdc3-example-apps.sh "${SAIL_FDC3_EXAMPLE_APPS_PACKAGE_DIR}"
+fi
 
 echo "[start] launching TraderX intent launcher"
 npm --prefix "${SAIL_REPO_DIR}/packages/traderx-sail-intent-launcher" run dev -- --host 0.0.0.0 &
 LAUNCHER_PID=$!
 
 echo "[start] launching FDC3 toolbox example apps"
-npx --yes "@finos/fdc3-example-apps@${SAIL_FDC3_EXAMPLE_APPS_VERSION}" &
+node "${SAIL_FDC3_EXAMPLE_APPS_PACKAGE_DIR}/bin/run.mjs" &
 EXAMPLE_APPS_PID=$!
 
 echo "[start] launching Sail v3 browser desktop agent"
@@ -555,6 +563,7 @@ const appdPath = process.argv[2];
 const repoDir = process.argv[3];
 const traderxUrl = process.env.SAIL_TRADERX_URL || 'http://localhost:8080';
 const launcherUrl = process.env.SAIL_INTENT_LAUNCHER_URL || 'http://localhost:4040';
+const tradingViewUrl = (process.env.SAIL_TRADINGVIEW_URL || 'http://localhost:4023').replace(/\/+$/, '');
 const traderxTradeUrl = `${traderxUrl.replace(/\/+$/, '')}/trade`;
 const traderxMiniUrl = `${traderxUrl.replace(/\/+$/, '')}/mini-traderx`;
 const doc = JSON.parse(fs.readFileSync(appdPath, 'utf8'));
@@ -658,6 +667,75 @@ doc.applications = Array.from(appsById.values()).map((app) => {
 	});
 fs.writeFileSync(appdPath, `${JSON.stringify(doc, null, 2)}\n`, 'utf8');
 
+const tradingViewFixturePath = `${repoDir}/packages/sail-web/fixtures/tradingview-appd.json`;
+const tradingViewApps = [
+  {
+    appId: 'trading-view-symbol-info-1',
+    name: 'Trading View Symbol Info',
+    title: 'Trading View Symbol Info',
+    description: 'Displays symbol information for the selected instrument',
+    type: 'web',
+    details: { url: `${tradingViewUrl}/?mode=symbol-info` },
+    icons: [{ src: `${tradingViewUrl}/icon.svg` }],
+    interop: {
+      intents: {
+        listensFor: {
+          ViewInstrument: {
+            displayName: 'View Instrument',
+            contexts: ['fdc3.instrument'],
+          },
+        },
+      },
+      userChannels: { listensFor: ['fdc3.instrument'] },
+    },
+  },
+  {
+    appId: 'trading-view-chart-1',
+    name: 'Trading View Chart',
+    title: 'Trading View Chart',
+    description: 'Displays an interactive chart for the selected instrument',
+    type: 'web',
+    details: { url: `${tradingViewUrl}/?mode=chart` },
+    icons: [{ src: `${tradingViewUrl}/icon.svg` }],
+    interop: {
+      intents: {
+        listensFor: {
+          ViewChart: {
+            displayName: 'View Chart',
+            contexts: ['fdc3.instrument'],
+          },
+        },
+      },
+      userChannels: { listensFor: ['fdc3.instrument'] },
+    },
+  },
+  {
+    appId: 'trading-view-fundamentals-1',
+    name: 'Trading View Fundamentals',
+    title: 'Trading View Fundamentals',
+    description: 'Displays fundamentals for the selected instrument',
+    type: 'web',
+    details: { url: `${tradingViewUrl}/?mode=fundamentals` },
+    icons: [{ src: `${tradingViewUrl}/icon.svg` }],
+    interop: {
+      intents: {
+        listensFor: {
+          ViewInstrument: {
+            displayName: 'View Instrument',
+            contexts: ['fdc3.instrument'],
+          },
+        },
+      },
+      userChannels: { listensFor: ['fdc3.instrument'] },
+    },
+  },
+];
+fs.writeFileSync(
+  tradingViewFixturePath,
+  `${JSON.stringify({ message: 'OK', applications: tradingViewApps }, null, 2)}\n`,
+  'utf8'
+);
+
 const mainPath = `${repoDir}/packages/sail-web/src/main.tsx`;
 let main = fs.readFileSync(mainPath, 'utf8');
 if (!main.includes('traderxAppDirectory')) {
@@ -672,15 +750,25 @@ if (!main.includes('conformanceAppDirectory')) {
     'import conformanceAppDirectory from "../../sail-conformance-harness/conformance-appd.json"\nimport traderxAppDirectory from "../fixtures/traderx-appd.json"'
   );
 }
+if (!main.includes('tradingViewAppDirectory')) {
+  main = main.replace(
+    'import traderxAppDirectory from "../fixtures/traderx-appd.json"',
+    'import traderxAppDirectory from "../fixtures/traderx-appd.json"\nimport tradingViewAppDirectory from "../fixtures/tradingview-appd.json"'
+  );
+}
 main = main
   .replace('import defaultAppDirectory from "../fixtures/default-app-directory.json"\n', '')
   .replace(
     /    apps: \[[\s\S]*?\] as unknown as DirectoryApp\[\],/,
     '    apps: [\n      ...traderxAppDirectory.applications,\n      ...conformanceAppDirectory.applications,\n    ] as unknown as DirectoryApp[],'
   );
+main = main.replace(
+  '      ...conformanceAppDirectory.applications,\n    ] as unknown as DirectoryApp[],',
+  '      ...conformanceAppDirectory.applications,\n      ...tradingViewAppDirectory.applications,\n    ] as unknown as DirectoryApp[],'
+);
 fs.writeFileSync(mainPath, main, 'utf8');
 NODE
-echo "[ok] configured TraderX launcher and conformance AppD fixtures in Sail web startup"
+echo "[ok] configured TraderX, TradingView, and conformance AppD fixtures in Sail web startup"
 
 SAIL_WEB_CHANNEL_SELECTOR="${SAIL_REPO_DIR}/packages/sail-web/src/components/ChannelSelector.tsx"
 if [[ -f "${SAIL_WEB_CHANNEL_SELECTOR}" ]] && grep -q 'useStore(storeApi' "${SAIL_WEB_CHANNEL_SELECTOR}"; then
@@ -1048,6 +1136,269 @@ NODE
 fi
 EOF
 
+cat > "${SAIL_BOOTSTRAP_DIR}/patch-fdc3-example-apps.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+EXAMPLE_APPS_PACKAGE_DIR="${1:-/workspace/runtime-cache/fdc3-example-apps-runtime/node_modules/@finos/fdc3-example-apps}"
+
+if [[ ! -d "${EXAMPLE_APPS_PACKAGE_DIR}" ]]; then
+  echo "[error] FDC3 example apps package not found: ${EXAMPLE_APPS_PACKAGE_DIR}" >&2
+  exit 1
+fi
+
+node - "${EXAMPLE_APPS_PACKAGE_DIR}" <<'NODE'
+const fs = require('node:fs');
+const path = require('node:path');
+
+const packageRoot = process.argv[2];
+const tradingViewRoot = path.join(packageRoot, 'front-end-apps', 'tradingview');
+const indexPath = path.join(tradingViewRoot, 'index.html');
+const indexSourcePath = path.join(tradingViewRoot, 'src', 'index.tsx');
+const stylePath = path.join(packageRoot, 'front-end-apps', 'static', 'styles.css');
+const widgetPath = path.join(tradingViewRoot, 'src', 'TradingViewWidget.tsx');
+const appdPath = path.join(tradingViewRoot, 'static', 'appd.v2.json');
+const modesRoot = path.join(tradingViewRoot, 'src', 'modes');
+
+const requireFile = filePath => {
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`Required FDC3 example apps file is missing: ${filePath}`);
+  }
+};
+
+for (const filePath of [indexPath, indexSourcePath, stylePath, widgetPath, appdPath]) {
+  requireFile(filePath);
+}
+
+for (const modeFileName of ['chart.ts', 'fundamentals.ts', 'market-data.ts', 'symbol-info.ts', 'tickers.ts']) {
+  const modePath = path.join(modesRoot, modeFileName);
+  requireFile(modePath);
+  const source = fs.readFileSync(modePath, 'utf8');
+  fs.writeFileSync(modePath, source.replaceAll('"symbol": "NASDAQ:${state}"', '"symbol": "${state}"'), 'utf8');
+}
+
+let indexHtml = fs.readFileSync(indexPath, 'utf8');
+indexHtml = indexHtml
+  .replace(/\n\s*<h1 class="app-title">[\s\S]*?<\/h1>/, '')
+  .replace(/\n\s*<p class="app-subtitle">[\s\S]*?<\/p>/, '');
+fs.writeFileSync(indexPath, indexHtml, 'utf8');
+
+fs.writeFileSync(
+  indexSourcePath,
+  `import '../../static/styles.css';
+import { createRoot } from 'react-dom/client';
+import TradingViewWidget from './TradingViewWidget';
+
+const container = document.getElementById('app');
+const root = createRoot(container!);
+
+function getQueryParameterMode() {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get('mode') ?? 'chart';
+}
+
+root.render(<TradingViewWidget mode={getQueryParameterMode()} />);
+`,
+  'utf8'
+);
+
+let styles = fs.readFileSync(stylePath, 'utf8');
+const compactStyles = `
+
+/* TraderX state 014 demo: keep TradingView examples compact when framed in Sail. */
+body.tradingview {
+  padding: 0;
+  background-color: #fff;
+}
+
+body.tradingview .app-title,
+body.tradingview .app-subtitle {
+  display: none !important;
+}
+
+body.tradingview #app {
+  height: 100vh;
+}
+`;
+if (!styles.includes('TraderX state 014 demo: keep TradingView examples compact')) {
+  styles += compactStyles;
+  fs.writeFileSync(stylePath, styles, 'utf8');
+}
+
+const widgetSource = `// TradingViewWidget.jsx
+import { getAgent, Listener } from '@finos/fdc3';
+import { useEffect, useRef, memo, useState } from 'react';
+
+/* eslint-disable  @typescript-eslint/no-explicit-any */
+
+import { TradingViewMode } from './common';
+import { chartMode } from './modes/chart';
+import { symbolInfoMode } from './modes/symbol-info';
+import { fundamentalsMode } from './modes/fundamentals';
+import { tickersMode } from './modes/tickers';
+import { marketDataMode } from './modes/market-data';
+
+const MODES: TradingViewMode[] = [chartMode, symbolInfoMode, fundamentalsMode, tickersMode, marketDataMode];
+
+const resolveIdentityUrl = () => \`\${window.location.origin}\${window.location.pathname}\${window.location.search}\`;
+
+export const TradingViewWidget = ({ mode }: { mode: string }) => {
+  const container: any = useRef();
+  const modeProps = MODES.find(m => m.name === mode) ?? MODES[0];
+
+  const [state, setState] = useState(modeProps.initialState);
+  const [fdc3Status, setFdc3Status] = useState('initializing');
+
+  useEffect(() => {
+    setState(modeProps.initialState);
+  }, [mode]);
+
+  useEffect(() => {
+    const registrations: Listener[] = [];
+    let cancelled = false;
+    let syncTimer: number | undefined;
+
+    const applyContext = (update: (context: any, state: any) => any, context: any) => {
+      if (!context || context.type !== 'fdc3.instrument') return;
+      setState((prev: any) => update(context, prev) ?? prev);
+    };
+
+    const register = async () => {
+      setFdc3Status('resolving-agent');
+      const fdc3 = await getAgent({ timeoutMs: 5000, identityUrl: resolveIdentityUrl() } as any);
+      setFdc3Status('agent-resolved');
+
+      for (const listener of modeProps.listeners) {
+        if (cancelled) return;
+        const registration = await fdc3.addContextListener(listener.name, context => {
+          applyContext(listener.function, context);
+        });
+        registrations.push(registration);
+      }
+
+      const channelAgent = fdc3 as any;
+      let currentChannel = await Promise.resolve(channelAgent.getCurrentChannel?.());
+      if (!currentChannel && typeof channelAgent.joinUserChannel === 'function') {
+        const userChannels = await Promise.resolve(channelAgent.getUserChannels?.());
+        const demoChannel =
+          userChannels?.find?.((channel: any) => channel?.id === 'fdc3.channel.1') ?? userChannels?.[0];
+        if (demoChannel?.id) {
+          await channelAgent.joinUserChannel(demoChannel.id);
+          currentChannel = await Promise.resolve(channelAgent.getCurrentChannel?.());
+          setFdc3Status(\`joined:\${currentChannel?.id ?? demoChannel.id}\`);
+        }
+      }
+      const syncCurrentInstrument = async () => {
+        const activeChannel =
+          (await Promise.resolve(channelAgent.getCurrentChannel?.())) ?? currentChannel;
+        const currentContext =
+          (await Promise.resolve(activeChannel?.getCurrentContext?.('fdc3.instrument'))) ??
+          (await Promise.resolve((fdc3 as any).getCurrentContext?.('fdc3.instrument')));
+        if (!cancelled && currentContext) {
+          for (const listener of modeProps.listeners) {
+            applyContext(listener.function, currentContext);
+          }
+          setFdc3Status(\`context:\${currentContext?.id?.ticker ?? currentContext.type}\`);
+        }
+      };
+
+      await syncCurrentInstrument();
+      syncTimer = window.setInterval(() => {
+        void syncCurrentInstrument().catch(error => {
+          console.warn('TradingView FDC3 context sync failed', error);
+        });
+      }, 1000);
+
+      for (const intent of modeProps.intents) {
+        if (cancelled) return;
+        const registration =
+          typeof (fdc3 as any).addIntentListenerWithContext === 'function'
+            ? await (fdc3 as any).addIntentListenerWithContext(intent.name, 'fdc3.instrument', (context: any) => {
+                applyContext(intent.function, context);
+              })
+            : await fdc3.addIntentListener(intent.name, context => {
+                applyContext(intent.function, context);
+              });
+        registrations.push(registration);
+      }
+    };
+
+    void register().catch(error => {
+      setFdc3Status(\`error:\${error instanceof Error ? error.message : String(error)}\`);
+      console.error('TradingView FDC3 registration failed', error);
+    });
+
+    return () => {
+      cancelled = true;
+      if (syncTimer) {
+        window.clearInterval(syncTimer);
+      }
+      void Promise.all(registrations.map(r => r.unsubscribe()));
+    };
+  }, [mode]);
+
+  useEffect(() => {
+    let script: HTMLScriptElement | null = null;
+
+    script = document.getElementById('tradingview-widget-script') as HTMLScriptElement;
+
+    if (script) {
+      container.current.removeChild(script);
+    }
+
+    container.current.querySelector('.tradingview-widget-container__widget')?.replaceChildren();
+
+    script = document.createElement('script');
+    script.id = 'tradingview-widget-script';
+    script.type = 'text/javascript';
+    script.async = true;
+    script.src = modeProps.script;
+    // nosemgrep: javascript.browser.security.insecure-document-method.insecure-document-method
+    script.innerHTML = modeProps.innerHTML(state);
+    container.current.appendChild(script);
+  }, [state]);
+
+  return (
+    <div
+      className="tradingview-widget-container"
+      ref={container}
+      data-fdc3-status={fdc3Status}
+      data-fdc3-symbol={String(state)}
+      style={{ height: '100%', width: '100%' }}
+    >
+      <div
+        className="tradingview-widget-container__widget"
+        style={{ height: 'calc(100% - 32px)', width: '100%' }}
+      ></div>
+      <div className="tradingview-widget-copyright">
+        <a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank">
+          <span className="blue-text"> Track all markets on TradingView </span>
+        </a>
+      </div>
+    </div>
+  );
+};
+
+export default memo(TradingViewWidget);
+`;
+fs.writeFileSync(widgetPath, widgetSource, 'utf8');
+
+const appd = JSON.parse(fs.readFileSync(appdPath, 'utf8'));
+for (const app of appd.applications ?? []) {
+  if (typeof app.appId === 'string' && app.appId.startsWith('trading-view-')) {
+    app.interop = app.interop ?? {};
+    app.interop.userChannels = {
+      ...(app.interop.userChannels ?? {}),
+      listensFor: Array.from(new Set([...(app.interop.userChannels?.listensFor ?? []), 'fdc3.instrument'])),
+    };
+  }
+}
+fs.writeFileSync(appdPath, `${JSON.stringify(appd, null, 2)}\n`, 'utf8');
+NODE
+
+echo "[ok] patched FDC3 toolbox TradingView examples for Sail framing and context sync"
+EOF
+
 cat > "${SAIL_BOOTSTRAP_DIR}/merge-traderx-appd.sh" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -1329,6 +1680,57 @@ for (const targetName of ['build', 'test']) {
 fs.writeFileSync(path, `${JSON.stringify(doc, null, 2)}\n`, 'utf8');
 NODE
 
+node - "${TARGET_FRONTEND_DIR}/Dockerfile.compose" "${TARGET_FRONTEND_DIR}/Dockerfile.prod" <<'NODE'
+const fs = require('node:fs');
+const dockerfiles = process.argv.slice(2);
+const oldConfig = `# Create simple nginx config for SPA
+RUN echo 'server { \\
+    listen 18093; \\
+    location / { \\
+        root /usr/share/nginx/html; \\
+        index index.html; \\
+        try_files $uri $uri/ /index.html; \\
+    } \\
+}' > /etc/nginx/conf.d/default.conf`;
+const newConfig = `# Create nginx config for the SPA and FDC3 AppD assets.
+RUN printf '%s\\n' \\
+    'server {' \\
+    '    listen 18093;' \\
+    '' \\
+    '    location /fdc3/ {' \\
+    '        root /usr/share/nginx/html;' \\
+    '        default_type application/json;' \\
+    '        add_header Access-Control-Allow-Origin "*" always;' \\
+    '        add_header Access-Control-Allow-Methods "GET, OPTIONS" always;' \\
+    '        add_header Access-Control-Allow-Headers "*" always;' \\
+    '        if ($request_method = OPTIONS) {' \\
+    '            return 204;' \\
+    '        }' \\
+    '        try_files $uri =404;' \\
+    '    }' \\
+    '' \\
+    '    location / {' \\
+    '        root /usr/share/nginx/html;' \\
+    '        index index.html;' \\
+    '        try_files $uri $uri/ /index.html;' \\
+    '    }' \\
+    '}' > /etc/nginx/conf.d/default.conf`;
+
+for (const dockerfile of dockerfiles) {
+  const source = fs.readFileSync(dockerfile, 'utf8');
+  if (source.includes(oldConfig)) {
+    fs.writeFileSync(dockerfile, source.replace(oldConfig, newConfig), 'utf8');
+    continue;
+  }
+
+  const nginxBlock = /# Create (?:simple nginx config for SPA|nginx config for the SPA and FDC3 AppD assets\.)\nRUN [\s\S]*?\n\nEXPOSE 18093/;
+  if (!nginxBlock.test(source)) {
+    throw new Error(`expected nginx config block in ${dockerfile}`);
+  }
+  fs.writeFileSync(dockerfile, source.replace(nginxBlock, `${newConfig}\n\nEXPOSE 18093`), 'utf8');
+}
+NODE
+
 # Ensure state-014 FDC3 v3 alpha client dependency is present in generated web
 # UI before lockfiles are refreshed.
 node - "${TARGET_FRONTEND_DIR}/package.json" <<'NODE'
@@ -1352,6 +1754,7 @@ bash "${ROOT}/pipeline/refresh-generated-node-lockfiles.sh" "${TARGET_FRONTEND_D
 chmod +x \
   "${SAIL_BOOTSTRAP_DIR}/run-sail.sh" \
   "${SAIL_BOOTSTRAP_DIR}/apply-sail-demo-compat.sh" \
+  "${SAIL_BOOTSTRAP_DIR}/patch-fdc3-example-apps.sh" \
   "${SAIL_BOOTSTRAP_DIR}/merge-traderx-appd.sh"
 
 echo "[done] rendered state 014 Sail artifacts into ${STATE_DIR}"

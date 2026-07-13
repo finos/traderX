@@ -91,6 +91,7 @@ for required in \
   "${SAIL_COMPOSE_FILE}" \
   "${SAIL_DIR}/bootstrap/run-sail.sh" \
   "${SAIL_DIR}/bootstrap/apply-sail-demo-compat.sh" \
+  "${SAIL_DIR}/bootstrap/patch-fdc3-example-apps.sh" \
   "${SAIL_DIR}/bootstrap/sail-pin.env" \
   "${SAIL_DIR}/bootstrap/merge-traderx-appd.sh" \
   "${SAIL_DIR}/appd/traderx.appd.v2.json"; do
