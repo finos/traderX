@@ -45,7 +45,7 @@ export class TradeComponent implements OnInit, OnDestroy {
     };
     allPositions: Position[] = [];
     private readonly marketPriceByTicker = new Map<string, number>();
-    private priceStreamUnsubscribeFn?: Function;
+    private priceStreamUnsubscribeFn?: () => void;
     private account = new Subject<Account>();
 
     constructor(private accountService: AccountService,
@@ -69,10 +69,11 @@ export class TradeComponent implements OnInit, OnDestroy {
         this.symbolService.getStocks().subscribe((stocks) => this.stocks = stocks);
         this.loadAllPositions();
         this.priceStreamUnsubscribeFn = this.tradeFeed.subscribe('pricing.*', (tick: PriceTick) => {
-            if (!tick?.ticker || tick.price == null) {
+            const ticker = this.normalizeTicker(tick?.ticker);
+            if (!ticker || tick.price == null) {
                 return;
             }
-            this.marketPriceByTicker.set(tick.ticker, Number(tick.price));
+            this.marketPriceByTicker.set(ticker, Number(tick.price));
             this.recomputeAllAccountsSummary();
         });
     }
@@ -142,6 +143,10 @@ export class TradeComponent implements OnInit, OnDestroy {
         this.priceStreamUnsubscribeFn?.();
     }
 
+    private normalizeTicker(ticker: string | undefined): string {
+        return String(ticker || '').trim().toUpperCase();
+    }
+
     private loadAllPositions() {
         this.positionService.getAllPositions().subscribe((positions: Position[]) => {
             this.allPositions = positions ?? [];
@@ -157,9 +162,10 @@ export class TradeComponent implements OnInit, OnDestroy {
         };
 
         for (const position of this.allPositions) {
-            const quantity = Number((position as any).quantity ?? 0);
-            const averageCostBasis = Number((position as any).averageCostBasis ?? (position as any).averagecostbasis ?? 0);
-            const security = String((position as any).security ?? '');
+            const pricingPosition = position as Position & { averagecostbasis?: number };
+            const quantity = Number(position.quantity ?? 0);
+            const averageCostBasis = Number(pricingPosition.averageCostBasis ?? pricingPosition.averagecostbasis ?? 0);
+            const security = this.normalizeTicker(position.security);
             const marketPrice = Number(this.marketPriceByTicker.get(security) ?? averageCostBasis);
             const marketValue = quantity * marketPrice;
             const costBasisValue = quantity * averageCostBasis;

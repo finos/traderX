@@ -3,19 +3,21 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
-WEB_ROOT="${1:-${GENERATED_ROOT}/code/target-generated/web-front-end/angular}"
+WEB_ROOT="${GENERATED_ROOT}/code/target-generated/web-front-end/angular"
 EXPECT_ORDER_UI=0
 
-shift || true
 while (( "$#" )); do
   case "$1" in
     --orders)
       EXPECT_ORDER_UI=1
       ;;
-    *)
+    -*)
       echo "[error] unknown argument: $1"
       echo "[hint] usage: $0 [WEB_ROOT] [--orders]"
       exit 1
+      ;;
+    *)
+      WEB_ROOT="$1"
       ;;
   esac
   shift
