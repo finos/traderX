@@ -9,6 +9,7 @@ Describe runtime topology and network/data flow changes introduced by this state
 - TraderX browser/UI/API entrypoint remains `http://localhost:8080`.
 - Existing websocket path remains `ws(s)://<host>/nats-ws` for pricing/realtime feeds.
 - Local Sail sidecar entrypoint: `http://localhost:8090`.
+- TraderX-owned App Directory source is served behind TraderX ingress using the FDC3 App Directory REST contract (`/v2/apps`).
 - Optional external desktop-agent/app profile entrypoints remain environment-defined.
 
 ## Components
@@ -21,7 +22,11 @@ Describe runtime topology and network/data flow changes introduced by this state
   - inbound/outbound intent handlers
 - Adds local Sail sidecar service (Dockerized or equivalent generated runtime) that hosts:
   - Sail web desktop agent UI
-  - seeded app-directory records (TraderX + demo apps)
+  - app-directory aggregation for TraderX-owned apps, demo apps, and conformance apps
+- Adds TraderX-owned App Directory metadata for:
+  - core TraderX
+  - Mini TraderX
+  - TraderX Intent Launcher
 - External interoperating demo apps connect through Sail-mediated FDC3 APIs.
 
 ## Networking
@@ -30,6 +35,8 @@ Describe runtime topology and network/data flow changes introduced by this state
 - FDC3 message exchange occurs in desktop/browser runtime through DesktopAgent APIs.
 - Existing REST routes (`/trade-service`, `/position-service`, `/order-matcher`) remain unchanged and are reused for intent-driven UI workflows.
 - Sail sidecar is not fronted by TraderX ingress; it is exposed directly on its own port.
+- TraderX App Directory metadata is fronted by TraderX ingress because it describes TraderX-owned launch URLs and interoperability metadata.
+- Sail should accept multiple App Directory sources by startup configuration and by runtime GUI; the state may temporarily inject equivalent fixture records until Sail exposes that capability.
 
 ## Startup / Health Order
 
@@ -37,5 +44,5 @@ Describe runtime topology and network/data flow changes introduced by this state
 2. Start local Sail sidecar runtime and verify `http://localhost:8090` health.
 3. Load TraderX UI and Sail UI in the same desktop demo session.
 4. Register TraderX listeners for configured contexts/intents.
-5. Validate app-directory entries and resolver visibility for TraderX ticket intents.
+5. Validate TraderX App Directory entries and resolver visibility for TraderX ticket intents.
 6. Validate graceful fallback path when agent is missing/unavailable.

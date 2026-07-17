@@ -32,11 +32,11 @@ title: "State 014: FDC3 Intent Interoperability on C3"
 - **Added:** FDC3 interop adapter in TraderX frontend for DesktopAgent integration.
 - **Added:** Outbound `fdc3.instrument` context publishing when a user selects a ticker-bearing row in trade/order/position views.
 - **Added:** Inbound `fdc3.instrument` context handling that updates ticker-focused UI state (filters and ticket defaults).
+- **Added:** Outbound and inbound `traderx.account` context handling that synchronizes selected account state across TraderX windows.
 - **Added:** Standard intent handling for `ViewOrders` (instrument-scoped orders view routing).
 - **Added:** Outbound standard intent triggers for `ViewChart` and `ViewQuote` from explicit TraderX UI actions.
 - **Added:** Custom inbound intents `TraderX.CreateTradeTicket` and `TraderX.CreateOrderTicket` that open the respective ticket UI with preselected ticker context.
 - **Added:** Local Sail sidecar runtime profile for interop demos.
-- **Added:** Seeded Sail app-directory profile that includes:
 
 ## Run This State
 

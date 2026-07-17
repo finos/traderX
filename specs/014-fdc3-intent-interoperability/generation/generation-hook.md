@@ -18,7 +18,7 @@ This state follows the render overlay model (generated artifacts produced from s
 2. Render state-local Sail sidecar artifacts that introduce:
    - Sail sidecar compose and bootstrap scripts
    - Sail pin manifest for deterministic upstream checkout
-   - Sail app overlays (TraderX intent launcher + TradingView + Polygon + default client-state seed)
+   - Sail v3 bootstrap patching (FDC3 v3 alpha dependency alignment + TraderX AppD fixture injection)
    - TraderX app-directory seed overlay
    - State-local runbook/readme metadata
 3. Apply state-local frontend override sources for FDC3 behavior into generated web-frontend output.

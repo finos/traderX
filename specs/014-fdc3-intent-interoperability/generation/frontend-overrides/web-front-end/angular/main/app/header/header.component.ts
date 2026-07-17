@@ -1,4 +1,5 @@
 import { Component, OnInit, Output, EventEmitter, ElementRef, AfterViewInit, OnDestroy, HostListener } from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
 import { Observable, Subscription } from 'rxjs';
 import { Fdc3InteropService } from '../service/fdc3-interop.service';
 import { StateUiMetadata } from '../model/state-ui-metadata.model';
@@ -18,6 +19,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
     isSystemMenuOpen = false;
     fdc3AgentAvailable = false;
     fdc3StatusMessage = 'FDC3: connecting...';
+    isMiniTraderxRoute = false;
     messageBusState: MessageBusConnectionState = 'connecting';
     messageBusStateLabel = 'Connecting';
     messageBusNotice = '';
@@ -30,6 +32,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
     constructor(
         private elementRef: ElementRef<HTMLElement>,
         private fdc3Interop: Fdc3InteropService,
+        private router: Router,
         private stateMetadataService: StateMetadataService,
         private tradeFeedService: TradeFeedService
     ) {
@@ -37,6 +40,14 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngOnInit(): void {
+        this.updateRouteMode(this.router.url);
+        this.interopSubscriptions.add(
+            this.router.events.subscribe((event) => {
+                if (event instanceof NavigationEnd) {
+                    this.updateRouteMode(event.urlAfterRedirects);
+                }
+            })
+        );
         this.interopSubscriptions.add(
             this.fdc3Interop.isAgentAvailable$.subscribe((available) => {
                 this.fdc3AgentAvailable = available;
@@ -88,6 +99,9 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     appTitle(stateId: string): string {
+        if (this.isMiniTraderxRoute) {
+            return 'Mini TraderX';
+        }
         return `TraderX Sample Trading App (${stateId})`;
     }
 
@@ -115,8 +129,18 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     private updateHeaderHeightCssVar(): void {
+        if (this.isMiniTraderxRoute) {
+            document.documentElement.style.setProperty('--traderx-header-height', '0px');
+            return;
+        }
         const hostHeight = Math.ceil(this.elementRef.nativeElement.getBoundingClientRect().height);
         document.documentElement.style.setProperty('--traderx-header-height', `${hostHeight}px`);
+    }
+
+    private updateRouteMode(url: string): void {
+        const path = String(url || '').split('?')[0].split('#')[0];
+        this.isMiniTraderxRoute = path.endsWith('/mini-traderx');
+        setTimeout(() => this.updateHeaderHeightCssVar());
     }
 
     private toStateLabel(state: MessageBusConnectionState): string {

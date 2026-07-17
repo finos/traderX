@@ -17,14 +17,14 @@ This state introduces desktop interoperability concerns while preserving C3 runt
 
 ## Security / Compliance
 
-- App integration targets FDC3 2.2 API semantics for application interoperability.
+- App integration targets FDC3 `3.0.0-alpha.2` API semantics for application interoperability.
 - This state does not implement a desktop agent; it implements app-side FDC3 behavior plus local demo-agent packaging.
 - Outbound context payloads should include symbol identifiers only (ticker plus optional public identifiers such as ISIN/FIGI/RIC), excluding account/user-sensitive fields.
 - Intent handlers must validate context shape before applying UI actions.
 - TraderX should publish canonical bare ticker payloads and must not embed Sail-widget-specific exchange remapping logic.
-- Any tactical compatibility logic required for specific Sail demo widgets (for example exchange qualification for TradingView symbol strings) must be isolated to Sail-side pre-build/startup patch assets and marked as temporary technical debt until CDM-native identifier normalization lands.
+- Any tactical compatibility logic required for Sail v3 beta must be isolated to Sail-side pre-build/startup patch assets and marked as temporary technical debt until stable Sail configuration hooks are available.
 - Workaround-driven interoperability behavior must be explicitly tracked as technical debt and reviewed for removal once Sail event delivery and normalized symbology are production-ready.
-- Generated state-014 frontend manifests must enforce a scoped temporary npm override for `@robmoffat/fdc3-get-agent -> uuid:^14.0.0` to mitigate GHSA-w5hq-g745-h8pq; remove this override when upstream dependency ranges are fixed and security scans pass without it.
+- Generated state-014 frontend manifests must use the official `@finos/fdc3@3.0.0-alpha.2` package for `getAgent()` and must not depend on the retired `@robmoffat/fdc3-get-agent` package.
 
 ## Performance / Scalability
 

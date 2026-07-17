@@ -16,7 +16,11 @@ SAIL_DIR="${STATE_DIR}/sail"
 SAIL_COMPOSE_FILE="${SAIL_DIR}/docker-compose.yml"
 SAIL_PROJECT_NAME="${SAIL_PROJECT_NAME:-traderx-state-014-sail}"
 SAIL_HTTP_PORT="${SAIL_HTTP_PORT:-8090}"
-SAIL_RUNTIME_APPD="${SAIL_DIR}/runtime-cache/FDC3-Sail/packages/fdc3-example-apps/directory/generated/fdc3-example-apps.json"
+SAIL_INTENT_LAUNCHER_PORT="${SAIL_INTENT_LAUNCHER_PORT:-4040}"
+SAIL_TRADINGVIEW_PORT="${SAIL_TRADINGVIEW_PORT:-4023}"
+SAIL_PRICER_PORT="${SAIL_PRICER_PORT:-4020}"
+SAIL_TRADERX_FIXTURE="${SAIL_DIR}/runtime-cache/FDC3-Sail/packages/sail-web/fixtures/traderx-appd.json"
+SAIL_TOOLBOX_APPD_URL="${SAIL_TOOLBOX_APPD_URL:-http://localhost:4005/static/generated/fdc3-example-apps.json}"
 
 WITH_SAIL=0
 K8S_PROVIDER="${K8S_PROVIDER:-kind}"
@@ -103,14 +107,18 @@ http_code_for() {
 echo
 printf "%-24s %-8s %s\n" "endpoint" "http" "url"
 printf "%-24s %-8s %s\n" "------------------------" "--------" "---"
-printf "%-24s %-8s %s\n" "sail-ui" "$(http_code_for "http://localhost:${SAIL_HTTP_PORT}/html/")" "http://localhost:${SAIL_HTTP_PORT}/html/"
+printf "%-24s %-8s %s\n" "sail-ui" "$(http_code_for "http://localhost:${SAIL_HTTP_PORT}/")" "http://localhost:${SAIL_HTTP_PORT}/"
+printf "%-24s %-8s %s\n" "traderx-launcher" "$(http_code_for "http://localhost:${SAIL_INTENT_LAUNCHER_PORT}/")" "http://localhost:${SAIL_INTENT_LAUNCHER_PORT}/"
+printf "%-24s %-8s %s\n" "tradingview-chart" "$(http_code_for "http://localhost:${SAIL_TRADINGVIEW_PORT}/?mode=chart")" "http://localhost:${SAIL_TRADINGVIEW_PORT}/?mode=chart"
+printf "%-24s %-8s %s\n" "pricer" "$(http_code_for "http://localhost:${SAIL_PRICER_PORT}/")" "http://localhost:${SAIL_PRICER_PORT}/"
+printf "%-24s %-8s %s\n" "fdc3-toolbox-appd" "$(http_code_for "${SAIL_TOOLBOX_APPD_URL}")" "${SAIL_TOOLBOX_APPD_URL}"
 
-if [[ -f "${SAIL_RUNTIME_APPD}" ]]; then
-  app_count="$(rg -o '"appId"\s*:' "${SAIL_RUNTIME_APPD}" | wc -l | tr -d ' ')"
-  traderx_count="$(rg -o '"appId"\s*:\s*"traderx-web"' "${SAIL_RUNTIME_APPD}" | wc -l | tr -d ' ')"
-  echo "[info] sail-appd-file: ${SAIL_RUNTIME_APPD}"
-  echo "[info] sail-appd-app-count: ${app_count}"
-  echo "[info] sail-appd-traderx-records: ${traderx_count}"
+if [[ -f "${SAIL_TRADERX_FIXTURE}" ]]; then
+  app_count="$(rg -o '"appId"\s*:' "${SAIL_TRADERX_FIXTURE}" | wc -l | tr -d ' ')"
+  traderx_count="$(rg -o '"appId"\s*:\s*"traderx-web"' "${SAIL_TRADERX_FIXTURE}" | wc -l | tr -d ' ')"
+  echo "[info] sail-traderx-fixture: ${SAIL_TRADERX_FIXTURE}"
+  echo "[info] sail-traderx-fixture-app-count: ${app_count}"
+  echo "[info] sail-traderx-fixture-traderx-records: ${traderx_count}"
 else
-  echo "[info] sail-appd-file not present yet: ${SAIL_RUNTIME_APPD}"
+  echo "[info] sail-traderx-fixture not present yet: ${SAIL_TRADERX_FIXTURE}"
 fi
