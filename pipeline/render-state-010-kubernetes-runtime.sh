@@ -75,6 +75,30 @@ patch_web_frontend_env_for_ingress() {
   echo "[info] patched web-front-end angular environments for ingress-routed APIs"
 }
 
+install_pricing_order_ux_contract_check() {
+  local generated_scripts_dir="${TARGET_ROOT}/scripts"
+  local contract_script="${ROOT}/scripts/test-web-angular-pricing-ux-contract.sh"
+  local state_test_script="${generated_scripts_dir}/test-state-010-kubernetes-runtime.sh"
+
+  [[ -f "${contract_script}" ]] || {
+    echo "[fail] required file missing for state 010 render: ${contract_script}"
+    exit 1
+  }
+  [[ -f "${state_test_script}" ]] || {
+    echo "[fail] required file missing for state 010 render: ${state_test_script}"
+    exit 1
+  }
+
+  cp "${contract_script}" "${generated_scripts_dir}/test-web-angular-pricing-ux-contract.sh"
+  chmod +x "${generated_scripts_dir}/test-web-angular-pricing-ux-contract.sh"
+
+  if rg -Fq "test-web-angular-pricing-ux-contract.sh" "${state_test_script}"; then
+    return 0
+  fi
+
+  perl -0pi -e 's#("\$\{REPO_ROOT\}/scripts/test-web-angular-baseline-ux-contract\.sh" "\$\{GENERATED_ROOT\}/code/target-generated/web-front-end/angular"\n)#$1echo "[check] web-front-end pricing/order/admin UX inheritance contract"\n"${REPO_ROOT}/scripts/test-web-angular-pricing-ux-contract.sh" "${GENERATED_ROOT}/code/target-generated/web-front-end/angular" --orders\n#' "${state_test_script}"
+}
+
 patch_web_frontend_env_for_ingress
 
 rm -rf "${STATE_DIR}"
@@ -1109,5 +1133,7 @@ EOF
     echo "  - ${component}-service.yaml"
   done < <(jq -r '.components[].name' "${SPEC_JSON}")
 } > "${MANIFEST_DIR}/kustomization.yaml"
+
+install_pricing_order_ux_contract_check
 
 echo "[done] rendered state 010 kubernetes runtime assets into ${STATE_DIR}"
