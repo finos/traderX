@@ -16,7 +16,21 @@ if [[ -z "${STATE_ID}" ]]; then
   exit 1
 fi
 
+require_cmd() {
+  local cmd="$1"
+  if ! command -v "${cmd}" >/dev/null 2>&1; then
+    echo "[fail] required command not found: ${cmd}"
+    echo "[hint] ensure ${cmd} is installed and available on PATH before running state generation"
+    exit 1
+  fi
+}
+
 if (( GEN_DEPTH == 1 )); then
+  require_cmd jq
+  require_cmd node
+  if [[ "${TRADERX_SKIP_LOCKFILE_REFRESH:-0}" != "1" ]]; then
+    require_cmd npm
+  fi
   bash "${ROOT}/pipeline/smoke-dependency-version-targets.sh"
 fi
 
