@@ -1,0 +1,12 @@
+# GHCR image map for 012-platform-convergence-c3
+account-service=ghcr.io/finos/traderx-c3/account-service:latest
+database=ghcr.io/finos/traderx-c3/database:latest
+ingress=ghcr.io/finos/traderx-c3/ingress:latest
+order-matcher=ghcr.io/finos/traderx-c3/order-matcher:latest
+people-service=ghcr.io/finos/traderx-c3/people-service:latest
+position-service=ghcr.io/finos/traderx-c3/position-service:latest
+price-publisher=ghcr.io/finos/traderx-c3/price-publisher:latest
+reference-data=ghcr.io/finos/traderx-c3/reference-data:latest
+trade-processor=ghcr.io/finos/traderx-c3/trade-processor:latest
+trade-service=ghcr.io/finos/traderx-c3/trade-service:latest
+web-front-end-angular=ghcr.io/finos/traderx-c3/web-front-end-angular:latest

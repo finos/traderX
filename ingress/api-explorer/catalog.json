@@ -1,6 +1,6 @@
 {
-  "generatedAtUtc": "2026-07-22T16:53:32.082Z",
-  "stateId": "011-tilt-kubernetes-dev-loop",
+  "generatedAtUtc": "2026-07-22T17:01:16.799Z",
+  "stateId": "012-platform-convergence-c3",
   "mountPath": "/api/docs",
   "pubSubInspectorEnabled": true,
   "services": [
