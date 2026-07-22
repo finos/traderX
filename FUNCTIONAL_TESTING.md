@@ -1,14 +1,14 @@
 # Functional Testing Guide
 
-State: `004-containerized-compose-runtime`
+State: `005-postgres-database-replacement`
 
 This guide captures intended functional behavior for this generated snapshot branch.
 
 ## What Should Work
 
-- Builds on state `003` by moving runtime to Docker Compose.
-- Uses NGINX ingress (`ingress` service) as the browser/API/WebSocket entrypoint.
-- Preserves baseline functional behavior while changing runtime/ops model.
+- Builds on state `004` and preserves containerized ingress runtime behavior.
+- Replaces H2 runtime database with PostgreSQL container + deterministic init SQL.
+- Preserves baseline REST/event contracts and user-visible behavior.
 
 ## Suggested Functional Validation
 
@@ -20,16 +20,14 @@ This guide captures intended functional behavior for this generated snapshot bra
 ## Smoke Test Commands
 
 ```bash
-ls ./scripts/test-state-*.sh
+./scripts/test-state-005-postgres-database-replacement.sh
 ```
-
-Use the script matching this state id when available.
 
 ## Canonical References
 
-- Spec pack: `specs/004-containerized-compose-runtime`
+- Spec pack: `specs/005-postgres-database-replacement`
 - Runtime guide: [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
 - Snapshot learning guide: [LEARNING.md](./LEARNING.md)
 - Snapshot metadata: [STATE.md](./STATE.md)
 - Canonical Getting Started (main): https://github.com/finos/traderX/blob/main/docs/spec-kit/getting-started-with-traderx.md
-- Canonical SpecKit docs (source commit): https://github.com/finos/traderX/tree/f82792fc8cd1b302a4216d5719c93718e8998c23/docs/spec-kit
+- Canonical SpecKit docs (source commit): https://github.com/finos/traderX/tree/5038ee0a983a5c84584bcefd69d0478a47b95de7/docs/spec-kit

@@ -1,10 +1,10 @@
 {
-  "stateId": "004-containerized-compose-runtime",
-  "stateTitle": "Containerized Compose Runtime (NGINX Ingress)",
-  "stateTrack": "baseline",
-  "generatedAtUtc": "2026-07-22T14:51:07.790Z",
-  "sourceBranch": "code/generated-state-004-containerized-compose-runtime",
-  "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-004-containerized-compose-runtime",
+  "stateId": "005-postgres-database-replacement",
+  "stateTitle": "PostgreSQL Database Replacement",
+  "stateTrack": "architecture",
+  "generatedAtUtc": "2026-07-22T15:16:08.718Z",
+  "sourceBranch": "code/generated-state-005-postgres-database-replacement",
+  "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-005-postgres-database-replacement",
   "lineageLinkUrl": "https://github.com/finos/traderX/blob/main/docs/learning-paths/index.md",
   "apiExplorerUrl": "/api/docs",
   "pubSubInspectorUrl": "/api/docs/pubsub-inspector.html",
@@ -14,6 +14,13 @@
     "pubSubInspector": false
   },
   "previousStates": [
+    {
+      "id": "004-containerized-compose-runtime",
+      "title": "Containerized Compose Runtime (NGINX Ingress)",
+      "sourceBranch": "code/generated-state-004-containerized-compose-runtime",
+      "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-004-containerized-compose-runtime",
+      "summary": "Introduces Containerized Compose Runtime (NGINX Ingress) on the baseline track."
+    },
     {
       "id": "003-agentic-harness-foundation",
       "title": "Agentic Harness Foundation",

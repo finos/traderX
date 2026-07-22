@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This generated codebase is a reproducible runtime snapshot for state `004-containerized-compose-runtime`.
+This generated codebase is a reproducible runtime snapshot for state `005-postgres-database-replacement`.
 
 - Treat this snapshot as generated output; expect regeneration to replace it.
 - Use this branch for local experimentation and runtime validation.
