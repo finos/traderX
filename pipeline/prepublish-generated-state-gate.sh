@@ -18,6 +18,7 @@ ALLOW_MISSING_BRANCHES="${TRADERX_ALLOW_MISSING_GENERATED_BRANCHES:-1}"
 CVSS_THRESHOLD="${TRADERX_CVE_FAIL_ON_CVSS:-5}"
 DEPENDENCY_CHECK_IMAGE="${TRADERX_DEPENDENCY_CHECK_IMAGE:-owasp/dependency-check:latest}"
 DEPENDENCY_CHECK_DATA_DIR="${TRADERX_DEPENDENCY_CHECK_DATA_DIR:-${HOME}/.cache/traderx/dependency-check}"
+DEPENDENCY_CHECK_NO_UPDATE="${TRADERX_DEPENDENCY_CHECK_NO_UPDATE:-0}"
 
 usage() {
   cat <<'USAGE'
@@ -30,6 +31,7 @@ Defaults:
 - Node license scan: enabled
 - Docker image build preflight: enabled
 - generated-branch dependency consistency: enabled (allow-missing-branches=true)
+- Set TRADERX_DEPENDENCY_CHECK_NO_UPDATE=1 to reuse an existing Dependency-Check data directory without NVD updates.
 USAGE
 }
 
@@ -243,6 +245,11 @@ run_dependency_check_local() {
   local report_dir="${TARGET_ROOT}/ci/local-security-reports/${project}"
   mkdir -p "${report_dir}"
 
+  local update_args=()
+  if [[ "${DEPENDENCY_CHECK_NO_UPDATE}" == "1" ]]; then
+    update_args+=(--noupdate)
+  fi
+
   if command -v dependency-check.sh >/dev/null 2>&1; then
     (
       cd "${TARGET_ROOT}"
@@ -254,6 +261,7 @@ run_dependency_check_local() {
         --suppression "${suppression}" \
         --failOnCVSS "${CVSS_THRESHOLD}" \
         --enableRetired \
+        "${update_args[@]}" \
         ${extra_args}
     )
     return 0
@@ -283,6 +291,7 @@ run_dependency_check_local() {
     --suppression "/src/${rel_suppression}" \
     --failOnCVSS "${CVSS_THRESHOLD}" \
     --enableRetired \
+    "${update_args[@]}" \
     ${extra_args}
 }
 
