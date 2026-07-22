@@ -1,5 +1,5 @@
 diff --git a/ci/state-metadata.json b/ci/state-metadata.json
-index e8e9aef..46d12e9 100644
+index c7a95ad..503b81c 100644
 --- a/ci/state-metadata.json
 +++ b/ci/state-metadata.json
 @@ -1,10 +1,11 @@
@@ -31,10 +31,10 @@ index e8e9aef..46d12e9 100644
          "directory": "reference-data",
          "dockerfile": "Dockerfile.compose",
 diff --git a/database/initialSchema.sql b/database/initialSchema.sql
-index ad8e077..2cc0ab5 100644
+index a339ff9..4abff09 100644
 --- a/database/initialSchema.sql
 +++ b/database/initialSchema.sql
-@@ -8,7 +8,14 @@ CREATE TABLE Accounts ( ID INTEGER PRIMARY KEY, DisplayName VARCHAR (50) );
+@@ -9,7 +9,14 @@ CREATE TABLE Accounts ( ID INTEGER PRIMARY KEY, DisplayName VARCHAR (50) );
  CREATE TABLE AccountUsers ( AccountID INTEGER NOT NULL, Username VARCHAR(15) NOT NULL, PRIMARY KEY (AccountID,Username));
  ALTER TABLE AccountUsers ADD FOREIGN KEY (AccountID) References Accounts(ID);
  
@@ -50,7 +50,7 @@ index ad8e077..2cc0ab5 100644
  Alter Table Positions ADD FOREIGN KEY (AccountID) References Accounts(ID);
  
  CREATE TABLE Trades (
-@@ -19,6 +26,7 @@ CREATE TABLE Trades (
+@@ -20,6 +27,7 @@ CREATE TABLE Trades (
    Security VARCHAR (15),
    Side VARCHAR(10) check (Side in ('Buy','Sell')),
    Quantity INTEGER check Quantity > 0,
@@ -58,7 +58,7 @@ index ad8e077..2cc0ab5 100644
    State VARCHAR(20) check (State in ('New', 'Processing', 'Settled', 'Cancelled'))
  );
  Alter Table Trades Add Foreign Key (AccountID) references Accounts(ID);
-@@ -52,13 +60,13 @@ INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user04');
+@@ -70,13 +78,13 @@ INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user04');
  INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user01');
  INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user06');
  
@@ -81,7 +81,7 @@ index ad8e077..2cc0ab5 100644
 +INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, Price, State, AccountID) VALUES('TRADE-52355-AABBCC', NOW(), NOW(), 'BAC', 'Sell', 2400, 41.125, 'Settled', 52355);
 +INSERT into Positions (AccountID, Security, Updated, Quantity, AverageCostBasis) VALUES(52355, 'BAC',NOW(), -2400, 41.125);
 diff --git a/ingress/nginx.traderx.conf.template b/ingress/nginx.traderx.conf.template
-index a1894c3..e5c93d1 100644
+index ef5d1c4..3fd18d9 100644
 --- a/ingress/nginx.traderx.conf.template
 +++ b/ingress/nginx.traderx.conf.template
 @@ -75,6 +75,10 @@ server {
@@ -92,11 +92,8 @@ index a1894c3..e5c93d1 100644
 +        proxy_pass ${PRICE_PUBLISHER_URL};
 +    }
 +
-     location / {
-         proxy_pass ${WEB_FRONTEND_URL};
-         proxy_http_version 1.1;
-         proxy_set_header Upgrade $http_upgrade;
-         proxy_set_header Connection "upgrade";
+     location = /api/docs {
+         return 301 /api/docs/;
      }
 diff --git a/messaging-nats-replacement/README.md b/messaging-nats-replacement/README.md
 deleted file mode 100644
@@ -407,7 +404,7 @@ index 0000000..d585e1f
 +}
 diff --git a/price-publisher/package-lock.json b/price-publisher/package-lock.json
 new file mode 100644
-index 0000000..b486f68
+index 0000000..a234aa7
 --- /dev/null
 +++ b/price-publisher/package-lock.json
 @@ -0,0 +1,969 @@
@@ -1722,10 +1719,10 @@ index 0000000..4957d15
 +});
 diff --git a/pricing-awareness-market-data/README.md b/pricing-awareness-market-data/README.md
 new file mode 100644
-index 0000000..648a189
+index 0000000..fc6642c
 --- /dev/null
 +++ b/pricing-awareness-market-data/README.md
-@@ -0,0 +1,21 @@
+@@ -0,0 +1,22 @@
 +## TraderX State 008 Runtime
 +
 +This directory defines the compose runtime for:
@@ -1752,7 +1749,7 @@ diff --git a/messaging-nats-replacement/docker-compose.yml b/pricing-awareness-m
 similarity index 53%
 rename from messaging-nats-replacement/docker-compose.yml
 rename to pricing-awareness-market-data/docker-compose.yml
-index ba4a919..cc3a0ef 100644
+index 34f0057..d26d6ef 100644
 --- a/messaging-nats-replacement/docker-compose.yml
 +++ b/pricing-awareness-market-data/docker-compose.yml
 @@ -1,4 +1,4 @@
@@ -1869,7 +1866,7 @@ index ba4a919..cc3a0ef 100644
        WEB_FRONTEND_URL: "http://web-front-end-angular:18093/"
      ports:
        - "8080:8080"
-@@ -171,5 +208,80 @@ services:
+@@ -171,5 +208,82 @@ services:
        - people-service
        - nats-broker
  
@@ -3222,10 +3219,10 @@ index 0000000..18604ee
 +      exporters: [prometheus, logging]
 diff --git a/pricing-awareness-market-data/observability/prometheus/prometheus.yml b/pricing-awareness-market-data/observability/prometheus/prometheus.yml
 new file mode 100644
-index 0000000..1ae9556
+index 0000000..b6ba8c5
 --- /dev/null
 +++ b/pricing-awareness-market-data/observability/prometheus/prometheus.yml
-@@ -0,0 +1,47 @@
+@@ -0,0 +1,46 @@
 +global:
 +  scrape_interval: 15s
 +  evaluation_interval: 15s
@@ -3755,7 +3752,7 @@ index b3ad2d3..7c060fe 100644
      return side;
    }
 diff --git a/trade-service/src/main/resources/application.properties b/trade-service/src/main/resources/application.properties
-index ce60435..76aa785 100644
+index fccb4ce..d4d429d 100644
 --- a/trade-service/src/main/resources/application.properties
 +++ b/trade-service/src/main/resources/application.properties
 @@ -5,6 +5,7 @@ spring.threads.virtual.enabled=true
