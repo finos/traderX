@@ -32,7 +32,11 @@ ln -sfn ../.. "${TARGET_ROOT}/generated/code/target-generated"
 
 # Copy process spec needed by uncontainerized harness.
 if [[ -f "${ROOT}/catalog/base-uncontainerized-processes.csv" ]]; then
-  cp "${ROOT}/catalog/base-uncontainerized-processes.csv" "${TARGET_ROOT}/catalog/"
+  source_catalog="${ROOT}/catalog/base-uncontainerized-processes.csv"
+  target_catalog="${TARGET_ROOT}/catalog/base-uncontainerized-processes.csv"
+  if [[ "$(cd "$(dirname "${source_catalog}")" && pwd -P)/$(basename "${source_catalog}")" != "$(cd "$(dirname "${target_catalog}")" && pwd -P)/$(basename "${target_catalog}")" ]]; then
+    cp "${source_catalog}" "${target_catalog}"
+  fi
 fi
 
 # Local helper lib used by some runtime tests.

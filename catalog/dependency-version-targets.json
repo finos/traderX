@@ -2,20 +2,21 @@
   "java": {
     "sourceCompatibility": "21",
     "plugins": {
-      "org.springframework.boot": "3.5.15",
+      "org.springframework.boot": "3.5.16",
       "io.spring.dependency-management": "1.1.7"
     },
     "properties": {
-      "tomcat.version": "10.1.55"
+      "jackson-bom.version": "2.22.1",
+      "tomcat.version": "10.1.57"
     },
     "dependencies": {
       "org.springdoc:springdoc-openapi-starter-webmvc-api": "2.8.17",
-      "org.apache.logging.log4j:log4j-api": "2.26.0",
-      "org.apache.logging.log4j:log4j-to-slf4j": "2.26.0",
+      "org.apache.logging.log4j:log4j-api": "2.26.1",
+      "org.apache.logging.log4j:log4j-to-slf4j": "2.26.1",
       "ch.qos.logback:logback-core": "1.5.34",
       "ch.qos.logback:logback-classic": "1.5.34",
       "org.apache.commons:commons-lang3": "3.20.0",
-      "org.jetbrains.kotlin:kotlin-stdlib": "2.3.20"
+      "org.jetbrains.kotlin:kotlin-stdlib": "2.4.10"
     }
   },
   "gradleWrapper": {
