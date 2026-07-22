@@ -1,0 +1,11 @@
+<form class="d-flex flex-row">
+    <input id="new-account" name="accountname" placeholder="Account name" [(ngModel)]="displayName"
+        class="form-control me-4" type="text" required />
+    <button type="button" class="btn btn-sm btn-primary me-3 account-btn" (click)="add()">
+        {{ account ? 'Update' : 'Add' }} Account
+    </button>
+    <button type="button" class="btn btn-sm btn-secondary me-4" (click)="reset()">Reset</button>
+</form>
+<alert *ngIf="accountResponse" [dismissOnTimeout]="2000" [type]="accountResponse.success ? 'success' : 'danger'"
+    [dismissible]="true" (onClosed)="onCloseAlert()">
+    {{ accountResponse.msg }}</alert>
