@@ -2233,7 +2233,7 @@ index 0000000..641b0bc
 +  implementation 'org.springframework.boot:spring-boot-starter-web'
 +  implementation 'org.springframework.boot:spring-boot-starter-actuator'
 +  runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
-+  runtimeOnly 'org.postgresql:postgresql:42.7.11'
++  runtimeOnly 'org.postgresql:postgresql:42.7.12'
 +  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
 +  implementation('org.json:json:20240303') {
 +    because 'previous versions are affected by multiple CVE'
