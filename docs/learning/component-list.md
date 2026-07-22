@@ -1,11 +1,12 @@
 # Component List
 
-State: `012-platform-convergence-c3`
+State: `013-radius-kubernetes-platform`
 
 | ID | Label | Kind | Description |
 | --- | --- | --- | --- |
-| `developer` | Developer | actor | Iterates locally with fast feedback loops. |
-| `tilt` | Tilt Dev Loop | tooling | Build/deploy/log orchestration for local k8s. |
-| `cluster` | Kubernetes Cluster | boundary | Underlying runtime substrate inherited from state 011. |
+| `developer` | Developer | actor | Operates platform/application definitions through Radius. |
+| `radius` | Radius Control Plane | platform | Application-centric platform abstraction layer. |
+| `appModel` | Radius App Model | component | Declarative app/resource definitions for TraderX. |
+| `cluster` | Kubernetes Cluster | boundary | Underlying runtime substrate inherited from state 012. |
 | `edge` | NGINX Edge Proxy | gateway | Single browser/API entrypoint. |
-| `workloads` | TraderX Workloads | service | Core services remain functionally equivalent to state 009 (C2), carried through state 012 lineage. |
+| `workloads` | TraderX Workloads | service | Core services remain functionally equivalent to state 012. |
