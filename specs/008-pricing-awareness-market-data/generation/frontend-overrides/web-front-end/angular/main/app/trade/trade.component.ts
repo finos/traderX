@@ -1,13 +1,11 @@
 import { Component, OnDestroy, OnInit, TemplateRef } from '@angular/core';
 import { Subject } from 'rxjs';
 import { PortfolioSummary, PriceTick, TradeTicket, Position } from '../model/trade.model';
-import { OrderCreateRequest } from '../model/order.model';
 import { Account } from '../model/account.model';
 import { AccountService } from '../service/account.service';
 import { Stock } from '../model/symbol.model';
 import { SymbolService } from '../service/symbols.service';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
-import { OrderAdminService } from '../service/order-admin.service';
 import { PositionService } from '../service/position.service';
 import { TradeFeedService } from '../service/trade-feed.service';
 
@@ -30,8 +28,6 @@ export class TradeComponent implements OnInit, OnDestroy {
     stocks: Stock[] = [];
     modalRef?: BsModalRef;
     createTicketResponse: any;
-    createOrderResponse: any;
-    activeBlotter: 'trades' | 'orders' = 'trades';
     portfolioSummary: PortfolioSummary = {
         totalMarketValue: 0,
         totalCostBasis: 0,
@@ -47,7 +43,6 @@ export class TradeComponent implements OnInit, OnDestroy {
         totalCostBasis: 0,
         totalPnl: 0
     };
-    selectedOrderSecurity = '';
     allPositions: Position[] = [];
     private readonly marketPriceByTicker = new Map<string, number>();
     private priceStreamUnsubscribeFn?: () => void;
@@ -55,7 +50,6 @@ export class TradeComponent implements OnInit, OnDestroy {
 
     constructor(private accountService: AccountService,
         private symbolService: SymbolService,
-        private orderAdminService: OrderAdminService,
         private positionService: PositionService,
         private tradeFeed: TradeFeedService,
         private modalService: BsModalService) { }
@@ -100,13 +94,6 @@ export class TradeComponent implements OnInit, OnDestroy {
         this.modalRef = this.modalService.show(template);
     }
 
-    openOrderTicket(template: TemplateRef<any>) {
-        if (this.isAllAccountsSelected) {
-            return;
-        }
-        this.modalRef = this.modalService.show(template);
-    }
-
     createTradeTicket(ticket: TradeTicket) {
         if (this.isAllAccountsSelected) {
             this.createTicketResponse = { success: false, message: 'Select a specific account to create a trade.' };
@@ -121,22 +108,6 @@ export class TradeComponent implements OnInit, OnDestroy {
         this.closeTicket();
     }
 
-    createOrderTicket(order: OrderCreateRequest) {
-        if (this.isAllAccountsSelected) {
-            this.createOrderResponse = { success: false, message: 'Select a specific account to create an order.' };
-            return;
-        }
-        this.orderAdminService.createOrder(order).subscribe((response) => {
-            this.createOrderResponse = response;
-            this.activeBlotter = 'orders';
-        });
-        this.closeTicket();
-    }
-
-    onOrderSecuritySelected(security: string) {
-        this.selectedOrderSecurity = String(security || '').trim().toUpperCase();
-    }
-
     closeTicket() {
         this.modalRef?.hide();
     }
@@ -145,17 +116,9 @@ export class TradeComponent implements OnInit, OnDestroy {
         this.createTicketResponse = undefined;
     }
 
-    onCloseOrderAlert() {
-        this.createOrderResponse = undefined;
-    }
-
     onSummaryChange(summary: PortfolioSummary) {
         this.accountSummary = summary;
         this.portfolioSummary = this.isAllAccountsSelected ? this.allAccountsSummary : summary;
-    }
-
-    setBlotterMode(mode: 'trades' | 'orders') {
-        this.activeBlotter = mode;
     }
 
     private setAccount(account: Account) {
@@ -176,7 +139,6 @@ export class TradeComponent implements OnInit, OnDestroy {
     get isAllAccountsSelected(): boolean {
         return (this.accountModel?.id ?? -1) === this.allAccountsOption.id;
     }
-
     ngOnDestroy(): void {
         this.priceStreamUnsubscribeFn?.();
     }

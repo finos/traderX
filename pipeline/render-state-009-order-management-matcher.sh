@@ -104,6 +104,24 @@ ensure_order_matcher_ingress_route() {
   mv "${tmp_file}" "${ingress_file}"
 }
 
+install_pricing_order_ux_contract_check() {
+  local generated_scripts_dir="${TARGET_ROOT}/scripts"
+  local contract_script="${ROOT}/scripts/test-web-angular-pricing-ux-contract.sh"
+  local state_test_script="${generated_scripts_dir}/test-state-009-order-management-matcher.sh"
+
+  require_file "${contract_script}"
+  require_file "${state_test_script}"
+
+  cp "${contract_script}" "${generated_scripts_dir}/test-web-angular-pricing-ux-contract.sh"
+  chmod +x "${generated_scripts_dir}/test-web-angular-pricing-ux-contract.sh"
+
+  if rg -Fq "test-web-angular-pricing-ux-contract.sh" "${state_test_script}"; then
+    return 0
+  fi
+
+  perl -0pi -e 's#(TRADERX_LOCAL_RUNTIME_SCRIPT=1 "\$\{REPO_ROOT\}/scripts/test-web-angular-baseline-ux-contract\.sh" "\$\{GENERATED_ROOT\}/code/target-generated/web-front-end/angular"\n)#$1echo "[check] web-front-end pricing/order/admin UX inheritance contract"\nTRADERX_LOCAL_RUNTIME_SCRIPT=1 "${REPO_ROOT}/scripts/test-web-angular-pricing-ux-contract.sh" "${GENERATED_ROOT}/code/target-generated/web-front-end/angular" --orders\n#' "${state_test_script}"
+}
+
 install_order_matcher_nats_publisher() {
   local order_matcher_root="${TARGET_ROOT}/order-matcher"
   local gradle_file="${order_matcher_root}/build.gradle"
@@ -717,5 +735,7 @@ else
   echo "[fail] frontend override source not found: ${FRONTEND_OVERRIDE_SOURCE_DIR}"
   exit 1
 fi
+
+install_pricing_order_ux_contract_check
 
 echo "[done] rendered state 009 order-management observability refinements into ${STATE_DIR}"
