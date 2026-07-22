@@ -187,18 +187,18 @@ index 9cece80..0e81a6c 100644
  - Service/runtime topology is defined by the source state pack in the upstream repository.
  - This generated directory contains runnable artifacts, not the authoritative architecture source.
 diff --git a/account-service/build.gradle b/account-service/build.gradle
-index 7c23724..5edadfd 100644
+index 2dc2847..df7fee7 100644
 --- a/account-service/build.gradle
 +++ b/account-service/build.gradle
-@@ -18,7 +18,7 @@ repositories {
+@@ -21,7 +21,7 @@ repositories {
  dependencies {
    implementation 'org.springframework.boot:spring-boot-starter-web'
    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 -  implementation 'com.h2database:h2:2.4.240'
 +  implementation 'org.postgresql:postgresql:42.7.11'
    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
- 
-   implementation ('ch.qos.logback:logback-core:1.5.34') {
+   implementation 'org.apache.logging.log4j:log4j-api:2.26.1'
+   implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.26.1'
 diff --git a/account-service/src/main/java/finos/traderx/accountservice/repository/AccountRepository.java b/account-service/src/main/java/finos/traderx/accountservice/repository/AccountRepository.java
 index dc66544..22d0aac 100644
 --- a/account-service/src/main/java/finos/traderx/accountservice/repository/AccountRepository.java
@@ -213,10 +213,13 @@ index dc66544..22d0aac 100644
        account.setId(generatedId);
        return account;
 diff --git a/account-service/src/main/resources/application.properties b/account-service/src/main/resources/application.properties
-index b33d8a4..eedd70d 100644
+index 6562def..f706ac1 100644
 --- a/account-service/src/main/resources/application.properties
 +++ b/account-service/src/main/resources/application.properties
-@@ -4,7 +4,7 @@
+@@ -1,10 +1,10 @@
+ server.port=${ACCOUNT_SERVICE_PORT:18088}
+ server.forward-headers-strategy=framework
+ 
 -spring.datasource.url=jdbc:h2:tcp://${DATABASE_TCP_HOST:localhost}:${DATABASE_TCP_PORT:18082}/${DATABASE_NAME:traderx};CASE_INSENSITIVE_IDENTIFIERS=TRUE
 -spring.datasource.driverClassName=org.h2.Driver
 -spring.datasource.username=${DATABASE_DBUSER:sa}
@@ -229,7 +232,7 @@ index b33d8a4..eedd70d 100644
  
  people.service.url=${PEOPLE_SERVICE_URL:http://${PEOPLE_SERVICE_HOST:localhost}:18089}
 diff --git a/ci/state-metadata.json b/ci/state-metadata.json
-index e787c7b..0835b4c 100644
+index 253cf49..ac5568a 100644
 --- a/ci/state-metadata.json
 +++ b/ci/state-metadata.json
 @@ -1,8 +1,8 @@
@@ -246,23 +249,26 @@ index e787c7b..0835b4c 100644
      "node": [
        "reference-data",
 diff --git a/position-service/build.gradle b/position-service/build.gradle
-index 060d4f8..cddccee 100644
+index 5d22c03..2916884 100644
 --- a/position-service/build.gradle
 +++ b/position-service/build.gradle
-@@ -18,7 +18,7 @@ repositories {
+@@ -21,7 +21,7 @@ repositories {
  dependencies {
    implementation 'org.springframework.boot:spring-boot-starter-web'
    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 -  implementation 'com.h2database:h2:2.4.240'
 +  implementation 'org.postgresql:postgresql:42.7.11'
    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
- 
-   implementation ('ch.qos.logback:logback-core:1.5.34') {
+   implementation 'org.apache.logging.log4j:log4j-api:2.26.1'
+   implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.26.1'
 diff --git a/position-service/src/main/resources/application.properties b/position-service/src/main/resources/application.properties
-index 908d7f3..8e4ca07 100644
+index 25b603d..b8fc779 100644
 --- a/position-service/src/main/resources/application.properties
 +++ b/position-service/src/main/resources/application.properties
-@@ -4,7 +4,7 @@
+@@ -1,10 +1,10 @@
+ server.port=${POSITION_SERVICE_PORT:18090}
+ server.forward-headers-strategy=framework
+ 
 -spring.datasource.url=jdbc:h2:tcp://${DATABASE_TCP_HOST:localhost}:${DATABASE_TCP_PORT:18082}/${DATABASE_NAME:traderx};CASE_INSENSITIVE_IDENTIFIERS=TRUE
 -spring.datasource.driverClassName=org.h2.Driver
 -spring.datasource.username=${DATABASE_DBUSER:sa}
@@ -717,23 +723,26 @@ index ad9fe78..8a93957 100644
  - Scripts in this folder are local-runtime wrappers for the generated codebase.
  - They are designed to run without invoking root pipeline generation.
 diff --git a/trade-processor/build.gradle b/trade-processor/build.gradle
-index 10c246e..b3a7648 100644
+index 3b645d6..5c7966b 100644
 --- a/trade-processor/build.gradle
 +++ b/trade-processor/build.gradle
-@@ -18,7 +18,7 @@ repositories {
+@@ -21,7 +21,7 @@ repositories {
  dependencies {
    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
    implementation 'org.springframework.boot:spring-boot-starter-web'
 -  implementation 'com.h2database:h2:2.4.240'
 +  implementation 'org.postgresql:postgresql:42.7.11'
    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
- 
-   implementation('org.json:json:20240303') {
+   implementation 'org.apache.logging.log4j:log4j-api:2.26.1'
+   implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.26.1'
 diff --git a/trade-processor/src/main/resources/application.properties b/trade-processor/src/main/resources/application.properties
-index 300e3c9..b56e35a 100644
+index b571214..c83a4d5 100644
 --- a/trade-processor/src/main/resources/application.properties
 +++ b/trade-processor/src/main/resources/application.properties
-@@ -4,10 +4,10 @@
+@@ -1,13 +1,13 @@
+ server.port=${TRADE_PROCESSOR_SERVICE_PORT:18091}
+ server.forward-headers-strategy=framework
+ 
 -spring.datasource.url=jdbc:h2:tcp://${DATABASE_TCP_HOST:localhost}:${DATABASE_TCP_PORT:18082}/${DATABASE_NAME:traderx};CASE_INSENSITIVE_IDENTIFIERS=TRUE
 -spring.datasource.driverClassName=org.h2.Driver
 -spring.datasource.username=${DATABASE_DBUSER:sa}
