@@ -2,63 +2,63 @@
 
 This branch is an auto-published generated-code snapshot for FINOS TraderX.
 
-![linux/mac support](https://badgen.net/badge/linux%2Fmac/supported/green?icon=linux) ![windows support](https://badgen.net/badge/windows/supported/green?icon=windows)
+![linux/mac support](https://badgen.net/badge/linux%2Fmac/supported/green?icon=linux) ![windows support](https://badgen.net/badge/windows/not%20supported/red?icon=windows)
 
-- State ID: `003-agentic-harness-foundation`
-- State Title: `Agentic Harness Foundation`
+- State ID: `004-containerized-compose-runtime`
+- State Title: `Containerized Compose Runtime (NGINX Ingress)`
 - Status: `implemented`
-- Suggested Version Tag: `generated/003-agentic-harness-foundation/v1`
+- Suggested Version Tag: `generated/004-containerized-compose-runtime/v1`
 - Source Branch: `main`
-- Source Commit: `12c6802496ea942b30bf6ea182e0d01845f45543`
-- Generated At (UTC): `2026-07-22T13:12:35Z`
+- Source Commit: `f82792fc8cd1b302a4216d5719c93718e8998c23`
+- Generated At (UTC): `2026-07-22T14:55:03Z`
 
 ## State Summary
 
-- Builds on state `002` while preserving uncontainerized edge-proxy runtime behavior.
-- Adds generated repository harness metadata (`AGENTS.md`, `ARCHITECTURE.md`, `CONTRIBUTING.md`).
-- Clarifies contribution flow: durable enhancements belong in upstream specs/state packs.
+- Builds on state `003` by moving runtime to Docker Compose.
+- Uses NGINX ingress (`ingress` service) as the browser/API/WebSocket entrypoint.
+- Preserves baseline functional behavior while changing runtime/ops model.
 
 ## State Lineage
 
 ```mermaid
 flowchart LR
-  S_CUR["003-agentic-harness-foundation (current)"]
+  S_CUR["004-containerized-compose-runtime (current)"]
   style S_CUR fill:#2e7d32,stroke:#1b5e20,color:#ffffff,stroke-width:2px
-  S_PREV_002_edge_proxy_uncontainerized["002-edge-proxy-uncontainerized"] --> S_CUR
-  click S_PREV_002_edge_proxy_uncontainerized href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-002-edge-proxy-uncontainerized" "Open branch"
-  S_CUR --> S_NEXT_004_containerized_compose_runtime["004-containerized-compose-runtime"]
-  click S_NEXT_004_containerized_compose_runtime href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-004-containerized-compose-runtime" "Open branch"
-  click S_CUR href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-003-agentic-harness-foundation" "Open current branch"
+  S_PREV_003_agentic_harness_foundation["003-agentic-harness-foundation"] --> S_CUR
+  click S_PREV_003_agentic_harness_foundation href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-003-agentic-harness-foundation" "Open branch"
+  S_CUR --> S_NEXT_005_postgres_database_replacement["005-postgres-database-replacement"]
+  click S_NEXT_005_postgres_database_replacement href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-005-postgres-database-replacement" "Open branch"
+  click S_CUR href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-004-containerized-compose-runtime" "Open current branch"
 ```
 
 | Direction | State | Branch | Compare |
 | --- | --- | --- | --- |
-| Previous | `002-edge-proxy-uncontainerized` | [code/generated-state-002-edge-proxy-uncontainerized](https://github.com/finos/traderX/tree/code%2Fgenerated-state-002-edge-proxy-uncontainerized) | 🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-002-edge-proxy-uncontainerized...code%2Fgenerated-state-003-agentic-harness-foundation) |
-| Next | `004-containerized-compose-runtime` | [code/generated-state-004-containerized-compose-runtime](https://github.com/finos/traderX/tree/code%2Fgenerated-state-004-containerized-compose-runtime) | 🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-003-agentic-harness-foundation...code%2Fgenerated-state-004-containerized-compose-runtime) |
+| Previous | `003-agentic-harness-foundation` | [code/generated-state-003-agentic-harness-foundation](https://github.com/finos/traderX/tree/code%2Fgenerated-state-003-agentic-harness-foundation) | 🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-003-agentic-harness-foundation...code%2Fgenerated-state-004-containerized-compose-runtime) |
+| Next | `005-postgres-database-replacement` | [code/generated-state-005-postgres-database-replacement](https://github.com/finos/traderX/tree/code%2Fgenerated-state-005-postgres-database-replacement) | 🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-004-containerized-compose-runtime...code%2Fgenerated-state-005-postgres-database-replacement) |
 
 State sets:
-- Previous states: `002-edge-proxy-uncontainerized`
-- Next states: `004-containerized-compose-runtime`
+- Previous states: `003-agentic-harness-foundation`
+- Next states: `005-postgres-database-replacement`
 
 ## Convergence Status
 
-- Convergence state: `false`
-- Convergence level: `none`
-- Lineage role: `prelude`
+- Convergence state: `true`
+- Convergence level: `C0`
+- Lineage role: `canonical`
 - Dotted-line parents: `none`
 - Previous convergence milestone: `none`
-- Next convergence milestone: [004-containerized-compose-runtime](https://github.com/finos/traderX/tree/code%2Fgenerated-state-004-containerized-compose-runtime) (🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-003-agentic-harness-foundation...code%2Fgenerated-state-004-containerized-compose-runtime))
+- Next convergence milestone: [007-observability-lgtm-compose](https://github.com/finos/traderX/tree/code%2Fgenerated-state-007-observability-lgtm-compose) (🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-004-containerized-compose-runtime...code%2Fgenerated-state-007-observability-lgtm-compose))
 
 ### Convergence Neighborhood
 
 ```mermaid
 flowchart LR
-  C_CUR["003-agentic-harness-foundation (current)"]
+  C_CUR["004-containerized-compose-runtime (current)"]
   style C_CUR fill:#2e7d32,stroke:#1b5e20,color:#ffffff,stroke-width:2px
-  C_CUR --> C_NEXT_004_containerized_compose_runtime["004-containerized-compose-runtime"]
-  click C_NEXT_004_containerized_compose_runtime href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-004-containerized-compose-runtime" "Open branch"
-  %% compare: https://github.com/finos/traderX/compare/code%2Fgenerated-state-003-agentic-harness-foundation...code%2Fgenerated-state-004-containerized-compose-runtime
-  click C_CUR href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-003-agentic-harness-foundation" "Open current branch"
+  C_CUR --> C_NEXT_007_observability_lgtm_compose["007-observability-lgtm-compose"]
+  click C_NEXT_007_observability_lgtm_compose href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-007-observability-lgtm-compose" "Open branch"
+  %% compare: https://github.com/finos/traderX/compare/code%2Fgenerated-state-004-containerized-compose-runtime...code%2Fgenerated-state-007-observability-lgtm-compose
+  click C_CUR href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-004-containerized-compose-runtime" "Open current branch"
 ```
 
 ## Runtime Guidance
@@ -66,43 +66,28 @@ flowchart LR
 Run directly from this generated snapshot branch:
 
 ```bash
-./scripts/start-state-003-agentic-harness-foundation-generated.sh
+./scripts/start-state-004-containerized-generated.sh
 ```
 
-```powershell
-./scripts/start-state-003-agentic-harness-foundation-generated.ps1
-```
+UI/ingress endpoint: `http://localhost:8080`
 
-Browser endpoint (via edge proxy): `http://localhost:18080`
-
-State-specific generated metadata:
-
-- `AGENTS.md`
-- `ARCHITECTURE.md`
-- `CONTRIBUTING.md`
-
-Status / stop:
+Stop:
 
 ```bash
-./scripts/status-state-003-agentic-harness-foundation-generated.sh
-./scripts/stop-state-003-agentic-harness-foundation-generated.sh
-```
-
-```powershell
-./scripts/status-state-003-agentic-harness-foundation-generated.ps1
-./scripts/stop-state-003-agentic-harness-foundation-generated.ps1
+./scripts/stop-state-004-containerized-generated.sh
 ```
 
 ## API Explorer
 
-- API explorer (edge): `http://localhost:18080/api/docs`
+- API explorer (ingress): `http://localhost:8080/api/docs`
 
 ## Interactive URLs
 
-- UI (edge): `http://localhost:18080`
-- API explorer (edge): `http://localhost:18080/api/docs`
-- Trade service Swagger (edge): `http://localhost:18080/trade-service/v3/api-docs`
-- Account service Swagger (edge): `http://localhost:18080/account-service/v3/api-docs`
+- UI (ingress): `http://localhost:8080`
+- API explorer (ingress): `http://localhost:8080/api/docs`
+- Trade service Swagger: `http://localhost:18092/v3/api-docs`
+- Account service API sample: `http://localhost:18088/account/22214`
+- Position service health: `http://localhost:18090/health/alive`
 
 
 
@@ -122,12 +107,12 @@ Functional validation guide: [FUNCTIONAL_TESTING.md](./FUNCTIONAL_TESTING.md)
 
 Canonical source-of-truth is maintained in the SpecKit authoring branch, not in this code snapshot branch.
 
-- Feature pack: `specs/003-agentic-harness-foundation`
-- Generation entrypoint: `bash pipeline/generate-state.sh 003-agentic-harness-foundation`
+- Feature pack: `specs/004-containerized-compose-runtime`
+- Generation entrypoint: `bash pipeline/generate-state.sh 004-containerized-compose-runtime`
 - Developer learning guide for this snapshot: [LEARNING.md](./LEARNING.md)
 - Functional validation guide: [FUNCTIONAL_TESTING.md](./FUNCTIONAL_TESTING.md)
 - Snapshot metadata: [STATE.md](./STATE.md), [state.json](./.traderx-state/state.json)
 - Canonical Getting Started (main): https://github.com/finos/traderX/blob/main/docs/spec-kit/getting-started-with-traderx.md
-- Source commit: https://github.com/finos/traderX/commit/12c6802496ea942b30bf6ea182e0d01845f45543
-- Feature pack at source commit: https://github.com/finos/traderX/tree/12c6802496ea942b30bf6ea182e0d01845f45543/specs/003-agentic-harness-foundation
-- SpecKit docs at source commit: https://github.com/finos/traderX/tree/12c6802496ea942b30bf6ea182e0d01845f45543/docs/spec-kit
+- Source commit: https://github.com/finos/traderX/commit/f82792fc8cd1b302a4216d5719c93718e8998c23
+- Feature pack at source commit: https://github.com/finos/traderX/tree/f82792fc8cd1b302a4216d5719c93718e8998c23/specs/004-containerized-compose-runtime
+- SpecKit docs at source commit: https://github.com/finos/traderX/tree/f82792fc8cd1b302a4216d5719c93718e8998c23/docs/spec-kit
