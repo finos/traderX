@@ -1,7 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
+
+if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
+  LOCAL_RUNTIME_SCRIPT="${GENERATED_ROOT}/code/target-generated/scripts/$(basename "${BASH_SOURCE[0]}")"
+  if [[ -x "${LOCAL_RUNTIME_SCRIPT}" ]]; then
+    exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
+  fi
+fi
 
 DELETE_CLUSTER=0
 STOP_TILT=0
@@ -57,5 +65,5 @@ if [[ -n "${MINIKUBE_PROFILE}" ]]; then
   stop_args+=(--minikube-profile "${MINIKUBE_PROFILE}")
 fi
 
-"${ROOT}/scripts/stop-state-010-kubernetes-runtime-generated.sh" "${stop_args[@]}"
+"${REPO_ROOT}/scripts/stop-state-010-kubernetes-runtime-generated.sh" "${stop_args[@]}"
 echo "[done] state 012 stop sequence complete"

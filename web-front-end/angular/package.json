@@ -31,7 +31,8 @@
     "rxjs": "^7.8.1",
     "socket.io-client": "^4.8.3",
     "tslib": "^2.7.0",
-    "zone.js": "^0.15.0"
+    "zone.js": "^0.15.0",
+    "@robmoffat/fdc3-get-agent": "2.2.2-beta.3"
   },
   "overrides": {
     "ws": "8.21.0",
@@ -40,7 +41,10 @@
     "tar": "^7.5.13",
     "uuid": "^14.0.0",
     "qs": "6.15.2",
-    "engine.io": "6.6.9"
+    "engine.io": "6.6.9",
+    "@robmoffat/fdc3-get-agent": {
+      "uuid": "^14.0.0"
+    }
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^20.3.25",

@@ -1,15 +1,16 @@
-import { Component, OnDestroy, OnInit, TemplateRef } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Subject, Subscription } from 'rxjs';
 import { PortfolioSummary, PriceTick, TradeTicket, Position } from '../model/trade.model';
-import { OrderCreateRequest } from '../model/order.model';
 import { Account } from '../model/account.model';
 import { AccountService } from '../service/account.service';
 import { Stock } from '../model/symbol.model';
 import { SymbolService } from '../service/symbols.service';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
-import { OrderAdminService } from '../service/order-admin.service';
 import { PositionService } from '../service/position.service';
 import { TradeFeedService } from '../service/trade-feed.service';
+import { OrderAdminService } from '../service/order-admin.service';
+import { OrderCreateRequest } from '../model/order.model';
+import { Fdc3InteropService, Fdc3InboundEvent } from '../service/fdc3-interop.service';
 
 @Component({
     standalone: false,
@@ -18,6 +19,9 @@ import { TradeFeedService } from '../service/trade-feed.service';
     styleUrls: ['./trade.component.scss']
 })
 export class TradeComponent implements OnInit, OnDestroy {
+    @ViewChild('ticketComponent') tradeTicketTemplate?: TemplateRef<any>;
+    @ViewChild('orderTicketComponent') orderTicketTemplate?: TemplateRef<any>;
+
     private readonly allAccountsOption: Account = {
         id: 0,
         displayName: 'All Accounts'
@@ -47,10 +51,12 @@ export class TradeComponent implements OnInit, OnDestroy {
         totalCostBasis: 0,
         totalPnl: 0
     };
-    selectedOrderSecurity = '';
+    tradeTicketPresetSecurity = '';
+    orderTicketPresetSecurity = '';
     allPositions: Position[] = [];
     private readonly marketPriceByTicker = new Map<string, number>();
-    private priceStreamUnsubscribeFn?: () => void;
+    private priceStreamUnsubscribeFn?: Function;
+    private readonly interopSubscriptions = new Subscription();
     private account = new Subject<Account>();
 
     constructor(private accountService: AccountService,
@@ -58,7 +64,8 @@ export class TradeComponent implements OnInit, OnDestroy {
         private orderAdminService: OrderAdminService,
         private positionService: PositionService,
         private tradeFeed: TradeFeedService,
-        private modalService: BsModalService) { }
+        private modalService: BsModalService,
+        private fdc3Interop: Fdc3InteropService) { }
 
     ngOnInit(): void {
         this.accountService.getAccounts().subscribe((accounts) => {
@@ -70,22 +77,21 @@ export class TradeComponent implements OnInit, OnDestroy {
             this.accountIds = this.realAccounts.map((account) => account.id);
             this.accounts = [this.allAccountsOption, ...this.realAccounts];
             this.setAccount(this.realAccounts[5] ?? this.realAccounts[0] ?? this.allAccountsOption);
-            console.log(this.accounts);
         });
         this.symbolService.getStocks().subscribe((stocks) => this.stocks = stocks);
         this.loadAllPositions();
         this.priceStreamUnsubscribeFn = this.tradeFeed.subscribe('pricing.*', (tick: PriceTick) => {
-            const ticker = this.normalizeTicker(tick?.ticker);
-            if (!ticker || tick.price == null) {
+            if (!tick?.ticker || tick.price == null) {
                 return;
             }
-            this.marketPriceByTicker.set(ticker, Number(tick.price));
+            this.marketPriceByTicker.set(tick.ticker, Number(tick.price));
             this.recomputeAllAccountsSummary();
         });
+
+        this.initializeFdc3Interop();
     }
 
     onAccountChange(account: Account) {
-        console.log('onAccountChange', arguments);
         account && this.setAccount(account);
     }
 
@@ -112,32 +118,40 @@ export class TradeComponent implements OnInit, OnDestroy {
             this.createTicketResponse = { success: false, message: 'Select a specific account to create a trade.' };
             return;
         }
-        console.log('createTradeTicket', ticket);
         this.symbolService.createTicket(ticket).subscribe((response) => {
-            console.log(response);
             this.createTicketResponse = response;
             this.loadAllPositions();
         });
         this.closeTicket();
     }
 
-    createOrderTicket(order: OrderCreateRequest) {
+    createOrderTicket(ticket: OrderCreateRequest) {
         if (this.isAllAccountsSelected) {
             this.createOrderResponse = { success: false, message: 'Select a specific account to create an order.' };
             return;
         }
-        this.orderAdminService.createOrder(order).subscribe((response) => {
-            this.createOrderResponse = response;
-            this.activeBlotter = 'orders';
+        this.orderAdminService.createOrder(ticket).subscribe({
+            next: (response) => {
+                this.createOrderResponse = {
+                    success: true,
+                    message: `Order ${response.orderId} created.`,
+                    payload: response
+                };
+                this.activeBlotter = 'orders';
+            },
+            error: (error) => {
+                this.createOrderResponse = {
+                    success: false,
+                    message: error?.error?.error ?? error?.message ?? 'Failed to create order.'
+                };
+            }
         });
         this.closeTicket();
     }
 
-    onOrderSecuritySelected(security: string) {
-        this.selectedOrderSecurity = String(security || '').trim().toUpperCase();
-    }
-
     closeTicket() {
+        this.tradeTicketPresetSecurity = '';
+        this.orderTicketPresetSecurity = '';
         this.modalRef?.hide();
     }
 
@@ -179,10 +193,18 @@ export class TradeComponent implements OnInit, OnDestroy {
 
     ngOnDestroy(): void {
         this.priceStreamUnsubscribeFn?.();
+        this.interopSubscriptions.unsubscribe();
     }
 
-    private normalizeTicker(ticker: string | undefined): string {
-        return String(ticker || '').trim().toUpperCase();
+    async onSecuritySelected(security: string): Promise<void> {
+        const normalized = String(security || '').trim().toUpperCase();
+        if (!normalized) {
+            return;
+        }
+        const published = await this.fdc3Interop.publishTickerSelection(normalized);
+        if (!published) {
+            console.warn('[fdc3] failed to broadcast instrument context', { ticker: normalized });
+        }
     }
 
     private loadAllPositions() {
@@ -200,10 +222,9 @@ export class TradeComponent implements OnInit, OnDestroy {
         };
 
         for (const position of this.allPositions) {
-            const pricingPosition = position as Position & { averagecostbasis?: number };
-            const quantity = Number(position.quantity ?? 0);
-            const averageCostBasis = Number(pricingPosition.averageCostBasis ?? pricingPosition.averagecostbasis ?? 0);
-            const security = this.normalizeTicker(position.security);
+            const quantity = Number((position as any).quantity ?? 0);
+            const averageCostBasis = Number((position as any).averageCostBasis ?? (position as any).averagecostbasis ?? 0);
+            const security = String((position as any).security ?? '');
             const marketPrice = Number(this.marketPriceByTicker.get(security) ?? averageCostBasis);
             const marketValue = quantity * marketPrice;
             const costBasisValue = quantity * averageCostBasis;
@@ -216,6 +237,55 @@ export class TradeComponent implements OnInit, OnDestroy {
         if (this.isAllAccountsSelected) {
             this.accountSummary = totals;
             this.portfolioSummary = totals;
+        }
+    }
+
+    private initializeFdc3Interop(): void {
+        this.interopSubscriptions.add(
+            this.fdc3Interop.inboundEvents$.subscribe((event) => {
+                this.handleInboundInteropEvent(event);
+            })
+        );
+    }
+
+    private handleInboundInteropEvent(event: Fdc3InboundEvent): void {
+        const normalized = String(event?.ticker || '').trim().toUpperCase();
+        if (!normalized) {
+            return;
+        }
+
+        if (event.action === 'ViewOrders') {
+            this.activeBlotter = 'orders';
+            return;
+        }
+
+        if (event.action === 'TraderX.CreateTradeTicket') {
+            this.activeBlotter = 'trades';
+            this.ensureSpecificAccountSelected();
+            this.tradeTicketPresetSecurity = normalized;
+            if (this.tradeTicketTemplate && !this.isAllAccountsSelected) {
+                this.modalRef = this.modalService.show(this.tradeTicketTemplate);
+            }
+            return;
+        }
+
+        if (event.action === 'TraderX.CreateOrderTicket') {
+            this.activeBlotter = 'orders';
+            this.ensureSpecificAccountSelected();
+            this.orderTicketPresetSecurity = normalized;
+            if (this.orderTicketTemplate && !this.isAllAccountsSelected) {
+                this.modalRef = this.modalService.show(this.orderTicketTemplate);
+            }
+        }
+    }
+
+    private ensureSpecificAccountSelected(): void {
+        if (!this.isAllAccountsSelected) {
+            return;
+        }
+        const firstRealAccount = this.realAccounts[0];
+        if (firstRealAccount) {
+            this.setAccount(firstRealAccount);
         }
     }
 }
