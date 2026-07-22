@@ -300,7 +300,7 @@ run_cve_scan() {
     echo "[warn] skipping CVE dependency scan (--skip-cve-scan)"
     return 0
   fi
-  if [[ "${state_num}" -lt 2 ]]; then
+  if [[ "${state_num_decimal}" -lt 2 ]]; then
     echo "[info] CVE dependency scan not required for pre-CI states"
     return 0
   fi
