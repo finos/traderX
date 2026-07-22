@@ -1,19 +1,26 @@
 {
-  "stateId": "007-observability-lgtm-compose",
-  "stateTitle": "Observability with LGTM on Compose",
-  "stateTrack": "nonfunctional",
-  "generatedAtUtc": "2026-07-22T15:37:40.631Z",
-  "sourceBranch": "code/generated-state-007-observability-lgtm-compose",
-  "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-007-observability-lgtm-compose",
+  "stateId": "008-pricing-awareness-market-data",
+  "stateTitle": "Pricing Awareness and Market Data Streaming",
+  "stateTrack": "functional",
+  "generatedAtUtc": "2026-07-22T15:52:59.808Z",
+  "sourceBranch": "code/generated-state-008-pricing-awareness-market-data",
+  "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-008-pricing-awareness-market-data",
   "lineageLinkUrl": "https://github.com/finos/traderX/blob/main/docs/learning-paths/index.md",
   "apiExplorerUrl": "/api/docs",
   "pubSubInspectorUrl": "/api/docs/pubsub-inspector.html",
   "features": {
     "statusPage": true,
     "apiExplorer": true,
-    "pubSubInspector": false
+    "pubSubInspector": true
   },
   "previousStates": [
+    {
+      "id": "007-observability-lgtm-compose",
+      "title": "Observability with LGTM on Compose",
+      "sourceBranch": "code/generated-state-007-observability-lgtm-compose",
+      "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-007-observability-lgtm-compose",
+      "summary": "Introduces Observability with LGTM on Compose on the nonfunctional track."
+    },
     {
       "id": "006-messaging-nats-replacement",
       "title": "Messaging Layer Replacement with NATS",
@@ -112,6 +119,14 @@
       "url": "/nats-ws",
       "expectedStatuses": [
         400
+      ]
+    },
+    {
+      "id": "price-publisher",
+      "name": "Price Publisher",
+      "url": "/price-publisher/health",
+      "expectedStatuses": [
+        200
       ]
     }
   ]

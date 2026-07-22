@@ -1,11 +1,12 @@
-# Learning Guide For 007-observability-lgtm-compose
+# Learning Guide For 008-pricing-awareness-market-data
 
 This snapshot is code-first output. Canonical intent remains in SpecKit artifacts.
 
 ## Learning Focus
 
-- Review state metadata and runtime instructions.
-- Trace state intent back to canonical SpecKit artifacts.
+- Understand how pricing streams integrate with existing account-scoped event flows.
+- Review trade execution price stamping and position cost-basis aggregation logic.
+- Validate realtime UI valuation behavior (position value, totals, and P&L) under live price ticks.
 
 ## Read In This Snapshot
 
@@ -17,9 +18,9 @@ This snapshot is code-first output. Canonical intent remains in SpecKit artifact
 
 ## Canonical Spec Sources
 
-- Feature pack: `specs/007-observability-lgtm-compose`
+- Feature pack: `specs/008-pricing-awareness-market-data`
 - State docs map route: `/docs/spec-kit/state-docs`
-- Learning guide route: `/docs/learning/state-007-observability-lgtm-compose`
-- Learning guide markdown path in source branch: `docs/learning/state-007-observability-lgtm-compose.md`
-- Source branch feature pack (exact commit): https://github.com/finos/traderX/tree/b2618b7dec311eb402dc670efa5872a9e700a27c/specs/007-observability-lgtm-compose
-- Source branch learning guide (exact commit): https://github.com/finos/traderX/blob/b2618b7dec311eb402dc670efa5872a9e700a27c/docs/learning/state-007-observability-lgtm-compose.md
+- Learning guide route: `/docs/learning/state-008-pricing-awareness-market-data`
+- Learning guide markdown path in source branch: `docs/learning/state-008-pricing-awareness-market-data.md`
+- Source branch feature pack (exact commit): https://github.com/finos/traderX/tree/f218c8e024a7c6adb89437678d03747b60ada083/specs/008-pricing-awareness-market-data
+- Source branch learning guide (exact commit): https://github.com/finos/traderX/blob/f218c8e024a7c6adb89437678d03747b60ada083/docs/learning/state-008-pricing-awareness-market-data.md

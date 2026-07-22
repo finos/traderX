@@ -1,4 +1,4 @@
-name: traderx-state-007
+name: traderx-state-008
 
 services:
   database:
@@ -28,6 +28,7 @@ services:
       MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
       MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
       MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
+      REFERENCE_DATA_SUPPORTED_TICKERS: "${SUPPORTED_TICKERS:-AAPL,MSFT,AMZN,GOOGL,META,NVDA,TSLA,IBM,BAC,C,JPM,GS,MS,UBS,DB,COF,DFS,FNMA,FIS,FNF}"
     ports:
       - "18085:18085"
     depends_on:
@@ -37,11 +38,25 @@ services:
     image: nats:2.14-alpine
     command: ["-c", "/etc/nats/nats.conf"]
     volumes:
-      - ../messaging-nats-replacement/nats/nats.conf:/etc/nats/nats.conf:ro
+      - ./nats/nats.conf:/etc/nats/nats.conf:ro
     ports:
       - "4222:4222"
       - "8222:8222"
       - "8081:8081"
+
+  price-publisher:
+    build:
+      context: ../price-publisher
+      dockerfile: Dockerfile.compose
+    environment:
+      PRICE_PUBLISHER_PORT: "18100"
+      NATS_BROKER_HOST: "nats-broker"
+      PRICE_BOOTSTRAP_MODE: "${PRICE_BOOTSTRAP_MODE:-snapshot}"
+      PRICE_TICKERS: "${SUPPORTED_TICKERS:-AAPL,MSFT,AMZN,GOOGL,META,NVDA,TSLA,IBM,BAC,C,JPM,GS,MS,UBS,DB,COF,DFS,FNMA,FIS,FNF}"
+    ports:
+      - "18100:18100"
+    depends_on:
+      - nats-broker
 
   people-service:
     build:
@@ -135,6 +150,7 @@ services:
       REFERENCE_DATA_HOST: "reference-data"
       PEOPLE_SERVICE_HOST: "people-service"
       NATS_BROKER_HOST: "nats-broker"
+      PRICE_SERVICE_HOST: "price-publisher"
       CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-*}"
       MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,info"
       MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
@@ -146,6 +162,7 @@ services:
       - reference-data
       - people-service
       - nats-broker
+      - price-publisher
       - trade-processor
 
   web-front-end-angular:
@@ -163,6 +180,7 @@ services:
       - position-service
       - people-service
       - nats-broker
+      - price-publisher
 
   ingress:
     build:
@@ -177,6 +195,7 @@ services:
       POSITION_SERVICE_URL: "http://position-service:18090/"
       TRADE_PROCESSOR_URL: "http://trade-processor:18091/"
       TRADE_SERVICE_URL: "http://trade-service:18092/"
+      PRICE_PUBLISHER_URL: "http://price-publisher:18100/"
       WEB_FRONTEND_URL: "http://web-front-end-angular:18093/"
     ports:
       - "8080:8080"
@@ -253,7 +272,7 @@ services:
     image: grafana/grafana:11.1.0
     environment:
       GF_SECURITY_ADMIN_USER: "${TRADERX_GRAFANA_ADMIN_USER:-traderx-admin}"
-      GF_SECURITY_ADMIN_PASSWORD: "${TRADERX_GRAFANA_ADMIN_PASSWORD:-traderx-state-007}"
+      GF_SECURITY_ADMIN_PASSWORD: "${TRADERX_GRAFANA_ADMIN_PASSWORD:-traderx-state-008}"
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_AUTH_ANONYMOUS_ENABLED: "${TRADERX_GRAFANA_ANONYMOUS_ENABLED:-true}"
       GF_AUTH_ANONYMOUS_ORG_ROLE: "${TRADERX_GRAFANA_ANONYMOUS_ORG_ROLE:-Viewer}"

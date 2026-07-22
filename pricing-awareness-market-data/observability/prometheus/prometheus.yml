@@ -35,6 +35,7 @@ scrape_configs:
           - http://trade-processor:18091/system/health
           - http://trade-service:18092/v3/api-docs
           - http://web-front-end-angular:18093/
+          - http://price-publisher:18100/health
           - http://trade-feed:18086/
     relabel_configs:
       - source_labels: [__address__]
