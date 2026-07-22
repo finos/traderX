@@ -1,0 +1,1453 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: observability-grafana-dashboards
+  namespace: traderx
+data:
+  traderx-logs-errors.json: |
+    {
+      "panels": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "lines/s"
+            }
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 0
+          },
+          "id": 1,
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom"
+            }
+          },
+          "targets": [
+            {
+              "expr": "sum by (service) (rate({compose_project=\"traderx-state-009\",service=~\"$service\"}[1m]))",
+              "refId": "A"
+            }
+          ],
+          "title": "Log Throughput by Service",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "lines/s"
+            }
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 0
+          },
+          "id": 2,
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom"
+            }
+          },
+          "targets": [
+            {
+              "expr": "sum by (service) (rate({compose_project=\"traderx-state-009\",service=~\"$service\"} |~ \"(?i)(error|warn|exception|fail)\" [1m]))",
+              "refId": "A"
+            }
+          ],
+          "title": "Error/Warn Throughput by Service",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 24,
+            "x": 0,
+            "y": 8
+          },
+          "id": 3,
+          "options": {
+            "enableLogDetails": true,
+            "showLabels": true,
+            "showTime": true,
+            "wrapLogMessage": true
+          },
+          "targets": [
+            {
+              "expr": "{compose_project=\"traderx-state-009\",service=~\"$service\"}",
+              "refId": "A"
+            }
+          ],
+          "title": "Live Logs (Selected Services)",
+          "type": "logs"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 24,
+            "x": 0,
+            "y": 18
+          },
+          "id": 4,
+          "options": {
+            "enableLogDetails": true,
+            "showLabels": true,
+            "showTime": true,
+            "wrapLogMessage": true
+          },
+          "targets": [
+            {
+              "expr": "{compose_project=\"traderx-state-009\",service=~\"$service\"} |~ \"(?i)(error|warn|exception|fail)\"",
+              "refId": "A"
+            }
+          ],
+          "title": "Error Focus",
+          "type": "logs"
+        }
+      ],
+      "refresh": "10s",
+      "schemaVersion": 39,
+      "tags": [
+        "traderx",
+        "logs",
+        "provisioned"
+      ],
+      "templating": {
+        "list": [
+          {
+            "current": {
+              "text": "All",
+              "value": [
+                "$__all"
+              ]
+            },
+            "datasource": {
+              "type": "loki",
+              "uid": "loki"
+            },
+            "includeAll": true,
+            "label": "Service",
+            "multi": true,
+            "name": "service",
+            "query": "label_values({compose_project=\"traderx-state-009\"}, service)",
+            "type": "query"
+          }
+        ]
+      },
+      "time": {
+        "from": "now-30m",
+        "to": "now"
+      },
+      "timezone": "browser",
+      "title": "TraderX Logs & Errors",
+      "uid": "traderx-logs-errors"
+    }
+  traderx-message-bus-connectivity.json: |
+    {
+      "id": null,
+      "uid": "traderx-message-bus-connectivity",
+      "title": "TraderX Message Bus Connectivity",
+      "tags": [
+        "traderx",
+        "messaging",
+        "health"
+      ],
+      "timezone": "",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "10s",
+      "panels": [
+        {
+          "id": 1,
+          "title": "Message Bus Connectivity (1=Connected)",
+          "type": "timeseries",
+          "gridPos": {
+            "h": 10,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "traderx_messagebus_connected",
+              "legendFormat": "{{component}}/{{role}}",
+              "instant": false,
+              "range": true
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "min": 0,
+              "max": 1,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "value": null,
+                    "color": "red"
+                  },
+                  {
+                    "value": 1,
+                    "color": "green"
+                  }
+                ]
+              },
+              "mappings": []
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi"
+            }
+          }
+        }
+      ],
+      "templating": {
+        "list": []
+      },
+      "annotations": {
+        "list": []
+      },
+      "time": {
+        "from": "now-30m",
+        "to": "now"
+      },
+      "timepicker": {}
+    }
+  traderx-nats-messaging-overview.json: |
+    {
+      "id": null,
+      "uid": "traderx-nats-messaging-overview",
+      "title": "TraderX NATS Messaging Overview",
+      "tags": ["traderx", "nats", "messaging", "provisioned"],
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "10s",
+      "time": { "from": "now-30m", "to": "now" },
+      "panels": [
+        {"id": 1, "type": "stat", "title": "NATS Monitor Endpoint", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 }, "targets": [{ "refId": "A", "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://nats-broker:8222/varz\"})" }], "fieldConfig": {"defaults": {"min": 0, "max": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}}},
+        {"id": 2, "type": "stat", "title": "Ingress NATS-WS Route", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 }, "targets": [{ "refId": "A", "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://ingress:8080/nats-ws\"})" }], "fieldConfig": {"defaults": {"min": 0, "max": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "orange", "value": null}, {"color": "green", "value": 1}]}}}},
+        {"id": 3, "type": "timeseries", "title": "NATS + Gateway Endpoint Latency", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 }, "targets": [{ "refId": "A", "expr": "probe_duration_seconds{job=\"traderx-http-probe\",instance=~\"http://nats-broker:8222/varz|http://ingress:8080/nats-ws\"}" }], "fieldConfig": {"defaults": {"unit": "s", "decimals": 3}}, "options": {"legend": {"displayMode": "table", "placement": "bottom"}}},
+        {"id": 4, "type": "timeseries", "title": "NATS + Messaging Service Log Throughput", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 }, "targets": [{ "refId": "A", "expr": "sum by (service) (rate({compose_project=\"traderx-state-009\",service=~\"nats-broker|trade-service|trade-processor|web-front-end-angular\"}[1m]))" }], "fieldConfig": {"defaults": {"unit": "lines/s"}}, "options": {"legend": {"displayMode": "table", "placement": "bottom"}}},
+        {"id": 5, "type": "logs", "title": "NATS Broker Logs", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 }, "targets": [{ "refId": "A", "expr": "{compose_project=\"traderx-state-009\",service=\"nats-broker\"}" }], "options": {"showLabels": true, "showTime": true, "wrapLogMessage": true, "enableLogDetails": true}},
+        {"id": 6, "type": "logs", "title": "Messaging Errors (Trade/Processor/Web)", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 }, "targets": [{ "refId": "A", "expr": "{compose_project=\"traderx-state-009\",service=~\"trade-service|trade-processor|web-front-end-angular\"} |~ \"(?i)(error|warn|exception|fail|nats|websocket)\"" }], "options": {"showLabels": true, "showTime": true, "wrapLogMessage": true, "enableLogDetails": true}}
+      ]
+    }
+  traderx-observability-control-plane.json: |
+    {
+      "panels": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "max": 1,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "green",
+                    "value": 1
+                  }
+                ]
+              }
+            }
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 0,
+            "y": 0
+          },
+          "id": 1,
+          "targets": [
+            {
+              "expr": "up{job=\"prometheus\"}",
+              "refId": "A"
+            }
+          ],
+          "title": "Prometheus Up",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none"
+            }
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 6,
+            "y": 0
+          },
+          "id": 2,
+          "targets": [
+            {
+              "expr": "sum(up{job=\"otel-collector\"})",
+              "refId": "A"
+            }
+          ],
+          "title": "OTel Collector Targets Up",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "max": 1,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "green",
+                    "value": 1
+                  }
+                ]
+              }
+            }
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 12,
+            "y": 0
+          },
+          "id": 3,
+          "targets": [
+            {
+              "expr": "up{job=\"blackbox-exporter\"}",
+              "refId": "A"
+            }
+          ],
+          "title": "Blackbox Exporter Up",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none"
+            }
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 18,
+            "y": 0
+          },
+          "id": 4,
+          "targets": [
+            {
+              "expr": "sum(otelcol_exporter_queue_size)",
+              "refId": "A"
+            }
+          ],
+          "title": "OTel Exporter Queue Size",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes"
+            }
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 4
+          },
+          "id": 5,
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom"
+            }
+          },
+          "targets": [
+            {
+              "expr": "process_resident_memory_bytes{job=~\"prometheus|blackbox-exporter\"}",
+              "refId": "A"
+            },
+            {
+              "expr": "otelcol_process_memory_rss",
+              "refId": "B"
+            }
+          ],
+          "title": "Observability Process RSS",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none"
+            }
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 4
+          },
+          "id": 6,
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom"
+            }
+          },
+          "targets": [
+            {
+              "expr": "otelcol_exporter_queue_size",
+              "refId": "A"
+            },
+            {
+              "expr": "otelcol_exporter_queue_capacity",
+              "refId": "B"
+            }
+          ],
+          "title": "OTel Exporter Queue (size/capacity)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 24,
+            "x": 0,
+            "y": 12
+          },
+          "id": 7,
+          "options": {
+            "enableLogDetails": true,
+            "showLabels": true,
+            "showTime": true,
+            "wrapLogMessage": true
+          },
+          "targets": [
+            {
+              "expr": "{compose_project=\"traderx-state-009\",service=~\"grafana|loki|tempo|otel-collector|prometheus|promtail\"}",
+              "refId": "A"
+            }
+          ],
+          "title": "Control Plane Logs (Grafana/Loki/Tempo/OTel/Prometheus)",
+          "type": "logs"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 22
+          },
+          "id": 8,
+          "options": {
+            "content": "### Tempo is wired and ready\n- Data source: **Tempo**\n- Open Explore with Tempo selected and run TraceQL search: `{}`\n- In this base state, spans appear once services emit OTLP traces (current stack is ready for that next step).",
+            "mode": "markdown"
+          },
+          "title": "Tempo / Trace Exploration",
+          "type": "text"
+        }
+      ],
+      "refresh": "10s",
+      "schemaVersion": 39,
+      "tags": [
+        "traderx",
+        "observability",
+        "provisioned"
+      ],
+      "time": {
+        "from": "now-30m",
+        "to": "now"
+      },
+      "timezone": "browser",
+      "title": "TraderX Observability Control Plane",
+      "uid": "traderx-obs-control-plane"
+    }
+  traderx-order-management-observability.json: |
+    {
+      "id": null,
+      "uid": "traderx-order-management-observability",
+      "title": "TraderX Order Management Observability",
+      "tags": [
+        "traderx",
+        "orders",
+        "provisioned"
+      ],
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "10s",
+      "time": {
+        "from": "now-30m",
+        "to": "now"
+      },
+      "panels": [
+        {
+          "id": 1,
+          "type": "stat",
+          "title": "Open Orders",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 0,
+            "y": 0
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "max(traderx_orders_open_total)"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "type": "stat",
+          "title": "Unfilled Orders",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 6,
+            "y": 0
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "max(traderx_orders_unfilled_total)"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "type": "timeseries",
+          "title": "Order Events by Type",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 4
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (event) (rate(traderx_order_events_total[5m]))"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom"
+            }
+          }
+        },
+        {
+          "id": 4,
+          "type": "timeseries",
+          "title": "Matcher p95 Latency (5m)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 4
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "histogram_quantile(0.95, sum(rate(traderx_order_match_latency_seconds_bucket[5m])) by (le))"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "s",
+              "decimals": 3
+            }
+          }
+        },
+        {
+          "id": 5,
+          "type": "timeseries",
+          "title": "Pending Orders by Side",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 12
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "traderx_orders_pending_by_side"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom"
+            }
+          }
+        },
+        {
+          "id": 6,
+          "type": "logs",
+          "title": "Order Matcher Logs",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 12
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "{compose_project=\"traderx-state-009\",service=\"order-matcher\"}"
+            }
+          ],
+          "options": {
+            "showLabels": true,
+            "showTime": true,
+            "wrapLogMessage": true,
+            "enableLogDetails": true
+          }
+        }
+      ]
+    }
+  traderx-order-matcher-sli.json: |
+    {
+      "uid": "traderx-order-matcher-sli",
+      "title": "TraderX Order Matcher SLI",
+      "schemaVersion": 39,
+      "refresh": "10s",
+      "tags": ["traderx", "orders", "matcher", "prometheus", "provisioned"],
+      "time": { "from": "now-30m", "to": "now" },
+      "panels": [
+        {
+          "id": 1,
+          "type": "stat",
+          "title": "Open Orders",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 5, "w": 6, "x": 0, "y": 0 },
+          "targets": [{ "refId": "A", "expr": "max(traderx_orders_open_total)" }]
+        },
+        {
+          "id": 2,
+          "type": "stat",
+          "title": "Unfilled Orders",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 5, "w": 6, "x": 6, "y": 0 },
+          "targets": [{ "refId": "A", "expr": "max(traderx_orders_unfilled_total)" }]
+        },
+        {
+          "id": 3,
+          "type": "stat",
+          "title": "Order Matcher Actuator Up",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 5, "w": 6, "x": 12, "y": 0 },
+          "targets": [{ "refId": "A", "expr": "max(up{job=\"traderx-spring-boot-actuator\",instance=~\".*order-matcher.*\"})" }],
+          "fieldConfig": {
+            "defaults": {
+              "min": 0,
+              "max": 1,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "green", "value": 1 }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id": 4,
+          "type": "stat",
+          "title": "Order Matcher HTTP p95 (s)",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 5, "w": 6, "x": 18, "y": 0 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"traderx-spring-boot-actuator\",instance=~\".*order-matcher.*\"}[5m])))"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "s" } }
+        },
+        {
+          "id": 5,
+          "type": "timeseries",
+          "title": "Order Event Rate (5m)",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 5 },
+          "targets": [
+            { "refId": "A", "expr": "sum by (event) (rate(traderx_order_events_total[5m]))" }
+          ],
+          "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+        },
+        {
+          "id": 6,
+          "type": "timeseries",
+          "title": "Matcher Latency p95 (s)",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 5 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "histogram_quantile(0.95, sum by (le) (rate(traderx_order_match_latency_seconds_bucket[5m])))"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "s" } }
+        }
+      ]
+    }
+  traderx-pricing-observability.json: |
+    {
+      "id": null,
+      "uid": "traderx-pricing-observability",
+      "title": "TraderX Pricing + Observability",
+      "tags": ["traderx", "pricing", "observability", "market-data"],
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "10s",
+      "time": {
+        "from": "now-30m",
+        "to": "now"
+      },
+      "panels": [
+        {
+          "id": 1,
+          "type": "timeseries",
+          "title": "Endpoint Probe Success",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "probe_success{job=\"traderx-http-probe\"}",
+              "legendFormat": "{{instance}}"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "type": "timeseries",
+          "title": "Probe P95 Latency (seconds)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "histogram_quantile(0.95, sum by (le, instance) (rate(probe_duration_seconds_bucket{job=\"traderx-http-probe\"}[5m])))",
+              "legendFormat": "{{instance}}"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "type": "stat",
+          "title": "Price Publisher Availability",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": { "h": 6, "w": 8, "x": 0, "y": 8 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://price-publisher:18100/health\"})"
+            }
+          ],
+          "options": {
+            "reduceOptions": {
+              "calcs": ["lastNotNull"],
+              "fields": "",
+              "values": false
+            }
+          }
+        },
+        {
+          "id": 4,
+          "type": "stat",
+          "title": "NATS Monitor Availability",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": { "h": 6, "w": 8, "x": 8, "y": 8 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://nats-broker:8222/varz\"})"
+            }
+          ],
+          "options": {
+            "reduceOptions": {
+              "calcs": ["lastNotNull"],
+              "fields": "",
+              "values": false
+            }
+          }
+        },
+        {
+          "id": 5,
+          "type": "table",
+          "title": "Latest HTTP Status by Endpoint",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": { "h": 6, "w": 8, "x": 16, "y": 8 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "max by (instance) (probe_http_status_code{job=\"traderx-http-probe\"})",
+              "format": "table",
+              "instant": true
+            }
+          ]
+        },
+        {
+          "id": 6,
+          "type": "timeseries",
+          "title": "Container Log Throughput (lines / 5m)",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 14 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (service) (count_over_time({job=\"traderx-docker\", service=~\".+\"}[5m]))"
+            }
+          ]
+        },
+        {
+          "id": 7,
+          "type": "logs",
+          "title": "Price Publisher / Trade Logs",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 14 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "{job=\"traderx-docker\", service=~\"price-publisher|trade-service|trade-processor\"}"
+            }
+          ],
+          "options": {
+            "showLabels": true,
+            "showTime": true,
+            "sortOrder": "Descending"
+          }
+        }
+      ]
+    }
+  traderx-pricing-pipeline-health.json: |
+    {
+      "id": null,
+      "uid": "traderx-pricing-pipeline-health",
+      "title": "TraderX Pricing Pipeline Health",
+      "tags": ["traderx", "pricing", "messaging", "provisioned"],
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "10s",
+      "time": { "from": "now-30m", "to": "now" },
+      "panels": [
+        {"id": 1, "type": "stat", "title": "Price Publisher Health", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 }, "targets": [{ "refId": "A", "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://price-publisher:18100/health\"})" }], "fieldConfig": {"defaults": {"min": 0, "max": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}}},
+        {"id": 2, "type": "stat", "title": "NATS Monitor Health", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 }, "targets": [{ "refId": "A", "expr": "max(probe_success{job=\"traderx-http-probe\",instance=\"http://nats-broker:8222/varz\"})" }], "fieldConfig": {"defaults": {"min": 0, "max": 1, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}}},
+        {"id": 3, "type": "stat", "title": "Pricing Endpoint p95 (5m)", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 }, "targets": [{ "refId": "A", "expr": "quantile_over_time(0.95, probe_duration_seconds{job=\"traderx-http-probe\",instance=\"http://price-publisher:18100/prices/IBM\"}[5m])" }], "fieldConfig": {"defaults": {"unit": "s", "decimals": 3}}},
+        {"id": 4, "type": "stat", "title": "Trade API p95 (5m)", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 }, "targets": [{ "refId": "A", "expr": "quantile_over_time(0.95, probe_duration_seconds{job=\"traderx-http-probe\",instance=\"http://trade-service:18092/v3/api-docs\"}[5m])" }], "fieldConfig": {"defaults": {"unit": "s", "decimals": 3}}},
+        {"id": 5, "type": "timeseries", "title": "Pricing + Trade Endpoints Success", "datasource": { "type": "prometheus", "uid": "prometheus" }, "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 }, "targets": [{ "refId": "A", "expr": "probe_success{job=\"traderx-http-probe\",instance=~\"http://price-publisher:18100/.*|http://trade-service:18092/.*|http://trade-processor:18091/system/health\"}" }], "fieldConfig": {"defaults": {"min": 0, "max": 1}}, "options": {"legend": {"displayMode": "table", "placement": "bottom"}}},
+        {"id": 6, "type": "timeseries", "title": "Pricing Pipeline Log Throughput", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 }, "targets": [{ "refId": "A", "expr": "sum by (service) (rate({compose_project=\"traderx-state-009\",service=~\"price-publisher|trade-service|trade-processor|position-service\"}[1m]))" }], "fieldConfig": {"defaults": {"unit": "lines/s"}}, "options": {"legend": {"displayMode": "table", "placement": "bottom"}}},
+        {"id": 7, "type": "logs", "title": "Pipeline Logs (Price / Trade / Position)", "datasource": { "type": "loki", "uid": "loki" }, "gridPos": { "h": 10, "w": 24, "x": 0, "y": 12 }, "targets": [{ "refId": "A", "expr": "{compose_project=\"traderx-state-009\",service=~\"price-publisher|trade-service|trade-processor|position-service\"}" }], "options": {"showLabels": true, "showTime": true, "wrapLogMessage": true, "enableLogDetails": true}}
+      ]
+    }
+  traderx-runtime-health.json: |
+    {
+      "panels": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "decimals": 2,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 95
+                  },
+                  {
+                    "color": "green",
+                    "value": 99
+                  }
+                ]
+              },
+              "unit": "percent"
+            }
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 0,
+            "y": 0
+          },
+          "id": 1,
+          "targets": [
+            {
+              "expr": "100 * avg_over_time(probe_success{job=\"traderx-http-probe\"}[5m])",
+              "refId": "A"
+            }
+          ],
+          "title": "Endpoint Availability % (5m)",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 1
+                  }
+                ]
+              },
+              "unit": "none"
+            }
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 6,
+            "y": 0
+          },
+          "id": 2,
+          "targets": [
+            {
+              "expr": "count(probe_success{job=\"traderx-http-probe\"} == 0)",
+              "refId": "A"
+            }
+          ],
+          "title": "Failing Endpoints (now)",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none"
+            }
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 12,
+            "y": 0
+          },
+          "id": 3,
+          "targets": [
+            {
+              "expr": "count(probe_success{job=\"traderx-http-probe\"})",
+              "refId": "A"
+            }
+          ],
+          "title": "Monitored Endpoints",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "decimals": 3,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 0.5
+                  },
+                  {
+                    "color": "red",
+                    "value": 1.5
+                  }
+                ]
+              },
+              "unit": "s"
+            }
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 6,
+            "x": 18,
+            "y": 0
+          },
+          "id": 4,
+          "targets": [
+            {
+              "expr": "quantile_over_time(0.95, probe_duration_seconds{job=\"traderx-http-probe\"}[5m])",
+              "refId": "A"
+            }
+          ],
+          "title": "Probe p95 Latency (5m)",
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "max": 1,
+              "min": 0
+            }
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 4
+          },
+          "id": 5,
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom"
+            }
+          },
+          "targets": [
+            {
+              "expr": "probe_success{job=\"traderx-http-probe\"}",
+              "refId": "A"
+            }
+          ],
+          "title": "Endpoint Up/Down by Target",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "decimals": 3,
+              "unit": "s"
+            }
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 4
+          },
+          "id": 6,
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom"
+            }
+          },
+          "targets": [
+            {
+              "expr": "probe_duration_seconds{job=\"traderx-http-probe\"}",
+              "refId": "A"
+            }
+          ],
+          "title": "Probe Duration by Target",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 12
+          },
+          "id": 7,
+          "options": {
+            "showHeader": true
+          },
+          "targets": [
+            {
+              "expr": "probe_success{job=\"traderx-http-probe\"}",
+              "instant": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Current Endpoint Status",
+          "type": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none"
+            }
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 12
+          },
+          "id": 8,
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom"
+            }
+          },
+          "targets": [
+            {
+              "expr": "otelcol_exporter_queue_size",
+              "refId": "A"
+            },
+            {
+              "expr": "otelcol_exporter_queue_capacity",
+              "refId": "B"
+            }
+          ],
+          "title": "Collector Queue Size",
+          "type": "timeseries"
+        }
+      ],
+      "refresh": "10s",
+      "schemaVersion": 39,
+      "tags": [
+        "traderx",
+        "runtime",
+        "provisioned"
+      ],
+      "time": {
+        "from": "now-30m",
+        "to": "now"
+      },
+      "timezone": "browser",
+      "title": "TraderX Runtime Health",
+      "uid": "traderx-runtime-health"
+    }
+  traderx-spring-actuator-overview.json: |
+    {
+      "uid": "traderx-spring-actuator-overview",
+      "title": "TraderX Spring Actuator Overview",
+      "schemaVersion": 39,
+      "refresh": "10s",
+      "tags": ["traderx", "spring", "prometheus", "provisioned"],
+      "time": { "from": "now-30m", "to": "now" },
+      "templating": {
+        "list": [
+          {
+            "name": "instance",
+            "type": "query",
+            "label": "Instance",
+            "datasource": { "type": "prometheus", "uid": "prometheus" },
+            "query": "label_values(up{job=\"traderx-spring-boot-actuator\"}, instance)",
+            "includeAll": true,
+            "multi": true,
+            "current": { "text": "All", "value": ["$__all"] }
+          }
+        ]
+      },
+      "panels": [
+        {
+          "id": 1,
+          "type": "timeseries",
+          "title": "HTTP Request Rate (req/s)",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+          "targets": [
+            { "refId": "A", "expr": "sum by (instance) (rate(http_server_requests_seconds_count{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}[5m]))" }
+          ]
+        },
+        {
+          "id": 2,
+          "type": "timeseries",
+          "title": "HTTP p95 Latency (s)",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+          "targets": [
+            { "refId": "A", "expr": "histogram_quantile(0.95, sum by (instance, le) (rate(http_server_requests_seconds_bucket{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}[5m])))" }
+          ]
+        },
+        {
+          "id": 3,
+          "type": "timeseries",
+          "title": "JVM Heap Used (bytes)",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+          "targets": [
+            { "refId": "A", "expr": "sum by (instance) (jvm_memory_used_bytes{job=\"traderx-spring-boot-actuator\",area=\"heap\",instance=~\"$instance\"})" }
+          ]
+        },
+        {
+          "id": 4,
+          "type": "stat",
+          "title": "Actuator Targets Up",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+          "targets": [
+            { "refId": "A", "expr": "sum(up{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"})" }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "green", "value": 1 }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  traderx-spring-service-sli.json: |
+    {
+      "uid": "traderx-spring-service-sli",
+      "title": "TraderX Spring Service SLI",
+      "schemaVersion": 39,
+      "refresh": "10s",
+      "tags": ["traderx", "spring", "sli", "prometheus", "provisioned"],
+      "time": { "from": "now-30m", "to": "now" },
+      "templating": {
+        "list": [
+          {
+            "name": "instance",
+            "type": "query",
+            "label": "Instance",
+            "datasource": { "type": "prometheus", "uid": "prometheus" },
+            "query": "label_values(up{job=\"traderx-spring-boot-actuator\"}, instance)",
+            "includeAll": true,
+            "multi": true,
+            "current": { "text": "All", "value": ["$__all"] }
+          }
+        ]
+      },
+      "panels": [
+        {
+          "id": 1,
+          "type": "stat",
+          "title": "Scrape Target Availability Ratio",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum(up{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}) / clamp_min(count(up{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}), 1)"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "min": 0,
+              "max": 1,
+              "unit": "percentunit",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "yellow", "value": 0.9 },
+                  { "color": "green", "value": 1.0 }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id": 2,
+          "type": "timeseries",
+          "title": "HTTP 5xx Rate (req/s)",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 6, "w": 18, "x": 6, "y": 0 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "sum by (instance) (rate(http_server_requests_seconds_count{job=\"traderx-spring-boot-actuator\",status=~\"5..\",instance=~\"$instance\"}[5m]))"
+            }
+          ],
+          "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+        },
+        {
+          "id": 3,
+          "type": "timeseries",
+          "title": "Process CPU Usage (%)",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "100 * max by (instance) (process_cpu_usage{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"})"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "percent", "min": 0 } }
+        },
+        {
+          "id": 4,
+          "type": "timeseries",
+          "title": "GC Pause p95 (s)",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "histogram_quantile(0.95, sum by (instance, le) (rate(jvm_gc_pause_seconds_bucket{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"}[5m])))"
+            }
+          ],
+          "fieldConfig": { "defaults": { "unit": "s" } }
+        },
+        {
+          "id": 5,
+          "type": "timeseries",
+          "title": "Live Threads",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "gridPos": { "h": 8, "w": 24, "x": 0, "y": 14 },
+          "targets": [
+            {
+              "refId": "A",
+              "expr": "max by (instance) (jvm_threads_live_threads{job=\"traderx-spring-boot-actuator\",instance=~\"$instance\"})"
+            }
+          ],
+          "options": { "legend": { "displayMode": "table", "placement": "bottom" } }
+        }
+      ]
+    }

@@ -4,67 +4,82 @@ This branch is an auto-published generated-code snapshot for FINOS TraderX.
 
 ![linux/mac support](https://badgen.net/badge/linux%2Fmac/supported/green?icon=linux) ![windows support](https://badgen.net/badge/windows/not%20supported/red?icon=windows)
 
-- State ID: `009-order-management-matcher`
-- State Title: `Order Management and Matcher`
+- State ID: `010-kubernetes-runtime`
+- State Title: `Kubernetes Runtime on C2`
 - Status: `implemented`
-- Suggested Version Tag: `generated/009-order-management-matcher/v1`
+- Suggested Version Tag: `generated/010-kubernetes-runtime/v1`
 - Source Branch: `main`
 - Source Commit: `f60def6eff9b988141d59ae6ad864dfd5bc10ce6`
-- Generated At (UTC): `2026-07-22T16:44:24Z`
+- Generated At (UTC): `2026-07-22T16:51:51Z`
 
 ## State Summary
 
-- Generated code snapshot for TraderX state transition.
+- Builds on state `009` by moving runtime from Docker Compose to Kubernetes (Kind baseline).
+- Uses in-cluster NGINX edge-proxy as browser/API/WebSocket entrypoint at `http://localhost:8080`.
+- Preserves C2 functional behavior while changing runtime orchestration and deployment model.
 
 ## State Lineage
 
 ```mermaid
 flowchart LR
-  S_CUR["009-order-management-matcher (current)"]
+  S_CUR["010-kubernetes-runtime (current)"]
   style S_CUR fill:#2e7d32,stroke:#1b5e20,color:#ffffff,stroke-width:2px
-  S_PREV_008_pricing_awareness_market_data["008-pricing-awareness-market-data"] --> S_CUR
-  click S_PREV_008_pricing_awareness_market_data href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-008-pricing-awareness-market-data" "Open branch"
-  S_CUR --> S_NEXT_010_kubernetes_runtime["010-kubernetes-runtime"]
-  click S_NEXT_010_kubernetes_runtime href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-010-kubernetes-runtime" "Open branch"
-  click S_CUR href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-009-order-management-matcher" "Open current branch"
+  S_PREV_009_order_management_matcher["009-order-management-matcher"] --> S_CUR
+  click S_PREV_009_order_management_matcher href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-009-order-management-matcher" "Open branch"
+  S_CUR --> S_NEXT_011_tilt_kubernetes_dev_loop["011-tilt-kubernetes-dev-loop"]
+  click S_NEXT_011_tilt_kubernetes_dev_loop href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-011-tilt-kubernetes-dev-loop" "Open branch"
+  click S_CUR href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-010-kubernetes-runtime" "Open current branch"
 ```
 
 | Direction | State | Branch | Compare |
 | --- | --- | --- | --- |
-| Previous | `008-pricing-awareness-market-data` | [code/generated-state-008-pricing-awareness-market-data](https://github.com/finos/traderX/tree/code%2Fgenerated-state-008-pricing-awareness-market-data) | 🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-008-pricing-awareness-market-data...code%2Fgenerated-state-009-order-management-matcher) |
-| Next | `010-kubernetes-runtime` | [code/generated-state-010-kubernetes-runtime](https://github.com/finos/traderX/tree/code%2Fgenerated-state-010-kubernetes-runtime) | 🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-009-order-management-matcher...code%2Fgenerated-state-010-kubernetes-runtime) |
+| Previous | `009-order-management-matcher` | [code/generated-state-009-order-management-matcher](https://github.com/finos/traderX/tree/code%2Fgenerated-state-009-order-management-matcher) | 🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-009-order-management-matcher...code%2Fgenerated-state-010-kubernetes-runtime) |
+| Next | `011-tilt-kubernetes-dev-loop` | [code/generated-state-011-tilt-kubernetes-dev-loop](https://github.com/finos/traderX/tree/code%2Fgenerated-state-011-tilt-kubernetes-dev-loop) | 🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-010-kubernetes-runtime...code%2Fgenerated-state-011-tilt-kubernetes-dev-loop) |
 
 State sets:
-- Previous states: `008-pricing-awareness-market-data`
-- Next states: `010-kubernetes-runtime`
+- Previous states: `009-order-management-matcher`
+- Next states: `011-tilt-kubernetes-dev-loop`
 
 ## Convergence Status
 
-- Convergence state: `true`
-- Convergence level: `C2`
+- Convergence state: `false`
+- Convergence level: `none`
 - Lineage role: `canonical`
 - Dotted-line parents: `none`
-- Previous convergence milestone: [007-observability-lgtm-compose](https://github.com/finos/traderX/tree/code%2Fgenerated-state-007-observability-lgtm-compose) (🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-007-observability-lgtm-compose...code%2Fgenerated-state-009-order-management-matcher))
-- Next convergence milestone: [012-platform-convergence-c3](https://github.com/finos/traderX/tree/code%2Fgenerated-state-012-platform-convergence-c3) (🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-009-order-management-matcher...code%2Fgenerated-state-012-platform-convergence-c3))
+- Previous convergence milestone: [009-order-management-matcher](https://github.com/finos/traderX/tree/code%2Fgenerated-state-009-order-management-matcher) (🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-009-order-management-matcher...code%2Fgenerated-state-010-kubernetes-runtime))
+- Next convergence milestone: [012-platform-convergence-c3](https://github.com/finos/traderX/tree/code%2Fgenerated-state-012-platform-convergence-c3) (🔍 [compare](https://github.com/finos/traderX/compare/code%2Fgenerated-state-010-kubernetes-runtime...code%2Fgenerated-state-012-platform-convergence-c3))
 
 ### Convergence Neighborhood
 
 ```mermaid
 flowchart LR
-  C_CUR["009-order-management-matcher (current)"]
+  C_CUR["010-kubernetes-runtime (current)"]
   style C_CUR fill:#2e7d32,stroke:#1b5e20,color:#ffffff,stroke-width:2px
-  C_PREV_007_observability_lgtm_compose["007-observability-lgtm-compose"] --> C_CUR
-  click C_PREV_007_observability_lgtm_compose href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-007-observability-lgtm-compose" "Open branch"
-  %% compare: https://github.com/finos/traderX/compare/code%2Fgenerated-state-007-observability-lgtm-compose...code%2Fgenerated-state-009-order-management-matcher
+  C_PREV_009_order_management_matcher["009-order-management-matcher"] --> C_CUR
+  click C_PREV_009_order_management_matcher href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-009-order-management-matcher" "Open branch"
+  %% compare: https://github.com/finos/traderX/compare/code%2Fgenerated-state-009-order-management-matcher...code%2Fgenerated-state-010-kubernetes-runtime
   C_CUR --> C_NEXT_012_platform_convergence_c3["012-platform-convergence-c3"]
   click C_NEXT_012_platform_convergence_c3 href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-012-platform-convergence-c3" "Open branch"
-  %% compare: https://github.com/finos/traderX/compare/code%2Fgenerated-state-009-order-management-matcher...code%2Fgenerated-state-012-platform-convergence-c3
-  click C_CUR href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-009-order-management-matcher" "Open current branch"
+  %% compare: https://github.com/finos/traderX/compare/code%2Fgenerated-state-010-kubernetes-runtime...code%2Fgenerated-state-012-platform-convergence-c3
+  click C_CUR href "https://github.com/finos/traderX/tree/code%2Fgenerated-state-010-kubernetes-runtime" "Open current branch"
 ```
 
 ## Runtime Guidance
 
-See `RUN_FROM_CLONE.md` for clone-first runtime instructions.
+Run directly from this generated snapshot branch:
+
+```bash
+./scripts/start-state-010-kubernetes-runtime-generated.sh
+```
+
+UI/edge endpoint: `http://localhost:8080`
+
+Status / stop:
+
+```bash
+./scripts/status-state-010-kubernetes-runtime-generated.sh
+./scripts/stop-state-010-kubernetes-runtime-generated.sh
+```
 
 ## API Explorer
 
@@ -74,18 +89,13 @@ See `RUN_FROM_CLONE.md` for clone-first runtime instructions.
 
 - UI (ingress): `http://localhost:8080`
 - API explorer (ingress): `http://localhost:8080/api/docs`
-- Grafana dashboards (ingress): `http://localhost:8080/grafana/`
-- Grafana local admin: `http://localhost:3001`
-- Prometheus: `http://localhost:9090`
-- Order matcher health: `http://localhost:18110/health`
-- Order matcher metrics: `http://localhost:18110/metrics`
+- Trade page: `http://localhost:8080/trade`
+- Account service route: `http://localhost:8080/account-service/account/22214`
+- Position service route: `http://localhost:8080/position-service/positions/22214`
+- Grafana (ingress): `http://localhost:8080/grafana`
+- Prometheus (ingress): `http://localhost:8080/prometheus`
 
-## Grafana Access
 
-- Public dashboards: `http://localhost:8080/grafana/`
-- Local admin URL: `http://localhost:3001`
-- The start script prints the active local admin credential.
-- Default convention: user from `TRADERX_GRAFANA_ADMIN_USER` or `traderx-admin`; password from `TRADERX_GRAFANA_ADMIN_PASSWORD` or `traderx-state-009`.
 
 Detailed clone-first instructions: [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
 Functional validation guide: [FUNCTIONAL_TESTING.md](./FUNCTIONAL_TESTING.md)
@@ -103,12 +113,12 @@ Functional validation guide: [FUNCTIONAL_TESTING.md](./FUNCTIONAL_TESTING.md)
 
 Canonical source-of-truth is maintained in the SpecKit authoring branch, not in this code snapshot branch.
 
-- Feature pack: `specs/009-order-management-matcher`
-- Generation entrypoint: `bash pipeline/generate-state.sh 009-order-management-matcher`
+- Feature pack: `specs/010-kubernetes-runtime`
+- Generation entrypoint: `bash pipeline/generate-state.sh 010-kubernetes-runtime`
 - Developer learning guide for this snapshot: [LEARNING.md](./LEARNING.md)
 - Functional validation guide: [FUNCTIONAL_TESTING.md](./FUNCTIONAL_TESTING.md)
 - Snapshot metadata: [STATE.md](./STATE.md), [state.json](./.traderx-state/state.json)
 - Canonical Getting Started (main): https://github.com/finos/traderX/blob/main/docs/spec-kit/getting-started-with-traderx.md
 - Source commit: https://github.com/finos/traderX/commit/f60def6eff9b988141d59ae6ad864dfd5bc10ce6
-- Feature pack at source commit: https://github.com/finos/traderX/tree/f60def6eff9b988141d59ae6ad864dfd5bc10ce6/specs/009-order-management-matcher
+- Feature pack at source commit: https://github.com/finos/traderX/tree/f60def6eff9b988141d59ae6ad864dfd5bc10ce6/specs/010-kubernetes-runtime
 - SpecKit docs at source commit: https://github.com/finos/traderX/tree/f60def6eff9b988141d59ae6ad864dfd5bc10ce6/docs/spec-kit
