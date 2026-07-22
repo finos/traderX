@@ -1,7 +1,5 @@
-
-
 diff --git a/ci/state-metadata.json b/ci/state-metadata.json
-index 46d12e9..6e929e5 100644
+index 503b81c..b80a8e2 100644
 --- a/ci/state-metadata.json
 +++ b/ci/state-metadata.json
 @@ -1,8 +1,8 @@
@@ -39,10 +37,10 @@ index 46d12e9..6e929e5 100644
          "dockerfile": "Dockerfile.compose",
 diff --git a/order-management-matcher/README.md b/order-management-matcher/README.md
 new file mode 100644
-index 0000000..6d5fff2
+index 0000000..1f04b33
 --- /dev/null
 +++ b/order-management-matcher/README.md
-@@ -0,0 +1,23 @@
+@@ -0,0 +1,24 @@
 +## TraderX State 009 Runtime
 +
 +This directory defines the compose runtime for:
@@ -69,10 +67,10 @@ index 0000000..6d5fff2
 +- Order matcher: `http://localhost:18110/health`
 diff --git a/order-management-matcher/docker-compose.yml b/order-management-matcher/docker-compose.yml
 new file mode 100644
-index 0000000..28c3648
+index 0000000..2a73c5c
 --- /dev/null
 +++ b/order-management-matcher/docker-compose.yml
-@@ -0,0 +1,318 @@
+@@ -0,0 +1,323 @@
 +name: traderx-state-009
 +
 +services:
@@ -589,7 +587,7 @@ index 0000000..cb08448
 +}
 diff --git a/order-management-matcher/observability/grafana/dashboards/traderx-nats-messaging-overview.json b/order-management-matcher/observability/grafana/dashboards/traderx-nats-messaging-overview.json
 new file mode 100644
-index 0000000..e4bf22c
+index 0000000..c580204
 --- /dev/null
 +++ b/order-management-matcher/observability/grafana/dashboards/traderx-nats-messaging-overview.json
 @@ -0,0 +1,19 @@
@@ -888,10 +886,10 @@ index 0000000..13838fe
 +}
 diff --git a/order-management-matcher/observability/grafana/dashboards/traderx-order-management-observability.json b/order-management-matcher/observability/grafana/dashboards/traderx-order-management-observability.json
 new file mode 100644
-index 0000000..64cbf62
+index 0000000..6d7dd13
 --- /dev/null
 +++ b/order-management-matcher/observability/grafana/dashboards/traderx-order-management-observability.json
-@@ -0,0 +1,171 @@
+@@ -0,0 +1,170 @@
 +{
 +  "id": null,
 +  "uid": "traderx-order-management-observability",
@@ -1156,7 +1154,7 @@ index 0000000..3d99a76
 +}
 diff --git a/order-management-matcher/observability/grafana/dashboards/traderx-pricing-observability.json b/order-management-matcher/observability/grafana/dashboards/traderx-pricing-observability.json
 new file mode 100644
-index 0000000..8398cb2
+index 0000000..1e099f9
 --- /dev/null
 +++ b/order-management-matcher/observability/grafana/dashboards/traderx-pricing-observability.json
 @@ -0,0 +1,151 @@
@@ -1313,7 +1311,7 @@ index 0000000..8398cb2
 +}
 diff --git a/order-management-matcher/observability/grafana/dashboards/traderx-pricing-pipeline-health.json b/order-management-matcher/observability/grafana/dashboards/traderx-pricing-pipeline-health.json
 new file mode 100644
-index 0000000..c3cd057
+index 0000000..31945ab
 --- /dev/null
 +++ b/order-management-matcher/observability/grafana/dashboards/traderx-pricing-pipeline-health.json
 @@ -0,0 +1,20 @@
@@ -1969,10 +1967,10 @@ index 0000000..18604ee
 +      exporters: [prometheus, logging]
 diff --git a/order-management-matcher/observability/prometheus/prometheus.yml b/order-management-matcher/observability/prometheus/prometheus.yml
 new file mode 100644
-index 0000000..fa60a9f
+index 0000000..89a9797
 --- /dev/null
 +++ b/order-management-matcher/observability/prometheus/prometheus.yml
-@@ -0,0 +1,56 @@
+@@ -0,0 +1,55 @@
 +global:
 +  scrape_interval: 15s
 +  evaluation_interval: 15s
@@ -2205,17 +2203,17 @@ index 0000000..59e1df4
 +
 diff --git a/order-matcher/build.gradle b/order-matcher/build.gradle
 new file mode 100644
-index 0000000..641b0bc
+index 0000000..ac3802f
 --- /dev/null
 +++ b/order-matcher/build.gradle
-@@ -0,0 +1,35 @@
+@@ -0,0 +1,54 @@
 +plugins {
 +  id 'java'
-+  id 'org.springframework.boot' version '3.5.15'
++  id 'org.springframework.boot' version '3.5.16'
 +  id 'io.spring.dependency-management' version '1.1.7'
 +}
 +
-+ext['tomcat.version'] = '10.1.55'
++ext['tomcat.version'] = '10.1.57'
 +
 +group = 'finos.traderx.order-matcher-specfirst'
 +version = '0.1.0'
@@ -2238,17 +2236,17 @@ index 0000000..641b0bc
 +  implementation('org.json:json:20240303') {
 +    because 'previous versions are affected by multiple CVE'
 +  }
-+  implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.3.20'
++  implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.4.10'
 +  implementation('io.socket:socket.io-client:2.1.2') {
 +    exclude group: 'org.json', module: 'json'
 +  }
 +  implementation 'com.squareup.okhttp3:okhttp:4.12.0'
 +  implementation ('ch.qos.logback:logback-core:1.5.34') {
-+    because 'version brought in by spring boot 3.5.15 affected by CVE-2024-12798'
++    because 'version brought in by spring boot 3.5.16 affected by CVE-2024-12798'
 +  }
 +  implementation 'ch.qos.logback:logback-classic:1.5.34'
-+  implementation 'org.apache.logging.log4j:log4j-api:2.26.0'
-+  implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.26.0'
++  implementation 'org.apache.logging.log4j:log4j-api:2.26.1'
++  implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.26.1'
 +  implementation 'org.apache.commons:commons-lang3:3.20.0'
 +
 +  testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -2329,6 +2327,249 @@ index 0000000..2133b59
 +++ b/order-matcher/settings.gradle
 @@ -0,0 +1 @@
 +rootProject.name = 'order-matcher-specfirst'
+diff --git a/order-matcher/src/main/java/finos/traderx/messaging/Envelope.java b/order-matcher/src/main/java/finos/traderx/messaging/Envelope.java
+new file mode 100644
+index 0000000..825a702
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/messaging/Envelope.java
+@@ -0,0 +1,11 @@
++package finos.traderx.messaging;
++
++import java.util.Date;
++
++public interface Envelope<T> {
++  String getType();
++  String getTopic();
++  T getPayload();
++  Date getDate();
++  String getFrom();
++}
+diff --git a/order-matcher/src/main/java/finos/traderx/messaging/PubSubException.java b/order-matcher/src/main/java/finos/traderx/messaging/PubSubException.java
+new file mode 100644
+index 0000000..760db57
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/messaging/PubSubException.java
+@@ -0,0 +1,16 @@
++package finos.traderx.messaging;
++
++public class PubSubException extends Exception {
++
++  public PubSubException(String message) {
++    super(message);
++  }
++
++  public PubSubException(String message, Throwable throwable) {
++    super(message, throwable);
++  }
++
++  public PubSubException(Throwable throwable) {
++    super(throwable);
++  }
++}
+diff --git a/order-matcher/src/main/java/finos/traderx/messaging/Publisher.java b/order-matcher/src/main/java/finos/traderx/messaging/Publisher.java
+new file mode 100644
+index 0000000..7044c86
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/messaging/Publisher.java
+@@ -0,0 +1,9 @@
++package finos.traderx.messaging;
++
++public interface Publisher<T> {
++  void publish(T message) throws PubSubException;
++  void publish(String topic, T message) throws PubSubException;
++  boolean isConnected();
++  void connect() throws PubSubException;
++  void disconnect() throws PubSubException;
++}
+diff --git a/order-matcher/src/main/java/finos/traderx/messaging/socketio/SocketIOEnvelope.java b/order-matcher/src/main/java/finos/traderx/messaging/socketio/SocketIOEnvelope.java
+new file mode 100644
+index 0000000..b538b56
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/messaging/socketio/SocketIOEnvelope.java
+@@ -0,0 +1,61 @@
++package finos.traderx.messaging.socketio;
++
++import finos.traderx.messaging.Envelope;
++import java.util.Date;
++
++public class SocketIOEnvelope<T> implements Envelope<T> {
++  private String topic;
++  private T payload;
++  private Date date = new Date();
++  private String from;
++  private String type;
++
++  public SocketIOEnvelope() {}
++
++  public SocketIOEnvelope(String topic, T payload) {
++    this.payload = payload;
++    this.topic = topic;
++    this.type = payload.getClass().getSimpleName();
++  }
++
++  public void setType(String type) {
++    this.type = type;
++  }
++
++  public void setPayload(T payload) {
++    this.payload = payload;
++  }
++
++  public void setTopic(String topic) {
++    this.topic = topic;
++  }
++
++  public void setFrom(String from) {
++    this.from = from;
++  }
++
++  @Override
++  public String getType() {
++    return type;
++  }
++
++  @Override
++  public String getTopic() {
++    return topic;
++  }
++
++  @Override
++  public T getPayload() {
++    return payload;
++  }
++
++  @Override
++  public Date getDate() {
++    return date;
++  }
++
++  @Override
++  public String getFrom() {
++    return from;
++  }
++}
+diff --git a/order-matcher/src/main/java/finos/traderx/messaging/socketio/SocketIOJSONPublisher.java b/order-matcher/src/main/java/finos/traderx/messaging/socketio/SocketIOJSONPublisher.java
+new file mode 100644
+index 0000000..84125bd
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/messaging/socketio/SocketIOJSONPublisher.java
+@@ -0,0 +1,116 @@
++package finos.traderx.messaging.socketio;
++
++import com.fasterxml.jackson.annotation.JsonInclude;
++import com.fasterxml.jackson.databind.ObjectMapper;
++import finos.traderx.messaging.PubSubException;
++import finos.traderx.messaging.Publisher;
++import io.socket.client.IO;
++import io.socket.client.Socket;
++import io.socket.emitter.Emitter;
++import java.net.URI;
++import org.json.JSONObject;
++import org.slf4j.LoggerFactory;
++import org.springframework.beans.factory.InitializingBean;
++
++public abstract class SocketIOJSONPublisher<T> implements Publisher<T>, InitializingBean {
++  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
++      .setSerializationInclusion(JsonInclude.Include.NON_NULL);
++
++  protected IO.Options getIOOptions() {
++    return new IO.Options();
++  }
++
++  org.slf4j.Logger log = LoggerFactory.getLogger(this.getClass().getName());
++
++  boolean connected = false;
++  Socket socket;
++  String socketAddress = "http://localhost:3000";
++  String topic = "/default";
++
++  public void setSocketAddress(String addr) {
++    socketAddress = addr;
++  }
++
++  public void setTopic(String topic) {
++    this.topic = topic;
++  }
++
++  @Override
++  public boolean isConnected() {
++    return connected;
++  }
++
++  @Override
++  public void publish(T message) throws PubSubException {
++    publish(topic, message);
++  }
++
++  @Override
++  public void publish(String topic, T message) throws PubSubException {
++    if (!isConnected()) {
++      throw new PubSubException("Cannot send %s on topic %s - not connected".formatted(message, topic));
++    }
++    try {
++      SocketIOEnvelope<T> envelope = new SocketIOEnvelope<>(topic, message);
++      String msgString = OBJECT_MAPPER.writerFor(SocketIOEnvelope.class).writeValueAsString(envelope);
++      JSONObject obj = new JSONObject(msgString);
++      log.debug("PUBLISH->{}", obj);
++      socket.emit("publish", obj);
++    } catch (Exception x) {
++      throw new PubSubException("Unable to publish on topic " + topic, x);
++    }
++  }
++
++  @Override
++  public void disconnect() throws PubSubException {
++    if (socket != null && isConnected()) {
++      socket.disconnect();
++    }
++    socket = null;
++  }
++
++  @Override
++  public void connect() throws PubSubException {
++    if (socket != null) {
++      socket.disconnect();
++    }
++    try {
++      socket = internalConnect(URI.create(socketAddress));
++    } catch (Exception x) {
++      throw new PubSubException("Cannot socket connection at " + socketAddress, x);
++    }
++  }
++
++  protected Socket internalConnect(URI uri) throws Exception {
++    return IO.socket(uri, getIOOptions());
++  }
++
++  @Override
++  public void afterPropertiesSet() throws Exception {
++    connect();
++    socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
++      @Override
++      public void call(Object... args) {
++        SocketIOJSONPublisher.this.connected = true;
++        log.info("Socket Connected {}", args);
++      }
++    });
++
++    socket.on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
++      @Override
++      public void call(Object... args) {
++        SocketIOJSONPublisher.this.connected = false;
++        log.info("Socket Disconnected {}", args);
++      }
++    });
++
++    socket.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
++      @Override
++      public void call(Object... args) {
++        SocketIOJSONPublisher.this.connected = false;
++        log.info("Connection Error {}", args);
++      }
++    });
++    socket.connect();
++  }
++}
 diff --git a/order-matcher/src/main/java/finos/traderx/ordermatcher/OrderMatcherApplication.java b/order-matcher/src/main/java/finos/traderx/ordermatcher/OrderMatcherApplication.java
 new file mode 100644
 index 0000000..6489fc1
@@ -2600,6 +2841,33 @@ index 0000000..866daff
 +    }
 +}
 +
+diff --git a/order-matcher/src/main/java/finos/traderx/ordermatcher/config/PubSubConfig.java b/order-matcher/src/main/java/finos/traderx/ordermatcher/config/PubSubConfig.java
+new file mode 100644
+index 0000000..8cc4445
+--- /dev/null
++++ b/order-matcher/src/main/java/finos/traderx/ordermatcher/config/PubSubConfig.java
+@@ -0,0 +1,21 @@
++package finos.traderx.ordermatcher.config;
++
++import finos.traderx.messaging.Publisher;
++import finos.traderx.messaging.socketio.SocketIOJSONPublisher;
++import finos.traderx.ordermatcher.api.OrderResponse;
++import org.springframework.beans.factory.annotation.Value;
++import org.springframework.context.annotation.Bean;
++import org.springframework.context.annotation.Configuration;
++
++@Configuration
++public class PubSubConfig {
++    @Value("${trade.feed.address}")
++    private String tradeFeedAddress;
++
++    @Bean
++    public Publisher<OrderResponse> orderPublisher() {
++        SocketIOJSONPublisher<OrderResponse> publisher = new SocketIOJSONPublisher<>() {};
++        publisher.setSocketAddress(tradeFeedAddress);
++        return publisher;
++    }
++}
 diff --git a/order-matcher/src/main/java/finos/traderx/ordermatcher/controller/ApiExceptionHandler.java b/order-matcher/src/main/java/finos/traderx/ordermatcher/controller/ApiExceptionHandler.java
 new file mode 100644
 index 0000000..d9e7871
@@ -3539,10 +3807,10 @@ index 0000000..6d9b921
 +logging.level.root=info
 diff --git a/order-matcher/src/test/java/finos/traderx/ordermatcher/OrderMatcherApplicationTests.java b/order-matcher/src/test/java/finos/traderx/ordermatcher/OrderMatcherApplicationTests.java
 new file mode 100644
-index 0000000..06faac4
+index 0000000..2979b4d
 --- /dev/null
 +++ b/order-matcher/src/test/java/finos/traderx/ordermatcher/OrderMatcherApplicationTests.java
-@@ -0,0 +1,20 @@
+@@ -0,0 +1,19 @@
 +package finos.traderx.ordermatcher;
 +
 +import org.junit.jupiter.api.Test;
@@ -3562,11 +3830,45 @@ index 0000000..06faac4
 +    }
 +}
 +
+diff --git a/postgres-database-replacement/postgres-init/initialSchema.sql b/postgres-database-replacement/postgres-init/initialSchema.sql
+index cde3c01..73459d4 100644
+--- a/postgres-database-replacement/postgres-init/initialSchema.sql
++++ b/postgres-database-replacement/postgres-init/initialSchema.sql
+@@ -1,4 +1,5 @@
+ DROP TABLE IF EXISTS trades;
++DROP TABLE IF EXISTS orderbook;
+ DROP TABLE IF EXISTS accountusers;
+ DROP TABLE IF EXISTS positions;
+ DROP TABLE IF EXISTS accounts;
+@@ -38,6 +39,23 @@ CREATE TABLE trades (
+   state VARCHAR(20) CHECK (state in ('New', 'Processing', 'Settled', 'Cancelled'))
+ );
+ 
++CREATE TABLE orderbook (
++  orderid VARCHAR(32) PRIMARY KEY,
++  accountid INTEGER NOT NULL,
++  security VARCHAR(16) NOT NULL,
++  side VARCHAR(16) CHECK (side in ('Buy', 'Sell')),
++  quantity INTEGER NOT NULL CHECK (quantity > 0),
++  remainingquantity INTEGER NOT NULL CHECK (remainingquantity >= 0),
++  limitprice DECIMAL(18,3) NOT NULL,
++  status VARCHAR(24) CHECK (status in ('NEW', 'PARTIALLY_FILLED', 'FILLED', 'CANCELED', 'REJECTED')),
++  createdat TIMESTAMP NOT NULL,
++  updatedat TIMESTAMP NOT NULL,
++  lastexecutionprice DECIMAL(18,3),
++  lastfillquantity INTEGER
++);
++CREATE INDEX idx_orderbook_status ON orderbook(status);
++CREATE INDEX idx_orderbook_updatedat ON orderbook(updatedat);
++
+ CREATE SEQUENCE accounts_seq START WITH 65000 INCREMENT BY 1;
+ 
+ INSERT INTO accounts (id, displayname) VALUES (22214, 'Test Account 20');
 diff --git a/scripts/status-state-008-pricing-awareness-market-data-generated.sh b/scripts/status-state-009-order-management-matcher-generated.sh
 similarity index 60%
 rename from scripts/status-state-008-pricing-awareness-market-data-generated.sh
 rename to scripts/status-state-009-order-management-matcher-generated.sh
-index 93289b9..db391bb 100755
+index b1a45b3..9a32942 100755
 --- a/scripts/status-state-008-pricing-awareness-market-data-generated.sh
 +++ b/scripts/status-state-009-order-management-matcher-generated.sh
 @@ -17,8 +17,9 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
@@ -4070,10 +4372,10 @@ index 906bae4..6c35783 100644
 +})
  export class AppModule { }
 diff --git a/web-front-end/angular/main/app/header/header.component.html b/web-front-end/angular/main/app/header/header.component.html
-index f5543d2..15b31ef 100644
+index 4a12b83..f488f08 100644
 --- a/web-front-end/angular/main/app/header/header.component.html
 +++ b/web-front-end/angular/main/app/header/header.component.html
-@@ -13,4 +13,7 @@
+@@ -45,4 +45,7 @@
      <li class="nav-item">
          <a class="nav-link" routerLink="/account" routerLinkActive="active">Account</a>
      </li>
@@ -4620,10 +4922,10 @@ index 0000000..5cec825
 +}
 diff --git a/web-front-end/angular/main/app/trade/order-ticket/order-ticket.component.ts b/web-front-end/angular/main/app/trade/order-ticket/order-ticket.component.ts
 new file mode 100644
-index 0000000..42c4459
+index 0000000..bd43ab6
 --- /dev/null
 +++ b/web-front-end/angular/main/app/trade/order-ticket/order-ticket.component.ts
-@@ -0,0 +1,132 @@
+@@ -0,0 +1,133 @@
 +import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 +import { PriceTick } from 'main/app/model/trade.model';
 +import { Stock } from 'main/app/model/symbol.model';
@@ -4784,10 +5086,10 @@ index 9a5446c..4cdf5cc 100644
      CommonModule,
      AgGridModule,
 diff --git a/web-front-end/angular/main/environments/environment.local.ts b/web-front-end/angular/main/environments/environment.local.ts
-index 9b2052e..db263f8 100644
+index 78bc857..27fb705 100644
 --- a/web-front-end/angular/main/environments/environment.local.ts
 +++ b/web-front-end/angular/main/environments/environment.local.ts
-@@ -5,5 +5,6 @@ export const environment = {
+@@ -8,5 +8,6 @@ export const environment: Environment = {
      tradesUrl:          `//${window.location.host}/trade-service/trade/`,
      positionsUrl:       `//${window.location.host}/position-service`,
      peopleUrl:          `//${window.location.host}/people-service`,
@@ -4795,10 +5097,10 @@ index 9b2052e..db263f8 100644
      tradeFeedUrl:       `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/nats-ws`
  };
 diff --git a/web-front-end/angular/main/environments/environment.prod.ts b/web-front-end/angular/main/environments/environment.prod.ts
-index b884df5..e462b21 100644
+index 08b7774..60e3498 100644
 --- a/web-front-end/angular/main/environments/environment.prod.ts
 +++ b/web-front-end/angular/main/environments/environment.prod.ts
-@@ -5,5 +5,6 @@ export const environment = {
+@@ -7,5 +7,6 @@ export const environment: Environment = {
      tradesUrl:          `//${window.location.host}/trade-service/trade/`,
      positionsUrl:       `//${window.location.host}/position-service`,
      peopleUrl:          `//${window.location.host}/people-service`,
@@ -4806,351 +5108,14 @@ index b884df5..e462b21 100644
      tradeFeedUrl:       `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/nats-ws`
  };
 diff --git a/web-front-end/angular/main/environments/environment.ts b/web-front-end/angular/main/environments/environment.ts
-index 9b2052e..db263f8 100644
+index 6b880f2..721ebd9 100644
 --- a/web-front-end/angular/main/environments/environment.ts
 +++ b/web-front-end/angular/main/environments/environment.ts
-@@ -5,5 +5,6 @@ export const environment = {
+@@ -11,6 +11,7 @@ export const environment: Environment = {
      tradesUrl:          `//${window.location.host}/trade-service/trade/`,
      positionsUrl:       `//${window.location.host}/position-service`,
      peopleUrl:          `//${window.location.host}/people-service`,
 +    orderMatcherUrl:    `//${window.location.host}/order-matcher`,
      tradeFeedUrl:       `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/nats-ws`
  };
-diff --git a/database/initialSchema.sql b/database/initialSchema.sql
-index d568f5e..7a4d25f 100644
---- a/database/initialSchema.sql
-+++ b/database/initialSchema.sql
-@@ -1,4 +1,5 @@
- Drop Table Trades IF EXISTS;
-+Drop Table OrderBook IF EXISTS;
- Drop Table AccountUsers IF EXISTS;
- Drop Table Positions IF EXISTS;
- Drop Table Accounts IF EXISTS;
-@@ -29,6 +30,22 @@ CREATE TABLE Trades (
- );
- Alter Table Trades Add Foreign Key (AccountID) references Accounts(ID);
  
-+CREATE TABLE OrderBook (
-+  OrderId VARCHAR(32) PRIMARY KEY,
-+  AccountId INTEGER NOT NULL,
-+  Security VARCHAR(16) NOT NULL,
-+  Side VARCHAR(16) check (Side in ('Buy','Sell')),
-+  Quantity INTEGER NOT NULL check (Quantity > 0),
-+  RemainingQuantity INTEGER NOT NULL check (RemainingQuantity >= 0),
-+  LimitPrice DECIMAL(18,3) NOT NULL,
-+  Status VARCHAR(24) check (Status in ('NEW', 'PARTIALLY_FILLED', 'FILLED', 'CANCELED', 'REJECTED')),
-+  CreatedAt TIMESTAMP NOT NULL,
-+  UpdatedAt TIMESTAMP NOT NULL,
-+  LastExecutionPrice DECIMAL(18,3),
-+  LastFillQuantity INTEGER
-+);
-+CREATE INDEX idx_orderbook_status ON OrderBook(Status);
-+CREATE INDEX idx_orderbook_updatedat ON OrderBook(UpdatedAt);
-+
- CREATE SEQUENCE ACCOUNTS_SEQ start with 65000 INCREMENT BY 1;
- 
- INSERT into Accounts (ID, DisplayName) VALUES (22214, 'Test Account 20');
-diff --git a/postgres-database-replacement/postgres-init/initialSchema.sql b/postgres-database-replacement/postgres-init/initialSchema.sql
-index bb0f4e7..f255e07 100644
---- a/postgres-database-replacement/postgres-init/initialSchema.sql
-+++ b/postgres-database-replacement/postgres-init/initialSchema.sql
-@@ -1,4 +1,5 @@
- DROP TABLE IF EXISTS trades;
-+DROP TABLE IF EXISTS orderbook;
- DROP TABLE IF EXISTS accountusers;
- DROP TABLE IF EXISTS positions;
- DROP TABLE IF EXISTS accounts;
-@@ -33,6 +34,22 @@ CREATE TABLE trades (
-   state VARCHAR(20) CHECK (state in ('New', 'Processing', 'Settled', 'Cancelled'))
- );
- 
-+CREATE TABLE orderbook (
-+  orderid VARCHAR(32) PRIMARY KEY,
-+  accountid INTEGER NOT NULL,
-+  security VARCHAR(16) NOT NULL,
-+  side VARCHAR(16) CHECK (side in ('Buy', 'Sell')),
-+  quantity INTEGER NOT NULL CHECK (quantity > 0),
-+  remainingquantity INTEGER NOT NULL CHECK (remainingquantity >= 0),
-+  limitprice DECIMAL(18,3) NOT NULL,
-+  status VARCHAR(24) CHECK (status in ('NEW', 'PARTIALLY_FILLED', 'FILLED', 'CANCELED', 'REJECTED')),
-+  createdat TIMESTAMP NOT NULL,
-+  updatedat TIMESTAMP NOT NULL,
-+  lastexecutionprice DECIMAL(18,3),
-+  lastfillquantity INTEGER
-+);
-+CREATE INDEX idx_orderbook_status ON orderbook(status);
-+CREATE INDEX idx_orderbook_updatedat ON orderbook(updatedat);
-+
- CREATE SEQUENCE accounts_seq START WITH 65000 INCREMENT BY 1;
- 
- INSERT INTO accounts (id, displayname) VALUES (22214, 'Test Account 20');
-diff --git a/order-matcher/src/main/java/finos/traderx/messaging/Envelope.java b/order-matcher/src/main/java/finos/traderx/messaging/Envelope.java
-new file mode 100644
-index 0000000..825a702
---- /dev/null
-+++ b/order-matcher/src/main/java/finos/traderx/messaging/Envelope.java
-@@ -0,0 +1,11 @@
-+package finos.traderx.messaging;
-+
-+import java.util.Date;
-+
-+public interface Envelope<T> {
-+  String getType();
-+  String getTopic();
-+  T getPayload();
-+  Date getDate();
-+  String getFrom();
-+}
-diff --git a/order-matcher/src/main/java/finos/traderx/messaging/PubSubException.java b/order-matcher/src/main/java/finos/traderx/messaging/PubSubException.java
-new file mode 100644
-index 0000000..760db57
---- /dev/null
-+++ b/order-matcher/src/main/java/finos/traderx/messaging/PubSubException.java
-@@ -0,0 +1,16 @@
-+package finos.traderx.messaging;
-+
-+public class PubSubException extends Exception {
-+
-+  public PubSubException(String message) {
-+    super(message);
-+  }
-+
-+  public PubSubException(String message, Throwable throwable) {
-+    super(message, throwable);
-+  }
-+
-+  public PubSubException(Throwable throwable) {
-+    super(throwable);
-+  }
-+}
-diff --git a/order-matcher/src/main/java/finos/traderx/messaging/Publisher.java b/order-matcher/src/main/java/finos/traderx/messaging/Publisher.java
-new file mode 100644
-index 0000000..7044c86
---- /dev/null
-+++ b/order-matcher/src/main/java/finos/traderx/messaging/Publisher.java
-@@ -0,0 +1,9 @@
-+package finos.traderx.messaging;
-+
-+public interface Publisher<T> {
-+  void publish(T message) throws PubSubException;
-+  void publish(String topic, T message) throws PubSubException;
-+  boolean isConnected();
-+  void connect() throws PubSubException;
-+  void disconnect() throws PubSubException;
-+}
-diff --git a/order-matcher/src/main/java/finos/traderx/messaging/socketio/SocketIOEnvelope.java b/order-matcher/src/main/java/finos/traderx/messaging/socketio/SocketIOEnvelope.java
-new file mode 100644
-index 0000000..b538b56
---- /dev/null
-+++ b/order-matcher/src/main/java/finos/traderx/messaging/socketio/SocketIOEnvelope.java
-@@ -0,0 +1,61 @@
-+package finos.traderx.messaging.socketio;
-+
-+import finos.traderx.messaging.Envelope;
-+import java.util.Date;
-+
-+public class SocketIOEnvelope<T> implements Envelope<T> {
-+  private String topic;
-+  private T payload;
-+  private Date date = new Date();
-+  private String from;
-+  private String type;
-+
-+  public SocketIOEnvelope() {}
-+
-+  public SocketIOEnvelope(String topic, T payload) {
-+    this.payload = payload;
-+    this.topic = topic;
-+    this.type = payload.getClass().getSimpleName();
-+  }
-+
-+  public void setType(String type) {
-+    this.type = type;
-+  }
-+
-+  public void setPayload(T payload) {
-+    this.payload = payload;
-+  }
-+
-+  public void setTopic(String topic) {
-+    this.topic = topic;
-+  }
-+
-+  public void setFrom(String from) {
-+    this.from = from;
-+  }
-+
-+  @Override
-+  public String getType() {
-+    return type;
-+  }
-+
-+  @Override
-+  public String getTopic() {
-+    return topic;
-+  }
-+
-+  @Override
-+  public T getPayload() {
-+    return payload;
-+  }
-+
-+  @Override
-+  public Date getDate() {
-+    return date;
-+  }
-+
-+  @Override
-+  public String getFrom() {
-+    return from;
-+  }
-+}
-diff --git a/order-matcher/src/main/java/finos/traderx/messaging/socketio/SocketIOJSONPublisher.java b/order-matcher/src/main/java/finos/traderx/messaging/socketio/SocketIOJSONPublisher.java
-new file mode 100644
-index 0000000..84125bd
---- /dev/null
-+++ b/order-matcher/src/main/java/finos/traderx/messaging/socketio/SocketIOJSONPublisher.java
-@@ -0,0 +1,116 @@
-+package finos.traderx.messaging.socketio;
-+
-+import com.fasterxml.jackson.annotation.JsonInclude;
-+import com.fasterxml.jackson.databind.ObjectMapper;
-+import finos.traderx.messaging.PubSubException;
-+import finos.traderx.messaging.Publisher;
-+import io.socket.client.IO;
-+import io.socket.client.Socket;
-+import io.socket.emitter.Emitter;
-+import java.net.URI;
-+import org.json.JSONObject;
-+import org.slf4j.LoggerFactory;
-+import org.springframework.beans.factory.InitializingBean;
-+
-+public abstract class SocketIOJSONPublisher<T> implements Publisher<T>, InitializingBean {
-+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-+      .setSerializationInclusion(JsonInclude.Include.NON_NULL);
-+
-+  protected IO.Options getIOOptions() {
-+    return new IO.Options();
-+  }
-+
-+  org.slf4j.Logger log = LoggerFactory.getLogger(this.getClass().getName());
-+
-+  boolean connected = false;
-+  Socket socket;
-+  String socketAddress = "http://localhost:3000";
-+  String topic = "/default";
-+
-+  public void setSocketAddress(String addr) {
-+    socketAddress = addr;
-+  }
-+
-+  public void setTopic(String topic) {
-+    this.topic = topic;
-+  }
-+
-+  @Override
-+  public boolean isConnected() {
-+    return connected;
-+  }
-+
-+  @Override
-+  public void publish(T message) throws PubSubException {
-+    publish(topic, message);
-+  }
-+
-+  @Override
-+  public void publish(String topic, T message) throws PubSubException {
-+    if (!isConnected()) {
-+      throw new PubSubException("Cannot send %s on topic %s - not connected".formatted(message, topic));
-+    }
-+    try {
-+      SocketIOEnvelope<T> envelope = new SocketIOEnvelope<>(topic, message);
-+      String msgString = OBJECT_MAPPER.writerFor(SocketIOEnvelope.class).writeValueAsString(envelope);
-+      JSONObject obj = new JSONObject(msgString);
-+      log.debug("PUBLISH->{}", obj);
-+      socket.emit("publish", obj);
-+    } catch (Exception x) {
-+      throw new PubSubException("Unable to publish on topic " + topic, x);
-+    }
-+  }
-+
-+  @Override
-+  public void disconnect() throws PubSubException {
-+    if (socket != null && isConnected()) {
-+      socket.disconnect();
-+    }
-+    socket = null;
-+  }
-+
-+  @Override
-+  public void connect() throws PubSubException {
-+    if (socket != null) {
-+      socket.disconnect();
-+    }
-+    try {
-+      socket = internalConnect(URI.create(socketAddress));
-+    } catch (Exception x) {
-+      throw new PubSubException("Cannot socket connection at " + socketAddress, x);
-+    }
-+  }
-+
-+  protected Socket internalConnect(URI uri) throws Exception {
-+    return IO.socket(uri, getIOOptions());
-+  }
-+
-+  @Override
-+  public void afterPropertiesSet() throws Exception {
-+    connect();
-+    socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
-+      @Override
-+      public void call(Object... args) {
-+        SocketIOJSONPublisher.this.connected = true;
-+        log.info("Socket Connected {}", args);
-+      }
-+    });
-+
-+    socket.on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
-+      @Override
-+      public void call(Object... args) {
-+        SocketIOJSONPublisher.this.connected = false;
-+        log.info("Socket Disconnected {}", args);
-+      }
-+    });
-+
-+    socket.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
-+      @Override
-+      public void call(Object... args) {
-+        SocketIOJSONPublisher.this.connected = false;
-+        log.info("Connection Error {}", args);
-+      }
-+    });
-+    socket.connect();
-+  }
-+}
-diff --git a/order-matcher/src/main/java/finos/traderx/ordermatcher/config/PubSubConfig.java b/order-matcher/src/main/java/finos/traderx/ordermatcher/config/PubSubConfig.java
-new file mode 100644
-index 0000000..8cc4445
---- /dev/null
-+++ b/order-matcher/src/main/java/finos/traderx/ordermatcher/config/PubSubConfig.java
-@@ -0,0 +1,21 @@
-+package finos.traderx.ordermatcher.config;
-+
-+import finos.traderx.messaging.Publisher;
-+import finos.traderx.messaging.socketio.SocketIOJSONPublisher;
-+import finos.traderx.ordermatcher.api.OrderResponse;
-+import org.springframework.beans.factory.annotation.Value;
-+import org.springframework.context.annotation.Bean;
-+import org.springframework.context.annotation.Configuration;
-+
-+@Configuration
-+public class PubSubConfig {
-+    @Value("${trade.feed.address}")
-+    private String tradeFeedAddress;
-+
-+    @Bean
-+    public Publisher<OrderResponse> orderPublisher() {
-+        SocketIOJSONPublisher<OrderResponse> publisher = new SocketIOJSONPublisher<>() {};
-+        publisher.setSocketAddress(tradeFeedAddress);
-+        return publisher;
-+    }
-+}
