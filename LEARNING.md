@@ -1,12 +1,12 @@
-# Learning Guide For 005-postgres-database-replacement
+# Learning Guide For 006-messaging-nats-replacement
 
 This snapshot is code-first output. Canonical intent remains in SpecKit artifacts.
 
 ## Learning Focus
 
-- Understand focused database-engine replacement on top of stable runtime.
-- Compare datasource and schema-init changes required for PostgreSQL migration.
-- Validate flow compatibility after persistence-layer substitution.
+- Understand focused messaging-layer replacement on top of stable runtime.
+- Compare NATS subject topology to prior Socket.IO channel patterns.
+- Validate realtime behavior parity while changing transport internals.
 
 ## Read In This Snapshot
 
@@ -18,9 +18,9 @@ This snapshot is code-first output. Canonical intent remains in SpecKit artifact
 
 ## Canonical Spec Sources
 
-- Feature pack: `specs/005-postgres-database-replacement`
+- Feature pack: `specs/006-messaging-nats-replacement`
 - State docs map route: `/docs/spec-kit/state-docs`
-- Learning guide route: `/docs/learning/state-005-postgres-database-replacement`
-- Learning guide markdown path in source branch: `docs/learning/state-005-postgres-database-replacement.md`
-- Source branch feature pack (exact commit): https://github.com/finos/traderX/tree/5038ee0a983a5c84584bcefd69d0478a47b95de7/specs/005-postgres-database-replacement
-- Source branch learning guide (exact commit): https://github.com/finos/traderX/blob/5038ee0a983a5c84584bcefd69d0478a47b95de7/docs/learning/state-005-postgres-database-replacement.md
+- Learning guide route: `/docs/learning/state-006-messaging-nats-replacement`
+- Learning guide markdown path in source branch: `docs/learning/state-006-messaging-nats-replacement.md`
+- Source branch feature pack (exact commit): https://github.com/finos/traderX/tree/b2618b7dec311eb402dc670efa5872a9e700a27c/specs/006-messaging-nats-replacement
+- Source branch learning guide (exact commit): https://github.com/finos/traderX/blob/b2618b7dec311eb402dc670efa5872a9e700a27c/docs/learning/state-006-messaging-nats-replacement.md

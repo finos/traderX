@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This generated codebase is a reproducible runtime snapshot for state `005-postgres-database-replacement`.
+This generated codebase is a reproducible runtime snapshot for state `006-messaging-nats-replacement`.
 
 - Treat this snapshot as generated output; expect regeneration to replace it.
 - Use this branch for local experimentation and runtime validation.

@@ -1,10 +1,10 @@
 {
-  "stateId": "005-postgres-database-replacement",
-  "stateTitle": "PostgreSQL Database Replacement",
+  "stateId": "006-messaging-nats-replacement",
+  "stateTitle": "Messaging Layer Replacement with NATS",
   "stateTrack": "architecture",
-  "generatedAtUtc": "2026-07-22T15:16:08.718Z",
-  "sourceBranch": "code/generated-state-005-postgres-database-replacement",
-  "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-005-postgres-database-replacement",
+  "generatedAtUtc": "2026-07-22T15:31:41.468Z",
+  "sourceBranch": "code/generated-state-006-messaging-nats-replacement",
+  "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-006-messaging-nats-replacement",
   "lineageLinkUrl": "https://github.com/finos/traderX/blob/main/docs/learning-paths/index.md",
   "apiExplorerUrl": "/api/docs",
   "pubSubInspectorUrl": "/api/docs/pubsub-inspector.html",
@@ -14,6 +14,13 @@
     "pubSubInspector": false
   },
   "previousStates": [
+    {
+      "id": "005-postgres-database-replacement",
+      "title": "PostgreSQL Database Replacement",
+      "sourceBranch": "code/generated-state-005-postgres-database-replacement",
+      "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-005-postgres-database-replacement",
+      "summary": "Introduces PostgreSQL Database Replacement on the architecture track."
+    },
     {
       "id": "004-containerized-compose-runtime",
       "title": "Containerized Compose Runtime (NGINX Ingress)",
@@ -93,11 +100,11 @@
       ]
     },
     {
-      "id": "trade-feed",
-      "name": "Trade Feed (Socket.IO)",
-      "url": "/socket.io/?EIO=4&transport=polling",
+      "id": "nats-ws",
+      "name": "Message Bus WS Endpoint",
+      "url": "/nats-ws",
       "expectedStatuses": [
-        200
+        400
       ]
     }
   ]

@@ -1,22 +1,22 @@
 # Software Architecture
 
-State: `005-postgres-database-replacement`
-Title: `Architecture (State 005 PostgreSQL Database Replacement)`
+State: `006-messaging-nats-replacement`
+Title: `Architecture (State 006 Messaging NATS Replacement)`
 
 ## Architecture Summary
 
-State 005 replaces H2 database runtime with PostgreSQL while preserving state 004 containerized ingress topology and baseline flows.
+State 006 replaces Socket.IO trade-feed messaging with NATS while preserving state 005 containerized runtime and ingress entry model.
 
 ## Entrypoints
 
 - `ingress` -> `http://localhost:8080`
-- `postgres` -> `postgres://localhost:18083/traderx`
+- `nats-ws` -> `ws://localhost:8080/nats-ws`
 
 ## Notes
 
-- State 005 is an architecture-track branch from state 004.
-- Only database engine/runtime is replaced; functional API and messaging contracts remain stable.
-- H2 web console is removed from runtime expectations in this state.
+- State 006 is an architecture-track branch from state 005.
+- Messaging transport changes to NATS; business behavior remains baseline-compatible.
+- JetStream durability is intentionally deferred to a future state.
 
 ## Diagram
 
@@ -24,18 +24,18 @@ See [Component Diagram](./component-diagram.md).
 
 ## Detailed Architecture (Spec Extract)
 
-# Architecture (State 005 PostgreSQL Database Replacement)
+# Architecture (State 006 Messaging NATS Replacement)
 
-State 005 replaces H2 database runtime with PostgreSQL while preserving state 004 containerized ingress topology and baseline flows.
+State 006 replaces Socket.IO trade-feed messaging with NATS while preserving state 005 containerized runtime and ingress entry model.
 
-- Inherits architectural baseline from: `004-containerized-compose-runtime`
+- Inherits architectural baseline from: `005-postgres-database-replacement`
 - Generated from: `system/architecture.model.json`
 - Canonical flows: `../001-baseline-uncontainerized-parity/system/end-to-end-flows.md`
 
 ## Entry Points
 
 - `ingress`: `http://localhost:8080`
-- `postgres`: `postgres://localhost:18083/traderx`
+- `nats-ws`: `ws://localhost:8080/nats-ws`
 
 ## Architecture Diagram
 
@@ -44,14 +44,14 @@ flowchart LR
   trader["Trader Browser"]
   ingress["NGINX Ingress"]
   web["Web Front End Angular"]
-  referenceData["Reference Data"]
-  tradeFeed["Trade Feed"]
-  people["People Service"]
+  nats["NATS Broker"]
+  tradeService["Trade Service"]
+  tradeProcessor["Trade Processor"]
   account["Account Service"]
   position["Position Service"]
-  tradeProcessor["Trade Processor"]
-  tradeService["Trade Service"]
-  database["PostgreSQL Database"]
+  referenceData["Reference Data"]
+  people["People Service"]
+  database["Database"]
   trader -->|"Single browser entrypoint"| ingress
   ingress -->|"/"| web
   ingress -->|"/account-service"| account
@@ -59,36 +59,37 @@ flowchart LR
   ingress -->|"/trade-service"| tradeService
   ingress -->|"/reference-data"| referenceData
   ingress -->|"/people-service"| people
-  ingress -->|"/trade-feed (WS)"| tradeFeed
+  ingress -->|"/nats-ws (WS upgrade)"| nats
   tradeService -->|"Validate account"| account
   tradeService -->|"Validate ticker"| referenceData
-  tradeService -->|"Publish trade event"| tradeFeed
-  tradeProcessor -->|"Consume/publish account updates"| tradeFeed
+  tradeService -->|"Publish trades.new"| nats
+  tradeProcessor -->|"Consume trades.new, publish account updates"| nats
+  web -->|"Subscribe account-scoped streams"| nats
+  tradeProcessor -->|"Persist trade/position state"| database
+  account -->|"Account persistence"| database
+  position -->|"Query trades/positions"| database
   account -->|"Validate person"| people
-  account -->|"Read/write account data"| database
-  position -->|"Read positions/trades"| database
-  tradeProcessor -->|"Persist processed trades/positions"| database
 ```
 
 ## Node Catalog
 
 | Node | Kind | Label | Notes |
 | --- | --- | --- | --- |
-| `trader` | actor | Trader Browser | Uses Angular UI via ingress. |
-| `ingress` | gateway | NGINX Ingress | Single browser entrypoint for UI + API + websocket. |
-| `web` | frontend | Web Front End Angular | TraderX UI. |
+| `trader` | actor | Trader Browser | Uses Angular UI and receives live updates. |
+| `ingress` | gateway | NGINX Ingress | Routes REST and websocket traffic. |
+| `web` | frontend | Web Front End Angular | Uses nats.ws for account-scoped streams. |
+| `nats` | messaging | NATS Broker | Core pub/sub broker for backend and browser streaming. |
+| `tradeService` | service | Trade Service | Publishes new trade events. |
+| `tradeProcessor` | service | Trade Processor | Consumes and publishes processed/account updates. |
+| `account` | service | Account Service | Account and account-user operations. |
+| `position` | service | Position Service | Trades/positions query endpoints. |
 | `referenceData` | service | Reference Data | Ticker lookup/list. |
-| `tradeFeed` | messaging | Trade Feed | Socket.IO pub/sub layer (unchanged from state 004). |
 | `people` | service | People Service | Identity lookup and validation. |
-| `account` | service | Account Service | Account and account-user operations using PostgreSQL. |
-| `position` | service | Position Service | Trades/positions query operations using PostgreSQL. |
-| `tradeProcessor` | service | Trade Processor | Trade processing and persistence using PostgreSQL. |
-| `tradeService` | service | Trade Service | Trade submission and validation. |
-| `database` | database | PostgreSQL Database | Persistent account/trade/position state. |
+| `database` | database | Database | Persistent account/trade/position state. |
 
 ## State Notes
 
-- State 005 is an architecture-track branch from state 004.
-- Only database engine/runtime is replaced; functional API and messaging contracts remain stable.
-- H2 web console is removed from runtime expectations in this state.
+- State 006 is an architecture-track branch from state 005.
+- Messaging transport changes to NATS; business behavior remains baseline-compatible.
+- JetStream durability is intentionally deferred to a future state.
 
