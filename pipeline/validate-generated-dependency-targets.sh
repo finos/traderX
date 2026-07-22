@@ -66,11 +66,13 @@ extract_json_image_tags() {
 JAVA_BOOT_TARGET="$(jq -er '.java.plugins["org.springframework.boot"]' "${TARGETS_FILE}")"
 JAVA_DEP_MGMT_TARGET="$(jq -er '.java.plugins["io.spring.dependency-management"]' "${TARGETS_FILE}")"
 JAVA_SOURCE_TARGET="$(jq -er '.java.sourceCompatibility' "${TARGETS_FILE}")"
+JAVA_JACKSON_BOM_TARGET="$(jq -er '.java.properties["jackson-bom.version"]' "${TARGETS_FILE}")"
 JAVA_TOMCAT_TARGET="$(jq -er '.java.properties["tomcat.version"]' "${TARGETS_FILE}")"
 GRADLE_WRAPPER_TARGET="$(jq -er '.gradleWrapper.distributionVersion' "${TARGETS_FILE}")"
 GRADLE_WRAPPER_SHA_TARGET="$(jq -er '.gradleWrapper.distributionSha256Sum' "${TARGETS_FILE}")"
 
 spring_files_count=0
+jackson_bom_seen=0
 tomcat_seen=0
 while IFS= read -r gradle_file; do
   [[ -f "${gradle_file}" ]] || continue
@@ -83,6 +85,7 @@ while IFS= read -r gradle_file; do
   boot_version="$(sed -n "s/.*id 'org\\.springframework\\.boot' version '\\([^']*\\)'.*/\\1/p" "${gradle_file}" | head -n1)"
   dep_mgmt_version="$(sed -n "s/.*id 'io\\.spring\\.dependency-management' version '\\([^']*\\)'.*/\\1/p" "${gradle_file}" | head -n1)"
   java_source="$(sed -n "s/.*sourceCompatibility = JavaVersion\\.VERSION_\\([0-9][0-9]*\\).*/\\1/p" "${gradle_file}" | head -n1)"
+  jackson_bom_version="$(sed -n "s/.*ext\\['jackson-bom\\.version'\\][[:space:]]*=[[:space:]]*'\\([^']*\\)'.*/\\1/p" "${gradle_file}" | head -n1)"
   tomcat_version="$(sed -n "s/.*ext\\['tomcat\\.version'\\][[:space:]]*=[[:space:]]*'\\([^']*\\)'.*/\\1/p" "${gradle_file}" | head -n1)"
 
   [[ -n "${boot_version}" ]] || fail "missing Spring Boot plugin version in ${gradle_file}"
@@ -91,6 +94,10 @@ while IFS= read -r gradle_file; do
   check_equals "Spring Boot plugin" "${gradle_file}" "${JAVA_BOOT_TARGET}" "${boot_version}"
   check_equals "Dependency-management plugin" "${gradle_file}" "${JAVA_DEP_MGMT_TARGET}" "${dep_mgmt_version}"
   check_equals "Java sourceCompatibility" "${gradle_file}" "${JAVA_SOURCE_TARGET}" "${java_source}"
+  if [[ -n "${jackson_bom_version}" ]]; then
+    jackson_bom_seen=$((jackson_bom_seen + 1))
+    check_equals "jackson-bom.version property" "${gradle_file}" "${JAVA_JACKSON_BOM_TARGET}" "${jackson_bom_version}"
+  fi
   if [[ -n "${tomcat_version}" ]]; then
     tomcat_seen=$((tomcat_seen + 1))
     check_equals "tomcat.version property" "${gradle_file}" "${JAVA_TOMCAT_TARGET}" "${tomcat_version}"
@@ -99,6 +106,7 @@ while IFS= read -r gradle_file; do
 done < <(rg -N "" "${tmp_files}" | rg 'build\.gradle$' || true)
 
 (( spring_files_count > 0 )) || fail "no Spring Boot build.gradle files found under provided roots"
+(( jackson_bom_seen > 0 )) || fail "jackson-bom.version property target not found in generated Gradle files"
 (( tomcat_seen > 0 )) || fail "tomcat.version property target not found in generated Gradle files"
 
 while IFS=$'\t' read -r dep expected; do

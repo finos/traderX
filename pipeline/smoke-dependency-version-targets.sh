@@ -9,10 +9,11 @@ RUN_GENERATED=0
 RUN_BRANCH_CONSISTENCY=0
 STATE_FILTER=""
 ALLOW_MISSING_BRANCHES=0
+SKIP_BRANCH_TARGET_CHECKS=0
 
 usage() {
   cat <<'USAGE'
-usage: bash pipeline/smoke-dependency-version-targets.sh [--generated] [--target-root <dir>] [--components-root <dir>] [--branch-consistency] [--states <comma-separated-state-ids>] [--allow-missing-branches]
+usage: bash pipeline/smoke-dependency-version-targets.sh [--generated] [--target-root <dir>] [--components-root <dir>] [--branch-consistency] [--states <comma-separated-state-ids>] [--allow-missing-branches] [--skip-branch-target-checks]
 
 Runs quick dependency version target smoke checks before expensive generation,
 prepublish, or merge validation.
@@ -53,6 +54,10 @@ while (($# > 0)); do
       ;;
     --allow-missing-branches)
       ALLOW_MISSING_BRANCHES=1
+      shift
+      ;;
+    --skip-branch-target-checks)
+      SKIP_BRANCH_TARGET_CHECKS=1
       shift
       ;;
     --help|-h)
@@ -101,6 +106,9 @@ if [[ "${RUN_BRANCH_CONSISTENCY}" == "1" ]]; then
   fi
   if [[ "${ALLOW_MISSING_BRANCHES}" == "1" ]]; then
     args+=(--allow-missing-branches)
+  fi
+  if [[ "${SKIP_BRANCH_TARGET_CHECKS}" == "1" ]]; then
+    args+=(--skip-target-checks)
   fi
 
   echo "[step] smoke generated-branch dependency consistency"

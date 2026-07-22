@@ -234,6 +234,49 @@ build_artifact_exists() {
     return 0
   fi
 
+  node_modules_match_package_lock() {
+    local node_workdir="$1"
+
+    [[ -f "${node_workdir}/package-lock.json" && -d "${node_workdir}/node_modules" ]] || return 1
+    command -v node >/dev/null 2>&1 || return 1
+
+    node - "${node_workdir}" <<'NODE'
+const fs = require('fs');
+const path = require('path');
+
+const workdir = process.argv[2];
+const lock = JSON.parse(fs.readFileSync(path.join(workdir, 'package-lock.json'), 'utf8'));
+const packages = lock.packages || {};
+
+for (const [packagePath, metadata] of Object.entries(packages)) {
+  if (!packagePath.startsWith('node_modules/') || packagePath.includes('/node_modules/', 'node_modules/'.length)) {
+    continue;
+  }
+  if (!metadata.version) {
+    continue;
+  }
+
+  const packageJsonPath = path.join(workdir, packagePath, 'package.json');
+  if (!fs.existsSync(packageJsonPath)) {
+    process.exit(1);
+  }
+
+  const installed = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+  if (installed.version !== metadata.version) {
+    process.exit(1);
+  }
+}
+NODE
+  }
+
+  if echo "${build_cmd}" | grep -q 'node_modules' && [[ -d "${workdir}/node_modules" ]]; then
+    if ! node_modules_match_package_lock "${workdir}"; then
+      echo "[build] ${process}: removing stale node_modules"
+      rm -rf "${workdir}/node_modules"
+      return 1
+    fi
+  fi
+
   if [[ "${process}" == "web-front-end-angular" ]]; then
     [[ -d "${workdir}/node_modules" && -d "${workdir}/dist" ]]
     return $?

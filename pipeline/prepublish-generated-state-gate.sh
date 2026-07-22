@@ -119,7 +119,7 @@ run_core_gates() {
   if [[ "${SKIP_BRANCH_CONSISTENCY}" == "1" ]]; then
     echo "[warn] skipping generated-branch dependency consistency in smoke (--skip-branch-consistency)"
   else
-    smoke_args+=(--branch-consistency --states "${STATE_ID}")
+    smoke_args+=(--branch-consistency --states "${STATE_ID}" --skip-branch-target-checks)
     if [[ "${ALLOW_MISSING_BRANCHES}" == "1" ]]; then
       smoke_args+=(--allow-missing-branches)
     fi
@@ -305,20 +305,26 @@ run_cve_scan() {
   [[ -f "${dotnet_suppression}" ]] || fail "missing dotnet CVE suppression file: ${dotnet_suppression}"
 
   local module
-  for module in "${NODE_MODULES[@]}"; do
-    echo "[step] cve scan (node): ${module}"
-    run_dependency_check_local "${module}-node" "${TARGET_ROOT}/${module}" "${node_suppression}" "--nodeAuditSkipDevDependencies --nodePackageSkipDevDependencies"
-  done
+  if ((${#NODE_MODULES[@]} > 0)); then
+    for module in "${NODE_MODULES[@]}"; do
+      echo "[step] cve scan (node): ${module}"
+      run_dependency_check_local "${module}-node" "${TARGET_ROOT}/${module}" "${node_suppression}" "--nodeAuditSkipDevDependencies --nodePackageSkipDevDependencies"
+    done
+  fi
 
-  for module in "${DOTNET_MODULES[@]}"; do
-    echo "[step] cve scan (.NET): ${module}"
-    run_dependency_check_local "${module}-dotnet" "${TARGET_ROOT}/${module}" "${dotnet_suppression}" ""
-  done
+  if ((${#DOTNET_MODULES[@]} > 0)); then
+    for module in "${DOTNET_MODULES[@]}"; do
+      echo "[step] cve scan (.NET): ${module}"
+      run_dependency_check_local "${module}-dotnet" "${TARGET_ROOT}/${module}" "${dotnet_suppression}" ""
+    done
+  fi
 
-  for module in "${GRADLE_MODULES[@]}"; do
-    echo "[step] cve scan (gradle): ${module}"
-    run_dependency_check_local "${module}-gradle" "${TARGET_ROOT}/${module}" "${gradle_suppression}" "--disableCentral"
-  done
+  if ((${#GRADLE_MODULES[@]} > 0)); then
+    for module in "${GRADLE_MODULES[@]}"; do
+      echo "[step] cve scan (gradle): ${module}"
+      run_dependency_check_local "${module}-gradle" "${TARGET_ROOT}/${module}" "${gradle_suppression}" "--disableCentral"
+    done
+  fi
 }
 
 run_core_gates

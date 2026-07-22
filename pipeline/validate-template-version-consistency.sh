@@ -44,6 +44,11 @@ extract_tomcat_version() {
   sed -n "s/.*ext\\['tomcat\\.version'\\][[:space:]]*=[[:space:]]*'\\([^']*\\)'.*/\\1/p" "${file}" | head -n1
 }
 
+extract_jackson_bom_version() {
+  local file="$1"
+  sed -n "s/.*ext\\['jackson-bom\\.version'\\][[:space:]]*=[[:space:]]*'\\([^']*\\)'.*/\\1/p" "${file}" | head -n1
+}
+
 extract_gradle_wrapper_version() {
   local file="$1"
   sed -n 's#.*distributionUrl=.*gradle-\([0-9.]*\)-bin\.zip.*#\1#p' "${file}" | head -n1
@@ -99,6 +104,7 @@ done
 target_boot_version="$(jq -er '.java.plugins["org.springframework.boot"]' "${TARGETS_FILE}")"
 target_dep_mgmt_version="$(jq -er '.java.plugins["io.spring.dependency-management"]' "${TARGETS_FILE}")"
 target_java_major="$(jq -er '.java.sourceCompatibility' "${TARGETS_FILE}")"
+target_jackson_bom_version="$(jq -er '.java.properties["jackson-bom.version"]' "${TARGETS_FILE}")"
 target_tomcat_version="$(jq -er '.java.properties["tomcat.version"]' "${TARGETS_FILE}")"
 target_wrapper_version="$(jq -er '.gradleWrapper.distributionVersion' "${TARGETS_FILE}")"
 target_wrapper_sha="$(jq -er '.gradleWrapper.distributionSha256Sum' "${TARGETS_FILE}")"
@@ -106,28 +112,33 @@ target_wrapper_sha="$(jq -er '.gradleWrapper.distributionSha256Sum' "${TARGETS_F
 boot_versions=""
 dep_mgmt_versions=""
 java_majors=""
+jackson_bom_versions=""
 tomcat_versions=""
 
 for file in "${spring_build_files[@]}"; do
   boot_version="$(extract_boot_version "${file}")"
   dep_mgmt_version="$(extract_dep_mgmt_version "${file}")"
   java_major="$(extract_java_major "${file}")"
+  jackson_bom_version="$(extract_jackson_bom_version "${file}")"
   tomcat_version="$(extract_tomcat_version "${file}")"
 
   [[ -n "${boot_version}" ]] || fail "missing Spring Boot plugin version in ${file}"
   [[ -n "${dep_mgmt_version}" ]] || fail "missing dependency-management plugin version in ${file}"
   [[ -n "${java_major}" ]] || fail "missing Java sourceCompatibility in ${file}"
+  [[ -n "${jackson_bom_version}" ]] || fail "missing jackson-bom.version in ${file}"
   [[ -n "${tomcat_version}" ]] || fail "missing tomcat.version in ${file}"
 
   boot_versions="${boot_versions} ${boot_version}"
   dep_mgmt_versions="${dep_mgmt_versions} ${dep_mgmt_version}"
   java_majors="${java_majors} ${java_major}"
+  jackson_bom_versions="${jackson_bom_versions} ${jackson_bom_version}"
   tomcat_versions="${tomcat_versions} ${tomcat_version}"
 done
 
 unique_boot_versions="$(printf '%s\n' "${boot_versions}" | collect_unique)"
 unique_dep_mgmt_versions="$(printf '%s\n' "${dep_mgmt_versions}" | collect_unique)"
 unique_java_majors="$(printf '%s\n' "${java_majors}" | collect_unique)"
+unique_jackson_bom_versions="$(printf '%s\n' "${jackson_bom_versions}" | collect_unique)"
 unique_tomcat_versions="$(printf '%s\n' "${tomcat_versions}" | collect_unique)"
 
 if [[ "$(printf '%s\n' "${unique_boot_versions}" | count_words)" -ne 1 ]]; then
@@ -142,6 +153,10 @@ if [[ "$(printf '%s\n' "${unique_java_majors}" | count_words)" -ne 1 ]]; then
   fail "inconsistent Java sourceCompatibility versions across templates: ${unique_java_majors}"
 fi
 
+if [[ "$(printf '%s\n' "${unique_jackson_bom_versions}" | count_words)" -ne 1 ]]; then
+  fail "inconsistent jackson-bom.version values across templates: ${unique_jackson_bom_versions}"
+fi
+
 if [[ "$(printf '%s\n' "${unique_tomcat_versions}" | count_words)" -ne 1 ]]; then
   fail "inconsistent tomcat.version values across templates: ${unique_tomcat_versions}"
 fi
@@ -149,6 +164,7 @@ fi
 [[ "${unique_boot_versions}" == "${target_boot_version}" ]] || fail "Spring Boot plugin version (${unique_boot_versions}) does not match target (${target_boot_version})"
 [[ "${unique_dep_mgmt_versions}" == "${target_dep_mgmt_version}" ]] || fail "dependency-management plugin version (${unique_dep_mgmt_versions}) does not match target (${target_dep_mgmt_version})"
 [[ "${unique_java_majors}" == "${target_java_major}" ]] || fail "Java sourceCompatibility (${unique_java_majors}) does not match target (${target_java_major})"
+[[ "${unique_jackson_bom_versions}" == "${target_jackson_bom_version}" ]] || fail "jackson-bom.version (${unique_jackson_bom_versions}) does not match target (${target_jackson_bom_version})"
 [[ "${unique_tomcat_versions}" == "${target_tomcat_version}" ]] || fail "tomcat.version (${unique_tomcat_versions}) does not match target (${target_tomcat_version})"
 
 wrapper_versions=""
