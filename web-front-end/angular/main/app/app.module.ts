@@ -10,12 +10,21 @@ import { AccountsModule } from './accounts/accounts.module';
 import { RouterModule } from '@angular/router';
 import { routes } from './routing';
 import { PageNotFoundComponent } from './page-not-found.component';
+import { OrderAdminComponent } from './admin/order-admin.component';
+import { AlertModule } from 'ngx-bootstrap/alert';
 
-@NgModule({ declarations: [AppComponent, HeaderComponent, PageNotFoundComponent],
-    bootstrap: [AppComponent], imports: [BrowserModule,
+@NgModule({
+    declarations: [AppComponent, HeaderComponent, PageNotFoundComponent, OrderAdminComponent],
+    bootstrap: [AppComponent],
+    imports: [
+        BrowserModule,
         CommonModule,
         TradeModule,
         AccountsModule,
         AgGridModule,
-        RouterModule.forRoot(routes)], providers: [provideHttpClient(withInterceptorsFromDi(), withJsonpSupport())] })
+        AlertModule.forRoot(),
+        RouterModule.forRoot(routes)
+    ],
+    providers: [provideHttpClient(withInterceptorsFromDi(), withJsonpSupport())]
+})
 export class AppModule { }

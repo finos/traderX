@@ -1,12 +1,11 @@
-# Learning Guide For 008-pricing-awareness-market-data
+# Learning Guide For 009-order-management-matcher
 
 This snapshot is code-first output. Canonical intent remains in SpecKit artifacts.
 
 ## Learning Focus
 
-- Understand how pricing streams integrate with existing account-scoped event flows.
-- Review trade execution price stamping and position cost-basis aggregation logic.
-- Validate realtime UI valuation behavior (position value, totals, and P&L) under live price ticks.
+- Review state metadata and runtime instructions.
+- Trace state intent back to canonical SpecKit artifacts.
 
 ## Read In This Snapshot
 
@@ -18,9 +17,9 @@ This snapshot is code-first output. Canonical intent remains in SpecKit artifact
 
 ## Canonical Spec Sources
 
-- Feature pack: `specs/008-pricing-awareness-market-data`
+- Feature pack: `specs/009-order-management-matcher`
 - State docs map route: `/docs/spec-kit/state-docs`
-- Learning guide route: `/docs/learning/state-008-pricing-awareness-market-data`
-- Learning guide markdown path in source branch: `docs/learning/state-008-pricing-awareness-market-data.md`
-- Source branch feature pack (exact commit): https://github.com/finos/traderX/tree/f218c8e024a7c6adb89437678d03747b60ada083/specs/008-pricing-awareness-market-data
-- Source branch learning guide (exact commit): https://github.com/finos/traderX/blob/f218c8e024a7c6adb89437678d03747b60ada083/docs/learning/state-008-pricing-awareness-market-data.md
+- Learning guide route: `/docs/learning/state-009-order-management-matcher`
+- Learning guide markdown path in source branch: `docs/learning/state-009-order-management-matcher.md`
+- Source branch feature pack (exact commit): https://github.com/finos/traderX/tree/f60def6eff9b988141d59ae6ad864dfd5bc10ce6/specs/009-order-management-matcher
+- Source branch learning guide (exact commit): https://github.com/finos/traderX/blob/f60def6eff9b988141d59ae6ad864dfd5bc10ce6/docs/learning/state-009-order-management-matcher.md

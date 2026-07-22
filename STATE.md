@@ -1,20 +1,20 @@
 # TraderX Generated State Snapshot
 
-- State ID: `008-pricing-awareness-market-data`
-- Title: `Pricing Awareness and Market Data Streaming`
+- State ID: `009-order-management-matcher`
+- Title: `Order Management and Matcher`
 - Status: `implemented`
-- Feature Pack: `specs/008-pricing-awareness-market-data`
-- Previous States: `["007-observability-lgtm-compose"]`
-- Next States: `["009-order-management-matcher"]`
-- Convergence State: `false`
-- Convergence Level: `none`
+- Feature Pack: `specs/009-order-management-matcher`
+- Previous States: `["008-pricing-awareness-market-data"]`
+- Next States: `["010-kubernetes-runtime"]`
+- Convergence State: `true`
+- Convergence Level: `C2`
 - Lineage Role: `canonical`
 - Dotted Parents: `none`
 - Previous Convergence State: `007-observability-lgtm-compose`
-- Next Convergence State: `009-order-management-matcher`
+- Next Convergence State: `012-platform-convergence-c3`
 - Source Branch: `main`
-- Source Commit: `f218c8e024a7c6adb89437678d03747b60ada083`
-- Generated At (UTC): `2026-07-22T15:58:07Z`
-- Suggested Tag: `generated/008-pricing-awareness-market-data/v1`
+- Source Commit: `f60def6eff9b988141d59ae6ad864dfd5bc10ce6`
+- Generated At (UTC): `2026-07-22T16:44:24Z`
+- Suggested Tag: `generated/009-order-management-matcher/v1`
 
 Machine-readable metadata: `.traderx-state/state.json`

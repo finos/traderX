@@ -1,23 +1,19 @@
 # Software Architecture
 
-State: `008-pricing-awareness-market-data`
-Title: `Architecture (State 008 Pricing Awareness and Market Data)`
+State: `009-order-management-matcher`
+Title: `Order Management and Matcher`
 
 ## Architecture Summary
 
-State 008 builds on NATS-based runtime from 006 and adds synthetic market pricing, trade execution price stamping, position cost basis aggregation, and frontend valuation.
+Pricing + observability runtime extended with order management, matcher flow, and order-specific telemetry.
 
 ## Entrypoints
 
-- `ingress` -> `http://localhost:8080`
-- `nats-ws` -> `ws://localhost:8080/nats-ws`
-- `price-publisher` -> `http://localhost:18100/prices`
+
 
 ## Notes
 
-- Markets are treated as always open in this simulation.
-- yfinance bootstrap is optional startup-only and falls back to snapshot data.
-- Advanced pricing/risk engines are intentionally out of scope for this state.
+
 
 ## Diagram
 
@@ -25,72 +21,62 @@ See [Component Diagram](./component-diagram.md).
 
 ## Detailed Architecture (Spec Extract)
 
-# Architecture (State 008 Pricing Awareness and Market Data)
+# Order Management and Matcher
 
-State 008 builds on NATS-based runtime from 006 and adds synthetic market pricing, trade execution price stamping, position cost basis aggregation, and frontend valuation.
+Pricing + observability runtime extended with order management, matcher flow, and order-specific telemetry.
 
-- Inherits architectural baseline from: `007-observability-lgtm-compose`
 - Generated from: `system/architecture.model.json`
-- Canonical flows: `../001-baseline-uncontainerized-parity/system/end-to-end-flows.md`
-
-## Entry Points
-
-- `ingress`: `http://localhost:8080`
-- `nats-ws`: `ws://localhost:8080/nats-ws`
-- `price-publisher`: `http://localhost:18100/prices`
+- Canonical flows: `system/end-to-end-flows.md`
 
 ## Architecture Diagram
 
 ```mermaid
 flowchart LR
-  trader["Trader Browser"]
+  developer["Developer"]
+  app_runtime["TraderX App Runtime"]
+  obs_runtime["Observability Runtime"]
   ingress["NGINX Ingress"]
-  web["Web Front End Angular"]
+  trade_ui["Angular Trade UI"]
+  order_api["Order Management API"]
+  order_matcher["Order Matcher"]
   nats["NATS Broker"]
-  pricePublisher["Price Publisher"]
-  tradeService["Trade Service"]
-  tradeProcessor["Trade Processor"]
-  account["Account Service"]
-  position["Position Service"]
-  referenceData["Reference Data"]
-  people["People Service"]
-  database["Database"]
-  trader -->|"Single browser entrypoint"| ingress
-  ingress -->|"/"| web
-  ingress -->|"/price-publisher"| pricePublisher
-  ingress -->|"/nats-ws (WS upgrade)"| nats
-  tradeService -->|"Validate ticker"| referenceData
-  tradeService -->|"Validate account"| account
-  tradeService -->|"Fetch execution price"| pricePublisher
-  tradeService -->|"Publish /trades"| nats
-  tradeProcessor -->|"Consume /trades, publish account updates"| nats
-  pricePublisher -->|"Publish pricing.<TICKER>"| nats
-  web -->|"Subscribe account + pricing topics"| nats
-  tradeProcessor -->|"Persist trades + positions"| database
-  position -->|"Query trades + positions"| database
-  account -->|"Validate person"| people
+  trade_processor["Trade Processor"]
+  prometheus["Prometheus"]
+  blackbox["Blackbox Exporter"]
+  loki["Loki"]
+  grafana["Grafana"]
+  developer -->|"Uses app and admin UI"| ingress
+  ingress -->|"Serves UI"| trade_ui
+  trade_ui -->|"Calls order APIs"| order_api
+  order_api -->|"Submits and updates orders"| order_matcher
+  order_api -->|"Publishes lifecycle events"| nats
+  order_matcher -->|"Publishes fills and status"| nats
+  nats -->|"Delivers matcher-generated fills"| trade_processor
+  prometheus -->|"Scrapes /metrics"| order_matcher
+  prometheus -->|"Scrapes probe metrics"| blackbox
+  blackbox -->|"HTTP probes"| order_api
+  blackbox -->|"HTTP probes"| order_matcher
+  order_matcher -->|"Structured logs via promtail"| loki
+  developer -->|"Views order observability"| grafana
+  grafana -->|"Queries metrics"| prometheus
+  grafana -->|"Queries logs"| loki
 ```
 
 ## Node Catalog
 
 | Node | Kind | Label | Notes |
 | --- | --- | --- | --- |
-| `trader` | actor | Trader Browser | Uses Angular UI and receives realtime trade, position, and pricing updates. |
-| `ingress` | gateway | NGINX Ingress | Routes REST and websocket traffic. |
-| `web` | frontend | Web Front End Angular | Subscribes to account and pricing streams via nats.ws. |
-| `nats` | messaging | NATS Broker | Pub/sub broker for backend and browser streaming. |
-| `pricePublisher` | service | Price Publisher | Publishes `pricing.<TICKER>` and exposes REST quote endpoint. |
-| `tradeService` | service | Trade Service | Validates account/ticker and stamps execution price before publishing orders. |
-| `tradeProcessor` | service | Trade Processor | Processes trades, persists price/cost basis, emits account updates. |
-| `account` | service | Account Service | Account and account-user operations. |
-| `position` | service | Position Service | Trades/positions query endpoints. |
-| `referenceData` | service | Reference Data | Ticker lookup/list. |
-| `people` | service | People Service | Identity lookup and validation. |
-| `database` | database | Database | Persistent account/trade/position state. |
-
-## State Notes
-
-- Markets are treated as always open in this simulation.
-- yfinance bootstrap is optional startup-only and falls back to snapshot data.
-- Advanced pricing/risk engines are intentionally out of scope for this state.
+| `developer` | actor | Developer | Local developer using this state. |
+| `app_runtime` | boundary | TraderX App Runtime | State 009 pricing/runtime baseline with order-management extensions. |
+| `obs_runtime` | boundary | Observability Runtime | LGTM + OTel stack from state 007 carried forward with order telemetry coverage. |
+| `ingress` | service | NGINX Ingress | Routes UI, API, and order admin traffic. |
+| `trade_ui` | service | Angular Trade UI | Trade ticket, blotters, and admin tab. |
+| `order_api` | service | Order Management API | Order create/query/edit/cancel/force-fill endpoints. |
+| `order_matcher` | service | Order Matcher | Matches open orders and emits order lifecycle + fill events. |
+| `nats` | service | NATS Broker | Realtime transport for pricing, trade, position, and order subjects. |
+| `trade_processor` | service | Trade Processor | Consumes fills and persists trades/positions. |
+| `prometheus` | service | Prometheus | Scrapes order metrics and blackbox probes. |
+| `blackbox` | service | Blackbox Exporter | Probes order endpoints and inherited runtime endpoints. |
+| `loki` | service | Loki | Aggregates order and runtime logs. |
+| `grafana` | service | Grafana | Dashboards for queue depth, open orders, events, and matcher latency. |
 
