@@ -5085,6 +5085,17 @@ index 9a5446c..4cdf5cc 100644
    imports: [
      CommonModule,
      AgGridModule,
+diff --git a/web-front-end/angular/main/environments/environment.interface.ts b/web-front-end/angular/main/environments/environment.interface.ts
+index 3923959..a6f0ee8 100644
+--- a/web-front-end/angular/main/environments/environment.interface.ts
++++ b/web-front-end/angular/main/environments/environment.interface.ts
+@@ -16,5 +16,6 @@ export interface Environment {
+     tradesUrl:       string;
+     positionsUrl:    string;
+     peopleUrl:       string;
++    orderMatcherUrl: string;
+     tradeFeedUrl:    string;
+ }
 diff --git a/web-front-end/angular/main/environments/environment.local.ts b/web-front-end/angular/main/environments/environment.local.ts
 index 78bc857..27fb705 100644
 --- a/web-front-end/angular/main/environments/environment.local.ts
