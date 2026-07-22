@@ -269,7 +269,7 @@ for (const [packagePath, metadata] of Object.entries(packages)) {
 NODE
   }
 
-  if echo "${build_cmd}" | grep -q 'node_modules' && [[ -d "${workdir}/node_modules" ]]; then
+  if ((DRY_RUN != 1)) && echo "${build_cmd}" | grep -q 'node_modules' && [[ -d "${workdir}/node_modules" ]]; then
     if ! node_modules_match_package_lock "${workdir}"; then
       echo "[build] ${process}: removing stale node_modules"
       rm -rf "${workdir}/node_modules"
