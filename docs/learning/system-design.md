@@ -1,44 +1,54 @@
 # System Design
 
-State: `006-messaging-nats-replacement`
+State: `007-observability-lgtm-compose`
 
 ## Design Intent
 
-State 006 replaces Socket.IO trade-feed messaging with NATS while preserving state 005 containerized runtime and ingress entry model.
+Containerized TraderX runtime (state 006) with an LGTM observability layer for local learning.
 
 ## Runtime Topology / Flow (Spec Extract)
 
-# Runtime Topology: 006 Messaging NATS Replacement
+# Runtime Topology: 007-observability-lgtm-compose
 
-Parent state: `005-postgres-database-replacement`
+Parent state: `006-messaging-nats-replacement`
+
+Describe runtime topology and network/data flow changes introduced by this state.
 
 ## Entrypoints
 
-- Browser/UI ingress: `http://localhost:8080`
-- NATS client port (internal compose network): `4222`
-- NATS monitoring (optional local): `8222`
-- NATS websocket ingress path (proxied): `/nats-ws`
+- App ingress: `http://localhost:8080`
+- Grafana: `http://localhost:3001`
+- Grafana through ingress: `http://localhost:8080/grafana/`
+- Prometheus: `http://localhost:9090`
+- Loki: `http://localhost:3100`
+- Tempo: `http://localhost:3200`
+- OTel Collector health: `http://localhost:13133`
 
 ## Components
 
-- `nats-broker` replaces messaging role previously handled by `trade-feed`.
-- `trade-service` publishes `trades.new`.
-- `trade-processor` consumes `trades.new` and publishes account-scoped trade/position updates.
-- `web-front-end-angular` subscribes to account-scoped update subjects through `nats.ws`.
+- Baseline application components from state `006`.
+- Added observability components:
+  - `grafana`
+  - `prometheus`
+  - `loki`
+  - `tempo`
+  - `otel-collector`
+  - `blackbox-exporter`
+  - `promtail`
 
 ## Networking
 
-- Service-to-service messaging uses NATS TCP over compose network.
-- Browser real-time stream uses WebSocket upgrade through ingress path `/nats-ws`.
-- Existing REST routing through ingress remains unchanged.
+- Prometheus probes application endpoints through the compose network via blackbox exporter.
+- Prometheus also scrapes Spring Boot actuator metrics (`/actuator/prometheus`) for all compatible services in this state.
+- Promtail discovers Docker containers and pushes logs to Loki.
+- Promtail receives `TRADERX_PROMTAIL_DOCKER_API_VERSION` from the generated runtime harness; by default the harness detects the local Docker daemon API version.
+- Grafana queries Prometheus, Loki, and Tempo datasources.
+- Grafana ingress runs from `/grafana/` with anonymous Viewer access enabled and non-`admin/admin` state-scoped administrator defaults.
+- OTel Collector exposes OTLP receivers for future app instrumentation.
 
 ## Startup / Health Order
 
-- `nats-broker` must be healthy before trade-service/trade-processor startup.
-- Frontend may start before broker, but stream subscriptions must retry until broker and websocket path are available.
-
-## Source-of-Truth Files
-
-- `system/messaging-subject-map.md`
-- `system/docker-compose.nats.snippet.yaml`
-- `system/ingress-nginx.nats-ws.snippet.conf`
+1. Start baseline app services from state `006`.
+2. Start observability backends (`loki`, `tempo`, `otel-collector`, `blackbox-exporter`, `prometheus`).
+3. Start Grafana after datasources are reachable.
+4. Validate baseline app flow and observability endpoint health.

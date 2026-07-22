@@ -1,10 +1,10 @@
 {
-  "stateId": "006-messaging-nats-replacement",
-  "stateTitle": "Messaging Layer Replacement with NATS",
-  "stateTrack": "architecture",
-  "generatedAtUtc": "2026-07-22T15:31:41.468Z",
-  "sourceBranch": "code/generated-state-006-messaging-nats-replacement",
-  "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-006-messaging-nats-replacement",
+  "stateId": "007-observability-lgtm-compose",
+  "stateTitle": "Observability with LGTM on Compose",
+  "stateTrack": "nonfunctional",
+  "generatedAtUtc": "2026-07-22T15:37:40.631Z",
+  "sourceBranch": "code/generated-state-007-observability-lgtm-compose",
+  "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-007-observability-lgtm-compose",
   "lineageLinkUrl": "https://github.com/finos/traderX/blob/main/docs/learning-paths/index.md",
   "apiExplorerUrl": "/api/docs",
   "pubSubInspectorUrl": "/api/docs/pubsub-inspector.html",
@@ -14,6 +14,13 @@
     "pubSubInspector": false
   },
   "previousStates": [
+    {
+      "id": "006-messaging-nats-replacement",
+      "title": "Messaging Layer Replacement with NATS",
+      "sourceBranch": "code/generated-state-006-messaging-nats-replacement",
+      "sourceBranchUrl": "https://github.com/finos/traderX/tree/code/generated-state-006-messaging-nats-replacement",
+      "summary": "Introduces Messaging Layer Replacement with NATS on the architecture track."
+    },
     {
       "id": "005-postgres-database-replacement",
       "title": "PostgreSQL Database Replacement",

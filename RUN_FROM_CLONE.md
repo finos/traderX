@@ -6,21 +6,30 @@ Prerequisites:
 Start:
 
 ```bash
-./scripts/start-state-006-messaging-nats-replacement-generated.sh
-./scripts/start-state-006-messaging-nats-replacement-generated.sh --skip-build
+./scripts/start-state-007-observability-lgtm-compose-generated.sh
+./scripts/start-state-007-observability-lgtm-compose-generated.sh --skip-build
 ```
 
 Endpoints:
 - UI / ingress: `http://localhost:8080`
 - API explorer (ingress): `http://localhost:8080/api/docs`
 - Ingress health: `http://localhost:8080/health`
-- NATS monitor: `http://localhost:8222/varz`
+- Grafana dashboards: `http://localhost:8080/grafana/`
+- Grafana local admin: `http://localhost:3001`
+- Prometheus: `http://localhost:9090`
+- Loki: `http://localhost:3100`
+- Tempo: `http://localhost:3200`
+
+Grafana access:
+- Dashboards are anonymous Viewer surfaces through ingress.
+- The start script prints the active local admin credential.
+- Default convention: user from `TRADERX_GRAFANA_ADMIN_USER` or `traderx-admin`; password from `TRADERX_GRAFANA_ADMIN_PASSWORD` or `traderx-state-007`.
 
 Status / stop:
 
 ```bash
-./scripts/status-state-006-messaging-nats-replacement-generated.sh
-./scripts/stop-state-006-messaging-nats-replacement-generated.sh
+./scripts/status-state-007-observability-lgtm-compose-generated.sh
+./scripts/stop-state-007-observability-lgtm-compose-generated.sh
 ```
 
 ## Stable Entrypoints

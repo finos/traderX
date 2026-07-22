@@ -1,36 +1,30 @@
 # Component Diagram
 
-State: `006-messaging-nats-replacement`
+State: `007-observability-lgtm-compose`
 
 ```mermaid
 flowchart LR
-  trader["Trader Browser"]
+  developer["Developer"]
+  app_runtime["TraderX App Runtime (State 006)"]
+  obs_runtime["Observability Runtime"]
   ingress["NGINX Ingress"]
-  web["Web Front End Angular"]
-  nats["NATS Broker"]
-  tradeService["Trade Service"]
-  tradeProcessor["Trade Processor"]
-  account["Account Service"]
-  position["Position Service"]
-  referenceData["Reference Data"]
-  people["People Service"]
-  database["Database"]
+  core_services["Core Services"]
+  prometheus["Prometheus"]
+  blackbox["Blackbox Exporter"]
+  loki["Loki"]
+  promtail["Promtail"]
+  tempo["Tempo"]
+  otel["OpenTelemetry Collector"]
+  grafana["Grafana"]
 
-  trader -->|Single browser entrypoint| ingress
-  ingress -->|/| web
-  ingress -->|/account-service| account
-  ingress -->|/position-service| position
-  ingress -->|/trade-service| tradeService
-  ingress -->|/reference-data| referenceData
-  ingress -->|/people-service| people
-  ingress -->|/nats-ws (WS upgrade)| nats
-  tradeService -->|Validate account| account
-  tradeService -->|Validate ticker| referenceData
-  tradeService -->|Publish trades.new| nats
-  tradeProcessor -->|Consume trades.new, publish account updates| nats
-  web -->|Subscribe account-scoped streams| nats
-  tradeProcessor -->|Persist trade/position state| database
-  account -->|Account persistence| database
-  position -->|Query trades/positions| database
-  account -->|Validate person| people
+  developer -->|Uses TraderX| ingress
+  ingress -->|Routes API/UI traffic| core_services
+  blackbox -->|HTTP probes| core_services
+  prometheus -->|Scrapes probe metrics| blackbox
+  promtail -->|Ships logs| loki
+  otel -->|Exports traces| tempo
+  developer -->|Views observability dashboards| grafana
+  grafana -->|Queries metrics| prometheus
+  grafana -->|Queries logs| loki
+  grafana -->|Queries traces| tempo
 ```
