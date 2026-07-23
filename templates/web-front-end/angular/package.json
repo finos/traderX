@@ -42,8 +42,8 @@
     "qs": "6.15.2"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^20.3.25",
-    "@angular/cli": "^20.3.25",
+    "@angular-devkit/build-angular": "^22.0.0",
+    "@angular/cli": "^22.0.0",
     "@angular/compiler-cli": "^20.3.25",
     "@angular/language-service": "^20.3.25",
     "@faker-js/faker": "^9.0.3",
