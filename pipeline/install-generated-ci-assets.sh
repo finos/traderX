@@ -899,6 +899,9 @@ write_compose_ghcr_bundle() {
       echo "    extends:"
       echo "      file: ${compose_extends_rel}"
       echo "      service: ${service}"
+      # Keep GHCR demo stacks alive across host reboot even if the extended
+      # compose file is temporarily unavailable on disk.
+      echo "    restart: unless-stopped"
 
       service_has_build="$(
         awk -v svc="${service}" '

@@ -1,0 +1,56 @@
+name: Redeploy Live Demo
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Demo host to redeploy
+        required: true
+        type: choice
+        options:
+          - demo.traderx.finos.org
+          - demo-advanced.traderx.finos.org
+
+# Requires repository secret DEMO_EC2_SSH_PRIVATE_KEY (PEM private key for ec2-user).
+permissions:
+  contents: read
+
+concurrency:
+  group: redeploy-live-demo-${{ inputs.target }}
+  cancel-in-progress: false
+
+jobs:
+  redeploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Write SSH private key
+        env:
+          DEMO_EC2_SSH_PRIVATE_KEY: ${{ secrets.DEMO_EC2_SSH_PRIVATE_KEY }}
+        run: |
+          if [[ -z "${DEMO_EC2_SSH_PRIVATE_KEY}" ]]; then
+            echo "[fail] repository secret DEMO_EC2_SSH_PRIVATE_KEY is not set"
+            exit 1
+          fi
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${DEMO_EC2_SSH_PRIVATE_KEY}" > ~/.ssh/demo_ec2.pem
+          chmod 600 ~/.ssh/demo_ec2.pem
+
+      - name: Trust host key
+        run: |
+          ssh-keyscan -H "${{ inputs.target }}" >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Run ~/redeploy.sh over SSH
+        run: |
+          ssh -i ~/.ssh/demo_ec2.pem \
+            -o IdentitiesOnly=yes \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            "ec2-user@${{ inputs.target }}" \
+            'bash -lc "~/redeploy.sh"'
+
+      - name: Remove SSH private key
+        if: always()
+        run: rm -f ~/.ssh/demo_ec2.pem

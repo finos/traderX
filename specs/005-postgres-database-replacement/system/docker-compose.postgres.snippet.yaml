@@ -1,5 +1,6 @@
 services:
   database:
+    restart: unless-stopped
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: "traderx"

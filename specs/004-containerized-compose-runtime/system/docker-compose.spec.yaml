@@ -2,6 +2,7 @@ name: traderx-state-003
 
 services:
   database:
+    restart: unless-stopped
     build:
       context: ../database
       dockerfile: Dockerfile.compose
@@ -16,6 +17,7 @@ services:
       - "18084:18084"
 
   reference-data:
+    restart: unless-stopped
     build:
       context: ../reference-data
       dockerfile: Dockerfile.compose
@@ -28,6 +30,7 @@ services:
       - database
 
   trade-feed:
+    restart: unless-stopped
     build:
       context: ../trade-feed
       dockerfile: Dockerfile.compose
@@ -38,6 +41,7 @@ services:
       - "18086:18086"
 
   people-service:
+    restart: unless-stopped
     build:
       context: ../people-service
       dockerfile: Dockerfile.compose
@@ -48,6 +52,7 @@ services:
       - "18089:18089"
 
   account-service:
+    restart: unless-stopped
     build:
       context: ../account-service
       dockerfile: Dockerfile.compose
@@ -64,6 +69,7 @@ services:
       - people-service
 
   position-service:
+    restart: unless-stopped
     build:
       context: ../position-service
       dockerfile: Dockerfile.compose
@@ -78,6 +84,7 @@ services:
       - database
 
   trade-processor:
+    restart: unless-stopped
     build:
       context: ../trade-processor
       dockerfile: Dockerfile.compose
@@ -94,6 +101,7 @@ services:
       - trade-feed
 
   trade-service:
+    restart: unless-stopped
     build:
       context: ../trade-service
       dockerfile: Dockerfile.compose
@@ -114,6 +122,7 @@ services:
       - trade-processor
 
   web-front-end-angular:
+    restart: unless-stopped
     build:
       context: ../web-front-end/angular
       dockerfile: Dockerfile.compose
@@ -130,6 +139,7 @@ services:
       - trade-feed
 
   ingress:
+    restart: unless-stopped
     build:
       context: ../ingress
       dockerfile: Dockerfile.compose
