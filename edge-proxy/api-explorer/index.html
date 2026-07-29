@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TraderX API Docs</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+    <style>
+      body { margin: 0; background: #f5f7fb; }
+      .topbar {
+        background: #0b233a;
+        color: #fff;
+        padding: 12px 16px;
+        font-family: sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .topbar small { opacity: 0.8; }
+      .topbar a {
+        color: #9fd0ff;
+        font-size: 14px;
+        text-decoration: none;
+        border: 1px solid rgba(159, 208, 255, 0.55);
+        border-radius: 6px;
+        padding: 6px 10px;
+        white-space: nowrap;
+      }
+      .topbar-links {
+        align-items: center;
+        display: inline-flex;
+        gap: 8px;
+      }
+      .topbar a:hover {
+        background: rgba(159, 208, 255, 0.18);
+      }
+      #swagger-ui { max-width: 1300px; margin: 0 auto; }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <div>
+        TraderX API Docs
+        <small id="state-label"></small>
+      </div>
+      <div class="topbar-links">
+        <a href="/">Back to App</a>
+        
+      </div>
+    </div>
+    <div id="swagger-ui"></div>
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
+    <script>
+      function deriveRuntimeBasePath(service) {
+        if (!service || !service.runtimeSpecPath) {
+          return null;
+        }
+
+        const explicit = typeof service.runtimeBasePath === 'string' ? service.runtimeBasePath.trim() : '';
+        if (explicit) {
+          return explicit.startsWith('/') ? explicit : `/${explicit}`;
+        }
+
+        if (!service.runtimeSpecPath.startsWith('/')) {
+          return null;
+        }
+
+        const segments = service.runtimeSpecPath.split('/').filter(Boolean);
+        if (segments.length < 2) {
+          return null;
+        }
+        return `/${segments[0]}`;
+      }
+
+      function resolveSpecKey(specUrl) {
+        if (!specUrl || typeof specUrl !== 'string') {
+          return null;
+        }
+        try {
+          return new URL(specUrl, window.location.origin).toString();
+        } catch (_error) {
+          return null;
+        }
+      }
+
+      function selectedSpecUrl(ui) {
+        if (!ui || !ui.specSelectors || typeof ui.specSelectors.url !== 'function') {
+          return null;
+        }
+        const raw = ui.specSelectors.url();
+        if (!raw) {
+          return null;
+        }
+        if (typeof raw === 'string') {
+          return raw;
+        }
+        if (typeof raw.toJS === 'function') {
+          return raw.toJS();
+        }
+        return String(raw);
+      }
+
+      async function bootstrap() {
+        const response = await fetch('./catalog.json', { cache: 'no-cache' });
+        if (!response.ok) {
+          throw new Error('failed to load API catalog');
+        }
+
+        const catalog = await response.json();
+        const services = Array.isArray(catalog.services) ? catalog.services : [];
+        if (services.length === 0) {
+          throw new Error('API catalog is empty');
+        }
+
+        const urls = services.map((service) => ({ name: service.name, url: service.specUrl }));
+        const knownPrefixes = [];
+        const serviceBySpec = new Map();
+        for (const service of services) {
+          const specKey = resolveSpecKey(service.specUrl);
+          const runtimeBasePath = deriveRuntimeBasePath(service);
+          if (runtimeBasePath) {
+            knownPrefixes.push(runtimeBasePath);
+          }
+          if (specKey) {
+            serviceBySpec.set(specKey, {
+              ...service,
+              runtimeBasePath,
+            });
+          }
+        }
+
+        const stateLabel = document.getElementById('state-label');
+        if (stateLabel && catalog.stateId) {
+          stateLabel.textContent = ` - state ${catalog.stateId}`;
+        }
+        window.ui = SwaggerUIBundle({
+          dom_id: '#swagger-ui',
+          urls,
+          deepLinking: true,
+          defaultModelsExpandDepth: -1,
+          displayRequestDuration: true,
+          docExpansion: 'list',
+          filter: true,
+          layout: 'StandaloneLayout',
+          persistAuthorization: true,
+          presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+          requestInterceptor: (request) => {
+            if (!request || !request.url) {
+              return request;
+            }
+
+            const activeSpec = selectedSpecUrl(window.ui);
+            const activeSpecKey = resolveSpecKey(activeSpec);
+            const service = activeSpecKey ? serviceBySpec.get(activeSpecKey) : null;
+            if (!service || !service.runtimeBasePath) {
+              return request;
+            }
+
+            let parsed;
+            try {
+              parsed = new URL(request.url, window.location.origin);
+            } catch (_error) {
+              return request;
+            }
+
+            const hasKnownPrefix = knownPrefixes.some((prefix) =>
+              parsed.pathname === prefix || parsed.pathname.startsWith(`${prefix}/`));
+            if (hasKnownPrefix) {
+              return request;
+            }
+
+            const normalizedPath = parsed.pathname.startsWith('/') ? parsed.pathname : `/${parsed.pathname}`;
+            parsed.pathname = `${service.runtimeBasePath}${normalizedPath}`.replace(/\/{2,}/g, '/');
+            parsed.host = window.location.host;
+            parsed.protocol = window.location.protocol;
+            request.url = parsed.toString();
+            return request;
+          },
+        });
+      }
+
+      bootstrap().catch((error) => {
+        const el = document.getElementById('swagger-ui');
+        if (!el) return;
+        el.innerHTML = `<pre style="padding:16px;color:#a40000;">${String(error)}</pre>`;
+      });
+    </script>
+  </body>
+</html>
