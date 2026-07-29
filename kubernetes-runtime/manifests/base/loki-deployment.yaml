@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loki
+  namespace: traderx
+  labels:
+    app: loki
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loki
+  template:
+    metadata:
+      labels:
+        app: loki
+    spec:
+      containers:
+        - name: loki
+          image: grafana/loki:2.9.8
+          imagePullPolicy: IfNotPresent
+          args: ["-config.file=/etc/loki/config.yaml"]
+          ports:
+            - name: http
+              containerPort: 3100
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 3100
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: 3100
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - name: loki-config
+              mountPath: /etc/loki/config.yaml
+              subPath: config.yaml
+      volumes:
+        - name: loki-config
+          configMap:
+            name: observability-loki-config

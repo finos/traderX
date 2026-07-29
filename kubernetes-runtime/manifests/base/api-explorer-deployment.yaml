@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-explorer
+  namespace: traderx
+  labels:
+    app: api-explorer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-explorer
+  template:
+    metadata:
+      labels:
+        app: api-explorer
+    spec:
+      containers:
+        - name: api-explorer
+          image: traderx-api-explorer:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+              name: http

@@ -1,0 +1,91 @@
+{
+  "stateId": "010-kubernetes-runtime",
+  "namespace": "traderx",
+  "kindClusterName": "traderx-state-010",
+  "hostPort": 8080,
+  "nodePort": 30080,
+  "edgeService": "edge-proxy",
+  "images": [
+    {
+      "name": "reference-data",
+      "image": "traderx/reference-data:state009",
+      "context": "reference-data",
+      "dockerfile": "Dockerfile.compose"
+    },
+    {
+      "name": "people-service",
+      "image": "traderx/people-service:state009",
+      "context": "people-service",
+      "dockerfile": "Dockerfile.compose"
+    },
+    {
+      "name": "account-service",
+      "image": "traderx/account-service:state009",
+      "context": "account-service",
+      "dockerfile": "Dockerfile.compose"
+    },
+    {
+      "name": "position-service",
+      "image": "traderx/position-service:state009",
+      "context": "position-service",
+      "dockerfile": "Dockerfile.compose"
+    },
+    {
+      "name": "trade-processor",
+      "image": "traderx/trade-processor:state009",
+      "context": "trade-processor",
+      "dockerfile": "Dockerfile.compose"
+    },
+    {
+      "name": "trade-service",
+      "image": "traderx/trade-service:state009",
+      "context": "trade-service",
+      "dockerfile": "Dockerfile.compose"
+    },
+    {
+      "name": "price-publisher",
+      "image": "traderx/price-publisher:state009",
+      "context": "price-publisher",
+      "dockerfile": "Dockerfile.compose"
+    },
+    {
+      "name": "order-matcher",
+      "image": "traderx/order-matcher:state009",
+      "context": "order-matcher",
+      "dockerfile": "Dockerfile.compose"
+    },
+    {
+      "name": "web-front-end-angular",
+      "image": "traderx/web-front-end-angular:state009",
+      "context": "web-front-end/angular",
+      "dockerfile": "Dockerfile.compose"
+    },
+    {
+      "name": "api-explorer",
+      "image": "traderx-api-explorer:local",
+      "context": "api-explorer",
+      "dockerfile": "Dockerfile"
+    }
+  ],
+  "deployments": [
+    "database",
+    "nats-broker",
+    "reference-data",
+    "people-service",
+    "account-service",
+    "position-service",
+    "trade-processor",
+    "trade-service",
+    "price-publisher",
+    "order-matcher",
+    "web-front-end-angular",
+    "edge-proxy",
+    "blackbox-exporter",
+    "loki",
+    "tempo",
+    "otel-collector",
+    "prometheus",
+    "grafana",
+    "api-explorer"
+  ]
+}

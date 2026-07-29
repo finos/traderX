@@ -1,19 +1,25 @@
 # Software Architecture
 
-State: `009-order-management-matcher`
-Title: `Order Management and Matcher`
+State: `010-kubernetes-runtime`
+Title: `Architecture (State 010 Kubernetes Runtime)`
 
 ## Architecture Summary
 
-Pricing + observability runtime extended with order management, matcher flow, and order-specific telemetry.
+State 010 preserves state 009 browser/API routing behavior while running all services on a local Kubernetes cluster.
 
 ## Entrypoints
 
-
+- `edge-proxy` -> `http://localhost:8080`
+- `edge-health` -> `http://localhost:8080/health`
+- `grafana` -> `http://localhost:8080/grafana`
+- `prometheus` -> `http://localhost:8080/prometheus`
 
 ## Notes
 
-
+- Functional behavior remains intentionally equivalent to state 009.
+- Primary delta is runtime/operations model (Compose to Kubernetes).
+- Edge proxy remains NGINX-based to keep route semantics stable.
+- Observability stack from state 009 remains available in Kubernetes runtime.
 
 ## Diagram
 
@@ -21,62 +27,84 @@ See [Component Diagram](./component-diagram.md).
 
 ## Detailed Architecture (Spec Extract)
 
-# Order Management and Matcher
+# Architecture (State 010 Kubernetes Runtime)
 
-Pricing + observability runtime extended with order management, matcher flow, and order-specific telemetry.
+State 010 preserves state 009 browser/API routing behavior while running all services on a local Kubernetes cluster.
 
+- Inherits architectural baseline from: `009-order-management-matcher`
 - Generated from: `system/architecture.model.json`
-- Canonical flows: `system/end-to-end-flows.md`
+- Canonical flows: `../001-baseline-uncontainerized-parity/system/end-to-end-flows.md`
+
+## Entry Points
+
+- `edge-proxy`: `http://localhost:8080`
+- `edge-health`: `http://localhost:8080/health`
+- `grafana`: `http://localhost:8080/grafana`
+- `prometheus`: `http://localhost:8080/prometheus`
 
 ## Architecture Diagram
 
 ```mermaid
 flowchart LR
   developer["Developer"]
-  app_runtime["TraderX App Runtime"]
-  obs_runtime["Observability Runtime"]
-  ingress["NGINX Ingress"]
-  trade_ui["Angular Trade UI"]
-  order_api["Order Management API"]
-  order_matcher["Order Matcher"]
+  cluster["Kind Kubernetes Cluster"]
+  edge["NGINX Edge Proxy"]
+  web["Web Front End Angular"]
+  account["Account Service"]
+  position["Position Service"]
+  tradeService["Trade Service"]
+  referenceData["Reference Data"]
+  people["People Service"]
   nats["NATS Broker"]
-  trade_processor["Trade Processor"]
-  prometheus["Prometheus"]
-  blackbox["Blackbox Exporter"]
-  loki["Loki"]
+  tradeProcessor["Trade Processor"]
+  database["Database"]
   grafana["Grafana"]
-  developer -->|"Uses app and admin UI"| ingress
-  ingress -->|"Serves UI"| trade_ui
-  trade_ui -->|"Calls order APIs"| order_api
-  order_api -->|"Submits and updates orders"| order_matcher
-  order_api -->|"Publishes lifecycle events"| nats
-  order_matcher -->|"Publishes fills and status"| nats
-  nats -->|"Delivers matcher-generated fills"| trade_processor
-  prometheus -->|"Scrapes /metrics"| order_matcher
-  prometheus -->|"Scrapes probe metrics"| blackbox
-  blackbox -->|"HTTP probes"| order_api
-  blackbox -->|"HTTP probes"| order_matcher
-  order_matcher -->|"Structured logs via promtail"| loki
-  developer -->|"Views order observability"| grafana
-  grafana -->|"Queries metrics"| prometheus
-  grafana -->|"Queries logs"| loki
+  prometheus["Prometheus"]
+  developer -->|"Starts runtime"| cluster
+  developer -->|"Browser access :8080"| edge
+  edge -->|"/"| web
+  edge -->|"/account-service"| account
+  edge -->|"/position-service"| position
+  edge -->|"/trade-service"| tradeService
+  edge -->|"/reference-data"| referenceData
+  edge -->|"/people-service"| people
+  edge -->|"/nats-ws"| nats
+  edge -->|"/trade-processor"| tradeProcessor
+  edge -->|"/grafana"| grafana
+  edge -->|"/prometheus"| prometheus
+  tradeService -->|"Validate account"| account
+  tradeService -->|"Validate ticker"| referenceData
+  tradeService -->|"Publish trades/new"| nats
+  tradeProcessor -->|"Consume and publish updates"| nats
+  tradeProcessor -->|"Persist trade/position state"| database
+  account -->|"Account persistence"| database
+  position -->|"Query trades/positions"| database
+  account -->|"Validate person for account-user mapping"| people
 ```
 
 ## Node Catalog
 
 | Node | Kind | Label | Notes |
 | --- | --- | --- | --- |
-| `developer` | actor | Developer | Local developer using this state. |
-| `app_runtime` | boundary | TraderX App Runtime | State 009 pricing/runtime baseline with order-management extensions. |
-| `obs_runtime` | boundary | Observability Runtime | LGTM + OTel stack from state 007 carried forward with order telemetry coverage. |
-| `ingress` | service | NGINX Ingress | Routes UI, API, and order admin traffic. |
-| `trade_ui` | service | Angular Trade UI | Trade ticket, blotters, and admin tab. |
-| `order_api` | service | Order Management API | Order create/query/edit/cancel/force-fill endpoints. |
-| `order_matcher` | service | Order Matcher | Matches open orders and emits order lifecycle + fill events. |
-| `nats` | service | NATS Broker | Realtime transport for pricing, trade, position, and order subjects. |
-| `trade_processor` | service | Trade Processor | Consumes fills and persists trades/positions. |
-| `prometheus` | service | Prometheus | Scrapes order metrics and blackbox probes. |
-| `blackbox` | service | Blackbox Exporter | Probes order endpoints and inherited runtime endpoints. |
-| `loki` | service | Loki | Aggregates order and runtime logs. |
-| `grafana` | service | Grafana | Dashboards for queue depth, open orders, events, and matcher latency. |
+| `developer` | actor | Developer | Runs local Kind-based Kubernetes runtime. |
+| `cluster` | boundary | Kind Kubernetes Cluster | Local cluster namespace and workloads. |
+| `edge` | gateway | NGINX Edge Proxy | Single browser entrypoint for UI/API/WebSocket routes. |
+| `web` | frontend | Web Front End Angular | Angular frontend served behind edge proxy. |
+| `account` | service | Account Service | Account and account-user APIs. |
+| `position` | service | Position Service | Positions and trades query API. |
+| `tradeService` | service | Trade Service | Trade order submission and validation. |
+| `referenceData` | service | Reference Data | Ticker metadata lookup. |
+| `people` | service | People Service | Person lookup and matching APIs. |
+| `nats` | messaging | NATS Broker | Messaging backbone for trade, position, pricing, and order lifecycle streams. |
+| `tradeProcessor` | service | Trade Processor | Consumes trade events and persists settled state. |
+| `database` | database | Database | PostgreSQL persistence service. |
+| `grafana` | observability | Grafana | Dashboard and observability visualization UI. |
+| `prometheus` | observability | Prometheus | Metrics collection and query engine. |
+
+## State Notes
+
+- Functional behavior remains intentionally equivalent to state 009.
+- Primary delta is runtime/operations model (Compose to Kubernetes).
+- Edge proxy remains NGINX-based to keep route semantics stable.
+- Observability stack from state 009 remains available in Kubernetes runtime.
 

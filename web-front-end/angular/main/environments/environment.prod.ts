@@ -2,11 +2,11 @@ import { Environment } from './environment.interface';
 
 export const environment: Environment = {
     production:         true,
-    accountUrl:         `//${window.location.host}/account-service`,
-    refrenceDataUrl:    `//${window.location.host}/reference-data`,
-    tradesUrl:          `//${window.location.host}/trade-service/trade/`,
-    positionsUrl:       `//${window.location.host}/position-service`,
-    peopleUrl:          `//${window.location.host}/people-service`,
-    orderMatcherUrl:    `//${window.location.host}/order-matcher`,
+    accountUrl:         `/account-service`,
+    refrenceDataUrl:    `/reference-data`,
+    tradesUrl:          `/trade-service/trade/`,
+    positionsUrl:       `/position-service`,
+    peopleUrl:          `/people-service`,
+    orderMatcherUrl:    `/order-matcher`,
     tradeFeedUrl:       `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/nats-ws`
 };
