@@ -6,21 +6,21 @@ Prerequisites:
 Start:
 
 ```bash
-./scripts/start-state-005-postgres-database-replacement-generated.sh
-./scripts/start-state-005-postgres-database-replacement-generated.sh --skip-build
+./scripts/start-state-006-messaging-nats-replacement-generated.sh
+./scripts/start-state-006-messaging-nats-replacement-generated.sh --skip-build
 ```
 
 Endpoints:
 - UI / ingress: `http://localhost:8080`
 - API explorer (ingress): `http://localhost:8080/api/docs`
 - Ingress health: `http://localhost:8080/health`
-- PostgreSQL: `localhost:18083`
+- NATS monitor: `http://localhost:8222/varz`
 
 Status / stop:
 
 ```bash
-./scripts/status-state-005-postgres-database-replacement-generated.sh
-./scripts/stop-state-005-postgres-database-replacement-generated.sh
+./scripts/status-state-006-messaging-nats-replacement-generated.sh
+./scripts/stop-state-006-messaging-nats-replacement-generated.sh
 ```
 
 ## Stable Entrypoints

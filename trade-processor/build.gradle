@@ -21,8 +21,10 @@ repositories {
 dependencies {
   implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
   implementation 'org.springframework.boot:spring-boot-starter-web'
+  implementation 'io.micrometer:micrometer-core'
   implementation 'org.postgresql:postgresql:42.7.12'
   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
+  implementation 'io.nats:jnats:2.20.5'
   implementation 'org.apache.logging.log4j:log4j-api:2.26.1'
   implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.26.1'
 

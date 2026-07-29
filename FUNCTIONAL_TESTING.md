@@ -1,14 +1,14 @@
 # Functional Testing Guide
 
-State: `005-postgres-database-replacement`
+State: `006-messaging-nats-replacement`
 
 This guide captures intended functional behavior for this generated snapshot branch.
 
 ## What Should Work
 
 - Builds on state `004` and preserves containerized ingress runtime behavior.
-- Replaces H2 runtime database with PostgreSQL container + deterministic init SQL.
-- Preserves baseline REST/event contracts and user-visible behavior.
+- Replaces Socket.IO trade-feed with NATS broker for backend and browser streaming.
+- Preserves baseline user-visible behavior while changing messaging transport.
 
 ## Suggested Functional Validation
 
@@ -20,12 +20,12 @@ This guide captures intended functional behavior for this generated snapshot bra
 ## Smoke Test Commands
 
 ```bash
-./scripts/test-state-005-postgres-database-replacement.sh
+./scripts/test-state-006-messaging-nats-replacement.sh
 ```
 
 ## Canonical References
 
-- Spec pack: `specs/005-postgres-database-replacement`
+- Spec pack: `specs/006-messaging-nats-replacement`
 - Runtime guide: [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
 - Snapshot learning guide: [LEARNING.md](./LEARNING.md)
 - Snapshot metadata: [STATE.md](./STATE.md)

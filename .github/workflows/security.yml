@@ -23,7 +23,6 @@ jobs:
       matrix:
         module_folder:
           - reference-data
-          - trade-feed
           - web-front-end/angular
     steps:
       - name: Checkout
@@ -178,9 +177,6 @@ jobs:
           - directory: reference-data
             dockerfile: Dockerfile.compose
             image_name: reference-data
-          - directory: trade-feed
-            dockerfile: Dockerfile.compose
-            image_name: trade-feed
           - directory: trade-processor
             dockerfile: Dockerfile.compose
             image_name: trade-processor
