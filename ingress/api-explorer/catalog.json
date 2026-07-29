@@ -1,6 +1,6 @@
 {
-  "generatedAtUtc": "2026-07-29T20:13:16.382Z",
-  "stateId": "004-containerized-compose-runtime",
+  "generatedAtUtc": "2026-07-29T20:21:16.681Z",
+  "stateId": "005-postgres-database-replacement",
   "mountPath": "/api/docs",
   "pubSubInspectorEnabled": false,
   "services": [
