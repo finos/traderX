@@ -37,7 +37,7 @@ index a339ff9..4abff09 100644
 @@ -9,7 +9,14 @@ CREATE TABLE Accounts ( ID INTEGER PRIMARY KEY, DisplayName VARCHAR (50) );
  CREATE TABLE AccountUsers ( AccountID INTEGER NOT NULL, Username VARCHAR(15) NOT NULL, PRIMARY KEY (AccountID,Username));
  ALTER TABLE AccountUsers ADD FOREIGN KEY (AccountID) References Accounts(ID);
- 
+
 -CREATE TABLE Positions ( AccountID INTEGER, Security VARCHAR(15), Updated TIMESTAMP, Quantity INTEGER, Primary Key (AccountID, Security) );
 +CREATE TABLE Positions (
 +  AccountID INTEGER,
@@ -48,7 +48,7 @@ index a339ff9..4abff09 100644
 +  Primary Key (AccountID, Security)
 +);
  Alter Table Positions ADD FOREIGN KEY (AccountID) References Accounts(ID);
- 
+
  CREATE TABLE Trades (
 @@ -20,6 +27,7 @@ CREATE TABLE Trades (
    Security VARCHAR (15),
@@ -61,33 +61,33 @@ index a339ff9..4abff09 100644
 @@ -70,13 +78,13 @@ INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user04');
  INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user01');
  INSERT into AccountUsers (AccountID, Username) VALUES (44044, 'user06');
- 
+
 -INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, State, AccountID) VALUES('TRADE-22214-AABBCC', NOW(), NOW(), 'IBM', 'Sell', 100, 'Settled', 22214);
 -INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, State, AccountID) VALUES('TRADE-22214-DDEEFF', NOW(), NOW(), 'MS', 'Buy', 1000, 'Settled', 22214);
 -INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, State, AccountID) VALUES('TRADE-22214-GGHHII', NOW(), NOW(), 'C', 'Sell', 2000, 'Settled', 22214);
 +INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, Price, State, AccountID) VALUES('TRADE-22214-AABBCC', NOW(), NOW(), 'IBM', 'Sell', 100, 136.250, 'Settled', 22214);
 +INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, Price, State, AccountID) VALUES('TRADE-22214-DDEEFF', NOW(), NOW(), 'MS', 'Buy', 1000, 95.125, 'Settled', 22214);
 +INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, Price, State, AccountID) VALUES('TRADE-22214-GGHHII', NOW(), NOW(), 'C', 'Sell', 2000, 57.500, 'Settled', 22214);
- 
+
 -INSERT into Positions (AccountID, Security, Updated, Quantity) VALUES(22214, 'MS',NOW(), 1000);
 -INSERT into Positions (AccountID, Security, Updated, Quantity) VALUES(22214, 'IBM',NOW(), -100);
 -INSERT into Positions (AccountID, Security, Updated, Quantity) VALUES(22214, 'C',NOW(), -2000);
 +INSERT into Positions (AccountID, Security, Updated, Quantity, AverageCostBasis) VALUES(22214, 'MS',NOW(), 1000, 95.125);
 +INSERT into Positions (AccountID, Security, Updated, Quantity, AverageCostBasis) VALUES(22214, 'IBM',NOW(), -100, 136.250);
 +INSERT into Positions (AccountID, Security, Updated, Quantity, AverageCostBasis) VALUES(22214, 'C',NOW(), -2000, 57.500);
- 
+
 -INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, State, AccountID) VALUES('TRADE-52355-AABBCC', NOW(), NOW(), 'BAC', 'Sell', 2400, 'Settled', 52355);
 -INSERT into Positions (AccountID, Security, Updated, Quantity) VALUES(52355, 'BAC',NOW(), -2400);
 +INSERT into Trades(ID, Created, Updated, Security, Side, Quantity, Price, State, AccountID) VALUES('TRADE-52355-AABBCC', NOW(), NOW(), 'BAC', 'Sell', 2400, 41.125, 'Settled', 52355);
 +INSERT into Positions (AccountID, Security, Updated, Quantity, AverageCostBasis) VALUES(52355, 'BAC',NOW(), -2400, 41.125);
 diff --git a/ingress/nginx.traderx.conf.template b/ingress/nginx.traderx.conf.template
-index ef5d1c4..3fd18d9 100644
+index a1894c3..e5c93d1 100644
 --- a/ingress/nginx.traderx.conf.template
 +++ b/ingress/nginx.traderx.conf.template
 @@ -75,6 +75,10 @@ server {
          proxy_pass ${TRADE_PROCESSOR_URL};
      }
- 
+
 +    location /price-publisher/ {
 +        proxy_pass ${PRICE_PUBLISHER_URL};
 +    }
@@ -124,22 +124,22 @@ index 3d278c0..5bf4188 100644
 +++ b/position-service/src/main/java/finos/traderx/positionservice/model/Position.java
 @@ -1,11 +1,13 @@
  package finos.traderx.positionservice.model;
- 
+
 +import java.math.BigDecimal;
  import java.util.Date;
- 
+
  public class Position {
    private Integer accountId;
    private String security;
    private Integer quantity;
 +  private BigDecimal averageCostBasis;
    private Date updated;
- 
+
    public Integer getAccountId() {
 @@ -32,6 +34,14 @@ public class Position {
      this.quantity = quantity;
    }
- 
+
 +  public BigDecimal getAverageCostBasis() {
 +    return averageCostBasis;
 +  }
@@ -157,10 +157,10 @@ index b131ba9..3512bb1 100644
 +++ b/position-service/src/main/java/finos/traderx/positionservice/model/Trade.java
 @@ -1,5 +1,6 @@
  package finos.traderx.positionservice.model;
- 
+
 +import java.math.BigDecimal;
  import java.util.Date;
- 
+
  public class Trade {
 @@ -9,6 +10,7 @@ public class Trade {
    private String side;
@@ -169,11 +169,11 @@ index b131ba9..3512bb1 100644
 +  private BigDecimal price;
    private Date updated;
    private Date created;
- 
+
 @@ -60,6 +62,14 @@ public class Trade {
      this.quantity = quantity;
    }
- 
+
 +  public BigDecimal getPrice() {
 +    return price;
 +  }
@@ -191,7 +191,7 @@ index 5b46551..0490375 100644
 +++ b/position-service/src/main/java/finos/traderx/positionservice/repository/PositionRepository.java
 @@ -1,6 +1,7 @@
  package finos.traderx.positionservice.repository;
- 
+
  import finos.traderx.positionservice.model.Position;
 +import java.math.BigDecimal;
  import java.util.List;
@@ -207,7 +207,7 @@ index 5b46551..0490375 100644
      return position;
    };
 @@ -26,14 +29,14 @@ public class PositionRepository {
- 
+
    public List<Position> findAll() {
      return jdbcTemplate.query(
 -        "select AccountID, Security, Quantity, Updated from Positions order by AccountID, Security",
@@ -215,7 +215,7 @@ index 5b46551..0490375 100644
          POSITION_ROW_MAPPER
      );
    }
- 
+
    public List<Position> findByAccountId(int accountId) {
      return jdbcTemplate.query(
 -        "select AccountID, Security, Quantity, Updated from Positions where AccountID = ? order by Security",
@@ -229,7 +229,7 @@ index bb2e027..479b3d6 100644
 +++ b/position-service/src/main/java/finos/traderx/positionservice/repository/TradeRepository.java
 @@ -1,6 +1,7 @@
  package finos.traderx.positionservice.repository;
- 
+
  import finos.traderx.positionservice.model.Trade;
 +import java.math.BigDecimal;
  import java.util.List;
@@ -245,7 +245,7 @@ index bb2e027..479b3d6 100644
      trade.setCreated(rs.getTimestamp("Created"));
      return trade;
 @@ -30,14 +33,14 @@ public class TradeRepository {
- 
+
    public List<Trade> findAll() {
      return jdbcTemplate.query(
 -        "select ID, AccountID, Security, Side, State, Quantity, Updated, Created from Trades order by Updated desc",
@@ -253,7 +253,7 @@ index bb2e027..479b3d6 100644
          TRADE_ROW_MAPPER
      );
    }
- 
+
    public List<Trade> findByAccountId(int accountId) {
      return jdbcTemplate.query(
 -        "select ID, AccountID, Security, Side, State, Quantity, Updated, Created from Trades where AccountID = ? order by Updated desc",
@@ -280,25 +280,25 @@ index 18ac6a9..cde3c01 100644
 +  price DECIMAL(18,3),
    state VARCHAR(20) CHECK (state in ('New', 'Processing', 'Settled', 'Cancelled'))
  );
- 
+
 @@ -65,13 +67,13 @@ INSERT INTO accountusers (accountid, username) VALUES (44044, 'user04');
  INSERT INTO accountusers (accountid, username) VALUES (44044, 'user01');
  INSERT INTO accountusers (accountid, username) VALUES (44044, 'user06');
- 
+
 -INSERT INTO trades (id, created, updated, security, side, quantity, state, accountid) VALUES ('TRADE-22214-AABBCC', NOW(), NOW(), 'IBM', 'Sell', 100, 'Settled', 22214);
 -INSERT INTO trades (id, created, updated, security, side, quantity, state, accountid) VALUES ('TRADE-22214-DDEEFF', NOW(), NOW(), 'MS', 'Buy', 1000, 'Settled', 22214);
 -INSERT INTO trades (id, created, updated, security, side, quantity, state, accountid) VALUES ('TRADE-22214-GGHHII', NOW(), NOW(), 'C', 'Sell', 2000, 'Settled', 22214);
 +INSERT INTO trades (id, created, updated, security, side, quantity, price, state, accountid) VALUES ('TRADE-22214-AABBCC', NOW(), NOW(), 'IBM', 'Sell', 100, 136.250, 'Settled', 22214);
 +INSERT INTO trades (id, created, updated, security, side, quantity, price, state, accountid) VALUES ('TRADE-22214-DDEEFF', NOW(), NOW(), 'MS', 'Buy', 1000, 95.125, 'Settled', 22214);
 +INSERT INTO trades (id, created, updated, security, side, quantity, price, state, accountid) VALUES ('TRADE-22214-GGHHII', NOW(), NOW(), 'C', 'Sell', 2000, 57.500, 'Settled', 22214);
- 
+
 -INSERT INTO positions (accountid, security, updated, quantity) VALUES (22214, 'MS', NOW(), 1000);
 -INSERT INTO positions (accountid, security, updated, quantity) VALUES (22214, 'IBM', NOW(), -100);
 -INSERT INTO positions (accountid, security, updated, quantity) VALUES (22214, 'C', NOW(), -2000);
 +INSERT INTO positions (accountid, security, updated, quantity, averagecostbasis) VALUES (22214, 'MS', NOW(), 1000, 95.125);
 +INSERT INTO positions (accountid, security, updated, quantity, averagecostbasis) VALUES (22214, 'IBM', NOW(), -100, 136.250);
 +INSERT INTO positions (accountid, security, updated, quantity, averagecostbasis) VALUES (22214, 'C', NOW(), -2000, 57.500);
- 
+
 -INSERT INTO trades (id, created, updated, security, side, quantity, state, accountid) VALUES ('TRADE-52355-AABBCC', NOW(), NOW(), 'BAC', 'Sell', 2400, 'Settled', 52355);
 -INSERT INTO positions (accountid, security, updated, quantity) VALUES (52355, 'BAC', NOW(), -2400);
 +INSERT INTO trades (id, created, updated, security, side, quantity, price, state, accountid) VALUES ('TRADE-52355-AABBCC', NOW(), NOW(), 'BAC', 'Sell', 2400, 41.125, 'Settled', 52355);
@@ -1749,16 +1749,27 @@ diff --git a/messaging-nats-replacement/docker-compose.yml b/pricing-awareness-m
 similarity index 53%
 rename from messaging-nats-replacement/docker-compose.yml
 rename to pricing-awareness-market-data/docker-compose.yml
-index 34f0057..d26d6ef 100644
+index f4fff9c..d26d6ef 100644
 --- a/messaging-nats-replacement/docker-compose.yml
 +++ b/pricing-awareness-market-data/docker-compose.yml
-@@ -1,4 +1,4 @@
+@@ -1,8 +1,7 @@
 -name: traderx-state-007
 +name: traderx-state-008
- 
+
  services:
    database:
-@@ -25,6 +25,10 @@ services:
+-    restart: unless-stopped
+     image: postgres:16-alpine
+     environment:
+       POSTGRES_DB: "traderx"
+@@ -20,20 +19,22 @@ services:
+       - ../postgres-database-replacement/postgres-init/initialSchema.sql:/docker-entrypoint-initdb.d/001-initialSchema.sql:ro
+
+   reference-data:
+-    restart: unless-stopped
+     build:
+       context: ../reference-data
+       dockerfile: Dockerfile.compose
      environment:
        REFERENCE_DATA_SERVICE_PORT: "18085"
        CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-*}"
@@ -1769,10 +1780,17 @@ index 34f0057..d26d6ef 100644
      ports:
        - "18085:18085"
      depends_on:
-@@ -40,6 +44,20 @@ services:
+       - database
+
+   nats-broker:
+-    restart: unless-stopped
+     image: nats:2.14-alpine
+     command: ["-c", "/etc/nats/nats.conf"]
+     volumes:
+@@ -43,19 +44,34 @@ services:
        - "8222:8222"
        - "8081:8081"
- 
+
 +  price-publisher:
 +    build:
 +      context: ../price-publisher
@@ -1788,9 +1806,10 @@ index 34f0057..d26d6ef 100644
 +      - nats-broker
 +
    people-service:
+-    restart: unless-stopped
      build:
        context: ../people-service
-@@ -47,6 +65,9 @@ services:
+       dockerfile: Dockerfile.compose
      environment:
        PEOPLE_SERVICE_PORT: "18089"
        CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-*}"
@@ -1799,8 +1818,13 @@ index 34f0057..d26d6ef 100644
 +      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
      ports:
        - "18089:18089"
- 
-@@ -63,6 +84,9 @@ services:
+
+   account-service:
+-    restart: unless-stopped
+     build:
+       context: ../account-service
+       dockerfile: Dockerfile.compose
+@@ -68,6 +84,9 @@ services:
        DATABASE_DBPASS: "traderx"
        PEOPLE_SERVICE_HOST: "people-service"
        CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-*}"
@@ -1810,7 +1834,15 @@ index 34f0057..d26d6ef 100644
      ports:
        - "18088:18088"
      depends_on:
-@@ -83,6 +107,9 @@ services:
+@@ -77,7 +96,6 @@ services:
+         condition: service_started
+
+   position-service:
+-    restart: unless-stopped
+     build:
+       context: ../position-service
+       dockerfile: Dockerfile.compose
+@@ -89,6 +107,9 @@ services:
        DATABASE_DBUSER: "traderx"
        DATABASE_DBPASS: "traderx"
        CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-*}"
@@ -1820,7 +1852,15 @@ index 34f0057..d26d6ef 100644
      ports:
        - "18090:18090"
      depends_on:
-@@ -102,6 +129,9 @@ services:
+@@ -96,7 +117,6 @@ services:
+         condition: service_healthy
+
+   trade-processor:
+-    restart: unless-stopped
+     build:
+       context: ../trade-processor
+       dockerfile: Dockerfile.compose
+@@ -109,6 +129,9 @@ services:
        DATABASE_DBPASS: "traderx"
        NATS_BROKER_HOST: "nats-broker"
        CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-*}"
@@ -1830,7 +1870,15 @@ index 34f0057..d26d6ef 100644
      ports:
        - "18091:18091"
      depends_on:
-@@ -120,7 +150,11 @@ services:
+@@ -118,7 +141,6 @@ services:
+         condition: service_started
+
+   trade-service:
+-    restart: unless-stopped
+     build:
+       context: ../trade-service
+       dockerfile: Dockerfile.compose
+@@ -128,7 +150,11 @@ services:
        REFERENCE_DATA_HOST: "reference-data"
        PEOPLE_SERVICE_HOST: "people-service"
        NATS_BROKER_HOST: "nats-broker"
@@ -1842,23 +1890,30 @@ index 34f0057..d26d6ef 100644
      ports:
        - "18092:18092"
      depends_on:
-@@ -128,6 +162,7 @@ services:
+@@ -136,10 +162,10 @@ services:
        - reference-data
        - people-service
        - nats-broker
 +      - price-publisher
        - trade-processor
- 
+
    web-front-end-angular:
-@@ -145,6 +180,7 @@ services:
+-    restart: unless-stopped
+     build:
+       context: ../web-front-end/angular
+       dockerfile: Dockerfile.compose
+@@ -154,9 +180,9 @@ services:
        - position-service
        - people-service
        - nats-broker
 +      - price-publisher
- 
+
    ingress:
+-    restart: unless-stopped
      build:
-@@ -159,6 +195,7 @@ services:
+       context: ../ingress
+       dockerfile: Dockerfile.compose
+@@ -169,6 +195,7 @@ services:
        POSITION_SERVICE_URL: "http://position-service:18090/"
        TRADE_PROCESSOR_URL: "http://trade-processor:18091/"
        TRADE_SERVICE_URL: "http://trade-service:18092/"
@@ -1866,10 +1921,10 @@ index 34f0057..d26d6ef 100644
        WEB_FRONTEND_URL: "http://web-front-end-angular:18093/"
      ports:
        - "8080:8080"
-@@ -171,5 +208,82 @@ services:
+@@ -181,6 +208,82 @@ services:
        - people-service
        - nats-broker
- 
+
 +  otel-collector:
 +    image: otel/opentelemetry-collector-contrib:0.103.1
 +    command: ["--config=/etc/otelcol-contrib/config.yaml"]
@@ -1949,6 +2004,7 @@ index 34f0057..d26d6ef 100644
 +
  volumes:
    postgres_state_009_data:
+-    restart: unless-stopped
 diff --git a/messaging-nats-replacement/nats/nats.conf b/pricing-awareness-market-data/nats/nats.conf
 similarity index 100%
 rename from messaging-nats-replacement/nats/nats.conf
@@ -3330,6 +3386,114 @@ index 0000000..0ac9f9f
 +    backend: local
 +    local:
 +      path: /tmp/tempo/traces
+diff --git a/runtime/ghcr/007-observability-lgtm-compose/docker-compose.ghcr.yml b/runtime/ghcr/007-observability-lgtm-compose/docker-compose.ghcr.yml
+index 642e662..0895f69 100644
+--- a/runtime/ghcr/007-observability-lgtm-compose/docker-compose.ghcr.yml
++++ b/runtime/ghcr/007-observability-lgtm-compose/docker-compose.ghcr.yml
+@@ -5,103 +5,86 @@ services:
+     extends:
+       file: ../../../observability-lgtm-compose/docker-compose.yml
+       service: database
+-    restart: unless-stopped
+   reference-data:
+     extends:
+       file: ../../../observability-lgtm-compose/docker-compose.yml
+       service: reference-data
+-    restart: unless-stopped
+     image: ghcr.io/finos/traderx-c1/reference-data:${TRADERX_IMAGE_TAG:-latest}
+     build: null
+   nats-broker:
+     extends:
+       file: ../../../observability-lgtm-compose/docker-compose.yml
+       service: nats-broker
+-    restart: unless-stopped
+   people-service:
+     extends:
+       file: ../../../observability-lgtm-compose/docker-compose.yml
+       service: people-service
+-    restart: unless-stopped
+     image: ghcr.io/finos/traderx-c1/people-service:${TRADERX_IMAGE_TAG:-latest}
+     build: null
+   account-service:
+     extends:
+       file: ../../../observability-lgtm-compose/docker-compose.yml
+       service: account-service
+-    restart: unless-stopped
+     image: ghcr.io/finos/traderx-c1/account-service:${TRADERX_IMAGE_TAG:-latest}
+     build: null
+   position-service:
+     extends:
+       file: ../../../observability-lgtm-compose/docker-compose.yml
+       service: position-service
+-    restart: unless-stopped
+     image: ghcr.io/finos/traderx-c1/position-service:${TRADERX_IMAGE_TAG:-latest}
+     build: null
+   trade-processor:
+     extends:
+       file: ../../../observability-lgtm-compose/docker-compose.yml
+       service: trade-processor
+-    restart: unless-stopped
+     image: ghcr.io/finos/traderx-c1/trade-processor:${TRADERX_IMAGE_TAG:-latest}
+     build: null
+   trade-service:
+     extends:
+       file: ../../../observability-lgtm-compose/docker-compose.yml
+       service: trade-service
+-    restart: unless-stopped
+     image: ghcr.io/finos/traderx-c1/trade-service:${TRADERX_IMAGE_TAG:-latest}
+     build: null
+   web-front-end-angular:
+     extends:
+       file: ../../../observability-lgtm-compose/docker-compose.yml
+       service: web-front-end-angular
+-    restart: unless-stopped
+     image: ghcr.io/finos/traderx-c1/web-front-end-angular:${TRADERX_IMAGE_TAG:-latest}
+     build: null
+   ingress:
+     extends:
+       file: ../../../observability-lgtm-compose/docker-compose.yml
+       service: ingress
+-    restart: unless-stopped
+     image: ghcr.io/finos/traderx-c1/ingress:${TRADERX_IMAGE_TAG:-latest}
+     build: null
+   otel-collector:
+     extends:
+       file: ../../../observability-lgtm-compose/docker-compose.yml
+       service: otel-collector
+-    restart: unless-stopped
+   blackbox-exporter:
+     extends:
+       file: ../../../observability-lgtm-compose/docker-compose.yml
+       service: blackbox-exporter
+-    restart: unless-stopped
+   prometheus:
+     extends:
+       file: ../../../observability-lgtm-compose/docker-compose.yml
+       service: prometheus
+-    restart: unless-stopped
+   loki:
+     extends:
+       file: ../../../observability-lgtm-compose/docker-compose.yml
+       service: loki
+-    restart: unless-stopped
+   promtail:
+     extends:
+       file: ../../../observability-lgtm-compose/docker-compose.yml
+       service: promtail
+-    restart: unless-stopped
+   tempo:
+     extends:
+       file: ../../../observability-lgtm-compose/docker-compose.yml
+       service: tempo
+-    restart: unless-stopped
+   grafana:
+     extends:
+       file: ../../../observability-lgtm-compose/docker-compose.yml
+       service: grafana
+-    restart: unless-stopped
+
+ volumes:
+   postgres_state_009_data: {}
 diff --git a/scripts/status-state-007-observability-lgtm-compose-generated.sh b/scripts/status-state-008-pricing-awareness-market-data-generated.sh
 similarity index 66%
 rename from scripts/status-state-007-observability-lgtm-compose-generated.sh
@@ -3346,27 +3510,27 @@ index ac7aba2..b1a45b3 100755
 -COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/observability-lgtm-compose/docker-compose.yml"
 +COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-008}"
 +COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/pricing-awareness-market-data/docker-compose.yml"
- 
+
  if ! command -v docker >/dev/null 2>&1; then
    echo "[error] docker command not found"
 @@ -28,7 +27,7 @@ fi
- 
+
  if [[ ! -f "${COMPOSE_FILE}" ]]; then
    echo "[info] compose file not found: ${COMPOSE_FILE}"
 -  echo "[hint] run: bash pipeline/generate-state.sh 007-observability-lgtm-compose"
 +  echo "[hint] run: bash pipeline/generate-state.sh 008-pricing-awareness-market-data"
    exit 0
  fi
- 
+
 @@ -40,23 +39,21 @@ http_code_for() {
    curl -sS -o /dev/null -w "%{http_code}" "${url}" 2>/dev/null || true
  }
- 
+
 -printf "\n%-28s %-8s %s\n" "endpoint" "http" "url"
 -printf "%-28s %-8s %s\n" "----------------------------" "--------" "---"
 +printf "\n%-24s %-8s %s\n" "endpoint" "http" "url"
 +printf "%-24s %-8s %s\n" "------------------------" "--------" "---"
- 
+
  for target in \
    "ingress-health|http://localhost:8080/health" \
    "ingress-ui|http://localhost:8080/" \
@@ -3404,12 +3568,12 @@ index 993202c..5573cc2 100755
 -COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/observability-lgtm-compose/docker-compose.yml"
 +COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-008}"
 +COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/pricing-awareness-market-data/docker-compose.yml"
- 
+
  if ! command -v docker >/dev/null 2>&1; then
    echo "[error] docker command not found"
 @@ -31,4 +31,4 @@ if [[ ! -f "${COMPOSE_FILE}" ]]; then
  fi
- 
+
  docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" down --remove-orphans
 -echo "[done] state 007 observability runtime stopped"
 +echo "[done] state 008 pricing-awareness runtime stopped"
@@ -3424,22 +3588,22 @@ index d13586f..4917649 100644
 +import java.math.BigDecimal;
 +import java.math.RoundingMode;
  import java.util.Date;
- 
+
  @Entity
 @@ -28,6 +30,9 @@ public class Position implements Serializable {
    @Column(name = "QUANTITY")
    private Integer quantity;
- 
+
 +  @Column(name = "AVERAGECOSTBASIS", precision = 18, scale = 3)
 +  private BigDecimal averageCostBasis;
 +
    @Column(name = "UPDATED")
    private Date updated;
- 
+
 @@ -55,6 +60,14 @@ public class Position implements Serializable {
      this.quantity = quantity;
    }
- 
+
 +  public BigDecimal getAverageCostBasis() {
 +    return averageCostBasis;
 +  }
@@ -3462,22 +3626,22 @@ index 4aea163..a6dced0 100644
 +import java.math.BigDecimal;
 +import java.math.RoundingMode;
  import java.util.Date;
- 
+
  @Entity
 @@ -38,6 +40,9 @@ public class Trade implements Serializable {
    @Column(name = "QUANTITY")
    private Integer quantity;
- 
+
 +  @Column(name = "PRICE", precision = 18, scale = 3)
 +  private BigDecimal price;
 +
    @Column(name = "UPDATED")
    private Date updated;
- 
+
 @@ -92,6 +97,14 @@ public class Trade implements Serializable {
      this.quantity = quantity;
    }
- 
+
 +  public BigDecimal getPrice() {
 +    return price;
 +  }
@@ -3495,12 +3659,12 @@ index 7fa7cb8..80630fc 100644
 +++ b/trade-processor/src/main/java/finos/traderx/tradeprocessor/model/TradeOrder.java
 @@ -1,11 +1,15 @@
  package finos.traderx.tradeprocessor.model;
- 
+
 +import java.math.BigDecimal;
 +import java.math.RoundingMode;
 +
  public class TradeOrder {
- 
+
    private String id;
    private String state;
    private String security;
@@ -3508,11 +3672,11 @@ index 7fa7cb8..80630fc 100644
 +  private BigDecimal price;
    private Integer accountId;
    private TradeSide side;
- 
+
 @@ -59,6 +63,14 @@ public class TradeOrder {
      this.quantity = quantity;
    }
- 
+
 +  public BigDecimal getPrice() {
 +    return price;
 +  }
@@ -3552,7 +3716,7 @@ index eaa6e76..d4e5003 100644
        position.setQuantity(0);
 +      position.setAverageCostBasis(BigDecimal.ZERO.setScale(3, RoundingMode.HALF_UP));
      }
- 
+
 +    int oldQuantity = position.getQuantity() == null ? 0 : position.getQuantity();
 +    BigDecimal oldAverage = position.getAverageCostBasis() == null
 +        ? BigDecimal.ZERO.setScale(3, RoundingMode.HALF_UP)
@@ -3571,7 +3735,7 @@ index eaa6e76..d4e5003 100644
 +        : newNotional.divide(BigDecimal.valueOf(newQuantity), 3, RoundingMode.HALF_UP);
 +    position.setAverageCostBasis(newAverage);
      position.setUpdated(new Date());
- 
+
      tradeRepository.save(trade);
 diff --git a/trade-service/openapi.yaml b/trade-service/openapi.yaml
 index 34cff6d..433ecd1 100644
@@ -3606,13 +3770,13 @@ index 269f5e7..be6ee41 100644
  import org.springframework.web.client.RestTemplate;
 +import java.math.BigDecimal;
 +import java.math.RoundingMode;
- 
+
  @RestController
  @RequestMapping(value = "/trade", produces = "application/json")
 @@ -34,6 +37,9 @@ public class TradeOrderController {
    @Value("${account.service.url}")
    private String accountServiceAddress;
- 
+
 +  @Value("${price.service.url}")
 +  private String priceServiceAddress;
 +
@@ -3722,24 +3886,24 @@ index b3ad2d3..7c060fe 100644
 +++ b/trade-service/src/main/java/finos/traderx/tradeservice/model/TradeOrder.java
 @@ -1,12 +1,15 @@
  package finos.traderx.tradeservice.model;
- 
+
  import com.fasterxml.jackson.annotation.JsonAlias;
 +import java.math.BigDecimal;
 +import java.math.RoundingMode;
- 
+
  public class TradeOrder {
    private String id;
    private String state;
    private String security;
    private Integer quantity;
 +  private BigDecimal price;
- 
+
    @JsonAlias("accountID")
    private Integer accountId;
 @@ -63,6 +66,14 @@ public class TradeOrder {
      this.quantity = quantity;
    }
- 
+
 +  public BigDecimal getPrice() {
 +    return price;
 +  }
@@ -3760,9 +3924,9 @@ index fccb4ce..d4d429d 100644
  account.service.url=${ACCOUNT_SERVICE_URL:http://${ACCOUNT_SERVICE_HOST:localhost}:18088}
  reference.data.service.url=${REFERENCE_DATA_SERVICE_URL:http://${REFERENCE_DATA_HOST:localhost}:18085}
 +price.service.url=${PRICE_SERVICE_URL:http://${PRICE_SERVICE_HOST:localhost}:18100}
- 
+
  nats.address=${NATS_ADDRESS:nats://${NATS_BROKER_HOST:localhost}:4222}
- 
+
 diff --git a/web-front-end/angular/main/app/model/trade.model.ts b/web-front-end/angular/main/app/model/trade.model.ts
 index ec8d3a6..967e50b 100644
 --- a/web-front-end/angular/main/app/model/trade.model.ts
@@ -3779,7 +3943,7 @@ index ec8d3a6..967e50b 100644
      side: Side;
      state: State;
 @@ -23,8 +25,15 @@ export enum State {
- 
+
  export interface Position {
      accountid: number;
 +    accountId?: number;
@@ -3793,7 +3957,7 @@ index ec8d3a6..967e50b 100644
 +    pnl?: number;
      updated: Date;
  }
- 
+
 @@ -34,3 +43,18 @@ export interface TradeTicket {
      security: string;
      accountId: number;
@@ -3825,7 +3989,7 @@ index 83e673b..64b7c09 100644
 +import { catchError } from 'rxjs/operators';
  import { Trade, Position } from '../model/trade.model';
  import { environment } from 'main/environments/environment';
- 
+
 diff --git a/web-front-end/angular/main/app/service/price-snapshot.service.ts b/web-front-end/angular/main/app/service/price-snapshot.service.ts
 new file mode 100644
 index 0000000..019005a
@@ -3920,7 +4084,7 @@ index 0672052..a010ba0 100644
  import { Observable } from 'rxjs';
  import { TradeFeedService } from 'main/app/service/trade-feed.service';
 +import { PriceSnapshotService } from 'main/app/service/price-snapshot.service';
- 
+
  @Component({
      standalone: false,
 @@ -16,12 +17,19 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
@@ -3940,7 +4104,7 @@ index 0672052..a010ba0 100644
 +  private readonly marketPriceByTicker = new Map<string, number>();
 +  private readonly marketPriceAsOfByTicker = new Map<string, number>();
 +  private readonly openPriceByTicker = new Map<string, number>();
- 
+
    columnDefs: ColDef[] = [
      {
 @@ -31,33 +39,87 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
@@ -3995,7 +4159,7 @@ index 0672052..a010ba0 100644
 +      valueFormatter: ({ value }) => this.formatCurrency(value)
      }
    ];
- 
+
 -  constructor(private tradeService: PositionService,
 -    private tradeFeed: TradeFeedService) {
 +  constructor(
@@ -4005,7 +4169,7 @@ index 0672052..a010ba0 100644
 +  ) {
      this.getRowId = this.getRowId.bind(this);
    }
- 
+
    ngOnChanges(change: SimpleChanges) {
      const scopeChanged = !!change.account || !!change.allAccountsMode || !!change.accountIds;
 +    if (change.securityFilter && !scopeChanged) {
@@ -4015,14 +4179,14 @@ index 0672052..a010ba0 100644
        this.loadScope();
      }
    }
- 
+
    processPendingPositions() {
 -    this.pendingPosition.forEach((position) => this.update(position));
 +    this.pendingPosition.forEach((position: any) => this.update(position));
      this.pendingPosition = [];
      this.isPending = false;
    }
- 
+
    updatePosition(data: any) {
 +    if (this.allAccountsMode) {
 +      this.refreshAllAccountsPositions();
@@ -4035,11 +4199,11 @@ index 0672052..a010ba0 100644
 +      this.update(this.recomputePosition(data));
      }
    }
- 
+
 @@ -71,33 +133,55 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
        return;
      }
- 
+
 +    const recomputed = this.recomputePosition(data);
      const row = this.gridApi.getRowNode(this.toRowId(security));
      let positionData;
@@ -4072,7 +4236,7 @@ index 0672052..a010ba0 100644
      this.gridApi.applyTransaction(positionData);
 +    this.emitSummary();
    }
- 
+
    onGridReady(params: GridReadyEvent) {
      console.log('position blotter is ready...');
      this.gridApi = params.api;
@@ -4088,16 +4252,16 @@ index 0672052..a010ba0 100644
 +    }
 +    this.securitySelected.emit(security);
    }
- 
+
    getRowId(params: GetRowIdParams<any>):string {
 +    if (!params?.data?.security) {
 +      return 'Position-unknown';
 +    }
      return this.toRowId(params.data.security);
    }
- 
+
 @@ -107,11 +191,46 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
- 
+
    ngOnDestroy() {
      this.clearSubscriptions();
 +    this.priceStreamUnsubscribeFn?.();
@@ -4127,7 +4291,7 @@ index 0672052..a010ba0 100644
 +      security: normalizedTicker
 +    }));
    }
- 
+
    private loadScope() {
      this.clearSubscriptions();
      this.isPending = true;
@@ -4140,7 +4304,7 @@ index 0672052..a010ba0 100644
 +    this.priceStreamUnsubscribeFn = this.tradeFeed.subscribe('pricing.*', (data: PriceTick) => {
 +      this.updateMarketPrice(data);
 +    });
- 
+
      if (this.allAccountsMode) {
        this.refreshAllAccountsPositions();
 @@ -127,14 +246,15 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
@@ -4152,7 +4316,7 @@ index 0672052..a010ba0 100644
 +      this.emitSummary();
        return;
      }
- 
+
      this.tradeService.getPositions(accountId).subscribe((positions: Position[]) => {
 -      this.positions = positions ?? [];
 +      this.positions = (positions ?? []).map((position: any) => this.recomputePosition(position));
@@ -4173,7 +4337,7 @@ index 0672052..a010ba0 100644
        this.isPending = false;
      });
    }
- 
+
 +  private bootstrapSnapshotPrices(tickers: string[]): void {
 +    this.priceSnapshots.getPrices(tickers).subscribe((snapshots) => {
 +      let changed = false;
@@ -4296,7 +4460,7 @@ index 0672052..a010ba0 100644
 +    rows.sort((a, b) => String(a.security).localeCompare(String(b.security)));
 +    return rows;
    }
- 
+
    private clearSubscriptions() {
 @@ -199,7 +411,199 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
      } else if (typeof (this.gridApi as any).setRowData === 'function') {
@@ -4305,7 +4469,7 @@ index 0672052..a010ba0 100644
 +    this.applySecurityFilter();
      this.gridApi.sizeColumnsToFit();
    }
- 
+
 +  private recomputePosition(position: any): any {
 +    if (!position || !position.security) {
 +      return position;
@@ -4540,17 +4704,17 @@ index fc23aa2..4190ae8 100644
 +            valueFormatter: ({ value }) => this.toRelativeTime(value)
          }
      ];
- 
+
 @@ -66,6 +80,9 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
      }
- 
+
      getRowId(params: GetRowIdParams<any>):string {
 +        if (!params?.data?.id) {
 +            return 'Trade-unknown';
 +        }
          return  `Trade-${params.data.id}`;
      }
- 
+
 @@ -89,16 +106,24 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
          let tradeData;
          if (row) {
@@ -4579,7 +4743,7 @@ index fc23aa2..4190ae8 100644
                      state: tradeWithDisplay.state,
 @@ -169,9 +194,9 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
      }
- 
+
      private withAccountDisplay(data: Trade): Trade & { accountDisplayName: string } {
 -        const accountId = Number((data as any).accountid ?? 0);
 +        const accountId = Number((data as any).accountId ?? (data as any).accountid ?? 0);
@@ -4587,12 +4751,12 @@ index fc23aa2..4190ae8 100644
 -        return Object.assign({}, data, { accountid: accountId, accountDisplayName });
 +        return Object.assign({}, data, { accountId, accountid: accountId, accountDisplayName });
      }
- 
+
      private configureColumns() {
 @@ -191,7 +216,60 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
          this.gridApi.sizeColumnsToFit();
      }
- 
+
 -    private toRowId(id: string | number | undefined): string {
 -        return `Trade-${id ?? 'unknown'}`;
 +    private toRowId(id: string): string {
@@ -4666,7 +4830,7 @@ index e1fd0d3..18ed117 100644
  import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
 +import { TradeFeedService } from 'main/app/service/trade-feed.service';
 +import { PriceSnapshotService } from 'main/app/service/price-snapshot.service';
- 
+
  @Component({
      standalone: false,
 @@ -10,10 +12,11 @@ import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
@@ -4675,11 +4839,11 @@ index e1fd0d3..18ed117 100644
  })
 -export class TradeTicketComponent implements OnInit {
 +export class TradeTicketComponent implements OnInit, OnChanges, OnDestroy {
- 
+
    @Input() stocks: Stock[];
    @Input() account: Account | undefined;
 +  @Input() presetSecurity = '';
- 
+
    @Output() create = new EventEmitter<TradeTicket>();
    @Output() cancel = new EventEmitter();
 @@ -21,6 +24,16 @@ export class TradeTicketComponent implements OnInit {
@@ -4696,7 +4860,7 @@ index e1fd0d3..18ed117 100644
 +    private tradeFeed: TradeFeedService,
 +    private priceSnapshots: PriceSnapshotService
 +  ) {}
- 
+
    ngOnInit() {
      this.ticket = {
 @@ -34,24 +47,51 @@ export class TradeTicketComponent implements OnInit {
@@ -4706,7 +4870,7 @@ index e1fd0d3..18ed117 100644
 +
 +    this.applyPresetSecurity(this.presetSecurity);
    }
- 
+
 +  ngOnChanges(changes: SimpleChanges): void {
 +    if (changes.stocks) {
 +      this.filteredStocks = (this.stocks || []).map((stock) => ({
@@ -4725,7 +4889,7 @@ index e1fd0d3..18ed117 100644
 +  ngOnDestroy() {
 +    this.priceStreamUnsubscribeFn?.();
 +  }
- 
+
    onSelect(e: TypeaheadMatch): void {
      console.log('Selected value: ', e.value);
      const selectedStock = e.item as Stock & { matchLabel?: string };
@@ -4733,7 +4897,7 @@ index e1fd0d3..18ed117 100644
      this.selectedCompany = selectedStock.matchLabel || this.toMatchLabel(selectedStock);
 +    this.subscribeToTickerPrice(selectedStock.ticker);
    }
- 
+
    onBlur(): void {
      if (this.selectedCompany) return;
      this.ticket.security = '';
@@ -4744,7 +4908,7 @@ index e1fd0d3..18ed117 100644
 +    this.priceStreamUnsubscribeFn?.();
 +    this.priceStreamUnsubscribeFn = undefined;
    }
- 
+
    onCreate() {
      if (!this.ticket.security || !this.ticket.quantity) {
 -      console.warn('Either security is not selected or quanity is not set!')
@@ -4755,7 +4919,7 @@ index e1fd0d3..18ed117 100644
 @@ -62,7 +102,109 @@ export class TradeTicketComponent implements OnInit {
      this.cancel.emit();
    }
- 
+
 +  formatLivePrice(): string {
 +    if (this.selectedPrice == null) {
 +      return 'Streaming...';

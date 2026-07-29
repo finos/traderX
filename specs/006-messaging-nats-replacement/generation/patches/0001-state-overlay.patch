@@ -52,10 +52,10 @@ index 2190bce..58f577d 100644
 +++ b/AGENTS.md
 @@ -1,6 +1,6 @@
  # AGENTS.md
- 
+
 -This generated codebase is a reproducible runtime snapshot for state `005-postgres-database-replacement`.
 +This generated codebase is a reproducible runtime snapshot for state `006-messaging-nats-replacement`.
- 
+
  - Treat this snapshot as generated output; expect it to be replaced on regeneration.
  - Prototype and experiment locally here when needed.
 diff --git a/ARCHITECTURE.md b/ARCHITECTURE.md
@@ -64,10 +64,10 @@ index 0e81a6c..45d73a8 100644
 +++ b/ARCHITECTURE.md
 @@ -1,6 +1,6 @@
  # ARCHITECTURE.md
- 
+
 -This snapshot was generated from TraderX state `005-postgres-database-replacement`.
 +This snapshot was generated from TraderX state `006-messaging-nats-replacement`.
- 
+
  - Service/runtime topology is defined by the source state pack in the upstream repository.
  - This generated directory contains runnable artifacts, not the authoritative architecture source.
 diff --git a/ci/state-metadata.json b/ci/state-metadata.json
@@ -128,7 +128,7 @@ index 565d298..a1894c3 100644
 +++ b/ingress/nginx.traderx.conf.template
 @@ -16,28 +16,18 @@ server {
      }
- 
+
      location /ng-cli-ws {
 -        proxy_pass ${WEB_FRONTEND_URL}ng-cli-ws;
 +        proxy_pass ${WEB_FRONTEND_URL}/ng-cli-ws;
@@ -136,7 +136,7 @@ index 565d298..a1894c3 100644
          proxy_set_header Upgrade $http_upgrade;
          proxy_set_header Connection "upgrade";
      }
- 
+
 -    location /trade-feed/ {
 -        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 -        proxy_set_header Host $http_host;
@@ -156,10 +156,10 @@ index 565d298..a1894c3 100644
 -        proxy_set_header Upgrade $http_upgrade;
 -        proxy_set_header Connection "upgrade";
      }
- 
+
      location /people-service/ {
 @@ -97,5 +87,8 @@ server {
- 
+
      location / {
          proxy_pass ${WEB_FRONTEND_URL};
 +        proxy_http_version 1.1;
@@ -191,18 +191,19 @@ index 0000000..d9896f5
 +- NATS monitor: `http://localhost:8222/varz`
 +- NATS websocket (ingress proxied): `ws://localhost:8080/nats-ws`
 diff --git a/containerized-compose/docker-compose.yml b/messaging-nats-replacement/docker-compose.yml
-similarity index 64%
+similarity index 65%
 rename from containerized-compose/docker-compose.yml
 rename to messaging-nats-replacement/docker-compose.yml
-index 568e078..34f0057 100644
+index 04a6023..f4fff9c 100644
 --- a/containerized-compose/docker-compose.yml
 +++ b/messaging-nats-replacement/docker-compose.yml
-@@ -1,19 +1,22 @@
+@@ -1,20 +1,23 @@
 -name: traderx-state-003
 +name: traderx-state-007
- 
+
  services:
    database:
+     restart: unless-stopped
 -    build:
 -      context: ../database
 -      dockerfile: Dockerfile.compose
@@ -228,21 +229,22 @@ index 568e078..34f0057 100644
 +    volumes:
 +      - postgres_state_009_data:/var/lib/postgresql/data
 +      - ../postgres-database-replacement/postgres-init/initialSchema.sql:/docker-entrypoint-initdb.d/001-initialSchema.sql:ro
- 
+
    reference-data:
-     build:
-@@ -27,15 +30,15 @@ services:
+     restart: unless-stopped
+@@ -29,16 +32,16 @@ services:
      depends_on:
        - database
- 
+
 -  trade-feed:
++  nats-broker:
+     restart: unless-stopped
 -    build:
 -      context: ../trade-feed
 -      dockerfile: Dockerfile.compose
 -    environment:
 -      TRADE_FEED_PORT: "18086"
 -      CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-*}"
-+  nats-broker:
 +    image: nats:2.14-alpine
 +    command: ["-c", "/etc/nats/nats.conf"]
 +    volumes:
@@ -252,10 +254,10 @@ index 568e078..34f0057 100644
 +      - "4222:4222"
 +      - "8222:8222"
 +      - "8081:8081"
- 
+
    people-service:
-     build:
-@@ -53,15 +56,20 @@ services:
+     restart: unless-stopped
+@@ -58,15 +61,20 @@ services:
        dockerfile: Dockerfile.compose
      environment:
        ACCOUNT_SERVICE_PORT: "18088"
@@ -277,10 +279,10 @@ index 568e078..34f0057 100644
 +        condition: service_healthy
 +      people-service:
 +        condition: service_started
- 
+
    position-service:
-     build:
-@@ -69,13 +77,17 @@ services:
+     restart: unless-stopped
+@@ -75,13 +83,17 @@ services:
        dockerfile: Dockerfile.compose
      environment:
        POSITION_SERVICE_PORT: "18090"
@@ -298,10 +300,10 @@ index 568e078..34f0057 100644
 -      - database
 +      database:
 +        condition: service_healthy
- 
+
    trade-processor:
-     build:
-@@ -83,15 +95,20 @@ services:
+     restart: unless-stopped
+@@ -90,15 +102,20 @@ services:
        dockerfile: Dockerfile.compose
      environment:
        TRADE_PROCESSOR_SERVICE_PORT: "18091"
@@ -324,10 +326,10 @@ index 568e078..34f0057 100644
 +        condition: service_healthy
 +      nats-broker:
 +        condition: service_started
- 
+
    trade-service:
-     build:
-@@ -102,7 +119,7 @@ services:
+     restart: unless-stopped
+@@ -110,7 +127,7 @@ services:
        ACCOUNT_SERVICE_HOST: "account-service"
        REFERENCE_DATA_HOST: "reference-data"
        PEOPLE_SERVICE_HOST: "people-service"
@@ -336,25 +338,25 @@ index 568e078..34f0057 100644
        CORS_ALLOWED_ORIGINS: "${CORS_ALLOWED_ORIGINS:-*}"
      ports:
        - "18092:18092"
-@@ -110,7 +127,7 @@ services:
+@@ -118,7 +135,7 @@ services:
        - account-service
        - reference-data
        - people-service
 -      - trade-feed
 +      - nats-broker
        - trade-processor
- 
+
    web-front-end-angular:
-@@ -127,7 +144,7 @@ services:
+@@ -136,7 +153,7 @@ services:
        - trade-service
        - position-service
        - people-service
 -      - trade-feed
 +      - nats-broker
- 
+
    ingress:
-     build:
-@@ -135,9 +152,8 @@ services:
+     restart: unless-stopped
+@@ -145,9 +162,8 @@ services:
        dockerfile: Dockerfile.compose
      environment:
        NGINX_HOST: "${TRADERX_FQDN:-localhost}"
@@ -365,7 +367,7 @@ index 568e078..34f0057 100644
        PEOPLE_SERVICE_URL: "http://people-service:18089/"
        ACCOUNT_SERVICE_URL: "http://account-service:18088/"
        POSITION_SERVICE_URL: "http://position-service:18090/"
-@@ -153,4 +169,7 @@ services:
+@@ -163,4 +179,8 @@ services:
        - trade-service
        - position-service
        - people-service
@@ -374,6 +376,7 @@ index 568e078..34f0057 100644
 +
 +volumes:
 +  postgres_state_009_data:
++    restart: unless-stopped
 diff --git a/messaging-nats-replacement/nats/nats.conf b/messaging-nats-replacement/nats/nats.conf
 new file mode 100644
 index 0000000..d194d1f
@@ -393,10 +396,10 @@ index 8a93957..e807587 100644
 +++ b/scripts/README.runtime-harness.md
 @@ -1,6 +1,6 @@
  # Generated Runtime Harness
- 
+
 -This directory is generated for state: 005-postgres-database-replacement
 +This directory is generated for state: 006-messaging-nats-replacement
- 
+
  - Scripts in this folder are local-runtime wrappers for the generated codebase.
  - They are designed to run without invoking root pipeline generation.
 diff --git a/scripts/start-state-005-postgres-database-replacement-generated.sh b/scripts/start-state-006-messaging-nats-replacement-generated.sh
@@ -420,7 +423,7 @@ index 01b9c60..c49e816 100755
  DRY_RUN=0
  SKIP_BUILD=0
 @@ -116,12 +116,13 @@ wait_for_http() {
- 
+
  wait_for_postgres || exit 1
  wait_for_http "reference-data" "http://localhost:18085/stocks" || exit 1
 +wait_for_http "nats-monitor" "http://localhost:8222/varz" || exit 1
@@ -430,7 +433,7 @@ index 01b9c60..c49e816 100755
  wait_for_http "trade-service" "http://localhost:18092/v3/api-docs" || exit 1
  wait_for_http "ingress" "http://localhost:8080/health" || exit 1
  wait_for_http "ingress-ui" "http://localhost:8080" || exit 1
- 
+
 -echo "[done] state 005 postgres-database runtime started"
 +echo "[done] state 006 messaging-nats runtime started"
  echo "[ui] http://localhost:8080"
@@ -450,18 +453,18 @@ index 268bda4..cd3ab4b 100755
 -COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/postgres-database-replacement/docker-compose.yml"
 +COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-006}"
 +COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/messaging-nats-replacement/docker-compose.yml"
- 
+
  if ! command -v docker >/dev/null 2>&1; then
    echo "[error] docker command not found"
 @@ -27,7 +27,7 @@ fi
- 
+
  if [[ ! -f "${COMPOSE_FILE}" ]]; then
    echo "[info] compose file not found: ${COMPOSE_FILE}"
 -  echo "[hint] run: bash pipeline/generate-state.sh 005-postgres-database-replacement"
 +  echo "[hint] run: bash pipeline/generate-state.sh 006-messaging-nats-replacement"
    exit 0
  fi
- 
+
 @@ -49,16 +49,10 @@ for target in \
    "reference-data|http://localhost:18085/stocks" \
    "account-service|http://localhost:18088/account/22214" \
@@ -496,12 +499,12 @@ index 175164c..5ef01d0 100755
 -COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/postgres-database-replacement/docker-compose.yml"
 +COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-006}"
 +COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/messaging-nats-replacement/docker-compose.yml"
- 
+
  if ! command -v docker >/dev/null 2>&1; then
    echo "[error] docker command not found"
 @@ -31,4 +31,4 @@ if [[ ! -f "${COMPOSE_FILE}" ]]; then
  fi
- 
+
  docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" down --remove-orphans
 -echo "[done] state 005 postgres-database runtime stopped"
 +echo "[done] state 006 messaging-nats runtime stopped"
@@ -587,7 +590,7 @@ index 4fa2a49..0000000
 -}
 diff --git a/trade-feed/index.html b/trade-feed/index.html
 deleted file mode 100644
-index 76202f0..0000000
+index cef3134..0000000
 --- a/trade-feed/index.html
 +++ /dev/null
 @@ -1,67 +0,0 @@
@@ -628,7 +631,7 @@ index 76202f0..0000000
 -        window.scrollTo(0, document.body.scrollHeight);
 -      }
 -
--      
+-
 -      form.addEventListener('submit', function(e) {
 -        e.preventDefault();
 -        if (input.value) {
@@ -648,13 +651,13 @@ index 76202f0..0000000
 -      });
 -
 -      socket.emit(SUBSCRIBE,"/*");
--      
+-
 -      // Example:
 -      // socket.emit(SUBSCRIBE,"/accounts/12345/trades");
 -      // socket.emit(SUBSCRIBE,"/chat");
 -      // socket.emit(SUBSCRIBE,"/accounts/12345/positions");
--      
--      
+-
+-
 -    </script>
 -  </body>
 -</html>
@@ -797,7 +800,7 @@ index 728c800..d587e02 100644
 +  implementation 'io.nats:jnats:2.20.5'
    implementation 'org.apache.logging.log4j:log4j-api:2.26.1'
    implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.26.1'
- 
+
 diff --git a/trade-processor/src/main/java/finos/traderx/messaging/nats/NatsEnvelope.java b/trade-processor/src/main/java/finos/traderx/messaging/nats/NatsEnvelope.java
 new file mode 100644
 index 0000000..770ea68
@@ -1097,7 +1100,7 @@ index 1263b57..87b6b58 100644
 --- a/trade-processor/src/main/java/finos/traderx/tradeprocessor/PubSubConfig.java
 +++ b/trade-processor/src/main/java/finos/traderx/tradeprocessor/PubSubConfig.java
 @@ -2,7 +2,7 @@ package finos.traderx.tradeprocessor;
- 
+
  import finos.traderx.messaging.Publisher;
  import finos.traderx.messaging.Subscriber;
 -import finos.traderx.messaging.socketio.SocketIOJSONPublisher;
@@ -1106,14 +1109,14 @@ index 1263b57..87b6b58 100644
  import finos.traderx.tradeprocessor.model.Trade;
  import finos.traderx.tradeprocessor.model.TradeOrder;
 @@ -12,20 +12,22 @@ import org.springframework.context.annotation.Configuration;
- 
+
  @Configuration
  public class PubSubConfig {
 -  @Value("${trade.feed.address}")
 -  private String tradeFeedAddress;
 +  @Value("${nats.address}")
 +  private String natsAddress;
- 
+
    @Bean
    public Publisher<Position> positionPublisher() {
 -    SocketIOJSONPublisher<Position> publisher = new SocketIOJSONPublisher<>() {};
@@ -1123,7 +1126,7 @@ index 1263b57..87b6b58 100644
 +    publisher.setSender("trade-processor");
      return publisher;
    }
- 
+
    @Bean
    public Publisher<Trade> tradePublisher() {
 -    SocketIOJSONPublisher<Trade> publisher = new SocketIOJSONPublisher<>() {};
@@ -1133,7 +1136,7 @@ index 1263b57..87b6b58 100644
 +    publisher.setSender("trade-processor");
      return publisher;
    }
- 
+
 @@ -33,7 +35,7 @@ public class PubSubConfig {
    public Subscriber<TradeOrder> tradeFeedHandler() {
      TradeFeedHandler handler = new TradeFeedHandler();
@@ -1149,18 +1152,18 @@ index ec32e32..1dc48f4 100644
 +++ b/trade-processor/src/main/java/finos/traderx/tradeprocessor/TradeFeedHandler.java
 @@ -1,12 +1,12 @@
  package finos.traderx.tradeprocessor;
- 
+
  import finos.traderx.messaging.Envelope;
 -import finos.traderx.messaging.socketio.SocketIOJSONSubscriber;
 +import finos.traderx.messaging.nats.NatsJSONSubscriber;
  import finos.traderx.tradeprocessor.model.TradeOrder;
  import finos.traderx.tradeprocessor.service.TradeService;
  import org.springframework.beans.factory.annotation.Autowired;
- 
+
 -public class TradeFeedHandler extends SocketIOJSONSubscriber<TradeOrder> {
 +public class TradeFeedHandler extends NatsJSONSubscriber<TradeOrder> {
    static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TradeFeedHandler.class);
- 
+
    public TradeFeedHandler() {
 diff --git a/trade-processor/src/main/resources/application.properties b/trade-processor/src/main/resources/application.properties
 index c83a4d5..e3e1021 100644
@@ -1169,10 +1172,10 @@ index c83a4d5..e3e1021 100644
 @@ -11,7 +11,7 @@ spring.jpa.hibernate.ddl-auto=none
  spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
  spring.threads.virtual.enabled=true
- 
+
 -trade.feed.address=${TRADE_FEED_ADDRESS:http://${TRADE_FEED_HOST:localhost}:18086}
 +nats.address=${NATS_ADDRESS:nats://${NATS_BROKER_HOST:localhost}:4222}
- 
+
  # To avoid "Request header is too large" when application is backed by oidc proxy.
  server.max-http-request-header-size=1000000
 diff --git a/trade-service/build.gradle b/trade-service/build.gradle
@@ -1186,7 +1189,7 @@ index 434cc4d..7bd0742 100644
 +  implementation 'io.nats:jnats:2.20.5'
    implementation 'org.apache.logging.log4j:log4j-api:2.26.1'
    implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.26.1'
- 
+
 diff --git a/trade-service/src/main/java/finos/traderx/messaging/nats/NatsEnvelope.java b/trade-service/src/main/java/finos/traderx/messaging/nats/NatsEnvelope.java
 new file mode 100644
 index 0000000..770ea68
@@ -1363,7 +1366,7 @@ index 2224b99..7f8dc0d 100644
 +++ b/trade-service/src/main/java/finos/traderx/tradeservice/PubSubConfig.java
 @@ -1,7 +1,7 @@
  package finos.traderx.tradeservice;
- 
+
  import finos.traderx.messaging.Publisher;
 -import finos.traderx.messaging.socketio.SocketIOJSONPublisher;
 +import finos.traderx.messaging.nats.NatsJSONPublisher;
@@ -1371,14 +1374,14 @@ index 2224b99..7f8dc0d 100644
  import org.springframework.beans.factory.annotation.Value;
  import org.springframework.context.annotation.Bean;
 @@ -9,14 +9,15 @@ import org.springframework.context.annotation.Configuration;
- 
+
  @Configuration
  public class PubSubConfig {
 -  @Value("${trade.feed.address}")
 -  private String tradeFeedAddress;
 +  @Value("${nats.address}")
 +  private String natsAddress;
- 
+
    @Bean
    public Publisher<TradeOrder> tradePublisher() {
 -    SocketIOJSONPublisher<TradeOrder> publisher = new SocketIOJSONPublisher<>() {};
@@ -1397,14 +1400,14 @@ index 34c50f4..fccb4ce 100644
 @@ -6,7 +6,7 @@ people.service.url=${PEOPLE_SERVICE_URL:http://${PEOPLE_SERVICE_HOST:localhost}:
  account.service.url=${ACCOUNT_SERVICE_URL:http://${ACCOUNT_SERVICE_HOST:localhost}:18088}
  reference.data.service.url=${REFERENCE_DATA_SERVICE_URL:http://${REFERENCE_DATA_HOST:localhost}:18085}
- 
+
 -trade.feed.address=${TRADE_FEED_ADDRESS:http://${TRADE_FEED_HOST:localhost}:18086}
 +nats.address=${NATS_ADDRESS:nats://${NATS_BROKER_HOST:localhost}:4222}
- 
+
  # To avoid "Request header is too large" when application is backed by oidc proxy.
  server.max-http-request-header-size=1000000
 diff --git a/web-front-end/angular/main/app/service/trade-feed.service.ts b/web-front-end/angular/main/app/service/trade-feed.service.ts
-index 829fa19..58917cc 100644
+index 6c14e6d..58917cc 100644
 --- a/web-front-end/angular/main/app/service/trade-feed.service.ts
 +++ b/web-front-end/angular/main/app/service/trade-feed.service.ts
 @@ -1,15 +1,32 @@
@@ -1412,9 +1415,9 @@ index 829fa19..58917cc 100644
  import { environment } from 'main/environments/environment';
  import { BehaviorSubject } from 'rxjs';
 -import { io, Socket } from "socket.io-client";
- 
+
  export type MessageBusConnectionState = 'connecting' | 'connected' | 'disconnected';
- 
+
 +type SubscriptionRecord = {
 +    sid: number;
 +    topic: string;
@@ -1441,17 +1444,13 @@ index 829fa19..58917cc 100644
 +    private readonly subscriptions = new Map<number, SubscriptionRecord>();
      private readonly connectionStateSubject = new BehaviorSubject<MessageBusConnectionState>('connecting');
      public readonly connectionState$ = this.connectionStateSubject.asObservable();
- 
+
 @@ -18,47 +35,191 @@ export class TradeFeedService {
      }
- 
+
      private connect() {
 -        // create socketio client with long polling only
 -        this.socket = io(environment.tradeFeedUrl);
--        
--        this.socket.on("connect", this.onConnect);
--        this.socket.on("disconnect", this.onDisconnect);
--        this.socket.on("reconnect_attempt", this.onReconnectAttempt);
 +        if (this.socket && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) {
 +            return;
 +        }
@@ -1474,7 +1473,10 @@ index 829fa19..58917cc 100644
 +        ws.onmessage = (event) => {
 +            void this.handleIncoming(event.data);
 +        };
-+
+
+-        this.socket.on("connect", this.onConnect);
+-        this.socket.on("disconnect", this.onDisconnect);
+-        this.socket.on("reconnect_attempt", this.onReconnectAttempt);
 +        ws.onerror = (event) => {
 +            console.error('NATS websocket error', event);
 +        };
@@ -1488,7 +1490,7 @@ index 829fa19..58917cc 100644
 +            console.warn('NATS websocket disconnected; reconnect scheduled');
 +        };
      }
- 
+
 -    private onConnect = () => {
 -        this.connectionStateSubject.next('connected');
 -        console.log('Trade feed is connected, connection id' + this.socket.id);
@@ -1504,7 +1506,7 @@ index 829fa19..58917cc 100644
 +            return fallback;
 +        }
      }
- 
+
 -    private onDisconnect = () => {
 -        this.connectionStateSubject.next('disconnected');
 -        console.log('Trade feed is disconnected, connection id was ' + this.socket.id);
@@ -1517,7 +1519,7 @@ index 829fa19..58917cc 100644
 +            this.connect();
 +        }, 1000);
      }
- 
+
 -    private onReconnectAttempt = () => {
 -        this.connectionStateSubject.next('connecting');
 +    private sendRaw(payload: string) {
@@ -1526,13 +1528,8 @@ index 829fa19..58917cc 100644
 +        }
 +        this.socket.send(payload);
      }
- 
+
 -    public subscribe(topic: string, callback: (...args: any[]) => void) {
--       
--        const callbackFn = (args: any) => {
--            console.log("received message -> "+ JSON.stringify(args));
--            if (args.from !== 'System' && args.topic === topic) {
--                callback(args.payload);
 +    private resubscribeAll() {
 +        for (const subscription of this.subscriptions.values()) {
 +            this.sendRaw(`SUB ${subscription.topic} ${subscription.sid}\r\n`);
@@ -1594,7 +1591,11 @@ index 829fa19..58917cc 100644
 +            if (line.startsWith('INFO') || line.startsWith('PONG')) {
 +                continue;
 +            }
-+
+
+-        const callbackFn = (args: any) => {
+-            console.log("received message -> "+ JSON.stringify(args));
+-            if (args.from !== 'System' && args.topic === topic) {
+-                callback(args.payload);
 +            if (line.startsWith('MSG ')) {
 +                const parts = line.split(' ');
 +                if (parts.length < 4) {
@@ -1650,7 +1651,7 @@ index 829fa19..58917cc 100644
 +            this.removeSubscription(sid);
 +        };
      }
- 
+
      public unSubscribe(topic: string, callback: (...args: any[]) => void) {
 -        console.log('unsubscribing' + topic)
 -        this.socket.emit('unsubscribe', topic);
@@ -1695,5 +1696,5 @@ index dac53a6..6b880f2 100644
 -    tradeFeedUrl:       `//${window.location.host}`
 +    tradeFeedUrl:       `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/nats-ws`
  };
- 
+
  /*
