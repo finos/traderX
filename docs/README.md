@@ -1,6 +1,6 @@
 # Generated Docs
 
-This folder provides generated learning-oriented documentation for state `011-tilt-kubernetes-dev-loop`.
+This folder provides generated learning-oriented documentation for state `012-platform-convergence-c3`.
 
 - [Learning Index](./learning/README.md)
 - [Component List](./learning/component-list.md)
