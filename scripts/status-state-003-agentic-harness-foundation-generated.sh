@@ -12,7 +12,7 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
 fi
 TARGET="${GENERATED_ROOT}/code/target-generated"
 RUN_ROOT="${TRADERX_RUN_DIR:-/var/tmp/${USER:-unknown-user}/traderx}"
-RUN_DIR="${RUN_ROOT}/state-002-edge-proxy"
+RUN_DIR="${RUN_ROOT}/state-003-agentic-harness-foundation"
 EDGE_PROXY_PORT="${EDGE_PROXY_PORT:-18080}"
 
 "${REPO_ROOT}/scripts/status-base-uncontainerized-generated.sh"
