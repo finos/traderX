@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nats-broker
+  namespace: traderx
+  labels:
+    app: nats-broker
+spec:
+  type: ClusterIP
+  selector:
+    app: nats-broker
+  ports:
+    - name: client
+      protocol: TCP
+      port: 4222
+      targetPort: 4222
+    - name: monitor
+      protocol: TCP
+      port: 8222
+      targetPort: 8222
+    - name: ws
+      protocol: TCP
+      port: 8081
+      targetPort: 8081

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: trade-processor
+  namespace: traderx
+  labels:
+    app: trade-processor
+spec:
+  type: ClusterIP
+  selector:
+    app: trade-processor
+  ports:
+    - name: http
+      protocol: TCP
+      port: 18091
+      targetPort: 18091

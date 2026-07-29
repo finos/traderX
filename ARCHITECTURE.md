@@ -1,6 +1,6 @@
 # ARCHITECTURE.md
 
-This snapshot was generated from TraderX state `010-kubernetes-runtime`.
+This snapshot was generated from TraderX state `011-tilt-kubernetes-dev-loop`.
 
 - Architecture source-of-truth remains in the upstream feature pack and SpecKit docs.
 - This branch contains runnable generated artifacts for the selected state.
