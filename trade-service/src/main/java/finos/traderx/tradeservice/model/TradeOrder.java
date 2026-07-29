@@ -1,12 +1,15 @@
 package finos.traderx.tradeservice.model;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 public class TradeOrder {
   private String id;
   private String state;
   private String security;
   private Integer quantity;
+  private BigDecimal price;
 
   @JsonAlias("accountID")
   private Integer accountId;
@@ -61,6 +64,14 @@ public class TradeOrder {
 
   public void setQuantity(Integer quantity) {
     this.quantity = quantity;
+  }
+
+  public BigDecimal getPrice() {
+    return price;
+  }
+
+  public void setPrice(BigDecimal price) {
+    this.price = price == null ? null : price.setScale(3, RoundingMode.HALF_UP);
   }
 
   public TradeSide getSide() {

@@ -22,6 +22,7 @@ jobs:
       fail-fast: false
       matrix:
         module_folder:
+          - price-publisher
           - reference-data
           - web-front-end/angular
     steps:
@@ -174,6 +175,9 @@ jobs:
           - directory: position-service
             dockerfile: Dockerfile.compose
             image_name: position-service
+          - directory: price-publisher
+            dockerfile: Dockerfile.compose
+            image_name: price-publisher
           - directory: reference-data
             dockerfile: Dockerfile.compose
             image_name: reference-data

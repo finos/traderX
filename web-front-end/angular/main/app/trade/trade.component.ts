@@ -1,11 +1,13 @@
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, TemplateRef } from '@angular/core';
 import { Subject } from 'rxjs';
-import { TradeTicket } from '../model/trade.model';
+import { PortfolioSummary, PriceTick, TradeTicket, Position } from '../model/trade.model';
 import { Account } from '../model/account.model';
 import { AccountService } from '../service/account.service';
 import { Stock } from '../model/symbol.model';
 import { SymbolService } from '../service/symbols.service';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
+import { PositionService } from '../service/position.service';
+import { TradeFeedService } from '../service/trade-feed.service';
 
 @Component({
     standalone: false,
@@ -13,7 +15,7 @@ import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
     templateUrl: './trade.component.html',
     styleUrls: ['./trade.component.scss']
 })
-export class TradeComponent implements OnInit {
+export class TradeComponent implements OnInit, OnDestroy {
     private readonly allAccountsOption: Account = {
         id: 0,
         displayName: 'All Accounts'
@@ -26,10 +28,30 @@ export class TradeComponent implements OnInit {
     stocks: Stock[] = [];
     modalRef?: BsModalRef;
     createTicketResponse: any;
+    portfolioSummary: PortfolioSummary = {
+        totalMarketValue: 0,
+        totalCostBasis: 0,
+        totalPnl: 0
+    };
+    accountSummary: PortfolioSummary = {
+        totalMarketValue: 0,
+        totalCostBasis: 0,
+        totalPnl: 0
+    };
+    allAccountsSummary: PortfolioSummary = {
+        totalMarketValue: 0,
+        totalCostBasis: 0,
+        totalPnl: 0
+    };
+    allPositions: Position[] = [];
+    private readonly marketPriceByTicker = new Map<string, number>();
+    private priceStreamUnsubscribeFn?: () => void;
     private account = new Subject<Account>();
 
     constructor(private accountService: AccountService,
         private symbolService: SymbolService,
+        private positionService: PositionService,
+        private tradeFeed: TradeFeedService,
         private modalService: BsModalService) { }
 
     ngOnInit(): void {
@@ -45,6 +67,15 @@ export class TradeComponent implements OnInit {
             console.log(this.accounts);
         });
         this.symbolService.getStocks().subscribe((stocks) => this.stocks = stocks);
+        this.loadAllPositions();
+        this.priceStreamUnsubscribeFn = this.tradeFeed.subscribe('pricing.*', (tick: PriceTick) => {
+            const ticker = this.normalizeTicker(tick?.ticker);
+            if (!ticker || tick.price == null) {
+                return;
+            }
+            this.marketPriceByTicker.set(ticker, Number(tick.price));
+            this.recomputeAllAccountsSummary();
+        });
     }
 
     onAccountChange(account: Account) {
@@ -72,6 +103,7 @@ export class TradeComponent implements OnInit {
         this.symbolService.createTicket(ticket).subscribe((response) => {
             console.log(response);
             this.createTicketResponse = response;
+            this.loadAllPositions();
         });
         this.closeTicket();
     }
@@ -84,12 +116,68 @@ export class TradeComponent implements OnInit {
         this.createTicketResponse = undefined;
     }
 
+    onSummaryChange(summary: PortfolioSummary) {
+        this.accountSummary = summary;
+        this.portfolioSummary = this.isAllAccountsSelected ? this.allAccountsSummary : summary;
+    }
+
     private setAccount(account: Account) {
         this.accountModel = account;
         this.account.next(account);
+        this.accountSummary = {
+            totalMarketValue: 0,
+            totalCostBasis: 0,
+            totalPnl: 0
+        };
+        this.portfolioSummary = {
+            totalMarketValue: 0,
+            totalCostBasis: 0,
+            totalPnl: 0
+        };
     }
 
     get isAllAccountsSelected(): boolean {
         return (this.accountModel?.id ?? -1) === this.allAccountsOption.id;
+    }
+    ngOnDestroy(): void {
+        this.priceStreamUnsubscribeFn?.();
+    }
+
+    private normalizeTicker(ticker: string | undefined): string {
+        return String(ticker || '').trim().toUpperCase();
+    }
+
+    private loadAllPositions() {
+        this.positionService.getAllPositions().subscribe((positions: Position[]) => {
+            this.allPositions = positions ?? [];
+            this.recomputeAllAccountsSummary();
+        });
+    }
+
+    private recomputeAllAccountsSummary() {
+        const totals: PortfolioSummary = {
+            totalMarketValue: 0,
+            totalCostBasis: 0,
+            totalPnl: 0
+        };
+
+        for (const position of this.allPositions) {
+            const pricingPosition = position as Position & { averagecostbasis?: number };
+            const quantity = Number(position.quantity ?? 0);
+            const averageCostBasis = Number(pricingPosition.averageCostBasis ?? pricingPosition.averagecostbasis ?? 0);
+            const security = this.normalizeTicker(position.security);
+            const marketPrice = Number(this.marketPriceByTicker.get(security) ?? averageCostBasis);
+            const marketValue = quantity * marketPrice;
+            const costBasisValue = quantity * averageCostBasis;
+            totals.totalMarketValue += marketValue;
+            totals.totalCostBasis += costBasisValue;
+            totals.totalPnl += (marketValue - costBasisValue);
+        }
+
+        this.allAccountsSummary = totals;
+        if (this.isAllAccountsSelected) {
+            this.accountSummary = totals;
+            this.portfolioSummary = totals;
+        }
     }
 }

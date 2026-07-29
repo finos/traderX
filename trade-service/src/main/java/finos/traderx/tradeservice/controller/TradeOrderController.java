@@ -4,6 +4,7 @@ import finos.traderx.messaging.PubSubException;
 import finos.traderx.messaging.Publisher;
 import finos.traderx.tradeservice.exceptions.ResourceNotFoundException;
 import finos.traderx.tradeservice.model.Account;
+import finos.traderx.tradeservice.model.PriceQuote;
 import finos.traderx.tradeservice.model.Security;
 import finos.traderx.tradeservice.model.TradeOrder;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @RestController
 @RequestMapping(value = "/trade", produces = "application/json")
@@ -33,6 +36,9 @@ public class TradeOrderController {
 
   @Value("${account.service.url}")
   private String accountServiceAddress;
+
+  @Value("${price.service.url}")
+  private String priceServiceAddress;
 
   public TradeOrderController(Publisher<TradeOrder> tradePublisher) {
     this.tradePublisher = tradePublisher;
@@ -50,6 +56,8 @@ public class TradeOrderController {
       throw new ResourceNotFoundException(tradeOrder.getAccountId() + " not found in Account service.");
     } else {
       try {
+        BigDecimal executionPrice = fetchExecutionPrice(tradeOrder.getSecurity());
+        tradeOrder.setPrice(executionPrice);
         log.info("Trade is valid. Submitting {}", tradeOrder);
         tradePublisher.publish("/trades", tradeOrder);
         return ResponseEntity.ok(tradeOrder);
@@ -88,6 +96,23 @@ public class TradeOrderController {
         log.error(ex.getMessage(), ex);
       }
       return false;
+    }
+  }
+
+  private BigDecimal fetchExecutionPrice(String ticker) {
+    String url = this.priceServiceAddress + "/prices/" + ticker;
+    try {
+      ResponseEntity<PriceQuote> response = this.restTemplate.getForEntity(url, PriceQuote.class);
+      PriceQuote quote = response.getBody();
+      if (quote == null || quote.getPrice() == null) {
+        throw new ResourceNotFoundException("Price quote missing for ticker " + ticker);
+      }
+      return quote.getPrice().setScale(3, RoundingMode.HALF_UP);
+    } catch (HttpClientErrorException ex) {
+      if (ex.getRawStatusCode() == 404) {
+        throw new ResourceNotFoundException("Price quote unavailable for ticker " + ticker);
+      }
+      throw ex;
     }
   }
 }

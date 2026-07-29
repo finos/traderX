@@ -1,0 +1,19 @@
+{
+  "name": "price-publisher-specfirst",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "description": "TraderX synthetic market price publisher for state 011",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "node src/main.js"
+  },
+  "dependencies": {
+    "express": "5.2.1",
+    "nats": "2.29.3",
+    "yahoo-finance2": "2.13.3"
+  },
+  "overrides": {
+    "qs": "6.15.2"
+  }
+}

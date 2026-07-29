@@ -10,6 +10,8 @@ import finos.traderx.tradeprocessor.model.TradeSide;
 import finos.traderx.tradeprocessor.model.TradeState;
 import finos.traderx.tradeprocessor.repository.PositionRepository;
 import finos.traderx.tradeprocessor.repository.TradeRepository;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -47,6 +49,8 @@ public class TradeService {
     trade.setSecurity(order.getSecurity());
     trade.setSide(order.getSide());
     trade.setQuantity(order.getQuantity());
+    BigDecimal executionPrice = (order.getPrice() == null ? BigDecimal.ZERO : order.getPrice()).setScale(3, RoundingMode.HALF_UP);
+    trade.setPrice(executionPrice);
     trade.setCreated(new Date());
     trade.setUpdated(new Date());
     trade.setState(TradeState.New);
@@ -57,10 +61,25 @@ public class TradeService {
       position.setAccountId(order.getAccountId());
       position.setSecurity(order.getSecurity());
       position.setQuantity(0);
+      position.setAverageCostBasis(BigDecimal.ZERO.setScale(3, RoundingMode.HALF_UP));
     }
 
+    int oldQuantity = position.getQuantity() == null ? 0 : position.getQuantity();
+    BigDecimal oldAverage = position.getAverageCostBasis() == null
+        ? BigDecimal.ZERO.setScale(3, RoundingMode.HALF_UP)
+        : position.getAverageCostBasis().setScale(3, RoundingMode.HALF_UP);
+
     int signedQuantity = ((order.getSide() == TradeSide.Buy) ? 1 : -1) * trade.getQuantity();
-    position.setQuantity(position.getQuantity() + signedQuantity);
+    int newQuantity = oldQuantity + signedQuantity;
+    position.setQuantity(newQuantity);
+
+    BigDecimal oldNotional = oldAverage.multiply(BigDecimal.valueOf(oldQuantity));
+    BigDecimal tradeNotional = executionPrice.multiply(BigDecimal.valueOf(signedQuantity));
+    BigDecimal newNotional = oldNotional.add(tradeNotional);
+    BigDecimal newAverage = newQuantity == 0
+        ? BigDecimal.ZERO.setScale(3, RoundingMode.HALF_UP)
+        : newNotional.divide(BigDecimal.valueOf(newQuantity), 3, RoundingMode.HALF_UP);
+    position.setAverageCostBasis(newAverage);
     position.setUpdated(new Date());
 
     tradeRepository.save(trade);
