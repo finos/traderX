@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { StateUiMetadata, StatusCheckDefinition } from '../model/state-ui-metadata.model';
+import { RuntimeUiMetadata, StateUiMetadata, StatusCheckDefinition } from '../model/state-ui-metadata.model';
 
 const DEFAULT_STATUS_CHECKS: StatusCheckDefinition[] = [
     {
@@ -53,6 +53,7 @@ const DEFAULT_METADATA: StateUiMetadata = {
     lineageLinkUrl: '',
     apiExplorerUrl: '/api/docs',
     pubSubInspectorUrl: '/api/docs/pubsub-inspector.html',
+    runtimeMetadataUrl: 'assets/runtime-ui.json',
     features: {
         statusPage: false,
         apiExplorer: false,
@@ -62,12 +63,19 @@ const DEFAULT_METADATA: StateUiMetadata = {
     statusChecks: DEFAULT_STATUS_CHECKS
 };
 
+const DEFAULT_RUNTIME_METADATA: RuntimeUiMetadata = {
+    runtimeStartedAtUtc: '',
+    runtimeSource: ''
+};
+
 @Injectable({
     providedIn: 'root'
 })
 export class StateMetadataService {
     private readonly metadataSubject = new BehaviorSubject<StateUiMetadata>(DEFAULT_METADATA);
+    private readonly runtimeMetadataSubject = new BehaviorSubject<RuntimeUiMetadata>(DEFAULT_RUNTIME_METADATA);
     readonly metadata$: Observable<StateUiMetadata> = this.metadataSubject.asObservable();
+    readonly runtimeMetadata$: Observable<RuntimeUiMetadata> = this.runtimeMetadataSubject.asObservable();
 
     constructor(private readonly httpClient: HttpClient) {
         this.refresh();
@@ -80,11 +88,18 @@ export class StateMetadataService {
                 console.warn('[state-metadata] using defaults due to load error', error);
                 return of(DEFAULT_METADATA);
             })
-        ).subscribe((metadata) => this.metadataSubject.next(metadata));
+        ).subscribe((metadata) => {
+            this.metadataSubject.next(metadata);
+            this.refreshRuntimeMetadata(metadata.runtimeMetadataUrl);
+        });
     }
 
     snapshot(): StateUiMetadata {
         return this.metadataSubject.value;
+    }
+
+    runtimeSnapshot(): RuntimeUiMetadata {
+        return this.runtimeMetadataSubject.value;
     }
 
     private normalize(metadata: StateUiMetadata): StateUiMetadata {
@@ -101,6 +116,30 @@ export class StateMetadataService {
             },
             previousStates: Array.isArray(metadata?.previousStates) ? metadata.previousStates : [],
             statusChecks
+        };
+    }
+
+    private refreshRuntimeMetadata(runtimeMetadataUrl: string): void {
+        if (!runtimeMetadataUrl) {
+            this.runtimeMetadataSubject.next(DEFAULT_RUNTIME_METADATA);
+            return;
+        }
+
+        const separator = runtimeMetadataUrl.includes('?') ? '&' : '?';
+        const url = `${runtimeMetadataUrl}${separator}_=${Date.now()}`;
+        this.httpClient.get<RuntimeUiMetadata>(url).pipe(
+            map((metadata) => this.normalizeRuntimeMetadata(metadata)),
+            catchError((error) => {
+                console.warn('[runtime-metadata] using defaults due to load error', error);
+                return of(DEFAULT_RUNTIME_METADATA);
+            })
+        ).subscribe((metadata) => this.runtimeMetadataSubject.next(metadata));
+    }
+
+    private normalizeRuntimeMetadata(metadata: RuntimeUiMetadata): RuntimeUiMetadata {
+        return {
+            ...DEFAULT_RUNTIME_METADATA,
+            ...(metadata ?? {})
         };
     }
 }

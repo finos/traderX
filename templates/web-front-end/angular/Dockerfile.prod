@@ -20,6 +20,22 @@ RUN rm /etc/nginx/conf.d/default.conf
 # Copy built application (npm run build outputs to ./dist/browser/)
 COPY --from=builder /app/dist/browser /usr/share/nginx/html
 
+# Emit runtime metadata each time the web server container starts. This keeps
+# build-time generation metadata separate from runtime start provenance.
+RUN mkdir -p /docker-entrypoint.d && \
+    { \
+      echo '#!/bin/sh'; \
+      echo 'set -eu'; \
+      echo 'started_at="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"'; \
+      echo 'cat > /usr/share/nginx/html/assets/runtime-ui.json <<JSON'; \
+      echo '{'; \
+      echo '  "runtimeStartedAtUtc": "${started_at}",'; \
+      echo '  "runtimeSource": "web-front-end-angular"'; \
+      echo '}'; \
+      echo 'JSON'; \
+    } > /docker-entrypoint.d/40-traderx-runtime-metadata.sh && \
+    chmod +x /docker-entrypoint.d/40-traderx-runtime-metadata.sh
+
 # Create simple nginx config for SPA
 RUN echo 'server { \
     listen 18093; \

@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { Observable } from 'rxjs';
-import { StateUiMetadata } from '../model/state-ui-metadata.model';
+import { RuntimeUiMetadata, StateUiMetadata } from '../model/state-ui-metadata.model';
 import { StateMetadataService } from '../service/state-metadata.service';
 
 @Component({
@@ -13,9 +13,11 @@ import { StateMetadataService } from '../service/state-metadata.service';
 })
 export class AboutComponent {
     readonly metadata$: Observable<StateUiMetadata>;
+    readonly runtimeMetadata$: Observable<RuntimeUiMetadata>;
 
     constructor(private readonly stateMetadataService: StateMetadataService) {
         this.metadata$ = this.stateMetadataService.metadata$;
+        this.runtimeMetadata$ = this.stateMetadataService.runtimeMetadata$;
     }
 
     formatGeneratedDate(value: string): string {

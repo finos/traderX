@@ -41,6 +41,7 @@ $accountTs = Join-Path $WebRoot 'main/app/accounts/account.component.ts'
 $routingTs = Join-Path $WebRoot 'main/app/routing.ts'
 $headerTs = Join-Path $WebRoot 'main/app/header/header.component.ts'
 $headerHtml = Join-Path $WebRoot 'main/app/header/header.component.html'
+$aboutTs = Join-Path $WebRoot 'main/app/about/about.component.ts'
 $aboutHtml = Join-Path $WebRoot 'main/app/about/about.component.html'
 $statusTs = Join-Path $WebRoot 'main/app/status/status.component.ts'
 $statusHtml = Join-Path $WebRoot 'main/app/status/status.component.html'
@@ -106,8 +107,10 @@ Require-Pattern -File $headerHtml -Pattern 'class="[^"]*nav[^"]*nav-tabs[^"]*fun
 Require-Pattern -File $routingTs -Pattern "path: 'about'" -Message 'expected about route registration'
 Require-Pattern -File $routingTs -Pattern "path: 'status'" -Message 'expected status route registration'
 Require-Pattern -File $aboutHtml -Pattern 'Open lineage map' -Message 'expected lineage link in about page'
+Require-Pattern -File $aboutHtml -Pattern 'Runtime Started' -Message 'expected runtime start timestamp binding in about page'
 Require-Pattern -File $aboutHtml -Pattern 'Open API explorer|Open API Explorer|Open API explorer' -Message 'expected API explorer link in about page'
 Require-Pattern -File $aboutHtml -Pattern 'Open Pub/Sub inspector|Open Pub/Sub Inspector|Open Pub/Sub inspector' -Message 'expected Pub/Sub inspector link in about page'
+Require-Pattern -File $aboutTs -Pattern 'runtimeMetadata\$' -Message 'expected runtime metadata observable in about component'
 Require-Pattern -File $statusTs -Pattern 'statusChecks' -Message 'expected status checks metadata wiring'
 Require-Pattern -File $statusHtml -Pattern 'Service Status' -Message 'expected status page heading'
 
@@ -118,7 +121,7 @@ if (-not (Test-Path -LiteralPath $stateUiJson -PathType Leaf)) {
 
 try {
   $metadata = Get-Content -LiteralPath $stateUiJson -Raw | ConvertFrom-Json -ErrorAction Stop
-  foreach ($field in @('stateId', 'generatedAtUtc', 'sourceBranch', 'apiExplorerUrl', 'pubSubInspectorUrl')) {
+  foreach ($field in @('stateId', 'generatedAtUtc', 'sourceBranch', 'apiExplorerUrl', 'pubSubInspectorUrl', 'runtimeMetadataUrl')) {
     if ([string]::IsNullOrWhiteSpace([string]$metadata.$field)) {
       throw "[error] UI metadata missing required field: $field"
     }
@@ -130,6 +133,7 @@ catch {
   Require-Pattern -File $stateUiJson -Pattern '"sourceBranch"' -Message 'expected sourceBranch in ui metadata'
   Require-Pattern -File $stateUiJson -Pattern '"apiExplorerUrl"' -Message 'expected apiExplorerUrl in ui metadata'
   Require-Pattern -File $stateUiJson -Pattern '"pubSubInspectorUrl"' -Message 'expected pubSubInspectorUrl in ui metadata'
+  Require-Pattern -File $stateUiJson -Pattern '"runtimeMetadataUrl"' -Message 'expected runtimeMetadataUrl in ui metadata'
 }
 
 Write-Host '[done] web-front-end-angular baseline UX contract checks passed'

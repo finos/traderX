@@ -99,8 +99,10 @@ require_pattern "${HEADER_HTML}" "class=\"[^\"]*nav[^\"]*nav-tabs[^\"]*functiona
 require_pattern "${ROUTING_TS}" "path: 'about'" "expected about route registration"
 require_pattern "${ROUTING_TS}" "path: 'status'" "expected status route registration"
 require_pattern "${ABOUT_HTML}" "Open lineage map" "expected lineage link in about page"
+require_pattern "${ABOUT_HTML}" "Runtime Started" "expected runtime start timestamp binding in about page"
 require_pattern "${ABOUT_HTML}" "Open API explorer|Open API Explorer|Open API explorer" "expected API explorer link in about page"
 require_pattern "${ABOUT_HTML}" "Open Pub/Sub inspector|Open Pub/Sub Inspector|Open Pub/Sub inspector" "expected Pub/Sub inspector link in about page"
+require_pattern "${ABOUT_TS}" "runtimeMetadata\\$" "expected runtime metadata observable in about component"
 require_pattern "${STATUS_TS}" "statusChecks" "expected status checks metadata wiring"
 require_pattern "${STATUS_HTML}" "Service Status" "expected status page heading"
 
@@ -115,8 +117,9 @@ if command -v jq >/dev/null 2>&1; then
   source_branch="$(jq -r '.sourceBranch // empty' "${STATE_UI_JSON}")"
   api_explorer_url="$(jq -r '.apiExplorerUrl // empty' "${STATE_UI_JSON}")"
   pubsub_inspector_url="$(jq -r '.pubSubInspectorUrl // empty' "${STATE_UI_JSON}")"
-  if [[ -z "${state_id}" || -z "${generated_at}" || -z "${source_branch}" || -z "${api_explorer_url}" || -z "${pubsub_inspector_url}" ]]; then
-    echo "[error] UI metadata missing required fields (stateId/generatedAtUtc/sourceBranch/apiExplorerUrl/pubSubInspectorUrl)"
+  runtime_metadata_url="$(jq -r '.runtimeMetadataUrl // empty' "${STATE_UI_JSON}")"
+  if [[ -z "${state_id}" || -z "${generated_at}" || -z "${source_branch}" || -z "${api_explorer_url}" || -z "${pubsub_inspector_url}" || -z "${runtime_metadata_url}" ]]; then
+    echo "[error] UI metadata missing required fields (stateId/generatedAtUtc/sourceBranch/apiExplorerUrl/pubSubInspectorUrl/runtimeMetadataUrl)"
     exit 1
   fi
 else
@@ -125,6 +128,7 @@ else
   require_pattern "${STATE_UI_JSON}" "\"sourceBranch\"" "expected sourceBranch in ui metadata"
   require_pattern "${STATE_UI_JSON}" "\"apiExplorerUrl\"" "expected apiExplorerUrl in ui metadata"
   require_pattern "${STATE_UI_JSON}" "\"pubSubInspectorUrl\"" "expected pubSubInspectorUrl in ui metadata"
+  require_pattern "${STATE_UI_JSON}" "\"runtimeMetadataUrl\"" "expected runtimeMetadataUrl in ui metadata"
 fi
 
 echo "[done] web-front-end-angular baseline UX contract checks passed"

@@ -15,7 +15,7 @@
 - Required GUI smoke assertions for this state:
   - Header title renders `TraderX Sample Trading App (001-baseline-uncontainerized-parity)`.
   - Top navigation includes an `About` entry.
-  - About page renders state id, generation timestamp, source branch, prior-state lineage branch list, and short feature-summary sentence per prior state.
+  - About page renders state id, generation timestamp, runtime start timestamp when available, source branch, prior-state lineage branch list, and short feature-summary sentence per prior state.
   - About page includes a link to API explorer.
 
 - Required runtime smoke assertions for this state:

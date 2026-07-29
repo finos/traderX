@@ -15,6 +15,10 @@
             <dd>{{ metadata.stateTrack }}</dd>
             <dt>Generated</dt>
             <dd>{{ formatGeneratedDate(metadata.generatedAtUtc) }}</dd>
+            <ng-container *ngIf="runtimeMetadata$ | async as runtimeMetadata">
+                <dt>Runtime Started</dt>
+                <dd>{{ formatGeneratedDate(runtimeMetadata.runtimeStartedAtUtc) }}</dd>
+            </ng-container>
             <dt>Source Branch</dt>
             <dd>
                 <a *ngIf="metadata.sourceBranchUrl; else sourceBranchText" [href]="metadata.sourceBranchUrl" target="_blank" rel="noopener noreferrer">

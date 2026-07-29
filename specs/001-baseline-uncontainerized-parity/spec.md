@@ -164,7 +164,7 @@ As a developer, I need startup commands to report what state is currently genera
 - **FR-019**: Account-user administration view MUST display people-service `fullName` values (with username fallback).
 - **FR-020**: The top-bar application title next to the upper-left logo MUST render as `TraderX Sample Trading App (<state-id>)`, where `<state-id>` is the active generated state id.
 - **FR-021**: The top navigation MUST include an `About` tab/link that routes to an About page for the active state.
-- **FR-022**: The About page MUST render: active state id, generation timestamp, source generated-state branch, and prior-state lineage entries including previous-state branch links and short feature summary sentences.
+- **FR-022**: The About page MUST render: active state id, generation timestamp, runtime start timestamp when available, source generated-state branch, and prior-state lineage entries including previous-state branch links and short feature summary sentences.
 - **FR-023**: The About page MUST include a direct link to the state API explorer.
 - **FR-024**: About-page lineage metadata MUST be dynamically derived from repository state metadata artifacts (at minimum `catalog/state-catalog.json` plus generated state metadata).
 
@@ -211,7 +211,7 @@ As a developer, I need startup commands to report what state is currently genera
 - **SC-012**: Security input typeahead uses combined ticker/company labels and suppresses browser autocomplete behavior.
 - **SC-013**: Account-user grid displays full names resolved from people-service (or username fallback when lookup fails).
 - **SC-014**: UI smoke checks verify header title format includes active state id and `About` navigation is present.
-- **SC-015**: UI smoke checks verify About page renders state id, generation timestamp, source branch, prior-state lineage summaries, and API explorer link.
+- **SC-015**: UI smoke checks verify About page renders state id, generation timestamp, runtime start timestamp placeholder/binding, source branch, prior-state lineage summaries, and API explorer link.
 - **SC-016**: Runtime startup scripts demonstrate state-mismatch detection output for matched and mismatched generated outputs, including optional regenerate mode.
 - **SC-017**: Dependency version target smoke checks fail if a shared template dependency override is missing from the catalog, if a generated package/build file drifts from a catalog target, or if selected generated-state branches do not propagate the target.
 

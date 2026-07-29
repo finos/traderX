@@ -172,6 +172,7 @@ const metadata = {
   lineageLinkUrl: repoBaseUrl ? `${repoBaseUrl}/blob/main/docs/learning-paths/index.md` : '',
   apiExplorerUrl: '/api/docs',
   pubSubInspectorUrl: '/api/docs/pubsub-inspector.html',
+  runtimeMetadataUrl: 'assets/runtime-ui.json',
   features: {
     statusPage: statusEnabled,
     apiExplorer: apiExplorerEnabled,

@@ -68,6 +68,9 @@ for (const metadataPath of existing) {
   const ids = checks.map((check) => check && check.id).filter(Boolean);
   const idSet = new Set(ids);
 
+  if (typeof metadata.runtimeMetadataUrl !== 'string' || metadata.runtimeMetadataUrl.trim() === '') {
+    fail(`${metadataPath}: missing runtimeMetadataUrl`);
+  }
   if (stateNo >= 2 && metadata.features?.statusPage !== true) {
     fail(`${metadataPath}: expected features.statusPage=true for state ${stateId}`);
   }

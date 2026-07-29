@@ -13,6 +13,11 @@ export interface StatusCheckDefinition {
     expectedStatuses: number[];
 }
 
+export interface RuntimeUiMetadata {
+    runtimeStartedAtUtc: string;
+    runtimeSource: string;
+}
+
 export interface StateUiMetadata {
     stateId: string;
     stateTitle: string;
@@ -23,6 +28,7 @@ export interface StateUiMetadata {
     lineageLinkUrl: string;
     apiExplorerUrl: string;
     pubSubInspectorUrl: string;
+    runtimeMetadataUrl: string;
     features: {
         statusPage: boolean;
         apiExplorer: boolean;
