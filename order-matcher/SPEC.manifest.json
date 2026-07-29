@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAtUtc": "2026-04-05T00:00:00Z",
+  "component": {
+    "id": "order-matcher",
+    "kind": "service",
+    "language": "Java",
+    "framework": "Spring Boot",
+    "buildTool": "Gradle",
+    "sourcePath": "generated/code/target-generated/order-matcher",
+    "targetPath": "apps/order-matcher",
+    "notes": "Persists and matches limit orders, submits trades on fills, and exposes order APIs + metrics."
+  },
+  "runtime": {
+    "defaultPort": 18110,
+    "dependsOn": [
+      "database",
+      "price-publisher",
+      "trade-service"
+    ],
+    "requiredEnv": [
+      "ORDER_MATCHER_PORT",
+      "DATABASE_TCP_HOST",
+      "DATABASE_TCP_PORT",
+      "DATABASE_NAME",
+      "DATABASE_DBUSER",
+      "DATABASE_DBPASS",
+      "PRICE_SERVICE_URL",
+      "TRADE_SERVICE_URL",
+      "ORDER_MATCHER_TICK_MS",
+      "ORDER_FILL_FULL_THRESHOLD"
+    ]
+  },
+  "contracts": {
+    "primary": "specs/009-order-management-matcher/contracts/contract-delta.md"
+  },
+  "traceability": {
+    "requirements": [
+      "FR-01301",
+      "FR-01302",
+      "FR-01306"
+    ],
+    "flows": [
+      "F5"
+    ],
+    "verificationRefs": [
+      "scripts/start-state-009-order-management-matcher-generated.sh",
+      "scripts/test-state-009-order-management-matcher.sh"
+    ]
+  }
+}
+
