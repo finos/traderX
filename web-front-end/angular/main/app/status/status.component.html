@@ -1,0 +1,49 @@
+<div class="status-page">
+    <h2>Service Status</h2>
+
+    <ng-container *ngIf="metadata.features.statusPage; else statusUnavailable">
+        <p class="status-meta">
+            Last refresh: {{ lastRefreshUtc ? toRelativeTime(lastRefreshUtc) : 'never' }}
+        </p>
+        <button class="btn btn-sm btn-outline-primary mb-3" type="button" (click)="refreshAll()" [disabled]="checking">
+            {{ checking ? 'Checking...' : 'Refresh now' }}
+        </button>
+
+        <div class="table-responsive">
+            <table class="table table-sm table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Status</th>
+                        <th>HTTP</th>
+                        <th>Latency</th>
+                        <th>Last Checked</th>
+                        <th>Uptime (page session)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let row of statusRows">
+                        <td>
+                            <div>{{ row.name }}</div>
+                            <small class="text-muted">{{ row.url }}</small>
+                        </td>
+                        <td>
+                            <span class="status-pill" [ngClass]="statusClass(row)">{{ row.available ? 'UP' : 'DOWN' }}</span>
+                            <small class="status-error" *ngIf="row.error">{{ row.error }}</small>
+                        </td>
+                        <td>{{ row.httpStatus ?? '-' }}</td>
+                        <td>{{ row.latencyMs != null ? row.latencyMs + ' ms' : '-' }}</td>
+                        <td>{{ row.lastCheckedUtc ? toRelativeTime(row.lastCheckedUtc) : '-' }}</td>
+                        <td>{{ row.upSinceUtc ? toRelativeTime(row.upSinceUtc) : '-' }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </ng-container>
+
+    <ng-template #statusUnavailable>
+        <div class="alert alert-info">
+            Status page is introduced in state <code>002-edge-proxy-uncontainerized</code> and later.
+        </div>
+    </ng-template>
+</div>
