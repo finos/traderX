@@ -1,12 +1,14 @@
 # Functional Testing Guide
 
-State: `012-platform-convergence-c3`
+State: `014-fdc3-intent-interoperability`
 
 This guide captures intended functional behavior for this generated snapshot branch.
 
 ## What Should Work
 
-- Generated code snapshot for TraderX state transition.
+- Builds on state `012` and preserves C3 runtime behavior.
+- Adds TraderX app-side FDC3 flows plus a local Sail sidecar and two-tab demo profile.
+- Keeps interoperability payloads canonical (`fdc3.instrument.id.ticker`) and tracks Sail-specific workaround logic as technical debt.
 
 ## Suggested Functional Validation
 
@@ -18,12 +20,12 @@ This guide captures intended functional behavior for this generated snapshot bra
 ## Smoke Test Commands
 
 ```bash
-./scripts/test-state-012-platform-convergence-c3.sh
+./scripts/test-state-014-fdc3-intent-interoperability.sh
 ```
 
 ## Canonical References
 
-- Spec pack: `specs/012-platform-convergence-c3`
+- Spec pack: `specs/014-fdc3-intent-interoperability`
 - Runtime guide: [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
 - Snapshot learning guide: [LEARNING.md](./LEARNING.md)
 - Snapshot metadata: [STATE.md](./STATE.md)

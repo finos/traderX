@@ -1,36 +1,51 @@
 # System Design
 
-State: `012-platform-convergence-c3`
+State: `014-fdc3-intent-interoperability`
 
 ## Design Intent
 
-State 012 is the C3 convergence checkpoint: Kubernetes + Tilt platform profile on top of C2 functional behavior.
+State 014 layers FDC3 context and intent interoperability onto the C3 TraderX runtime and adds a local Sail sidecar demo environment.
 
 ## Runtime Topology / Flow (Spec Extract)
 
-# Runtime Topology: 012-platform-convergence-c3
+# Runtime Topology: 014-fdc3-intent-interoperability
 
-Parent state: `011-tilt-kubernetes-dev-loop`  
-Dotted-line convergence parent: `009-order-management-matcher`
+Parent state: `012-platform-convergence-c3`
 
-State `012` keeps runtime topology from `011` and serves as the C3 convergence checkpoint.
+Describe runtime topology and network/data flow changes introduced by this state.
 
 ## Entrypoints
 
-- Browser/UI/API entrypoint remains `http://localhost:8080`.
-- Developer loop entrypoint remains Tilt (`tilt up`).
+- TraderX browser/UI/API entrypoint remains `http://localhost:8080`.
+- Existing websocket path remains `ws(s)://<host>/nats-ws` for pricing/realtime feeds.
+- Local Sail sidecar entrypoint: `http://localhost:8090`.
+- Optional external desktop-agent/app profile entrypoints remain environment-defined.
 
 ## Components
 
-- Kubernetes runtime + Tilt tooling from state `011`.
-- Functional capability level equivalent to C2 (`009`) via lineage through `011`.
+- Inherits C3 runtime components from state `012`.
+- Adds frontend interop layer in Angular UI:
+  - FDC3 agent bootstrap/capability detection
+  - context mapper + normalization utilities
+  - inbound context listeners
+  - inbound/outbound intent handlers
+- Adds local Sail sidecar service (Dockerized or equivalent generated runtime) that hosts:
+  - Sail web desktop agent UI
+  - seeded app-directory records (TraderX + demo apps)
+- External interoperating demo apps connect through Sail-mediated FDC3 APIs.
 
 ## Networking
 
-- Service routes and path prefixes remain unchanged from `011`.
-- Dotted-line lineage does not change deploy/runtime wiring.
+- No new backend service-to-service network links are required.
+- FDC3 message exchange occurs in desktop/browser runtime through DesktopAgent APIs.
+- Existing REST routes (`/trade-service`, `/position-service`, `/order-matcher`) remain unchanged and are reused for intent-driven UI workflows.
+- Sail sidecar is not fronted by TraderX ingress; it is exposed directly on its own port.
 
 ## Startup / Health Order
 
-- Startup and health checks remain as in `011`.
-- This state adds governance/lineage convergence semantics, not runtime topology changes.
+1. Start inherited C3 runtime (`012`) and verify TraderX endpoint health.
+2. Start local Sail sidecar runtime and verify `http://localhost:8090` health.
+3. Load TraderX UI and Sail UI in the same desktop demo session.
+4. Register TraderX listeners for configured contexts/intents.
+5. Validate app-directory entries and resolver visibility for TraderX ticket intents.
+6. Validate graceful fallback path when agent is missing/unavailable.

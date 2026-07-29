@@ -1,5 +1,5 @@
-import { ColDef, GridApi, GridReadyEvent, GetRowIdParams } from 'ag-grid-community';
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { ColDef, GridApi, GridReadyEvent, GetRowIdParams, RowClickedEvent } from 'ag-grid-community';
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
 import { Account } from 'main/app/model/account.model';
 import { PositionService } from 'main/app/service/position.service';
 import { Observable } from 'rxjs';
@@ -17,6 +17,8 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
     @Input() allAccountsMode = false;
     @Input() accountIds: number[] = [];
     @Input() accountNameById: { [accountId: number]: string } = {};
+    @Input() securityFilter = '';
+    @Output() securitySelected = new EventEmitter<string>();
     trades: Trade[] = [];
     gridApi: GridApi;
     pendingTrades: Trade[] = [];
@@ -66,6 +68,10 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
             !!change.allAccountsMode ||
             !!change.accountIds ||
             !!change.accountNameById;
+
+        if (change.securityFilter && !scopeChanged) {
+            this.applySecurityFilter();
+        }
         if (scopeChanged) {
             this.configureColumns();
             this.loadScope();
@@ -76,7 +82,16 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
         console.log('trade blotter is ready...');
         this.gridApi = params.api;
         this.configureColumns();
+        this.applySecurityFilter();
         this.gridApi.sizeColumnsToFit();
+    }
+
+    onRowClicked(event: RowClickedEvent) {
+        const security = String((event?.data as any)?.security || '').trim().toUpperCase();
+        if (!security) {
+            return;
+        }
+        this.securitySelected.emit(security);
     }
 
     getRowId(params: GetRowIdParams<any>):string {
@@ -213,7 +228,22 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
         } else if (typeof (this.gridApi as any).setColumnDefs === 'function') {
             (this.gridApi as any).setColumnDefs(this.columnDefs);
         }
+        this.applySecurityFilter();
         this.gridApi.sizeColumnsToFit();
+    }
+
+    private applySecurityFilter() {
+        if (!this.gridApi) {
+            return;
+        }
+        const filterValue = String(this.securityFilter || '').trim().toUpperCase();
+        if (typeof (this.gridApi as any).setGridOption === 'function') {
+            (this.gridApi as any).setGridOption('quickFilterText', filterValue);
+            return;
+        }
+        if (typeof (this.gridApi as any).setQuickFilter === 'function') {
+            (this.gridApi as any).setQuickFilter(filterValue);
+        }
     }
 
     private toRowId(id: string): string {

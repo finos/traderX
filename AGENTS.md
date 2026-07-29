@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This generated codebase is a reproducible runtime snapshot for state `012-platform-convergence-c3`.
+This generated codebase is a reproducible runtime snapshot for state `014-fdc3-intent-interoperability`.
 
 - Treat this snapshot as generated output; expect regeneration to replace it.
 - Use this branch for local experimentation and runtime validation.

@@ -1,20 +1,20 @@
 # TraderX Generated State Snapshot
 
-- State ID: `012-platform-convergence-c3`
-- Title: `Platform Convergence C3`
+- State ID: `014-fdc3-intent-interoperability`
+- Title: `FDC3 Intent Interoperability on C3`
 - Status: `implemented`
-- Feature Pack: `specs/012-platform-convergence-c3`
-- Previous States: `["011-tilt-kubernetes-dev-loop"]`
-- Next States: `["013-radius-kubernetes-platform","014-fdc3-intent-interoperability"]`
-- Convergence State: `true`
-- Convergence Level: `C3`
+- Feature Pack: `specs/014-fdc3-intent-interoperability`
+- Previous States: `["012-platform-convergence-c3"]`
+- Next States: `[]`
+- Convergence State: `false`
+- Convergence Level: `none`
 - Lineage Role: `canonical`
-- Dotted Parents: `009-order-management-matcher`
-- Previous Convergence State: `009-order-management-matcher`
+- Dotted Parents: `none`
+- Previous Convergence State: `012-platform-convergence-c3`
 - Next Convergence State: `none`
 - Source Branch: `main`
 - Source Commit: `a8c9b46c0c9e8f3c688ab41ea77648bcb8c32170`
-- Generated At (UTC): `2026-07-29T21:05:58Z`
-- Suggested Tag: `generated/012-platform-convergence-c3/v1`
+- Generated At (UTC): `2026-07-29T21:21:58Z`
+- Suggested Tag: `generated/014-fdc3-intent-interoperability/v1`
 
 Machine-readable metadata: `.traderx-state/state.json`
