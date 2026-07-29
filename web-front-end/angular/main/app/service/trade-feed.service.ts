@@ -20,7 +20,7 @@ export class TradeFeedService {
     private connect() {
         // create socketio client with long polling only
         this.socket = io(environment.tradeFeedUrl);
-        
+
         this.socket.on("connect", this.onConnect);
         this.socket.on("disconnect", this.onDisconnect);
         this.socket.on("reconnect_attempt", this.onReconnectAttempt);
@@ -41,7 +41,7 @@ export class TradeFeedService {
     }
 
     public subscribe(topic: string, callback: (...args: any[]) => void) {
-       
+
         const callbackFn = (args: any) => {
             console.log("received message -> "+ JSON.stringify(args));
             if (args.from !== 'System' && args.topic === topic) {

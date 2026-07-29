@@ -35,7 +35,7 @@
         window.scrollTo(0, document.body.scrollHeight);
       }
 
-      
+
       form.addEventListener('submit', function(e) {
         e.preventDefault();
         if (input.value) {
@@ -55,13 +55,13 @@
       });
 
       socket.emit(SUBSCRIBE,"/*");
-      
+
       // Example:
       // socket.emit(SUBSCRIBE,"/accounts/12345/trades");
       // socket.emit(SUBSCRIBE,"/chat");
       // socket.emit(SUBSCRIBE,"/accounts/12345/positions");
-      
-      
+
+
     </script>
   </body>
 </html>

@@ -15,7 +15,6 @@ jobs:
       fail-fast: false
       matrix:
         module_folder:
-          - edge-proxy
           - reference-data
           - trade-feed
           - web-front-end/angular

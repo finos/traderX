@@ -1,0 +1,86 @@
+name: Build and Publish Application Images
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - code/generated-state-*
+
+env:
+  GHCR_ORG: ghcr.io/finos
+  IMAGE_NAMESPACE: traderx-c0
+
+jobs:
+  build-ghcr:
+    name: Build and push ${{ matrix.image_name }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - directory: account-service
+            dockerfile: Dockerfile.compose
+            image_name: account-service
+          - directory: database
+            dockerfile: Dockerfile.compose
+            image_name: database
+          - directory: ingress
+            dockerfile: Dockerfile.compose
+            image_name: ingress
+          - directory: people-service
+            dockerfile: Dockerfile.compose
+            image_name: people-service
+          - directory: position-service
+            dockerfile: Dockerfile.compose
+            image_name: position-service
+          - directory: reference-data
+            dockerfile: Dockerfile.compose
+            image_name: reference-data
+          - directory: trade-feed
+            dockerfile: Dockerfile.compose
+            image_name: trade-feed
+          - directory: trade-processor
+            dockerfile: Dockerfile.compose
+            image_name: trade-processor
+          - directory: trade-service
+            dockerfile: Dockerfile.compose
+            image_name: trade-service
+          - directory: web-front-end/angular
+            dockerfile: Dockerfile.compose
+            image_name: web-front-end-angular
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: GHCR auth mode
+        run: |
+          if [[ -n "${{ secrets.GHCR_PUSH_TOKEN }}" ]]; then
+            echo "Using GHCR_PUSH_TOKEN secret for package publish."
+          else
+            echo "Using GITHUB_TOKEN for package publish."
+            echo "If publish fails with write_package, either:"
+            echo "1) enable package write for Actions in repo/org settings, or"
+            echo "2) set GHCR_PUSH_TOKEN (packages:write) and GHCR_PUSH_USERNAME secrets."
+          fi
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_PUSH_USERNAME != '' && secrets.GHCR_PUSH_USERNAME || github.actor }}
+          password: ${{ secrets.GHCR_PUSH_TOKEN != '' && secrets.GHCR_PUSH_TOKEN || secrets.GITHUB_TOKEN }}
+      - name: Build and publish image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.directory }}
+          file: ${{ matrix.directory }}/${{ matrix.dockerfile }}
+          push: ${{ github.event_name == 'push' }}
+          tags: |
+            ${{ env.GHCR_ORG }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image_name }}:${{ github.sha }}
+            ${{ env.GHCR_ORG }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image_name }}:latest
+      - name: Scan published image
+        uses: crazy-max/ghaction-container-scan@v3
+        with:
+          image: ${{ env.GHCR_ORG }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image_name }}:${{ github.sha }}
+          severity: HIGH

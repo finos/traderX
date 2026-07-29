@@ -34,13 +34,13 @@
     "zone.js": "^0.15.0"
   },
   "overrides": {
-    "engine.io": "6.6.9",
     "ws": "8.21.0",
     "postcss": "^8.5.13",
     "serialize-javascript": "^7.0.5",
     "tar": "^7.5.13",
     "uuid": "^14.0.0",
     "qs": "6.15.2",
+    "engine.io": "6.6.9",
     "http-proxy-middleware": "3.0.7"
   },
   "devDependencies": {

@@ -1,0 +1,13 @@
+# syntax=docker/dockerfile:1.7
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN --mount=type=cache,target=/root/.npm,sharing=locked \
+    if [ -f package-lock.json ]; then \
+      npm ci --no-audit --prefer-offline; \
+    else \
+      npm install --no-audit --prefer-offline; \
+    fi
+COPY . .
+EXPOSE 18086
+CMD ["npm", "run", "start"]

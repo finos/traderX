@@ -11,6 +11,8 @@ on:
       - '**/*.csproj'
       - '.github/*-cve-ignore-list.xml'
       - '.github/workflows/security.yml'
+      - '**/Dockerfile'
+      - '**/Dockerfile.compose'
 
 jobs:
   node-modules-scan:
@@ -20,7 +22,6 @@ jobs:
       fail-fast: false
       matrix:
         module_folder:
-          - edge-proxy
           - reference-data
           - trade-feed
           - web-front-end/angular
@@ -151,3 +152,52 @@ jobs:
         with:
           name: security-gradle-${{ env.UPNAME }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ github.workspace }}/${{ matrix.module_folder }}-reports
+
+  docker-image-scan:
+    name: ${{ matrix.image_name }}-docker-scan
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - directory: account-service
+            dockerfile: Dockerfile.compose
+            image_name: account-service
+          - directory: database
+            dockerfile: Dockerfile.compose
+            image_name: database
+          - directory: ingress
+            dockerfile: Dockerfile.compose
+            image_name: ingress
+          - directory: people-service
+            dockerfile: Dockerfile.compose
+            image_name: people-service
+          - directory: position-service
+            dockerfile: Dockerfile.compose
+            image_name: position-service
+          - directory: reference-data
+            dockerfile: Dockerfile.compose
+            image_name: reference-data
+          - directory: trade-feed
+            dockerfile: Dockerfile.compose
+            image_name: trade-feed
+          - directory: trade-processor
+            dockerfile: Dockerfile.compose
+            image_name: trade-processor
+          - directory: trade-service
+            dockerfile: Dockerfile.compose
+            image_name: trade-service
+          - directory: web-front-end/angular
+            dockerfile: Dockerfile.compose
+            image_name: web-front-end-angular
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build image for scan
+        run: docker build -f "${{ matrix.directory }}/${{ matrix.dockerfile }}" -t "traderx-security/${{ matrix.image_name }}:scan" "${{ matrix.directory }}"
+      - name: Scan image for vulnerabilities
+        uses: crazy-max/ghaction-container-scan@v3
+        with:
+          image: traderx-security/${{ matrix.image_name }}:scan
+          severity: HIGH
