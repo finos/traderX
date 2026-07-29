@@ -1,0 +1,10 @@
+# GHCR image map for 007-observability-lgtm-compose
+account-service=ghcr.io/finos/traderx-c1/account-service:latest
+database=ghcr.io/finos/traderx-c1/database:latest
+ingress=ghcr.io/finos/traderx-c1/ingress:latest
+people-service=ghcr.io/finos/traderx-c1/people-service:latest
+position-service=ghcr.io/finos/traderx-c1/position-service:latest
+reference-data=ghcr.io/finos/traderx-c1/reference-data:latest
+trade-processor=ghcr.io/finos/traderx-c1/trade-processor:latest
+trade-service=ghcr.io/finos/traderx-c1/trade-service:latest
+web-front-end-angular=ghcr.io/finos/traderx-c1/web-front-end-angular:latest

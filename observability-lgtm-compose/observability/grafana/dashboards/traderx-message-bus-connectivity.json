@@ -1,0 +1,44 @@
+{
+  "uid": "traderx-message-bus-connectivity",
+  "title": "TraderX Message Bus Connectivity",
+  "schemaVersion": 39,
+  "refresh": "10s",
+  "tags": ["traderx", "messaging", "health", "prometheus", "provisioned"],
+  "time": { "from": "now-30m", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Message Bus Connectivity (1=Connected)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "traderx_messagebus_connected",
+          "legendFormat": "{{component}}/{{role}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
+    }
+  ]
+}
