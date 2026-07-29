@@ -3564,6 +3564,55 @@ cat > "${SNAPSHOT_DIR}/STATE.md" <<EOF
 Machine-readable metadata: \`.traderx-state/state.json\`
 EOF
 
+sync_snapshot_ui_metadata() {
+  local official_metadata="${SNAPSHOT_DIR}/.traderx-state/state.json"
+  local ui_metadata="${SNAPSHOT_DIR}/web-front-end/angular/main/assets/state-ui.json"
+
+  if [[ ! -f "${ui_metadata}" ]]; then
+    return 0
+  fi
+
+  OFFICIAL_METADATA="${official_metadata}" \
+  UI_METADATA="${ui_metadata}" \
+  node <<'NODE'
+const fs = require('node:fs');
+
+const officialPath = process.env.OFFICIAL_METADATA;
+const uiPath = process.env.UI_METADATA;
+const official = JSON.parse(fs.readFileSync(officialPath, 'utf8'));
+const ui = JSON.parse(fs.readFileSync(uiPath, 'utf8'));
+
+ui.generatedAtUtc = official.generatedAtUtc || ui.generatedAtUtc;
+fs.writeFileSync(uiPath, `${JSON.stringify(ui, null, 2)}\n`);
+NODE
+}
+
+sync_snapshot_ui_metadata
+
+validate_snapshot_ui_metadata() {
+  local official_metadata="${SNAPSHOT_DIR}/.traderx-state/state.json"
+  local ui_metadata="${SNAPSHOT_DIR}/web-front-end/angular/main/assets/state-ui.json"
+
+  if [[ ! -f "${ui_metadata}" ]]; then
+    return 0
+  fi
+
+  OFFICIAL_METADATA="${official_metadata}" \
+  UI_METADATA="${ui_metadata}" \
+  node <<'NODE'
+const fs = require('node:fs');
+
+const officialPath = process.env.OFFICIAL_METADATA;
+const uiPath = process.env.UI_METADATA;
+const official = JSON.parse(fs.readFileSync(officialPath, 'utf8'));
+const ui = JSON.parse(fs.readFileSync(uiPath, 'utf8'));
+
+if (ui.generatedAtUtc !== official.generatedAtUtc) {
+  throw new Error(`${uiPath}: generatedAtUtc ${ui.generatedAtUtc} does not match official snapshot generatedAtUtc ${official.generatedAtUtc}`);
+}
+NODE
+}
+
 cat > "${SNAPSHOT_DIR}/README.md" <<EOF
 # TraderX Generated Code Snapshot
 
@@ -3686,6 +3735,8 @@ write_snapshot_agentic_docs
 write_learning_guide
 write_functional_testing_guide
 write_snapshot_gitignore
+
+validate_snapshot_ui_metadata
 
 if [[ "${SKIP_LINEAGE_VALIDATION}" == "1" ]]; then
   echo "[warn] skipping lineage invariant validation (--skip-lineage-validation)"
