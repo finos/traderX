@@ -39,6 +39,8 @@ SKIP_PREPUBLISH_GATE="${TRADERX_SKIP_PREPUBLISH_GATE:-0}"
 SKIP_RUNTIME_PREFLIGHT="${TRADERX_SKIP_RUNTIME_PREFLIGHT:-0}"
 SKIP_CONTRACT_VALIDATION="${TRADERX_SKIP_CONTRACT_VALIDATION:-0}"
 SKIP_LINEAGE_VALIDATION="${TRADERX_SKIP_LINEAGE_VALIDATION:-0}"
+PUBLISH_SNAPSHOT_FIXTURE_ROOT="${TRADERX_PUBLISH_SNAPSHOT_FIXTURE_ROOT:-}"
+PUBLISH_VALIDATE_SNAPSHOT_ONLY="${TRADERX_PUBLISH_VALIDATE_SNAPSHOT_ONLY:-0}"
 
 while (( "$#" )); do
   case "$1" in
@@ -145,125 +147,139 @@ if [[ "${GEN_MODE}" != "implemented" ]]; then
   exit 1
 fi
 
-if [[ -n "$(git -C "${ROOT}" status --porcelain)" ]]; then
+if [[ -n "${PUBLISH_SNAPSHOT_FIXTURE_ROOT}" && ! -d "${PUBLISH_SNAPSHOT_FIXTURE_ROOT}" ]]; then
+  echo "[fail] snapshot fixture root does not exist: ${PUBLISH_SNAPSHOT_FIXTURE_ROOT}"
+  exit 1
+fi
+
+if [[ -n "${PUBLISH_SNAPSHOT_FIXTURE_ROOT}" && "${PUBLISH_VALIDATE_SNAPSHOT_ONLY}" != "1" ]]; then
+  echo "[fail] snapshot fixture root is only supported with TRADERX_PUBLISH_VALIDATE_SNAPSHOT_ONLY=1"
+  exit 1
+fi
+
+if [[ -z "${PUBLISH_SNAPSHOT_FIXTURE_ROOT}" && -n "$(git -C "${ROOT}" status --porcelain)" ]]; then
   echo "[fail] working tree must be clean before publishing generated-state branch."
   echo "[hint] commit or stash current changes and retry."
   exit 1
 fi
 
-echo "[info] generating state ${STATE_ID} (${STATE_TITLE})"
-case "${STATE_ID}" in
-  001-baseline-uncontainerized-parity)
-    bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
-    if [[ "${SKIP_RUNTIME_PREFLIGHT}" == "1" ]]; then
-      echo "[warn] skipping runtime preflight (--skip-runtime-preflight)"
-    else
-      "${ROOT}/scripts/start-base-uncontainerized-generated.sh" --build-only
-      "${ROOT}/scripts/start-base-uncontainerized-generated.sh" --dry-run
-    fi
-    ;;
-  002-edge-proxy-uncontainerized)
-    bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
-    if [[ "${SKIP_RUNTIME_PREFLIGHT}" == "1" ]]; then
-      echo "[warn] skipping runtime preflight (--skip-runtime-preflight)"
-    else
-      "${ROOT}/scripts/start-state-002-edge-proxy-generated.sh" --build-only
-      "${ROOT}/scripts/start-state-002-edge-proxy-generated.sh" --dry-run
-    fi
-    ;;
-  003-agentic-harness-foundation)
-    bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
-    if [[ "${SKIP_RUNTIME_PREFLIGHT}" == "1" ]]; then
-      echo "[warn] skipping runtime preflight (--skip-runtime-preflight)"
-    else
-      "${ROOT}/scripts/start-state-003-agentic-harness-foundation-generated.sh" --build-only
-      "${ROOT}/scripts/start-state-003-agentic-harness-foundation-generated.sh" --dry-run
-    fi
-    ;;
-  004-containerized-compose-runtime)
-    bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
-    [[ -f "${GENERATED_ROOT}/code/target-generated/containerized-compose/docker-compose.yml" ]] || {
-      echo "[fail] missing generated compose file for state 004"
-      exit 1
-    }
-    ;;
-  010-kubernetes-runtime)
-    bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
-    [[ -f "${GENERATED_ROOT}/code/target-generated/kubernetes-runtime/build-plan.json" ]] || {
-      echo "[fail] missing generated kubernetes build-plan for state 010"
-      exit 1
-    }
-    if [[ "${SKIP_RUNTIME_PREFLIGHT}" == "1" ]]; then
-      echo "[warn] skipping runtime preflight (--skip-runtime-preflight)"
-    else
-      "${ROOT}/scripts/start-state-010-kubernetes-runtime-generated.sh" --dry-run
-    fi
-    ;;
-  013-radius-kubernetes-platform)
-    bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
-    [[ -f "${GENERATED_ROOT}/code/target-generated/radius-kubernetes-platform/radius/app.bicep" ]] || {
-      echo "[fail] missing generated radius app model for state 013"
-      exit 1
-    }
-    ;;
-  011-tilt-kubernetes-dev-loop)
-    bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
-    [[ -f "${GENERATED_ROOT}/code/target-generated/tilt-kubernetes-dev-loop/tilt/Tiltfile" ]] || {
-      echo "[fail] missing generated tilt assets for state 011"
-      exit 1
-    }
-    ;;
-  *)
-    bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
-    RUNTIME_START_SCRIPT="${ROOT}/scripts/start-state-${STATE_ID}-generated.sh"
-    if [[ "${SKIP_RUNTIME_PREFLIGHT}" == "1" ]]; then
-      echo "[warn] skipping runtime preflight (--skip-runtime-preflight)"
-    elif [[ -x "${RUNTIME_START_SCRIPT}" ]]; then
-      "${RUNTIME_START_SCRIPT}" --dry-run || true
-    else
-      echo "[info] no state-specific start script found at ${RUNTIME_START_SCRIPT}; skipping runtime dry-run"
-    fi
-    ;;
-esac
-
-# Recompute CI assets after runtime dry-run because some states (notably
-# uncontainerized 002/003 lineage) materialize runnable component layout into
-# target-generated during dry-run. Without this refresh, workflow target
-# discovery may emit "no targets" stubs.
-bash "${ROOT}/pipeline/install-generated-ci-assets.sh" "${STATE_ID}" "${GENERATED_ROOT}/code/target-generated"
-
-if [[ "${SKIP_PREPUBLISH_GATE}" == "1" ]]; then
-  echo "[warn] skipping prepublish generated-state gate (--skip-prepublish-gate)"
-  if [[ "${SKIP_CONTRACT_VALIDATION}" == "1" ]]; then
-    echo "[warn] skipping generated-state contract validation (--skip-contract-validation)"
-  else
-    bash "${ROOT}/pipeline/validate-generated-state-contracts.sh" "${GENERATED_ROOT}/code/target-generated"
-  fi
-  if [[ "${SKIP_COMPILE_PREFLIGHT}" == "1" ]]; then
-    echo "[warn] skipping generated compile preflight (--skip-compile-preflight)"
-  else
-    CI_METADATA="${GENERATED_ROOT}/code/target-generated/ci/state-metadata.json"
-    if [[ -f "${CI_METADATA}" ]]; then
-      echo "[step] run generated compile preflight"
-      bash "${ROOT}/pipeline/preflight-generated-ci.sh" "${GENERATED_ROOT}/code/target-generated"
-    elif [[ "${state_num}" -lt 2 ]]; then
-      echo "[info] compile preflight metadata unavailable for ${STATE_ID}; skipping for legacy pre-CI state"
-    else
-      echo "[fail] missing compile preflight metadata: ${CI_METADATA}"
-      echo "[hint] ensure CI assets were installed during state generation"
-      exit 1
-    fi
-  fi
+if [[ -n "${PUBLISH_SNAPSHOT_FIXTURE_ROOT}" ]]; then
+  echo "[info] using snapshot fixture root for ${STATE_ID}: ${PUBLISH_SNAPSHOT_FIXTURE_ROOT}"
 else
-  prepublish_args=("${STATE_ID}" "--target-root" "${GENERATED_ROOT}/code/target-generated" "--components-root" "${GENERATED_ROOT}/code/components")
-  if [[ "${SKIP_COMPILE_PREFLIGHT}" == "1" ]]; then
-    prepublish_args+=("--skip-compile-preflight")
+  echo "[info] generating state ${STATE_ID} (${STATE_TITLE})"
+  case "${STATE_ID}" in
+    001-baseline-uncontainerized-parity)
+      bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+      if [[ "${SKIP_RUNTIME_PREFLIGHT}" == "1" ]]; then
+        echo "[warn] skipping runtime preflight (--skip-runtime-preflight)"
+      else
+        "${ROOT}/scripts/start-base-uncontainerized-generated.sh" --build-only
+        "${ROOT}/scripts/start-base-uncontainerized-generated.sh" --dry-run
+      fi
+      ;;
+    002-edge-proxy-uncontainerized)
+      bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+      if [[ "${SKIP_RUNTIME_PREFLIGHT}" == "1" ]]; then
+        echo "[warn] skipping runtime preflight (--skip-runtime-preflight)"
+      else
+        "${ROOT}/scripts/start-state-002-edge-proxy-generated.sh" --build-only
+        "${ROOT}/scripts/start-state-002-edge-proxy-generated.sh" --dry-run
+      fi
+      ;;
+    003-agentic-harness-foundation)
+      bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+      if [[ "${SKIP_RUNTIME_PREFLIGHT}" == "1" ]]; then
+        echo "[warn] skipping runtime preflight (--skip-runtime-preflight)"
+      else
+        "${ROOT}/scripts/start-state-003-agentic-harness-foundation-generated.sh" --build-only
+        "${ROOT}/scripts/start-state-003-agentic-harness-foundation-generated.sh" --dry-run
+      fi
+      ;;
+    004-containerized-compose-runtime)
+      bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+      [[ -f "${GENERATED_ROOT}/code/target-generated/containerized-compose/docker-compose.yml" ]] || {
+        echo "[fail] missing generated compose file for state 004"
+        exit 1
+      }
+      ;;
+    010-kubernetes-runtime)
+      bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+      [[ -f "${GENERATED_ROOT}/code/target-generated/kubernetes-runtime/build-plan.json" ]] || {
+        echo "[fail] missing generated kubernetes build-plan for state 010"
+        exit 1
+      }
+      if [[ "${SKIP_RUNTIME_PREFLIGHT}" == "1" ]]; then
+        echo "[warn] skipping runtime preflight (--skip-runtime-preflight)"
+      else
+        "${ROOT}/scripts/start-state-010-kubernetes-runtime-generated.sh" --dry-run
+      fi
+      ;;
+    013-radius-kubernetes-platform)
+      bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+      [[ -f "${GENERATED_ROOT}/code/target-generated/radius-kubernetes-platform/radius/app.bicep" ]] || {
+        echo "[fail] missing generated radius app model for state 013"
+        exit 1
+      }
+      ;;
+    011-tilt-kubernetes-dev-loop)
+      bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+      [[ -f "${GENERATED_ROOT}/code/target-generated/tilt-kubernetes-dev-loop/tilt/Tiltfile" ]] || {
+        echo "[fail] missing generated tilt assets for state 011"
+        exit 1
+      }
+      ;;
+    *)
+      bash "${ROOT}/pipeline/generate-state.sh" "${STATE_ID}"
+      RUNTIME_START_SCRIPT="${ROOT}/scripts/start-state-${STATE_ID}-generated.sh"
+      if [[ "${SKIP_RUNTIME_PREFLIGHT}" == "1" ]]; then
+        echo "[warn] skipping runtime preflight (--skip-runtime-preflight)"
+      elif [[ -x "${RUNTIME_START_SCRIPT}" ]]; then
+        "${RUNTIME_START_SCRIPT}" --dry-run || true
+      else
+        echo "[info] no state-specific start script found at ${RUNTIME_START_SCRIPT}; skipping runtime dry-run"
+      fi
+      ;;
+  esac
+
+  # Recompute CI assets after runtime dry-run because some states (notably
+  # uncontainerized 002/003 lineage) materialize runnable component layout into
+  # target-generated during dry-run. Without this refresh, workflow target
+  # discovery may emit "no targets" stubs.
+  bash "${ROOT}/pipeline/install-generated-ci-assets.sh" "${STATE_ID}" "${GENERATED_ROOT}/code/target-generated"
+
+  if [[ "${SKIP_PREPUBLISH_GATE}" == "1" ]]; then
+    echo "[warn] skipping prepublish generated-state gate (--skip-prepublish-gate)"
+    if [[ "${SKIP_CONTRACT_VALIDATION}" == "1" ]]; then
+      echo "[warn] skipping generated-state contract validation (--skip-contract-validation)"
+    else
+      bash "${ROOT}/pipeline/validate-generated-state-contracts.sh" "${GENERATED_ROOT}/code/target-generated"
+    fi
+    if [[ "${SKIP_COMPILE_PREFLIGHT}" == "1" ]]; then
+      echo "[warn] skipping generated compile preflight (--skip-compile-preflight)"
+    else
+      CI_METADATA="${GENERATED_ROOT}/code/target-generated/ci/state-metadata.json"
+      if [[ -f "${CI_METADATA}" ]]; then
+        echo "[step] run generated compile preflight"
+        bash "${ROOT}/pipeline/preflight-generated-ci.sh" "${GENERATED_ROOT}/code/target-generated"
+      elif [[ "${state_num}" -lt 2 ]]; then
+        echo "[info] compile preflight metadata unavailable for ${STATE_ID}; skipping for legacy pre-CI state"
+      else
+        echo "[fail] missing compile preflight metadata: ${CI_METADATA}"
+        echo "[hint] ensure CI assets were installed during state generation"
+        exit 1
+      fi
+    fi
+  else
+    prepublish_args=("${STATE_ID}" "--target-root" "${GENERATED_ROOT}/code/target-generated" "--components-root" "${GENERATED_ROOT}/code/components")
+    if [[ "${SKIP_COMPILE_PREFLIGHT}" == "1" ]]; then
+      prepublish_args+=("--skip-compile-preflight")
+    fi
+    echo "[step] run prepublish generated-state gate"
+    bash "${ROOT}/pipeline/prepublish-generated-state-gate.sh" "${prepublish_args[@]}"
   fi
-  echo "[step] run prepublish generated-state gate"
-  bash "${ROOT}/pipeline/prepublish-generated-state-gate.sh" "${prepublish_args[@]}"
 fi
 
-SNAPSHOT_ROOT="${GENERATED_ROOT}/code/target-generated"
+SNAPSHOT_ROOT="${PUBLISH_SNAPSHOT_FIXTURE_ROOT:-${GENERATED_ROOT}/code/target-generated}"
 if [[ ! -d "${SNAPSHOT_ROOT}" ]]; then
   echo "[fail] missing generated target directory: ${SNAPSHOT_ROOT}"
   exit 1
@@ -310,19 +326,21 @@ ensure_generated_root_branch() {
   echo "[ok] created generated root branch ${root_branch}"
 }
 
-ensure_generated_root_branch "${GENERATED_ROOT_BRANCH}"
-
 BASE_BRANCH="${GENERATED_ROOT_BRANCH}"
 if [[ -n "${PRIMARY_PREVIOUS_BRANCH}" ]]; then
   BASE_BRANCH="${PRIMARY_PREVIOUS_BRANCH}"
 fi
 
-if ! ensure_local_branch_ref "${BASE_BRANCH}"; then
-  echo "[fail] base branch ${BASE_BRANCH} not found locally or on origin"
-  if [[ -n "${PRIMARY_PREVIOUS_STATE_ID}" ]]; then
-    echo "[hint] publish parent state first: ${PRIMARY_PREVIOUS_STATE_ID}"
+if [[ "${PUBLISH_VALIDATE_SNAPSHOT_ONLY}" != "1" ]]; then
+  ensure_generated_root_branch "${GENERATED_ROOT_BRANCH}"
+
+  if ! ensure_local_branch_ref "${BASE_BRANCH}"; then
+    echo "[fail] base branch ${BASE_BRANCH} not found locally or on origin"
+    if [[ -n "${PRIMARY_PREVIOUS_STATE_ID}" ]]; then
+      echo "[hint] publish parent state first: ${PRIMARY_PREVIOUS_STATE_ID}"
+    fi
+    exit 1
   fi
-  exit 1
 fi
 
 cp -R "${SNAPSHOT_ROOT}/." "${SNAPSHOT_DIR}/"
@@ -432,19 +450,19 @@ snapshot_keep_paths_for_state() {
     printf '%s\n' "${ORDER_COMPONENT_DIRS[@]}" "ingress" "order-management-matcher" "postgres-database-replacement" ".github" "runtime"
     ;;
     010-kubernetes-runtime)
-      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" ".github"
+      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "api-explorer" "kubernetes-runtime" ".github"
       ;;
     011-tilt-kubernetes-dev-loop)
-      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "tilt-kubernetes-dev-loop" ".github"
+      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "api-explorer" "kubernetes-runtime" "tilt-kubernetes-dev-loop" ".github"
       ;;
     012-platform-convergence-c3)
-      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "tilt-kubernetes-dev-loop" ".github" "runtime"
+      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "api-explorer" "kubernetes-runtime" "tilt-kubernetes-dev-loop" ".github" "runtime"
       ;;
   013-radius-kubernetes-platform)
-      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "radius-kubernetes-platform" ".github"
+      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "api-explorer" "kubernetes-runtime" "radius-kubernetes-platform" ".github"
       ;;
     014-fdc3-intent-interoperability)
-      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "tilt-kubernetes-dev-loop" "fdc3-intent-interoperability" ".github" "runtime"
+      printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "api-explorer" "kubernetes-runtime" "tilt-kubernetes-dev-loop" "fdc3-intent-interoperability" ".github" "runtime"
       ;;
     *)
       echo "[fail] missing explicit snapshot keep-path policy for ${STATE_ID}"
@@ -547,8 +565,66 @@ assert_snapshot_size_guardrails() {
   fi
 }
 
+validate_snapshot_build_plan_contexts() {
+  local build_plan="${SNAPSHOT_DIR}/kubernetes-runtime/build-plan.json"
+  if [[ ! -f "${build_plan}" ]]; then
+    return 0
+  fi
+
+  if ! jq -e '
+    (.images | type == "array")
+    and all(.images[]; (
+      type == "object"
+      and (.name | type == "string" and length > 0)
+      and (.context | type == "string" and length > 0)
+      and (.dockerfile | type == "string" and length > 0)
+    ))
+  ' "${build_plan}" >/dev/null; then
+    echo "[fail] kubernetes build plan must contain images[] entries with non-empty string name, context, and dockerfile fields: ${build_plan}"
+    exit 1
+  fi
+
+  local item name context_rel dockerfile_rel context_abs dockerfile_abs
+  while IFS= read -r item; do
+    name="$(jq -r '.name' <<<"${item}")"
+    context_rel="$(jq -r '.context' <<<"${item}")"
+    dockerfile_rel="$(jq -r '.dockerfile' <<<"${item}")"
+    case "${context_rel}" in
+      /*|*../*)
+        echo "[fail] kubernetes build plan context for ${name} must stay inside snapshot root: ${context_rel}"
+        exit 1
+        ;;
+    esac
+    case "${dockerfile_rel}" in
+      /*|*../*)
+        echo "[fail] kubernetes build plan dockerfile for ${name} must stay inside its context: ${dockerfile_rel}"
+        exit 1
+        ;;
+    esac
+    context_abs="${SNAPSHOT_DIR}/${context_rel}"
+    dockerfile_abs="${context_abs}/${dockerfile_rel}"
+
+    [[ -d "${context_abs}" ]] || {
+      echo "[fail] kubernetes build plan references missing context for ${name}: ${context_rel}"
+      echo "[hint] update snapshot keep-path policy or build-plan context before publishing ${STATE_ID}"
+      exit 1
+    }
+    [[ -f "${dockerfile_abs}" ]] || {
+      echo "[fail] kubernetes build plan references missing dockerfile for ${name}: ${context_rel}/${dockerfile_rel}"
+      echo "[hint] update generated artifacts before publishing ${STATE_ID}"
+      exit 1
+    }
+  done < <(jq -c '.images[]' "${build_plan}")
+}
+
 remove_snapshot_transient_artifacts
 assert_snapshot_size_guardrails
+validate_snapshot_build_plan_contexts
+
+if [[ "${PUBLISH_VALIDATE_SNAPSHOT_ONLY}" == "1" ]]; then
+  echo "[done] snapshot validation fixture passed for ${STATE_ID}"
+  exit 0
+fi
 
 SOURCE_COMMIT="$(git -C "${ROOT}" rev-parse HEAD)"
 SOURCE_BRANCH="$(git -C "${ROOT}" branch --show-current)"
