@@ -172,16 +172,16 @@ case "${STATE_ID}" in
     state_allowed_roots=("${ORDER_COMPONENT_DIRS[@]}" "ingress" "order-management-matcher" "postgres-database-replacement")
     ;;
   010-kubernetes-runtime)
-    state_allowed_roots=("${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime")
+    state_allowed_roots=("${C2_COMPONENT_DIRS[@]}" "api-explorer" "kubernetes-runtime")
     ;;
   011-tilt-kubernetes-dev-loop|012-platform-convergence-c3)
-    state_allowed_roots=("${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "tilt-kubernetes-dev-loop")
+    state_allowed_roots=("${C2_COMPONENT_DIRS[@]}" "api-explorer" "kubernetes-runtime" "tilt-kubernetes-dev-loop")
     ;;
   013-radius-kubernetes-platform)
-    state_allowed_roots=("${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "radius-kubernetes-platform")
+    state_allowed_roots=("${C2_COMPONENT_DIRS[@]}" "api-explorer" "kubernetes-runtime" "radius-kubernetes-platform")
     ;;
   014-fdc3-intent-interoperability)
-    state_allowed_roots=("${C2_COMPONENT_DIRS[@]}" "kubernetes-runtime" "tilt-kubernetes-dev-loop" "fdc3-intent-interoperability")
+    state_allowed_roots=("${C2_COMPONENT_DIRS[@]}" "api-explorer" "kubernetes-runtime" "tilt-kubernetes-dev-loop" "fdc3-intent-interoperability")
     ;;
 esac
 

@@ -167,6 +167,43 @@ if rg -qi 'token|password' "${TARGET_ROOT}/runtime/deploy/aws-ec2-compose/deploy
   exit 1
 fi
 
+echo "[check] state 012 preserves local api-explorer without publishing it"
+rm -rf "${TARGET_ROOT}"
+mkdir -p \
+  "${TARGET_ROOT}/api-explorer" \
+  "${TARGET_ROOT}/ingress" \
+  "${TARGET_ROOT}/scripts"
+touch \
+  "${TARGET_ROOT}/api-explorer/Dockerfile" \
+  "${TARGET_ROOT}/ingress/Dockerfile.compose"
+cat > "${TARGET_ROOT}/scripts/start-state-012-platform-convergence-c3-generated.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+TRADERX_USE_PUBLISHED_IMAGES="${TRADERX_USE_PUBLISHED_IMAGES:-0}"
+TRADERX_PUBLISHED_NAMESPACE="${TRADERX_PUBLISHED_NAMESPACE:-}"
+TRADERX_PUBLISHED_TAG="${TRADERX_PUBLISHED_TAG:-latest}"
+
+echo "published image mode: ${TRADERX_USE_PUBLISHED_IMAGES} ${TRADERX_PUBLISHED_NAMESPACE} ${TRADERX_PUBLISHED_TAG}"
+EOF
+
+bash "${ROOT}/pipeline/install-generated-ci-assets.sh" 012-platform-convergence-c3 "${TARGET_ROOT}"
+
+grep -q 'directory: ingress' "${TARGET_ROOT}/.github/workflows/build-and-publish.yml" || {
+  echo "[fail] state 012 should publish retained ingress container image"
+  exit 1
+}
+
+if grep -q 'directory: api-explorer' "${TARGET_ROOT}/.github/workflows/build-and-publish.yml"; then
+  echo "[fail] api-explorer should remain a local runtime build context, not a published image"
+  exit 1
+fi
+
+grep -q 'ingress=ghcr.io/finos/traderx-c3/ingress:latest' "${TARGET_ROOT}/runtime/ghcr/012-platform-convergence-c3/images.lock" || {
+  echo "[fail] state 012 GHCR image map should include publishable ingress image"
+  exit 1
+}
+
 echo "[check] generated-state contract validation guards order-matcher schema"
 mkdir -p "${TARGET_ROOT}/order-matcher" "${TARGET_ROOT}/database" "${TARGET_ROOT}/ci"
 cat > "${TARGET_ROOT}/ci/state-metadata.json" <<'EOF'
