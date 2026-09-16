@@ -95,6 +95,7 @@ fi
 bash "${REPO_ROOT}/pipeline/validate-state-doc-consistency.sh"
 bash "${REPO_ROOT}/pipeline/smoke-dependency-version-targets.sh"
 bash "${REPO_ROOT}/pipeline/validate-generated-state-lineage-invariants.sh" --policy-only
+bash "${REPO_ROOT}/scripts/test-publish-generated-state-branch.sh"
 bash "${REPO_ROOT}/pipeline/validate-sail-pin-contract.sh"
 
 echo "[ok] root Spec Kit quality gates passed (feature=${FEATURE_ID}, branch=${branch_name})"
