@@ -38,6 +38,7 @@ const sidByTopic = new Map([
 
 let userOrderId = null;
 let adminOrderId = null;
+let expectedAdminPosition = null;
 let buffer = '';
 let pending = null;
 const orderIdsBySubjectStatus = new Map();
@@ -196,7 +197,7 @@ function handleMessage(subject, payload) {
   if (
     subject === adminPositionsTopic &&
     payload.security === 'JPM' &&
-    Number.isFinite(Number(payload.quantity))
+    expectedAdminPosition !== null && Number(payload.quantity) === expectedAdminPosition
   ) {
     seen.adminPosition = true;
   }
@@ -320,6 +321,9 @@ async function main() {
 
   await waitFor(() => seen.userCancelAccount && seen.userCancelAll, 'user cancel order events');
 
+  const beforePositions = await requestJson(`/position-service/positions/${adminAccountId}`, {}, 200);
+  const beforeQuantity = Number(beforePositions.find(p => p.security === 'JPM')?.quantity || 0);
+  expectedAdminPosition = beforeQuantity - 11;
   const adminCreate = await requestJson(
     '/order-matcher/orders',
     {
@@ -356,6 +360,12 @@ async function main() {
     'admin force-fill order/trade/position realtime events'
   );
 
+  // A new REST request models reload: live events alone cannot prove persistence.
+  const afterPositions = await requestJson(`/position-service/positions/${adminAccountId}`, {}, 200);
+  const afterQuantity = Number(afterPositions.find(p => p.security === 'JPM')?.quantity || 0);
+  if (afterQuantity !== beforeQuantity - 11) {
+    fail(`force-fill not durable: expected ${beforeQuantity - 11}, got ${afterQuantity}`);
+  }
   console.log('[info] realtime order streams validated for create/cancel/force-fill');
   console.log('[info] cross-stream causality validated for order -> trade -> position');
   ws.close();

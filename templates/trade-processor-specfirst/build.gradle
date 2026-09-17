@@ -51,3 +51,8 @@ configurations.configureEach {
   exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
   exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
 }
+
+tasks.withType(Test).configureEach {
+  systemProperty 'booking.schema', System.getProperty('booking.schema',
+      new File(projectDir, '../database-specfirst/initialSchema.sql').absolutePath)
+}

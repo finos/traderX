@@ -67,3 +67,15 @@ description: "Tasks for root-level Spec Kit simple app baseline adoption"
 - [ ] T027 [US8] Add generated-state detection behavior to runtime start scripts with expected/current state diagnostics.
 - [ ] T028 [US8] Add optional auto-regeneration mode for state mismatch with explicit opt-in.
 - [ ] T029 [US8] Add smoke checks that exercise matched/mismatched state detection outcomes and document backward-lineage clean-rebuild guidance.
+
+## Issue #461 booking durability
+
+- [x] Preserve allowed values and NULL semantics using CASE checks in both schemas.
+- [x] Publish booking snapshots after commit in baseline and pricing processors.
+- [x] Contain notification failures without rebooking or suppressing the other topic.
+- [x] Cover schema connection closure, pool retirement, rollback, commit failure,
+  multiple bookings, and notification failures with executable Java tests.
+- [x] Retain canonical booking sources in state 004 regeneration and run tests in CI.
+- [x] Strengthen market smoke checks to require two buys, live accumulated quantities,
+  two persisted trades, and a fresh REST position read; strengthen filled-limit REST checks.
+- [x] Document a backed-up, validation-preserving migration for existing H2 databases.

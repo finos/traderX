@@ -86,6 +86,7 @@ async function main() {
 
   let sawTradeUpdate = false;
   let sawPositionUpdate = false;
+  let expectedPosition = qty;
 
   const subscriber = createClient(baseUrl, { transports: ['websocket'] });
   const publisher = createClient(baseUrl, { transports: ['websocket'] });
@@ -113,7 +114,7 @@ async function main() {
       if (
         message.topic === positionTopic &&
         message.payload.security === security &&
-        Number(message.payload.quantity) === qty
+        Number(message.payload.quantity) === expectedPosition
       ) {
         sawPositionUpdate = true;
       }
@@ -123,26 +124,31 @@ async function main() {
     subscriber.emit('subscribe', positionTopic);
     await wait(250);
 
-    publisher.emit('publish', {
-      topic: inboundTopic,
-      type: 'TradeOrder',
-      payload: {
-        id: smokeId,
-        accountId,
-        security,
-        side: 'Buy',
-        quantity: qty
-      }
-    });
-
-    await withTimeout(new Promise((resolve) => {
-      const poll = setInterval(() => {
-        if (sawTradeUpdate && sawPositionUpdate) {
-          clearInterval(poll);
-          resolve();
+    for (let booking = 1; booking <= 2; booking++) {
+      sawTradeUpdate = false;
+      sawPositionUpdate = false;
+      expectedPosition = qty * booking;
+      publisher.emit('publish', {
+        topic: inboundTopic,
+        type: 'TradeOrder',
+        payload: {
+          id: `${smokeId}-${booking}`,
+          accountId,
+          security,
+          side: 'Buy',
+          quantity: qty
         }
-      }, 100);
-    }), 12000, 'trade-processor publish flow');
+      });
+
+      await withTimeout(new Promise((resolve) => {
+        const poll = setInterval(() => {
+          if (sawTradeUpdate && sawPositionUpdate) {
+            clearInterval(poll);
+            resolve();
+          }
+        }, 100);
+      }), 12000, 'trade-processor publish flow');
+    }
 
     console.log('[info] trade-feed publish -> trade-processor -> account topics flow passed');
   } finally {
@@ -161,7 +167,7 @@ echo "[check] processed trade persisted and visible via position-service"
 found_trade=0
 for _ in $(seq 1 "${WAIT_ATTEMPTS}"); do
   trades_json="$(curl -sS "${POSITION_URL}/trades/${ACCOUNT_ID}")"
-  if echo "${trades_json}" | jq -e --arg sec "${SECURITY}" --argjson qty "${QTY}" 'map(select(.security == $sec and .quantity == $qty and .state == "Settled")) | length > 0' >/dev/null; then
+  if echo "${trades_json}" | jq -e --arg sec "${SECURITY}" --argjson qty "${QTY}" 'map(select(.security == $sec and .quantity == $qty and .state == "Settled")) | length == 2' >/dev/null; then
     found_trade=1
     break
   fi
@@ -175,7 +181,7 @@ fi
 found_position=0
 for _ in $(seq 1 "${WAIT_ATTEMPTS}"); do
   positions_json="$(curl -sS "${POSITION_URL}/positions/${ACCOUNT_ID}")"
-  if echo "${positions_json}" | jq -e --arg sec "${SECURITY}" --argjson qty "${QTY}" 'map(select(.security == $sec and .quantity == $qty)) | length > 0' >/dev/null; then
+  if echo "${positions_json}" | jq -e --arg sec "${SECURITY}" --argjson qty "$((QTY * 2))" 'map(select(.security == $sec and .quantity == $qty)) | length > 0' >/dev/null; then
     found_position=1
     break
   fi

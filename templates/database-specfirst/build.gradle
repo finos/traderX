@@ -19,3 +19,11 @@ jar {
     configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
   }
 }
+
+test {
+  useJUnitPlatform()
+}
+dependencies {
+  testImplementation 'org.junit.jupiter:junit-jupiter:5.12.2'
+  testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}

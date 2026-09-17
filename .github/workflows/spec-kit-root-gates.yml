@@ -40,3 +40,31 @@ jobs:
       - name: Validate aggregate coverage
         run: |
           bash pipeline/verify-spec-coverage.sh
+
+  booking-durability:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install generation dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq ripgrep
+      - name: Verify H2 constraints and baseline/pricing commit boundaries
+        run: bash scripts/test-trade-booking-commit.sh
+      - name: Verify state 004 regeneration retains booking guarantees
+        env:
+          TRADERX_SKIP_LOCKFILE_REFRESH: '1'
+        run: |
+          bash pipeline/generate-state.sh 004-containerized-compose-runtime
+          cmp templates/database-specfirst/initialSchema.sql generated/code/target-generated/database/initialSchema.sql
+          cd generated/code/target-generated/trade-processor
+          bash ./gradlew test --no-daemon
+      - name: Verify pricing and matcher descendants retain booking guarantees
+        env:
+          TRADERX_SKIP_LOCKFILE_REFRESH: '1'
+        run: |
+          bash pipeline/generate-state.sh 009-order-management-matcher
+          cmp templates/state-010-pricing-awareness-market-data-overlay/trade-processor/src/main/java/finos/traderx/tradeprocessor/service/TradeService.java generated/code/target-generated/trade-processor/src/main/java/finos/traderx/tradeprocessor/service/TradeService.java
+          cmp templates/trade-processor-specfirst/src/main/java/finos/traderx/tradeprocessor/service/CommittedTradeEvents.java generated/code/target-generated/trade-processor/src/main/java/finos/traderx/tradeprocessor/service/CommittedTradeEvents.java
