@@ -77,3 +77,26 @@ Each published generated branch must remain one snapshot commit above its
 parent. Record source and snapshot revisions and scan runs in the remediation
 PR. Descendant states inherit this baseline and require regeneration before
 their next publication.
+
+## Runtime image remediation
+
+Fresh Trivy scans also found OS and bundled npm-tooling vulnerabilities in the
+old Node 20 Alpine images and Debian-based .NET image. Node 20 is EOL according
+to the [Node release schedule](https://nodejs.org/en/about/previous-releases).
+The Node services now build on Node 24 LTS and run compiled code with production
+dependencies, updated Alpine packages, and no bundled npm/Yarn tooling. Runtime
+files belong to the unprivileged node user. The people service uses
+`aspnet:9.0-noble-chiseled-extra`, retaining ICU/timezone support while omitting
+unneeded Debian utilities; see [Microsoft's image guidance](https://learn.microsoft.com/en-us/dotnet/core/docker/container-images).
+The catalog's `docker.runtimeImages` entries and generated-target validator
+guard these final runtime stages. No image finding is suppressed.
+
+## Validation record (2026-09-17)
+
+- All four repository quality gates and the documentation website build pass.
+- H2 schema lifetime and after-commit publication tests pass for baseline and pricing templates.
+- The added wire-contract test checks the legacy `accountID` input alias, numeric envelope date, enum and quantity values, and omission of null fields. It caught Jackson 3's changed date default before explicit timestamp configuration was added.
+- State 002 and 004 application builds pass. All four Java services start and serve OpenAPI documents; account and position endpoint smoke checks pass.
+- Nine state 004 runtime dependency scans pass at CVSS 5 with the existing suppressions. Inputs were resolved npm lockfiles, built Java archives, and .NET output. Dependency-Check 13.0.0 used the CI action image's September 16 database copied into the native scanner image. Live NVD updates failed, so stale local cached data was not used to establish a pass. OSS Index was unavailable without credentials, as in the existing CI setup.
+- All ten state 004 images build and pass Trivy 0.74.0 HIGH/CRITICAL scans. Local images are Linux ARM64; remote CI must validate the published snapshot and its target architecture independently. Images were exported before scanning to avoid concurrent local image cleanup.
+- No demo deployment was performed. Remote snapshot checks and publication revisions must be recorded in the PR before treating the issue's release acceptance criteria as complete.
