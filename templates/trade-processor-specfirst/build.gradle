@@ -53,6 +53,7 @@ configurations.configureEach {
 }
 
 tasks.withType(Test).configureEach {
-  systemProperty 'booking.schema', System.getProperty('booking.schema',
-      new File(projectDir, '../database-specfirst/initialSchema.sql').absolutePath)
+  if (System.getProperty('booking.schema')) {
+    systemProperty 'booking.schema', System.getProperty('booking.schema')
+  }
 }

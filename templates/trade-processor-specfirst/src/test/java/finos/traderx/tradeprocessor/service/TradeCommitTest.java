@@ -54,7 +54,8 @@ class TradeCommitTest {
     jdbc = new JdbcTemplate(dataSource);
     // Real schema, created on a connection that closes before any booking.
     try (Connection creator = DriverManager.getConnection("jdbc:h2:mem:booking;DB_CLOSE_DELAY=-1", "sa", "sa")) {
-      creator.createStatement().execute(Files.readString(Path.of(System.getProperty("booking.schema", "../database/initialSchema.sql"))));
+      creator.createStatement().execute(Files.readString(Path.of(System.getProperty("booking.schema", Files.exists(Path.of("../database/initialSchema.sql"))
+          ? "../database/initialSchema.sql" : "../database-specfirst/initialSchema.sql"))));
       // Pricing overlay columns are harmless to baseline entities.
       creator.createStatement().execute("ALTER TABLE Trades ADD IF NOT EXISTS Price DECIMAL(18,3) DEFAULT 0; ALTER TABLE Positions ADD IF NOT EXISTS AverageCostBasis DECIMAL(18,3) DEFAULT 0");
     }
