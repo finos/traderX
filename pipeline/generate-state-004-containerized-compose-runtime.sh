@@ -34,6 +34,11 @@ for relative_path in \
 done
 cp "${ROOT}/templates/database-specfirst/initialSchema.sql" "${TARGET_ROOT}/database/initialSchema.sql"
 
+# Keep the Jackson migration's wire-contract regression in container snapshots.
+mkdir -p "${TARGET_ROOT}/trade-service/src/test/java/finos/traderx/messaging/socketio"
+cp "${ROOT}/templates/trade-service-specfirst/src/test/java/finos/traderx/messaging/socketio/SocketIOJsonContractTest.java" \
+  "${TARGET_ROOT}/trade-service/src/test/java/finos/traderx/messaging/socketio/SocketIOJsonContractTest.java"
+
 # State 004+ deployment targets should not run Angular dev server (Vite HMR)
 # inside container images. Force compose builds to use the production/static
 # image contract by aligning Dockerfile.compose with Dockerfile.prod.

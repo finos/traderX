@@ -3807,7 +3807,7 @@ index 269f5e7..be6ee41 100644
 +      }
 +      return quote.getPrice().setScale(3, RoundingMode.HALF_UP);
 +    } catch (HttpClientErrorException ex) {
-+      if (ex.getRawStatusCode() == 404) {
++      if (ex.getStatusCode().value() == 404) {
 +        throw new ResourceNotFoundException("Price quote unavailable for ticker " + ticker);
 +      }
 +      throw ex;
