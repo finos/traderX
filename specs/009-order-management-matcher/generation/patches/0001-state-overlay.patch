@@ -2230,6 +2230,7 @@ index 0000000..ac3802f
 +dependencies {
 +  implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 +  implementation 'org.springframework.boot:spring-boot-starter-webmvc'
++  implementation 'org.springframework.boot:spring-boot-starter-restclient'
 +  implementation 'org.springframework.boot:spring-boot-starter-actuator'
 +  runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 +  runtimeOnly 'org.postgresql:postgresql:42.7.12'
@@ -2824,7 +2825,7 @@ index 0000000..866daff
 @@ -0,0 +1,20 @@
 +package finos.traderx.ordermatcher.config;
 +
-+import org.springframework.boot.web.client.RestTemplateBuilder;
++import org.springframework.boot.restclient.RestTemplateBuilder;
 +import org.springframework.context.annotation.Bean;
 +import org.springframework.context.annotation.Configuration;
 +import org.springframework.web.client.RestTemplate;
