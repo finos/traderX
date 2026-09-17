@@ -10531,7 +10531,7 @@ new file mode 100644
 index 0000000..f61e0d6
 --- /dev/null
 +++ b/reference-data/package.json
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,30 @@
 +{
 +  "name": "@traderspec/reference-data-specfirst",
 +  "version": "0.1.0",
@@ -10558,7 +10558,8 @@ index 0000000..f61e0d6
 +  },
 +  "overrides": {
 +    "multer": "2.3.0",
-+    "qs": "6.16.0"
++    "qs": "6.16.0",
++    "body-parser": "2.3.0"
 +  }
 +}
 diff --git a/reference-data/src/app.module.ts b/reference-data/src/app.module.ts
@@ -24049,14 +24050,14 @@ index 0000000..8704d8e
 +      "version": "0.0.0",
 +      "license": "Apache-2.0",
 +      "dependencies": {
-+        "@angular/animations": "^20.3.25",
-+        "@angular/common": "^20.3.25",
-+        "@angular/compiler": "^20.3.25",
-+        "@angular/core": "^20.3.25",
-+        "@angular/forms": "^20.3.25",
-+        "@angular/platform-browser": "^20.3.25",
-+        "@angular/platform-browser-dynamic": "^20.3.25",
-+        "@angular/router": "^20.3.25",
++        "@angular/animations": "^20.3.28",
++        "@angular/common": "^20.3.28",
++        "@angular/compiler": "^20.3.28",
++        "@angular/core": "^20.3.28",
++        "@angular/forms": "^20.3.28",
++        "@angular/platform-browser": "^20.3.28",
++        "@angular/platform-browser-dynamic": "^20.3.28",
++        "@angular/router": "^20.3.28",
 +        "ag-grid-angular": "^32.2.1",
 +        "ag-grid-community": "^32.2.1",
 +        "bootstrap": "^5.3.8",
@@ -24067,10 +24068,10 @@ index 0000000..8704d8e
 +        "zone.js": "^0.15.0"
 +      },
 +      "devDependencies": {
-+        "@angular-devkit/build-angular": "^20.3.25",
-+        "@angular/cli": "^20.3.25",
-+        "@angular/compiler-cli": "^20.3.25",
-+        "@angular/language-service": "^20.3.25",
++        "@angular-devkit/build-angular": "^20.3.28",
++        "@angular/cli": "^20.3.28",
++        "@angular/compiler-cli": "^20.3.28",
++        "@angular/language-service": "^20.3.28",
 +        "@faker-js/faker": "^9.0.3",
 +        "@types/jasmine": "^5.1.4",
 +        "@types/node": "^22.9.0",
@@ -40618,14 +40619,14 @@ index 0000000..3e9bc3e
 +  "private": true,
 +  "license": "Apache-2.0",
 +  "dependencies": {
-+    "@angular/animations": "^20.3.25",
-+    "@angular/common": "^20.3.25",
-+    "@angular/compiler": "^20.3.25",
-+    "@angular/core": "^20.3.25",
-+    "@angular/forms": "^20.3.25",
-+    "@angular/platform-browser": "^20.3.25",
-+    "@angular/platform-browser-dynamic": "^20.3.25",
-+    "@angular/router": "^20.3.25",
++    "@angular/animations": "^20.3.28",
++    "@angular/common": "^20.3.28",
++    "@angular/compiler": "^20.3.28",
++    "@angular/core": "^20.3.28",
++    "@angular/forms": "^20.3.28",
++    "@angular/platform-browser": "^20.3.28",
++    "@angular/platform-browser-dynamic": "^20.3.28",
++    "@angular/router": "^20.3.28",
 +    "ag-grid-angular": "^32.2.1",
 +    "ag-grid-community": "^32.2.1",
 +    "bootstrap": "^5.3.8",
@@ -40645,10 +40646,10 @@ index 0000000..3e9bc3e
 +    "engine.io": "6.6.9"
 +  },
 +  "devDependencies": {
-+    "@angular-devkit/build-angular": "^20.3.25",
-+    "@angular/cli": "^20.3.25",
-+    "@angular/compiler-cli": "^20.3.25",
-+    "@angular/language-service": "^20.3.25",
++    "@angular-devkit/build-angular": "^20.3.28",
++    "@angular/cli": "^20.3.28",
++    "@angular/compiler-cli": "^20.3.28",
++    "@angular/language-service": "^20.3.28",
 +    "@faker-js/faker": "^9.0.3",
 +    "@types/jasmine": "^5.1.4",
 +    "@types/node": "^22.9.0",

@@ -7,9 +7,9 @@ a demo deployment or a new security exception.
 
 ## Version decisions
 
-The complete failed-job logs for [state 002](https://github.com/finos/traderX/actions/runs/35203378098)
+The complete HTML reports and failed-job logs for [state 002](https://github.com/finos/traderX/actions/runs/35203378098)
 and [state 004](https://github.com/finos/traderX/actions/runs/35204061241)
-report the same five dependency families. Multer is included here even though
+report the dependency families below. Multer is included here even though
 it was omitted from the issue's initial examples. All original state 004 image
 scan jobs passed; replacement images still require fresh scans.
 
@@ -100,3 +100,16 @@ guard these final runtime stages. No image finding is suppressed.
 - Nine state 004 runtime dependency scans pass at CVSS 5 with the existing suppressions. Inputs were resolved npm lockfiles, built Java archives, and .NET output. Dependency-Check 13.0.0 used the CI action image's September 16 database copied into the native scanner image. Live NVD updates failed, so stale local cached data was not used to establish a pass. OSS Index was unavailable without credentials, as in the existing CI setup.
 - All ten state 004 images build and pass Trivy 0.74.0 HIGH/CRITICAL scans. Local images are Linux ARM64; remote CI must validate the published snapshot and its target architecture independently. Images were exported before scanning to avoid concurrent local image cleanup.
 - No demo deployment was performed. Remote snapshot checks and publication revisions must be recorded in the PR before treating the issue's release acceptance criteria as complete.
+
+The first replacement state 002 CI scan additionally found Angular advisories
+[GHSA-jhpw-976m-542j](https://github.com/angular/angular/security/advisories/GHSA-jhpw-976m-542j),
+[GHSA-jj27-h5hq-8x99](https://github.com/angular/angular/security/advisories/GHSA-jj27-h5hq-8x99), and
+[GHSA-hh8m-fm6v-7cvg](https://github.com/angular/angular/security/advisories/GHSA-hh8m-fm6v-7cvg).
+Angular framework and tooling minimums are raised to 20.3.28; regenerated lockfiles
+and remote checks are required because the earlier local scan did not detect these findings.
+
+Full HTML artifact review also includes low-severity Spring CVE-2026-59280 and
+CVE-2026-59314 (covered by Framework 7.0.9), qs GHSA-x5fp-wj9c-mxmx
+(covered by 6.16.0), Multer GHSA-qvfw-j98x-7q72 (covered by 2.3.0), and
+body-parser GHSA-v422-hmwv-36x6 (explicit reference-data override to 2.3.0).
+The reports retain the pre-existing CVE-2026-53914 suppression; this change adds no exception.
