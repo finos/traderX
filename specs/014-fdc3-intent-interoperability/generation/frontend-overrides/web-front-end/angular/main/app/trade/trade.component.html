@@ -103,7 +103,7 @@
             </li>
         </ul>
 
-        <div *ngIf="activeBlotter === 'trades'" class="trade-blotter">
+        <div [hidden]="activeBlotter !== 'trades'" class="trade-blotter">
             <app-trade-blotter
                 [account]="accountModel"
                 [allAccountsMode]="isAllAccountsSelected"
@@ -122,7 +122,7 @@
             </app-position-blotter>
         </div>
 
-        <div *ngIf="activeBlotter === 'orders'" class="orders-blotter">
+        <div [hidden]="activeBlotter !== 'orders'" class="orders-blotter">
             <app-order-blotter
                 [account]="accountModel"
                 [allAccountsMode]="isAllAccountsSelected"

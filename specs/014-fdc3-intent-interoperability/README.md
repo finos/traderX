@@ -38,3 +38,5 @@ Target runtime behavior:
 - Custom intent handling for prefilled ticket launch (`TraderX.CreateTradeTicket`, `TraderX.CreateOrderTicket`).
 - Two-tab Sail demo profile with ticket-launch controls on tab `One` and news on tab `Two`.
 - Documented workaround debt for current Sail callback reliability and non-CDM symbology normalization.
+
+Blotters default to **All tickers**. Use each blotter's **Filter on selected ticker** control to follow shared FDC3 instrument selection locally. See the [context contract](contracts/contract-delta.md) and [acceptance scenarios](spec.md) for account, empty-context and live-event semantics.

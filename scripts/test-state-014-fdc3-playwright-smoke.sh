@@ -46,6 +46,13 @@ echo "[check] ensure playwright chromium browser is available"
 PLAYWRIGHT_BROWSERS_PATH="${PLAYWRIGHT_BROWSER_CACHE}" \
   node "${PLAYWRIGHT_MODULE_DIR}/cli.js" install chromium >/dev/null
 
+if [[ "${FDC3_TICKER_FILTER_TEST:-0}" == "1" ]]; then
+  TRADERX_PLAYWRIGHT_MODULE_DIR="${PLAYWRIGHT_MODULE_DIR}" \
+  PLAYWRIGHT_BROWSERS_PATH="${PLAYWRIGHT_BROWSER_CACHE}" \
+    node "${REPO_ROOT}/scripts/test-state-014-fdc3-ticker-filter.cjs" "${TRADERX_URL}"
+  exit $?
+fi
+
 echo "[run] fdc3 playwright smoke rig"
 TRADERX_PLAYWRIGHT_MODULE_DIR="${PLAYWRIGHT_MODULE_DIR}" \
 PLAYWRIGHT_BROWSERS_PATH="${PLAYWRIGHT_BROWSER_CACHE}" \

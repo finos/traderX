@@ -50,3 +50,7 @@
 - FDC3 behavior works in mocked integration tests and in local Sail demo profile.
 - Smoke tests include FDC3 interoperability assertions and pass.
 - Generated snapshot branch target is ready: `code/generated-state-014-fdc3-intent-interoperability`.
+
+## Issue #462 Implementation
+
+Retain replayable FDC3 instrument/account selection in the state-local adapter. Each blotter owns its opt-in flag and exact external grid predicate. Keep tab instances mounted, cancel obsolete snapshots, replay live updates before rendering, and refresh on event-transport reconnect. Implement exclusively in state-014 frontend overrides, preserving earlier states. Validate generated Angular build/browser regressions and the Sail cross-window smoke path.
