@@ -1,0 +1,45 @@
+.about-page {
+    padding: 1rem;
+}
+
+.about-lead {
+    margin-bottom: 1rem;
+}
+
+.about-card {
+    border: 1px solid #d4dbe5;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: #fff;
+}
+
+.about-grid {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 0.5rem 1rem;
+    margin: 0;
+}
+
+.about-grid dt {
+    font-weight: 600;
+}
+
+.about-grid dd {
+    margin: 0;
+    word-break: break-word;
+}
+
+.lineage-list {
+    margin: 0;
+    padding-left: 1.2rem;
+}
+
+.lineage-list li {
+    margin-bottom: 0.6rem;
+}
+
+.lineage-summary {
+    display: block;
+    color: #2b3b52;
+}

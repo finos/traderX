@@ -1,0 +1,109 @@
+openapi: 3.0.1
+info:
+  title: TraderSpec PeopleService.WebApi
+  version: v1
+paths:
+  /People/GetPerson:
+    get:
+      summary: Get a person from directory by logon or employee ID
+      parameters:
+        - name: LogonId
+          in: query
+          schema:
+            type: string
+            nullable: true
+        - name: EmployeeId
+          in: query
+          schema:
+            type: string
+            nullable: true
+      responses:
+        "200":
+          description: Person found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Person"
+        "400":
+          description: Invalid request
+        "404":
+          description: Person not found
+  /People/GetMatchingPeople:
+    get:
+      summary: Get people where logonId or fullName contains search text
+      parameters:
+        - name: SearchText
+          in: query
+          schema:
+            type: string
+        - name: Take
+          in: query
+          schema:
+            type: integer
+            format: int32
+            default: 10
+      responses:
+        "200":
+          description: Matching people
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetMatchingPeopleResponse"
+        "400":
+          description: Invalid request
+        "404":
+          description: No matches
+  /People/ValidatePerson:
+    get:
+      summary: Validate person identity by logon or employee ID
+      parameters:
+        - name: LogonId
+          in: query
+          schema:
+            type: string
+            nullable: true
+        - name: EmployeeId
+          in: query
+          schema:
+            type: string
+            nullable: true
+      responses:
+        "200":
+          description: Person is valid
+        "400":
+          description: Invalid request
+        "404":
+          description: Person not found
+components:
+  schemas:
+    Person:
+      type: object
+      required:
+        - logonId
+        - fullName
+        - email
+        - employeeId
+        - department
+        - photoUrl
+      properties:
+        logonId:
+          type: string
+        fullName:
+          type: string
+        email:
+          type: string
+        employeeId:
+          type: string
+        department:
+          type: string
+        photoUrl:
+          type: string
+    GetMatchingPeopleResponse:
+      type: object
+      required:
+        - people
+      properties:
+        people:
+          type: array
+          items:
+            $ref: "#/components/schemas/Person"

@@ -1,0 +1,67 @@
+openapi: 3.0.0
+info:
+  title: TraderSpec Reference Data Service
+  version: "1.0.0"
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+  /stocks:
+    get:
+      summary: List all stocks
+      responses:
+        "200":
+          description: Stock list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Security"
+  /stocks/{ticker}:
+    get:
+      summary: Find stock by ticker
+      parameters:
+      - name: ticker
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Stock found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Security"
+        "404":
+          description: Not found
+components:
+  schemas:
+    Security:
+      type: object
+      required:
+      - ticker
+      - companyName
+      properties:
+        ticker:
+          type: string
+          example: AAPL
+        companyName:
+          type: string
+          example: Apple Inc.
+    Health:
+      type: object
+      required:
+      - status
+      properties:
+        status:
+          type: string
+          example: ok

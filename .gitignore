@@ -1,0 +1,26 @@
+# Runtime + package-manager artifacts
+**/node_modules/
+**/.angular/
+**/.gradle/
+**/.npm/
+**/.pnpm-store/
+**/.cache/
+**/.run/
+
+# Build outputs
+**/build/
+**/dist/
+**/out/
+**/coverage/
+**/bin/
+**/obj/
+
+# Logs and local temp files
+**/*.log
+**/.DS_Store
+
+# Environment + editor local state
+**/.env
+**/.env.*
+**/.idea/
+**/.vscode/
