@@ -1,14 +1,14 @@
 # Functional Testing Guide
 
-State: `002-edge-proxy-uncontainerized`
+State: `003-agentic-harness-foundation`
 
 This guide captures intended functional behavior for this generated snapshot branch.
 
 ## What Should Work
 
-- Builds on state `001` while keeping uncontainerized process runtime.
-- Adds `edge-proxy` as a single browser-facing origin for UI + API + WebSocket traffic.
-- Preserves baseline functional behavior with topology-focused NFR deltas.
+- Builds on state `002` while preserving uncontainerized edge-proxy runtime behavior.
+- Adds generated repository harness metadata (`AGENTS.md`, `ARCHITECTURE.md`, `CONTRIBUTING.md`).
+- Clarifies contribution flow: durable enhancements belong in upstream specs/state packs.
 
 ## Suggested Functional Validation
 
@@ -20,14 +20,12 @@ This guide captures intended functional behavior for this generated snapshot bra
 ## Smoke Test Commands
 
 ```bash
-ls ./scripts/test-state-*.sh
+./scripts/test-state-003-agentic-harness-foundation.sh
 ```
-
-Use the script matching this state id when available.
 
 ## Canonical References
 
-- Spec pack: `specs/002-edge-proxy-uncontainerized`
+- Spec pack: `specs/003-agentic-harness-foundation`
 - Runtime guide: [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
 - Snapshot learning guide: [LEARNING.md](./LEARNING.md)
 - Snapshot metadata: [STATE.md](./STATE.md)
