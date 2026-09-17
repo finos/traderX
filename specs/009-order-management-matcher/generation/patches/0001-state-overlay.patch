@@ -2837,8 +2837,8 @@ index 0000000..866daff
 +    @Bean
 +    RestTemplate restTemplate(RestTemplateBuilder builder) {
 +        return builder
-+            .setConnectTimeout(Duration.ofSeconds(2))
-+            .setReadTimeout(Duration.ofSeconds(4))
++            .connectTimeout(Duration.ofSeconds(2))
++            .readTimeout(Duration.ofSeconds(4))
 +            .build();
 +    }
 +}

@@ -26,6 +26,12 @@
   "docker": {
     "images": {
       "nats": "2.14-alpine"
+    },
+    "runtimeImages": {
+      "reference-data": "node:24-alpine",
+      "trade-feed": "node:24-alpine",
+      "price-publisher": "node:24-alpine",
+      "people-service": "mcr.microsoft.com/dotnet/aspnet:9.0-noble-chiseled-extra"
     }
   },
   "npm": {

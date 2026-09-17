@@ -4208,7 +4208,7 @@ index 0000000..85bf4d3
 +WORKDIR /src/PeopleService.WebApi
 +RUN dotnet publish -c Release -o /app/publish
 +
-+FROM mcr.microsoft.com/dotnet/aspnet:9.0
++FROM mcr.microsoft.com/dotnet/aspnet:9.0-noble-chiseled-extra
 +WORKDIR /app
 +COPY --from=build /app/publish .
 +EXPOSE 18089
@@ -5585,18 +5585,26 @@ index 0000000..0cef4ba
 +++ b/reference-data/Dockerfile.compose
 @@ -0,0 +1,13 @@
 +# syntax=docker/dockerfile:1.7
-+FROM node:20-alpine
++FROM node:24-alpine AS build
 +WORKDIR /app
 +COPY package*.json ./
-+RUN --mount=type=cache,target=/root/.npm,sharing=locked \
-+    if [ -f package-lock.json ]; then \
-+      npm ci --no-audit --prefer-offline; \
-+    else \
-+      npm install --no-audit --prefer-offline; \
-+    fi
-+COPY . .
++RUN --mount=type=cache,target=/root/.npm,sharing=locked npm ci --no-audit
++COPY tsconfig.json nest-cli.json ./
++COPY src ./src
++RUN npm run build && npm prune --omit=dev --no-audit
++
++FROM node:24-alpine
++WORKDIR /app
++# Refresh OS fixes and omit build/package-manager tooling from runtime images.
++RUN apk upgrade --no-cache && rm -rf /usr/local/lib/node_modules/npm /opt/yarn* \
++    && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/yarn /usr/local/bin/yarnpkg
++COPY --from=build /app/node_modules ./node_modules
++COPY --from=build /app/package.json ./package.json
++COPY --from=build /app/dist ./dist
++COPY data ./data
++USER node
 +EXPOSE 18085
-+CMD ["npm", "run", "start"]
++CMD ["node", "dist/main.js"]
 diff --git a/reference-data/README.md b/reference-data/README.md
 new file mode 100644
 index 0000000..1ee7a00
@@ -13471,18 +13479,22 @@ index 0000000..79db742
 +++ b/trade-feed/Dockerfile.compose
 @@ -0,0 +1,13 @@
 +# syntax=docker/dockerfile:1.7
-+FROM node:20-alpine
++FROM node:24-alpine AS build
 +WORKDIR /app
 +COPY package*.json ./
-+RUN --mount=type=cache,target=/root/.npm,sharing=locked \
-+    if [ -f package-lock.json ]; then \
-+      npm ci --no-audit --prefer-offline; \
-+    else \
-+      npm install --no-audit --prefer-offline; \
-+    fi
-+COPY . .
++RUN --mount=type=cache,target=/root/.npm,sharing=locked npm ci --omit=dev --no-audit
++
++FROM node:24-alpine
++WORKDIR /app
++# Refresh OS fixes and omit build/package-manager tooling from runtime images.
++RUN apk upgrade --no-cache && rm -rf /usr/local/lib/node_modules/npm /opt/yarn* \
++    && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/yarn /usr/local/bin/yarnpkg
++COPY --from=build /app/node_modules ./node_modules
++COPY --from=build /app/package.json ./package.json
++COPY index.js ./index.js
++USER node
 +EXPOSE 18086
-+CMD ["npm", "run", "start"]
++CMD ["node", "index.js"]
 diff --git a/trade-feed/README.md b/trade-feed/README.md
 new file mode 100644
 index 0000000..187e687

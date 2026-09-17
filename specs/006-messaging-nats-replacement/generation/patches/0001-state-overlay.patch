@@ -515,18 +515,22 @@ index 79db742..0000000
 +++ /dev/null
 @@ -1,13 +0,0 @@
 -# syntax=docker/dockerfile:1.7
--FROM node:20-alpine
+-FROM node:24-alpine AS build
 -WORKDIR /app
 -COPY package*.json ./
--RUN --mount=type=cache,target=/root/.npm,sharing=locked \
--    if [ -f package-lock.json ]; then \
--      npm ci --no-audit --prefer-offline; \
--    else \
--      npm install --no-audit --prefer-offline; \
--    fi
--COPY . .
+-RUN --mount=type=cache,target=/root/.npm,sharing=locked npm ci --omit=dev --no-audit
+-
+-FROM node:24-alpine
+-WORKDIR /app
+-# Refresh OS fixes and omit build/package-manager tooling from runtime images.
+-RUN apk upgrade --no-cache && rm -rf /usr/local/lib/node_modules/npm /opt/yarn* \
+-    && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/yarn /usr/local/bin/yarnpkg
+-COPY --from=build /app/node_modules ./node_modules
+-COPY --from=build /app/package.json ./package.json
+-COPY index.js ./index.js
+-USER node
 -EXPOSE 18086
--CMD ["npm", "run", "start"]
+-CMD ["node", "index.js"]
 diff --git a/trade-feed/README.md b/trade-feed/README.md
 deleted file mode 100644
 index 187e687..0000000
