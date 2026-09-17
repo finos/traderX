@@ -1,30 +1,35 @@
 # System Design
 
-State: `003-agentic-harness-foundation`
+State: `004-containerized-compose-runtime`
 
 ## Design Intent
 
-Update this model with the authoritative architecture for this state.
+State 004 preserves state 002 routing semantics while moving runtime to Docker Compose and NGINX ingress.
 
 ## Runtime Topology / Flow (Spec Extract)
 
-# Runtime Topology: 003-agentic-harness-foundation
+# Runtime Topology (State 004)
 
-Runtime topology is intentionally unchanged from `002-edge-proxy-uncontainerized`.
+State `004-containerized-compose-runtime` retains state `002` routing behavior while moving runtime orchestration to Docker Compose.
 
-## Services
+## Entry Points
 
-- edge-proxy
-- web-front-end-angular
-- reference-data
-- people-service
-- account-service
-- position-service
-- trade-feed
-- trade-processor
-- trade-service
-- database
+- Ingress/UI: `http://localhost:8080`
+- Angular direct (debug): `http://localhost:18093`
+- Service/debug ports preserved (`18082`-`18092`) for troubleshooting.
 
-## Notes
+## Service Discovery Model
 
-This state adds generated repository harness metadata only. No runtime process graph changes.
+- Inter-service traffic uses Docker Compose service DNS names.
+- Browser traffic enters through NGINX ingress (`ingress` service).
+- Ingress routing config is sourced from `system/ingress-nginx.conf.template`.
+
+## Startup Model
+
+- Compose `depends_on` defines startup ordering.
+- Runtime script waits for readiness endpoints (`/health`, `/stocks`, `/account/{id}`, `/`) before declaring ready.
+
+## Source-of-Truth Artifacts
+
+- `system/docker-compose.spec.yaml`
+- `system/ingress-nginx.conf.template`

@@ -1,0 +1,21 @@
+# syntax=docker/dockerfile:1.7
+FROM node:24-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN --mount=type=cache,target=/root/.npm,sharing=locked npm ci --no-audit
+COPY tsconfig.json nest-cli.json ./
+COPY src ./src
+RUN npm run build && npm prune --omit=dev --no-audit
+
+FROM node:24-alpine
+WORKDIR /app
+# Refresh OS fixes and omit build/package-manager tooling from runtime images.
+RUN apk upgrade --no-cache && rm -rf /usr/local/lib/node_modules/npm /opt/yarn* \
+    && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/yarn /usr/local/bin/yarnpkg
+COPY --chown=node:node --from=build /app/node_modules ./node_modules
+COPY --chown=node:node --from=build /app/package.json ./package.json
+COPY --chown=node:node --from=build /app/dist ./dist
+COPY data ./data
+USER node
+EXPOSE 18085
+CMD ["node", "dist/main.js"]
