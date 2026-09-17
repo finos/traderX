@@ -85,5 +85,5 @@ description: "Tasks for root-level Spec Kit simple app baseline adoption"
 - [x] Review the complete 002/004 failure logs and vendor fixed-version ranges.
 - [x] Update canonical dependencies and inherited generation patches without adding suppressions.
 - [x] Preserve and run H2 booking/after-commit regression tests on the new baseline.
-- [ ] Verify final regenerated 002/004 outputs, application builds, and all repository gates.
-- [ ] Pass fresh dependency and image scans and publish replacement snapshots with one commit above each parent.
+- [x] Verify final regenerated 002/004 outputs, application builds, and all repository gates.
+- [x] Pass fresh dependency and image scans and publish replacement snapshots with one commit above each parent.

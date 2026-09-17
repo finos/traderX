@@ -99,7 +99,7 @@ guard these final runtime stages. No image finding is suppressed.
 - State 002 and 004 application builds pass. All four Java services start and serve OpenAPI documents; account and position endpoint smoke checks pass.
 - Nine state 004 runtime dependency scans pass at CVSS 5 with the existing suppressions. Inputs were resolved npm lockfiles, built Java archives, and .NET output. Dependency-Check 13.0.0 used the CI action image's September 16 database copied into the native scanner image. Live NVD updates failed, so stale local cached data was not used to establish a pass. OSS Index was unavailable without credentials, as in the existing CI setup.
 - All ten state 004 images build and pass Trivy 0.74.0 HIGH/CRITICAL scans. Local images are Linux ARM64; remote CI must validate the published snapshot and its target architecture independently. Images were exported before scanning to avoid concurrent local image cleanup.
-- No demo deployment was performed. Remote snapshot checks and publication revisions must be recorded in the PR before treating the issue's release acceptance criteria as complete.
+- No demo deployment was performed. Final replacement snapshots and remote checks are recorded below.
 
 The first replacement state 002 CI scan additionally found Angular advisories
 [GHSA-jhpw-976m-542j](https://github.com/angular/angular/security/advisories/GHSA-jhpw-976m-542j),
@@ -113,3 +113,26 @@ CVE-2026-59314 (covered by Framework 7.0.9), qs GHSA-x5fp-wj9c-mxmx
 (covered by 6.16.0), Multer GHSA-qvfw-j98x-7q72 (covered by 2.3.0), and
 body-parser GHSA-v422-hmwv-36x6 (explicit reference-data override to 2.3.0).
 The reports retain the pre-existing CVE-2026-53914 suppression; this change adds no exception.
+
+## Final replacement snapshots
+
+Both snapshots use source `2ed48551763d0a47b93070d226fb1b1e10b5e6d7` and
+preserve one snapshot commit above their respective parents.
+
+| State | Snapshot | Parent | Remote evidence |
+| --- | --- | --- | --- |
+| 002 | `3187136c1072f91cf4d9bbe9cbaceeaca8c521c5` | `d26ca87b16c985c66bc9e6bf7abd40ef0f90184f` | [Security passed](https://github.com/finos/traderX/actions/runs/35210750150) |
+| 004 | `43ffeb3640d36458e432b8a4b33a391e2ce0733d` | `1ae7eb50ff297819ada715c01a933cb73714a54b` | [Dependency and image security passed](https://github.com/finos/traderX/actions/runs/35210960971); [image build/publication passed](https://github.com/finos/traderX/actions/runs/35210960714) |
+
+Final state 009 regeneration and complete application preflight also pass,
+including the matcher and H2 booking regression in the PostgreSQL descendant.
+The fixture is generated from the canonical H2 schema; it is not a second
+maintained schema.
+
+Publication ran sequentially through the supported publisher with isolated
+output roots. Its repeated prepublish gate was skipped after standalone scans
+because live NVD updates failed; application preflight and lineage validation
+still ran. The successful remote checks above establish replacement-snapshot
+security status. No security exception, scan suppression, or demo deployment
+was added. An earlier image publication failed on a Maven download HTTP 403;
+the final publication completed successfully.
