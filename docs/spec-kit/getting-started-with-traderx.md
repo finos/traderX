@@ -64,3 +64,5 @@ If your organization needs private runtime constraints, internal-only states, or
 3. Add TraderX as a pinned submodule dependency.
 4. Tailor the included profile, transform, and internal-docs examples to your environment policy.
 5. Publish an internal docs portal that includes only your sanctioned internal learning graph branches.
+
+For generated snapshot publishing and live-demo operations, follow [Publishing security and verified demo deployment](./publishing-security-and-deployment.md). Live redeployment requires the full generated snapshot SHA and successful checks for that exact snapshot.

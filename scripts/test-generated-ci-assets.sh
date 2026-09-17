@@ -167,6 +167,34 @@ if rg -qi 'token|password' "${TARGET_ROOT}/runtime/deploy/aws-ec2-compose/deploy
   exit 1
 fi
 
+echo "[check] generated deployment requires snapshot checks and scanned digest evidence"
+python3 - "${TARGET_ROOT}" <<'PYTEST'
+from pathlib import Path
+import sys
+root = Path(sys.argv[1])
+publish = (root / '.github/workflows/build-and-publish.yml').read_text()
+assert 'id: publish' in publish
+assert '@${{ steps.publish.outputs.digest }}' in publish
+assert 'image-digest-${{ matrix.image_name }}-${{ github.run_attempt }}' in publish
+assert (root / '.github/workflows/build-and-test.yml').exists()
+assert 'paths:' not in (root / '.github/workflows/security.yml').read_text()
+deploy = (root / 'runtime/deploy/aws-ec2-compose/deploy.sh').read_text()
+assert 'TRADERX_SNAPSHOT' in deploy
+assert 'verify-deployment-snapshot.py' in deploy
+assert 'deploy-verified-snapshot.py' in deploy
+for name in ['verify-deployment-snapshot.py', 'deploy-verified-snapshot.py', 'deployment-catalog.json']:
+    assert (root / 'ci' / name).is_file()
+PYTEST
+bash -n "${TARGET_ROOT}/runtime/deploy/aws-ec2-compose/deploy.sh"
+if command -v actionlint >/dev/null 2>&1; then
+  actionlint -shellcheck= "${TARGET_ROOT}/.github/workflows/build-and-test.yml" "${TARGET_ROOT}/.github/workflows/build-and-publish.yml" "${TARGET_ROOT}/.github/workflows/security.yml"
+fi
+TRADERX_SNAPSHOT=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa bash "${TARGET_ROOT}/runtime/deploy/aws-ec2-compose/deploy.sh" --use-ghcr --dry-run
+if TRADERX_SNAPSHOT=latest bash "${TARGET_ROOT}/runtime/deploy/aws-ec2-compose/deploy.sh" --use-ghcr --dry-run; then
+  echo "[fail] mutable snapshot was accepted"
+  exit 1
+fi
+
 echo "[check] state 012 preserves local api-explorer without publishing it"
 rm -rf "${TARGET_ROOT}"
 mkdir -p \

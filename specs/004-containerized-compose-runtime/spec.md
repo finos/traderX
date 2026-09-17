@@ -73,3 +73,7 @@
 - SC-316: Generated `runtime/deploy/aws-ec2-compose/` output includes `host-setup-check.sh` and `host-setup-install.sh`, and both scripts support `--dry-run` execution paths.
 - SC-317: For emitted state snapshots, `start-env.sh`, `status-env.sh`, and `stop-env.sh` delegate to scripts matching the active state id/numbered entrypoint lineage for that state.
 - SC-318: State `004+` generation fails if declared-pruned legacy artifacts (for example Node `edge-proxy`) or their forbidden wrapper references persist after generation.
+
+## Publishing and deployment acceptance (issue #466)
+
+The deployment-bundle contract in NFR-316 includes bounded dependency scanner acquisition/execution, operation-scoped cleanup, explicit local deferral records, and exact-snapshot remote build/test/dependency-security/image-security authorization. Demo deployments must use scanned image digests and record the deployed snapshot after successful startup. A failed, absent, cancelled, timed-out or mismatched check must reject deployment even if image publication succeeded. These guarantees extend to later demo-enabled states through the canonical CI/deployment generator. See `docs/spec-kit/publishing-security-and-deployment.md` for recovery and the reviewed exception process.
