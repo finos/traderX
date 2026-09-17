@@ -1,0 +1,153 @@
+name: Security Scanning
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '**/build.gradle'
+      - '**/build.gradle.kts'
+      - '**/package.json'
+      - '**/package-lock.json'
+      - '**/*.csproj'
+      - '.github/*-cve-ignore-list.xml'
+      - '.github/workflows/security.yml'
+
+jobs:
+  node-modules-scan:
+    name: ${{ matrix.module_folder }}-node-scan
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module_folder:
+          - edge-proxy
+          - reference-data
+          - trade-feed
+          - web-front-end/angular
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install production dependencies
+        run: npm install --omit=dev
+        working-directory: ${{ matrix.module_folder }}
+      - name: Prepare artifact name
+        shell: bash
+        run: |
+          echo "UPNAME=$(echo '${{ matrix.module_folder }}' | tr '/\\ ' '---' | tr -cd '[:alnum:]._-')" >> "${GITHUB_ENV}"
+      - name: Dependency check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: ${{ matrix.module_folder }}
+          path: ${{ matrix.module_folder }}
+          format: HTML
+          out: ${{ matrix.module_folder }}-reports
+          args: >
+            --suppression .github/node-cve-ignore-list.xml
+            --nodeAuditSkipDevDependencies
+            --nodePackageSkipDevDependencies
+            --failOnCVSS 5
+            --enableRetired
+      - name: Upload reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-node-${{ env.UPNAME }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ github.workspace }}/${{ matrix.module_folder }}-reports
+
+  dotnet-modules-scan:
+    name: ${{ matrix.module_folder }}-dotnet-scan
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module_folder:
+          - people-service/PeopleService.WebApi
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+      - name: Build project
+        run: dotnet build --configuration Release
+        working-directory: ${{ matrix.module_folder }}
+      - name: Prepare artifact name
+        shell: bash
+        run: |
+          echo "UPNAME=$(echo '${{ matrix.module_folder }}' | tr '/\\ ' '---' | tr -cd '[:alnum:]._-')" >> "${GITHUB_ENV}"
+      - name: Dependency check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: ${{ matrix.module_folder }}
+          path: ${{ matrix.module_folder }}
+          format: HTML
+          out: ${{ matrix.module_folder }}-reports
+          args: >
+            --suppression .github/dotnet-cve-ignore-list.xml
+            --failOnCVSS 5
+            --enableRetired
+      - name: Upload reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-dotnet-${{ env.UPNAME }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ github.workspace }}/${{ matrix.module_folder }}-reports
+
+  gradle-modules-scan:
+    name: ${{ matrix.module_folder }}-gradle-scan
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module_folder:
+          - account-service
+          - database
+          - position-service
+          - trade-processor
+          - trade-service
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Build project
+        shell: bash
+        working-directory: ${{ matrix.module_folder }}
+        run: |
+          if [[ -x ./gradlew ]]; then
+            ./gradlew clean build --no-daemon
+          else
+            gradle clean build --no-daemon
+          fi
+      - name: Prepare artifact name
+        shell: bash
+        run: |
+          echo "UPNAME=$(echo '${{ matrix.module_folder }}' | tr '/\\ ' '---' | tr -cd '[:alnum:]._-')" >> "${GITHUB_ENV}"
+      - name: Dependency check
+        uses: dependency-check/Dependency-Check_Action@main
+        env:
+          JAVA_HOME: /opt/jdk
+        with:
+          project: ${{ matrix.module_folder }}
+          path: ${{ matrix.module_folder }}
+          format: HTML
+          out: ${{ matrix.module_folder }}-reports
+          args: >
+            --suppression .github/gradle-cve-ignore-list.xml
+            --failOnCVSS 5
+            --enableRetired
+            --disableCentral
+      - name: Upload reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-gradle-${{ env.UPNAME }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ github.workspace }}/${{ matrix.module_folder }}-reports

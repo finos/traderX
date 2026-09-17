@@ -1,0 +1,35 @@
+name: License Scanning for Node.js
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '**/package.json'
+      - '**/package-lock.json'
+      - '.github/workflows/license-scanning-node.yml'
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module_folder:
+          - edge-proxy
+          - reference-data
+          - trade-feed
+          - web-front-end/angular
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install production dependencies
+        run: npm install --omit=dev
+        working-directory: ${{ matrix.module_folder }}
+      - name: Install license validator
+        run: npm install -g node-license-validator
+      - name: Validate licenses
+        run: node-license-validator . --allow-licenses Apache-2.0 MIT BSD-2-Clause BSD BSD-3-Clause Unlicense ISC
+        working-directory: ${{ matrix.module_folder }}

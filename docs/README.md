@@ -1,6 +1,6 @@
 # Generated Docs
 
-This folder provides generated learning-oriented documentation for state `001-baseline-uncontainerized-parity`.
+This folder provides generated learning-oriented documentation for state `002-edge-proxy-uncontainerized`.
 
 - [Learning Index](./learning/README.md)
 - [Component List](./learning/component-list.md)

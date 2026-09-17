@@ -1,0 +1,8 @@
+{
+  "generatedAtUtc": "2026-09-17T13:32:23.661Z",
+  "stateId": "002-edge-proxy-uncontainerized",
+  "mountPath": "/api/docs",
+  "pubSubInspectorEnabled": false,
+  "services": [],
+  "messagingSubjects": []
+}
