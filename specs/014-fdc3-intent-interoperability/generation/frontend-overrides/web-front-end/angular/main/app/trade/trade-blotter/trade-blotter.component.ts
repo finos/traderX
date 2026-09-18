@@ -1,8 +1,9 @@
+import { Fdc3InteropService } from 'main/app/service/fdc3-interop.service';
+import { Observable, Subscription, asapScheduler, filter, observeOn } from 'rxjs';
 import { ColDef, GridApi, GridReadyEvent, GetRowIdParams, RowClickedEvent } from 'ag-grid-community';
 import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
 import { Account } from 'main/app/model/account.model';
 import { PositionService } from 'main/app/service/position.service';
-import { Observable } from 'rxjs';
 import { Trade } from '../../model/trade.model';
 import { TradeFeedService } from 'main/app/service/trade-feed.service';
 
@@ -18,6 +19,29 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
     @Input() accountIds: number[] = [];
     @Input() accountNameById: { [accountId: number]: string } = {};
     @Input() securityFilter = '';
+    filterOnSelectedTicker = false;
+    private readonly interopSubscription: Subscription;
+    private snapshotSubscription?: Subscription;
+    private readonly connectionSubscription: Subscription;
+
+    get effectiveTicker(): string {
+        return this.filterOnSelectedTicker ? this.securityFilter.trim().toUpperCase() : '';
+    }
+
+    get tickerFilterDescription(): string {
+        return this.effectiveTicker ? `Ticker: ${this.effectiveTicker}`
+            : this.filterOnSelectedTicker ? 'All tickers — no ticker selected' : 'All tickers';
+    }
+
+    setTickerFilter(enabled: boolean): void {
+        this.filterOnSelectedTicker = enabled;
+        this.applySecurityFilter();
+    }
+
+    isExternalFilterPresent = (): boolean => !!this.effectiveTicker;
+    doesExternalFilterPass = (node: { data?: { security?: string } }): boolean =>
+        !this.effectiveTicker || String(node.data?.security || '').trim().toUpperCase() === this.effectiveTicker;
+
     @Output() securitySelected = new EventEmitter<string>();
     trades: Trade[] = [];
     gridApi: GridApi;
@@ -60,7 +84,18 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
         }
     ];
 
-    constructor(private tradeFeed: TradeFeedService, private tradeService: PositionService) { }
+    constructor(private tradeFeed: TradeFeedService, private tradeService: PositionService, interop: Fdc3InteropService) {
+        this.connectionSubscription = this.tradeFeed.connectionState$.pipe(
+            filter(state => state === 'connected'), observeOn(asapScheduler)
+        ).subscribe(() => {
+            // Let the transport finish its CONNECT/resubscribe handshake first.
+            this.loadScope();
+        });
+        this.interopSubscription = interop.selectedTicker$.subscribe(ticker => {
+            this.securityFilter = ticker;
+            this.applySecurityFilter();
+        });
+    }
 
     ngOnChanges(change: SimpleChanges) {
         const scopeChanged =
@@ -102,6 +137,9 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
     }
 
     ngOnDestroy() {
+        this.interopSubscription.unsubscribe();
+        this.connectionSubscription.unsubscribe();
+        this.snapshotSubscription?.unsubscribe();
         this.clearSubscriptions();
     }
 
@@ -109,45 +147,15 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
         this.pendingTrades.forEach((tradeUpdate) => this.update(tradeUpdate));
         this.pendingTrades = [];
         this.isPending = false;
+        this.gridApi?.setGridOption('rowData', this.trades);
     }
 
     private update(data: Trade) {
-        if (!this.gridApi) {
-            this.pendingTrades.push(data);
-            return;
-        }
-        const tradeWithDisplay = this.withAccountDisplay(data);
-        const row = this.gridApi.getRowNode(this.toRowId(tradeWithDisplay.id));
-        let tradeData;
-        if (row) {
-            tradeData = {
-                update: [Object.assign(row.data, {
-                    state: tradeWithDisplay.state,
-                    price: tradeWithDisplay.price,
-                    updated: tradeWithDisplay.updated,
-                    created: tradeWithDisplay.created,
-                    accountDisplayName: tradeWithDisplay.accountDisplayName
-                })]
-            };
-        } else {
-            tradeData = {
-                add: [{
-                    accountid: tradeWithDisplay.accountid,
-                    accountId: tradeWithDisplay.accountId,
-                    accountDisplayName: tradeWithDisplay.accountDisplayName,
-                    created: tradeWithDisplay.created,
-                    id: tradeWithDisplay.id,
-                    quantity: tradeWithDisplay.quantity,
-                    price: tradeWithDisplay.price,
-                    security: tradeWithDisplay.security,
-                    side: tradeWithDisplay.side,
-                    state: tradeWithDisplay.state,
-                    updated: tradeWithDisplay.updated
-                }],
-                addIndex: 0
-            };
-        }
-        this.gridApi.applyTransaction(tradeData);
+        const row = this.withAccountDisplay(data);
+        const index = this.trades.findIndex(trade => trade.id === row.id);
+        this.trades = index < 0 ? [row, ...this.trades]
+            : this.trades.map((trade, i) => i === index ? row : trade);
+        this.gridApi?.setGridOption('rowData', this.trades);
     }
 
     private updateTrades(data: Trade) {
@@ -159,16 +167,14 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
     }
 
     private loadScope() {
+        this.snapshotSubscription?.unsubscribe();
+        this.trades = [];
+        this.gridApi?.setGridOption('rowData', []);
         this.isPending = true;
+        this.pendingTrades = [];
         this.clearSubscriptions();
 
         if (this.allAccountsMode) {
-            this.tradeService.getAllTrades().subscribe((trades: Trade[]) => {
-                this.trades = (trades ?? []).map((trade) => this.withAccountDisplay(trade));
-                this.processPendingTrades();
-            }, () => {
-                this.isPending = false;
-            });
             for (const accountId of this.accountIds) {
                 const unSub = this.tradeFeed.subscribe(`/accounts/${accountId}/trades`, (data: Trade) => {
                     console.log('Trade blotter feed...', data);
@@ -176,6 +182,12 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
                 });
                 this.socketUnSubscribeFns.push(unSub);
             }
+            this.snapshotSubscription = this.tradeService.getAllTrades().subscribe((trades: Trade[]) => {
+                this.trades = (trades ?? []).map((trade) => this.withAccountDisplay(trade));
+                this.processPendingTrades();
+            }, () => {
+                this.processPendingTrades();
+            });
             return;
         }
 
@@ -187,18 +199,18 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
             return;
         }
 
-        this.tradeService.getTrades(accountId).subscribe((trades: Trade[]) => {
-            this.trades = (trades ?? []).map((trade) => this.withAccountDisplay(trade));
-            this.processPendingTrades();
-        }, () => {
-            this.isPending = false;
-        });
-
         const unSub = this.tradeFeed.subscribe(`/accounts/${accountId}/trades`, (data: Trade) => {
             console.log('Trade blotter feed...', data);
             this.updateTrades(data);
         });
         this.socketUnSubscribeFns.push(unSub);
+
+        this.snapshotSubscription = this.tradeService.getTrades(accountId).subscribe((trades: Trade[]) => {
+            this.trades = (trades ?? []).map((trade) => this.withAccountDisplay(trade));
+            this.processPendingTrades();
+        }, () => {
+            this.processPendingTrades();
+        });
     }
 
     private clearSubscriptions() {
@@ -236,14 +248,7 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
         if (!this.gridApi) {
             return;
         }
-        const filterValue = String(this.securityFilter || '').trim().toUpperCase();
-        if (typeof (this.gridApi as any).setGridOption === 'function') {
-            (this.gridApi as any).setGridOption('quickFilterText', filterValue);
-            return;
-        }
-        if (typeof (this.gridApi as any).setQuickFilter === 'function') {
-            (this.gridApi as any).setQuickFilter(filterValue);
-        }
+            this.gridApi.onFilterChanged();
     }
 
     private toRowId(id: string): string {

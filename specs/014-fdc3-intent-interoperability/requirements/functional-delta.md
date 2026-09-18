@@ -6,10 +6,15 @@ Document only functional behavior changes introduced by this state.
 
 ## Added
 
+- Orders, trades and positions start on **All tickers**. Each blotter has a labelled, keyboard-accessible **Filter on selected ticker** control and a status showing its effective ticker (or no ticker selected).
+- Ticker mode stays local: selecting securities still shares FDC3 context with charts/tickets, turning filtering off restores all account rows, and opting back in uses the latest selection. Account changes and tab switches preserve modes; new windows default to All tickers even with retained context.
+- Account selection propagates independently through `fdc3.account`. Live order updates use the configured event transport, not FDC3; snapshot reconciliation protects creates/fills/cancellations and reconnect refreshes missed data.
+- Empty or invalid instrument messages retain the last valid selection; this state defines no clear-instrument message. Before any selection, an opted-in blotter shows all tickers and explains why.
+
 - FDC3 interop adapter in TraderX frontend for DesktopAgent integration.
 - Outbound `fdc3.instrument` context publishing when a user selects a ticker-bearing row in trade/order/position views.
-- Inbound `fdc3.instrument` context handling that updates ticker-focused UI state (filters and ticket defaults).
-- Standard intent handling for `ViewOrders` (instrument-scoped orders view routing).
+- Inbound `fdc3.instrument` context handling that retains shared selection for optional blotter filters and ticket defaults.
+- Standard intent handling for `ViewOrders` (orders view routing without implicit filter opt-in).
 - Outbound standard intent triggers for `ViewChart` and `ViewQuote` from explicit TraderX UI actions.
 - Custom inbound intents `TraderX.CreateTradeTicket` and `TraderX.CreateOrderTicket` that open the respective ticket UI with preselected ticker context.
 - Local Sail sidecar runtime profile for interop demos.

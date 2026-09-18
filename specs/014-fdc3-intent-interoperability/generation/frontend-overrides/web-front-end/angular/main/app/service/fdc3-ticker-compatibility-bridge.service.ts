@@ -65,7 +65,7 @@ export class Fdc3TickerCompatibilityBridgeService {
         if (!context || typeof context !== 'object') {
             return undefined;
         }
-        if (typeof context.type === 'string' && context.type !== 'fdc3.instrument') {
+        if (context.type !== 'fdc3.instrument') {
             return undefined;
         }
         const ticker = context.id && typeof context.id.ticker === 'string' ? context.id.ticker : undefined;

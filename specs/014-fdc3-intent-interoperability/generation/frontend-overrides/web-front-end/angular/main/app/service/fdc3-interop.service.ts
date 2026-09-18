@@ -48,6 +48,8 @@ export interface Fdc3InboundEvent {
     providedIn: 'root'
 })
 export class Fdc3InteropService {
+    readonly selectedAccountId$ = new BehaviorSubject<number | undefined>(undefined);
+    readonly selectedTicker$ = new BehaviorSubject<string>('');
     readonly inboundEvents$ = new Subject<Fdc3InboundEvent>();
     readonly isAgentAvailable$ = new BehaviorSubject<boolean>(false);
     readonly statusMessage$ = new BehaviorSubject<string>('FDC3: connecting...');
@@ -77,6 +79,26 @@ export class Fdc3InteropService {
         return this.initializePromise;
     }
 
+    async publishAccountSelection(accountId: number): Promise<void> {
+        if (!Number.isSafeInteger(accountId) || accountId < 0) return;
+        this.selectedAccountId$.next(accountId);
+        if (!this.agent) await this.initialize();
+        if (!this.agent) return;
+        const context = { type: 'fdc3.account', id: { accountId: String(accountId) } };
+        const channel = await this.ensureUserChannel(this.agent);
+        if (channel?.broadcast) await channel.broadcast(context);
+        else await this.agent.broadcast?.(context);
+    }
+
+    private receiveAccount(context: Fdc3Context | null | undefined): void {
+        const value = context?.id?.accountId;
+        if (context?.type !== 'fdc3.account' || typeof value !== 'string' || !/^\d+$/.test(value)) return;
+        const accountId = Number(value);
+        if (Number.isSafeInteger(accountId) && accountId !== this.selectedAccountId$.value) {
+            this.selectedAccountId$.next(accountId);
+        }
+    }
+
     async publishTickerSelection(traderxTicker: string): Promise<boolean> {
         if (!this.agent?.broadcast) {
             await this.initialize();
@@ -88,7 +110,7 @@ export class Fdc3InteropService {
         if (!context?.id?.ticker) {
             return false;
         }
-        if (context.id.ticker === this.lastPublishedTicker) {
+        if (context.id.ticker === this.lastPublishedTicker && context.id.ticker === this.selectedTicker$.value) {
             return true;
         }
         const currentChannel = await this.ensureUserChannel(this.agent);
@@ -97,6 +119,7 @@ export class Fdc3InteropService {
         } else {
             await Promise.resolve(this.agent.broadcast(context));
         }
+        this.selectedTicker$.next(context.id.ticker);
         this.lastPublishedTicker = context.id.ticker;
         console.info('[fdc3] broadcasted instrument context', {
             context,
@@ -274,6 +297,7 @@ export class Fdc3InteropService {
     }
 
     private async registerListeners(agent: Fdc3DesktopAgentLike): Promise<void> {
+        await this.addContextListener(agent, 'fdc3.account', context => this.receiveAccount(context));
         await this.addContextListener(agent, 'fdc3.instrument', (context) => {
             this.emitInboundTicker('context', context);
         });
@@ -296,6 +320,7 @@ export class Fdc3InteropService {
         }
         const resolvedAction = this.resolveInboundAction(action, context);
         this.lastContextSignature = this.computeContextSignature(resolvedAction, ticker, context);
+        this.selectedTicker$.next(ticker);
         this.inboundEvents$.next({ action: resolvedAction, ticker });
         this.statusMessage$.next(`FDC3 inbound: ${resolvedAction} (${ticker})`);
         console.info('[fdc3] inbound event', { action: resolvedAction, ticker, context });
@@ -379,6 +404,11 @@ export class Fdc3InteropService {
         const currentChannel = await this.ensureUserChannel(agent);
         let context: Fdc3Context | null | undefined;
         if (currentChannel?.getCurrentContext) {
+            this.receiveAccount(await currentChannel.getCurrentContext('fdc3.account'));
+        } else if (agent.getCurrentContext) {
+            this.receiveAccount(await agent.getCurrentContext('fdc3.account'));
+        }
+        if (currentChannel?.getCurrentContext) {
             context = await Promise.resolve(currentChannel.getCurrentContext('fdc3.instrument'));
         } else if (agent.getCurrentContext) {
             context = await Promise.resolve(agent.getCurrentContext('fdc3.instrument'));
@@ -396,6 +426,7 @@ export class Fdc3InteropService {
             return;
         }
         this.lastContextSignature = signature;
+        this.selectedTicker$.next(ticker);
         this.inboundEvents$.next({ action: resolvedAction, ticker });
         this.statusMessage$.next(`FDC3 inbound: ${resolvedAction} (${ticker})`);
         console.info('[fdc3] inbound event', {

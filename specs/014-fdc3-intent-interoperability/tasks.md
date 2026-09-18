@@ -11,7 +11,7 @@
 - [ ] T01409 Implement canonical ticker context mappers for trade/order/position entities.
 - [ ] T01410 Implement outbound context publication from blotter row-selection interactions.
 - [ ] T01411 Implement outbound intent actions (`ViewChart`, `ViewQuote`) from TraderX UI.
-- [ ] T01412 Implement inbound context listener (`fdc3.instrument`) and ticker-scoped filtering behavior.
+- [ ] T01412 Implement inbound context listener (`fdc3.instrument`) and component-local opt-in ticker filtering behavior.
 - [ ] T01413 Implement inbound intent listener for standard `ViewOrders`.
 - [ ] T01414 Implement inbound intent listeners for `TraderX.CreateTradeTicket` and `TraderX.CreateOrderTicket`.
 - [ ] T01415 Update generated runtime/app metadata with declared supported intents and contexts.
@@ -35,3 +35,11 @@
 - T01418-T01420 should complete before T01421.
 - T01415 should be completed before T01421 so resolver menus expose TraderX handlers in Sail.
 - T01416/T01417 and T01421 should pass before considering demo environment complete.
+
+## Issue #462
+
+- [x] T01429 Specify local modes, exact matching, context validation and account propagation.
+- [x] T01430 Implement retained selection, accessible component-local controls and tab persistence in state overrides.
+- [x] T01431 Cancel obsolete snapshots and protect live events during bootstrap/reconnection.
+- [x] T01432 Add and run generated frontend browser regressions and repository quality gates.
+- [ ] T01433 Execute the real Sail cross-window smoke path against a healthy DesktopAgent runtime.

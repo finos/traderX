@@ -1,3 +1,5 @@
+import { Fdc3InteropService } from 'main/app/service/fdc3-interop.service';
+import { Subscription, asapScheduler, filter, observeOn } from 'rxjs';
 import { ColDef, GridApi, GridReadyEvent, GetRowIdParams, RowClickedEvent } from 'ag-grid-community';
 import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
 import { Account } from 'main/app/model/account.model';
@@ -18,6 +20,30 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
   @Input() allAccountsMode = false;
   @Input() accountIds: number[] = [];
   @Input() securityFilter = '';
+  filterOnSelectedTicker = false;
+  private readonly interopSubscription: Subscription;
+  private snapshotSubscription?: Subscription;
+  private priceSnapshotSubscriptions = new Subscription();
+  private readonly connectionSubscription: Subscription;
+
+  get effectiveTicker(): string {
+    return this.filterOnSelectedTicker ? this.securityFilter.trim().toUpperCase() : '';
+  }
+
+  get tickerFilterDescription(): string {
+    return this.effectiveTicker ? `Ticker: ${this.effectiveTicker}`
+      : this.filterOnSelectedTicker ? 'All tickers — no ticker selected' : 'All tickers';
+  }
+
+  setTickerFilter(enabled: boolean): void {
+    this.filterOnSelectedTicker = enabled;
+    this.applySecurityFilter();
+  }
+
+  isExternalFilterPresent = (): boolean => !!this.effectiveTicker;
+  doesExternalFilterPass = (node: { data?: { security?: string } }): boolean =>
+    !this.effectiveTicker || String(node.data?.security || '').trim().toUpperCase() === this.effectiveTicker;
+
   @Output() summaryChange = new EventEmitter<PortfolioSummary>();
   @Output() securitySelected = new EventEmitter<string>();
   positions$: Observable<Position[]>;
@@ -90,9 +116,20 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
   constructor(
     private tradeService: PositionService,
     private tradeFeed: TradeFeedService,
-    private priceSnapshots: PriceSnapshotService
+    private priceSnapshots: PriceSnapshotService,
+    interop: Fdc3InteropService
   ) {
     this.getRowId = this.getRowId.bind(this);
+    this.connectionSubscription = this.tradeFeed.connectionState$.pipe(
+      filter(state => state === 'connected'), observeOn(asapScheduler)
+    ).subscribe(() => {
+      // Let the transport finish its CONNECT/resubscribe handshake first.
+      this.loadScope();
+    });
+    this.interopSubscription = interop.selectedTicker$.subscribe(ticker => {
+      this.securityFilter = ticker;
+      this.applySecurityFilter();
+    });
   }
 
   ngOnChanges(change: SimpleChanges) {
@@ -109,6 +146,7 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
     this.pendingPosition.forEach((position: any) => this.update(position));
     this.pendingPosition = [];
     this.isPending = false;
+    this.setGridRowData(this.positions);
   }
 
   updatePosition(data: any) {
@@ -124,41 +162,12 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
   }
 
   update(data: any) {
-    if (!this.gridApi) {
-      this.pendingPosition.push(data);
-      return;
-    }
-    const security = data?.security;
-    if (!security) {
-      return;
-    }
-
-    const recomputed = this.recomputePosition(data);
-    const row = this.gridApi.getRowNode(this.toRowId(security));
-    let positionData;
-    if (row) {
-      positionData = {
-        update: [Object.assign(row.data, recomputed)]
-      };
-    } else {
-      positionData = {
-        add: [{
-          accountid: recomputed.accountid ?? recomputed.accountId,
-          accountId: recomputed.accountId ?? recomputed.accountid,
-          quantity: recomputed.quantity,
-          security,
-          averageCostBasis: recomputed.averageCostBasis,
-          openPrice: recomputed.openPrice,
-          marketPrice: recomputed.marketPrice,
-          marketValue: recomputed.marketValue,
-          costBasisValue: recomputed.costBasisValue,
-          pnl: recomputed.pnl,
-          updated: recomputed.updated
-        }],
-        addIndex: 0
-      };
-    }
-    this.gridApi.applyTransaction(positionData);
+    if (!data?.security) return;
+    const row = this.recomputePosition(data);
+    const index = this.positions.findIndex((position: any) => position.security === row.security);
+    this.positions = index < 0 ? [row, ...this.positions]
+      : this.positions.map((position: any, i: number) => i === index ? row : position);
+    this.setGridRowData(this.positions);
     this.emitSummary();
   }
 
@@ -190,6 +199,11 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.interopSubscription.unsubscribe();
+    this.connectionSubscription.unsubscribe();
+    this.snapshotSubscription?.unsubscribe();
+    this.priceSnapshotSubscriptions.unsubscribe();
+    this.priceSnapshotSubscriptions = new Subscription();
     this.clearSubscriptions();
     this.priceStreamUnsubscribeFn?.();
   }
@@ -220,6 +234,11 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
   }
 
   private loadScope() {
+    this.snapshotSubscription?.unsubscribe();
+    this.priceSnapshotSubscriptions.unsubscribe();
+    this.priceSnapshotSubscriptions = new Subscription();
+    this.positions = [];
+    this.gridApi?.setGridOption('rowData', []);
     this.clearSubscriptions();
     this.isPending = true;
     this.marketPriceByTicker.clear();
@@ -233,13 +252,13 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
     });
 
     if (this.allAccountsMode) {
-      this.refreshAllAccountsPositions();
       for (const accountId of this.accountIds) {
         const unSub = this.tradeFeed.subscribe(`/accounts/${accountId}/positions`, () => {
           this.refreshAllAccountsPositions();
         });
         this.socketUnSubscribeFns.push(unSub);
       }
+      this.refreshAllAccountsPositions();
       return;
     }
 
@@ -251,23 +270,24 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
       return;
     }
 
-    this.tradeService.getPositions(accountId).subscribe((positions: Position[]) => {
-      this.positions = (positions ?? []).map((position: any) => this.recomputePosition(position));
-      this.processPendingPositions();
-      this.bootstrapSnapshotPrices(this.positions.map((position: any) => position.security));
-    }, () => {
-      this.isPending = false;
-    });
-
     const unSub = this.tradeFeed.subscribe(`/accounts/${accountId}/positions`, (data: any) => {
       console.log('Position blotter feed...', data);
       this.updatePosition(data);
     });
     this.socketUnSubscribeFns.push(unSub);
+
+    this.snapshotSubscription = this.tradeService.getPositions(accountId).subscribe((positions: Position[]) => {
+      this.positions = (positions ?? []).map((position: any) => this.recomputePosition(position));
+      this.processPendingPositions();
+      this.bootstrapSnapshotPrices(this.positions.map((position: any) => position.security));
+    }, () => {
+      this.processPendingPositions();
+    });
   }
 
   private refreshAllAccountsPositions() {
-    this.tradeService.getAllPositions().subscribe((positions: Position[]) => {
+    this.snapshotSubscription?.unsubscribe();
+    this.snapshotSubscription = this.tradeService.getAllPositions().subscribe((positions: Position[]) => {
       const merged = this.mergePositionsBySecurity(positions ?? []);
       this.positions = merged;
       if (this.gridApi) {
@@ -282,7 +302,7 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
   }
 
   private bootstrapSnapshotPrices(tickers: string[]): void {
-    this.priceSnapshots.getPrices(tickers).subscribe((snapshots) => {
+    this.priceSnapshotSubscriptions.add(this.priceSnapshots.getPrices(tickers).subscribe((snapshots) => {
       let changed = false;
       for (const snapshot of snapshots || []) {
         if (!snapshot || !snapshot.ticker || snapshot.price == null) {
@@ -298,14 +318,14 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
       if (!changed) {
         return;
       }
-      if (this.allAccountsMode) {
-        this.refreshAllAccountsPositions();
-      } else {
-        this.positions = (this.positions || []).map((position: any) => this.recomputePosition(position));
-        this.setGridRowData(this.positions);
-        this.emitSummary();
-      }
-    });
+      this.positions = (this.positions || []).map((position: any) => this.recomputePosition({
+        ...position,
+        marketPrice: this.marketPriceByTicker.get(position.security) ?? position.marketPrice,
+        openPrice: this.openPriceByTicker.get(position.security) ?? position.openPrice
+      }));
+      this.setGridRowData(this.positions);
+      this.emitSummary();
+    }));
   }
 
   private applyMarketPriceUpdate(ticker: string, price: number, asOf: string | null): boolean {
@@ -475,14 +495,7 @@ export class PositionBlotterComponent implements OnChanges, OnDestroy {
     if (!this.gridApi) {
       return;
     }
-    const filterValue = String(this.securityFilter || '').trim().toUpperCase();
-    if (typeof (this.gridApi as any).setGridOption === 'function') {
-      (this.gridApi as any).setGridOption('quickFilterText', filterValue);
-      return;
-    }
-    if (typeof (this.gridApi as any).setQuickFilter === 'function') {
-      (this.gridApi as any).setQuickFilter(filterValue);
-    }
+    this.gridApi.onFilterChanged();
   }
 
   private formatCurrency(value: any): string {
