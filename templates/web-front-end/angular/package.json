@@ -34,7 +34,7 @@
     "zone.js": "^0.15.0"
   },
   "overrides": {
-    "engine.io": "6.6.9",
+    "engine.io": "6.6.10",
     "ws": "8.21.3",
     "postcss": "^8.5.13",
     "serialize-javascript": "^7.0.5",
