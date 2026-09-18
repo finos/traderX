@@ -56,3 +56,15 @@ Document any API/event/schema changes for this state.
 - Core backend contracts remain backward compatible with state `012`.
 - Interop behavior is additive; if FDC3 is unavailable, all pre-existing workflows remain operational.
 - Unknown or malformed intent/context payloads are ignored with diagnostics rather than causing user-visible failures.
+
+## Shared Selection and Local Filter Contract
+
+- Instrument selection is replayable application state; it is separate from each component instance's `filterOnSelectedTicker` boolean, initially false. The effective filter is the latest valid ticker only when that boolean is true.
+- Require `type: "fdc3.instrument"` and a non-empty string `id.ticker`; use the existing normalizer (trim, uppercase, remove exchange prefix/whitespace). Wrong/missing type, missing/empty ticker and non-string values are ignored and do not corrupt the last valid selection.
+- There is no instrument-clear message in this state. An empty retained channel context or an empty instrument payload means no new selection, not a command to erase a valid selection. Before the first valid selection, opted-in grids show all tickers with an explanation.
+- `ViewOrders` selects the orders view and retains the supplied instrument, but never changes the local filter preference. Ticket intents continue to prefill instruments.
+- Account context is `{"type":"fdc3.account","id":{"accountId":"123"}}`. Accept only non-negative safe integer strings, and select only accounts available to the receiving page; `"0"` is TraderX's All Accounts sentinel. Receiving account context never rebroadcasts it. Unknown accounts leave the current scope unchanged.
+- Account and instrument contexts are retained separately by type. Local ticker mode never travels on an FDC3 channel. No proprietary container or corporate event-bus dependency is introduced.
+- Live order events continue over `OrderAdminService.subscribe`, backed by the configured trade feed, independently of FDC3. Open-order snapshots are merged with events received during the request; terminal events act as tombstones. Reconnect refreshes REST snapshots without changing local mode.
+
+Compatibility: previous documentation described automatic instrument-scoped `ViewOrders`; consumers must now explicitly opt a blotter in. Earlier state generators are unchanged.

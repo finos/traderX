@@ -16,8 +16,8 @@
 ## Functional Requirements
 
 - FR-01401: TraderX publishes `fdc3.instrument` context when a user selects a trade/order/position row with a ticker symbol.
-- FR-01402: TraderX consumes inbound `fdc3.instrument` context and updates UI state by applying ticker-aware filtering to relevant blotters and views.
-- FR-01403: TraderX handles standard intent `ViewOrders` for `fdc3.instrument` context by opening the orders view scoped to the provided ticker.
+- FR-01402: TraderX consumes inbound `fdc3.instrument` context and retains the shared ticker selection; each blotter filters only after local opt-in.
+- FR-01403: TraderX handles standard intent `ViewOrders` for `fdc3.instrument` context by opening the orders view and retaining the provided ticker without changing its local filter mode.
 - FR-01404: TraderX raises standard intents `ViewChart` and `ViewQuote` for selected ticker context from explicit UI actions.
 - FR-01405: TraderX handles custom intents `TraderX.CreateTradeTicket` and `TraderX.CreateOrderTicket` with `fdc3.instrument` context and opens the corresponding ticket with ticker prefilled.
 - FR-01406: Intent-driven ticket launch must preserve existing ticket validation and account-selection rules.
@@ -33,6 +33,12 @@
 - FR-01414: The feature pack and generated state README must include an explicit operator demo script with ordered steps and expected outcomes for the two-tab layout.
 - FR-01415: FDC3 integration must not regress inherited realtime market-data behavior: price-aware views continue to use snapshot bootstrap + stream updates with server-time freshness ordering, and trade/position/order blotters remain push-driven after REST bootstrap.
 - FR-01416: The state-specific header override in this feature SHALL retain the inherited System menu contract (About + conditional Status + conditional API Explorer + conditional Pub/Sub Inspector) and state-id title rendering while adding FDC3 status affordances.
+
+- FR-01417: Orders, trades and positions default to **All tickers** in every component instance, including composed/alternate layouts, standalone hosts and newly opened popouts. A retained channel ticker never opts a component in.
+- FR-01418: Each blotter offers a keyboard-accessible, labelled control for **All tickers** / **Filter on selected ticker**, and announces the effective ticker or **All tickers — no ticker selected**. Filtering compares normalized security exactly, not arbitrary row text.
+- FR-01419: Local mode changes do not broadcast, clear or replace FDC3 selection. While off, components retain subsequent valid selections; enabling immediately uses the latest. Account changes and tab switches preserve local mode.
+- FR-01420: Account selection remains the primary scope and propagates as `fdc3.account`; instrument selection does not change account scope. Ticket intents and chart selection remain independent of blotter mode.
+- FR-01421: Order creation, fills and cancellations arrive via the configured order-event transport in both modes. Cancel obsolete account snapshots; replay live events received during bootstrap, including terminal orders, and resnapshot on transport reconnection.
 
 ## Non-Functional Requirements
 
@@ -61,8 +67,17 @@
 - SC-01401: Selecting a TraderX blotter row updates at least one external FDC3 demo app via `fdc3.instrument`.
 - SC-01402: Raising `ViewChart` or `ViewQuote` from TraderX routes correctly through the desktop agent.
 - SC-01403: Triggering `TraderX.CreateTradeTicket` or `TraderX.CreateOrderTicket` opens TraderX with ticker prefilled.
-- SC-01404: `ViewOrders` intent opens TraderX orders view filtered by ticker.
+- SC-01404: `ViewOrders` opens the orders view and retains the ticker; the local filter mode is preserved.
 - SC-01405: Regression tests show no breakage in baseline trade/order/position behavior when FDC3 agent is unavailable.
 - SC-01406: State smoke test path is implemented (`scripts/test-state-014-fdc3-intent-interoperability.sh`) and includes FDC3-specific assertions.
 - SC-01407: Local demo mode can launch TraderX + Sail + demo apps and execute the end-to-end script without manual app-directory editing.
 - SC-01408: Smoke checks validate that generated frontend output still satisfies inherited state-aware header/System-menu contract after adding FDC3 header affordances.
+
+## Acceptance Scenarios: Local Instrument Filtering (#462)
+
+1. Given two tickers for an account in all three blotters, receiving either ticker leaves all rows visible by default. Opt in on orders: only exact matching orders remain; trades and positions are unchanged.
+2. Receive a second valid ticker: only opted-in grids follow it. Turn filtering off: all account rows return, with no context broadcast or change to ticket/chart selection. Receive another ticker while off and opt back in: immediately use the latest.
+3. Change account or switch Trades/Orders tabs: preserve each existing component's mode while updating account data. Open a new component/window with retained channel context: default to All tickers.
+4. Opt in before any valid selection: show all rows and announce no ticker selected. Missing/empty/malformed contexts retain the last valid selection according to the context contract.
+5. Create, fill and cancel orders in either mode; show rows according to account, open status and optional exact ticker. A delayed snapshot cannot resurrect a cancelled order or remove an order created during loading. Switching accounts cancels obsolete requests. Reconnection resubscribes and refreshes missed data.
+6. Operate each labelled select using only the keyboard and observe the live effective-filter status. Browser regression tests exercise generated components and the real TraderX FDC3 adapter; the Sail integration path additionally verifies cross-window delivery through a real DesktopAgent.

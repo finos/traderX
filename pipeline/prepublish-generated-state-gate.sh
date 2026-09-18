@@ -253,7 +253,9 @@ run_dependency_check_local() {
   if command -v dependency-check.sh >/dev/null 2>&1; then
     (
       cd "${TARGET_ROOT}"
-      dependency-check.sh \
+      python3 "${ROOT}/pipeline/bounded-security-command.py" \
+        --timeout "${TRADERX_SECURITY_SCAN_TIMEOUT_SECONDS:-1800}" --phase scan \
+        --result "${report_dir}/result.json" -- dependency-check.sh \
         --project "${project}" \
         --scan "${scan_path}" \
         --format HTML \
@@ -264,7 +266,7 @@ run_dependency_check_local() {
         ${update_args+"${update_args[@]}"} \
         ${extra_args}
     )
-    return 0
+    return $?
   fi
 
   require_cmd docker
@@ -273,8 +275,13 @@ run_dependency_check_local() {
   local rel_scan="${scan_path#${TARGET_ROOT}/}"
   local rel_suppression="${suppression#${TARGET_ROOT}/}"
 
+  local container_name="traderx-security-$(python3 -c 'import uuid; print(uuid.uuid4().hex)')"
+  python3 "${ROOT}/pipeline/bounded-security-command.py" \
+    --timeout "${TRADERX_SECURITY_PULL_TIMEOUT_SECONDS:-120}" --phase acquisition \
+    --result "${report_dir}/acquisition.json" -- docker pull "${DEPENDENCY_CHECK_IMAGE}"
+
   local docker_args=(
-    run --rm
+    run --rm --pull never --name "${container_name}"
     -v "${TARGET_ROOT}:/src"
     -v "${DEPENDENCY_CHECK_DATA_DIR}:/usr/share/dependency-check/data"
     -v "${report_dir}:/report"
@@ -283,7 +290,10 @@ run_dependency_check_local() {
     docker_args+=( -e "NVD_API_KEY=${NVD_API_KEY}" )
   fi
 
-  docker "${docker_args[@]}" "${DEPENDENCY_CHECK_IMAGE}" \
+  python3 "${ROOT}/pipeline/bounded-security-command.py" \
+    --timeout "${TRADERX_SECURITY_SCAN_TIMEOUT_SECONDS:-1800}" --phase scan \
+    --result "${report_dir}/result.json" --container "${container_name}" -- \
+    docker "${docker_args[@]}" "${DEPENDENCY_CHECK_IMAGE}" \
     --project "${project}" \
     --scan "/src/${rel_scan}" \
     --format HTML \
@@ -297,7 +307,9 @@ run_dependency_check_local() {
 
 run_cve_scan() {
   if [[ "${SKIP_CVE_SCAN}" == "1" ]]; then
-    echo "[warn] skipping CVE dependency scan (--skip-cve-scan)"
+    mkdir -p "${TARGET_ROOT}/ci"
+    printf '%s\n' '{"dependency_security":"deferred_to_ci","deployment_requires_remote_checks":true}' > "${TARGET_ROOT}/ci/local-security-status.json"
+    echo "[warn] CVE dependency scan deferred to CI; deployment remains gated"
     return 0
   fi
   if [[ "${state_num_decimal}" -lt 2 ]]; then
@@ -336,6 +348,8 @@ run_cve_scan() {
   fi
 }
 
+mkdir -p "${TARGET_ROOT}/ci"
+printf '%s\n' '{"dependency_security":"incomplete","deployment_requires_remote_checks":true}' > "${TARGET_ROOT}/ci/local-security-status.json"
 run_core_gates
 
 if [[ "${state_num_decimal}" -ge 2 ]]; then
@@ -343,6 +357,9 @@ if [[ "${state_num_decimal}" -ge 2 ]]; then
   run_license_scan
   run_container_build_preflight
   run_cve_scan
+  if [[ "${SKIP_CVE_SCAN}" != "1" ]]; then
+    printf '%s\n' '{"dependency_security":"success","deployment_requires_remote_checks":true}' > "${TARGET_ROOT}/ci/local-security-status.json"
+  fi
 fi
 
 echo "[ok] prepublish generated-state gate passed for ${STATE_ID}"

@@ -15,3 +15,10 @@
 - [ ] T313 Enforce policy that pre-container states (`001-003`) do not emit deployment bundles in generated snapshots.
 - [ ] T314 Add local deployment dry-run validation for generated deployment scripts (command rendering + required env var checks).
 - [ ] T315 Publish deployment-runbook updates in state docs and generated snapshot runbook links.
+
+## Publishing hardening (#466)
+
+- [x] Add bounded scanner execution, scoped cleanup and explicit deferred-to-CI status.
+- [x] Generate build/test checks and snapshot/run-bound scanned image digest artifacts.
+- [x] Gate demo deployment on exact-snapshot successful required checks; deploy immutable images and record success.
+- [x] Add offline failure/matching/deployment regression coverage and recovery documentation.

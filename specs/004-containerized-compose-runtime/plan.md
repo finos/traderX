@@ -24,3 +24,7 @@
 - Conformance packs for affected components.
 - Deployment bundle dry-run checks (no secrets committed, explicit env var contract, dry-run support).
 - Docs build and traceability checks.
+
+## Publishing hardening (#466)
+
+Implement scanner deadlines and result classification in a shared Python runner called by the prepublish gate. Generate build/test CI and per-image digest evidence; verify current-attempt push runs against the requested generated SHA before demo deployment. Consume immutable images with no local builds, retain deployment evidence, and preserve snapshot ancestry. Validate offline timeout/cancellation/resource isolation, check matching, image evidence matching and successful deployment recording, plus generated CI regression tests.

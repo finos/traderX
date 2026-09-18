@@ -248,7 +248,9 @@ else
   bash "${ROOT}/pipeline/install-generated-ci-assets.sh" "${STATE_ID}" "${GENERATED_ROOT}/code/target-generated"
 
   if [[ "${SKIP_PREPUBLISH_GATE}" == "1" ]]; then
-    echo "[warn] skipping prepublish generated-state gate (--skip-prepublish-gate)"
+    mkdir -p "${GENERATED_ROOT}/code/target-generated/ci"
+    printf '%s\n' '{"dependency_security":"deferred_to_ci","prepublish":"deferred_to_ci","deployment_requires_remote_checks":true}' > "${GENERATED_ROOT}/code/target-generated/ci/local-security-status.json"
+    echo "[warn] prepublish checks deferred to CI; deployment remains gated"
     if [[ "${SKIP_CONTRACT_VALIDATION}" == "1" ]]; then
       echo "[warn] skipping generated-state contract validation (--skip-contract-validation)"
     else
@@ -3585,6 +3587,9 @@ write_snapshot_gitignore() {
 # Logs and local temp files
 **/*.log
 **/.DS_Store
+
+# Deployment records and resolved environment (host-local)
+/.traderx-deploy/
 
 # Environment + editor local state
 **/.env

@@ -76,7 +76,8 @@ export class TradeComponent implements OnInit, OnDestroy {
             }, {} as { [accountId: number]: string });
             this.accountIds = this.realAccounts.map((account) => account.id);
             this.accounts = [this.allAccountsOption, ...this.realAccounts];
-            this.setAccount(this.realAccounts[5] ?? this.realAccounts[0] ?? this.allAccountsOption);
+            this.setAccount(this.accounts.find(account => account.id === this.fdc3Interop.selectedAccountId$.value)
+                ?? this.realAccounts[5] ?? this.realAccounts[0] ?? this.allAccountsOption);
         });
         this.symbolService.getStocks().subscribe((stocks) => this.stocks = stocks);
         this.loadAllPositions();
@@ -92,7 +93,9 @@ export class TradeComponent implements OnInit, OnDestroy {
     }
 
     onAccountChange(account: Account) {
-        account && this.setAccount(account);
+        if (!account) return;
+        this.setAccount(account);
+        void this.fdc3Interop.publishAccountSelection(account.id).catch(error => console.warn('[fdc3] account broadcast failed', error));
     }
 
     getAccountName(item: Account) {
@@ -241,6 +244,10 @@ export class TradeComponent implements OnInit, OnDestroy {
     }
 
     private initializeFdc3Interop(): void {
+        this.interopSubscriptions.add(this.fdc3Interop.selectedAccountId$.subscribe(id => {
+            const account = this.accounts.find(item => item.id === id);
+            if (account && this.accountModel?.id !== id) this.setAccount(account);
+        }));
         this.interopSubscriptions.add(
             this.fdc3Interop.inboundEvents$.subscribe((event) => {
                 this.handleInboundInteropEvent(event);

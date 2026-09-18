@@ -39,3 +39,5 @@ Describe runtime topology and network/data flow changes introduced by this state
 4. Register TraderX listeners for configured contexts/intents.
 5. Validate app-directory entries and resolver visibility for TraderX ticket intents.
 6. Validate graceful fallback path when agent is missing/unavailable.
+
+The FDC3 adapter retains shared instrument/account selection. Each blotter independently derives its effective exact ticker filter; no local preference is broadcast. The configured trade feed remains responsible for live order/trade/position delivery and reconnection, with REST snapshot reconciliation in the blotters.

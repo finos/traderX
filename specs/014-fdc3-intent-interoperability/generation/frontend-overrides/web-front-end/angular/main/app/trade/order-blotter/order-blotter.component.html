@@ -1,6 +1,17 @@
 <h5>Open Orders</h5>
+<div class="d-flex align-items-center gap-2 mb-2">
+  <label>Orders ticker filter
+    <select class="form-select form-select-sm" [value]="filterOnSelectedTicker ? 'selected' : 'all'"
+        (change)="setTickerFilter($any($event.target).value === 'selected')">
+      <option value="all">All tickers</option>
+      <option value="selected">Filter on selected ticker</option>
+    </select>
+  </label>
+  <span role="status" aria-live="polite">{{ tickerFilterDescription }}</span>
+</div>
 
-<ag-grid-angular
+
+<ag-grid-angular [isExternalFilterPresent]="isExternalFilterPresent" [doesExternalFilterPass]="doesExternalFilterPass"
     style="width: 100%; height: 420px;"
     class="ag-theme-alpine"
     [columnDefs]="columnDefs"
