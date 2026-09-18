@@ -13,4 +13,4 @@ Rationale:
 - Issue #465 upgrades the inherited Java baseline to public Spring Boot 4.0.8, Spring Framework 7.0.9, Data JPA 4.0.7, and Tomcat 11.0.26. Jackson 3 and Springdoc 3 compatibility changes preserve the existing HTTP and messaging contracts without adding security suppressions.
 - Issue #466 makes the C0 deployment boundary require exact-snapshot build/test/security evidence and scanned image digests. Descendant demo states inherit these checks through canonical generators while retaining one snapshot commit per generated branch.
 
-- Generated CI workflows come from the canonical CI asset installer after state overlays; historical workflow patches are omitted so dependency remediation and deployment hardening compose without restoring stale checks.
+- Generated CI workflows come from the canonical CI asset installer after state overlays; historical workflow patches in states 004–007 are omitted so dependency remediation and deployment hardening compose without restoring stale checks.
