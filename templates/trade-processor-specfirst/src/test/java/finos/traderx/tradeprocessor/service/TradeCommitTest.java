@@ -16,7 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.*;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -26,6 +26,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 @SpringBootTest(classes = TradeCommitTest.Config.class, properties = {
     "spring.datasource.url=jdbc:h2:mem:booking;DB_CLOSE_DELAY=-1",
+    "spring.datasource.driver-class-name=org.h2.Driver",
     "spring.datasource.username=sa", "spring.datasource.password=sa",
     "spring.jpa.hibernate.ddl-auto=none",
     "spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl"
@@ -54,8 +55,19 @@ class TradeCommitTest {
     jdbc = new JdbcTemplate(dataSource);
     // Real schema, created on a connection that closes before any booking.
     try (Connection creator = DriverManager.getConnection("jdbc:h2:mem:booking;DB_CLOSE_DELAY=-1", "sa", "sa")) {
-      creator.createStatement().execute(Files.readString(Path.of(System.getProperty("booking.schema", Files.exists(Path.of("../database/initialSchema.sql"))
-          ? "../database/initialSchema.sql" : "../database-specfirst/initialSchema.sql"))));
+      Path schema = Path.of(System.getProperty("booking.schema", Files.exists(Path.of("../database/initialSchema.sql"))
+          ? "../database/initialSchema.sql" : "../database-specfirst/initialSchema.sql"));
+      String sql;
+      if (Files.exists(schema)) {
+        sql = Files.readString(schema);
+      } else {
+        // PostgreSQL descendants retain this H2-specific regression fixture.
+        try (var resource = getClass().getResourceAsStream("/booking-schema.sql")) {
+          assertNotNull(resource, "booking schema fixture must be generated from the canonical H2 schema");
+          sql = new String(resource.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        }
+      }
+      creator.createStatement().execute(sql);
       // Pricing overlay columns are harmless to baseline entities.
       creator.createStatement().execute("ALTER TABLE Trades ADD IF NOT EXISTS Price DECIMAL(18,3) DEFAULT 0; ALTER TABLE Positions ADD IF NOT EXISTS AverageCostBasis DECIMAL(18,3) DEFAULT 0");
     }

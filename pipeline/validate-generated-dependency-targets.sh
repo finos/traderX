@@ -28,7 +28,7 @@ trap 'rm -f "${tmp_files}"' EXIT
 for scan_root in "$@"; do
   [[ -d "${scan_root}" ]] || continue
   find "${scan_root}" -type f \
-    \( -name 'build.gradle' -o -name 'gradle-wrapper.properties' -o -name 'package.json' -o -name '*.csproj' -o -name '*.yml' -o -name '*.yaml' -o -name '*.json' \) \
+    \( -name 'build.gradle' -o -name 'gradle-wrapper.properties' -o -name 'package.json' -o -name '*.csproj' -o -name '*.yml' -o -name '*.yaml' -o -name '*.json' -o -name 'Dockerfile.compose' \) \
     ! -path '*/node_modules/*' \
     -print >> "${tmp_files}"
 done
@@ -207,5 +207,15 @@ while IFS=$'\t' read -r image_name expected_tag; do
     done < <(extract_json_image_tags "${manifest_file}" "${image_name}")
   done < <(rg -N "" "${tmp_files}" | rg '(\.ya?ml|\.json)$' || true)
 done < <(jq -r '(.docker.images // {}) | to_entries[] | [.key, .value] | @tsv' "${TARGETS_FILE}")
+
+# Match the final stage, since build stages may intentionally use another image.
+while IFS=$'\t' read -r module expected_image; do
+  [[ -n "${module}" && -n "${expected_image}" ]] || continue
+  while IFS= read -r dockerfile; do
+    [[ "$(basename "$(dirname "${dockerfile}")")" == "${module}" ]] || continue
+    actual_image="$(awk 'toupper($1) == "FROM" { image = ($2 ~ /^--platform=/ ? $3 : $2) } END { print image }' "${dockerfile}")"
+    check_equals "runtime image ${module}" "${dockerfile}" "${expected_image}" "${actual_image}"
+  done < <(rg 'Dockerfile\.compose$' "${tmp_files}" || true)
+done < <(jq -r '(.docker.runtimeImages // {}) | to_entries[] | [.key, .value] | @tsv' "${TARGETS_FILE}")
 
 echo "[ok] dependency targets validated for generated roots ($# root(s))"

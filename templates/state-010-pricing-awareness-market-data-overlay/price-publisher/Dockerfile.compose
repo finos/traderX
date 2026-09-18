@@ -1,13 +1,18 @@
-FROM node:20-alpine
-
+# syntax=docker/dockerfile:1.7
+FROM node:24-alpine AS build
 WORKDIR /app
+COPY package*.json ./
+RUN --mount=type=cache,target=/root/.npm,sharing=locked npm ci --omit=dev --no-audit
 
-COPY package.json ./
-RUN npm install --omit=dev
-
+FROM node:24-alpine
+WORKDIR /app
+# Refresh OS fixes and omit build/package-manager tooling from runtime images.
+RUN apk upgrade --no-cache && rm -rf /usr/local/lib/node_modules/npm /opt/yarn* \
+    && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/yarn /usr/local/bin/yarnpkg
+COPY --chown=node:node --from=build /app/node_modules ./node_modules
+COPY --chown=node:node --from=build /app/package.json ./package.json
 COPY src ./src
 COPY data ./data
-
+USER node
 EXPOSE 18100
-
-CMD ["npm", "run", "start"]
+CMD ["node", "src/main.js"]

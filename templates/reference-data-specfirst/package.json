@@ -23,7 +23,8 @@
     "typescript": "^5.8.2"
   },
   "overrides": {
-    "multer": "2.2.0",
-    "qs": "6.15.2"
+    "multer": "2.3.0",
+    "qs": "6.16.0",
+    "body-parser": "2.3.0"
   }
 }

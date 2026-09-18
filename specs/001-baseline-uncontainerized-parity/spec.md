@@ -238,3 +238,11 @@ Closing the schema creator or retiring pooled connections MUST NOT prevent valid
 bookings. Two sequential buys MUST sum in persisted positions, account event payloads,
 and the grid after reload. Run `scripts/test-trade-booking-commit.sh` and the runtime
 trade-processor smoke test to cover these contracts.
+
+## Dependency security maintenance (#465)
+
+- Generated Java services use the public Boot 4.0.8 baseline (Framework 7.0.9, Data JPA 4.0.7), Tomcat 11.0.26, Jackson 3.1.5, and Springdoc 3.0.3 on Java 21.
+- Generated Node modules resolve qs 6.16.0 and Multer 2.3.0 wherever present.
+- HTTP payloads, Socket.IO/NATS envelopes, null omission, H2 constraint lifetime, and after-commit publication behavior remain compatible.
+- Regeneration must preserve these targets in templates, patchsets, manifests, and resolved dependencies. Security thresholds remain unchanged.
+- Evidence and release validation are recorded in `docs/operations/dependency-security-465.md`.

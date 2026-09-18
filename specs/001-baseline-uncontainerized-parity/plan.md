@@ -92,3 +92,7 @@ Capture booking event values before commit, contain notification failures separa
 per topic, and document the best-effort delivery limitation and existing-database
 migration. Exercise real H2/JPA commits, rollback, injected JDBC commit failure,
 connection retirement, and sequential accumulated positions in regression tests.
+
+## Dependency remediation (#465)
+
+Use public Boot 4.0.8 with its Framework 7.0.9/Data JPA 4.0.7 baseline and Tomcat 11.0.26; adapt Springdoc, Jackson messaging adapters, and removed HTTP status APIs in canonical templates and inherited patchsets. Refresh Node security overrides and lockfiles. Preserve #461 booking behavior, regenerate 002 then 004 sequentially, and verify builds, booking tests, repository gates, and fresh dependency/image scans before snapshot publication. See `docs/operations/dependency-security-465.md` for advisory evidence and release status.

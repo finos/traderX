@@ -1,51 +1,3 @@
-diff --git a/.github/workflows/build-container-images.yml b/.github/workflows/build-container-images.yml
-index 4701a72..12ced54 100644
---- a/.github/workflows/build-container-images.yml
-+++ b/.github/workflows/build-container-images.yml
-@@ -36,9 +36,6 @@ jobs:
-           - directory: reference-data
-             dockerfile: Dockerfile.compose
-             image_name: reference-data
--          - directory: trade-feed
--            dockerfile: Dockerfile.compose
--            image_name: trade-feed
-           - directory: trade-processor
-             dockerfile: Dockerfile.compose
-             image_name: trade-processor
-diff --git a/.github/workflows/license-scanning-node.yml b/.github/workflows/license-scanning-node.yml
-index 91e5754..f43eb9f 100644
---- a/.github/workflows/license-scanning-node.yml
-+++ b/.github/workflows/license-scanning-node.yml
-@@ -16,7 +16,6 @@ jobs:
-       matrix:
-         module_folder:
-           - reference-data
--          - trade-feed
-           - web-front-end/angular
-     steps:
-       - uses: actions/checkout@v4
-diff --git a/.github/workflows/security.yml b/.github/workflows/security.yml
-index d4f367f..9a2af66 100644
---- a/.github/workflows/security.yml
-+++ b/.github/workflows/security.yml
-@@ -23,7 +23,6 @@ jobs:
-       matrix:
-         module_folder:
-           - reference-data
--          - trade-feed
-           - web-front-end/angular
-     steps:
-       - name: Checkout
-@@ -178,9 +177,6 @@ jobs:
-           - directory: reference-data
-             dockerfile: Dockerfile.compose
-             image_name: reference-data
--          - directory: trade-feed
--            dockerfile: Dockerfile.compose
--            image_name: trade-feed
-           - directory: trade-processor
-             dockerfile: Dockerfile.compose
-             image_name: trade-processor
 diff --git a/AGENTS.md b/AGENTS.md
 index 2190bce..58f577d 100644
 --- a/AGENTS.md
@@ -515,18 +467,22 @@ index 79db742..0000000
 +++ /dev/null
 @@ -1,13 +0,0 @@
 -# syntax=docker/dockerfile:1.7
--FROM node:20-alpine
+-FROM node:24-alpine AS build
 -WORKDIR /app
 -COPY package*.json ./
--RUN --mount=type=cache,target=/root/.npm,sharing=locked \
--    if [ -f package-lock.json ]; then \
--      npm ci --no-audit --prefer-offline; \
--    else \
--      npm install --no-audit --prefer-offline; \
--    fi
--COPY . .
+-RUN --mount=type=cache,target=/root/.npm,sharing=locked npm ci --omit=dev --no-audit
+-
+-FROM node:24-alpine
+-WORKDIR /app
+-# Refresh OS fixes and omit build/package-manager tooling from runtime images.
+-RUN apk upgrade --no-cache && rm -rf /usr/local/lib/node_modules/npm /opt/yarn* \
+-    && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/yarn /usr/local/bin/yarnpkg
+-COPY --chown=node:node --from=build /app/node_modules ./node_modules
+-COPY --chown=node:node --from=build /app/package.json ./package.json
+-COPY index.js index.html ./
+-USER node
 -EXPOSE 18086
--CMD ["npm", "run", "start"]
+-CMD ["node", "index.js"]
 diff --git a/trade-feed/README.md b/trade-feed/README.md
 deleted file mode 100644
 index 187e687..0000000
@@ -785,7 +741,7 @@ index 136e009..0000000
 -  },
 -  "overrides": {
 -    "engine.io": "6.6.9",
--    "qs": "6.15.2",
+-    "qs": "6.16.0",
 -    "ws": "8.21.0"
 -  }
 -}
@@ -794,9 +750,9 @@ index 728c800..d587e02 100644
 --- a/trade-processor/build.gradle
 +++ b/trade-processor/build.gradle
 @@ -23,6 +23,7 @@ dependencies {
-   implementation 'org.springframework.boot:spring-boot-starter-web'
+   implementation 'org.springframework.boot:spring-boot-starter-webmvc'
    implementation 'org.postgresql:postgresql:42.7.12'
-   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:3.0.3'
 +  implementation 'io.nats:jnats:2.20.5'
    implementation 'org.apache.logging.log4j:log4j-api:2.26.1'
    implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.26.1'
@@ -878,7 +834,7 @@ index 0000000..8ec0be9
 +package finos.traderx.messaging.nats;
 +
 +import com.fasterxml.jackson.annotation.JsonInclude;
-+import com.fasterxml.jackson.databind.ObjectMapper;
++import tools.jackson.databind.ObjectMapper;
 +import finos.traderx.messaging.PubSubException;
 +import finos.traderx.messaging.Publisher;
 +import io.nats.client.Connection;
@@ -889,8 +845,8 @@ index 0000000..8ec0be9
 +import org.springframework.beans.factory.InitializingBean;
 +
 +public class NatsJSONPublisher<T> implements Publisher<T>, InitializingBean {
-+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-+      .setSerializationInclusion(JsonInclude.Include.NON_NULL);
++  private static final ObjectMapper OBJECT_MAPPER = tools.jackson.databind.json.JsonMapper.builder().enable(tools.jackson.databind.cfg.DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
++      .changeDefaultPropertyInclusion(value -> value.withValueInclusion(JsonInclude.Include.NON_NULL)).build();
 +
 +  org.slf4j.Logger log = LoggerFactory.getLogger(this.getClass().getName());
 +
@@ -980,8 +936,8 @@ index 0000000..330bca5
 +package finos.traderx.messaging.nats;
 +
 +import com.fasterxml.jackson.annotation.JsonInclude;
-+import com.fasterxml.jackson.databind.JavaType;
-+import com.fasterxml.jackson.databind.ObjectMapper;
++import tools.jackson.databind.JavaType;
++import tools.jackson.databind.ObjectMapper;
 +import finos.traderx.messaging.Envelope;
 +import finos.traderx.messaging.PubSubException;
 +import finos.traderx.messaging.Subscriber;
@@ -994,8 +950,8 @@ index 0000000..330bca5
 +import org.springframework.beans.factory.InitializingBean;
 +
 +public abstract class NatsJSONSubscriber<T> implements Subscriber<T>, InitializingBean {
-+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-+      .setSerializationInclusion(JsonInclude.Include.NON_NULL);
++  private static final ObjectMapper OBJECT_MAPPER = tools.jackson.databind.json.JsonMapper.builder().enable(tools.jackson.databind.cfg.DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
++      .changeDefaultPropertyInclusion(value -> value.withValueInclusion(JsonInclude.Include.NON_NULL)).build();
 +
 +  final JavaType envelopeType;
 +  final Class<T> objectType;
@@ -1183,9 +1139,9 @@ index 434cc4d..7bd0742 100644
 --- a/trade-service/build.gradle
 +++ b/trade-service/build.gradle
 @@ -27,6 +27,7 @@ dependencies {
-   implementation 'org.springframework.boot:spring-boot-starter-web'
+   implementation 'org.springframework.boot:spring-boot-starter-webmvc'
    implementation 'com.h2database:h2:2.4.240'
-   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:3.0.3'
 +  implementation 'io.nats:jnats:2.20.5'
    implementation 'org.apache.logging.log4j:log4j-api:2.26.1'
    implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.26.1'
@@ -1267,7 +1223,7 @@ index 0000000..8ec0be9
 +package finos.traderx.messaging.nats;
 +
 +import com.fasterxml.jackson.annotation.JsonInclude;
-+import com.fasterxml.jackson.databind.ObjectMapper;
++import tools.jackson.databind.ObjectMapper;
 +import finos.traderx.messaging.PubSubException;
 +import finos.traderx.messaging.Publisher;
 +import io.nats.client.Connection;
@@ -1278,8 +1234,8 @@ index 0000000..8ec0be9
 +import org.springframework.beans.factory.InitializingBean;
 +
 +public class NatsJSONPublisher<T> implements Publisher<T>, InitializingBean {
-+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-+      .setSerializationInclusion(JsonInclude.Include.NON_NULL);
++  private static final ObjectMapper OBJECT_MAPPER = tools.jackson.databind.json.JsonMapper.builder().enable(tools.jackson.databind.cfg.DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
++      .changeDefaultPropertyInclusion(value -> value.withValueInclusion(JsonInclude.Include.NON_NULL)).build();
 +
 +  org.slf4j.Logger log = LoggerFactory.getLogger(this.getClass().getName());
 +

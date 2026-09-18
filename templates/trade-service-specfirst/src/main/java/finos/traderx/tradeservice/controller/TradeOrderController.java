@@ -66,7 +66,7 @@ public class TradeOrderController {
       log.info("Validate ticker {}", response.getBody());
       return true;
     } catch (HttpClientErrorException ex) {
-      if (ex.getRawStatusCode() == 404) {
+      if (ex.getStatusCode().value() == 404) {
         log.info("{} not found in reference data service.", ticker);
       } else {
         log.error(ex.getMessage(), ex);
@@ -82,7 +82,7 @@ public class TradeOrderController {
       log.info("Validate account {}", response.getBody());
       return true;
     } catch (HttpClientErrorException ex) {
-      if (ex.getRawStatusCode() == 404) {
+      if (ex.getStatusCode().value() == 404) {
         log.info("Account {} not found in account service.", id);
       } else {
         log.error(ex.getMessage(), ex);

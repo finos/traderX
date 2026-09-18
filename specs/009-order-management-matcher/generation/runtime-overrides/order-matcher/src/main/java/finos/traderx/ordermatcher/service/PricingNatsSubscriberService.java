@@ -1,7 +1,7 @@
 package finos.traderx.ordermatcher.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import io.nats.client.Connection;
 import io.nats.client.Dispatcher;
 import io.nats.client.Message;
@@ -30,7 +30,7 @@ public class PricingNatsSubscriberService implements InitializingBean, Disposabl
 
     private final OrderMatcherService orderMatcherService;
     private final String natsAddress;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = tools.jackson.databind.json.JsonMapper.builder().build();
     private Connection connection;
     private Dispatcher dispatcher;
 

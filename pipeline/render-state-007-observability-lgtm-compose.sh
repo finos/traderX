@@ -25,7 +25,7 @@ ensure_gradle_prometheus_support() {
   [[ -f "${gradle_file}" ]] || return 0
 
   if ! rg -q "spring-boot-starter-actuator" "${gradle_file}"; then
-    perl -0pi -e "s/implementation 'org\\.springframework\\.boot:spring-boot-starter-web'\\n/implementation 'org.springframework.boot:spring-boot-starter-web'\\n  implementation 'org.springframework.boot:spring-boot-starter-actuator'\\n  runtimeOnly 'io.micrometer:micrometer-registry-prometheus'\\n/" "${gradle_file}"
+    perl -0pi -e "s/implementation 'org\\.springframework\\.boot:spring-boot-starter-webmvc'\\n/implementation 'org.springframework.boot:spring-boot-starter-webmvc'\\n  implementation 'org.springframework.boot:spring-boot-starter-actuator'\\n  runtimeOnly 'io.micrometer:micrometer-registry-prometheus'\\n/" "${gradle_file}"
   elif ! rg -q "micrometer-registry-prometheus" "${gradle_file}"; then
     perl -0pi -e "s/implementation 'org\\.springframework\\.boot:spring-boot-starter-actuator'\\n/implementation 'org.springframework.boot:spring-boot-starter-actuator'\\n  runtimeOnly 'io.micrometer:micrometer-registry-prometheus'\\n/" "${gradle_file}"
   fi
