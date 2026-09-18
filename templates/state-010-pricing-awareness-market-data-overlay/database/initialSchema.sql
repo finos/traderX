@@ -25,10 +25,10 @@ CREATE TABLE Trades (
   Created TIMESTAMP,
   Updated TIMESTAMP,
   Security VARCHAR (15),
-  Side VARCHAR(10) check (Side in ('Buy','Sell')),
+  Side VARCHAR(10) check (CASE Side WHEN 'Buy' THEN TRUE WHEN 'Sell' THEN TRUE ELSE Side IS NULL END),
   Quantity INTEGER check Quantity > 0,
   Price DECIMAL(18,3),
-  State VARCHAR(20) check (State in ('New', 'Processing', 'Settled', 'Cancelled'))
+  State VARCHAR(20) check (CASE State WHEN 'New' THEN TRUE WHEN 'Processing' THEN TRUE WHEN 'Settled' THEN TRUE WHEN 'Cancelled' THEN TRUE ELSE State IS NULL END)
 );
 Alter Table Trades Add Foreign Key (AccountID) references Accounts(ID);
 
@@ -36,11 +36,11 @@ CREATE TABLE OrderBook (
   OrderId VARCHAR(32) PRIMARY KEY,
   AccountId INTEGER NOT NULL,
   Security VARCHAR(16) NOT NULL,
-  Side VARCHAR(16) check (Side in ('Buy','Sell')),
+  Side VARCHAR(16) check (CASE Side WHEN 'Buy' THEN TRUE WHEN 'Sell' THEN TRUE ELSE Side IS NULL END),
   Quantity INTEGER NOT NULL check (Quantity > 0),
   RemainingQuantity INTEGER NOT NULL check (RemainingQuantity >= 0),
   LimitPrice DECIMAL(18,3) NOT NULL,
-  Status VARCHAR(24) check (Status in ('NEW', 'PARTIALLY_FILLED', 'FILLED', 'CANCELED', 'REJECTED')),
+  Status VARCHAR(24) check (CASE Status WHEN 'NEW' THEN TRUE WHEN 'PARTIALLY_FILLED' THEN TRUE WHEN 'FILLED' THEN TRUE WHEN 'CANCELED' THEN TRUE WHEN 'REJECTED' THEN TRUE ELSE Status IS NULL END),
   CreatedAt TIMESTAMP NOT NULL,
   UpdatedAt TIMESTAMP NOT NULL,
   LastExecutionPrice DECIMAL(18,3),

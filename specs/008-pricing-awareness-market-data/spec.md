@@ -93,3 +93,14 @@
 - SC-1013: Inspector enforces 2000-message buffer cap with FIFO eviction while session-total counter continues increasing.
 - SC-1014: API explorer and pub/sub inspector each expose a working top-right link to TraderX main app web root (`/`), and main-app metadata-driven menus/pages expose inspector link when enabled.
 - SC-1015: `http://localhost:8080/grafana/` remains anonymously readable after state `008` generation and startup.
+
+### Durable priced bookings (#461)
+
+The pricing overlay MUST retain the baseline after-commit publication contract,
+including position quantity and cost-basis snapshots. Both market submissions and
+filled limit orders that enter the booking service MUST obey it. A force-fill
+regression must compare the pre-fill position with a fresh REST position read after
+trade/position events, applying the signed fill quantity. Reload must retain that
+quantity. `scripts/test-trade-booking-commit.sh` tests both service implementations;
+`scripts/test-realtime-order-stream-overlay.sh` checks fill events and durable REST
+state in a running matcher environment.

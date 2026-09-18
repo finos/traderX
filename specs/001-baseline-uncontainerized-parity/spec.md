@@ -222,3 +222,19 @@ As a developer, I need startup commands to report what state is currently genera
 - Local toolchains are available (`node`, `npm`, `java`, `gradle`, `dotnet`).
 - Current component behavior in `system/end-to-end-flows.md`, `system/architecture.md`, and root `README.md` is the intended baseline target.
 - `catalog/state-catalog.json` and generated `ci/state-metadata.json` are available inputs for state-aware UI metadata rendering.
+
+### Booking durability regression (#461)
+
+Market trades MUST commit both the settled trade and accumulated position before
+publishing either success event. Explicit rollback and commit-time constraint
+failure MUST emit neither event. Notification failures after commit MUST be logged
+as delivery failures, independently per topic, and MUST NOT fail or rebook the
+committed trade. Delivery remains best effort; a transactional outbox is a separate
+follow-up for crash-safe delivery.
+
+H2 2.4.240 allowed-value CHECK constraints MUST use connection-independent CASE
+expressions, preserving allowed side/state/status values and existing NULL semantics.
+Closing the schema creator or retiring pooled connections MUST NOT prevent valid
+bookings. Two sequential buys MUST sum in persisted positions, account event payloads,
+and the grid after reload. Run `scripts/test-trade-booking-commit.sh` and the runtime
+trade-processor smoke test to cover these contracts.

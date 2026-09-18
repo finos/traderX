@@ -1,6 +1,5 @@
 package finos.traderx.tradeprocessor.service;
 
-import finos.traderx.messaging.PubSubException;
 import finos.traderx.messaging.Publisher;
 import finos.traderx.tradeprocessor.model.Position;
 import finos.traderx.tradeprocessor.model.Trade;
@@ -41,6 +40,7 @@ public class TradeService {
 
   @Transactional
   public TradeBookingResult processTrade(TradeOrder order) {
+    CommittedTradeEvents.requireTransaction();
     log.info("Trade order received: {}", order);
 
     Trade trade = new Trade();
@@ -92,14 +92,7 @@ public class TradeService {
     tradeRepository.save(trade);
 
     TradeBookingResult result = new TradeBookingResult(trade, position);
-    log.info("Trade Processing complete: {}", result);
-
-    try {
-      tradePublisher.publish("/accounts/" + order.getAccountId() + "/trades", result.getTrade());
-      positionPublisher.publish("/accounts/" + order.getAccountId() + "/positions", result.getPosition());
-    } catch (PubSubException exc) {
-      log.error("Error publishing trade {}", order, exc);
-    }
+    CommittedTradeEvents.publishAfterCommit(result, tradePublisher, positionPublisher);
 
     return result;
   }

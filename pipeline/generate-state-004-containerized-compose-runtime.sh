@@ -23,6 +23,17 @@ rm -f \
   "${TARGET_ROOT}/test-env.sh"
 bash "${ROOT}/pipeline/apply-state-patchset.sh" "${STATE_ID}"
 
+# The historical 004 patch embeds baseline snapshots. Keep booking correctness
+# and its regression tests canonical in the component templates (#461).
+for relative_path in \
+  src/main/java/finos/traderx/tradeprocessor/service/TradeService.java \
+  src/main/java/finos/traderx/tradeprocessor/service/CommittedTradeEvents.java \
+  src/test/java/finos/traderx/tradeprocessor/service/TradeCommitTest.java; do
+  mkdir -p "${TARGET_ROOT}/trade-processor/$(dirname "${relative_path}")"
+  cp "${ROOT}/templates/trade-processor-specfirst/${relative_path}" "${TARGET_ROOT}/trade-processor/${relative_path}"
+done
+cp "${ROOT}/templates/database-specfirst/initialSchema.sql" "${TARGET_ROOT}/database/initialSchema.sql"
+
 # State 004+ deployment targets should not run Angular dev server (Vite HMR)
 # inside container images. Force compose builds to use the production/static
 # image contract by aligning Dockerfile.compose with Dockerfile.prod.

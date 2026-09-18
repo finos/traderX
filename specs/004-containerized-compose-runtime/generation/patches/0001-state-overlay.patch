@@ -848,10 +848,10 @@ index 0000000..2dc2847
 +  implementation 'org.apache.logging.log4j:log4j-api:2.26.1'
 +  implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.26.1'
 +
-+  implementation ('ch.qos.logback:logback-core:1.5.34') {
++  implementation ('ch.qos.logback:logback-core:1.6.3') {
 +    because 'version brought in by spring boot affected by CVE-2024-12798'
 +  }
-+  implementation 'ch.qos.logback:logback-classic:1.5.34'
++  implementation 'ch.qos.logback:logback-classic:1.6.3'
 +  implementation 'org.apache.commons:commons-lang3:3.20.0'
 +
 +  testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -4913,10 +4913,10 @@ index 0000000..5d22c03
 +  implementation 'org.apache.logging.log4j:log4j-api:2.26.1'
 +  implementation 'org.apache.logging.log4j:log4j-to-slf4j:2.26.1'
 +
-+  implementation ('ch.qos.logback:logback-core:1.5.34') {
++  implementation ('ch.qos.logback:logback-core:1.6.3') {
 +    because 'version brought in by spring boot affected by CVE-2024-12798'
 +  }
-+  implementation 'ch.qos.logback:logback-classic:1.5.34'
++  implementation 'ch.qos.logback:logback-classic:1.6.3'
 +  implementation 'org.apache.commons:commons-lang3:3.20.0'
 +
 +  testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -15273,10 +15273,10 @@ index 0000000..3b645d6
 +    exclude group: 'org.json', module: 'json'
 +  }
 +  implementation 'com.squareup.okhttp3:okhttp:4.12.0'
-+  implementation ('ch.qos.logback:logback-core:1.5.34') {
++  implementation ('ch.qos.logback:logback-core:1.6.3') {
 +    because 'version brought in by spring boot affected by CVE-2024-12798'
 +  }
-+  implementation 'ch.qos.logback:logback-classic:1.5.34'
++  implementation 'ch.qos.logback:logback-classic:1.6.3'
 +  implementation 'org.apache.commons:commons-lang3:3.20.0'
 +
 +  testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -16681,10 +16681,10 @@ index 0000000..434cc4d
 +    exclude group: 'org.json', module: 'json'
 +  }
 +  implementation 'com.squareup.okhttp3:okhttp:4.12.0'
-+  implementation ('ch.qos.logback:logback-core:1.5.34') {
++  implementation ('ch.qos.logback:logback-core:1.6.3') {
 +    because 'version brought in by spring boot affected by CVE-2024-12798'
 +  }
-+  implementation 'ch.qos.logback:logback-classic:1.5.34'
++  implementation 'ch.qos.logback:logback-classic:1.6.3'
 +  implementation 'org.apache.commons:commons-lang3:3.20.0'
 +
 +  testImplementation 'org.springframework.boot:spring-boot-starter-test'

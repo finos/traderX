@@ -82,3 +82,13 @@ specs/
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |-----------|------------|-------------------------------------|
 | Temporary coexistence of legacy `TraderSpec/**` notes with root-canonical workflow | Preserve migration history and traceability during cleanup | Immediate hard-delete would remove useful migration evidence before Phase C closure |
+
+## Issue #461 implementation
+
+Keep H2 2.4.240 and replace literal allowed-value IN checks with equivalent CASE
+checks in baseline and pricing schemas. Centralize Spring after-commit publication
+in a helper retained by the state 004 generation hook and inherited by pricing.
+Capture booking event values before commit, contain notification failures separately
+per topic, and document the best-effort delivery limitation and existing-database
+migration. Exercise real H2/JPA commits, rollback, injected JDBC commit failure,
+connection retirement, and sequential accumulated positions in regression tests.

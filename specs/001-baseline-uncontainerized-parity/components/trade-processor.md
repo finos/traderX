@@ -22,3 +22,12 @@
 ## Verification
 
 - `scripts/test-trade-processor-overlay.sh`
+
+## Commit boundary (#461)
+
+Both baseline and pricing implementations register success notifications with the
+shared CommittedTradeEvents helper inside the Spring booking transaction. The
+helper captures booking values and publishes only in afterCommit, attempts both
+topics independently, and contains checked/unchecked notification failures. Direct
+nontransactional invocation fails before repository writes. Database failure and
+post-commit delivery failure must not share a retry/rebooking path.
