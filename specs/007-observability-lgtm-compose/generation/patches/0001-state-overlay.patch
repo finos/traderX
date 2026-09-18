@@ -1838,12 +1838,12 @@ index cddccee..f0681d0 100644
 @@ -17,6 +17,8 @@ repositories {
  
  dependencies {
-   implementation 'org.springframework.boot:spring-boot-starter-web'
+   implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 +  implementation 'org.springframework.boot:spring-boot-starter-actuator'
 +  runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
    implementation 'org.postgresql:postgresql:42.7.12'
-   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:3.0.3'
 diff --git a/runtime/ghcr/007-observability-lgtm-compose/.env.example b/runtime/ghcr/007-observability-lgtm-compose/.env.example
 new file mode 100644
 index 0000000..91355af
@@ -2094,11 +2094,11 @@ index 48ea8b4..2747525 100644
 @@ -18,6 +18,8 @@ repositories {
  dependencies {
    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-   implementation 'org.springframework.boot:spring-boot-starter-web'
+   implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 +  implementation 'org.springframework.boot:spring-boot-starter-actuator'
 +  runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
    implementation 'org.postgresql:postgresql:42.7.12'
-   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:3.0.3'
    implementation 'io.nats:jnats:2.20.5'
 diff --git a/trade-service/build.gradle b/trade-service/build.gradle
 index d7a9ae1..5540073 100644
@@ -2107,9 +2107,9 @@ index d7a9ae1..5540073 100644
 @@ -22,6 +22,8 @@ configurations.all {
  dependencies {
    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-   implementation 'org.springframework.boot:spring-boot-starter-web'
+   implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 +  implementation 'org.springframework.boot:spring-boot-starter-actuator'
 +  runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
    implementation 'com.h2database:h2:2.4.240'
-   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.17'
+   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:3.0.3'
    implementation 'io.nats:jnats:2.20.5'

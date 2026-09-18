@@ -79,3 +79,11 @@ description: "Tasks for root-level Spec Kit simple app baseline adoption"
 - [x] Strengthen market smoke checks to require two buys, live accumulated quantities,
   two persisted trades, and a fresh REST position read; strengthen filled-limit REST checks.
 - [x] Document a backed-up, validation-preserving migration for existing H2 databases.
+
+## Dependency remediation (#465)
+
+- [x] Review the complete 002/004 failure logs and vendor fixed-version ranges.
+- [x] Update canonical dependencies and inherited generation patches without adding suppressions.
+- [x] Preserve and run H2 booking/after-commit regression tests on the new baseline.
+- [x] Verify final regenerated 002/004 outputs, application builds, and all repository gates.
+- [x] Pass fresh dependency and image scans and publish replacement snapshots with one commit above each parent.

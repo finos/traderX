@@ -74,7 +74,7 @@ public class TradeOrderController {
       log.info("Validate ticker {}", response.getBody());
       return true;
     } catch (HttpClientErrorException ex) {
-      if (ex.getRawStatusCode() == 404) {
+      if (ex.getStatusCode().value() == 404) {
         log.info("{} not found in reference data service.", ticker);
       } else {
         log.error(ex.getMessage(), ex);
@@ -90,7 +90,7 @@ public class TradeOrderController {
       log.info("Validate account {}", response.getBody());
       return true;
     } catch (HttpClientErrorException ex) {
-      if (ex.getRawStatusCode() == 404) {
+      if (ex.getStatusCode().value() == 404) {
         log.info("Account {} not found in account service.", id);
       } else {
         log.error(ex.getMessage(), ex);
@@ -109,7 +109,7 @@ public class TradeOrderController {
       }
       return quote.getPrice().setScale(3, RoundingMode.HALF_UP);
     } catch (HttpClientErrorException ex) {
-      if (ex.getRawStatusCode() == 404) {
+      if (ex.getStatusCode().value() == 404) {
         throw new ResourceNotFoundException("Price quote unavailable for ticker " + ticker);
       }
       throw ex;

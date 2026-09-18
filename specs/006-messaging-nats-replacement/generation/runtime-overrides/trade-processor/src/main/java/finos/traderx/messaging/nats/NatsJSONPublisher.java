@@ -1,7 +1,7 @@
 package finos.traderx.messaging.nats;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import finos.traderx.messaging.PubSubException;
 import finos.traderx.messaging.Publisher;
 import io.nats.client.Connection;
@@ -13,8 +13,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 public class NatsJSONPublisher<T> implements Publisher<T>, InitializingBean {
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-      .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+  private static final ObjectMapper OBJECT_MAPPER = tools.jackson.databind.json.JsonMapper.builder()
+      .enable(tools.jackson.databind.cfg.DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+      .changeDefaultPropertyInclusion(value -> value.withValueInclusion(JsonInclude.Include.NON_NULL)).build();
 
   org.slf4j.Logger log = LoggerFactory.getLogger(this.getClass().getName());
 

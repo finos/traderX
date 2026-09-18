@@ -16,7 +16,7 @@ ensure_micrometer_core() {
     return 0
   fi
 
-  perl -0pi -e "s/(implementation 'org\\.springframework\\.boot:spring-boot-starter-web'\\n)/\${1}  implementation 'io.micrometer:micrometer-core'\\n/" "${gradle_file}"
+  perl -0pi -e "s/(implementation 'org\\.springframework\\.boot:spring-boot-starter-webmvc'\\n)/\${1}  implementation 'io.micrometer:micrometer-core'\\n/" "${gradle_file}"
 }
 
 ensure_micrometer_core "${TARGET_ROOT}/trade-service/build.gradle"
