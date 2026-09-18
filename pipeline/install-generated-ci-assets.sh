@@ -370,22 +370,9 @@ name: Security Scanning
 on:
   workflow_dispatch:
   push:
-    paths:
-      - '**/build.gradle'
-      - '**/build.gradle.kts'
-      - '**/package.json'
-      - '**/package-lock.json'
-      - '**/*.csproj'
-      - '.github/*-cve-ignore-list.xml'
-      - '.github/workflows/security.yml'
+    branches:
+      - code/generated-state-*
 EOF
-
-  if ((${#docker_entries[@]} > 0)); then
-    {
-      echo "      - '**/Dockerfile'"
-      echo "      - '**/Dockerfile.compose'"
-    } >> "${file_path}"
-  fi
 
   cat >> "${file_path}" <<'EOF'
 
@@ -400,6 +387,7 @@ EOF
   node-modules-scan:
     name: ${{ matrix.module_folder }}-node-scan
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -452,6 +440,7 @@ EOF
   dotnet-modules-scan:
     name: ${{ matrix.module_folder }}-dotnet-scan
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -502,6 +491,7 @@ EOF
   gradle-modules-scan:
     name: ${{ matrix.module_folder }}-gradle-scan
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -562,6 +552,7 @@ EOF
   docker-image-scan:
     name: ${{ matrix.image_name }}-docker-scan
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -594,6 +585,7 @@ EOF
     cat >> "${file_path}" <<'EOF'
   no-security-targets:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - run: echo "No dependency or container targets detected for security scanning."
 EOF
@@ -620,6 +612,7 @@ EOF
     cat >> "${file_path}" <<'EOF'
   no-node-targets:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - run: echo "No Node.js modules detected for license scanning."
 EOF
@@ -629,6 +622,7 @@ EOF
   cat >> "${file_path}" <<'EOF'
   scan:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -675,6 +669,7 @@ jobs:
   build-ghcr:
     name: Build and push \${{ matrix.image_name }}
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     permissions:
       contents: read
       packages: write
@@ -714,19 +709,33 @@ EOF
           username: ${{ secrets.GHCR_PUSH_USERNAME != '' && secrets.GHCR_PUSH_USERNAME || github.actor }}
           password: ${{ secrets.GHCR_PUSH_TOKEN != '' && secrets.GHCR_PUSH_TOKEN || secrets.GITHUB_TOKEN }}
       - name: Build and publish image
+        id: publish
         uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.directory }}
           file: ${{ matrix.directory }}/${{ matrix.dockerfile }}
-          push: ${{ github.event_name == 'push' }}
+          push: true
           tags: |
             ${{ env.GHCR_ORG }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image_name }}:${{ github.sha }}
             ${{ env.GHCR_ORG }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image_name }}:latest
       - name: Scan published image
         uses: crazy-max/ghaction-container-scan@v3
         with:
-          image: ${{ env.GHCR_ORG }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image_name }}:${{ github.sha }}
+          image: ${{ env.GHCR_ORG }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image_name }}@${{ steps.publish.outputs.digest }}
           severity: HIGH
+      - name: Record scanned image digest
+        env:
+          IMAGE: ${{ env.GHCR_ORG }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image_name }}
+          DIGEST: ${{ steps.publish.outputs.digest }}
+        run: |
+          jq -n --arg snapshot "$GITHUB_SHA" --arg image "$IMAGE" --arg digest "$DIGEST" \
+            --arg run_id "$GITHUB_RUN_ID" --arg run_attempt "$GITHUB_RUN_ATTEMPT" \
+            '{snapshot:$snapshot,image:$image,digest:$digest,run_id:$run_id,run_attempt:$run_attempt}' > image.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: image-digest-${{ matrix.image_name }}-${{ github.run_attempt }}
+          path: image.json
+          if-no-files-found: error
 EOF
 }
 
@@ -749,6 +758,7 @@ jobs:
   build-container-images:
     name: Build ${{ matrix.image_name }}
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -836,6 +846,38 @@ jq -n \
       domainHint: $deployDomainHint
     }
   }' > "${TARGET_ROOT}/ci/state-metadata.json"
+
+cp "${ROOT}/pipeline/build-test-generated-snapshot.sh" "${TARGET_ROOT}/ci/build-test-generated-snapshot.sh"
+cat > "${TARGET_ROOT}/.github/workflows/build-and-test.yml" <<EOF
+name: Build and Test Snapshot
+on:
+  push:
+    branches: [code/generated-state-*]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-test:
+    name: Build and test snapshot
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '$(jq -r '.gradleWrapper.distributionVersion' "${ROOT}/catalog/dependency-version-targets.json")'
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - run: bash ci/build-test-generated-snapshot.sh
+EOF
 
 write_security_workflow "${TARGET_ROOT}/.github/workflows/security.yml"
 write_license_workflow "${TARGET_ROOT}/.github/workflows/license-scanning-node.yml"
@@ -1033,6 +1075,9 @@ write_aws_ec2_compose_deploy_bundle() {
   local default_branch="$2"
   local default_environment="$3"
   local default_domain="$4"
+  cp "${ROOT}/pipeline/verify-deployment-snapshot.py" "${TARGET_ROOT}/ci/verify-deployment-snapshot.py"
+  cp "${ROOT}/pipeline/deploy-verified-snapshot.py" "${TARGET_ROOT}/ci/deploy-verified-snapshot.py"
+  cp "${CATALOG}" "${TARGET_ROOT}/ci/deployment-catalog.json"
   local bundle_dir="${TARGET_ROOT}/runtime/deploy/aws-ec2-compose"
   local ingress_template="${TARGET_ROOT}/ingress/nginx.traderx.conf.template"
   local include_ng_cli_ws=0
@@ -1082,7 +1127,9 @@ This bundle is generated for state \`${STATE_ID}\` and is intended for compose-b
 - \`TRADERX_GHCR_COMPOSE_PATH_REL\` (default: \`runtime/ghcr/${STATE_ID}/docker-compose.ghcr.yml\`)
 - \`TRADERX_COMPOSE_PROJECT_NAME\` (default: \`traderx-${STATE_ID}\`)
 - \`TRADERX_DEPLOY_ENV\` (default: \`${default_environment:-demo}\`)
-- \`TRADERX_IMAGE_TAG\` (default: \`latest\`)
+- \`TRADERX_SNAPSHOT\`: full generated commit SHA, required by \`--use-ghcr\`; successful checks and image digests are verified before deployment.
+- GitHub CLI authenticated for Actions read access and Python 3 are required by the verified GHCR deployment path.
+- \`TRADERX_IMAGE_TAG\`: local runtime convenience only; verified deployment uses digests.
 - \`TRADERX_CORS_ALLOWED_ORIGINS\` (default: \`https://\$TRADERX_FQDN,http://\$TRADERX_FQDN,http://localhost:8080\`)
 - \`TRADERX_PRUNE_DOCKER\` (\`1\` enables aggressive prune in \`cleanup.sh\`)
 - \`TRADERX_RUN_CLEANUP\` (\`1\` runs cleanup before \`upgrade.sh\`)
@@ -1091,7 +1138,7 @@ This bundle is generated for state \`${STATE_ID}\` and is intended for compose-b
 
 \`\`\`bash
 ./runtime/deploy/aws-ec2-compose/deploy.sh --dry-run
-./runtime/deploy/aws-ec2-compose/deploy.sh --use-ghcr --dry-run
+TRADERX_SNAPSHOT='<full-generated-commit-sha>' ./runtime/deploy/aws-ec2-compose/deploy.sh --use-ghcr --dry-run
 ./runtime/deploy/aws-ec2-compose/upgrade.sh --dry-run
 ./runtime/deploy/aws-ec2-compose/cleanup.sh --dry-run
 \`\`\`
@@ -1201,6 +1248,23 @@ run_compose_ghcr_up() {
   CORS_ALLOWED_ORIGINS="\${TRADERX_CORS_ALLOWED_ORIGINS}" docker compose -f "\${ghcr_compose_file}" --project-name "\${TRADERX_COMPOSE_PROJECT_NAME}" pull
   CORS_ALLOWED_ORIGINS="\${TRADERX_CORS_ALLOWED_ORIGINS}" docker compose -f "\${ghcr_compose_file}" --project-name "\${TRADERX_COMPOSE_PROJECT_NAME}" up -d
 }
+
+if (( USE_GHCR == 1 )); then
+  if [[ ! "\${TRADERX_SNAPSHOT:-}" =~ ^[0-9a-f]{40}$ ]]; then
+    echo "[fail] TRADERX_SNAPSHOT must be the exact generated commit SHA"
+    exit 1
+  fi
+  if (( DRY_RUN == 1 )); then
+    echo "[dry-run] verify remote build/test/security checks and deploy immutable images for \${TRADERX_SNAPSHOT}"
+    exit 0
+  fi
+  bundle_root="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")/../../.." && pwd)"
+  manifest="\$(mktemp)"
+  trap 'rm -f "\${manifest}"' EXIT
+  python3 "\${bundle_root}/ci/verify-deployment-snapshot.py" --snapshot "\${TRADERX_SNAPSHOT}" --target "\${TRADERX_FQDN}" --output "\${manifest}"
+  python3 "\${bundle_root}/ci/deploy-verified-snapshot.py" "\${manifest}" --workdir "\${TRADERX_WORKDIR}"
+  exit 0
+fi
 
 if [[ ! -d "\${TRADERX_WORKDIR}/.git" ]]; then
   run_cmd git clone "\${TRADERX_REPO_URL}" "\${TRADERX_WORKDIR}"

@@ -3,6 +3,10 @@ name: Redeploy Live Demo
 on:
   workflow_dispatch:
     inputs:
+      snapshot:
+        description: Full generated snapshot commit SHA (required checks must have succeeded)
+        required: true
+        type: string
       target:
         description: Demo host to redeploy
         required: true
@@ -14,6 +18,7 @@ on:
 # Requires repository secret DEMO_EC2_SSH_PRIVATE_KEY (PEM private key for ec2-user).
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: redeploy-live-demo-${{ inputs.target }}
@@ -24,6 +29,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
+      - uses: actions/checkout@v4
+      - name: Verify exact snapshot checks and image evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SNAPSHOT: ${{ inputs.snapshot }}
+          TARGET: ${{ inputs.target }}
+        run: python3 pipeline/verify-deployment-snapshot.py --snapshot "$SNAPSHOT" --target "$TARGET"
+      - name: Retain deployment authorization
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-authorization-${{ github.run_id }}-${{ github.run_attempt }}
+          path: verified-deployment.json
+          if-no-files-found: error
       - name: Write SSH private key
         env:
           DEMO_EC2_SSH_PRIVATE_KEY: ${{ secrets.DEMO_EC2_SSH_PRIVATE_KEY }}
@@ -42,14 +60,17 @@ jobs:
           ssh-keyscan -H "${{ inputs.target }}" >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
 
-      - name: Run ~/redeploy.sh over SSH
+      - name: Deploy verified snapshot over SSH
+        env:
+          TARGET: ${{ inputs.target }}
         run: |
-          ssh -i ~/.ssh/demo_ec2.pem \
-            -o IdentitiesOnly=yes \
-            -o BatchMode=yes \
-            -o StrictHostKeyChecking=yes \
-            "ec2-user@${{ inputs.target }}" \
-            'bash -lc "~/redeploy.sh"'
+          remote_dir=$(ssh -i ~/.ssh/demo_ec2.pem -o BatchMode=yes -o StrictHostKeyChecking=yes "ec2-user@$TARGET" 'mktemp -d /tmp/traderx-deploy.XXXXXXXX')
+          [[ "$remote_dir" =~ ^/tmp/traderx-deploy\.[a-zA-Z0-9]+$ ]]
+          trap 'ssh -i ~/.ssh/demo_ec2.pem -o BatchMode=yes -o StrictHostKeyChecking=yes "ec2-user@$TARGET" "rm -rf $remote_dir"' EXIT
+          scp -i ~/.ssh/demo_ec2.pem -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            verified-deployment.json pipeline/deploy-verified-snapshot.py "ec2-user@$TARGET:$remote_dir/"
+          ssh -i ~/.ssh/demo_ec2.pem -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "ec2-user@$TARGET" "python3 $remote_dir/deploy-verified-snapshot.py $remote_dir/verified-deployment.json"
 
       - name: Remove SSH private key
         if: always()
