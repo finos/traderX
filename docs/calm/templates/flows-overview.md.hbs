@@ -1,0 +1,84 @@
+# Trading System Flows Overview
+
+## Load List of Accounts
+
+{{#each flows}}
+  {{#if (eq (lookup this "unique-id") "load-accounts-flow")}}
+    Description: {{this.description}}
+  {{/if}}
+{{/each}}
+
+{{flow-sequence flow-id="load-accounts-flow" }}
+
+---
+
+## Bootstrap Trade and Position Blotter
+
+{{#each flows}}
+  {{#if (eq (lookup this "unique-id") "bootstrap-blotter-flow")}}
+    Description: {{this.description}}
+  {{/if}}
+{{/each}}
+
+{{flow-sequence flow-id="bootstrap-blotter-flow" }}
+
+---
+
+## Submit Trade Ticket
+{{#each flows}}
+  {{#if (eq (lookup this "unique-id") "submit-trade-flow")}}
+    Description: {{this.description}}
+  {{/if}}
+{{/each}}
+
+{{flow-sequence flow-id="submit-trade-flow" }}
+
+---
+
+## Process Trade Event
+
+{{#each flows}}
+  {{#if (eq (lookup this "unique-id") "process-trade-flow")}}
+    Description: {{this.description}}
+  {{/if}}
+{{/each}}
+
+{{flow-sequence flow-id="process-trade-flow" }}
+
+---
+
+## Manage Account
+
+{{#each flows}}
+  {{#if (eq (lookup this "unique-id") "manage-account-flow")}}
+    Description: {{this.description}}
+  {{/if}}
+{{/each}}
+
+{{flow-sequence flow-id="manage-account-flow" }}
+
+---
+
+## Add User to Account
+
+{{#each flows}}
+  {{#if (eq (lookup this "unique-id") "manage-account-users-flow")}}
+    Description: {{this.description}}
+  {{/if}}
+{{/each}}
+
+{{flow-sequence flow-id="manage-account-users-flow" }}
+
+---
+
+## Reference Data Service Bootstrap
+{{#each flows}}
+  {{#if (eq (lookup this "unique-id") "bootstrap-reference-data-service-flow")}}
+    Description: {{this.description}}
+  {{/if}}
+{{/each}}
+
+{{flow-sequence flow-id="bootstrap-reference-data-service-flow" }}
+
+---
+

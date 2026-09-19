@@ -1,0 +1,3 @@
+# exclude CALM AI Assistant agent for Github Copilot
+agents/calm-prompts/
+CALM.agent.md
