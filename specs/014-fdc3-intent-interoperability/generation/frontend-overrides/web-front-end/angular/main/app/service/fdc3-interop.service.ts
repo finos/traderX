@@ -148,6 +148,51 @@ export class Fdc3InteropService {
         return true;
     }
 
+    async raiseStartPayment(paymentContext: {
+        amount: number;
+        currency: string;
+        pair: string;
+        rate: number;
+        debtor: { name: string; account: string };
+        creditor: { name: string; account: string };
+        uetr?: string;
+    }): Promise<boolean> {
+        if (!this.agent?.raiseIntent) {
+            await this.initialize();
+        }
+        if (!this.agent?.raiseIntent) {
+            console.warn('[fdc3] Cannot raise StartPayment: FDC3 agent unavailable');
+            return false;
+        }
+
+        const uetr = paymentContext.uetr || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `UETR-${Date.now()}`);
+        const context = {
+            type: 'fdc3.paymentContext',
+            id: { UETR: uetr },
+            amount: paymentContext.amount,
+            currency: paymentContext.currency,
+            pair: paymentContext.pair,
+            rate: paymentContext.rate,
+            debtor: paymentContext.debtor,
+            creditor: paymentContext.creditor,
+            networkRouting: {
+                rail: 'Trilateral Powerhouse',
+                channel: 'global',
+                uetr
+            }
+        };
+
+        try {
+            await Promise.resolve(this.agent.raiseIntent('StartPayment', context));
+            console.info('[fdc3] successfully raised StartPayment to BankerX', { context });
+            this.statusMessage$.next(`FDC3: StartPayment dispatched (${paymentContext.pair} ${paymentContext.amount})`);
+            return true;
+        } catch (error) {
+            console.error('[fdc3] failed to raise StartPayment intent', error);
+            return false;
+        }
+    }
+
     destroy(): void {
         this.clearListeners();
         if (this.reconnectTimer) {

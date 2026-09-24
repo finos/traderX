@@ -81,10 +81,16 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
             headerName: 'EXECUTED',
             field: 'created',
             valueFormatter: ({ value }) => this.toRelativeTime(value)
+        },
+        {
+            headerName: 'ACTION',
+            field: 'action',
+            cellRenderer: () => '<button class="btn btn-sm btn-outline-success font-monospace py-0 px-2" style="font-size:10px;">SETTLE (BANKERX)</button>',
+            onCellClicked: (params: any) => this.settleTrade(params.data)
         }
     ];
 
-    constructor(private tradeFeed: TradeFeedService, private tradeService: PositionService, interop: Fdc3InteropService) {
+    constructor(private tradeFeed: TradeFeedService, private tradeService: PositionService, private interop: Fdc3InteropService) {
         this.connectionSubscription = this.tradeFeed.connectionState$.pipe(
             filter(state => state === 'connected'), observeOn(asapScheduler)
         ).subscribe(() => {
@@ -94,6 +100,26 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
         this.interopSubscription = interop.selectedTicker$.subscribe(ticker => {
             this.securityFilter = ticker;
             this.applySecurityFilter();
+        });
+    }
+
+    async settleTrade(trade: Trade): Promise<void> {
+        if (!trade) return;
+        const grossAmount = (trade.price || 1) * (trade.quantity || 1000);
+        const pair = `${trade.security || 'USD'}/KES`;
+        await this.interop.raiseStartPayment({
+            amount: grossAmount,
+            currency: trade.security || 'USD',
+            pair,
+            rate: trade.price || 1.0,
+            debtor: {
+                name: 'TraderX Institutional Execution Desk',
+                account: this.account?.name || 'traderx-desk-01'
+            },
+            creditor: {
+                name: 'BankerX Institutional Liquidity Desk',
+                account: 'bankerx-settler-01'
+            }
         });
     }
 
