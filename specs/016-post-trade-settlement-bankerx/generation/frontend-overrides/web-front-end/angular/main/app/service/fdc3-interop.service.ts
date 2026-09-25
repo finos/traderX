@@ -12,6 +12,9 @@ type Fdc3Context = {
     id?: { [key: string]: unknown };
     traderxAction?: unknown;
     traderxActionRequestId?: unknown;
+    traderxSettlementStatus?: unknown;
+    traderxRail?: unknown;
+    traderxTxHash?: unknown;
 };
 
 type Fdc3ChannelLike = {
@@ -20,9 +23,16 @@ type Fdc3ChannelLike = {
     getCurrentContext?: (contextType?: string) => Promise<Fdc3Context | null> | Fdc3Context | null;
 };
 
+type Fdc3AppIntentResolution = {
+    apps?: unknown[];
+    appIntents?: unknown[];
+    intent?: unknown;
+};
+
 type Fdc3DesktopAgentLike = {
     broadcast?: (context: unknown) => Promise<void> | void;
     raiseIntent?: (intent: string, context?: unknown) => Promise<unknown> | unknown;
+    findIntent?: (intent: string, context?: unknown) => Promise<Fdc3AppIntentResolution | null> | Fdc3AppIntentResolution | null;
     addContextListener?: (contextType: string, handler: (context: Fdc3Context) => void) => Promise<Fdc3Listener> | Fdc3Listener;
     addIntentListener?: (intent: string, handler: (context: Fdc3Context) => void) => Promise<Fdc3Listener> | Fdc3Listener;
     getCurrentChannel?: () => Promise<Fdc3ChannelLike | null> | Fdc3ChannelLike | null;
@@ -44,6 +54,15 @@ export interface Fdc3InboundEvent {
     ticker: string;
 }
 
+export type Fdc3SettlementStatus = 'Acsc' | 'Rjct' | 'Pndg';
+
+export interface Fdc3SettlementStatusEvent {
+    uetr: string;
+    status: Fdc3SettlementStatus;
+    rail?: string;
+    txHash?: string;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -52,10 +71,13 @@ export class Fdc3InteropService {
     readonly selectedTicker$ = new BehaviorSubject<string>('');
     readonly inboundEvents$ = new Subject<Fdc3InboundEvent>();
     readonly isAgentAvailable$ = new BehaviorSubject<boolean>(false);
+    readonly paymentReceiverAvailable$ = new BehaviorSubject<boolean>(false);
+    readonly settlementStatus$ = new Subject<Fdc3SettlementStatusEvent>();
     readonly statusMessage$ = new BehaviorSubject<string>('FDC3: connecting...');
 
     private agent?: Fdc3DesktopAgentLike;
     private listeners: Fdc3Listener[] = [];
+    private readonly dispatchedUetrs = new Set<string>();
     private lastPublishedTicker?: string;
     private initializePromise?: Promise<boolean>;
     private reconnectTimer?: ReturnType<typeof setTimeout>;
@@ -148,6 +170,92 @@ export class Fdc3InteropService {
         return true;
     }
 
+    async raiseStartPayment(paymentContext: {
+        amount: number;
+        currency: string;
+        pair: string;
+        rate: number;
+        debtor: { name: string; account: string };
+        creditor: { name: string; account: string };
+        uetr?: string;
+    }): Promise<boolean> {
+        if (!this.agent?.raiseIntent) {
+            await this.initialize();
+        }
+        if (!this.agent?.raiseIntent) {
+            console.warn('[fdc3] Cannot raise StartPayment: FDC3 agent unavailable');
+            return false;
+        }
+
+        const uetr = paymentContext.uetr || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `UETR-${Date.now()}`);
+        const context = {
+            type: 'fdc3.paymentContext',
+            id: { UETR: uetr },
+            amount: paymentContext.amount,
+            currency: paymentContext.currency,
+            pair: paymentContext.pair,
+            rate: paymentContext.rate,
+            debtor: paymentContext.debtor,
+            creditor: paymentContext.creditor,
+            networkRouting: {
+                rail: 'Trilateral Powerhouse',
+                channel: 'global',
+                uetr
+            }
+        };
+
+        try {
+            await Promise.resolve(this.agent.raiseIntent('StartPayment', context));
+            console.info('[fdc3] successfully raised StartPayment to BankerX', { context });
+            this.trackDispatchedUetr(uetr);
+            this.statusMessage$.next(`FDC3: StartPayment dispatched (${paymentContext.pair} ${paymentContext.amount})`);
+            return true;
+        } catch (error) {
+            console.error('[fdc3] failed to raise StartPayment intent', error);
+            return false;
+        }
+    }
+
+    /**
+     * Resolves whether any workspace participant currently declares support for the
+     * StartPayment intent. The blotter gates its SETTLE action on this so base
+     * TraderX (no post-trade participant in the workspace) shows no action button.
+     */
+    async refreshPaymentReceiverAvailability(): Promise<boolean> {
+        if (!this.agent?.findIntent) {
+            if (!this.agent?.raiseIntent) {
+                await this.initialize();
+            }
+        }
+        if (!this.agent?.findIntent) {
+            this.paymentReceiverAvailable$.next(false);
+            return false;
+        }
+        try {
+            const resolution = await Promise.resolve(this.agent.findIntent('StartPayment'));
+            const apps = resolution?.apps ?? resolution?.appIntents ?? [];
+            const available = Array.isArray(apps) && apps.length > 0;
+            this.paymentReceiverAvailable$.next(available);
+            return available;
+        } catch (error) {
+            console.warn('[fdc3] StartPayment intent discovery failed', error);
+            this.paymentReceiverAvailable$.next(false);
+            return false;
+        }
+    }
+
+    /**
+     * Resolves whether this payment context has already been dispatched in this
+     * session — the duplicate-dispatch guard for the request-to-outcome lesson.
+     */
+    hasDispatchedUetr(uetr: string): boolean {
+        return this.dispatchedUetrs.has(uetr);
+    }
+
+    trackDispatchedUetr(uetr: string): void {
+        this.dispatchedUetrs.add(uetr);
+    }
+
     destroy(): void {
         this.clearListeners();
         if (this.reconnectTimer) {
@@ -155,6 +263,8 @@ export class Fdc3InteropService {
             this.reconnectTimer = undefined;
         }
         this.agent = undefined;
+        this.dispatchedUetrs.clear();
+        this.paymentReceiverAvailable$.next(false);
         this.isAgentAvailable$.next(false);
         this.statusMessage$.next('FDC3 unavailable (running local-only)');
     }
@@ -177,6 +287,9 @@ export class Fdc3InteropService {
             this.isAgentAvailable$.next(true);
             this.statusMessage$.next('FDC3 connected (Sail agent detected)');
             console.info('[fdc3] listeners registered');
+            this.refreshPaymentReceiverAvailability().catch((error) => {
+                console.warn('[fdc3] StartPayment availability probe failed', error);
+            });
             return true;
         } catch (error) {
             console.warn('[fdc3] failed to register listeners; retrying', error);
@@ -301,6 +414,9 @@ export class Fdc3InteropService {
         await this.addContextListener(agent, 'fdc3.instrument', (context) => {
             this.emitInboundTicker('context', context);
         });
+        await this.addContextListener(agent, 'synaptic.settlementStatus', (context) => {
+            this.receiveSettlementStatus(context);
+        });
 
         await this.addIntentListener(agent, 'ViewOrders', (context) => {
             this.emitInboundTicker('ViewOrders', context);
@@ -324,6 +440,27 @@ export class Fdc3InteropService {
         this.inboundEvents$.next({ action: resolvedAction, ticker });
         this.statusMessage$.next(`FDC3 inbound: ${resolvedAction} (${ticker})`);
         console.info('[fdc3] inbound event', { action: resolvedAction, ticker, context });
+    }
+
+    private receiveSettlementStatus(context: Fdc3Context | null | undefined): void {
+        const uetr = context?.id && typeof context.id['UETR'] === 'string' ? context.id['UETR'] : '';
+        const status = context?.traderxSettlementStatus;
+        if (context?.type !== 'synaptic.settlementStatus' || !uetr) {
+            return;
+        }
+        if (status !== 'Acsc' && status !== 'Rjct' && status !== 'Pndg') {
+            console.warn('[fdc3] ignoring malformed settlement status context', context);
+            return;
+        }
+        if (!this.dispatchedUetrs.has(uetr)) {
+            console.info('[fdc3] ignoring unmatched settlement report (no dispatched UETR)', { uetr });
+            return;
+        }
+        const rail = typeof context?.traderxRail === 'string' ? context.traderxRail : undefined;
+        const txHash = typeof context?.traderxTxHash === 'string' ? context.traderxTxHash : undefined;
+        this.settlementStatus$.next({ uetr, status, rail, txHash });
+        this.statusMessage$.next(`FDC3 inbound: settlement ${status} (${uetr})`);
+        console.info('[fdc3] settlement status received', { uetr, status, rail, txHash });
     }
 
     private resolveInboundAction(action: Fdc3InboundAction, context: Fdc3Context): Fdc3InboundAction {
@@ -374,6 +511,7 @@ export class Fdc3InteropService {
     }
 
     private startContextSync(agent: Fdc3DesktopAgentLike): void {
+        let syncTicks = 0;
         const sync = async () => {
             try {
                 await this.syncContextFromActiveChannel(agent);
@@ -382,7 +520,18 @@ export class Fdc3InteropService {
             }
         };
 
+        const availabilitySync = () => {
+            // Participants join/leave the workspace at runtime; re-probe at a
+            // slower cadence than the context sync (every ~10s).
+            this.refreshPaymentReceiverAvailability().catch((error) => {
+                console.warn('[fdc3] periodic payment receiver probe failed', error);
+            });
+        };
+
         this.channelChangedHandler = () => {
+            this.refreshPaymentReceiverAvailability().catch((error) => {
+                console.warn('[fdc3] payment receiver availability refresh failed', error);
+            });
             sync().catch((error) => {
                 console.warn('[fdc3] channel change context sync failed', error);
             });
@@ -390,11 +539,16 @@ export class Fdc3InteropService {
         agent.addEventListener?.('userChannelChanged', this.channelChangedHandler);
 
         this.contextSyncInterval = setInterval(() => {
+            syncTicks += 1;
+            if (syncTicks % 5 === 1) {
+                availabilitySync();
+            }
             sync().catch((error) => {
                 console.warn('[fdc3] periodic context sync failed', error);
             });
         }, 2000);
 
+        availabilitySync();
         sync().catch((error) => {
             console.warn('[fdc3] initial context sync failed', error);
         });

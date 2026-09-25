@@ -3,6 +3,8 @@
 **Feature Branch**: `016-post-trade-settlement-bankerx`  
 **Created**: 2026-09-24  
 **Status**: Specification Complete & Reference Implemented  
+**State Model**: Child state of `014-fdc3-intent-interoperability` (014 stays the pristine FDC3 baseline; 016 owns the settlement-specific changes in its own overlay per ADR-002)  
+**Receiver Variants**: Local mock receiver (default, offline-reproducible) + BankerX reference adapter (opt-in)  
 **Standards Alignment**: FINOS FDC3 3.0 (PR #2204, Issue #444), ISO 20022 CBPR+ (pacs.008, pacs.002), RFC 4122 (UUIDv4 UETR)  
 **Input**: Transition delta from `014-fdc3-intent-interoperability`  
 
@@ -26,13 +28,14 @@ This specification completes the financial trading lifecycle by bridging **Trade
 * **As a spot FX trader**, I want to click "Settle Trade" directly from my TraderX execution blotter so that settlement instructions are immediately dispatched to the clearing desk without re-keying amounts, accounts, or currencies.
 * **As a clearing operations officer**, I want BankerX to receive FDC3 payment intents from TraderX, validate them against ISO 20022 CBPR+ schema rules, and screen counterparty identities locally in `sub-8ms` without leaking order book data over external network wires.
 * **As an enterprise compliance auditor**, I want every trade settlement to emit immutable ISO 20022 `pacs.002.001.10` settlement confirmation receipts that cryptographically bind the SWIFT UETR to on-chain transaction hashes.
-* **As a system maintainer**, I want the TraderX desktop experience to remain fully operational and graceful if no FDC3 Desktop Agent or BankerX settlement listener is active.
+* **As a system maintainer**, I want the TraderX desktop experience to remain fully operational and graceful if no FDC3 Desktop Agent or post-trade settlement receiver is active.
+* **As a learner moving from 014 to 016**, I want a reproducible request-to-outcome demonstration (offline, via the local mock receiver) so I can understand the settlement lifecycle — correlation, duplicate prevention, rejection/timeout handling, and settlement status as a concept distinct from trade status — without any external service or testnet dependency.
 
 ---
 
 ## 3. Functional Requirements
 
-* **FR-01601**: TraderX Trade Blotter SHALL provide an explicit action button labelled `SETTLE (BANKERX)` on each confirmed trade row.
+* **FR-01601**: TraderX Trade Blotter SHALL provide an action button labelled `SETTLE (BANKERX)` on trade rows **only when `fdc3.findIntent("StartPayment")` resolves to at least one workspace participant**. Base TraderX with no post-trade participant (no mock receiver, no BankerX) SHALL render the pristine 014 blotter with no action column; the button appears dynamically when a participant declaring `StartPayment` support joins the workspace.
 * **FR-01602**: Clicking `SETTLE (BANKERX)` SHALL raise standard FDC3 3.0 intent `StartPayment` with a fully formed `fdc3.paymentContext` payload conforming to FINOS PR #2204.
 * **FR-01603**: The `fdc3.paymentContext` payload SHALL include:
   - `type`: `"fdc3.paymentContext"`
@@ -44,17 +47,25 @@ This specification completes the financial trading lifecycle by bridging **Trade
   - `creditor`: Trade seller entity name and settlement account
   - `networkRouting`: Declared routing preference (`Trilateral Powerhouse`, `Solana Token-2022`, or `XRPL Altnet`) and RFC 4122 UUIDv4 `uetr`
 * **FR-01604**: If the FDC3 Desktop Agent returns an `IntentResolution`, TraderX SHALL log the target application ID and resolution status in structured diagnostic logs.
-* **FR-01605**: If FDC3 is unavailable, clicking `SETTLE (BANKERX)` SHALL gracefully display a non-blocking toast notification: `"FDC3 Desktop Agent unavailable — launching BankerX via direct web dispatch"` and provide a fallback URI link to `https://terminal.synapticchain.xyz`.
-* **FR-01606**: TraderX SHALL listen for settlement confirmation callbacks or channel broadcast updates containing ISO 20022 `pacs.002` settlement status (`Acsc`) to mark blotter rows as `SETTLED`.
+* **FR-01605**: If FDC3 is unavailable, the blotter SHALL remain fully functional (014 baseline behavior; no action column is rendered because intent discovery cannot resolve). If a dispatched `StartPayment` intent fails to raise, TraderX SHALL display a non-blocking toast notification: `"FDC3 Desktop Agent unavailable — launching BankerX via direct web dispatch"` and provide a fallback URI link to `https://terminal.synapticchain.xyz`.
+* **FR-01606**: TraderX SHALL listen for settlement status broadcasts (`synaptic.settlementStatus`, carrying the ISO 20022 `pacs.002` status: `Acsc`, `Rjct`, `Pndg`) and flip the dispatched blotter row through `SETTLING…` → `SETTLED` / `REJECTED`, correlated strictly by matching UETR. Unmatched status reports SHALL be logged, never applied.
+* **FR-01607**: TraderX SHALL prevent duplicate settlement requests per trade row: a row with a settlement in flight (`Pndg`) or settled (`Acsc`) SHALL suppress further dispatches with an explanatory status message; a failed dispatch SHALL revert the row cleanly.
+* **FR-01608**: The generated 016 runtime SHALL include the local mock receiver (`generation/mock-receiver/`) as the DEFAULT settlement receiver so the request-to-outcome demonstration and tests are reproducible offline. The BankerX settlement terminal SHALL be supported as an opt-in reference adapter via an app-directory URL swap (provider-neutral; no TraderX change).
+* **FR-01609**: Settlement dispatch state in TraderX SHALL be session-scoped only (UETR, row correlation, status). No server-side persistence, no schema or migration changes.
 
 ---
 
 ## 4. Architectural Diagram: The Two-Tier Adapter Pattern
 
+Receiver variants behind the same FDC3 boundary (provider-neutral):
+
+- `Tier 2a — Local mock receiver (default)`: `generation/mock-receiver/`, dependency-free, offline-reproducible; emits `synaptic.settlementStatus` (`Acsc`/`Rjct`/`Pndg`).
+- `Tier 2b — BankerX reference adapter (opt-in)`: the live settlement terminal below.
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ TIER 1: FRONT-OFFICE EXECUTION (TraderX Angular Client)                     │
-│   • Trade Blotter: Row click -> Settle (BankerX)                            │
+│   • Trade Blotter: Row click -> Settle (BankerX) [findIntent-gated]         │
 │   • Dispatches: fdc3.raiseIntent("StartPayment", paymentContext)            │
 │   • Runtime: Pure web / FDC3 3.0 container (sub-2ms dispatch, zero crypto)    │
 └──────────────────────────────────────┬──────────────────────────────────────┘
