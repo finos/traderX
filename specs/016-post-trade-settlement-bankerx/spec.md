@@ -14,9 +14,9 @@ While **TraderX** provides institutional-grade pricing awareness, order matching
 
 This specification completes the financial trading lifecycle by bridging **TraderX** (Front-Office Execution) with **BankerX** (Post-Trade Clearing & Settlement):
 * When an FX trade execution occurs in the TraderX blotter, the trader can raise the standardized FINOS FDC3 3.0 intent:
-  $$\text{fdc3.raiseIntent("StartPayment", paymentContext)}$$
+  `fdc3.raiseIntent("StartPayment", paymentContext)`
 * The intent routes into **BankerX** (`synaptic-fx-terminal`), carrying the standardized `fdc3.paymentContext`.
-* BankerX executes pre-flight compliance via the **ADR-555 Alcove Runtime Guardian** (`<8ms`), screen sanctions via in-memory Bloom filters (zero wire leakage), verifies solvency ($\Delta \equiv 0$), and triggers atomic settlement across the **Trilateral Settlement Powerhouse** (Solana Token-2022 `RequiredMemoTransfers` + XRPL Altnet DENSE-16 SHAMap + SynapticChain L1 SMR) within **400 milliseconds**.
+* BankerX executes pre-flight compliance via the **ADR-555 Alcove Runtime Guardian** (sub-8ms), screen sanctions via in-memory Bloom filters (zero wire leakage), verifies solvency (Δ ≡ 0), and triggers atomic settlement across the **Trilateral Settlement Powerhouse** (Solana Token-2022 `RequiredMemoTransfers` + XRPL Altnet DENSE-16 SHAMap + SynapticChain L1 SMR) within **400 milliseconds**.
 * Canonical ISO 20022 `pacs.008` (Credit Transfer Initiation) and `pacs.002` (Payment Status Report / Receipt with `Acsc` confirmation) XML receipts are generated and bound to the RFC 4122 UUIDv4 SWIFT UETR.
 
 ---
@@ -24,7 +24,7 @@ This specification completes the financial trading lifecycle by bridging **Trade
 ## 2. User Stories
 
 * **As a spot FX trader**, I want to click "Settle Trade" directly from my TraderX execution blotter so that settlement instructions are immediately dispatched to the clearing desk without re-keying amounts, accounts, or currencies.
-* **As a clearing operations officer**, I want BankerX to receive FDC3 payment intents from TraderX, validate them against ISO 20022 CBPR+ schema rules, and screen counterparty identities locally in `<8ms` without leaking order book data over external network wires.
+* **As a clearing operations officer**, I want BankerX to receive FDC3 payment intents from TraderX, validate them against ISO 20022 CBPR+ schema rules, and screen counterparty identities locally in `sub-8ms` without leaking order book data over external network wires.
 * **As an enterprise compliance auditor**, I want every trade settlement to emit immutable ISO 20022 `pacs.002.001.10` settlement confirmation receipts that cryptographically bind the SWIFT UETR to on-chain transaction hashes.
 * **As a system maintainer**, I want the TraderX desktop experience to remain fully operational and graceful if no FDC3 Desktop Agent or BankerX settlement listener is active.
 
@@ -56,7 +56,7 @@ This specification completes the financial trading lifecycle by bridging **Trade
 │ TIER 1: FRONT-OFFICE EXECUTION (TraderX Angular Client)                     │
 │   • Trade Blotter: Row click -> Settle (BankerX)                            │
 │   • Dispatches: fdc3.raiseIntent("StartPayment", paymentContext)            │
-│   • Runtime: Pure web / FDC3 3.0 container (<2ms dispatch, zero crypto)    │
+│   • Runtime: Pure web / FDC3 3.0 container (sub-2ms dispatch, zero crypto)    │
 └──────────────────────────────────────┬──────────────────────────────────────┘
                                        │
                   Standard FDC3 Intent Bus / OpenFin / Sail

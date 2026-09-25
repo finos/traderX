@@ -30,7 +30,7 @@ flowchart LR
   desktopAgent -->|"Routes intent + context"| bankerx
   blotter -->|"No agent: fallback toast + direct dispatch"| bankerx
   paymentCtx -->|"Full ISO 20022-adjacent payload"| bankerx
-  bankerx -->|"Pre-flight compliance (<8ms)"| guardian
+  bankerx -->|"Pre-flight compliance (sub-8ms)"| guardian
   guardian -->|"Sanctions + solvency cleared"| rails
   rails -->|"Atomic settlement (Solana / XRPL / SYN)"| pacs8
   pacs8 -->|"Status report bound to UETR"| pacs2
@@ -48,7 +48,7 @@ flowchart LR
 | `desktopAgent` | service | FDC3 Desktop Agent | Optional; routes `StartPayment` intents and settlement-status contexts. |
 | `paymentCtx` | component | fdc3.paymentContext | UETR-keyed context conforming to the FINOS `paymentContext` proposal (PR #2204). |
 | `bankerx` | service | BankerX Settlement Terminal | Post-trade clearing: receives intents, validates, settles, reports. |
-| `guardian` | component | Alcove Runtime Guardian | Pre-flight compliance: sanctions screening (Bloom, in-memory), solvency (Δ ≡ 0), <8ms. |
+| `guardian` | component | Alcove Runtime Guardian | Pre-flight compliance: sanctions screening (Bloom, in-memory), solvency (Δ ≡ 0), sub-8ms. |
 | `rails` | service | Trilateral Settlement Powerhouse | Solana Token-2022 (RequiredMemoTransfers) + XRPL Altnet (DENSE-16 SHAMap) + SynapticChain L1 (256-lane SMR). |
 | `pacs8` | component | pacs.008 Generator | ISO 20022 credit transfer initiation bound to the RFC 4122 UUIDv4 UETR. |
 | `pacs2` | component | pacs.002 Generator | ISO 20022 payment status report (`Acsc`) with on-chain transaction hash bindings. |

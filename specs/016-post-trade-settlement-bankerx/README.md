@@ -11,5 +11,5 @@ This specification bridges **TraderX** (Front-Office Execution) with **BankerX**
 
 ## Architecture: Two-Tier Adapter Pattern
 1. **Tier 1 (TraderX)**: Raises pure, zero-crypto `fdc3.raiseIntent("StartPayment", paymentContext)`.
-2. **Tier 2 (BankerX & ADR-555 Enclave)**: Evaluates preflight compliance (in-memory Bloom sanctions filter, Mantis Invariant 9 solvency $\Delta=0$, 67-chain WOTS+ post-quantum signature) in `<8ms`.
+2. **Tier 2 (BankerX & ADR-555 Enclave)**: Evaluates preflight compliance (in-memory Bloom sanctions filter, Mantis Invariant 9 solvency Δ = 0, 67-chain WOTS+ post-quantum signature) in sub-8ms.
 3. **Tier 3 (Multi-Rail SMR)**: Settles atomically across Solana Token-2022 (`RequiredMemoTransfers`), XRPL Altnet DENSE-16 SHAMap, and SynapticChain L1 256-lane SMR.
