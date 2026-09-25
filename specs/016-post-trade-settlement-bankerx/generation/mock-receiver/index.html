@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Post-Trade Mock Receiver</title>
+<style>
+:root { color-scheme: dark; --bg:#0d1117; --panel:#161b22; --line:#30363d; --text:#e6edf3; --muted:#8b949e; --good:#3fb950; --bad:#f85149; --warn:#d29922; --accent:#58a6ff; }
+* { box-sizing: border-box; }
+body { margin:0; padding:24px 16px; background:var(--bg); color:var(--text); font:14px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.wrap { max-width: 880px; margin: 0 auto; }
+h1 { font-size: 15px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:0 0 4px; }
+.sub { color:var(--muted); font-size:12px; margin-bottom:18px; }
+.panel { border:1px solid var(--line); background:var(--panel); padding:14px 16px; margin-bottom:14px; }
+.panel h2 { font-size:12px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); margin:0 0 10px; }
+.empty { color:var(--muted); font-size:12.5px; }
+.kv { display:grid; grid-template-columns: 140px 1fr; gap:2px 12px; font-size:13px; }
+.kv dt { color:var(--muted); }
+.kv dd { margin:0; overflow-wrap:anywhere; }
+.badge { display:inline-block; padding:2px 8px; border:1px solid var(--line); font-size:11px; }
+.badge.good { border-color:var(--good); color:var(--good); }
+.badge.bad { border-color:var(--bad); color:var(--bad); }
+.badge.warn { border-color:var(--warn); color:var(--warn); }
+.badge.dup { border-color:var(--accent); color:var(--accent); }
+.agent { color:var(--muted); font-size:12px; }
+.agent b { color:var(--good); font-weight:600; }
+.raw { white-space:pre-wrap; word-break:break-all; font-size:11.5px; color:var(--muted); background:var(--bg); border:1px solid var(--line); padding:8px 10px; max-height:200px; overflow:auto; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Post-Trade Mock Receiver</h1>
+  <div class="sub">Local FDC3 participant — reference implementation of the request-to-outcome lesson (state 016, child of 014). Default receiver for offline demos and tests. The BankerX settlement terminal is the opt-in reference adapter.</div>
+
+  <div class="panel">
+    <h2>Desktop agent</h2>
+    <div class="agent" id="agentState">in-page agent: initializing…</div>
+  </div>
+
+  <div class="panel">
+    <h2>Received payments</h2>
+    <div class="empty" id="payments">No StartPayment intent received yet.</div>
+    <div id="paymentList"></div>
+  </div>
+</div>
+
+<script type="module">
+import { PaymentReceiver, toSettlementStatusContext } from './payment-lifecycle.mjs';
+
+const agentState = document.getElementById('agentState');
+const paymentsEl = document.getElementById('payments');
+const list = document.getElementById('paymentList');
+
+// In-page desktop agent: minimal FDC3 surface so the receiver behaves exactly
+// like any other workspace participant (intent resolution + status broadcast).
+const receivers = { StartPayment: [] };
+const userChannelContexts = [];
+const channel = {
+  id: 'fdc3channel-mock-receiver',
+  broadcast: (ctx) => { userChannelContexts.push(ctx); },
+  getCurrentContext: async () => userChannelContexts[userChannelContexts.length - 1] ?? null
+};
+window.fdc3 = {
+  addIntentListener: (intent, handler) => { receivers[intent] = receivers[intent] ?? []; receivers[intent].push(handler); return { unsubscribe() {} }; },
+  addContextListener: () => ({ unsubscribe() {} }),
+  raiseIntent: async () => ({}),
+  findIntent: async (intent) => ({ intent, apps: [{ appId: 'synaptic-mock-receiver', name: 'Post-Trade Mock Receiver' }] }),
+  broadcast: (ctx) => channel.broadcast(ctx),
+  getCurrentChannel: async () => channel
+};
+agentState.innerHTML = 'in-page agent: <b>ready</b> — declaring intent <code>StartPayment</code>';
+
+const receiver = new PaymentReceiver();
+
+async function handleStartPayment(context) {
+  paymentsEl.textContent = '';
+  const verdictBlock = document.createElement('div');
+  verdictBlock.className = 'panel';
+  const record = await receiver.receive(context);
+  const statusBadge = record.status === 'Acsc' ? '<span class="badge good">Acsc — SETTLED</span>'
+    : record.status === 'Rjct' ? '<span class="badge bad">Rjct — REJECTED</span>'
+    : '<span class="badge warn">Pndg — PENDING</span>';
+  const dupBadge = record.duplicate ? ' <span class="badge dup">DUPLICATE — first outcome replayed</span>' : '';
+  verdictBlock.innerHTML = `
+    <h2>${new Date().toISOString()} ${statusBadge}${dupBadge}</h2>
+    <dl class="kv">
+      <dt>UETR</dt><dd>${record.uetr}</dd>
+      <dt>rail</dt><dd>${record.rail ?? '—'}</dd>
+      <dt>amount</dt><dd>${context?.amount ?? '—'} ${context?.currency ?? ''}</dd>
+      <dt>pair</dt><dd>${context?.pair ?? '—'}</dd>
+      <dt>rate</dt><dd>${context?.rate ?? '—'}</dd>
+      <dt>debtor</dt><dd>${context?.debtor?.name ?? '—'} (${context?.debtor?.account ?? '—'})</dd>
+      <dt>creditor</dt><dd>${context?.creditor?.name ?? '—'} (${context?.creditor?.account ?? '—'})</dd>
+      <dt>detail</dt><dd>${record.detail ?? '—'}</dd>
+    </dl>
+    <div class="raw">${JSON.stringify(context, null, 2)}</div>`;
+  list.prepend(verdictBlock);
+  if (!record.duplicate) {
+    channel.broadcast(toSettlementStatusContext(record));
+  }
+}
+
+// Wire the agent's StartPayment intent to the receiver: registering the intent
+// listener is exactly what makes this app resolvable via findIntent — the
+// "declaring a name / intent" step any guest participant must not skip.
+window.fdc3.addIntentListener('StartPayment', (ctx) => handleStartPayment(ctx));
+</script>
+</body>
+</html>

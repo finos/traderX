@@ -1,0 +1,31 @@
+{
+  "appId": "synaptic-mock-receiver",
+  "name": "Post-Trade Mock Receiver",
+  "title": "Post-Trade Mock Receiver",
+  "description": "Local FDC3 participant demonstrating the request-to-outcome post-trade settlement lesson (016). Default receiver for offline demos and tests.",
+  "version": "1.0.0",
+  "tooltip": "Post-trade settlement mock receiver (016 child state)",
+  "icons": [],
+  "screenshots": [],
+  "contactEmail": "traderx@finos.org",
+  "supportEmail": "traderx@finos.org",
+  "publisher": "FINOS TraderX Spec 016",
+  "customConfig": [],
+  "hostManifests": {},
+  "interop": {
+    "intents": {
+      "listensFor": {
+        "StartPayment": {
+          "displayName": "Start Payment",
+          "contexts": ["fdc3.paymentContext"]
+        }
+      },
+      "broadcasts": ["synaptic.settlementStatus"]
+    },
+    "standardContexts": ["fdc3.paymentContext"]
+  },
+  "details": {
+    "url": "../mock-receiver/index.html"
+  },
+  "type": "web"
+}
