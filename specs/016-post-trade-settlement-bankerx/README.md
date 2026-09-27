@@ -12,13 +12,16 @@ receiver using **FINOS FDC3 3.0** experimental intent/context (`StartPayment`,
 `fdc3.paymentContext`, [FDC3 PR #2204](https://github.com/finos/FDC3/pull/2204))
 and ISO 20022 `pacs.008` / `pacs.002` messaging.
 
-**Provider-neutral by design:** two receiver variants ship with the pack:
+**Provider-neutral by design:** three deployment & receiver variants ship with the pack:
 
 - **Local mock receiver (default)** — `generation/mock-receiver/`, dependency-free
   and offline-reproducible; the demo and tests never require an external service.
 - **BankerX reference adapter (opt-in)** — the live settlement terminal
   ([terminal.synapticchain.xyz](https://terminal.synapticchain.xyz), labeled
   XRPL TESTNET (altnet) / Solana DEVNET), swapped in via an app-directory URL change.
+- **Standalone Web Blotter Reference** — `generation/traderx-blotter-web/`,
+  live at [traderx.synapticchain.xyz](https://traderx.synapticchain.xyz) with
+  FDC3 App Directory at `/appd.json` and direct on-chain Solana consensus verification.
 
 ## The new lesson (014 → 016)
 
