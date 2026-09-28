@@ -15,7 +15,7 @@ function gate(name, fn) {
 }
 
 const validContext = {
-  type: 'fdc3.paymentContext',
+  type: 'fdc3.payment',
   id: { UETR: '6f1e0e2a-1b3f-4c8d-9a2b-3c4d5e6f7a8b' },
   amount: 1000,
   currency: 'USD',
@@ -91,9 +91,17 @@ await gate('G: honest rejection is recorded, not silently dropped', async () => 
   assert.equal(receiver.settlements.get(validContext.id.UETR).status, 'Rjct');
 });
 
+await gate('H2: legacy fdc3.paymentContext type still accepted (backward compatibility)', async () => {
+  const receiver = new PaymentReceiver();
+  const legacyCtx = JSON.parse(JSON.stringify(validContext));
+  legacyCtx.type = 'fdc3.paymentContext';
+  const record = await receiver.receive(legacyCtx);
+  assert.equal(record.status, 'Acsc');
+});
+
 await gate('H: schema-invalid context is rejected with reason (honest outcome)', async () => {
   const receiver = new PaymentReceiver();
-  const record = await receiver.receive({ type: 'fdc3.paymentContext', id: {} });
+  const record = await receiver.receive({ type: 'fdc3.payment', id: {} });
   assert.equal(record.status, 'Rjct');
   assert.match(record.detail, /schema:/);
 });

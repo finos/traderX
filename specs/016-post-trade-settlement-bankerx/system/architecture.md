@@ -27,7 +27,7 @@ flowchart LR
   traderxUi["TraderX Angular UI"]
   blotter["Trade Blotter (findIntent-gated SETTLE action)"]
   desktopAgent["FDC3 Desktop Agent"]
-  paymentCtx["fdc3.paymentContext (UETR-keyed)"]
+  paymentCtx["fdc3.payment (UETR-keyed)"]
   receiver["Settlement Receiver (mock = default / BankerX = reference)"]
   guardian["ADR-555 Alcove Runtime Guardian"]
   rails["Trilateral Settlement Powerhouse"]
@@ -55,7 +55,7 @@ flowchart LR
 | `traderxUi` | service | TraderX Angular UI | Front-office execution views + settlement adapter (frontend-scoped, 016 overlay). |
 | `blotter` | component | Trade Blotter | `SETTLE (BANKERX)` action appears only when `findIntent('StartPayment')` resolves; rows flip `SETTLING…` / `SETTLED` / `REJECTED`; duplicate dispatch suppressed. |
 | `desktopAgent` | service | FDC3 Desktop Agent | Optional; routes `StartPayment` intents, resolves participant capability, relays settlement-status contexts. |
-| `paymentCtx` | component | fdc3.paymentContext | UETR-keyed context conforming to the FINOS `paymentContext` proposal (PR #2204). |
+| `paymentCtx` | component | fdc3.payment | UETR-keyed context per the FINOS PR #2204 proposal. |
 | `receiver` | service | Settlement Receiver | Provider-neutral: local mock receiver (default) or BankerX terminal. Validates, dedupes by UETR, settles, reports honestly. |
 | `guardian` | component | Alcove Runtime Guardian | Pre-flight compliance (BankerX variant only): sanctions screening (Bloom, in-memory), solvency (Δ ≡ 0), sub-8ms. |
 | `rails` | service | Trilateral Settlement Powerhouse | Solana Token-2022 (RequiredMemoTransfers) + XRPL Altnet (DENSE-16 SHAMap) + SynapticChain L1 (256-lane SMR); BankerX variant only. |

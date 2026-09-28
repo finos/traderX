@@ -245,7 +245,7 @@ tbody tr:hover td{background:rgba(255,255,255,.015);}
     <span class="pipe">|</span>
     <div class="fdc3-badge">
       <div class="dot b" style="animation-duration:3s"></div>
-      <span>fdc3.paymentContext</span>
+      <span>fdc3.payment</span>
     </div>
   </div>
 
@@ -368,7 +368,7 @@ tbody tr:hover td{background:rgba(255,255,255,.015);}
     <div class="btm">
       <div class="btm-chain">
         <span>TraderX</span>
-        <span class="arr">→ fdc3.raiseIntent("StartPayment", fdc3.paymentContext) →</span>
+        <span class="arr">→ fdc3.raiseIntent("StartPayment", fdc3.payment) →</span>
         <span class="hi">BankerX ADR-555 Enclave</span>
         <span class="arr">→</span>
         <span class="gr">Solana Token-2022 + XRPL Altnet + SynapticChain L1</span>
@@ -376,7 +376,7 @@ tbody tr:hover td{background:rgba(255,255,255,.015);}
       <div style="display:flex;align-items:center;gap:8px">
         <span>Spec 016 · PR #470 · FDC3 PR #2204</span>
         <span class="pipe">|</span>
-        <span>fdc3.paymentContext · ISO 20022 pacs.008/pacs.002 · RFC 4122 UETR</span>
+        <span>fdc3.payment · ISO 20022 pacs.008/pacs.002 · RFC 4122 UETR</span>
       </div>
     </div>
   </div>
@@ -670,9 +670,9 @@ window.settleTrade = async (id) => {
     } catch (e) {}
   }
 
-  // Build canonical fdc3.paymentContext per Spec 016 FR-01603 with verified Token-2022 accounts
+  // Build canonical fdc3.payment context (FINOS PR #2204 name) per Spec 016 FR-01603 with verified Token-2022 accounts
   const ctx = {
-    type: 'fdc3.paymentContext',
+    type: 'fdc3.payment',
     id: { UETR: t.uetr },
     amount: t.amount,
     currency: t.pair.split('/')[0],
@@ -709,7 +709,7 @@ window.settleTrade = async (id) => {
     if (bankerxWin && !bankerxWin.closed) {
       bankerxWin.focus();
       bankerxWin.postMessage(ctx, '*');
-      log('s', `[FDC3 FR-01602] fdc3.paymentContext dispatched to BankerX window`);
+      log('s', `[FDC3 FR-01602] fdc3.payment dispatched to BankerX window`);
     }
   } catch (err) {
     console.warn('postMessage dispatch non-fatal error:', err);

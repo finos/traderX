@@ -9,7 +9,7 @@ state-transition generation plan).
 
 It bridges **TraderX** (Front-Office Execution) with a post-trade settlement
 receiver using **FINOS FDC3 3.0** experimental intent/context (`StartPayment`,
-`fdc3.paymentContext`, [FDC3 PR #2204](https://github.com/finos/FDC3/pull/2204))
+`fdc3.payment` — the exact context type proposed in [FDC3 PR #2204](https://github.com/finos/FDC3/pull/2204))
 and ISO 20022 `pacs.008` / `pacs.002` messaging.
 
 **Provider-neutral by design:** three deployment & receiver variants ship with the pack:

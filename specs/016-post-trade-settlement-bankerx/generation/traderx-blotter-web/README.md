@@ -12,7 +12,7 @@ This directory provides the standalone, dependency-free **TraderX Spec 016 Web B
 ### Capabilities & Key Features
 
 1. **FINOS FDC3 3.0 Intent Dispatch:**
-   - Raises standard `StartPayment` intent with full `fdc3.paymentContext` payloads carrying RFC 4122 UUIDv4 SWIFT UETRs, currency pairs, notional amounts, execution rates, and debtor/creditor metadata.
+   - Raises standard `StartPayment` intent with full `fdc3.payment` payloads carrying RFC 4122 UUIDv4 SWIFT UETRs, currency pairs, notional amounts, execution rates, and debtor/creditor metadata.
    - Dispatches seamlessly via desktop agent or cross-window `postMessage` to the BankerX clearinghouse ([terminal.synapticchain.xyz](https://terminal.synapticchain.xyz)).
 
 2. **FR-01601 Intent Discovery Gating:**

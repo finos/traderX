@@ -14,7 +14,7 @@ Runs the SAME provider-neutral lifecycle module the mock receiver page uses
 (`specs/016-*/generation/mock-receiver/payment-lifecycle.mjs`), so demo and test
 share one implementation. Gates:
 
-- Valid `fdc3.paymentContext` passes CBPR+ field-level validation.
+- Valid `fdc3.payment` passes CBPR+ field-level validation (legacy `fdc3.paymentContext` also accepted).
 - UETR is RFC 4122 UUIDv4; wrong context type rejected.
 - Malformed payloads rejected field-by-field with honest reasons.
 - Happy path settles `Acsc` and builds the `synaptic.settlementStatus` broadcast.

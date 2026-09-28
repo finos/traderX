@@ -189,7 +189,7 @@ export class Fdc3InteropService {
 
         const uetr = paymentContext.uetr || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `UETR-${Date.now()}`);
         const context = {
-            type: 'fdc3.paymentContext',
+            type: 'fdc3.payment', // FINOS PR #2204 context type
             id: { UETR: uetr },
             amount: paymentContext.amount,
             currency: paymentContext.currency,

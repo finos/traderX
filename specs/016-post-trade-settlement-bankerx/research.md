@@ -7,7 +7,7 @@ Complete the trading lifecycle beyond execution: let TraderX blotter rows dispat
 ## Inputs Reviewed
 
 - `spec.md` (016) and the `014-fdc3-intent-interoperability` transition delta
-- FINOS FDC3 3.0 intent/context usage patterns; our authored `fdc3.paymentContext` context type (FINOS PR #2204)
+- FINOS FDC3 3.0 intent/context usage patterns; our authored `fdc3.payment` context type (FINOS PR #2204)
 - ISO 20022 CBPR+ message structure: pacs.008 (credit transfer initiation) → pacs.002 (payment status report, `Acsc`)
 - RFC 4122 UUIDv4 UETR as the end-to-end settlement reference
 - BankerX reference implementation (`synaptic-fx-terminal`): ADR-555 Alcove Runtime Guardian pre-flight, sanctions Bloom screening, solvency check, atomic settlement across the Trilateral Settlement Powerhouse (Solana Token-2022 `RequiredMemoTransfers`, XRPL Altnet DENSE-16 SHAMap, SynapticChain L1 SMR)

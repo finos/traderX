@@ -17,7 +17,7 @@ While **TraderX** provides institutional-grade pricing awareness, order matching
 This specification completes the financial trading lifecycle by bridging **TraderX** (Front-Office Execution) with **BankerX** (Post-Trade Clearing & Settlement):
 * When an FX trade execution occurs in the TraderX blotter, the trader can raise the standardized FINOS FDC3 3.0 intent:
   `fdc3.raiseIntent("StartPayment", paymentContext)`
-* The intent routes into **BankerX** (`synaptic-fx-terminal`), carrying the standardized `fdc3.paymentContext`.
+* The intent routes into **BankerX** (`synaptic-fx-terminal`), carrying the standardized `fdc3.payment` context (per FINOS PR #2204).
 * BankerX executes pre-flight compliance via the **ADR-555 Alcove Runtime Guardian** (sub-8ms), screen sanctions via in-memory Bloom filters (zero wire leakage), verifies solvency (Δ ≡ 0), and triggers atomic settlement across the **Trilateral Settlement Powerhouse** (Solana Token-2022 `RequiredMemoTransfers` + XRPL Altnet DENSE-16 SHAMap + SynapticChain L1 SMR) within **400 milliseconds**.
 * Canonical ISO 20022 `pacs.008` (Credit Transfer Initiation) and `pacs.002` (Payment Status Report / Receipt with `Acsc` confirmation) XML receipts are generated and bound to the RFC 4122 UUIDv4 SWIFT UETR.
 
@@ -36,9 +36,9 @@ This specification completes the financial trading lifecycle by bridging **Trade
 ## 3. Functional Requirements
 
 * **FR-01601**: TraderX Trade Blotter SHALL provide an action button labelled `SETTLE (BANKERX)` on trade rows **only when `fdc3.findIntent("StartPayment")` resolves to at least one workspace participant**. Base TraderX with no post-trade participant (no mock receiver, no BankerX) SHALL render the pristine 014 blotter with no action column; the button appears dynamically when a participant declaring `StartPayment` support joins the workspace.
-* **FR-01602**: Clicking `SETTLE (BANKERX)` SHALL raise standard FDC3 3.0 intent `StartPayment` with a fully formed `fdc3.paymentContext` payload conforming to FINOS PR #2204.
-* **FR-01603**: The `fdc3.paymentContext` payload SHALL include:
-  - `type`: `"fdc3.paymentContext"`
+* **FR-01602**: Clicking `SETTLE (BANKERX)` SHALL raise standard FDC3 3.0 intent `StartPayment` with a fully formed `fdc3.payment` payload per FINOS PR #2204.
+* **FR-01603**: The `fdc3.payment` payload SHALL include:
+  - `type`: `"fdc3.payment"` (PR #2204; receivers accept legacy `"fdc3.paymentContext"` for backward compatibility)
   - `amount`: Gross executed notional quantity
   - `currency`: Base currency of the traded instrument (e.g. `USD`)
   - `pair`: Canonical currency pair (e.g. `USD/KES`, `USD/ZMW`, `EUR/USD`)

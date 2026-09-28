@@ -17,12 +17,12 @@
       "listensFor": {
         "StartPayment": {
           "displayName": "Start Payment",
-          "contexts": ["fdc3.paymentContext"]
+          "contexts": ["fdc3.payment"]
         }
       },
       "broadcasts": ["synaptic.settlementStatus"]
     },
-    "standardContexts": ["fdc3.paymentContext"]
+    "standardContexts": ["fdc3.payment"]
   },
   "details": {
     "url": "../mock-receiver/index.html"

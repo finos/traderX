@@ -5,11 +5,11 @@
 
 ---
 
-## 1. FDC3 Context Contract: `fdc3.paymentContext`
+## 1. FDC3 Context Contract: `fdc3.payment`
 
 ```typescript
 export interface FDC3PaymentContext {
-  type: "fdc3.paymentContext";
+  type: "fdc3.payment";
   id?: {
     UETR?: string; // RFC 4122 UUIDv4
     originalMsgId?: string;

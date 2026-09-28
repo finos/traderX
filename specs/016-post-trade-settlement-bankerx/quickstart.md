@@ -22,7 +22,7 @@ Expected UI endpoint:
 Settlement note for this state:
 
 - Each confirmed blotter row carries a `SETTLE (BANKERX)` action.
-- With an FDC3 Desktop Agent present, the action raises `StartPayment` with a complete `fdc3.paymentContext` (UETR-keyed).
+- With an FDC3 Desktop Agent present, the action raises `StartPayment` with a complete `fdc3.payment` context (UETR-keyed, per FINOS PR #2204).
 - Without a Desktop Agent, TraderX shows a non-blocking toast and links to `https://terminal.synapticchain.xyz` for direct web dispatch (FR-01605).
 
 ## 3) Operator Demo Script

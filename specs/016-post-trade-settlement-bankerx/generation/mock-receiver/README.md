@@ -10,7 +10,7 @@ ship with the pack.
 
 | File | Purpose |
 |---|---|
-| `index.html` | Self-contained receiver UI: renders the `fdc3.paymentContext`, shows the lifecycle outcome, broadcasts `synaptic.settlementStatus` on the user channel |
+| `index.html` | Self-contained receiver UI: renders the `fdc3.payment` context, shows the lifecycle outcome, broadcasts `synaptic.settlementStatus` on the user channel |
 | `payment-lifecycle.mjs` | Provider-neutral lifecycle module: payload validation, duplicate-dispatch prevention, status transitions (`Pndg` → `Acsc` / `Rjct`), shared by the page AND the smoke tests |
 | `appd/mock-receiver.appd.json` | App-directory record declaring `StartPayment` support — the receiver-registration reference |
 
@@ -24,7 +24,7 @@ ship with the pack.
 
 A workspace participant is only reachable by intent if it registers like this:
 
-1. **App record declares the intent** (`interop.intents.listensFor.StartPayment` with `fdc3.paymentContext` in its contexts) — an app record without the intent declaration is invisible to `findIntent`, and a raised `StartPayment` never routes to it. This is the failure mode of a guest app "not declaring a name".
+1. **App record declares the intent** (`interop.intents.listensFor.StartPayment` with `fdc3.payment` in its contexts) — an app record without the intent declaration is invisible to `findIntent`, and a raised `StartPayment` never routes to it. This is the failure mode of a guest app "not declaring a name".
 2. **The app name/title is set in its app-directory record** — intent routing surfaces this name in the resolution UI.
 3. **The runtime registers an intent listener** (`fdc3.addIntentListener('StartPayment', ...)`) — the appd record advertises capability; the listener implements it.
 

@@ -7,7 +7,7 @@
 - [x] T01605 Author operator/developer run instructions in `quickstart.md`.
 - [x] T01606 Define interoperability contract deltas in `contracts/contract-delta.md`.
 - [x] T01607 Author architecture deltas in `system/architecture.md` (trilateral settlement topology).
-- [x] T01608 Implement the `fdc3.paymentContext` builder (amount, currency, pair, rate, debtor, creditor, networkRouting, `uetr`) per FR-01603.
+- [x] T01608 Implement the `fdc3.payment` builder (amount, currency, pair, rate, debtor, creditor, networkRouting, `uetr`) per FR-01603.
 - [x] T01609 Implement FDC3 3.0 Desktop Agent capability detection with structured resolution logging (FR-01604).
 - [x] T01610 Implement the `SETTLE (BANKERX)` action on confirmed Trade Blotter rows (FR-01601).
 - [x] T01611 Dispatch `fdc3.raiseIntent("StartPayment", paymentContext)` from the blotter action (FR-01602).

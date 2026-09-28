@@ -12,14 +12,16 @@ export const STATUS = {
 const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /**
- * Validates an fdc3.paymentContext payload (CBPR+ field-level checks).
+ * Validates an fdc3.payment payload (FINOS PR #2204 name; legacy Spec 016
+ * "fdc3.paymentContext" accepted for backward compatibility).
  * Returns { valid: true, context } or { valid: false, reason }.
  */
 export function validatePaymentContext(context) {
     if (!context || typeof context !== 'object') {
         return { valid: false, reason: 'not_an_object' };
     }
-    if (context.type !== 'fdc3.paymentContext') {
+    const ACCEPTED = ['fdc3.payment', 'fdc3.paymentContext'];
+    if (!ACCEPTED.includes(context.type)) {
         return { valid: false, reason: 'wrong_context_type' };
     }
     const uetr = context?.id?.UETR;

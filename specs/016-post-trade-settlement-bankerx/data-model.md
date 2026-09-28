@@ -9,7 +9,7 @@ State `016` introduces post-trade settlement data shapes in the TraderX frontend
 ### Added (frontend/domain models)
 
 - `Fdc3PaymentContext`
-  - The canonical outbound settlement context (`type: "fdc3.paymentContext"`).
+  - The canonical outbound settlement context (`type: "fdc3.payment"` per FINOS PR #2204).
   - Required fields: `type`, `amount`, `currency`, `pair`, `rate`, `debtor`, `creditor`, `networkRouting.uetr`.
   - Optional fields: `networkRouting.route` (`Trilateral Powerhouse` | `Solana Token-2022` | `XRPL Altnet`), memo metadata.
 - `SettlementInstruction`

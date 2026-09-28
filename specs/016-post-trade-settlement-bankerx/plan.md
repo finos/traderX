@@ -5,7 +5,7 @@
 - Transition from `014-fdc3-intent-interoperability` to `016-post-trade-settlement-bankerx`.
 - Track focus: `functional`.
 - Complete the post-trade leg of the trading lifecycle: bridge TraderX front-office execution to BankerX (post-trade clearing & settlement) through FINOS FDC3 3.0 intents.
-- Frontend-led integration: TraderX UI raises `StartPayment` with `fdc3.paymentContext`; no backend service contract changes.
+- Frontend-led integration: TraderX UI raises `StartPayment` with `fdc3.payment` (the PR #2204 context type; legacy `fdc3.paymentContext` accepted inbound); no backend service contract changes.
 
 ## Deliverables
 
@@ -19,7 +19,7 @@
    - `system/architecture.md`
 3. Frontend settlement adapter (Angular, generated state overlay):
    - `SETTLE (BANKERX)` action on confirmed Trade Blotter rows
-   - `fdc3.paymentContext` builder (amount, currency, pair, rate, debtor, creditor, networkRouting, UUIDv4 `uetr`)
+   - `fdc3.payment` builder (amount, currency, pair, rate, debtor, creditor, networkRouting, UUIDv4 `uetr`)
    - `fdc3.raiseIntent("StartPayment", paymentContext)` dispatch with FDC3 3.0 agent detection
    - graceful fallback to direct web dispatch (`https://terminal.synapticchain.xyz`) when no Desktop Agent is present
    - inbound `pacs.002` (`Acsc`) settlement-status handling that marks blotter rows `SETTLED`
@@ -33,7 +33,7 @@
 
 ## Phased Execution
 
-1. Phase A: Finalize the `fdc3.paymentContext` schema deltas (requirements + contracts) against FINOS PR #2204.
+1. Phase A: Finalize the `fdc3.payment` schema deltas (requirements + contracts) against FINOS PR #2204.
 2. Phase B: Implement the settlement adapter primitives (context builder, agent detection, fallback dispatch).
 3. Phase C: Wire the `SETTLE (BANKERX)` control into the Trade Blotter and row-selection state.
 4. Phase D: Implement inbound settlement-status listeners (pacs.002 `Acsc`) and blotter row settlement marking.

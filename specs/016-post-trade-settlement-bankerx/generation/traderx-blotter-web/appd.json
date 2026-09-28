@@ -4,7 +4,7 @@
       "appId": "finos-traderx-desk",
       "name": "TraderX",
       "title": "FINOS TraderX Execution Blotter",
-      "description": "Institutional reference trading platform for Spot FX trade execution, raising FDC3 3.0 StartPayment intents with fdc3.paymentContext per FINOS PR #2204 and Spec 016.",
+      "description": "Institutional reference trading platform for Spot FX trade execution, raising FDC3 3.0 StartPayment intents with fdc3.payment (FINOS PR #2204) per Spec 016.",
       "version": "0.16.0",
       "publisher": "FINOS",
       "type": "web",
@@ -22,7 +22,7 @@
             "StartPayment": {
               "displayName": "Start Payment (BankerX DvP)",
               "contexts": [
-                "fdc3.paymentContext"
+                "fdc3.payment"
               ]
             }
           },
@@ -36,7 +36,7 @@
           }
         },
         "standardContexts": [
-          "fdc3.paymentContext",
+          "fdc3.payment",
           "synaptic.settlementStatus"
         ]
       }
@@ -58,7 +58,7 @@
             "StartPayment": {
               "displayName": "Start Payment",
               "contexts": [
-                "fdc3.paymentContext"
+                "fdc3.payment"
               ]
             }
           },
@@ -67,7 +67,7 @@
           ]
         },
         "standardContexts": [
-          "fdc3.paymentContext",
+          "fdc3.payment",
           "synaptic.settlementStatus"
         ]
       }
