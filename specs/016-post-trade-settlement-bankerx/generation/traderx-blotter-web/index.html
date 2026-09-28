@@ -434,6 +434,7 @@ tbody tr:hover td{background:rgba(255,255,255,.015);}
     <div class="msec">Alcove Enclave · ADR-555</div>
     <div class="mrow"><span class="k">ENCLAVE SCREEN</span><span class="v" id="imScreen">—</span></div>
     <div class="mrow"><span class="k">DESK BINDING</span><span class="v" id="imDesk">rendezvous SHA3(debtor‖pair) % 256</span></div>
+    <div class="mrow"><span class="k">ATTESTATION</span><span class="v" id="imAttest">—</span></div>
     <div class="mrow"><span class="k">STATE</span><span class="v mv-warn" id="imState">RAISING…</span></div>
   </div>
 </div>
@@ -456,7 +457,7 @@ tbody tr:hover td{background:rgba(255,255,255,.015);}
 </div>
 
 <!-- FINOS FDC3 3.0 Desktop Agent (built from fdc3-agent/ on @finos/fdc3-web-impl) -->
-<script src="./fdc3-agent.js?v=9"></script>
+<script src="./fdc3-agent.js?v=10"></script>
 <script type="module">
 import { validatePaymentContext, toSettlementStatusContext, STATUS } from './payment-lifecycle.mjs';
 
@@ -603,7 +604,8 @@ window.addEventListener('message', (evt) => {
         status: status === 'Acsc' ? STATUS.ACCEPTED : status,
         txSignature: d.txSignature,
         explorerUrl: d.explorerUrl,
-        slot: d.slot
+        slot: d.slot,
+        alcoveVerified: d.alcoveVerified
       });
     }
   }
@@ -626,7 +628,8 @@ setInterval(async () => {
           status: status === 'Acsc' ? STATUS.ACCEPTED : status,
           txSignature: data.txSignature,
           explorerUrl: data.explorerUrl,
-          slot: data.slot
+          slot: data.slot,
+          alcoveVerified: data.alcoveVerified
         });
       }
     }
@@ -635,7 +638,7 @@ setInterval(async () => {
   }
 }, 500);
 
-function applySettlementStatus({ uetr, status, txSignature, explorerUrl, slot }) {
+function applySettlementStatus({ uetr, status, txSignature, explorerUrl, slot, alcoveVerified }) {
   let matched = false;
   trades.forEach(t => {
     if (t.uetr !== uetr) return;
@@ -652,10 +655,23 @@ function applySettlementStatus({ uetr, status, txSignature, explorerUrl, slot })
       t.explorerUrl = `https://explorer.solana.com/tx/${txSignature}?cluster=devnet`;
     }
     if (slot) t.slot = slot;
+    if (alcoveVerified === true) t.alcoveVerified = true;
     matched = true;
   });
   if (matched) {
     renderBlotter();
+    const attestEl = document.getElementById('imAttest');
+    if (attestEl) {
+      // Derive from the trade record too: the on-chain watcher path settles
+      // trades without an alcoveVerified-bearing status message (S9).
+      const matchedTrade = trades.find(t => t.uetr === uetr);
+      const av = alcoveVerified === true || matchedTrade?.alcoveVerified === true;
+      attestEl.innerHTML = av
+        ? '<span class="mv-ok">VERIFIED · desk-side WOTS+ re-derivation</span>'
+        : alcoveVerified === false
+          ? '<span class="mv-red">FAILED · honest reject</span>'
+          : '—';
+    }
     if (status === STATUS.ACCEPTED || status === 'Acsc' || status === 'SETTLED') {
       log('s', `[FDC3 FR-01606] synaptic.settlementStatus Acsc received · UETR: ${uetr.slice(0,16)}…`);
       if (txSignature) {
@@ -700,7 +716,22 @@ async function checkOnChainSettlement() {
           t.txSignature = sigInfo.signature;
           t.slot = sigInfo.slot;
           t.explorerUrl = `https://explorer.solana.com/tx/${sigInfo.signature}?cluster=devnet`;
+          // The desk settles ONLY after its desk-side WOTS+ re-derivation
+          // passes (a failed attestation honest-rejects and creates no
+          // settlement), so an on-chain settlement memo for this UETR implies
+          // the enclave attestation was verified desk-side (S9/S3 display
+          // seam: the watcher path bypasses the status payload's
+          // alcoveVerified flag — derive it here instead).
+          if (t.enclaveDispatched) t.alcoveVerified = true;
           renderBlotter();
+          // The watcher usually wins the race against the status payloads
+          // (2.5s beat), and applySettlementStatus no-ops on SETTLED rows —
+          // so the ATTESTATION row must be updated here too (S9).
+          const attestEl = document.getElementById('imAttest');
+          if (attestEl && t.alcoveVerified === true) {
+            attestEl.innerHTML =
+              '<span class="mv-ok">VERIFIED · desk-side WOTS+ re-derivation</span>';
+          }
           log('s', `[ON-CHAIN SETTLED] Solana Token-2022 Slot #${sigInfo.slot} · Tx: ${sigInfo.signature.slice(0,16)}…`);
           log('s', `[ISO 20022] Cryptographic pacs.008 memo verified on Solana consensus`);
           showReceiptModal(t);
@@ -755,7 +786,7 @@ window.execTrade = () => {
 window.settleTrade = async (id, mode) => {
   const t = trades.find(x => x.id === id);
   if (!t || t.status !== 'EXECUTED') return;
-  const targetAppId = mode === 'enclave' ? 'bankerx-clearing-desk-eu' : 'bankerx-clearing-desk';
+  const targetAppId = mode === 'enclave' ? 'bankerx-clearing-desk-geneva' : 'bankerx-clearing-desk';
 
   // FR-01607: duplicate-dispatch guard
   if (dispatchedUetrs.has(t.uetr)) {
@@ -798,6 +829,7 @@ window.settleTrade = async (id, mode) => {
 
   // Dispatch
   t.status = 'SETTLING';
+  t.enclaveDispatched = mode === 'enclave';
   dispatchedUetrs.add(t.uetr);
   renderBlotter();
 
@@ -883,6 +915,7 @@ function showIntentModal(t, targetAppId, mode) {
     : 'FDC3 raiseIntent over WCP';
   document.getElementById('imScreen').textContent = '—';
   document.getElementById('imDesk').textContent = 'rendezvous SHA3(debtor‖pair) % 256';
+  document.getElementById('imAttest').textContent = '—';
   document.getElementById('imState').textContent = 'RAISING…';
   document.getElementById('imState').className = 'v mv-warn';
   m.dataset.seen = '1';
@@ -966,7 +999,7 @@ function renderBlotter() {
     if (t.status === 'EXECUTED' && receiverAvailable) {
       action = `<button class="settle-btn" onclick="settleTrade(${t.id})">SETTLE (BANKERX)</button>` +
         `<button class="settle-btn" style="margin-left:4px;border-color:rgba(240,180,41,.45);color:var(--amber);background:rgba(240,180,41,.08)" ` +
-        `title="Directory-miss path: raise targeted at a desk NOT in the App Directory — the Alcove ADR-555 enclave screens it and routes to the bound clearing desk" ` +
+        `title="Directory-miss path: raise targeted at a desk NOT in the App Directory — the Alcove ADR-555 enclave screens it, the rendezvous lane routes it to a real partition desk, and the desk re-verifies the enclave attestation before settling" ` +
         `onclick="settleTrade(${t.id},'enclave')">SETTLE (ENCLAVE)</button>`;
     } else if (t.status === 'EXECUTED' && !receiverAvailable) {
       action = `<span style="font-size:7px;color:var(--txt3);letter-spacing:.5px">LAUNCH BANKERX →</span>`;

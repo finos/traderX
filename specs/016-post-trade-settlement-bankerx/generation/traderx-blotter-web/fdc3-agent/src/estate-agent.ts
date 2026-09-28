@@ -156,16 +156,18 @@ class EstateServerContext implements ServerContext<AppRegistration> {
     from: { appId?: string; instanceId?: string };
   } | null = null;
 
-  // The last raiseIntent carrying `fdc3.payment` context (adapter-eligible —
-  // see ADAPTER_SCREEN_CONTEXT). Its requestUuid is matched against the
-  // library's error response in maybeResolveAdapterError so ONLY the missed
-  // raise is intercepted; every other response passes through untouched.
-  private lastAdapterRaise: {
+  // Adapter-eligible raises (fdc3.payment) keyed by requestUuid (S7): the
+  // library's error response for a missed raise is matched and intercepted in
+  // maybeResolveAdapterError by requestUuid — a keyed map means concurrent
+  // directory-miss raises can never mis-attribute each other's responses.
+  // Capped FIFO so a long session cannot grow it unboundedly.
+  private adapterRaises: Map<string, {
     requestUuid?: string;
     intent: string;
     context: unknown;
     targetAppId?: string;
-  } | null = null;
+  }> = new Map();
+  private static readonly ADAPTER_RAISES_CAP = 50;
 
   setFDC3Server(server: FDC3Server): void {
     this.server = server;
@@ -191,20 +193,26 @@ class EstateServerContext implements ServerContext<AppRegistration> {
     if (msg.type === "findInstancesRequest" && msg.payload?.app?.appId) {
       this.lastFindInstancesAppId = msg.payload.app.appId;
     }
-    // Adapter-eligible raise (fdc3.payment): remember it so its ERROR
-    // response (the library's NoAppsFound for a directory miss) can be
-    // resolved through the Alcove enclave screen in maybeResolveAdapterError.
+    // Adapter-eligible raise (fdc3.payment): remember it keyed by requestUuid
+    // so its ERROR response (the library's NoAppsFound for a directory miss)
+    // can be resolved through the Alcove enclave screen in
+    // maybeResolveAdapterError — and so concurrent misses never collide.
     if (
       msg.type === "raiseIntentRequest" &&
       msg.payload?.intent &&
       msg.payload?.context?.type === ADAPTER_SCREEN_CONTEXT
     ) {
-      this.lastAdapterRaise = {
+      const key = msg.meta?.requestUuid ?? `noid-${this.adapterRaises.size}`;
+      if (this.adapterRaises.size >= EstateServerContext.ADAPTER_RAISES_CAP) {
+        const oldest = this.adapterRaises.keys().next().value;
+        if (oldest !== undefined) this.adapterRaises.delete(oldest);
+      }
+      this.adapterRaises.set(key, {
         requestUuid: msg.meta?.requestUuid,
         intent: msg.payload.intent,
         context: msg.payload.context,
         targetAppId: msg.payload.app?.appId ?? msg.payload.target?.appId,
-      };
+      });
       adapterTrace({
         stage: "adapter-raise",
         intent: msg.payload.intent,
@@ -310,28 +318,38 @@ class EstateServerContext implements ServerContext<AppRegistration> {
       );
       return true;
     }
+    // 2. Route by the rendezvous lane (S2) and deliver through the real
+    //    server path. Prefer the routed desk's RUNNING instance
+    //    (forwardRequest — no new window); when no instance is connected,
+    //    the synth launches the routed desk via the normal FDC3 open path.
+    const desk = this.resolveRoutedDesk(screen.lane);
     adapterTrace({
       stage: "screen-passed",
       uetr,
       lane: screen.lane,
       latencyMs: screen.latencyMs,
-      desk: screen.desk,
+      desk,
     });
-
-    // 2. Deliver to the rendezvous-bound desk through the real server path.
-    //    Prefer the desk's RUNNING instance (forwardRequest — no new window);
-    //    when no instance is connected, the synth launches the desk.
     const deskReg = this.connections.find(
-      (c) => c.appId === screen.desk && c.state === State.Connected
+      (c) => c.appId === desk && c.state === State.Connected
     );
+    // ADR-555 desk-side attestation (S3): the delivered context carries the
+    // enclave's WOTS+ proof + derivation timestamp; the desk re-derives the
+    // leaf root through the enclave's verify_preflight tool BEFORE settling
+    // and honest-rejects on mismatch. The caller's context is never mutated —
+    // only the synthesized delivery is enriched.
+    const deliveredContext =
+      screen.wotsPlus && screen.timestamp
+        ? { ...(context as object), alcove: { lane: screen.lane, timestamp: screen.timestamp, wotsPlus: screen.wotsPlus } }
+        : context;
     const synth = {
       type: "raiseIntentRequest",
       payload: {
         intent: msg.payload.intent,
-        context,
+        context: deliveredContext,
         app: deskReg
-          ? { appId: screen.desk, instanceId: deskReg.instanceId }
-          : { appId: screen.desk },
+          ? { appId: desk, instanceId: deskReg.instanceId }
+          : { appId: desk },
       },
       meta: {
         requestUuid: this.createUUID(),
@@ -344,7 +362,7 @@ class EstateServerContext implements ServerContext<AppRegistration> {
       if (this.server) {
         await Promise.resolve(this.server.receive(synth, fromInstanceId));
         const freshReg = this.connections.find(
-          (c) => c.appId === screen.desk && c.state === State.Connected
+          (c) => c.appId === desk && c.state === State.Connected
         );
         deliveredInstance = deskReg?.instanceId ?? freshReg?.instanceId ?? null;
       }
@@ -368,7 +386,7 @@ class EstateServerContext implements ServerContext<AppRegistration> {
     adapterTrace({
       stage: "desk-delivered",
       uetr,
-      desk: screen.desk,
+      desk,
       lane: screen.lane,
       instanceId: deliveredInstance,
     });
@@ -386,8 +404,8 @@ class EstateServerContext implements ServerContext<AppRegistration> {
           intentResolution: {
             intent: msg.payload.intent,
             source: deliveredInstance
-              ? { appId: screen.desk, instanceId: deliveredInstance }
-              : { appId: screen.desk },
+              ? { appId: desk, instanceId: deliveredInstance }
+              : { appId: desk },
           },
         },
       },
@@ -425,9 +443,10 @@ class EstateServerContext implements ServerContext<AppRegistration> {
       meta?: { requestUuid?: string };
     };
     if (m.type !== "raiseIntentResponse" || !m.payload?.error) return;
-    const raise = this.lastAdapterRaise;
-    if (!raise || !m.meta?.requestUuid || m.meta.requestUuid !== raise.requestUuid) return;
-    this.lastAdapterRaise = null; // consume — never intercept this raise twice
+    const raiseKey = m.meta?.requestUuid ?? "";
+    const raise = this.adapterRaises.get(raiseKey) ?? null;
+    if (!raise) return;
+    this.adapterRaises.delete(raiseKey); // consume — never intercept this raise twice
     const uetr =
       (raise.context as { id?: { UETR?: string } })?.id?.UETR ?? raise.requestUuid ?? "unknown";
 
@@ -438,21 +457,30 @@ class EstateServerContext implements ServerContext<AppRegistration> {
       adapterTrace({ stage: "screen-rejected", uetr, reason: screen.reason });
       return;
     }
+
+    // 2. Route by lane (S2) and deliver to the routed desk through the real
+    //    server path (running instance preferred, else the open path).
+    const desk = this.resolveRoutedDesk(screen.lane);
     adapterTrace({
       stage: "screen-passed",
       uetr,
       lane: screen.lane,
       latencyMs: screen.latencyMs,
-      desk: screen.desk,
+      desk,
     });
-
-    // 2. Deliver to the rendezvous-bound desk through the real server path.
+    const deskReg = this.connections.find(
+      (c) => c.appId === desk && c.state === State.Connected
+    );
+    const deliveredContext =
+      screen.wotsPlus && screen.timestamp
+        ? { ...(raise.context as object), alcove: { lane: screen.lane, timestamp: screen.timestamp, wotsPlus: screen.wotsPlus } }
+        : raise.context;
     const synth = {
       type: "raiseIntentRequest",
       payload: {
         intent: raise.intent,
-        context: raise.context,
-        app: { appId: screen.desk },
+        context: deliveredContext,
+        app: deskReg ? { appId: desk, instanceId: deskReg.instanceId } : { appId: desk },
       },
       meta: {
         requestUuid: this.createUUID(),
@@ -464,10 +492,10 @@ class EstateServerContext implements ServerContext<AppRegistration> {
     try {
       if (this.server) {
         await Promise.resolve(this.server.receive(synth, to));
-        const deskReg = this.connections.find(
-          (c) => c.appId === screen.desk && c.state === State.Connected
+        const freshReg = this.connections.find(
+          (c) => c.appId === desk && c.state === State.Connected
         );
-        deliveredInstance = deskReg?.instanceId ?? null;
+        deliveredInstance = deskReg?.instanceId ?? freshReg?.instanceId ?? null;
       }
     } catch (e) {
       console.error("[EstateDA] Enclave-adapter desk delivery failed:", e);
@@ -478,7 +506,7 @@ class EstateServerContext implements ServerContext<AppRegistration> {
     adapterTrace({
       stage: "desk-delivered",
       uetr,
-      desk: screen.desk,
+      desk,
       lane: screen.lane,
       instanceId: deliveredInstance,
     });
@@ -489,21 +517,25 @@ class EstateServerContext implements ServerContext<AppRegistration> {
       intentResolution: {
         intent: raise.intent,
         source: deliveredInstance
-          ? { appId: screen.desk, instanceId: deliveredInstance }
-          : { appId: screen.desk },
+          ? { appId: desk, instanceId: deliveredInstance }
+          : { appId: desk },
       },
     };
   }
 
-  /** ADR-555 pre-flight over the Alcove enclave's JSON-RPC MCP endpoint. */
+  /** ADR-555 pre-flight over the Alcove enclave's JSON-RPC MCP endpoint.
+   *  Desk routing is NOT done here — the lane it returns is routed by
+   *  resolveRoutedDesk() afterwards (S2). */
   private async runEnclaveScreen(context: unknown): Promise<{
     passed: boolean;
     reason: string;
     lane: number | null;
     latencyMs: number | null;
-    desk: string;
+    /** WOTS+ proof + derivation timestamp from the report, for the desk-side
+     * attestation verification (S3). Present only on PASS. */
+    wotsPlus?: Record<string, unknown>;
+    timestamp?: string;
   }> {
-    const desk = this.resolveBoundDesk();
     const url =
       (this.directory.retrieveAppsById(ADAPTER_APP_ID)[0]?.details as { url?: string } | undefined)
         ?.url ?? DEFAULT_ENCLAVE_MCP_URL;
@@ -527,29 +559,35 @@ class EstateServerContext implements ServerContext<AppRegistration> {
           pair: ctx?.pair ?? "USD/USD",
           debtor: ctx?.debtor?.name ?? "Unknown Debtor",
           creditor: ctx?.creditor?.name ?? "Unknown Creditor",
-          // Invariant-9 defaults: gross = net + 0.50% TSA levy (delta == 0).
-          tsaFee: amount > 0 ? amount * 0.005 : 0.005,
-          netAmount: amount > 0 ? amount * 0.995 : 1,
+          // No tsaFee/netAmount sent: the guardian derives the levy from its
+          // canonical 0.50% schedule server-side (S4) — the caller no longer
+          // supplies the solvency arithmetic.
         },
       },
     };
+    const fail = (reason: string) =>
+      ({ passed: false, reason, lane: null, latencyMs: null, wotsPlus: undefined, timestamp: undefined });
     try {
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!res.ok) return { passed: false, reason: `EnclaveHTTP${res.status}`, lane: null, latencyMs: null, desk };
+      if (!res.ok) return fail(`EnclaveHTTP${res.status}`);
       const data = (await res.json()) as {
         result?: { content?: Array<{ type: string; text: string }> };
       };
       const text = data.result?.content?.find((c) => c.type === "text")?.text;
-      if (!text) return { passed: false, reason: "EnclaveEmptyReport", lane: null, latencyMs: null, desk };
+      if (!text) return fail("EnclaveEmptyReport");
       const report = JSON.parse(text) as {
         passed?: boolean;
         error?: string;
         totalLatencyMs?: number;
         concurrencyAllocation?: { laneId?: number };
+        attestation?: {
+          timestamp?: string;
+          wotsPlus?: Record<string, unknown>;
+        };
       };
       const passed = report.passed === true;
       return {
@@ -557,31 +595,38 @@ class EstateServerContext implements ServerContext<AppRegistration> {
         reason: passed ? "" : report.error ?? "EnclavePreflightFailed",
         lane: report.concurrencyAllocation?.laneId ?? null,
         latencyMs: report.totalLatencyMs ?? null,
-        desk,
+        wotsPlus: report.attestation?.wotsPlus,
+        timestamp: report.attestation?.timestamp,
       };
     } catch (e) {
-      return {
-        passed: false,
-        reason: `EnclaveUnreachable:${(e as Error)?.message ?? e}`,
-        lane: null,
-        latencyMs: null,
-        desk,
-      };
+      return fail(`EnclaveUnreachable:${(e as Error)?.message ?? e}`);
     }
   }
 
   /**
-   * The desk a screened intent is bound to: the Alcove record's declared desk
-   * (hostManifests.demo.deskAppId) when the directory carries it, else the
-   * estate constant. Single-desk estate: the rendezvous lane (computed inside
-   * the enclave pre-flight, SHA3(debtor‖pair) % 256) is recorded in the trace;
-   * delivery always lands on this desk.
+   * The desk a screened intent is routed to (S2): the enclave-computed lane
+   * (SHA3(debtor‖pair) % 256) is mapped through the Alcove record's
+   * `customProps.alcovePartitions` — the App Directory v2 spec-sanctioned
+   * extension point — to a real desk appId. Falls back to the record's
+   * declared desk, then the estate constant.
    */
-  private resolveBoundDesk(): string {
+  private resolveRoutedDesk(lane: number | null): string {
     const record = this.directory.retrieveAppsById(ADAPTER_APP_ID)[0] as
-      | (DirectoryApp & { hostManifests?: { demo?: { deskAppId?: string } } })
+      | (DirectoryApp & {
+          customProps?: {
+            alcoveDesk?: string;
+            alcovePartitions?: Array<{ lanes: string; desk: string }>;
+          };
+        })
       | undefined;
-    return record?.hostManifests?.demo?.deskAppId ?? ADAPTER_DESK_APP_ID;
+    const partitions = record?.customProps?.alcovePartitions;
+    if (lane !== null && partitions?.length) {
+      for (const p of partitions) {
+        const m = /^(\d+)\s*-\s*(\d+)$/.exec(p.lanes);
+        if (m && lane >= Number(m[1]) && lane <= Number(m[2])) return p.desk;
+      }
+    }
+    return record?.customProps?.alcoveDesk ?? ADAPTER_DESK_APP_ID;
   }
 
   async narrowIntents(_raiser: AppIdentifier, appIntents: AppIntent[]): Promise<AppIntent[]> {
