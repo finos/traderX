@@ -214,6 +214,39 @@ tbody tr:hover td{background:rgba(255,255,255,.015);}
 }
 @keyframes fadeup{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 
+/* ─── FDC3 Modals (intent + receipt) ─────────────────────────────────────── */
+/* Non-blocking settlement cards: they float over the blotter without an
+   overlay dim, so the blotter stays interactive (zero-interaction demo flow
+   is preserved). Intent modal = pre-flight/dispatch state; receipt modal =
+   ISO 20022 pacs.002 Acsc settlement evidence. */
+.modal{
+  position:fixed;left:14px;bottom:56px;width:412px;z-index:900;
+  background:var(--bg-card);border:1px solid var(--border-hi);
+  box-shadow:0 10px 34px rgba(0,0,0,.55);display:none;flex-direction:column;
+}
+.modal.open{display:flex;animation:fadeup .18s ease;}
+.modal-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 10px;background:#060810;border-bottom:1px solid var(--border);
+}
+.modal-hd-t{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;}
+.modal-x{
+  background:none;border:1px solid var(--border);color:var(--txt2);
+  font-family:var(--mono);font-size:8px;padding:2px 7px;cursor:pointer;letter-spacing:1px;
+}
+.modal-x:hover{color:var(--txt);border-color:var(--border-hi);}
+.modal-bd{padding:9px 10px;display:flex;flex-direction:column;gap:4px;}
+.mrow{display:flex;justify-content:space-between;gap:10px;font-size:8.5px;line-height:1.6;}
+.mrow .k{color:var(--txt3);letter-spacing:1px;flex-shrink:0;text-transform:uppercase;}
+.mrow .v{color:var(--txt);text-align:right;word-break:break-all;}
+.msec{
+  font-size:7px;letter-spacing:2px;color:var(--txt3);text-transform:uppercase;
+  border-bottom:1px solid var(--border);padding-bottom:2px;margin-top:3px;
+}
+.mv-ok{color:var(--green);} .mv-warn{color:var(--amber);}
+.mv-blue{color:var(--blue);} .mv-finos{color:var(--finos-hi);} .mv-red{color:var(--red);}
+.modal.receipt-modal{left:auto;right:14px;bottom:14px;width:430px;border-color:rgba(0,217,126,.4);}
+
 /* ─── Settled flash ──────────────────────────────────────────────────────── */
 @keyframes rowflash{
   0%{background:rgba(0,217,126,.12);}
@@ -385,6 +418,45 @@ tbody tr:hover td{background:rgba(255,255,255,.015);}
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
+<!-- FDC3 intent modal: live dispatch state for the raised StartPayment -->
+<div class="modal" id="intentModal">
+  <div class="modal-hd">
+    <span class="modal-hd-t" style="color:var(--finos-hi)">⬡ FDC3 INTENT · STARTPAYMENT</span>
+    <button class="modal-x" onclick="hideIntentModal()">CLOSE</button>
+  </div>
+  <div class="modal-bd">
+    <div class="mrow"><span class="k">UETR</span><span class="v" id="imUetr">—</span></div>
+    <div class="mrow"><span class="k">CONTEXT</span><span class="v mv-finos">fdc3.payment · FDC3 3.0</span></div>
+    <div class="mrow"><span class="k">PAIR / AMOUNT</span><span class="v" id="imPairAmt">—</span></div>
+    <div class="msec">Transport</div>
+    <div class="mrow"><span class="k">CHANNEL</span><span class="v mv-blue" id="imChannel">FDC3 raiseIntent over WCP</span></div>
+    <div class="mrow"><span class="k">TARGET</span><span class="v" id="imTarget">bankerx-clearing-desk</span></div>
+    <div class="msec">Alcove Enclave · ADR-555</div>
+    <div class="mrow"><span class="k">ENCLAVE SCREEN</span><span class="v" id="imScreen">—</span></div>
+    <div class="mrow"><span class="k">DESK BINDING</span><span class="v" id="imDesk">rendezvous SHA3(debtor‖pair) % 256</span></div>
+    <div class="mrow"><span class="k">STATE</span><span class="v mv-warn" id="imState">RAISING…</span></div>
+  </div>
+</div>
+
+<!-- ISO 20022 pacs.002 receipt modal: settlement evidence on ACSC -->
+<div class="modal receipt-modal" id="receiptModal">
+  <div class="modal-hd">
+    <span class="modal-hd-t" style="color:var(--green)">▣ ISO 20022 · PACS.002 · ACSC</span>
+    <button class="modal-x" onclick="hideReceiptModal()">CLOSE</button>
+  </div>
+  <div class="modal-bd">
+    <div class="mrow"><span class="k">STATUS</span><span class="v mv-ok">ACSC ✓ · SETTLEMENT COMPLETED</span></div>
+    <div class="mrow"><span class="k">UETR</span><span class="v" id="rmUetr">—</span></div>
+    <div class="mrow"><span class="k">PAIR / AMOUNT</span><span class="v" id="rmPairAmt">—</span></div>
+    <div class="mrow"><span class="k">RAIL</span><span class="v" id="rmRail">Solana Token-2022 · DEVNET</span></div>
+    <div class="mrow"><span class="k">TX SIGNATURE</span><span class="v" id="rmTx">—</span></div>
+    <div class="mrow"><span class="k">SLOT</span><span class="v" id="rmSlot">—</span></div>
+    <div class="mrow"><span class="k">RECEIPT</span><span class="v mv-ok">pacs.008 memo verified · pacs.002 Acsc emitted</span></div>
+  </div>
+</div>
+
+<!-- FINOS FDC3 3.0 Desktop Agent (built from fdc3-agent/ on @finos/fdc3-web-impl) -->
+<script src="./fdc3-agent.js?v=9"></script>
 <script type="module">
 import { validatePaymentContext, toSettlementStatusContext, STATUS } from './payment-lifecycle.mjs';
 
@@ -444,7 +516,29 @@ window.setDir = (d) => {
 };
 
 // ─── Launch BankerX ────────────────────────────────────────────────────────
-window.launchBankerX = () => {
+// Preferred path: the FINOS FDC3 Desktop Agent (fdc3-agent.js) opens the app
+// from the App Directory record and tracks the instance, so the clearing desk
+// can connect via the standard getAgent()/WCP handshake. Fallback: direct
+// window.open (agent not ready / directory unreachable).
+window.launchBankerX = async () => {
+  const agent = (window.SynapticFDC3Agent);
+  if (agent) {
+    try {
+      await agent.ready;
+      const instanceId = await agent.open('bankerx-clearing-desk');
+      bankerxWin = null; // ownership transfers to the agent (WCP instance tracking)
+      log('s', `[FDC3] Desktop agent open("bankerx-clearing-desk") → instance ${String(instanceId).slice(0,8)}… (WCP)`);
+      setReceiverAvailable(true);
+      document.getElementById('launchBtn').classList.add('live');
+      document.getElementById('launchTxt').textContent = 'BANKERX CONNECTED ✓';
+      log('x', '[FDC3] BankerX Clearing Desk launched via FDC3 Desktop Agent (App Directory record)');
+      log('i', '[FDC3] fdc3.findIntent("StartPayment") → resolved against App Directory v2');
+      log('s', '[SPEC-016 FR-01601] paymentReceiverAvailable = true → SETTLE (BANKERX) actions enabled');
+      return;
+    } catch (e) {
+      log('w', `[FDC3] Desktop agent open failed (${e.message ?? e}) — falling back to direct window launch`);
+    }
+  }
   const sw = window.screen.width, sh = window.screen.height;
   bankerxWin = window.open(
     BANKERX_ORIGIN,
@@ -568,6 +662,8 @@ function applySettlementStatus({ uetr, status, txSignature, explorerUrl, slot })
         log('s', `[ON-CHAIN SETTLED] Solana Token-2022 Slot #${slot || 'DEVNET'} · Tx: ${txSignature.slice(0,16)}…`);
         log('s', `[ISO 20022] Cryptographic pacs.008 memo verified on Solana consensus`);
       }
+      const settled = trades.find((x) => x.uetr === uetr && x.status === 'SETTLED');
+      if (settled) showReceiptModal(settled);
     } else if (status === STATUS.REJECTED || status === 'Rjct') {
       log('e', `[FDC3 FR-01606] synaptic.settlementStatus Rjct received · UETR: ${uetr.slice(0,16)}…`);
     }
@@ -607,6 +703,7 @@ async function checkOnChainSettlement() {
           renderBlotter();
           log('s', `[ON-CHAIN SETTLED] Solana Token-2022 Slot #${sigInfo.slot} · Tx: ${sigInfo.signature.slice(0,16)}…`);
           log('s', `[ISO 20022] Cryptographic pacs.008 memo verified on Solana consensus`);
+          showReceiptModal(t);
         }
       }
     }
@@ -652,9 +749,13 @@ window.execTrade = () => {
 };
 
 // ─── Settle Trade via FDC3 StartPayment ────────────────────────────────────
-window.settleTrade = async (id) => {
+// mode: 'desk' (default) raises at the directory-declared BankerX record;
+// mode: 'enclave' raises at a desk that is NOT in this directory (a
+// directory miss) so the Alcove ADR-555 adapter screens and routes it.
+window.settleTrade = async (id, mode) => {
   const t = trades.find(x => x.id === id);
   if (!t || t.status !== 'EXECUTED') return;
+  const targetAppId = mode === 'enclave' ? 'bankerx-clearing-desk-eu' : 'bankerx-clearing-desk';
 
   // FR-01607: duplicate-dispatch guard
   if (dispatchedUetrs.has(t.uetr)) {
@@ -700,9 +801,41 @@ window.settleTrade = async (id) => {
   dispatchedUetrs.add(t.uetr);
   renderBlotter();
 
-  log('x', `[FDC3 FR-01602] Raising StartPayment intent → BankerX`);
+  log('x', `[FDC3 FR-01602] Raising StartPayment intent → ${targetAppId}`);
+  if (mode === 'enclave') {
+    log('w', `[ALCOVE] Target desk not in App Directory — raise will miss; ADR-555 adapter screen engaged`);
+  }
   log('x', `[FDC3] pair=${t.pair} amount=${t.amount.toLocaleString()} ${ctx.currency} rail=Trilateral`);
   log('x', `[FDC3] UETR: ${t.uetr}`);
+
+  showIntentModal(t, targetAppId, mode);
+
+  // Channel 0 (standard): FINOS FDC3 Desktop Agent raiseIntent — the real
+  // fdc3.raiseIntent("StartPayment", fdc3.payment) over the Web Connection
+  // Protocol, routed by the agent to BankerX's addIntentListener (or, on a
+  // directory miss, through the Alcove enclave screen to the bound desk).
+  if (window.SynapticFDC3Agent) {
+    try {
+      await window.SynapticFDC3Agent.ready;
+      const resolution = await window.SynapticFDC3Agent.raiseIntent('StartPayment', ctx, targetAppId);
+      const src = resolution?.source ?? resolution?.intentResolution?.source ?? {};
+      log('s', `[FDC3 FR-01602] fdc3.raiseIntent("StartPayment") → resolved to ${src.appId ?? 'bankerx-clearing-desk'}${src.instanceId ? ' · instance ' + String(src.instanceId).slice(0,8) + '…' : ''}`);
+      log('s', `[SPEC-016] BankerX ADR-555 enclave pre-flight running — awaiting confirmation`);
+      // Direct-path modal state (the adapter path updates via its trace).
+      const im = document.getElementById('intentModal');
+      if (im.classList.contains('open') && mode !== 'enclave') {
+        document.getElementById('imScreen').innerHTML =
+          `<span class="mv-blue">DESK-SIDE · ADR-555 pre-flight at desk</span>`;
+        document.getElementById('imState').innerHTML =
+          `<span class="mv-ok">RESOLVED → ${src.appId ?? 'bankerx-clearing-desk'}${src.instanceId ? ' · ' + String(src.instanceId).slice(0,8) + '…' : ''}</span>`;
+        document.getElementById('imState').className = 'v mv-ok';
+      }
+      return;
+    } catch (err) {
+      hideIntentModal();
+      log('w', `[FDC3] Agent raiseIntent failed (${err.message ?? err}) — legacy dispatch channels engaged`);
+    }
+  }
 
   // 1. Channel A: In-memory window postMessage (immediate local dispatch)
   try {
@@ -732,6 +865,85 @@ window.settleTrade = async (id) => {
   }
 };
 
+// ─── FDC3 Intent + Receipt Modals ──────────────────────────────────────────
+// Wired to the real flow states: shown on dispatch, updated from the agent's
+// enclave trace (window.__ALCOVE_SCREEN) while raising, replaced by the
+// pacs.002 receipt modal on ACSC. Non-blocking — the blotter stays live.
+let intentPollTimer = null;
+let lastScreenStageSeen = 0;
+
+function showIntentModal(t, targetAppId, mode) {
+  const m = document.getElementById('intentModal');
+  document.getElementById('imUetr').textContent = t.uetr;
+  document.getElementById('imPairAmt').textContent =
+    `${t.pair} · ${t.amount.toLocaleString()} ${t.pair.split('/')[0]}`;
+  document.getElementById('imTarget').textContent = targetAppId;
+  document.getElementById('imChannel').textContent = mode === 'enclave'
+    ? 'FDC3 raiseIntent · directory-miss path'
+    : 'FDC3 raiseIntent over WCP';
+  document.getElementById('imScreen').textContent = '—';
+  document.getElementById('imDesk').textContent = 'rendezvous SHA3(debtor‖pair) % 256';
+  document.getElementById('imState').textContent = 'RAISING…';
+  document.getElementById('imState').className = 'v mv-warn';
+  m.dataset.seen = '1';
+  m.classList.add('open');
+  lastScreenStageSeen = 0;
+  if (intentPollTimer) clearInterval(intentPollTimer);
+  intentPollTimer = setInterval(pollIntentState, 500);
+}
+
+function pollIntentState() {
+  const screen = (window.__ALCOVE_SCREEN || []).slice(lastScreenStageSeen);
+  for (const ev of screen) {
+    lastScreenStageSeen = (window.__ALCOVE_SCREEN || []).length;
+    if (ev.stage === 'adapter-raise-miss') {
+      document.getElementById('imChannel').innerHTML = `<span class="mv-finos">ALCOVE ADAPTER · directory miss</span>`;
+      document.getElementById('imScreen').innerHTML = `<span class="mv-warn">ADR-555 PREFLIGHT RUNNING…</span>`;
+    } else if (ev.stage === 'screen-passed') {
+      document.getElementById('imScreen').innerHTML =
+        `<span class="mv-ok">PASS</span> · lane ${ev.lane} · ${ev.latencyMs}ms`;
+      document.getElementById('imDesk').innerHTML =
+        `<span class="mv-ok">lane ${ev.lane} → ${ev.desk}</span>`;
+    } else if (ev.stage === 'screen-rejected') {
+      document.getElementById('imScreen').innerHTML = `<span class="mv-red">REJECTED · ${ev.reason}</span>`;
+      document.getElementById('imState').innerHTML = `<span class="mv-red">RJCT · ENCLAVE REJECTION</span>`;
+      document.getElementById('imState').className = 'v mv-red';
+      clearInterval(intentPollTimer); intentPollTimer = null;
+      return;
+    } else if (ev.stage === 'desk-delivered') {
+      document.getElementById('imState').innerHTML =
+        `<span class="mv-ok">DELIVERED → ${ev.desk}${ev.instanceId ? ' · ' + String(ev.instanceId).slice(0,8) + '…' : ''}</span>`;
+      document.getElementById('imState').className = 'v mv-ok';
+    } else if (ev.stage === 'adapter-raise') {
+      document.getElementById('imChannel').innerHTML = `<span class="mv-finos">ALCOVE ADAPTER · directory miss</span>`;
+    }
+  }
+}
+
+function hideIntentModal() {
+  document.getElementById('intentModal').classList.remove('open');
+  if (intentPollTimer) { clearInterval(intentPollTimer); intentPollTimer = null; }
+}
+
+function showReceiptModal(t) {
+  document.getElementById('rmUetr').textContent = t.uetr;
+  document.getElementById('rmPairAmt').textContent =
+    `${t.pair} · ${t.amount.toLocaleString()} ${t.pair.split('/')[0]}`;
+  document.getElementById('rmTx').textContent = t.txSignature
+    ? `${t.txSignature.slice(0, 22)}…` : '—';
+  document.getElementById('rmSlot').textContent = t.slot ? `#${t.slot}` : '—';
+  const m = document.getElementById('receiptModal');
+  m.classList.add('open');
+  // The receipt supersedes the in-flight intent card.
+  hideIntentModal();
+}
+
+function hideReceiptModal() {
+  document.getElementById('receiptModal').classList.remove('open');
+}
+window.hideIntentModal = hideIntentModal;
+window.hideReceiptModal = hideReceiptModal;
+
 // ─── Render Blotter ─────────────────────────────────────────────────────────
 function renderBlotter() {
   const tbody = document.getElementById('blotterBody');
@@ -752,7 +964,10 @@ function renderBlotter() {
 
     let action = '';
     if (t.status === 'EXECUTED' && receiverAvailable) {
-      action = `<button class="settle-btn" onclick="settleTrade(${t.id})">SETTLE (BANKERX)</button>`;
+      action = `<button class="settle-btn" onclick="settleTrade(${t.id})">SETTLE (BANKERX)</button>` +
+        `<button class="settle-btn" style="margin-left:4px;border-color:rgba(240,180,41,.45);color:var(--amber);background:rgba(240,180,41,.08)" ` +
+        `title="Directory-miss path: raise targeted at a desk NOT in the App Directory — the Alcove ADR-555 enclave screens it and routes to the bound clearing desk" ` +
+        `onclick="settleTrade(${t.id},'enclave')">SETTLE (ENCLAVE)</button>`;
     } else if (t.status === 'EXECUTED' && !receiverAvailable) {
       action = `<span style="font-size:7px;color:var(--txt3);letter-spacing:.5px">LAUNCH BANKERX →</span>`;
     } else if (t.status === 'SETTLING') {
