@@ -124,7 +124,9 @@ class EstateServerContext implements ServerContext<AppRegistration> {
     // getConnectedApps() and a stale Connected registration makes closed
     // apps keep resolving. Sweep every second; Terminated also triggers
     // server.cleanup so pending intents to the dead instance are dropped.
-    this.sweepTimer = setInterval(() => this.sweepClosedWindows(), 1000);
+    // Tight sweep: a closed window that lingers Pending instead of flipping
+    // to Terminated makes handshake-gated instance reads over-wait on it.
+    this.sweepTimer = setInterval(() => this.sweepClosedWindows(), 250);
   }
 
   private sweepClosedWindows(): void {
@@ -238,19 +240,40 @@ class EstateServerContext implements ServerContext<AppRegistration> {
     }
   }
 
-  private sanitizeFindInstancesResponse(message: object): void {
+  // Bounded handshake wait bound: a launched instance is Pending until its
+  // page load + WCP handshake complete. Instance reads (findInstances,
+  // isAppConnected) hold for this window instead of answering with a set that
+  // overstates readiness (Pending entries a close-chain can never reach) or
+  // understates it (instant TargetInstanceUnavailable while a page loads).
+  private static readonly HANDSHAKE_WAIT_MS = 2000;
+
+  private async gateFindInstancesResponse(message: object): Promise<void> {
     if ((message as { type?: string }).type !== "findInstancesResponse") return;
     const requested = this.lastFindInstancesAppId;
     if (!requested) return;
-    const payload = (message as { payload?: { appIdentifiers?: unknown[] } }).payload;
-    if (!payload || !Array.isArray(payload.appIdentifiers)) return;
-    const merged = [...payload.appIdentifiers];
-    for (const c of this.connections) {
-      if (c.appId !== requested || c.state === State.Terminated) continue;
-      if (merged.some((m) => (m as { instanceId?: string }).instanceId === c.instanceId)) continue;
-      merged.push({ appId: c.appId, instanceId: c.instanceId });
+    // Hold the response until every launched (non-Terminated) instance of the
+    // requested app has completed its WCP handshake — or the bounded wait
+    // expires (a page that never connects is genuinely unreachable and is
+    // honestly excluded). Then recompute the payload from the true Connected
+    // set. Replaces the earlier Pending top-up: that response overstated
+    // readiness, so suite close-chains (closeMockAppWindow) counted
+    // instances that had not subscribed to the control channel yet and never
+    // answered the closeWindow broadcast.
+    const deadline = Date.now() + EstateServerContext.HANDSHAKE_WAIT_MS;
+    for (;;) {
+      const unsettled = this.connections.some(
+        (c) => c.appId === requested && c.state !== State.Terminated && c.state !== State.Connected
+      );
+      if (!unsettled || Date.now() >= deadline) break;
+      await new Promise((r) => setTimeout(r, 60));
     }
-    payload.appIdentifiers = merged;
+    const payload = (
+      message as { payload?: { appIdentifiers?: { appId: string; instanceId: string }[] } }
+    ).payload;
+    if (!payload || !Array.isArray(payload.appIdentifiers)) return;
+    payload.appIdentifiers = this.connections
+      .filter((c) => c.appId === requested && c.state === State.Connected)
+      .map((c) => ({ appId: c.appId, instanceId: c.instanceId }));
   }
 
   /**
@@ -711,7 +734,7 @@ class EstateServerContext implements ServerContext<AppRegistration> {
     // reshaped into an intentResolution before it reaches the caller.
     await this.maybeResolveAdapterError(message, to);
     this.sanitizeFindIntentResponses(message);
-    this.sanitizeFindInstancesResponse(message);
+    await this.gateFindInstancesResponse(message);
     const reg = this.getInstanceDetails(to);
     // Loopback registrations (the DA page itself) have a messagePort but no
     // window; launched apps may briefly have neither while connecting.
@@ -924,6 +947,20 @@ class EstateServerContext implements ServerContext<AppRegistration> {
   }
 
   async isAppConnected(app: InstanceID): Promise<boolean> {
+    const snap = this.connections.find((c) => c.instanceId === app);
+    // Unknown instance: the caller targeted something outside this estate —
+    // keep the instant-false contract (RaiseIntentFailTargetedAppInstance
+    // expects an immediate TargetInstanceUnavailable for a bogus instanceId).
+    if (snap === undefined) return false;
+    // Known instance still mid-handshake: hold briefly for the WCP
+    // handshake to complete instead of rejecting a page that is seconds
+    // into loading (raiseIntent-at-first-instance timing).
+    const deadline = Date.now() + EstateServerContext.HANDSHAKE_WAIT_MS;
+    let cur = snap;
+    while (cur.state === State.Pending && Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 50));
+      cur = this.connections.find((c) => c.instanceId === app) ?? cur;
+    }
     return this.connections.some((c) => c.instanceId === app && c.state === State.Connected);
   }
 
