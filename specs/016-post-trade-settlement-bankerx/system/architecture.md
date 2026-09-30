@@ -1,4 +1,4 @@
-# FDC3 Post-Trade DvP Settlement (TraderX ↔ BankerX)
+# FDC3 Post-Trade Cash-Leg Settlement (TraderX ↔ BankerX)
 
 State 016 completes the trading lifecycle: TraderX front-office execution dispatches standardized settlement instructions to a post-trade settlement receiver through FINOS FDC3 3.0.
 

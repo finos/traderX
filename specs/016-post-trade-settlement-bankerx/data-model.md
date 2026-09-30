@@ -1,4 +1,4 @@
-# Data Model: FDC3 Post-Trade DvP Settlement (TraderX ↔ BankerX)
+# Data Model: FDC3 Post-Trade Cash-Leg Settlement (TraderX ↔ BankerX)
 
 ## Scope
 

@@ -24,7 +24,7 @@
    - graceful fallback to direct web dispatch (`https://terminal.synapticchain.xyz`) when no Desktop Agent is present
    - inbound `pacs.002` (`Acsc`) settlement-status handling that marks blotter rows `SETTLED`
 4. BankerX side reference (external reference flow, commit `c80566f`):
-   - BankerX DvP settlement adapter and ISO 20022 pacs.008/pacs.002 reference flow
+   - BankerX cash-leg payment-transfer adapter and ISO 20022 pacs.008/pacs.002 reference flow
    - Trilateral Settlement Powerhouse routing (Solana Token-2022 / XRPL Altnet / SynapticChain L1 SMR)
 5. Automated verification:
    - unit tests for context building and intent dispatch

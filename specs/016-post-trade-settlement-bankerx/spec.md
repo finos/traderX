@@ -1,4 +1,4 @@
-# Feature Specification: FDC3 Post-Trade DvP Settlement Interoperability (TraderX ↔ BankerX)
+# Feature Specification: FDC3 Post-Trade Cash-Leg Payment Transfer (TraderX ↔ BankerX)
 
 **Feature Branch**: `016-post-trade-settlement-bankerx`  
 **Created**: 2026-09-24  
@@ -7,6 +7,20 @@
 **Receiver Variants**: Local mock receiver (default, offline-reproducible) + BankerX reference adapter (opt-in)  
 **Standards Alignment**: FINOS FDC3 3.0 (PR #2204, Issue #444), ISO 20022 CBPR+ (pacs.008, pacs.002), RFC 4122 (UUIDv4 UETR)  
 **Input**: Transition delta from `014-fdc3-intent-interoperability`  
+
+---
+
+## 0. Terminology — what this state actually demonstrates
+
+Per the maintainer review (finos/traderX #470, Sept 29): the example
+demonstrates a **currency payment transfer — the cash leg of an already
+executed trade**. TraderX sends the settled currency amount owed on the trade
+to the counterparty over the settlement rail. It does **not** demonstrate
+securities delivery-versus-payment (no security leg is delivered in this
+state — the DvP security leg is out of scope) and it does **not** demonstrate
+payment-versus-payment (no simultaneous second-currency leg is exchanged).
+The UETR keys the payment back to the original trade; the blotter row's
+status reflects only that the trade's cash obligation settled.
 
 ---
 

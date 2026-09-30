@@ -1,4 +1,4 @@
-# Quickstart: FDC3 Post-Trade DvP Settlement (TraderX ↔ BankerX)
+# Quickstart: FDC3 Post-Trade Cash-Leg Settlement (TraderX ↔ BankerX)
 
 ## 1) Generate Baseline C3 Runtime
 

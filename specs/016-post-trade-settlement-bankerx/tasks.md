@@ -13,7 +13,7 @@
 - [x] T01611 Dispatch `fdc3.raiseIntent("StartPayment", paymentContext)` from the blotter action (FR-01602).
 - [x] T01612 Implement the graceful fallback toast + direct dispatch link when no Desktop Agent is available (FR-01605).
 - [x] T01613 Implement inbound settlement-status handling: `pacs.002` (`Acsc`) marks blotter rows `SETTLED` (FR-01606).
-- [x] T01614 Implement the BankerX DvP settlement adapter and ISO 20022 pacs.008/pacs.002 reference flow (commit `c80566f`).
+- [x] T01614 Implement the BankerX cash-leg payment-transfer adapter and ISO 20022 pacs.008/pacs.002 reference flow (commit `c80566f`).
 - [ ] T01615 Add unit tests for payment-context building and agent detection.
 - [ ] T01616 Add integration tests with a mocked DesktopAgent (`raiseIntent` round-trip to settlement confirmation).
 - [ ] T01617 Add degraded-mode regression tests (FDC3 unavailable → baseline blotter behavior preserved).

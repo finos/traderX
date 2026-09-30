@@ -7,7 +7,7 @@
 
 ## Overview
 
-This directory provides the standalone, dependency-free **TraderX Spec 016 Web Blotter**. It serves as the primary visual and operational demonstration of the **FINOS TraderX ↔ BankerX Post-Trade DvP settlement flow** without requiring a heavyweight Angular build or local Kind Kubernetes cluster.
+This directory provides the standalone, dependency-free **TraderX Spec 016 Web Blotter**. It serves as the primary visual and operational demonstration of the **FINOS TraderX ↔ BankerX Post-Trade cash-leg settlement flow** without requiring a heavyweight Angular build or local Kind Kubernetes cluster.
 
 ### Capabilities & Key Features
 
