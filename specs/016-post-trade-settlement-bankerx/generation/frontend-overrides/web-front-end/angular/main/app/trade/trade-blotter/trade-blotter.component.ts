@@ -200,15 +200,24 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
         if (!trade) return '';
         const state = this.settlementByRow.get(this.rowKeyFor(trade));
         if (state?.status === 'Pndg') {
-            return '<span class="badge bg-warning text-dark font-monospace" style="font-size:10px;">SETTLING…</span>';
+            return '<span class="badge bg-warning text-dark font-monospace" style="font-size:10px;">SETTLING…</span>' + this.uetrLine(state.uetr);
         }
         if (state?.status === 'Acsc') {
-            return '<span class="badge bg-success font-monospace" style="font-size:10px;">SETTLED</span>';
+            return '<span class="badge bg-success font-monospace" style="font-size:10px;">SETTLED</span>' + this.uetrLine(state.uetr);
         }
         if (state?.status === 'Rjct') {
-            return '<span class="badge bg-danger font-monospace" style="font-size:10px;">REJECTED</span>';
+            return '<span class="badge bg-danger font-monospace" style="font-size:10px;">REJECTED</span>' + this.uetrLine(state.uetr);
         }
         return '<button class="btn btn-sm btn-outline-success font-monospace py-0 px-2" style="font-size:10px;">SETTLE (BANKERX)</button>';
+    }
+
+    // The UETR is the pacs.008 ↔ pacs.002 correlation ID — showing it in the
+    // state column (full value on hover) lets the row be traced into the desk
+    // receipt modal and the explorer without opening anything.
+    private uetrLine(uetr: string): string {
+        if (!uetr) return '';
+        const short = uetr.length > 14 ? uetr.slice(0, 8) + '…' + uetr.slice(-4) : uetr;
+        return `<div class="text-muted font-monospace" title="${uetr}" style="font-size:9px;">${short}</div>`;
     }
 
     private rowKeyFor(trade: Trade): string {
@@ -222,9 +231,20 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
     }
 
     private applySettlementStatus(event: { uetr: string; status: string }): void {
+        // ISO 20022 lifecycle ordering: Pndg → (Acsc | Rjct). pacs.002 terminal
+        // statuses are one-way — a late or re-relayed non-terminal (or lower)
+        // status on the same UETR does NOT move the row backwards. Today no
+        // estate path emits Pndg post-dispatch, but a future mid-flight status
+        // (or a stale replay) must never flip a settled row back to SETTLING.
+        const RANK: { [s: string]: number } = { Pndg: 0, Acsc: 1, Rjct: 1 };
         for (const [rowKey, state] of this.settlementByRow.entries()) {
             if (state.uetr !== event.uetr) {
                 continue;
+            }
+            const incoming = (RANK[event.status] ?? -1);
+            if (incoming < 0 || incoming < (RANK[state.status] ?? 0)) {
+                console.info('[settlement] ignored non-forward status report', { uetr: event.uetr, from: state.status, to: event.status });
+                return;
             }
             state.status = event.status as 'Acsc' | 'Rjct' | 'Pndg';
             this.persistSettlementLedger();

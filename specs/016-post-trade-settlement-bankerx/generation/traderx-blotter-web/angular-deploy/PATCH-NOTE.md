@@ -1,5 +1,34 @@
 # Angular bundle hand-patch — RETIRED 2026-09-30
 
+## v18 (2026-09-30 evening): UETR in the state column + pacs.002 ordering guard
+
+Clean source rebuild (same recipe as v15/v16/v17). Two additions to
+`trade-blotter.component.ts`, both driven by the operator's Oct-1 flow
+requests:
+
+1. **UETR under the badge** — `settlementCellHtml` appends `uetrLine(uetr)`
+   to every non-button state: the truncated UETR (`first8…last4`,
+   9px monospace, muted) with the FULL UETR on the `title` attribute. The
+   UETR is the pacs.008 ↔ pacs.002 correlation ID; judges can now trace a
+   row into the desk receipt modal / explorer without opening anything.
+   Lifecycle stays one-way: `SETTLING…` → `SETTLED` (~15s trilateral round
+   trip live-traced; see receipt).
+2. **ISO 20022 status ordering guard** — `applySettlementStatus` now refuses
+   to move a row backwards: pacs.002 terminal statuses (`Acsc`/`Rjct`) are
+   one-way; a late or re-relayed non-terminal report on the same UETR is
+   logged and dropped (`ignored non-forward status report`). Today no estate
+   path emits `Pndg` post-dispatch; the guard makes the invariant structural
+   ahead of any future mid-flight status. No fabricated status is ever sent
+   to exercise the negative path (no-fabrication principle).
+
+Deployed bytes: `main-I5PEKJGD.js` (`b694f8c7…`) + angular `index.html`
+(`3c8e4f66…`, bundle ref `?v=18`); agent `?v=15`, bridge `?v=13`, root
+index unchanged. Verified served==disk per URL-bust; preflight re-pointed to
+v18 → 25/0 DEMO-READY. Suites on the new bytes: angular conf ×2 (131/1 then
+**132/0**), angular E2E ×2 all-gates green (`G8 SETTLED cell Trade-6`),
+blotter probe ×1 with the added p6 `uetrShown` gate (all six gates green) —
+`ops/FDC3-CONFORMANCE-RECEIPT-2026-09-28.md` §"v18".
+
 ## v17 blotter-fix (2026-09-30, after the v16 batch)
 
 NOT a hand-patch — a clean source rebuild. Two user-facing blotter defects,

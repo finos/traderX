@@ -6,14 +6,22 @@ not part of the Angular build; the canonical app bundle (`main-*.js`) is
 built from `templates/web-front-end/angular/` — see `PATCH-NOTE.md` for the
 2026-09-30 rebuild recipe that made the bundle fully source-derived.
 
-| file | served as | 2026-09-30 (v17 blotter-fix) md5 | 2026-09-30 (v16 G8-fix) md5 |
+| file | served as | 2026-09-30 (v18 UETR+guard) md5 | 2026-09-30 (v17 blotter-fix) md5 |
 |------|-----------|----------------|----------------|
 | `bankerx-bridge.js` | `bankerx-bridge.js?v=13` | 35eb71880e4ff6186f2fc619f51764c2 (unchanged) | 35eb71880e4ff6186f2fc619f51764c2 |
 | `../fdc3-agent-v12.js` (agent) | `fdc3-agent.js?v=15` | b600a533d33be3c7686a581d6928bd48 (unchanged) | b600a533d33be3c7686a581d6928bd48 |
 | `conf.angular.html` | `conf.html` | 25da0a4bbf0ddbc18b341ca82c722676 (unchanged, agent ref `?v=15`) | 25da0a4bbf0ddbc18b341ca82c722676 |
-| (app bundle) | `main-V6THKHFV.js` | 707039fabfd37013531dffdf115fd7c1 | (v16 `main-L3LD77TD.js` `26361d9b…` retired same day) |
-| (app index + glue tags) | `index.html` | c8191c569e71f219d6b66eb09a3f3668 | c557f37232fb28e878aa1163059ed54a |
+| (app bundle) | `main-I5PEKJGD.js` | b694f8c72580eddddb9b17e5e65506eb | (v17 `main-V6THKHFV.js` `707039fa…` retired same day) |
+| (app index + glue tags) | `index.html` | 3c8e4f665c2891cc1fce5fef90b76f46 (bundle ref `?v=18`) | c8191c569e71f219d6b66eb09a3f3668 |
 | (root estate index, agent ref `?v=15`) | `/index.html` | 24fd0d7a23432db871fa8e2fb06747ee (unchanged) | 24fd0d7a23432db871fa8e2fb06747ee |
+
+v18 (2026-09-30 evening, commit on `feature/016-post-trade-settlement-bankerx`):
+`settlementCellHtml` renders the truncated UETR (full value on hover) under
+every settlement badge, and `applySettlementStatus` enforces the ISO 20022
+one-way lifecycle (Pndg → Acsc | Rjct; terminal statuses never move
+backwards). Suites on these bytes: angular conf ×2 (131/1 then 132/0),
+angular E2E ×2 all-gates green, blotter probe ×1 with the new p6 uetrShown
+gate — preflight re-pointed to v18, 25/0 DEMO-READY.
 
 v17 blotter-fix (2026-09-30, same-day later rebuild): two source fixes in
 `trade-blotter.component.ts`, built from the tree with the 016 overrides
