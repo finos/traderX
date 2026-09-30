@@ -1,5 +1,45 @@
 # Angular bundle hand-patch — RETIRED 2026-09-30
 
+## v16 G8-fix (2026-09-30, later the same day; commit `e10ad26`)
+
+The ×2 batch on v15 bytes failed exactly one gate, `G8` (the SETTLED badge),
+twice — while the run log showed the status fully landing
+(`[fdc3] settlement status received {uetr …, status: Acsc}`, i.e.
+`receiveSettlementStatus` passed its type + dispatched-UETR gates and
+`settlementStatus$.next` fired). Root cause is not in the status chain at all:
+`refreshSettlementCells()` reset rowData with the **same trade object
+references** (`[...this.trades]` copies the array, not its items), and with
+`getRowId` set ag-Grid treats row data as immutable — a rowData reset alone
+does not re-run cell renderers, so the already-updated `settlementByRow` map
+never got re-painted. The estate (root-index) surface is unaffected because it
+full-renders the blotter after the same mutation. Fixed in source
+(`fdc3… trade-blotter.component.ts`): `gridApi.refreshCells()` after the
+rowData reset. Proved ×2 on the deployed v16 bytes
+(`main-L3LD77TD.js` `26361d9b…`, index `c557f372…`).
+
+## v15 flow-fix (2026-09-30, later the same day; commit `d9179ee`)
+
+The source-rebuilt bundle exposed a dead SETTLE gate: the state as served
+showed no SETTLE column because (a) nothing on the blotter view initialized
+the FDC3 interop service, and (b) the StartPayment availability probe read
+`resolution.apps`/`resolution.appIntents` off a response the estate DA
+delivers in the FDC3 wire shape `{appIntent:{intent,apps}}`. Both fixed in
+source (`fdc3-interop.service.ts`, `trade-blotter.component.ts`), plus the
+separate-window desk launch (`estate-agent.ts open()` popup features) and the
+mobile-fluid blotter containers (`trade.component.scss`, terminal already
+page-fluid at 390/620 — no terminal bytes changed).
+
+Honest caveat: the archived hand-patched bundle below is **not** a byte-exact
+record of what was served this morning — the live bundle that passed the
+14:24–14:25 E2E runs evidently carried additional estate deltas in the
+availability region (it rendered the SETTLE column; the archive's parse
+could not). Fingerprint parity on markers stays true; behavioral code parity
+of the pre-v15 bundle does not. The v15 source fixes supersede and close the
+question — the current bytes (`main-WFYOIDOI.js`) ship the fixed logic in
+real TypeScript.
+
+## The source-rebuilt bundle (retired again 2026-09-30 by the v15 flow-fix)
+
 The hand-patch described below is **no longer served**. The pair-mapping
 logic now lives in real TypeScript source and the deployed bundle is a clean
 rebuild from it:
