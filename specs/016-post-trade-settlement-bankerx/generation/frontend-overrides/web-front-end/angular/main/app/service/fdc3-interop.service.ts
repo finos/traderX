@@ -233,7 +233,16 @@ export class Fdc3InteropService {
         }
         try {
             const resolution = await Promise.resolve(this.agent.findIntent('StartPayment'));
-            const apps = resolution?.apps ?? resolution?.appIntents ?? [];
+            // FDC3 wire shape: a single-intent findIntent resolves to
+            // { appIntent: { intent, apps } } (what the estate DA returns),
+            // while some resolvers return { apps } or { appIntents } — handle
+            // all three so the SETTLE column renders against a real DA.
+            const res = resolution as {
+                apps?: unknown[];
+                appIntents?: unknown[];
+                appIntent?: { apps?: unknown[] };
+            } | null | undefined;
+            const apps = res?.apps ?? res?.appIntent?.apps ?? res?.appIntents ?? [];
             const available = Array.isArray(apps) && apps.length > 0;
             this.paymentReceiverAvailable$.next(available);
             return available;
@@ -303,6 +312,25 @@ export class Fdc3InteropService {
     }
 
     private async resolveAgent(): Promise<Fdc3DesktopAgentLike | undefined> {
+        // Fast path (estate delta, verified against the served 2026-09-30
+        // bundle): when a provider has already registered window.fdc3 with
+        // intent support, resolve it immediately instead of burning the
+        // 10-attempt getAgent() loop (which reloads the provider prelude).
+        const immediate = (
+            window as unknown as {
+                fdc3?: Fdc3DesktopAgentLike & {
+                    raiseIntent?: unknown;
+                    findIntent?: unknown;
+                    getAgent?: () => Promise<Fdc3DesktopAgentLike> | Fdc3DesktopAgentLike;
+                };
+            }
+        ).fdc3;
+        if (immediate && (immediate.raiseIntent || immediate.findIntent)) {
+            if (typeof immediate.getAgent === 'function') {
+                return await Promise.resolve(immediate.getAgent());
+            }
+            return immediate;
+        }
         for (let attempt = 0; attempt < 10; attempt++) {
             const stableIdentityUrl = `${window.location.origin}/trade`;
             try {

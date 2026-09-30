@@ -1,5 +1,32 @@
 # Angular bundle hand-patch — RETIRED 2026-09-30
 
+## v17 blotter-fix (2026-09-30, after the v16 batch)
+
+NOT a hand-patch — a clean source rebuild. Two user-facing blotter defects,
+both root-caused in source:
+
+1. **Ticket-create not visible without window refresh.** Root cause: the
+   estate Synaptic adapter (`synaptic-traderx-adapter`, :8415) implements the
+   trade-feed Socket.IO path as a handshake mock — a fake sid with no engine
+   connection, so no `createTradeTicket` notification ever reaches the
+   blotter's feed subscription. Fix (source, `trade-blotter.component.ts`):
+   poll the real REST snapshot (`GET /trades`) every 3s and merge in only NEW
+   trades (`mergeSnapshot`) — existing rows keep object identity, ag-Grid
+   `getRowId` contract untouched.
+2. **Settled rows reset to SETTLE after reload.** Root cause: the settlement
+   map (`settlementByRow`) was component-scoped in-memory state; nothing
+   restored it and the status correlator can only match UETRs already in the
+   map. Fix (same file): persist the ledger — real dispatched facts only —
+   to `localStorage["traderx_settlement_ledger_v1"]`, restore at
+   construction, persist again on every status transition (Pndg → Acsc/Rjct)
+   and on the honest dispatch-failure rollback.
+
+Deployed bytes: `main-V6THKHFV.js` (`707039fa…`) + `index.html` (`c8191c56…`),
+agent `?v=15` / bridge `?v=13` untouched; preflight updated to assert v17
+(`ops/oct1-fdc3-demo-preflight.sh`). The 016 frontend-overrides copies of
+`trade-blotter.component.ts` + `fdc3-interop.service.ts` were re-synced to the
+applied source (they had drifted behind the v15/v16 fixes).
+
 ## v16 G8-fix (2026-09-30, later the same day; commit `e10ad26`)
 
 The ×2 batch on v15 bytes failed exactly one gate, `G8` (the SETTLED badge),

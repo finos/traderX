@@ -22,10 +22,19 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
     filterOnSelectedTicker = false;
     paymentReceiverAvailable = false;
     private readonly settlementByRow = new Map<string, { uetr: string; status: 'Acsc' | 'Rjct' | 'Pndg' }>();
+    // Settlement ledger persistence: entries are only written AFTER a real
+    // StartPayment dispatch (and deleted again if that dispatch failed), so
+    // this map holds real history, never fabricated status. Persisting it to
+    // localStorage keeps the SETTLE/SETTLING/SETTLED cell truth stable across
+    // a window refresh — previously every reload reset the ACTION column to a
+    // fresh SETTLE button on rows that had already settled, a trap that made
+    // the app look non-persistent.
+    private static readonly SETTLEMENT_LEDGER_KEY = 'traderx_settlement_ledger_v1';
     private readonly interopSubscription: Subscription;
     private receiverAvailabilitySubscription?: Subscription;
     private settlementSubscription?: Subscription;
     private snapshotSubscription?: Subscription;
+    private snapshotPollTimer?: ReturnType<typeof setInterval>;
     private readonly connectionSubscription: Subscription;
 
     get effectiveTicker(): string {
@@ -97,6 +106,7 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
     };
 
     constructor(private tradeFeed: TradeFeedService, private tradeService: PositionService, private interop: Fdc3InteropService) {
+        this.restoreSettlementLedger();
         this.connectionSubscription = this.tradeFeed.connectionState$.pipe(
             filter(state => state === 'connected'), observeOn(asapScheduler)
         ).subscribe(() => {
@@ -147,6 +157,7 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
         const pair = `${trade.security || 'USD'}/KES`;
         const uetr = this.newUetr();
         this.settlementByRow.set(rowId, { uetr, status: 'Pndg' });
+        this.persistSettlementLedger();
         this.refreshSettlementCells();
         const dispatched = await this.interop.raiseStartPayment({
             amount: (trade.price || 1) * (trade.quantity || 1000),
@@ -166,6 +177,7 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
         if (!dispatched) {
             console.error('[settlement] StartPayment dispatch failed; reverting row', { rowId, uetr });
             this.settlementByRow.delete(rowId);
+            this.persistSettlementLedger();
             this.refreshSettlementCells();
         }
     }
@@ -215,10 +227,56 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
                 continue;
             }
             state.status = event.status as 'Acsc' | 'Rjct' | 'Pndg';
+            this.persistSettlementLedger();
             this.refreshSettlementCells();
             return;
         }
         console.info('[settlement] status report for unknown row (logged, not applied)', event);
+    }
+
+    // Ledger round-trip: localStorage holds { rowId -> { uetr, status } } with
+    // real dispatched facts only. Restore happens in the constructor so the
+    // map is already populated when the first trade snapshot renders; a
+    // corrupt/foreign payload is discarded wholesale rather than half-loaded.
+    private restoreSettlementLedger(): void {
+        if (typeof localStorage === 'undefined') {
+            return;
+        }
+        try {
+            const raw = localStorage.getItem(TradeBlotterComponent.SETTLEMENT_LEDGER_KEY);
+            if (!raw) {
+                return;
+            }
+            const parsed = JSON.parse(raw);
+            if (!parsed || typeof parsed !== 'object') {
+                return;
+            }
+            for (const [rowKey, entry] of Object.entries(parsed)) {
+                const uetr = (entry as any)?.uetr;
+                const status = (entry as any)?.status;
+                if (typeof rowKey === 'string' && rowKey && typeof uetr === 'string' && uetr
+                    && ['Acsc', 'Rjct', 'Pndg'].includes(status)) {
+                    this.settlementByRow.set(rowKey, { uetr, status });
+                }
+            }
+        } catch (error) {
+            console.warn('[settlement] settlement ledger restore skipped', error);
+        }
+    }
+
+    private persistSettlementLedger(): void {
+        if (typeof localStorage === 'undefined') {
+            return;
+        }
+        try {
+            const ledger: { [rowId: string]: { uetr: string; status: 'Acsc' | 'Rjct' | 'Pndg' } } = {};
+            for (const [rowKey, entry] of this.settlementByRow.entries()) {
+                ledger[rowKey] = { uetr: entry.uetr, status: entry.status };
+            }
+            localStorage.setItem(TradeBlotterComponent.SETTLEMENT_LEDGER_KEY, JSON.stringify(ledger));
+        } catch (error) {
+            console.warn('[settlement] settlement ledger persist failed', error);
+        }
     }
 
     private refreshSettlementCells(): void {
@@ -277,6 +335,7 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
         this.receiverAvailabilitySubscription?.unsubscribe();
         this.settlementSubscription?.unsubscribe();
         this.snapshotSubscription?.unsubscribe();
+        this.stopSnapshotPolling();
         this.clearSubscriptions();
     }
 
@@ -325,6 +384,7 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
             }, () => {
                 this.processPendingTrades();
             });
+            this.startSnapshotPolling(() => this.tradeService.getAllTrades());
             return;
         }
 
@@ -348,6 +408,7 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
         }, () => {
             this.processPendingTrades();
         });
+        this.startSnapshotPolling(() => this.tradeService.getTrades(accountId));
     }
 
     private clearSubscriptions() {
@@ -355,6 +416,49 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
             unSub?.();
         }
         this.socketUnSubscribeFns = [];
+        this.stopSnapshotPolling();
+    }
+
+    // Live-refresh for raised trade tickets: the trade-feed Socket.IO channel
+    // served by the estate Synaptic adapter is a handshake mock (no live
+    // event stream), so a newly created ticket previously appeared only after
+    // a full window refresh re-pulled the REST snapshot. Poll the real
+    // snapshot endpoint as the change channel and merge in only NEW trades —
+    // existing rows keep their object identity so ag-Grid's getRowId /
+    // immutable-rowData contract stays intact, and the settlement-ledger
+    // badges render on the fresh rows right away.
+    private startSnapshotPolling(fetchSnapshot: () => Observable<Trade[]>): void {
+        this.snapshotPollTimer = setInterval(() => {
+            fetchSnapshot().subscribe((trades: Trade[]) => {
+                this.mergeSnapshot(trades ?? []);
+            }, () => {
+                // Poll cycle failed (adapter restart etc.) — next tick retries.
+            });
+        }, 3000);
+    }
+
+    private stopSnapshotPolling(): void {
+        if (this.snapshotPollTimer) {
+            clearInterval(this.snapshotPollTimer);
+            this.snapshotPollTimer = undefined;
+        }
+    }
+
+    private mergeSnapshot(fetched: Trade[]): void {
+        let changed = false;
+        for (const trade of fetched) {
+            if (trade?.id == null) {
+                continue;
+            }
+            const exists = this.trades.some(existing => existing.id === trade.id);
+            if (!exists) {
+                this.update(this.withAccountDisplay(trade));
+                changed = true;
+            }
+        }
+        if (changed) {
+            this.refreshSettlementCells();
+        }
     }
 
     private withAccountDisplay(data: Trade): Trade & { accountDisplayName: string } {
