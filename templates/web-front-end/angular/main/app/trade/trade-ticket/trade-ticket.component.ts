@@ -3,6 +3,7 @@ import { TradeTicket } from 'main/app/model/trade.model';
 import { Stock } from 'main/app/model/symbol.model';
 import { Account } from 'main/app/model/account.model';
 import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
+import { Fdc3TickerCompatibilityBridgeService } from 'main/app/service/fdc3-ticker-compatibility-bridge.service';
 
 @Component({
     standalone: false,
@@ -11,6 +12,8 @@ import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
   styleUrls: ['./trade-ticket.component.scss']
 })
 export class TradeTicketComponent implements OnInit {
+
+  constructor(private readonly tickerBridge: Fdc3TickerCompatibilityBridgeService) {}
 
   @Input() stocks: Stock[];
   @Input() account: Account | undefined;
@@ -50,6 +53,19 @@ export class TradeTicketComponent implements OnInit {
   }
 
   onCreate() {
+    // Normalize the selected company label into a settleable security pair.
+    // (Port of the bundle hand-patch disclosed 2026-09-30 — this is the real
+    // source location; see specs/016 …/angular-deploy/PATCH-NOTE.md.)
+    if (!this.ticket.security && this.selectedCompany) {
+      const company = this.selectedCompany.trim().toUpperCase();
+      if (company.includes('KES') || company.includes('USD/KES')) {
+        this.ticket.security = 'USD/KES';
+      } else if (company.includes('EUR') || company.includes('EUR/USD')) {
+        this.ticket.security = 'EUR/USD';
+      } else {
+        this.ticket.security = this.tickerBridge.normalizeTicker(this.selectedCompany) ?? '';
+      }
+    }
     if (!this.ticket.security || !this.ticket.quantity) {
       console.warn('Either security is not selected or quanity is not set!')
       return;

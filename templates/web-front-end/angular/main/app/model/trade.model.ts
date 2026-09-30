@@ -4,6 +4,7 @@ export interface Trade {
     id: string;
     quantity: number;
     security: string;
+    price?: number;
     side: Side;
     state: State;
     updated: Date;
