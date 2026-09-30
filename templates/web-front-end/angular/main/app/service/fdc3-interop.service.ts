@@ -233,7 +233,16 @@ export class Fdc3InteropService {
         }
         try {
             const resolution = await Promise.resolve(this.agent.findIntent('StartPayment'));
-            const apps = resolution?.apps ?? resolution?.appIntents ?? [];
+            // FDC3 wire shape: a single-intent findIntent resolves to
+            // { appIntent: { intent, apps } } (what the estate DA returns),
+            // while some resolvers return { apps } or { appIntents } — handle
+            // all three so the SETTLE column renders against a real DA.
+            const res = resolution as {
+                apps?: unknown[];
+                appIntents?: unknown[];
+                appIntent?: { apps?: unknown[] };
+            } | null | undefined;
+            const apps = res?.apps ?? res?.appIntent?.apps ?? res?.appIntents ?? [];
             const available = Array.isArray(apps) && apps.length > 0;
             this.paymentReceiverAvailable$.next(available);
             return available;

@@ -121,6 +121,14 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
         this.settlementSubscription = interop.settlementStatus$.subscribe(event => {
             this.applySettlementStatus(event);
         });
+        // Kick off the desktop-agent session up front: the SETTLE column is
+        // gated on the StartPayment availability probe, which only runs once
+        // the FDC3 interop service has resolved an agent. Without this, the
+        // blotter shows no action column until some other code path inits the
+        // service (i.e. never on the plain blotter view).
+        this.interop.initialize().catch((error) => {
+            console.warn('[settlement] FDC3 interop init failed on blotter mount', error);
+        });
     }
 
     async settleTrade(trade: Trade): Promise<void> {

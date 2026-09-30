@@ -1,8 +1,7 @@
 // v12 build — Angular-surface real-DA agent ONLY.
 // Deliberately emits ../fdc3-agent-v12.js and NEVER ../fdc3-agent.js:
-// the estate blotter pair (fdc3-agent.js + index.html) is FROZEN v11 bytes
-// for the Oct 1 FINOS demo (md5 22533e09… / 5c17ea99…). v12 deploys to
-// /var/www/traderx/angular/ only.
+// Estate unfroze 2026-09-30 by operator directive; v12+ deploys to BOTH
+// /var/www/traderx/ and /var/www/traderx/angular/ (same bytes, ?v bump).
 import esbuild from "esbuild";
 
 await esbuild.build({
