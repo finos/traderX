@@ -224,6 +224,12 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
     private refreshSettlementCells(): void {
         this.trades = [...this.trades];
         this.gridApi?.setGridOption('rowData', this.trades);
+        // Rows keep their object identity (the trades array is copied, not its
+        // items), and getRowId makes ag-Grid treat row data as immutable — a
+        // rowData reset alone does not re-run cell renderers. Force one so the
+        // settlement cell re-evaluates against the (already updated)
+        // settlementByRow map and the badge actually renders.
+        this.gridApi?.refreshCells();
     }
 
     ngOnChanges(change: SimpleChanges) {
