@@ -81,9 +81,17 @@ function adapterTrace(event: Record<string, unknown>): void {
   console.info("[Alcove]", JSON.stringify(event));
 }
 
+// v12: snapshot location.search at script-parse time. On the Angular SPA
+// the router rewrite (/ → /trade) can strip the query string BEFORE the
+// async boot() reads it (boot happens on DOMContentLoaded, after the router
+// bootstrap begins) — capturing the raw params while this script executes
+// (during initial parse, before Angular's router navigates) keeps the
+// ?directory / ?launcher protocol working on the SPA page.
+const BOOT_LOCATION_SEARCH = window.location.search;
+
 function readConfig(): { directories: string[]; launcher: boolean } {
   const cfgFromWindow = (window as any).__FDC3_AGENT_CONFIG ?? {};
-  const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(BOOT_LOCATION_SEARCH);
   const dirParam = params.get("directory") ?? cfgFromWindow.directory;
   const directories = dirParam
     ? String(dirParam).split(",").map((s: string) => s.trim()).filter(Boolean)
@@ -1084,6 +1092,18 @@ function bindWcpHelloListener(
 // ─── Loopback client: the blotter page as an FDC3 app ──────────────────────
 class LoopbackDA {
   private readonly port: MessagePort;
+  /** v12: pending requests keyed by meta.requestUuid (see dispatch()). */
+  private readonly pending = new Map<
+    string,
+    {
+      resolve: (v: any) => void;
+      reject: (e: Error) => void;
+      timer: ReturnType<typeof setTimeout>;
+    }
+  >();
+  /** v12: event routing tables (intent name / context type → handlers). */
+  private readonly intentHandlers = new Map<string, Set<(msg: any) => void>>();
+  private readonly contextHandlers = new Map<string, Set<(msg: any) => void>>();
 
   constructor(
     private readonly sc: EstateServerContext,
@@ -1113,6 +1133,51 @@ class LoopbackDA {
       messagePort: channel.port2,
     });
     this.port = channel.port1;
+    // v12: persistent client-side demux — every message the server posts
+    // (responses, intentEvent, broadcastEvent) flows through dispatch().
+    this.port.onmessage = (message: MessageEvent) =>
+      this.dispatch(message.data as any);
+  }
+
+  /**
+   * v12: persistent on-message multiplexer. Requests are keyed by
+   * meta.requestUuid; protocol events (intentEvent, broadcastEvent /
+   * contextEvent from listener registrations) are routed to their
+   * registered handlers by intent name / context type. This makes the
+   * in-page client a REAL protocol client for listeners and channels —
+   * no onmessage juggling — so the host page's window.fdc3 is backed by
+   * the same machinery remote apps use over WCP.
+   */
+  private dispatch(msg: any) {
+    if (msg?.type === "WCP6Goodbye") return;
+    const pending = msg?.meta?.requestUuid
+      ? this.pending.get(msg.meta.requestUuid)
+      : undefined;
+    if (pending) {
+      clearTimeout(pending.timer);
+      this.pending.delete(msg.meta.requestUuid);
+      if (msg.payload?.error) pending.reject(new Error(msg.payload.error));
+      else pending.resolve(msg.payload);
+      return;
+    }
+    const deliver = (set: Set<(msg: any) => void> | undefined, msg: any) =>
+      set?.forEach((h) => {
+        try {
+          h(msg);
+        } catch (err) {
+          console.error("[EstateDA] listener error:", err);
+        }
+      });
+    if (msg?.type === "intentEvent") {
+      const name = msg.payload?.intent;
+      deliver(this.intentHandlers.get("*ANY*"), msg);
+      if (name) deliver(this.intentHandlers.get(name), msg);
+    }
+    if (msg?.type === "broadcastEvent" || msg?.type === "contextEvent") {
+      const ctype = msg.payload?.context?.type ?? null;
+      deliver(this.contextHandlers.get("*ANY*"), msg);
+      if (ctype) deliver(this.contextHandlers.get(ctype), msg);
+    }
   }
 
   private request(type: string, payload: any, responseTypes: string[]): Promise<any> {
@@ -1127,27 +1192,160 @@ class LoopbackDA {
           source: { appId: BLOTTER_APP_ID, instanceId: this.instanceId },
         },
       };
-      const prevOnMessage = this.port.onmessage;
       // Timeout guard so a dead agent path never hangs the settle flow.
       const timer = setTimeout(() => {
-        this.port.onmessage = prevOnMessage;
+        this.pending.delete(requestUuid);
         reject(new Error("DARequestTimeout"));
       }, 30000);
-      this.port.onmessage = (message: MessageEvent) => {
-        const msg = message.data as any;
-        const rid = msg?.meta?.requestUuid;
-        if (responseTypes.includes(msg.type) && rid === requestUuid) {
-          clearTimeout(timer);
-          this.port.onmessage = prevOnMessage;
-          if (msg.payload?.error) {
-            reject(new Error(msg.payload.error));
-          } else {
-            resolve(msg.payload);
-          }
-        }
-      };
+      this.pending.set(requestUuid, { resolve, reject, timer });
       this.port.postMessage(req);
     });
+  }
+
+  /**
+   * Register a listener over the real protocol (addIntentListenerRequest /
+   * addContextListenerRequest + unsubscribe requests on unsubscribe).
+   * Delivery is via dispatch() event routing with the standard handler
+   * signature handler(context, metadata). null contextType and "*" are
+   * wildcards.
+   */
+  private addListener(
+    requestType: string,
+    payload: any,
+    responseType: string,
+    kind: "intent" | "context",
+    key: string,
+    handler: (msg: any) => void
+  ): Promise<any> {
+    return this.request(requestType, payload, [responseType]).then((res) => {
+      const listenerUUID = res?.listenerUUID;
+      const table = kind === "intent" ? this.intentHandlers : this.contextHandlers;
+      if (!table.has(key)) table.set(key, new Set());
+      table.get(key)!.add(handler);
+      return {
+        unsubscribe: () => {
+          table.get(key)?.delete(handler);
+          return this.request(
+            kind === "intent"
+              ? "intentListenerUnsubscribeRequest"
+              : "contextListenerUnsubscribeRequest",
+            { listenerUUID },
+            [
+              kind === "intent"
+                ? "intentListenerUnsubscribeResponse"
+                : "contextListenerUnsubscribeResponse",
+            ]
+          ).catch(() => undefined);
+        },
+      };
+    });
+  }
+
+  /** Wrap a wire channel object with real protocol-backed methods. */
+  private wrapChannel(c: any): any {
+    if (!c) return null;
+    const self = this;
+    return {
+      ...c,
+      broadcast: (context: any) =>
+        self.request("broadcastRequest", { context, channelId: c.id }, ["broadcastResponse"]),
+      addContextListener: (contextType: any, handler: any) =>
+        self.addListener(
+          "addContextListenerRequest",
+          { contextType: contextType ?? null, channelId: c.id },
+          "addContextListenerResponse",
+          "context",
+          contextType === null ? "*ANY*" : contextType,
+          (msg) => handler(msg.payload?.context, msg.payload?.metadata)
+        ),
+    };
+  }
+
+  /** v12: real intent listener over the protocol (Standard FDC3 API). */
+  addIntentListener(intent: string, handler: (context: any, meta?: any) => void) {
+    return this.addListener(
+      "addIntentListenerRequest",
+      { intent },
+      "addIntentListenerResponse",
+      "intent",
+      intent,
+      (msg) => handler(msg.payload?.context, msg.payload?.metadata)
+    );
+  }
+
+  /** v12: real context listener over the protocol; null = all contexts. */
+  addContextListener(contextType: string | null, handler: (context: any, meta?: any) => void) {
+    return this.addListener(
+      "addContextListenerRequest",
+      { contextType: contextType ?? null },
+      "addContextListenerResponse",
+      "context",
+      contextType === null ? "*ANY*" : contextType,
+      (msg) => handler(msg.payload?.context, msg.payload?.metadata)
+    );
+  }
+
+  /** v12: broadcast on the current private/user channel via the protocol. */
+  broadcast(context: any) {
+    return this.getCurrentChannel().then((ch) => {
+      if (!ch) return undefined;
+      return this.request("broadcastRequest", { context, channelId: ch.id }, [
+        "broadcastResponse",
+      ]);
+    });
+  }
+
+  getCurrentChannel(): Promise<any> {
+    return this.request("getCurrentChannelRequest", {}, ["getCurrentChannelResponse"]).then(
+      (res) => this.wrapChannel(res?.channel)
+    );
+  }
+
+  getUserChannels(): Promise<any> {
+    return this.request("getUserChannelsRequest", {}, ["getUserChannelsResponse"]).then(
+      (res) => res?.userChannels ?? []
+    );
+  }
+
+  joinUserChannel(channelId: string): Promise<any> {
+    return this.request("joinUserChannelRequest", { channelId }, [
+      "joinUserChannelResponse",
+    ]).then((res) => this.wrapChannel(res?.channel));
+  }
+
+  leaveCurrentChannel(): Promise<void> {
+    return this.request("leaveCurrentChannelRequest", {}, [
+      "leaveCurrentChannelResponse",
+    ]).then(() => undefined);
+  }
+
+  /** v12: identity object per the Desktop Agent Preload pattern. */
+  getAgentInfo(): any {
+    return {
+      fdc3Version: FDC3_VERSION,
+      provider: "SynapticChain Estate DA",
+      appMetadata: {
+        appId: BLOTTER_APP_ID,
+        instanceId: this.instanceId,
+        version: "1.0.0",
+      },
+    };
+  }
+
+  /** v12: spec-shaped implementation metadata (apps probe this). */
+  getInfo(): any {
+    const base = this.getAgentInfo();
+    return {
+      fdc3Version: base.fdc3Version,
+      provider: base.provider,
+      providerVersion: DA_PROVIDER_VERSION,
+      appMetadata: base.appMetadata,
+      optionalFeatures: {
+        UsedMultipleContexts: true,
+        OriginatingAppMetadata: true,
+        UserChannelPermission: false,
+      },
+    };
   }
 
   raiseIntent(intent: string, context: any, targetAppId?: string): Promise<any> {
@@ -1280,6 +1478,17 @@ export type EstateAgentAPI = {
   findIntentsByContext: (context: any) => Promise<any>;
   open: (appId: string) => Promise<InstanceID>;
   getConnectedApps: () => Promise<AppRegistration[]>;
+  /** v12: real Desktop Agent API surface (published as window.fdc3). */
+  addIntentListener: (intent: string, handler: (context: any, meta?: any) => void) => Promise<any>;
+  addContextListener: (contextType: string | null, handler: (context: any, meta?: any) => void) => Promise<any>;
+  broadcast: (context: any) => Promise<void>;
+  getCurrentChannel: () => Promise<any>;
+  getUserChannels: () => Promise<any[]>;
+  joinUserChannel: (channelId: string) => Promise<any>;
+  leaveCurrentChannel: () => Promise<void>;
+  getAgentInfo: () => any;
+  getInfo: () => any;
+  getAgent: () => Promise<EstateAgentAPI>;
 };
 
 let bootResolve: () => void;
@@ -1320,8 +1529,32 @@ async function boot(): Promise<void> {
     findIntentsByContext: (context) => loopback.findIntentsByContext(context),
     open: (appId) => sc.open(appId),
     getConnectedApps: () => sc.getConnectedApps(),
+    addIntentListener: (intent, handler) => loopback.addIntentListener(intent, handler),
+    addContextListener: (contextType, handler) => loopback.addContextListener(contextType, handler),
+    broadcast: (context) => loopback.broadcast(context),
+    getCurrentChannel: () => loopback.getCurrentChannel(),
+    getUserChannels: () => loopback.getUserChannels(),
+    joinUserChannel: (channelId) => loopback.joinUserChannel(channelId),
+    leaveCurrentChannel: () => loopback.leaveCurrentChannel(),
+    getAgentInfo: () => loopback.getAgentInfo(),
+    getInfo: () => loopback.getInfo(),
+    getAgent: () => Promise.resolve(api),
   };
   (window as any).SynapticFDC3Agent = api;
+  // v12 Desktop Agent Preload: publish the real API as window.fdc3 unless a
+  // host already provided one (yield to pre-existing bridges — same rule the
+  // bankerx-bridge stub used, but ours is REAL protocol, not a stub).
+  try {
+    if (!window.fdc3) {
+      (window as any).fdc3 = api;
+      window.dispatchEvent(new Event("fdc3Ready"));
+      console.info("[EstateDA] window.fdc3 published (real Desktop Agent API)");
+    } else {
+      console.info("[EstateDA] host window.fdc3 already present — yielded");
+    }
+  } catch (err) {
+    console.error("[EstateDA] window.fdc3 publish failed:", err);
+  }
   console.info(
     `[EstateDA] Desktop agent ready — FDC3 ${FDC3_VERSION}, provider "${DA_PROVIDER}", ` +
       `${directory.retrieveAllApps().length} directory app(s)`
