@@ -62,11 +62,19 @@ resolves intents against `acceptance/appd.json`.
 | `realFdc3`        | blotter DA ready (`[EstateDA] Desktop agent ready`) |
 | `deskOpen`        | receiver window opened through the agent's directory record (tracked instance) |
 | `wcpConnected`    | receiver logged the getAgent() WCP connection |
+| `tradeBooked`     | ticket execution created a blotter row with a machine-built UUIDv4 UETR |
 | `intentReceived`  | receiver processed the raised `fdc3.payment` (UETR match) |
 | `acsc`            | receiver verdict `Acsc` and blotter row `SETTLED` |
 | `receiptModal`    | pacs.002-style receipt modal visible on Acsc |
-| `dupSuppressed`   | second SETTLE on the same row refused; no duplicate dispatch |
+| `dupSuppressed`   | second SETTLE on the same row refused (FR-01607 guard logged), no duplicate dispatch |
+| `receiverDupReplay` | re-raise of the same UETR through the agent → receiver duplicate record replays the first outcome, never a second settlement |
 | `rejectHonest`    | invalid context → `Rjct` with the validation reason, no settlement |
+
+Harness evidence (offline pack, headless): 10/10 ×2 on the clean-checkout
+bytes of the acceptance commit, plus 7 consecutive 10/10 runs in the debug
+loop after fixing a getAgent discovery race in the receiver (its in-page stub
+agent installed too early could win the `DesktopAgentPreloadLoader`
+strategy race; the stub now installs only in the no-agent fallback).
 
 ## Files
 
@@ -74,6 +82,7 @@ resolves intents against `acceptance/appd.json`.
 |---|---|
 | `appd.json` | Local two-record App Directory (blotter + mock receiver as `bankerx-clearing-desk`). |
 | `sail-receiver-overlay.appd.json` | Applications-wrapped fragment for merging the receiver record into the Sail runtime directory (`sail/bootstrap/merge-traderx-appd.sh`) when running the generated 014/016 Sail runtime. |
+| `harness/` | Estate-owned headless 10-gate E2E harness (`acceptance-016.cjs`; see `harness/README.md`). |
 
 The state start script lives at the repository root:
 `scripts/start-state-016-post-trade-settlement-bankerx-generated.sh` (static
