@@ -37,9 +37,11 @@ Full details, gate list, and the real-vs-simulated boundary:
 [`acceptance/README.md`](acceptance/README.md).
 
 Automated proof: the same flow was driven headless twice from a clean
-checkout (fresh `git clone`, no build steps beyond the documented generation
-command) with the pack E2E harness — 8/8 gates both runs (see the state
-notes for the run logs).
+checkout on identical committed bytes with the committed E2E harness
+([`acceptance/harness/`](acceptance/harness/README.md)) — all 10 gates
+(`realFdc3`, `deskOpen`, `wcpConnected`, `tradeBooked`, `intentReceived`,
+`acsc`, `receiptModal`, `dupSuppressed`, `receiverDupReplay`, `rejectHonest`)
+passed in both runs, exit 0.
 
 ## Clean-checkout proof (the second agreed deliverable)
 
