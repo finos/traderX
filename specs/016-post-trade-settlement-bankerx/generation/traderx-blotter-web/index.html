@@ -464,6 +464,12 @@ import { validatePaymentContext, toSettlementStatusContext, STATUS } from './pay
 // ─── State ─────────────────────────────────────────────────────────────────
 const BANKERX_ORIGIN = 'https://terminal.synapticchain.xyz';
 let bankerxWin = null;
+// True when the desk window is owned by the FDC3 Desktop Agent (agent.open
+// path): the raise is then the single canonical dispatch channel, and the
+// legacy direct-dispatch fallbacks (which would window.open the cross-origin
+// terminal) must not fire — in the offline acceptance pack there is no
+// terminal behind this origin and the raise already carries full delivery.
+let bankerxAgentOwned = false;
 let receiverAvailable = false;   // FR-01601: gates SETTLE button visibility
 let direction = 'BUY';
 let trades = [];
@@ -528,6 +534,7 @@ window.launchBankerX = async () => {
       await agent.ready;
       const instanceId = await agent.open('bankerx-clearing-desk');
       bankerxWin = null; // ownership transfers to the agent (WCP instance tracking)
+      bankerxAgentOwned = true;
       log('s', `[FDC3] Desktop agent open("bankerx-clearing-desk") → instance ${String(instanceId).slice(0,8)}… (WCP)`);
       setReceiverAvailable(true);
       document.getElementById('launchBtn').classList.add('live');
@@ -592,7 +599,10 @@ setInterval(() => {
 
 // ─── Listen for synaptic.settlementStatus from BankerX (FR-01606) ──────────
 window.addEventListener('message', (evt) => {
-  if (evt.origin !== BANKERX_ORIGIN && !evt.origin.includes('synapticchain.xyz')) return;
+  // Cross-origin: the BankerX terminal (and estate origins). Same-origin: the
+  // pack-served mock receiver of the offline acceptance flow (state 016) may
+  // relay its settlement status home — same trust boundary as the page itself.
+  if (evt.origin !== BANKERX_ORIGIN && !evt.origin.includes('synapticchain.xyz') && evt.origin !== window.location.origin) return;
   const d = evt.data;
   if (!d) return;
   if (d.type === 'synaptic.settlementStatus' || d.traderxSettlementStatus || d.uetr) {
@@ -795,8 +805,9 @@ window.settleTrade = async (id, mode) => {
     return;
   }
 
-  // If window not tracked, try to open/focus or fallback gracefully to relay
-  if (!bankerxWin || bankerxWin.closed) {
+  // If the desk window is not FDC3-agent-owned and not tracked, try to
+  // open/focus or fallback gracefully to relay channels (FR-01605 path).
+  if (!bankerxAgentOwned && (!bankerxWin || bankerxWin.closed)) {
     try {
       bankerxWin = window.open(BANKERX_ORIGIN, 'bankerx_clearing_desk');
     } catch (e) {}

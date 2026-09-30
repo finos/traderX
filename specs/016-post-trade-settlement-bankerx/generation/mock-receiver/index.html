@@ -28,6 +28,17 @@ h1 { font-size: 15px; letter-spacing:.06em; text-transform:uppercase; color:var(
 </style>
 </head>
 <body>
+<script src="./fdc3-client.js"></script>
+<script>
+// Status home relay (state 016 acceptance loop): when this receiver was
+// opened by the TraderX blotter's desktop agent, deliver the settlement
+// outcome back to the blotter so its FR-01606 correlation can flip the row.
+// Same-origin scoped — the pack-served offline flow opens blotter and
+// receiver from one origin. No-op on direct opens.
+window.__receiverRelayHome = (payload) => {
+  try { window.opener && window.opener.postMessage(payload, window.location.origin); } catch {}
+};
+</script>
 <div class="wrap">
   <h1>Post-Trade Mock Receiver</h1>
   <div class="sub">Local FDC3 participant — reference implementation of the request-to-outcome lesson (state 016, child of 014). Default receiver for offline demos and tests. The BankerX settlement terminal is the opt-in reference adapter.</div>
@@ -60,15 +71,24 @@ const channel = {
   broadcast: (ctx) => { userChannelContexts.push(ctx); },
   getCurrentContext: async () => userChannelContexts[userChannelContexts.length - 1] ?? null
 };
-window.fdc3 = {
-  addIntentListener: (intent, handler) => { receivers[intent] = receivers[intent] ?? []; receivers[intent].push(handler); return { unsubscribe() {} }; },
-  addContextListener: () => ({ unsubscribe() {} }),
-  raiseIntent: async () => ({}),
-  findIntent: async (intent) => ({ intent, apps: [{ appId: 'synaptic-mock-receiver', name: 'Post-Trade Mock Receiver' }] }),
-  broadcast: (ctx) => channel.broadcast(ctx),
-  getCurrentChannel: async () => channel
-};
-agentState.innerHTML = 'in-page agent: <b>ready</b> — declaring intent <code>StartPayment</code>';
+// NOTE: window.fdc3 is NOT installed at parse time. When this page is opened
+// by the blotter's desktop agent, fdc3-client.js runs getAgent() whose
+// DesktopAgentPreloadLoader strategy polls window.fdc3 — an early stub wins
+// the strategy race occasionally and crashes client assembly (the stub has no
+// getInfo), so the intent listener never registers over WCP. The stub is
+// installed only in bindIntentListener's fallback (real WCP agent absent).
+function installStubAgent() {
+  if (window.fdc3) return;
+  window.fdc3 = {
+    addIntentListener: (intent, handler) => { receivers[intent] = receivers[intent] ?? []; receivers[intent].push(handler); return { unsubscribe() {} }; },
+    addContextListener: () => ({ unsubscribe() {} }),
+    raiseIntent: async () => ({}),
+    findIntent: async (intent) => ({ intent, apps: [{ appId: 'synaptic-mock-receiver', name: 'Post-Trade Mock Receiver' }] }),
+    broadcast: (ctx) => channel.broadcast(ctx),
+    getCurrentChannel: async () => channel
+  };
+  agentState.innerHTML = 'in-page agent: <b>ready</b> — declaring intent <code>StartPayment</code>';
+}
 
 const receiver = new PaymentReceiver();
 
@@ -98,12 +118,41 @@ async function handleStartPayment(context) {
   if (!record.duplicate) {
     channel.broadcast(toSettlementStatusContext(record));
   }
+  // Status home (acceptance loop): FR-01606 correlation in the blotter.
+  // Replay duplicates intentionally re-deliver the first outcome — the
+  // blotter-side guard (row already SETTLED) and the receiver-side duplicate
+  // record are the two disclosed halves of duplicate suppression.
+  window.__receiverRelayHome(toSettlementStatusContext(record));
 }
 
 // Wire the agent's StartPayment intent to the receiver: registering the intent
 // listener is exactly what makes this app resolvable via findIntent — the
 // "declaring a name / intent" step any guest participant must not skip.
-window.fdc3.addIntentListener('StartPayment', (ctx) => handleStartPayment(ctx));
+//
+// Two binding modes:
+//  1. WCP agent (acceptance/demo flow): when this window was opened by the
+//     TraderX blotter's desktop agent, ./fdc3-client.js connects via the Web
+//     Connection Protocol and exposes the conformant agent on
+//     window.__MOCK_RECEIVER_AGENT — the intent listener registers over the
+//     real protocol channel, exactly like the BankerX desk (getAgent).
+//  2. In-page stub (direct open / in-page tests): the local agent below.
+async function bindIntentListener() {
+  // The WCP client connects asynchronously (handshake after load) — wait up to
+  // ~6s for it before falling back to the in-page stub binding.
+  const client = window.__MOCK_RECEIVER_AGENT ?? await new Promise((res) => {
+    if (window.__MOCK_RECEIVER_AGENT) return res(window.__MOCK_RECEIVER_AGENT);
+    window.addEventListener('mockreceiver:agent', () => res(window.__MOCK_RECEIVER_AGENT), { once: true });
+    setTimeout(() => res(window.__MOCK_RECEIVER_AGENT ?? null), 6000);
+  });
+  if (client) {
+    await client.addIntentListener('StartPayment', (ctx) => handleStartPayment(ctx));
+    agentState.innerHTML = 'FDC3 desktop agent: <b>CONNECTED (WCP)</b> — declaring intent <code>StartPayment</code>';
+    return;
+  }
+  installStubAgent();
+  window.fdc3.addIntentListener('StartPayment', (ctx) => handleStartPayment(ctx));
+}
+bindIntentListener();
 </script>
 </body>
 </html>

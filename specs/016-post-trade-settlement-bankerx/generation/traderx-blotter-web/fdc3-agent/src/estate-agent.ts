@@ -101,6 +101,30 @@ function readConfig(): { directories: string[]; launcher: boolean } {
 }
 
 // ─── ServerContext implementation (window + port management) ───────────────
+/**
+ * Resolve an App Directory record's launch URL. App Directory v2 relative URLs
+ * are relative to the directory file's URL — not the hosting page — so the
+ * agent resolves them against the configured directory endpoint BEFORE handing
+ * off: window.open resolves relative URLs against the hosting page instead,
+ * which doubled path segments in the offline acceptance pack's two-window
+ * flow (state 016).
+ */
+function resolveDirectoryAppUrl(raw: string, directoryUrls: string[]): string {
+  try {
+    if (/^[a-z][a-z0-9+.-]*:/i.test(raw) || raw.startsWith("/")) return raw;
+    for (const base of directoryUrls) {
+      try {
+        return new URL(raw, base).toString();
+      } catch {
+        // malformed base — try the next directory
+      }
+    }
+  } catch {
+    // fall through to the raw value
+  }
+  return raw;
+}
+
 type RunningRegistration = AppRegistration & {
   url: string;
   window?: Window;
@@ -878,6 +902,7 @@ class EstateServerContext implements ServerContext<AppRegistration> {
       console.error("[EstateDA] Directory app has no launch URL:", appId);
       throw new Error("ErrorOnLaunch");
     }
+    const launchUrl = resolveDirectoryAppUrl(url, readConfig().directories);
     // Register the launching instance BEFORE the window realizes, so a fast
     // WCP1Hello from the new window resolves via getInstanceForWindow.
     // The window target must be unique per launch: window.open with an
@@ -894,13 +919,13 @@ class EstateServerContext implements ServerContext<AppRegistration> {
     const deskH = Math.max(560, Math.round(window.innerHeight * 0.94));
     const deskL = Math.max(0, window.innerWidth - deskW);
     const windowPromise = Promise.resolve(
-      window.open(url, `${appId}-${instanceId}`, `popup=yes,width=${deskW},height=${deskH},left=${deskL},top=0`)
+      window.open(launchUrl, `${appId}-${instanceId}`, `popup=yes,width=${deskW},height=${deskH},left=${deskL},top=0`)
     );
     this.setInstanceDetails(instanceId, {
       appId,
       instanceId,
       state: State.Pending,
-      url,
+      url: launchUrl,
       windowPromise,
     });
     return instanceId;
@@ -962,6 +987,16 @@ class EstateServerContext implements ServerContext<AppRegistration> {
     return this.connections
       .filter((c) => c.state === State.Connected)
       .map((c) => ({ appId: c.appId, instanceId: c.instanceId, state: c.state }));
+  }
+
+  /** InstanceId of a Connected instance of appId, for spec-correct
+   * raiseIntent targeting: FDC3 spec §raiseIntent — "if the app has already
+   * been launched, the intent is delivered to the running instance". The
+   * library's targeted-by-appId path always launches a second instance, so
+   * the in-page client resolves the running instance here first. */
+  getConnectedInstanceForAppId(appId: string): InstanceID | null {
+    const c = this.connections.find((x) => x.appId === appId && x.state === State.Connected);
+    return c?.instanceId ?? null;
   }
 
   async isAppConnected(app: InstanceID): Promise<boolean> {
@@ -1359,13 +1394,26 @@ class LoopbackDA {
   }
 
   raiseIntent(intent: string, context: any, targetAppId?: string): Promise<any> {
+    // Spec-correct targeting: when a Connected instance of the target app
+    // exists, deliver to IT (instanceId) instead of letting the library's
+    // by-appId path launch a second instance of the same app.
+    const connectedInstance = targetAppId ? this.sc.getConnectedInstanceForAppId(targetAppId) : null;
+    const target = connectedInstance
+      ? { appId: targetAppId, instanceId: connectedInstance }
+      : targetAppId
+        ? { appId: targetAppId }
+        : undefined;
     return this.request(
       "raiseIntentRequest",
       {
         raiseIntentRequestUuid: this.sc.createUUID(),
         intent,
         context,
-        ...(targetAppId ? { target: { appId: targetAppId } } : {}),
+        // The library's IntentHandler resolves the target from payload.app
+        // (App Identifier, FDC3 2.0+ shape) — the legacy payload.target key is
+        // ignored, which left targeted raises untargeted (auto-resolving to
+        // the raising app's own record).
+        ...(target ? { app: target } : {}),
       },
       ["raiseIntentResponse", "raiseIntentResultResponse"]
     );

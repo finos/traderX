@@ -10,14 +10,30 @@ bash pipeline/generate-state.sh 012-platform-convergence-c3
 
 ## 2) Start the State-016 Runtime (Settlement Adapter)
 
+The default runtime for this state is the **offline acceptance flow** (FR-01608, Tier 2a — no cluster, no external services):
+
+```bash
+./scripts/start-state-016-post-trade-settlement-bankerx-generated.sh --static
+# serve + open automatically:
+./scripts/start-state-016-post-trade-settlement-bankerx-generated.sh --serve
+```
+
+Full walkthrough with gates: [acceptance/README.md](acceptance/README.md) ·
+reviewer script: [acceptance-demo.md](acceptance-demo.md).
+
+Cluster variant (014 generated baseline + Sail sidecar, mock-receiver record merged into the Sail app directory):
+
 ```bash
 ./scripts/start-state-016-post-trade-settlement-bankerx-generated.sh --provider kind
 ./scripts/start-state-016-post-trade-settlement-bankerx-generated.sh --provider kind --skip-build
 ```
 
-Expected UI endpoint:
+Expected UI endpoints:
 
-- TraderX: `http://localhost:8080` (Trade Blotter at `/trade`)
+- Static acceptance: `http://localhost:8090` (blotter at
+  `/generation/traderx-blotter-web/index.html`; mock receiver at
+  `/generation/mock-receiver/index.html`)
+- Cluster variant: TraderX `http://localhost:8080` (Trade Blotter at `/trade`), Sail `http://localhost:8090`
 
 Settlement note for this state:
 

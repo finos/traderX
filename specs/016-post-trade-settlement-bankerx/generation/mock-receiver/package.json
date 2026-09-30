@@ -1,0 +1,13 @@
+{
+  "name": "traderx-fdc3-receiver-client",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Receiver-side FDC3 client glue for Spec 016's mock receiver — WCP binding via @finos/fdc3-get-agent (same version pair the BankerX terminal's desk-side binding is proven on). Build: node build-client.mjs",
+  "type": "module",
+  "scripts": {
+    "build": "node build-client.mjs"
+  },
+  "dependencies": {
+    "@finos/fdc3-get-agent": "3.0.0-alpha.5"
+  }
+}
