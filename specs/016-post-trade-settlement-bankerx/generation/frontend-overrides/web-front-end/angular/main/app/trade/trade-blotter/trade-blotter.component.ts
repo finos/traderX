@@ -88,7 +88,12 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
         {
             headerName: 'STATE',
             field: 'state',
-            enableCellChangeFlash: true
+            enableCellChangeFlash: true,
+            // Once a row's settlement is known, this column shows the UETR
+            // (pacs.008 ↔ pacs.002 correlation ID) instead of the adapter's
+            // trade-lifecycle text; before any dispatch it stays the raw
+            // trade state. The status badge stays in the ACTION column.
+            cellRenderer: (params: any) => this.settlementStateCellHtml(params?.data)
         },
         {
             headerName: 'EXECUTED',
@@ -211,6 +216,20 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
         return '<button class="btn btn-sm btn-outline-success font-monospace py-0 px-2" style="font-size:10px;">SETTLE (BANKERX)</button>';
     }
 
+    private settlementStateCellHtml(trade?: Trade): string {
+        if (!trade) return '';
+        const state = this.settlementByRow.get(this.rowKeyFor(trade));
+        // Operator directive (2026-10-01): the STATE column must not keep
+        // saying the adapter's trade lifecycle ("Pending") after a settlement
+        // — once a row's settlement is known, the STATE column shows the
+        // UETR (the pacs.008 ↔ pacs.002 correlation ID) instead. The badge
+        // stays where it always was, in ACTION.
+        if (state) {
+            return this.uetrLine(state.uetr);
+        }
+        return trade.state ?? '';
+    }
+
     // The UETR is the pacs.008 ↔ pacs.002 correlation ID — showing it in the
     // state column (full value on hover) lets the row be traced into the desk
     // receipt modal and the explorer without opening anything.
@@ -302,12 +321,16 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
     private refreshSettlementCells(): void {
         this.trades = [...this.trades];
         this.gridApi?.setGridOption('rowData', this.trades);
-        // Rows keep their object identity (the trades array is copied, not its
-        // items), and getRowId makes ag-Grid treat row data as immutable — a
-        // rowData reset alone does not re-run cell renderers. Force one so the
-        // settlement cell re-evaluates against the (already updated)
-        // settlementByRow map and the badge actually renders.
-        this.gridApi?.refreshCells();
+        // Row data is immutable to ag-Grid under getRowId, so a rowData reset
+        // alone does not re-run cell renderers — and a plain refreshCells()
+        // only re-renders cells whose VALUE changed. The ACTION badge would
+        // repaint (its valueGetter returns the new status) but the STATE
+        // column's field value never changes (e.g. "Pending" stays
+        // "Pending"), so its renderer was skipped and the UETR only appeared
+        // after a reload. force:true re-runs every renderer so the STATE
+        // column's UETR paints live, with the settlementByRow map already
+        // updated.
+        this.gridApi?.refreshCells({ force: true });
     }
 
     ngOnChanges(change: SimpleChanges) {
