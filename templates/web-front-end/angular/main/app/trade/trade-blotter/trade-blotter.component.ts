@@ -35,6 +35,10 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
     private settlementSubscription?: Subscription;
     private snapshotSubscription?: Subscription;
     private snapshotPollTimer?: ReturnType<typeof setInterval>;
+    // Durable-truth timers (see reconcileFromRegistry / checkOnChainSettlement).
+    private registryPollTimer?: ReturnType<typeof setInterval>;
+    private chainPollTimer?: ReturnType<typeof setInterval>;
+    private registryPollCycle = 0;
     private readonly connectionSubscription: Subscription;
 
     get effectiveTicker(): string {
@@ -112,6 +116,13 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
 
     constructor(private tradeFeed: TradeFeedService, private tradeService: PositionService, private interop: Fdc3InteropService) {
         this.restoreSettlementLedger();
+        // Durable-truth loops: reconcile against the adapter registry (3s) and
+        // run the Solana memo watcher (2.5s) so settled state survives a
+        // refresh, a SECOND browser, and a mid-flight page that missed the
+        // desk's live status broadcast.
+        this.reconcileFromRegistry();
+        this.registryPollTimer = setInterval(() => this.reconcileFromRegistry(), 3000);
+        this.chainPollTimer = setInterval(() => this.checkOnChainSettlement(), 2500);
         this.connectionSubscription = this.tradeFeed.connectionState$.pipe(
             filter(state => state === 'connected'), observeOn(asapScheduler)
         ).subscribe(() => {
@@ -313,9 +324,224 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
                 ledger[rowKey] = { uetr: entry.uetr, status: entry.status };
             }
             localStorage.setItem(TradeBlotterComponent.SETTLEMENT_LEDGER_KEY, JSON.stringify(ledger));
+            // Publish to the adapter's durable registry as well: localStorage is
+            // per-browser, so a set of settled rows known only here would be
+            // invisible to a second browser (fresh SETTLE buttons / rows stuck on
+            // SETTLING). Fire-and-forget — the reconcile tick repairs any missed
+            // publish.
+            this.publishSettlements();
         } catch (error) {
             console.warn('[settlement] settlement ledger persist failed', error);
         }
+    }
+
+    // ── Durable settlement truth (adapter registry + Solana memo watcher) ──
+    // localStorage is PER-BROWSER, so a second browser showed fresh SETTLE
+    // buttons / rows stuck on SETTLING… for trades settled elsewhere. The
+    // adapter (:8415 /trade-service/trade/trades/settlements) now owns the
+    // durable ledger keyed by UETR: this blotter publishes every transition
+    // it observes and reconciles from it on load and on each snapshot tick.
+    // Adoption is guarded — an entry is only applied to a row whose identity
+    // matches (its own UETR, or a fingerprint-matched tradeId), so a registry
+    // entry can never stamp SETTLED onto an unrelated row.
+    private publishSettlements(): void {
+        if (!this.trades.length) {
+            return;
+        }
+        const entries: any[] = [];
+        for (const [rowKey, state] of this.settlementByRow.entries()) {
+            const trade = this.trades.find(t => this.rowKeyFor(t) === rowKey);
+            const fp = trade ? this.fingerprintOf(trade) : null;
+            entries.push(Object.assign({
+                tradeId: rowKey.startsWith('Trade-') ? rowKey.slice('Trade-'.length) : rowKey,
+                uetr: state.uetr,
+                status: state.status
+            }, fp ?? {}));
+        }
+        if (!entries.length) {
+            return;
+        }
+        try {
+            this.tradeService.postSettlements(entries).subscribe(
+                () => undefined,
+                (error: unknown) => console.warn('[settlement] registry publish failed', error)
+            );
+        } catch (error) {
+            console.warn('[settlement] registry publish failed', error);
+        }
+    }
+
+    // Fingerprint the dispatching browser recorded for the trade: a registry
+    // entry is adoptable by a row only when every field matches, so the same
+    // tradeId regenerated after an adapter restart (which wipes the in-memory
+    // TRADES list) can never inherit an old settlement.
+    private fingerprintOf(trade: Trade): any {
+        if (!trade?.id) {
+            return null;
+        }
+        return {
+            security: trade.security ?? '',
+            quantity: Number(trade.quantity ?? 0),
+            side: trade.side ?? '',
+            created: String((trade as any).created ?? '')
+        };
+    }
+
+    private matchesFingerprint(trade: Trade, entry: any): boolean {
+        // An entry without a complete fingerprint (older publisher) must NOT
+        // be adoptable by fingerprint — block rather than risk a wrong-row
+        // SETTLED stamp.
+        if (!entry || typeof entry !== 'object') {
+            return false;
+        }
+        return entry.security === (trade.security ?? '')
+            && Number(entry.quantity) === Number(trade.quantity ?? 0)
+            && entry.side === (trade.side ?? '')
+            && String(entry.created ?? '') === String((trade as any).created ?? '');
+    }
+
+    private reconcileFromRegistry(): void {
+        this.tradeService.getSettlements().subscribe((map: { [uetr: string]: any }) => {
+            if (!map || typeof map !== 'object') {
+                return;
+            }
+            // Same ISO 20022 ordering guard as applySettlementStatus: pacs.002
+            // terminal statuses are one-way.
+            const RANK: { [s: string]: number } = { Pndg: 0, Acsc: 1, Rjct: 1 };
+            let changed = false;
+            for (const entry of Object.values(map) as any[]) {
+                if (!entry?.uetr || !(entry.status in RANK)) {
+                    continue;
+                }
+                // Path 1: this browser already tracks a settlement for the
+                // SAME UETR (own dispatch, or own ledger) — adopt directly.
+                let adoptRowKey: string | null = null;
+                for (const [rowKey, state] of this.settlementByRow.entries()) {
+                    if (state.uetr === entry.uetr) {
+                        adoptRowKey = rowKey;
+                        break;
+                    }
+                }
+                // Path 2: second browser — the row was dispatched elsewhere,
+                // so this browser holds no UETR for it. Adopt the registry
+                // entry's trade identity, but only when a matching trade row
+                // exists here AND its fingerprint matches: the adapter's
+                // in-memory TRADES list is wiped on restart, and a new trade
+                // that recycled an old id must never inherit an old settlement.
+                const rowKey = entry.tradeId ? `Trade-${entry.tradeId}` : null;
+                if (!adoptRowKey && rowKey && !this.settlementByRow.has(rowKey)) {
+                    const trade = this.trades.find(t => this.rowKeyFor(t) === rowKey);
+                    if (trade && this.matchesFingerprint(trade, entry)) {
+                        adoptRowKey = rowKey;
+                    }
+                }
+                if (!adoptRowKey) {
+                    continue;
+                }
+                const state = this.settlementByRow.get(adoptRowKey);
+                if (!state) {
+                    this.settlementByRow.set(adoptRowKey, {
+                        uetr: entry.uetr,
+                        status: entry.status as 'Acsc' | 'Rjct' | 'Pndg'
+                    });
+                    changed = true;
+                    continue;
+                }
+                const incoming = RANK[entry.status] ?? -1;
+                if (incoming < (RANK[state.status] ?? 0)) {
+                    continue;
+                }
+                if (state.status !== entry.status) {
+                    state.status = entry.status as 'Acsc' | 'Rjct' | 'Pndg';
+                    if (entry.txSignature) {
+                        (state as any).txSignature = entry.txSignature;
+                    }
+                    changed = true;
+                }
+            }
+            if (changed) {
+                this.persistSettlementLedger();
+                this.refreshSettlementCells();
+            }
+        }, (error: unknown) => {
+            // Registry unreachable (first boot, adapter restart) — next tick retries.
+            if (this.registryPollCycle % 20 === 0) {
+                console.warn('[settlement] registry reconcile unavailable', error);
+            }
+            this.registryPollCycle++;
+        });
+    }
+
+    // Solana devnet memo watcher — ported from the root blotter's
+    // checkOnChainSettlement: the desk settles ONLY after its desk-side WOTS+
+    // re-derivation passes (a failed attestation honest-rejects and creates
+    // no settlement), so an on-chain settlement memo containing a row's UETR
+    // IS authoritative Acsc for it even when every page that observed the
+    // settle is closed or sits in another browser. Resolved rows are
+    // published to the registry so every other browser reconciles within
+    // one tick.
+    private static readonly SOLANA_DEVNET_RPC = 'https://api.devnet.solana.com';
+    private static readonly CREDITOR_TOKEN_ACCOUNT = 'BnuCTFWFLLXnSPv2Frs42royiTAYG87WP7p1zRLB4ksG';
+    private chainChecking = false;
+
+    private checkOnChainSettlement(): void {
+        if (this.chainChecking || typeof fetch === 'undefined') {
+            return;
+        }
+        const pending = [...this.settlementByRow.entries()].filter(([, s]) => s.status === 'Pndg');
+        if (!pending.length) {
+            return;
+        }
+        this.chainChecking = true;
+        const settledNow: any[] = [];
+        const http$ = fetch(TradeBlotterComponent.SOLANA_DEVNET_RPC, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                id: 1,
+                method: 'getSignaturesForAddress',
+                params: [TradeBlotterComponent.CREDITOR_TOKEN_ACCOUNT, { limit: 10 }]
+            })
+        }).then(res => res.json()).then((data: any) => {
+            for (const sig of (data?.result ?? [])) {
+                if (!sig?.memo) {
+                    continue;
+                }
+                for (const [rowKey, state] of pending) {
+                    if (state.status !== 'Pndg' || !sig.memo.includes(state.uetr)) {
+                        continue;
+                    }
+                    state.status = 'Acsc';
+                    (state as any).txSignature = sig.signature;
+                    settledNow.push({
+                        tradeId: rowKey.slice('Trade-'.length),
+                        uetr: state.uetr,
+                        status: 'Acsc',
+                        txSignature: sig.signature
+                    });
+                    console.log('[settlement] on-chain SETTLED (memo watcher)', {
+                        rowKey, uetr: state.uetr, tx: String(sig.signature).slice(0, 16)
+                    });
+                }
+            }
+        }).catch(() => {
+            // Non-blocking network check — devnet flake, next tick retries.
+        }).finally(() => {
+            this.chainChecking = false;
+            if (settledNow.length) {
+                this.persistSettlementLedger();
+                this.refreshSettlementCells();
+                try {
+                    this.tradeService.postSettlements(settledNow).subscribe(
+                        () => undefined, () => undefined
+                    );
+                } catch (error) {
+                    console.warn('[settlement] registry publish failed', error);
+                }
+            }
+        });
+        http$.catch(() => undefined); // fetch itself must never throw out of a timer
     }
 
     private refreshSettlementCells(): void {
@@ -379,6 +605,14 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
         this.settlementSubscription?.unsubscribe();
         this.snapshotSubscription?.unsubscribe();
         this.stopSnapshotPolling();
+        if (this.registryPollTimer) {
+            clearInterval(this.registryPollTimer);
+            this.registryPollTimer = undefined;
+        }
+        if (this.chainPollTimer) {
+            clearInterval(this.chainPollTimer);
+            this.chainPollTimer = undefined;
+        }
         this.clearSubscriptions();
     }
 
@@ -502,6 +736,10 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
         if (changed) {
             this.refreshSettlementCells();
         }
+        // First trade rows just landed — pull the registry now instead of
+        // waiting up to a whole 3s tick for fresh-second-browser rows to
+        // adopt their settled status.
+        this.reconcileFromRegistry();
     }
 
     private withAccountDisplay(data: Trade): Trade & { accountDisplayName: string } {

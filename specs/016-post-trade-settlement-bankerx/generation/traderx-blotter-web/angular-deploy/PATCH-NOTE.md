@@ -1,5 +1,74 @@
 # Angular bundle hand-patch — RETIRED 2026-09-30
 
+## v20 (2026-10-01): durable settlement ledger — settled state survives refresh, a second browser, and an adapter restart
+
+Operator report on angular: opening another browser reset rows to SETTLE
+buttons for trades already settled, and some rows stayed on SETTLING… after
+BankerX settled them. Root cause verified in code: the settlement ledger
+lived ONLY in `localStorage`(`traderx_settlement_ledger_v1`, per-browser)
+and the adapter served every trade with its in-memory lifecycle state while
+holding no settlement status at all — so the ONLY place settlement truth
+existed was a single browser's localStorage. The desk-reuse v19 work landed
+first; v20 is this fix.
+
+Fix (three pieces, minimal delta):
+
+1. **Adapter durable registry** (`synaptic-traderx-adapter/server.mjs`,
+   :8415) — file-backed JSON (`settlements.json` next to server.mjs)
+   keyed by UETR. `GET /trade-service/trade/trades/settlements/` returns the
+   map; `POST` the same path publishes `{entries:[{uetr,status,tradeId,
+   security,quantity,side,created,txSignature?}]}`. One-way ISO 20022
+   ordering (`Pndg → Acsc/Rjct`, never backwards) is enforced SERVER-side.
+   Routes sit before the `/trade`/`/trades` substring checks (the
+   trade-service prefix itself contains `/trade`). Verified: Pndg→Rjct merge
+   accepted, later Pndg merge ignored; registry survives `pm2 restart`.
+2. **Blotter publish + reconcile** — `persistSettlementLedger()` now also
+   publishes the ledger (entries carry the trade fingerprint: security,
+   quantity, side, created) fire-and-forget; a new
+   `reconcileFromRegistry()` (constructor, every 3s alongside the snapshot
+   poll, and once whenever `mergeSnapshot` lands new rows) adopts entries
+   under two guarded paths: (a) a UETR the browser already tracks — its own
+   stuck rows cure themselves; (b) a fingerprint-matched tradeId for rows
+   dispatched in a DIFFERENT browser. A registry entry can never stamp
+   SETTLED onto an unrelated row: incomplete fingerprints block fingerprint
+   adoption, and the same tradeId regenerated after an adapter restart
+   (which re-seeds in-memory TRADES with a new `created`) fails the
+   fingerprint and is correctly NOT adopted (demonstrated live: B did not
+   adopt a pre-restart entry after the adapter restarted).
+3. **Solana memo watcher port** — the root blotter's
+   `checkOnChainSettlement` logic now runs in the angular blotter too (2.5s
+   beat, `getSignaturesForAddress` on the creditor token account, memo
+   contains the row's UETR ⇒ authoritative Acsc, because the desk settles
+   only after its WOTS+ re-derivation passes and a failed attestation
+   creates no settlement). Resolved rows publish to the registry with their
+   tx signature so every other browser reconciles within a tick. This is
+   what cures rows that stayed SETTLING because the page that missed the
+   desk's live status broadcast was the only witness.
+
+Deployed bytes: bundle `main-FDMPPVWA.js` (`ca10adb4…`) + angular index
+`5143aad4…`, bundle ref `?v=20`; agent stays `?v=19` (`dcfc8cb4…`, desk
+reuse), bridge `?v=13`, root pages unchanged. Served==disk verified per
+URL-bust. Preflight 25/0 DEMO-READY (FROZEN_C/D re-frozen to v20).
+
+Verification with real settles (operator directive: verify live):
+
+- Probe 1 (drain, USD/KES seed row): browser A settled (`tx 62akSM7R…`); a
+  FRESH second browser context — zero shared storage — showed the row
+  SETTLED on fresh load and STILL SETTLED after reload.
+- Probe 2 (drain, same row again): A settled again (`tx hkie33K9…`),
+  registry held both entries across an adapter `pm2 restart`.
+- The adapter registry was then cleared (`{}`) at the operator's
+  clean-slate directive; probe artifacts are recorded here, not in the
+  live registry.
+
+Operator Q&A (restart / clean slate): the traderX root and angular pages
+are nginx-served STATIC files — there is no process to restart, and none
+was needed; the only pm2 component in the flow is `synaptic-traderx-adapter`
+(:8415), which was restarted with the new server. To reset the slate:
+empty `settlements.json` + `pm2 restart synaptic-traderx-adapter` (trade
+seeds re-materialize with fresh identities; old ledger rows can never
+collide because of the `created` fingerprint).
+
 ## v19 (2026-10-01): UETR in the STATE column after settlement
 
 Operator correction after v18: the UETR was never supposed to land solely in
