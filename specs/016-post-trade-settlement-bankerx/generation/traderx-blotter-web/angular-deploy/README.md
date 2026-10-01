@@ -6,15 +6,27 @@ not part of the Angular build; the canonical app bundle (`main-*.js`) is
 built from `templates/web-front-end/angular/` — see `PATCH-NOTE.md` for the
 2026-09-30 rebuild recipe that made the bundle fully source-derived.
 
-| file | served as | 2026-10-01 (v19 UETR-in-STATE) md5 | 2026-09-30 (v17 blotter-fix) md5 |
+| file | served as | 2026-10-01 (v20 durable settlement ledger) md5 | 2026-10-01 (v19 UETR-in-STATE + agent ?v=19) md5 |
 |------|-----------|----------------|----------------|
 | `bankerx-bridge.js` | `bankerx-bridge.js?v=13` | 35eb71880e4ff6186f2fc619f51764c2 (unchanged) | 35eb71880e4ff6186f2fc619f51764c2 |
-| `../fdc3-agent-v12.js` (agent) | `fdc3-agent.js?v=15` | b600a533d33be3c7686a581d6928bd48 (unchanged) | b600a533d33be3c7686a581d6928bd48 |
-| `conf.angular.html` | `conf.html` | 25da0a4bbf0ddbc18b341ca82c722676 (unchanged, agent ref `?v=15`) | 25da0a4bbf0ddbc18b341ca82c722676 |
-| (app bundle) | `main-7E7PBSO6.js` | add329e95674531d77215e9a2a749edc | (v17 `main-V6THKHFV.js` `707039fa…` retired same day) |
-| (app index + glue tags) | `index.html` | 29b46e1c890411b4ec4b1047532f48be (bundle ref `?v=19`) | c8191c569e71f219d6b66eb09a3f3668 |
-| (root estate index, agent ref `?v=15`) | `/index.html` | 24fd0d7a23432db871fa8e2fb06747ee (unchanged) | 24fd0d7a23432db871fa8e2fb06747ee |
+| agent (DEPLOYED copy) | `fdc3-agent.js?v=19` (both trees) | dcfc8cb4257029c0d5cd46eb753bda00 (v19 desk-reuse — unchanged) | dcfc8cb4257029c0d5cd46eb753bda00 |
+| `conf.angular.html` | `conf.html` | 25da0a4bbf0ddbc18b341ca82c722676 (unchanged) | 25da0a4bbf0ddbc18b341ca82c722676 |
+| (app bundle) | `main-FDMPPVWA.js?v=20` | ca10adb401a324240e3d618822fccc88 | (v19 `main-7E7PBSO6.js` `add329e9…` retired same day) |
+| (app index + glue tags) | `index.html` | 5143aad4ba93282c0a3bfba4e26ee6ab (bundle ref `?v=20`) | 3f2a5043710ee622368cd99979c82443 (bundle ref `?v=19`) |
+| (root estate index, agent ref `?v=19`) | `/index.html` | 35c80fd57daf96a14127e3c652b99071 | 35c80fd57daf96a14127e3c652b99071 |
 
+
+v20 (2026-10-01, commit `b5cc268`): durable settlement ledger — the adapter
+(:8415) now owns a file-backed settlement registry keyed by UETR
+(`settlements.json`), the blotter publishes every lifecycle transition into
+it and reconciles from it in any browser / after any refresh, and the Solana
+memo watcher (ported from the root blotter) resolves rows whose only witness
+was a page that missed the desk's broadcast. One-way ISO 20022 ordering is
+enforced server-side AND in the blotter; adoption is fingerprint-guarded so
+a re-seeded trade can never inherit an old settlement. Real-settle probes:
+browser A settles → fresh browser B shows SETTLED fresh-load AND after
+reload; registry survives `pm2 restart`. See `PATCH-NOTE.md` "v20" for the
+full record (root cause, endpoint paths, probe tx signatures).
 
 v19 (2026-10-01, commit `d7afe56`): the STATE column now shows the UETR
 (`first8…last4`, full value on hover) once a row's settlement is known,
