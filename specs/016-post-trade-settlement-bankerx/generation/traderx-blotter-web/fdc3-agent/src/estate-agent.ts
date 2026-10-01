@@ -385,9 +385,19 @@ class EstateServerContext implements ServerContext<AppRegistration> {
       latencyMs: screen.latencyMs,
       desk,
     });
-    const deskReg = this.connections.find(
-      (c) => c.appId === desk && c.state === State.Connected
-    );
+    const deskReg =
+      this.connections.find((c) => c.appId === desk && c.state === State.Connected) ??
+      (await this.findOrAwaitDeskWindowFor(desk));
+    if (deskReg) {
+      this.focusDeskWindow(deskReg);
+      adapterTrace({
+        stage: "desk-reused",
+        uetr,
+        desk,
+        deliveredApp: deskReg.appId,
+        reused: deskReg.appId !== desk,
+      });
+    }
     // ADR-555 desk-side attestation (S3): the delivered context carries the
     // enclave's WOTS+ proof + derivation timestamp; the desk re-derives the
     // leaf root through the enclave's verify_preflight tool BEFORE settling
@@ -403,7 +413,7 @@ class EstateServerContext implements ServerContext<AppRegistration> {
         intent: msg.payload.intent,
         context: deliveredContext,
         app: deskReg
-          ? { appId: desk, instanceId: deskReg.instanceId }
+          ? { appId: deskReg.appId, instanceId: deskReg.instanceId }
           : { appId: desk },
       },
       meta: {
@@ -413,9 +423,18 @@ class EstateServerContext implements ServerContext<AppRegistration> {
       },
     };
     let deliveredInstance: string | null = null;
+    const deliveredAppId = deskReg?.appId ?? desk;
     try {
       if (this.server) {
         await Promise.resolve(this.server.receive(synth, fromInstanceId));
+        // Fresh open (no desk window was running): the raise path launched
+        // the routed desk — bring its window into view once it realizes.
+        if (!deskReg) {
+          const launched =
+            this.connections.find((c) => c.appId === desk && isLaunching(c)) ??
+            undefined;
+          if (launched) this.focusDeskWindow(launched);
+        }
         const freshReg = this.connections.find(
           (c) => c.appId === desk && c.state === State.Connected
         );
@@ -442,6 +461,7 @@ class EstateServerContext implements ServerContext<AppRegistration> {
       stage: "desk-delivered",
       uetr,
       desk,
+      deliveredApp: deliveredAppId,
       lane: screen.lane,
       instanceId: deliveredInstance,
     });
@@ -459,8 +479,8 @@ class EstateServerContext implements ServerContext<AppRegistration> {
           intentResolution: {
             intent: msg.payload.intent,
             source: deliveredInstance
-              ? { appId: desk, instanceId: deliveredInstance }
-              : { appId: desk },
+              ? { appId: deliveredAppId, instanceId: deliveredInstance }
+              : { appId: deliveredAppId },
           },
         },
       },
@@ -523,9 +543,19 @@ class EstateServerContext implements ServerContext<AppRegistration> {
       latencyMs: screen.latencyMs,
       desk,
     });
-    const deskReg = this.connections.find(
-      (c) => c.appId === desk && c.state === State.Connected
-    );
+    const deskReg =
+      this.connections.find((c) => c.appId === desk && c.state === State.Connected) ??
+      (await this.findOrAwaitDeskWindowFor(desk));
+    if (deskReg) {
+      this.focusDeskWindow(deskReg);
+      adapterTrace({
+        stage: "desk-reused",
+        uetr,
+        desk,
+        deliveredApp: deskReg.appId,
+        reused: deskReg.appId !== desk,
+      });
+    }
     const deliveredContext =
       screen.wotsPlus && screen.timestamp
         ? { ...(raise.context as object), alcove: { lane: screen.lane, timestamp: screen.timestamp, wotsPlus: screen.wotsPlus } }
@@ -535,7 +565,9 @@ class EstateServerContext implements ServerContext<AppRegistration> {
       payload: {
         intent: raise.intent,
         context: deliveredContext,
-        app: deskReg ? { appId: desk, instanceId: deskReg.instanceId } : { appId: desk },
+        app: deskReg
+          ? { appId: deskReg.appId, instanceId: deskReg.instanceId }
+          : { appId: desk },
       },
       meta: {
         requestUuid: this.createUUID(),
@@ -544,9 +576,18 @@ class EstateServerContext implements ServerContext<AppRegistration> {
       },
     };
     let deliveredInstance: string | null = null;
+    const deliveredAppId = deskReg?.appId ?? desk;
     try {
       if (this.server) {
         await Promise.resolve(this.server.receive(synth, to));
+        // Fresh open (no desk window was running) — focus the window once
+        // it realizes (same rationale as the intercept path).
+        if (!deskReg) {
+          const launched =
+            this.connections.find((c) => c.appId === desk && isLaunching(c)) ??
+            undefined;
+          if (launched) this.focusDeskWindow(launched);
+        }
         const freshReg = this.connections.find(
           (c) => c.appId === desk && c.state === State.Connected
         );
@@ -562,6 +603,7 @@ class EstateServerContext implements ServerContext<AppRegistration> {
       stage: "desk-delivered",
       uetr,
       desk,
+      deliveredApp: deliveredAppId,
       lane: screen.lane,
       instanceId: deliveredInstance,
     });
@@ -572,8 +614,8 @@ class EstateServerContext implements ServerContext<AppRegistration> {
       intentResolution: {
         intent: raise.intent,
         source: deliveredInstance
-          ? { appId: desk, instanceId: deliveredInstance }
-          : { appId: desk },
+          ? { appId: deliveredAppId, instanceId: deliveredInstance }
+          : { appId: deliveredAppId },
       },
     };
   }
@@ -682,6 +724,96 @@ class EstateServerContext implements ServerContext<AppRegistration> {
       }
     }
     return record?.customProps?.alcoveDesk ?? ADAPTER_DESK_APP_ID;
+  }
+
+  /**
+   * Every BankerX desk appId the estate routes to: the base desk constant
+   * plus whatever the adapter record's Alcove customProps declare.
+   */
+  private deskAppIds(): Set<string> {
+    const ids = new Set<string>([ADAPTER_DESK_APP_ID]);
+    const record = this.directory.retrieveAppsById(ADAPTER_APP_ID)[0] as
+      | (DirectoryApp & {
+          customProps?: {
+            alcoveDesk?: string;
+            alcovePartitions?: Array<{ lanes: string; desk: string }>;
+          };
+        })
+      | undefined;
+    if (record?.customProps?.alcoveDesk) ids.add(record.customProps.alcoveDesk);
+    for (const p of record?.customProps?.alcovePartitions ?? []) ids.add(p.desk);
+    return ids;
+  }
+
+  /**
+   * Await-open-desk-window (operator directive 2026-10-01): a SETTLE pressed
+   * while the launched desk window is still realizing must NOT open a second
+   * BankerX window — wait briefly (≤ maxWaitMs, poll 200ms) for the existing
+   * desk launch (either desk appId, same record URL) to reach Connected and
+   * return it for reuse. Returns an already-Connected desk window instantly,
+   * undefined only when no desk window exists (fresh open, as today).
+   */
+  private async findOrAwaitDeskWindowFor(
+    desk: string,
+    maxWaitMs = 5000
+  ): Promise<RunningRegistration | undefined> {
+    const deskIds = this.deskAppIds();
+    if (!deskIds.has(desk)) return undefined;
+    const routedUrl = (
+      this.directory.retrieveAppsById(desk)[0]?.details as { url?: string } | undefined
+    )?.url;
+    const connected = () =>
+      this.connections.find(
+        (c) =>
+          isRunning(c) &&
+          c.state === State.Connected &&
+          deskIds.has(c.appId) &&
+          (!routedUrl || c.url === routedUrl)
+      ) as RunningRegistration | undefined;
+    const direct = connected();
+    if (direct) return direct;
+    // A desk launch that is in flight: either still realizing (windowPromise
+    // outstanding) or realized but mid-handshake (Running, still Pending) —
+    // both count. The window EXISTS; the raise must reuse it, not open a
+    // second one.
+    const launching = this.connections.find(
+      (c) =>
+        (isLaunching(c) || (isRunning(c) && c.state !== State.Connected)) &&
+        deskIds.has(c.appId) &&
+        (!routedUrl || c.url === routedUrl)
+    );
+    if (!launching) return undefined;
+    const deadline = Date.now() + maxWaitMs;
+    while (Date.now() < deadline) {
+      await new Promise<void>((r) => setTimeout(r, 200));
+      const now = connected();
+      if (now) return now;
+    }
+    return undefined;
+  }
+
+  /** Bring the clearing-desk window into view (operator directive
+   * 2026-10-01: SETTLE shows the desk the payment is going to). Launching
+   * instances are focused the moment their window realizes. Cross-origin
+   * focus() on the DA's own WindowProxy is permitted; anything else is
+   * swallowed. */
+  private focusDeskWindow(reg?: RunningRegistration | LaunchingRegistration): void {
+    if (!reg) return;
+    if (isLaunching(reg)) {
+      void Promise.resolve(reg.windowPromise).then((w) => {
+        try {
+          (w as Window | null)?.focus();
+        } catch {
+          /* focus unavailable — ignore */
+        }
+      });
+      return;
+    }
+    try {
+      reg.window?.focus();
+    } catch {
+      /* focus unavailable — ignore */
+    }
   }
 
   async narrowIntents(_raiser: AppIdentifier, appIntents: AppIntent[]): Promise<AppIntent[]> {
@@ -989,6 +1121,45 @@ class EstateServerContext implements ServerContext<AppRegistration> {
       .map((c) => ({ appId: c.appId, instanceId: c.instanceId, state: c.state }));
   }
 
+  /** Operator directive (2026-10-01): expose the desk's WindowProxy so the
+   * host page's settle flow can focus/reuse the DA-tracked window instead of
+   * window.open with a foreign target name (which spawned the duplicate
+   * BankerX tab on the first SETTLE after an agent launch). Order: strict
+   * appId; then any BankerX desk window — desk-family appIds and unknown
+   * desk aliases (e.g. the enclave-mode desk target) share the one clearing
+   * workspace; non-desk appIds get NO fallback. */
+  async getDeskWindow(appId?: string): Promise<Window | null> {
+    const deskIds = this.deskAppIds();
+    const isDeskQuery = (id?: string) => !id || deskIds.has(id) || this.directory.retrieveAppsById(id).length === 0;
+    const running = this.connections.find(
+      (c) =>
+        isRunning(c) &&
+        c.state !== State.Terminated &&
+        (appId ? c.appId === appId || (isDeskQuery(appId) && deskIds.has(c.appId)) : deskIds.has(c.appId))
+    );
+    if (running) return (running as RunningRegistration).window ?? null;
+    // A desk launch that is in flight: either still realizing (windowPromise
+    // outstanding) or realized but mid-handshake (Running, still Pending) —
+    // both count. The window EXISTS; the raise must reuse it, not open a
+    // second one.
+    const onTheWay = this.connections.find(
+      (c) =>
+        (isLaunching(c) || (isRunning(c) && c.state !== State.Connected)) &&
+        (appId ? c.appId === appId || (isDeskQuery(appId) && deskIds.has(c.appId)) : deskIds.has(c.appId))
+    );
+    if (onTheWay) {
+      if (isLaunching(onTheWay)) {
+        try {
+          return (await Promise.resolve(onTheWay.windowPromise)) ?? null;
+        } catch {
+          return null;
+        }
+      }
+      return (onTheWay as RunningRegistration).window ?? null;
+    }
+    return null;
+  }
+
   /** InstanceId of a Connected instance of appId, for spec-correct
    * raiseIntent targeting: FDC3 spec §raiseIntent — "if the app has already
    * been launched, the intent is delivered to the running instance". The
@@ -997,6 +1168,31 @@ class EstateServerContext implements ServerContext<AppRegistration> {
   getConnectedInstanceForAppId(appId: string): InstanceID | null {
     const c = this.connections.find((x) => x.appId === appId && x.state === State.Connected);
     return c?.instanceId ?? null;
+  }
+
+  /** Desk-reuse (2026-10-01, operator directive): bounded wait for an
+   * in-flight launch of appId to reach Connected. Covers the
+   * launch-then-immediately-settle timing — a targeted raise during the WCP
+   * handshake falls through to the library's by-appId path, which launches a
+   * SECOND instance of the same desk (the duplicate BankerX window). Returns
+   * the instanceId once Connected; null only when no launch is in flight, so
+   * the caller keeps its normal launch path for a genuine first launch. */
+  async awaitConnectedInstanceForAppId(appId: string, maxWaitMs = 10000): Promise<InstanceID | null> {
+    const deadline = Date.now() + maxWaitMs;
+    for (;;) {
+      const connected = this.connections.find((x) => x.appId === appId && x.state === State.Connected);
+      if (connected) return connected.instanceId;
+      const inFlight = this.connections.find(
+        (x) =>
+          x.appId === appId &&
+          x.state !== State.Terminated &&
+          (isLaunching(x) || x.state !== State.Connected)
+      );
+      // Nothing in flight → genuine first launch: let the caller proceed.
+      if (!inFlight) return null;
+      if (Date.now() >= deadline) return this.getConnectedInstanceForAppId(appId);
+      await new Promise((r) => setTimeout(r, 100));
+    }
   }
 
   async isAppConnected(app: InstanceID): Promise<boolean> {
@@ -1393,16 +1589,20 @@ class LoopbackDA {
     };
   }
 
-  raiseIntent(intent: string, context: any, targetAppId?: string): Promise<any> {
+  async raiseIntent(intent: string, context: any, targetAppId?: string): Promise<any> {
     // Spec-correct targeting: when a Connected instance of the target app
     // exists, deliver to IT (instanceId) instead of letting the library's
-    // by-appId path launch a second instance of the same app.
-    const connectedInstance = targetAppId ? this.sc.getConnectedInstanceForAppId(targetAppId) : null;
-    const target = connectedInstance
-      ? { appId: targetAppId, instanceId: connectedInstance }
-      : targetAppId
-        ? { appId: targetAppId }
-        : undefined;
+    // by-appId path launch a second instance of the same app. Desk-reuse
+    // (2026-10-01): an in-flight launch of the same app also resolves to the
+    // single instance — a raise during the desk's WCP handshake must not
+    // spawn a second instance of it.
+    let target: { appId?: string; instanceId?: string } | undefined;
+    if (targetAppId) {
+      const instanceId =
+        this.sc.getConnectedInstanceForAppId(targetAppId) ??
+        (await this.sc.awaitConnectedInstanceForAppId(targetAppId));
+      target = { appId: targetAppId, ...(instanceId ? { instanceId } : {}) };
+    }
     return this.request(
       "raiseIntentRequest",
       {
@@ -1536,6 +1736,14 @@ export type EstateAgentAPI = {
   findIntentsByContext: (context: any) => Promise<any>;
   open: (appId: string) => Promise<InstanceID>;
   getConnectedApps: () => Promise<AppRegistration[]>;
+  /** Operator directive (2026-10-01): hand the desk's WindowProxy to the host
+   * page so focus/settle flows reuse the DA-tracked window instead of
+   * window.open with a foreign target name (which spawned the duplicate
+   * BankerX tab). Strict appId; falls back to any BankerX desk window (the
+   * desk records share one URL). */
+  getWindow: (appId: string) => Promise<Window | null>;
+  /** Focus the desk/app window if it is open (no-op when absent). */
+  focusApp: (appId: string) => Promise<void>;
   /** v12: real Desktop Agent API surface (published as window.fdc3). */
   addIntentListener: (intent: string, handler: (context: any, meta?: any) => void) => Promise<any>;
   addContextListener: (contextType: string | null, handler: (context: any, meta?: any) => void) => Promise<any>;
@@ -1587,6 +1795,14 @@ async function boot(): Promise<void> {
     findIntentsByContext: (context) => loopback.findIntentsByContext(context),
     open: (appId) => sc.open(appId),
     getConnectedApps: () => sc.getConnectedApps(),
+    getWindow: (appId) => sc.getDeskWindow(appId),
+    focusApp: async (appId) => {
+      try {
+        (await sc.getDeskWindow(appId))?.focus();
+      } catch {
+        /* focus unavailable — ignore */
+      }
+    },
     addIntentListener: (intent, handler) => loopback.addIntentListener(intent, handler),
     addContextListener: (contextType, handler) => loopback.addContextListener(contextType, handler),
     broadcast: (context) => loopback.broadcast(context),
