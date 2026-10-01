@@ -6,15 +6,25 @@ not part of the Angular build; the canonical app bundle (`main-*.js`) is
 built from `templates/web-front-end/angular/` — see `PATCH-NOTE.md` for the
 2026-09-30 rebuild recipe that made the bundle fully source-derived.
 
-| file | served as | 2026-09-30 (v18 UETR+guard) md5 | 2026-09-30 (v17 blotter-fix) md5 |
+| file | served as | 2026-10-01 (v19 UETR-in-STATE) md5 | 2026-09-30 (v17 blotter-fix) md5 |
 |------|-----------|----------------|----------------|
 | `bankerx-bridge.js` | `bankerx-bridge.js?v=13` | 35eb71880e4ff6186f2fc619f51764c2 (unchanged) | 35eb71880e4ff6186f2fc619f51764c2 |
 | `../fdc3-agent-v12.js` (agent) | `fdc3-agent.js?v=15` | b600a533d33be3c7686a581d6928bd48 (unchanged) | b600a533d33be3c7686a581d6928bd48 |
 | `conf.angular.html` | `conf.html` | 25da0a4bbf0ddbc18b341ca82c722676 (unchanged, agent ref `?v=15`) | 25da0a4bbf0ddbc18b341ca82c722676 |
-| (app bundle) | `main-I5PEKJGD.js` | b694f8c72580eddddb9b17e5e65506eb | (v17 `main-V6THKHFV.js` `707039fa…` retired same day) |
-| (app index + glue tags) | `index.html` | 3c8e4f665c2891cc1fce5fef90b76f46 (bundle ref `?v=18`) | c8191c569e71f219d6b66eb09a3f3668 |
+| (app bundle) | `main-7E7PBSO6.js` | add329e95674531d77215e9a2a749edc | (v17 `main-V6THKHFV.js` `707039fa…` retired same day) |
+| (app index + glue tags) | `index.html` | 29b46e1c890411b4ec4b1047532f48be (bundle ref `?v=19`) | c8191c569e71f219d6b66eb09a3f3668 |
 | (root estate index, agent ref `?v=15`) | `/index.html` | 24fd0d7a23432db871fa8e2fb06747ee (unchanged) | 24fd0d7a23432db871fa8e2fb06747ee |
 
+
+v19 (2026-10-01, commit `d7afe56`): the STATE column now shows the UETR
+(`first8…last4`, full value on hover) once a row's settlement is known,
+instead of the adapter's trade-lifecycle text ("Pending"). ACTION column is
+unchanged from v18. Also fixed the live repaint: `refreshCells({force:true})`
+(ag-Grid skips unchanged-value cells without it, so the STATE cell only
+painted after reload). Suites: angular conf ×2 131/1 (Resolve1 churn),
+probe ×1 all gates; preflight 25/0 DEMO-READY.
+
+v18 (2026-09-30 evening, commit on `feature/016-post-trade-settlement-bankerx`):
 v18 (2026-09-30 evening, commit on `feature/016-post-trade-settlement-bankerx`):
 `settlementCellHtml` renders the truncated UETR (full value on hover) under
 every settlement badge, and `applySettlementStatus` enforces the ISO 20022

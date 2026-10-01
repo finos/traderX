@@ -1,5 +1,32 @@
 # Angular bundle hand-patch — RETIRED 2026-09-30
 
+## v19 (2026-10-01): UETR in the STATE column after settlement
+
+Operator correction after v18: the UETR was never supposed to land solely in
+the ACTION badge — the STATE column kept showing the adapter trade-lifecycle
+text ("Pending") on every row, including long-settled ones, which reads as
+wrong on the desk. v19 changes exactly one thing plus one repaint fix:
+
+1. **STATE column shows the UETR once the settlement is known** — a new
+   `settlementStateCellHtml` STATE-column renderer emits `uetrLine(uetr)`
+   (truncated `first8…last4`, full value on hover) for rows present in the
+   settlement ledger, and keeps the raw trade state for rows with no
+   dispatch. The ACTION column is UNCHANGED from v18 (SETTLE button →
+   SETTLING…/SETTLED/REJECTED badge + UETR); a v19 interim build that moved
+   the badge into STATE never shipped verification and was replaced the
+   same hour.
+2. **`refreshCells({ force: true })`** — a plain `refreshCells()` only
+   re-renders cells whose value changed; the STATE field (e.g. "Pending")
+   never changes, so the new content only painted after a reload. force
+   makes the STATE UETR paint live on the dispatch round trip.
+
+Deployed bytes: `main-7E7PBSO6.js` (`add329e9…`) + angular index
+`29b46e1c…`, bundle ref `?v=19`; agent `?v=15`, bridge `?v=13`, root index
+unchanged. Verified served==disk per URL-bust. Suites on these bytes:
+angular conf ×2 (131/1 both — sole failure the disclosed Resolve1 churn),
+probe ×1 all gates green incl. p6 uetr-shown-in-state and p0 pre-settle
+plain state. Preflight 25/0 DEMO-READY.
+
 ## v18 (2026-09-30 evening): UETR in the state column + pacs.002 ordering guard
 
 Clean source rebuild (same recipe as v15/v16/v17). Two additions to
