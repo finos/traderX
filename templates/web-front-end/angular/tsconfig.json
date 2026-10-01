@@ -6,6 +6,7 @@
         "outDir": "./dist/out-tsc",
         "forceConsistentCasingInFileNames": true,
         "esModuleInterop": true,
+        "skipLibCheck": true,
         "strict": true,
         "strictPropertyInitialization": false,
         "noImplicitReturns": true,

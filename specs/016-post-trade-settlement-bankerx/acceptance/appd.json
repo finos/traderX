@@ -1,0 +1,55 @@
+{
+  "applications": [
+    {
+      "appId": "bankerx-clearing-desk",
+      "name": "BankerX Clearing Desk",
+      "title": "BankerX Clearing Desk (mock receiver)",
+      "description": "Local post-trade settlement receiver for the state 016 acceptance flow (dependency-free mock receiver).",
+      "version": "1.0.0",
+      "tooltip": "State 016 offline acceptance receiver",
+      "icons": [],
+      "screenshots": [],
+      "contactEmail": "traderx@finos.org",
+      "supportEmail": "traderx@finos.org",
+      "publisher": "FINOS TraderX Spec 016",
+      "customConfig": [],
+      "hostManifests": {},
+      "interop": {
+        "intents": {
+          "listensFor": {
+            "StartPayment": {
+              "displayName": "Start Payment",
+              "contexts": ["fdc3.payment"]
+            }
+          },
+          "broadcasts": ["synaptic.settlementStatus"]
+        },
+        "standardContexts": ["fdc3.payment"]
+      },
+      "details": {
+        "url": "../generation/mock-receiver/index.html"
+      },
+      "type": "web"
+    },
+    {
+      "appId": "finos-traderx-desk",
+      "name": "TraderX Execution Blotter",
+      "title": "TraderX Execution Blotter",
+      "description": "FINOS TraderX standalone web blotter (state 016) — raises StartPayment with a full fdc3.payment payload from the trade row.",
+      "version": "1.0.0",
+      "tooltip": "State 016 offline acceptance blotter",
+      "icons": [],
+      "screenshots": [],
+      "contactEmail": "traderx@finos.org",
+      "supportEmail": "traderx@finos.org",
+      "publisher": "FINOS TraderX Spec 016",
+      "customConfig": [],
+      "hostManifests": {},
+      "details": {
+        "url": "../generation/traderx-blotter-web/index.html"
+      },
+      "type": "web"
+    }
+  ],
+  "message": "OK"
+}

@@ -1,0 +1,1067 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FINOS TraderX · Spec 016 · Post-Trade DvP Settlement</title>
+<style>
+/* ─── Reset & Tokens ──────────────────────────────────────────────────────── */
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:       #080b14;
+  --bg-panel: #0c0f1c;
+  --bg-card:  #0f1320;
+  --bg-input: #0a0d18;
+  --border:   #1a2236;
+  --border-hi:#2a3a56;
+  --txt:      #e4e8f0;
+  --txt2:     #7a8699;
+  --txt3:     #3d4d63;
+  --green:    #00d97e;
+  --red:      #ff4560;
+  --amber:    #f0b429;
+  --blue:     #4a9eff;
+  --finos:    #7c3aed;
+  --finos-hi: #a78bfa;
+  --mono: ui-monospace,'Courier New',monospace;
+}
+html,body{height:100%;overflow:hidden;}
+body{font-family:var(--mono);background:var(--bg);color:var(--txt);display:flex;flex-direction:column;}
+
+/* ─── Header ─────────────────────────────────────────────────────────────── */
+.hdr{
+  height:42px;background:#060810;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 14px;flex-shrink:0;gap:12px;
+}
+.hdr-l{display:flex;align-items:center;gap:10px;}
+.finos-badge{
+  background:var(--finos);color:#fff;font-size:8px;font-weight:700;
+  letter-spacing:2px;padding:3px 8px;text-transform:uppercase;
+}
+.app-name{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;}
+.pipe{color:var(--border-hi);font-size:10px;}
+.spec-tag{
+  font-size:8px;letter-spacing:1.5px;color:var(--amber);
+  border:1px solid rgba(240,180,41,.3);padding:2px 7px;
+}
+.fdc3-badge{
+  display:flex;align-items:center;gap:5px;font-size:8px;
+  letter-spacing:1px;color:var(--txt2);
+}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.dot.g{background:var(--green);}
+.dot.a{background:var(--amber);}
+.dot.b{background:var(--blue);}
+.dot.f{background:var(--finos-hi);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.blink{animation:pulse 2s infinite;}
+
+.hdr-c{display:flex;align-items:center;gap:10px;}
+.conn-status{
+  font-size:8px;letter-spacing:1px;display:flex;align-items:center;gap:5px;
+  padding:3px 8px;border:1px solid var(--border);
+}
+.hdr-r{display:flex;align-items:center;gap:10px;}
+.clock{font-size:9px;color:var(--txt2);letter-spacing:1px;}
+.launch-btn{
+  background:linear-gradient(135deg,#4c1d95,var(--finos));
+  border:1px solid #6d28d9;color:#fff;font-family:var(--mono);
+  font-size:9px;font-weight:700;letter-spacing:2px;padding:6px 14px;
+  cursor:pointer;text-transform:uppercase;display:flex;align-items:center;gap:6px;
+  transition:all .15s;white-space:nowrap;
+}
+.launch-btn:hover{background:linear-gradient(135deg,var(--finos),#8b5cf6);}
+.launch-btn.live{background:linear-gradient(135deg,#064e3b,#065f46);border-color:#059669;}
+
+/* ─── Ticker ─────────────────────────────────────────────────────────────── */
+.ticker{
+  height:28px;background:#060810;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;overflow:hidden;flex-shrink:0;padding:0 8px;
+}
+.t-scroll{display:flex;gap:20px;animation:scroll 50s linear infinite;white-space:nowrap;}
+@keyframes scroll{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+.t-item{display:flex;gap:6px;align-items:center;font-size:9px;}
+.t-pair{color:var(--txt2);letter-spacing:.5px;}
+.t-rate{color:var(--txt);font-weight:700;}
+.t-chg.p{color:var(--green);}
+.t-chg.n{color:var(--red);}
+.t-sep{color:var(--border-hi);}
+
+/* ─── Layout ─────────────────────────────────────────────────────────────── */
+.main{display:flex;flex:1;overflow:hidden;}
+
+/* ─── Left Panel ─────────────────────────────────────────────────────────── */
+.left{
+  width:300px;flex-shrink:0;border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.ph{
+  background:var(--bg-panel);border-bottom:1px solid var(--border);
+  padding:7px 11px;display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+}
+.ph-title{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--txt2);}
+.pill{font-size:7px;letter-spacing:1px;padding:2px 6px;text-transform:uppercase;}
+.pill-b{color:var(--blue);border:1px solid rgba(74,158,255,.3);}
+.pill-g{color:var(--green);border:1px solid rgba(0,217,126,.3);}
+.pill-f{color:var(--finos-hi);border:1px solid rgba(167,139,250,.3);}
+.pill-a{color:var(--amber);border:1px solid rgba(240,180,41,.3);}
+
+/* ─── Trade Ticket ───────────────────────────────────────────────────────── */
+.ticket{padding:10px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.fl{display:flex;gap:6px;margin-bottom:7px;}
+.fg{flex:1;display:flex;flex-direction:column;gap:3px;}
+.lbl{font-size:7px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt3);}
+.inp,.sel{
+  background:var(--bg-input);border:1px solid var(--border);
+  color:var(--txt);font-family:var(--mono);font-size:10px;
+  padding:5px 7px;width:100%;outline:none;transition:border-color .1s;
+}
+.inp:focus,.sel:focus{border-color:var(--blue);}
+.sel option{background:var(--bg-card);}
+.dir-row{display:flex;gap:5px;margin-bottom:7px;}
+.dir{
+  flex:1;padding:7px;font-family:var(--mono);font-size:9px;font-weight:700;
+  letter-spacing:1.5px;cursor:pointer;border:1px solid transparent;
+  transition:all .1s;text-transform:uppercase;
+}
+.dir.buy{background:rgba(0,217,126,.08);border-color:rgba(0,217,126,.25);color:var(--green);}
+.dir.buy.on{background:rgba(0,217,126,.18);border-color:var(--green);}
+.dir.sell{background:rgba(255,69,96,.08);border-color:rgba(255,69,96,.25);color:var(--red);}
+.dir.sell.on{background:rgba(255,69,96,.18);border-color:var(--red);}
+.exec-btn{
+  width:100%;padding:9px;background:linear-gradient(135deg,#0f2744,#1a3d6e);
+  border:1px solid #2560a0;color:var(--blue);font-family:var(--mono);
+  font-size:9px;font-weight:700;letter-spacing:2px;cursor:pointer;
+  text-transform:uppercase;transition:all .15s;
+}
+.exec-btn:hover{background:linear-gradient(135deg,#1a3d6e,#1e529e);}
+.exec-btn:active{transform:scale(.99);}
+
+/* ─── FDC3 Log ───────────────────────────────────────────────────────────── */
+.log{
+  flex:1;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column;
+  gap:1px;background:var(--bg-panel);
+}
+.log::-webkit-scrollbar{width:3px;}
+.log::-webkit-scrollbar-thumb{background:var(--border);}
+.le{font-size:8px;line-height:1.7;display:flex;gap:7px;align-items:baseline;}
+.le-ts{color:var(--txt3);flex-shrink:0;letter-spacing:.5px;}
+.le-m{word-break:break-word;}
+.le-m.i{color:var(--blue);}
+.le-m.s{color:var(--green);}
+.le-m.w{color:var(--amber);}
+.le-m.x{color:var(--finos-hi);}
+.le-m.e{color:var(--red);}
+
+/* ─── Blotter ─────────────────────────────────────────────────────────────── */
+.right{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.blotter{flex:1;overflow-y:auto;}
+.blotter::-webkit-scrollbar{width:4px;}
+.blotter::-webkit-scrollbar-thumb{background:var(--border);}
+table{width:100%;border-collapse:collapse;}
+thead th{
+  font-size:7px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt3);
+  padding:7px 10px;text-align:left;border-bottom:1px solid var(--border);
+  background:var(--bg-panel);position:sticky;top:0;z-index:1;white-space:nowrap;
+}
+tbody td{
+  font-size:9px;padding:8px 10px;border-bottom:1px solid rgba(26,34,54,.6);
+  vertical-align:middle;white-space:nowrap;
+}
+tbody tr:hover td{background:rgba(255,255,255,.015);}
+
+.st{font-size:7px;font-weight:700;letter-spacing:1px;padding:2px 7px;text-transform:uppercase;}
+.st-exec{color:var(--blue);border:1px solid rgba(74,158,255,.35);}
+.st-tling{color:var(--amber);border:1px solid rgba(240,180,41,.35);animation:pulse 1s infinite;}
+.st-done{color:var(--green);border:1px solid rgba(0,217,126,.35);}
+.st-rjct{color:var(--red);border:1px solid rgba(255,69,96,.35);}
+
+.settle-btn{
+  font-family:var(--mono);font-size:7px;font-weight:700;letter-spacing:1px;
+  padding:3px 8px;cursor:pointer;text-transform:uppercase;
+  background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.45);color:var(--finos-hi);
+  transition:all .15s;white-space:nowrap;
+}
+.settle-btn:hover{background:rgba(124,58,237,.28);border-color:var(--finos);}
+.settle-btn:disabled{opacity:.28;cursor:not-allowed;}
+
+.dir-t{font-size:8px;font-weight:700;letter-spacing:.5px;}
+.dir-b{color:var(--green);}
+.dir-s{color:var(--red);}
+
+.empty-row td{padding:36px 16px;text-align:center;color:var(--txt3);font-size:9px;letter-spacing:1px;}
+
+/* ─── Bottom bar ─────────────────────────────────────────────────────────── */
+.btm{
+  background:var(--bg-panel);border-top:1px solid var(--border);
+  padding:5px 14px;display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;font-size:8px;color:var(--txt3);letter-spacing:.5px;
+}
+.btm-chain{display:flex;align-items:center;gap:6px;}
+.btm-chain span{color:var(--txt2);}
+.btm-chain .arr{color:var(--amber);}
+.btm-chain .hi{color:var(--finos-hi);}
+.btm-chain .gr{color:var(--green);}
+
+/* ─── Toast ──────────────────────────────────────────────────────────────── */
+.toast{
+  position:fixed;bottom:14px;right:14px;z-index:999;
+  background:var(--bg-panel);border:1px solid var(--amber);
+  padding:8px 14px;font-size:9px;letter-spacing:.5px;color:var(--amber);
+  display:none;animation:fadeup .2s ease;
+}
+@keyframes fadeup{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* ─── FDC3 Modals (intent + receipt) ─────────────────────────────────────── */
+/* Non-blocking settlement cards: they float over the blotter without an
+   overlay dim, so the blotter stays interactive (zero-interaction demo flow
+   is preserved). Intent modal = pre-flight/dispatch state; receipt modal =
+   ISO 20022 pacs.002 Acsc settlement evidence. */
+.modal{
+  position:fixed;left:14px;bottom:56px;width:412px;z-index:900;
+  background:var(--bg-card);border:1px solid var(--border-hi);
+  box-shadow:0 10px 34px rgba(0,0,0,.55);display:none;flex-direction:column;
+}
+.modal.open{display:flex;animation:fadeup .18s ease;}
+.modal-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 10px;background:#060810;border-bottom:1px solid var(--border);
+}
+.modal-hd-t{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;}
+.modal-x{
+  background:none;border:1px solid var(--border);color:var(--txt2);
+  font-family:var(--mono);font-size:8px;padding:2px 7px;cursor:pointer;letter-spacing:1px;
+}
+.modal-x:hover{color:var(--txt);border-color:var(--border-hi);}
+.modal-bd{padding:9px 10px;display:flex;flex-direction:column;gap:4px;}
+.mrow{display:flex;justify-content:space-between;gap:10px;font-size:8.5px;line-height:1.6;}
+.mrow .k{color:var(--txt3);letter-spacing:1px;flex-shrink:0;text-transform:uppercase;}
+.mrow .v{color:var(--txt);text-align:right;word-break:break-all;}
+.msec{
+  font-size:7px;letter-spacing:2px;color:var(--txt3);text-transform:uppercase;
+  border-bottom:1px solid var(--border);padding-bottom:2px;margin-top:3px;
+}
+.mv-ok{color:var(--green);} .mv-warn{color:var(--amber);}
+.mv-blue{color:var(--blue);} .mv-finos{color:var(--finos-hi);} .mv-red{color:var(--red);}
+.modal.receipt-modal{left:auto;right:14px;bottom:14px;width:430px;border-color:rgba(0,217,126,.4);}
+
+/* ─── Settled flash ──────────────────────────────────────────────────────── */
+@keyframes rowflash{
+  0%{background:rgba(0,217,126,.12);}
+  100%{background:transparent;}
+}
+.flash-row{animation:rowflash 1.4s ease-out;}
+@keyframes intentflash{
+  0%{background:rgba(124,58,237,.0);}
+  40%{background:rgba(124,58,237,.12);}
+  100%{background:rgba(124,58,237,.0);}
+}
+.intent-flash{animation:intentflash 1.8s ease-out;}
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══════════════════════════════════════════════════════════════ -->
+<header class="hdr">
+  <div class="hdr-l">
+    <div class="finos-badge">FINOS</div>
+    <span class="app-name">TraderX</span>
+    <span class="pipe">|</span>
+    <span class="spec-tag">SPEC 016 · POST-TRADE DvP · PR #470</span>
+    <span class="pipe">|</span>
+    <div class="fdc3-badge">
+      <div class="dot g blink"></div>
+      <span>FDC3 3.0</span>
+    </div>
+    <span class="pipe">|</span>
+    <div class="fdc3-badge">
+      <div class="dot b" style="animation-duration:3s"></div>
+      <span>fdc3.payment</span>
+    </div>
+  </div>
+
+  <div class="hdr-c">
+    <div class="conn-status" id="connStatus">
+      <div class="dot a blink" id="connDot"></div>
+      <span id="connLabel">BANKERX · AWAITING LAUNCH</span>
+    </div>
+  </div>
+
+  <div class="hdr-r">
+    <span class="clock" id="clk">--:--:-- UTC</span>
+    <button class="launch-btn" id="launchBtn" onclick="launchBankerX()">
+      ⬒ <span id="launchTxt">LAUNCH BANKERX CLEARING DESK</span>
+    </button>
+  </div>
+</header>
+
+<!-- ═══ TICKER ════════════════════════════════════════════════════════════════ -->
+<div class="ticker">
+  <div class="t-scroll" id="tscroll"></div>
+</div>
+
+<!-- ═══ MAIN ══════════════════════════════════════════════════════════════════ -->
+<div class="main">
+
+  <!-- LEFT: Ticket + Log -->
+  <div class="left">
+    <div class="ph">
+      <span class="ph-title">FX Execution Ticket</span>
+      <div style="display:flex;gap:5px">
+        <span class="pill pill-b">LIVE</span>
+        <span class="pill pill-f">FDC3 3.0</span>
+      </div>
+    </div>
+
+    <div class="ticket">
+      <div class="fl">
+        <div class="fg">
+          <label class="lbl">Currency Pair</label>
+          <select class="sel" id="selPair">
+            <option value="USD/KES|129.42">USD/KES  ·  129.42</option>
+            <option value="USD/ZMW|27.14">USD/ZMW  ·  27.14</option>
+            <option value="USD/TZS|2745.10">USD/TZS  ·  2745.10</option>
+            <option value="USD/NGN|1601.33">USD/NGN  ·  1601.33</option>
+            <option value="USD/ZAR|18.24">USD/ZAR  ·  18.24</option>
+            <option value="EUR/USD|1.0873">EUR/USD  ·  1.0873</option>
+            <option value="GBP/USD|1.2741">GBP/USD  ·  1.2741</option>
+          </select>
+        </div>
+      </div>
+      <div class="fl">
+        <div class="fg">
+          <label class="lbl">Notional Amount</label>
+          <input class="inp" type="number" id="inpAmt" value="2500000" min="1000"/>
+        </div>
+      </div>
+      <div class="fl">
+        <div class="fg">
+          <label class="lbl">Originating Desk (Debtor)</label>
+          <input class="inp" type="text" id="inpDbtr" value="TraderX Institutional Execution Desk"/>
+        </div>
+      </div>
+      <div class="fl">
+        <div class="fg">
+          <label class="lbl">Beneficiary Desk (Creditor)</label>
+          <input class="inp" type="text" id="inpCrdr" value="BankerX Institutional Liquidity Desk"/>
+        </div>
+      </div>
+      <div class="dir-row">
+        <button class="dir buy on" id="btnBuy" onclick="setDir('BUY')">▲ BUY / PAY</button>
+        <button class="dir sell" id="btnSell" onclick="setDir('SELL')">▼ SELL / RECEIVE</button>
+      </div>
+      <button class="exec-btn" onclick="execTrade()">⬛ EXECUTE TRADE</button>
+    </div>
+
+    <div class="ph" style="border-top:1px solid var(--border)">
+      <span class="ph-title">FDC3 Diagnostic Log</span>
+      <span class="pill pill-f" id="logCount">0 EVENTS</span>
+    </div>
+    <div class="log" id="log"></div>
+  </div>
+
+  <!-- RIGHT: Blotter -->
+  <div class="right">
+    <div class="ph">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="ph-title">Order Blotter</span>
+        <span class="pipe">·</span>
+        <span id="tradeCount" class="pill pill-a">0 TRADES</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:8px;color:var(--txt3)">
+        <span id="receiverNote" style="letter-spacing:.5px">SETTLE (BANKERX) actions appear when BankerX is connected</span>
+      </div>
+    </div>
+
+    <div class="blotter">
+      <table>
+        <thead>
+          <tr>
+            <th>TIME (UTC)</th>
+            <th>PAIR</th>
+            <th>DIR</th>
+            <th>NOTIONAL</th>
+            <th>RATE</th>
+            <th>UETR (RFC 4122)</th>
+            <th>STATUS</th>
+            <th id="actionHeader">ACTION</th>
+          </tr>
+        </thead>
+        <tbody id="blotterBody">
+          <tr class="empty-row">
+            <td colspan="8">// NO TRADES EXECUTED · USE THE TICKET TO BOOK A SPOT FX TRADE</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Bottom provenance bar -->
+    <div class="btm">
+      <div class="btm-chain">
+        <span>TraderX</span>
+        <span class="arr">→ fdc3.raiseIntent("StartPayment", fdc3.payment) →</span>
+        <span class="hi">BankerX ADR-555 Enclave</span>
+        <span class="arr">→</span>
+        <span class="gr">Solana Token-2022 + XRPL Altnet + SynapticChain L1</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span>Spec 016 · PR #470 · FDC3 PR #2204</span>
+        <span class="pipe">|</span>
+        <span>fdc3.payment · ISO 20022 pacs.008/pacs.002 · RFC 4122 UETR</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- FDC3 intent modal: live dispatch state for the raised StartPayment -->
+<div class="modal" id="intentModal">
+  <div class="modal-hd">
+    <span class="modal-hd-t" style="color:var(--finos-hi)">⬡ FDC3 INTENT · STARTPAYMENT</span>
+    <button class="modal-x" onclick="hideIntentModal()">CLOSE</button>
+  </div>
+  <div class="modal-bd">
+    <div class="mrow"><span class="k">UETR</span><span class="v" id="imUetr">—</span></div>
+    <div class="mrow"><span class="k">CONTEXT</span><span class="v mv-finos">fdc3.payment · FDC3 3.0</span></div>
+    <div class="mrow"><span class="k">PAIR / AMOUNT</span><span class="v" id="imPairAmt">—</span></div>
+    <div class="msec">Transport</div>
+    <div class="mrow"><span class="k">CHANNEL</span><span class="v mv-blue" id="imChannel">FDC3 raiseIntent over WCP</span></div>
+    <div class="mrow"><span class="k">TARGET</span><span class="v" id="imTarget">bankerx-clearing-desk</span></div>
+    <div class="msec">Alcove Enclave · ADR-555</div>
+    <div class="mrow"><span class="k">ENCLAVE SCREEN</span><span class="v" id="imScreen">—</span></div>
+    <div class="mrow"><span class="k">DESK BINDING</span><span class="v" id="imDesk">rendezvous SHA3(debtor‖pair) % 256</span></div>
+    <div class="mrow"><span class="k">ATTESTATION</span><span class="v" id="imAttest">—</span></div>
+    <div class="mrow"><span class="k">STATE</span><span class="v mv-warn" id="imState">RAISING…</span></div>
+  </div>
+</div>
+
+<!-- ISO 20022 pacs.002 receipt modal: settlement evidence on ACSC -->
+<div class="modal receipt-modal" id="receiptModal">
+  <div class="modal-hd">
+    <span class="modal-hd-t" style="color:var(--green)">▣ ISO 20022 · PACS.002 · ACSC</span>
+    <button class="modal-x" onclick="hideReceiptModal()">CLOSE</button>
+  </div>
+  <div class="modal-bd">
+    <div class="mrow"><span class="k">STATUS</span><span class="v mv-ok">ACSC ✓ · SETTLEMENT COMPLETED</span></div>
+    <div class="mrow"><span class="k">UETR</span><span class="v" id="rmUetr">—</span></div>
+    <div class="mrow"><span class="k">PAIR / AMOUNT</span><span class="v" id="rmPairAmt">—</span></div>
+    <div class="mrow"><span class="k">RAIL</span><span class="v" id="rmRail">Solana Token-2022 · DEVNET</span></div>
+    <div class="mrow"><span class="k">TX SIGNATURE</span><span class="v" id="rmTx">—</span></div>
+    <div class="mrow"><span class="k">SLOT</span><span class="v" id="rmSlot">—</span></div>
+    <div class="mrow"><span class="k">RECEIPT</span><span class="v mv-ok">pacs.008 memo verified · pacs.002 Acsc emitted</span></div>
+  </div>
+</div>
+
+<!-- FINOS FDC3 3.0 Desktop Agent (built from fdc3-agent/ on @finos/fdc3-web-impl) -->
+<script src="./fdc3-agent.js?v=11"></script>
+<script type="module">
+import { validatePaymentContext, toSettlementStatusContext, STATUS } from './payment-lifecycle.mjs';
+
+// ─── State ─────────────────────────────────────────────────────────────────
+const BANKERX_ORIGIN = 'https://terminal.synapticchain.xyz';
+let bankerxWin = null;
+// True when the desk window is owned by the FDC3 Desktop Agent (agent.open
+// path): the raise is then the single canonical dispatch channel, and the
+// legacy direct-dispatch fallbacks (which would window.open the cross-origin
+// terminal) must not fire — in the offline acceptance pack there is no
+// terminal behind this origin and the raise already carries full delivery.
+let bankerxAgentOwned = false;
+let receiverAvailable = false;   // FR-01601: gates SETTLE button visibility
+let direction = 'BUY';
+let trades = [];
+let seq = 1;
+let logSeq = 0;
+const dispatchedUetrs = new Set();  // FR-01607: duplicate-dispatch guard
+
+// ─── Clock ─────────────────────────────────────────────────────────────────
+function tick() {
+  document.getElementById('clk').textContent =
+    new Date().toISOString().slice(11,19) + ' UTC';
+}
+setInterval(tick, 1000); tick();
+
+// ─── FX Pairs ──────────────────────────────────────────────────────────────
+const PAIRS = [
+  { pair:'USD/KES', rate:129.42, chg:+0.38 },
+  { pair:'USD/NGN', rate:1601.33, chg:-2.15 },
+  { pair:'USD/TZS', rate:2745.10, chg:+12.4 },
+  { pair:'USD/ZAR', rate:18.24, chg:-0.07 },
+  { pair:'USD/GHS', rate:15.62, chg:+0.21 },
+  { pair:'EUR/USD', rate:1.0873, chg:-0.0012 },
+  { pair:'GBP/USD', rate:1.2741, chg:+0.0034 },
+  { pair:'USD/ZMW', rate:27.14, chg:+0.09 },
+];
+
+function buildTicker() {
+  const items = [...PAIRS, ...PAIRS].map(p => {
+    const dp = (p.pair.includes('EUR') || p.pair.includes('GBP')) ? 4 : 2;
+    const cdp = Math.abs(p.chg) < 1 ? 4 : 2;
+    return `<div class="t-item">
+      <span class="t-pair">${p.pair}</span>
+      <span class="t-rate">${p.rate.toFixed(dp)}</span>
+      <span class="t-chg ${p.chg>=0?'p':'n'}">${p.chg>=0?'▲':'▼'}${Math.abs(p.chg).toFixed(cdp)}</span>
+      <span class="t-sep">│</span>
+    </div>`;
+  }).join('');
+  document.getElementById('tscroll').innerHTML = items;
+}
+buildTicker();
+setInterval(() => {
+  PAIRS.forEach(p => { p.rate += (Math.random()-.5)*p.rate*0.00008; });
+  buildTicker();
+}, 3500);
+
+// ─── Direction ─────────────────────────────────────────────────────────────
+window.setDir = (d) => {
+  direction = d;
+  document.getElementById('btnBuy').classList.toggle('on', d==='BUY');
+  document.getElementById('btnSell').classList.toggle('on', d==='SELL');
+};
+
+// ─── Launch BankerX ────────────────────────────────────────────────────────
+// Preferred path: the FINOS FDC3 Desktop Agent (fdc3-agent.js) opens the app
+// from the App Directory record and tracks the instance, so the clearing desk
+// can connect via the standard getAgent()/WCP handshake. Fallback: direct
+// window.open (agent not ready / directory unreachable).
+window.launchBankerX = async () => {
+  const agent = (window.SynapticFDC3Agent);
+  if (agent) {
+    try {
+      await agent.ready;
+      const instanceId = await agent.open('bankerx-clearing-desk');
+      bankerxWin = null; // ownership transfers to the agent (WCP instance tracking)
+      bankerxAgentOwned = true;
+      log('s', `[FDC3] Desktop agent open("bankerx-clearing-desk") → instance ${String(instanceId).slice(0,8)}… (WCP)`);
+      setReceiverAvailable(true);
+      document.getElementById('launchBtn').classList.add('live');
+      document.getElementById('launchTxt').textContent = 'BANKERX CONNECTED ✓';
+      log('x', '[FDC3] BankerX Clearing Desk launched via FDC3 Desktop Agent (App Directory record)');
+      log('i', '[FDC3] fdc3.findIntent("StartPayment") → resolved against App Directory v2');
+      log('s', '[SPEC-016 FR-01601] paymentReceiverAvailable = true → SETTLE (BANKERX) actions enabled');
+      return;
+    } catch (e) {
+      log('w', `[FDC3] Desktop agent open failed (${e.message ?? e}) — falling back to direct window launch`);
+    }
+  }
+  const sw = window.screen.width, sh = window.screen.height;
+  bankerxWin = window.open(
+    BANKERX_ORIGIN,
+    'bankerx_clearing_desk',
+    `width=${Math.round(sw*.55)},height=${sh},left=${Math.round(sw*.45)},top=0,resizable=yes,scrollbars=yes`
+  );
+  if (!bankerxWin) {
+    toast('⚠ Pop-ups blocked. Allow pop-ups and retry.');
+    return;
+  }
+  setReceiverAvailable(true);
+  document.getElementById('launchBtn').classList.add('live');
+  document.getElementById('launchTxt').textContent = 'BANKERX CONNECTED ✓';
+  log('x', '[FDC3] BankerX Clearing Desk launched at terminal.synapticchain.xyz');
+  log('i', '[FDC3] fdc3.findIntent("StartPayment") → BankerX Reference Receiver registered');
+  log('s', '[SPEC-016 FR-01601] paymentReceiverAvailable = true → SETTLE (BANKERX) actions enabled');
+};
+
+// ─── Receiver availability (FR-01601) ──────────────────────────────────────
+function setReceiverAvailable(v) {
+  receiverAvailable = v;
+  document.getElementById('connDot').className = `dot ${v?'g':'a'} blink`;
+  document.getElementById('connLabel').textContent = v
+    ? 'BANKERX · LIVE · FDC3 CONNECTED'
+    : 'BANKERX · AWAITING LAUNCH';
+  document.getElementById('receiverNote').textContent = v
+    ? 'SETTLE (BANKERX) available — fdc3.findIntent("StartPayment") resolved'
+    : 'SETTLE (BANKERX) actions appear when BankerX is connected';
+  renderBlotter();
+}
+
+// Auto-detect BankerX availability across windows/tabs/split-screen
+setInterval(async () => {
+  try {
+    const res = await fetch(`${BANKERX_ORIGIN}/api/fdc3/intent`, { method: 'GET', mode: 'cors' });
+    if (res.ok && !receiverAvailable) {
+      setReceiverAvailable(true);
+      document.getElementById('launchBtn').classList.add('live');
+      document.getElementById('launchTxt').textContent = 'BANKERX CONNECTED ✓';
+    }
+  } catch (e) {}
+}, 2000);
+
+// Poll bankerx window alive state without dropping liveness if relay is healthy
+setInterval(() => {
+  if (bankerxWin && bankerxWin.closed) {
+    bankerxWin = null;
+  }
+}, 1500);
+
+// ─── Listen for synaptic.settlementStatus from BankerX (FR-01606) ──────────
+window.addEventListener('message', (evt) => {
+  // Cross-origin: the BankerX terminal (and estate origins). Same-origin: the
+  // pack-served mock receiver of the offline acceptance flow (state 016) may
+  // relay its settlement status home — same trust boundary as the page itself.
+  if (evt.origin !== BANKERX_ORIGIN && !evt.origin.includes('synapticchain.xyz') && evt.origin !== window.location.origin) return;
+  const d = evt.data;
+  if (!d) return;
+  if (d.type === 'synaptic.settlementStatus' || d.traderxSettlementStatus || d.uetr) {
+    const uetr = d.uetr || d.id?.UETR;
+    const status = d.status || d.traderxSettlementStatus || (d.ok ? STATUS.ACCEPTED : null);
+    if (uetr && status) {
+      applySettlementStatus({
+        uetr,
+        status: status === 'Acsc' ? STATUS.ACCEPTED : status,
+        txSignature: d.txSignature,
+        explorerUrl: d.explorerUrl,
+        slot: d.slot,
+        alcoveVerified: d.alcoveVerified
+      });
+    }
+  }
+});
+
+// Universal FDC3 Status Relay Poller (works across tabs, split-screen, windows)
+let lastProcessedStatusTs = Date.now() - 5000;
+setInterval(async () => {
+  try {
+    const res = await fetch(`${BANKERX_ORIGIN}/api/fdc3/status`, { mode: 'cors' });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data && data.timestamp > lastProcessedStatusTs) {
+      const uetr = data.uetr || data.id?.UETR;
+      const status = data.status || data.traderxSettlementStatus;
+      if (uetr && status) {
+        lastProcessedStatusTs = data.timestamp;
+        applySettlementStatus({
+          uetr,
+          status: status === 'Acsc' ? STATUS.ACCEPTED : status,
+          txSignature: data.txSignature,
+          explorerUrl: data.explorerUrl,
+          slot: data.slot,
+          alcoveVerified: data.alcoveVerified
+        });
+      }
+    }
+  } catch (e) {
+    // Non-blocking network poll
+  }
+}, 500);
+
+function applySettlementStatus({ uetr, status, txSignature, explorerUrl, slot, alcoveVerified }) {
+  let matched = false;
+  trades.forEach(t => {
+    if (t.uetr !== uetr) return;
+    if (t.status === 'SETTLED') return;
+    t.status = (status === STATUS.ACCEPTED || status === 'Acsc' || status === 'SETTLED')
+      ? 'SETTLED'
+      : (status === STATUS.REJECTED || status === 'Rjct') ? 'REJECTED' : 'SETTLING';
+    if (txSignature) {
+      t.txSignature = txSignature;
+    }
+    if (explorerUrl) {
+      t.explorerUrl = explorerUrl;
+    } else if (txSignature) {
+      t.explorerUrl = `https://explorer.solana.com/tx/${txSignature}?cluster=devnet`;
+    }
+    if (slot) t.slot = slot;
+    if (alcoveVerified === true) t.alcoveVerified = true;
+    matched = true;
+  });
+  if (matched) {
+    renderBlotter();
+    const attestEl = document.getElementById('imAttest');
+    if (attestEl) {
+      // Derive from the trade record too: the on-chain watcher path settles
+      // trades without an alcoveVerified-bearing status message (S9).
+      const matchedTrade = trades.find(t => t.uetr === uetr);
+      const av = alcoveVerified === true || matchedTrade?.alcoveVerified === true;
+      attestEl.innerHTML = av
+        ? '<span class="mv-ok">VERIFIED · desk-side WOTS+ re-derivation</span>'
+        : alcoveVerified === false
+          ? '<span class="mv-red">FAILED · honest reject</span>'
+          : '—';
+    }
+    if (status === STATUS.ACCEPTED || status === 'Acsc' || status === 'SETTLED') {
+      log('s', `[FDC3 FR-01606] synaptic.settlementStatus Acsc received · UETR: ${uetr.slice(0,16)}…`);
+      if (txSignature) {
+        log('s', `[ON-CHAIN SETTLED] Solana Token-2022 Slot #${slot || 'DEVNET'} · Tx: ${txSignature.slice(0,16)}…`);
+        log('s', `[ISO 20022] Cryptographic pacs.008 memo verified on Solana consensus`);
+      }
+      const settled = trades.find((x) => x.uetr === uetr && x.status === 'SETTLED');
+      if (settled) showReceiptModal(settled);
+    } else if (status === STATUS.REJECTED || status === 'Rjct') {
+      log('e', `[FDC3 FR-01606] synaptic.settlementStatus Rjct received · UETR: ${uetr.slice(0,16)}…`);
+    }
+  }
+}
+
+// ─── Real On-Chain Settlement Watcher (Solana Devnet RPC) ────────────────
+const SOLANA_DEVNET_RPC = 'https://api.devnet.solana.com';
+const CREDITOR_TOKEN_ACCOUNT = 'BnuCTFWFLLXnSPv2Frs42royiTAYG87WP7p1zRLB4ksG';
+
+async function checkOnChainSettlement() {
+  const pendingTrades = trades.filter(t => t.status === 'SETTLING');
+  if (pendingTrades.length === 0) return;
+
+  try {
+    const res = await fetch(SOLANA_DEVNET_RPC, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'getSignaturesForAddress',
+        params: [CREDITOR_TOKEN_ACCOUNT, { limit: 10 }]
+      })
+    });
+    const data = await res.json();
+    const sigs = data.result || [];
+
+    for (const sigInfo of sigs) {
+      if (!sigInfo.memo) continue;
+      for (const t of pendingTrades) {
+        if (sigInfo.memo.includes(t.uetr)) {
+          t.status = 'SETTLED';
+          t.txSignature = sigInfo.signature;
+          t.slot = sigInfo.slot;
+          t.explorerUrl = `https://explorer.solana.com/tx/${sigInfo.signature}?cluster=devnet`;
+          // The desk settles ONLY after its desk-side WOTS+ re-derivation
+          // passes (a failed attestation honest-rejects and creates no
+          // settlement), so an on-chain settlement memo for this UETR implies
+          // the enclave attestation was verified desk-side (S9/S3 display
+          // seam: the watcher path bypasses the status payload's
+          // alcoveVerified flag — derive it here instead).
+          if (t.enclaveDispatched) t.alcoveVerified = true;
+          renderBlotter();
+          // The watcher usually wins the race against the status payloads
+          // (2.5s beat), and applySettlementStatus no-ops on SETTLED rows —
+          // so the ATTESTATION row must be updated here too (S9).
+          const attestEl = document.getElementById('imAttest');
+          if (attestEl && t.alcoveVerified === true) {
+            attestEl.innerHTML =
+              '<span class="mv-ok">VERIFIED · desk-side WOTS+ re-derivation</span>';
+          }
+          log('s', `[ON-CHAIN SETTLED] Solana Token-2022 Slot #${sigInfo.slot} · Tx: ${sigInfo.signature.slice(0,16)}…`);
+          log('s', `[ISO 20022] Cryptographic pacs.008 memo verified on Solana consensus`);
+          showReceiptModal(t);
+        }
+      }
+    }
+  } catch (e) {
+    // Non-blocking network check
+  }
+}
+setInterval(checkOnChainSettlement, 2500);
+
+// ─── Execute Trade ─────────────────────────────────────────────────────────
+window.execTrade = () => {
+  const raw = document.getElementById('selPair').value;
+  const [pair, rateStr] = raw.split('|');
+  const amount = parseFloat(document.getElementById('inpAmt').value);
+  const debtor = document.getElementById('inpDbtr').value.trim();
+  const creditor = document.getElementById('inpCrdr').value.trim();
+  if (!amount || amount <= 0) { toast('⚠ Enter a valid notional amount'); return; }
+
+  const uetr = crypto.randomUUID();
+  const now = new Date();
+  const t = {
+    id: seq++,
+    time: now.toISOString().slice(11,19),
+    pair,
+    direction,
+    amount,
+    rate: parseFloat(rateStr),
+    debtor,
+    creditor,
+    uetr,
+    msgId: `TRX-${now.getTime()}`,
+    status: 'EXECUTED',
+  };
+  trades.unshift(t);
+  renderBlotter();
+  log('i', `[BLOTTER] Trade #${t.id} executed — ${direction} ${amount.toLocaleString()} ${pair} @ ${t.rate}`);
+  log('i', `[UETR] ${uetr}`);
+  if (receiverAvailable) {
+    log('x', `[FDC3 FR-01601] SETTLE (BANKERX) action available on row #${t.id}`);
+  } else {
+    log('w', `[FDC3 FR-01601] SETTLE action hidden — launch BankerX first`);
+  }
+};
+
+// ─── Settle Trade via FDC3 StartPayment ────────────────────────────────────
+// mode: 'desk' (default) raises at the directory-declared BankerX record;
+// mode: 'enclave' raises at a desk that is NOT in this directory (a
+// directory miss) so the Alcove ADR-555 adapter screens and routes it.
+window.settleTrade = async (id, mode) => {
+  const t = trades.find(x => x.id === id);
+  if (!t || t.status !== 'EXECUTED') return;
+  const targetAppId = mode === 'enclave' ? 'bankerx-clearing-desk-geneva' : 'bankerx-clearing-desk';
+
+  // FR-01607: duplicate-dispatch guard
+  if (dispatchedUetrs.has(t.uetr)) {
+    toast('⚠ This UETR was already dispatched — duplicate settlement prevented (FR-01607)');
+    log('w', `[FDC3 FR-01607] Duplicate dispatch blocked — UETR: ${t.uetr.slice(0,16)}…`);
+    return;
+  }
+
+  // If the desk window is not FDC3-agent-owned and not tracked, try to
+  // open/focus or fallback gracefully to relay channels (FR-01605 path).
+  if (!bankerxAgentOwned && (!bankerxWin || bankerxWin.closed)) {
+    try {
+      bankerxWin = window.open(BANKERX_ORIGIN, 'bankerx_clearing_desk');
+    } catch (e) {}
+  }
+
+  // Build canonical fdc3.payment context (FINOS PR #2204 name) per Spec 016 FR-01603 with verified Token-2022 accounts
+  const ctx = {
+    type: 'fdc3.payment',
+    id: { UETR: t.uetr },
+    amount: t.amount,
+    currency: t.pair.split('/')[0],
+    pair: t.pair,
+    rate: t.rate,
+    debtor:   { name: t.debtor,   account: '4cghWNxgU73yh1SuRK1juQzt8EaKtC8HWGq2yK4jLmeG' },
+    creditor: { name: t.creditor, account: 'BnuCTFWFLLXnSPv2Frs42royiTAYG87WP7p1zRLB4ksG' },
+    networkRouting: {
+      rail: 'Trilateral Powerhouse',
+      channel: 'global',
+      uetr: t.uetr,
+    },
+  };
+
+  // CBPR+ validation via real payment-lifecycle.mjs (Spec 016 generation)
+  const v = validatePaymentContext(ctx);
+  if (!v.valid) {
+    log('e', `[FDC3] CBPR+ validation failed — ${v.reason}`);
+    toast(`⚠ CBPR+ validation: ${v.reason}`);
+    return;
+  }
+
+  // Dispatch
+  t.status = 'SETTLING';
+  t.enclaveDispatched = mode === 'enclave';
+  dispatchedUetrs.add(t.uetr);
+  renderBlotter();
+
+  log('x', `[FDC3 FR-01602] Raising StartPayment intent → ${targetAppId}`);
+  if (mode === 'enclave') {
+    log('w', `[ALCOVE] Target desk not in App Directory — raise will miss; ADR-555 adapter screen engaged`);
+  }
+  log('x', `[FDC3] pair=${t.pair} amount=${t.amount.toLocaleString()} ${ctx.currency} rail=Trilateral`);
+  log('x', `[FDC3] UETR: ${t.uetr}`);
+
+  showIntentModal(t, targetAppId, mode);
+
+  // Channel 0 (standard): FINOS FDC3 Desktop Agent raiseIntent — the real
+  // fdc3.raiseIntent("StartPayment", fdc3.payment) over the Web Connection
+  // Protocol, routed by the agent to BankerX's addIntentListener (or, on a
+  // directory miss, through the Alcove enclave screen to the bound desk).
+  if (window.SynapticFDC3Agent) {
+    try {
+      await window.SynapticFDC3Agent.ready;
+      const resolution = await window.SynapticFDC3Agent.raiseIntent('StartPayment', ctx, targetAppId);
+      const src = resolution?.source ?? resolution?.intentResolution?.source ?? {};
+      log('s', `[FDC3 FR-01602] fdc3.raiseIntent("StartPayment") → resolved to ${src.appId ?? 'bankerx-clearing-desk'}${src.instanceId ? ' · instance ' + String(src.instanceId).slice(0,8) + '…' : ''}`);
+      log('s', `[SPEC-016] BankerX ADR-555 enclave pre-flight running — awaiting confirmation`);
+      // Direct-path modal state (the adapter path updates via its trace).
+      const im = document.getElementById('intentModal');
+      if (im.classList.contains('open') && mode !== 'enclave') {
+        document.getElementById('imScreen').innerHTML =
+          `<span class="mv-blue">DESK-SIDE · ADR-555 pre-flight at desk</span>`;
+        document.getElementById('imState').innerHTML =
+          `<span class="mv-ok">RESOLVED → ${src.appId ?? 'bankerx-clearing-desk'}${src.instanceId ? ' · ' + String(src.instanceId).slice(0,8) + '…' : ''}</span>`;
+        document.getElementById('imState').className = 'v mv-ok';
+      }
+      return;
+    } catch (err) {
+      hideIntentModal();
+      log('w', `[FDC3] Agent raiseIntent failed (${err.message ?? err}) — legacy dispatch channels engaged`);
+    }
+  }
+
+  // 1. Channel A: In-memory window postMessage (immediate local dispatch)
+  try {
+    if (bankerxWin && !bankerxWin.closed) {
+      bankerxWin.focus();
+      bankerxWin.postMessage(ctx, '*');
+      log('s', `[FDC3 FR-01602] fdc3.payment dispatched to BankerX window`);
+    }
+  } catch (err) {
+    console.warn('postMessage dispatch non-fatal error:', err);
+  }
+
+  // 2. Channel B: Universal FDC3 Intent Relay (cross-origin / split-screen guarantee)
+  try {
+    const res = await fetch(`${BANKERX_ORIGIN}/api/fdc3/intent`, {
+      method: 'POST',
+      mode: 'cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ context: ctx, timestamp: Date.now() }),
+    });
+    if (res.ok) {
+      log('s', `[FDC3 RELAY] Intent delivered to BankerX via Universal FDC3 Bus`);
+      log('s', `[SPEC-016] BankerX ADR-555 enclave pre-flight running — awaiting confirmation`);
+    }
+  } catch (err) {
+    log('w', `[FDC3 RELAY] Relay fallback warning: ${err.message}`);
+  }
+};
+
+// ─── FDC3 Intent + Receipt Modals ──────────────────────────────────────────
+// Wired to the real flow states: shown on dispatch, updated from the agent's
+// enclave trace (window.__ALCOVE_SCREEN) while raising, replaced by the
+// pacs.002 receipt modal on ACSC. Non-blocking — the blotter stays live.
+let intentPollTimer = null;
+let lastScreenStageSeen = 0;
+
+function showIntentModal(t, targetAppId, mode) {
+  const m = document.getElementById('intentModal');
+  document.getElementById('imUetr').textContent = t.uetr;
+  document.getElementById('imPairAmt').textContent =
+    `${t.pair} · ${t.amount.toLocaleString()} ${t.pair.split('/')[0]}`;
+  document.getElementById('imTarget').textContent = targetAppId;
+  document.getElementById('imChannel').textContent = mode === 'enclave'
+    ? 'FDC3 raiseIntent · directory-miss path'
+    : 'FDC3 raiseIntent over WCP';
+  document.getElementById('imScreen').textContent = '—';
+  document.getElementById('imDesk').textContent = 'rendezvous SHA3(debtor‖pair) % 256';
+  document.getElementById('imAttest').textContent = '—';
+  document.getElementById('imState').textContent = 'RAISING…';
+  document.getElementById('imState').className = 'v mv-warn';
+  m.dataset.seen = '1';
+  m.classList.add('open');
+  lastScreenStageSeen = 0;
+  if (intentPollTimer) clearInterval(intentPollTimer);
+  intentPollTimer = setInterval(pollIntentState, 500);
+}
+
+function pollIntentState() {
+  const screen = (window.__ALCOVE_SCREEN || []).slice(lastScreenStageSeen);
+  for (const ev of screen) {
+    lastScreenStageSeen = (window.__ALCOVE_SCREEN || []).length;
+    if (ev.stage === 'adapter-raise-miss') {
+      document.getElementById('imChannel').innerHTML = `<span class="mv-finos">ALCOVE ADAPTER · directory miss</span>`;
+      document.getElementById('imScreen').innerHTML = `<span class="mv-warn">ADR-555 PREFLIGHT RUNNING…</span>`;
+    } else if (ev.stage === 'screen-passed') {
+      document.getElementById('imScreen').innerHTML =
+        `<span class="mv-ok">PASS</span> · lane ${ev.lane} · ${ev.latencyMs}ms`;
+      document.getElementById('imDesk').innerHTML =
+        `<span class="mv-ok">lane ${ev.lane} → ${ev.desk}</span>`;
+    } else if (ev.stage === 'screen-rejected') {
+      document.getElementById('imScreen').innerHTML = `<span class="mv-red">REJECTED · ${ev.reason}</span>`;
+      document.getElementById('imState').innerHTML = `<span class="mv-red">RJCT · ENCLAVE REJECTION</span>`;
+      document.getElementById('imState').className = 'v mv-red';
+      clearInterval(intentPollTimer); intentPollTimer = null;
+      return;
+    } else if (ev.stage === 'desk-delivered') {
+      document.getElementById('imState').innerHTML =
+        `<span class="mv-ok">DELIVERED → ${ev.desk}${ev.instanceId ? ' · ' + String(ev.instanceId).slice(0,8) + '…' : ''}</span>`;
+      document.getElementById('imState').className = 'v mv-ok';
+    } else if (ev.stage === 'adapter-raise') {
+      document.getElementById('imChannel').innerHTML = `<span class="mv-finos">ALCOVE ADAPTER · directory miss</span>`;
+    }
+  }
+}
+
+function hideIntentModal() {
+  document.getElementById('intentModal').classList.remove('open');
+  if (intentPollTimer) { clearInterval(intentPollTimer); intentPollTimer = null; }
+}
+
+function showReceiptModal(t) {
+  document.getElementById('rmUetr').textContent = t.uetr;
+  document.getElementById('rmPairAmt').textContent =
+    `${t.pair} · ${t.amount.toLocaleString()} ${t.pair.split('/')[0]}`;
+  document.getElementById('rmTx').textContent = t.txSignature
+    ? `${t.txSignature.slice(0, 22)}…` : '—';
+  document.getElementById('rmSlot').textContent = t.slot ? `#${t.slot}` : '—';
+  const m = document.getElementById('receiptModal');
+  m.classList.add('open');
+  // The receipt supersedes the in-flight intent card.
+  hideIntentModal();
+}
+
+function hideReceiptModal() {
+  document.getElementById('receiptModal').classList.remove('open');
+}
+window.hideIntentModal = hideIntentModal;
+window.hideReceiptModal = hideReceiptModal;
+
+// ─── Render Blotter ─────────────────────────────────────────────────────────
+function renderBlotter() {
+  const tbody = document.getElementById('blotterBody');
+  document.getElementById('tradeCount').textContent =
+    `${trades.length} TRADE${trades.length!==1?'S':''}`;
+
+  if (!trades.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="8">// NO TRADES EXECUTED · USE THE TICKET TO BOOK A SPOT FX TRADE</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = trades.map(t => {
+    const dp = (t.pair.includes('EUR')||t.pair.includes('GBP'))&&!t.pair.startsWith('USD') ? 4 : 2;
+    let stClass='st-exec', stLabel='EXECUTED';
+    if (t.status==='SETTLING')  { stClass='st-tling'; stLabel='SETTLING…'; }
+    if (t.status==='SETTLED')   { stClass='st-done';  stLabel='ACSC ✓'; }
+    if (t.status==='REJECTED')  { stClass='st-rjct';  stLabel='RJCT'; }
+
+    let action = '';
+    if (t.status === 'EXECUTED' && receiverAvailable) {
+      action = `<button class="settle-btn" onclick="settleTrade(${t.id})">SETTLE (BANKERX)</button>` +
+        `<button class="settle-btn" style="margin-left:4px;border-color:rgba(240,180,41,.45);color:var(--amber);background:rgba(240,180,41,.08)" ` +
+        `title="Directory-miss path: raise targeted at a desk NOT in the App Directory — the Alcove ADR-555 enclave screens it, the rendezvous lane routes it to a real partition desk, and the desk re-verifies the enclave attestation before settling" ` +
+        `onclick="settleTrade(${t.id},'enclave')">SETTLE (ENCLAVE)</button>`;
+    } else if (t.status === 'EXECUTED' && !receiverAvailable) {
+      action = `<span style="font-size:7px;color:var(--txt3);letter-spacing:.5px">LAUNCH BANKERX →</span>`;
+    } else if (t.status === 'SETTLING') {
+      action = `<span style="font-size:7px;color:var(--amber);letter-spacing:.5px">DISPATCHING…</span>`;
+    } else if (t.status === 'SETTLED') {
+      action = t.explorerUrl 
+        ? `<a href="${t.explorerUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--green);font-size:7px;font-weight:700;letter-spacing:.5px;text-decoration:underline;">SOLANA TX ↗</a>`
+        : `<span style="font-size:7px;color:var(--green);letter-spacing:.5px">ON-CHAIN ✓</span>`;
+    } else {
+      action = `<span style="font-size:7px;color:var(--red);letter-spacing:.5px">RJCT</span>`;
+    }
+
+    return `<tr id="tr-${t.id}" class="${t.status==='SETTLED'?'flash-row':''}">
+      <td style="color:var(--txt3)">${t.time}</td>
+      <td style="font-weight:700;letter-spacing:1px">${t.pair}</td>
+      <td><span class="dir-t ${t.direction==='BUY'?'dir-b':'dir-s'}">${t.direction}</span></td>
+      <td style="text-align:right;font-weight:700;font-size:10px">${t.amount.toLocaleString()}</td>
+      <td style="color:var(--txt2)">${t.rate.toFixed(dp)}</td>
+      <td style="color:var(--txt3);font-size:8px;letter-spacing:.3px">${t.uetr}</td>
+      <td><span class="st ${stClass}">${stLabel}</span></td>
+      <td>${action}</td>
+    </tr>`;
+  }).join('');
+}
+renderBlotter();
+
+// ─── FDC3 Log ───────────────────────────────────────────────────────────────
+function log(type, msg) {
+  const el = document.getElementById('log');
+  logSeq++;
+  const ts = new Date().toISOString().slice(11,19);
+  const div = document.createElement('div');
+  div.className = 'le';
+  div.innerHTML = `<span class="le-ts">${ts}</span><span class="le-m ${type}">${msg}</span>`;
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+  document.getElementById('logCount').textContent = `${logSeq} EVENT${logSeq!==1?'S':''}`;
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display='block';
+  setTimeout(() => { t.style.display='none'; }, 4500);
+}
+
+// ─── Init log ───────────────────────────────────────────────────────────────
+log('i', '[FDC3] TraderX Spec 016 Desktop Agent initialized');
+log('i', '[FDC3] payment-lifecycle.mjs loaded — CBPR+ validator active');
+log('i', '[FDC3] Awaiting fdc3.findIntent("StartPayment") → BankerX receiver');
+log('w', '[SPEC-016 FR-01601] SETTLE (BANKERX) gated — launch BankerX Clearing Desk to unlock');
+</script>
+</body>
+</html>

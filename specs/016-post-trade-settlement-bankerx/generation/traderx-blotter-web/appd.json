@@ -1,0 +1,77 @@
+{
+  "applications": [
+    {
+      "appId": "finos-traderx-desk",
+      "name": "TraderX",
+      "title": "FINOS TraderX Execution Blotter",
+      "description": "Institutional reference trading platform for Spot FX trade execution, raising FDC3 3.0 StartPayment intents with fdc3.payment (FINOS PR #2204) per Spec 016.",
+      "version": "0.16.0",
+      "publisher": "FINOS",
+      "type": "web",
+      "details": {
+        "url": "https://traderx.synapticchain.xyz/"
+      },
+      "icons": [
+        {
+          "src": "https://traderx.synapticchain.xyz/favicon.ico"
+        }
+      ],
+      "interop": {
+        "intents": {
+          "raises": {
+            "StartPayment": {
+              "displayName": "Start Payment (BankerX DvP)",
+              "contexts": [
+                "fdc3.payment"
+              ]
+            }
+          },
+          "listensFor": {
+            "synaptic.settlementStatus": {
+              "displayName": "Settlement Status Update",
+              "contexts": [
+                "synaptic.settlementStatus"
+              ]
+            }
+          }
+        },
+        "standardContexts": [
+          "fdc3.payment",
+          "synaptic.settlementStatus"
+        ]
+      }
+    },
+    {
+      "appId": "synaptic-bankerx-reference",
+      "name": "BankerX",
+      "title": "BankerX Reference Clearinghouse",
+      "description": "Institutional post-trade clearinghouse and DvP settlement engine implementing the FDC3 3.0 StartPayment intent with ADR-555 sub-8ms local enclave pre-flight and Trilateral settlement.",
+      "version": "1.0.0",
+      "publisher": "Synaptics Lab (FINOS Project)",
+      "type": "web",
+      "details": {
+        "url": "https://terminal.synapticchain.xyz/"
+      },
+      "interop": {
+        "intents": {
+          "listensFor": {
+            "StartPayment": {
+              "displayName": "Start Payment",
+              "contexts": [
+                "fdc3.payment"
+              ]
+            }
+          },
+          "broadcasts": [
+            "synaptic.settlementStatus"
+          ]
+        },
+        "standardContexts": [
+          "fdc3.payment",
+          "synaptic.settlementStatus"
+        ]
+      }
+    }
+  ],
+  "message": "OK"
+}

@@ -1,0 +1,20 @@
+{
+  "name": "traderx-fdc3-desktop-agent",
+  "version": "1.0.0",
+  "private": true,
+  "description": "FINOS FDC3 3.0 browser-resident Desktop Agent for the TraderX blotter (Spec 016). Built on @finos/fdc3-web-impl; serves the estate App Directory v2 records and connects apps via the FDC3 Web Connection Protocol.",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@finos/fdc3-context": "^3.0.0-alpha.5",
+    "@finos/fdc3-schema": "^3.0.0-alpha.5",
+    "@finos/fdc3-standard": "^3.0.0-alpha.5",
+    "@finos/fdc3-web-impl": "3.0.0-alpha.5"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "typescript": "^5.6.0"
+  }
+}
