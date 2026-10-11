@@ -1,26 +1,55 @@
-This website was created with [Docusaurus v2](https://v2.docusaurus.io/).
+# TraderX documentation website
 
-In order to start working with Docusaurus, please read the [Getting Started guide](https://docusaurus.io/docs/configuration) and browse through the following folders and files:
-- `website` - contains the Node/React code to build the website
-- `website/docusaurus.config.js` - contains the Docusaurus configuration; you'll need to edit this file.
-- `website/static` - contains images, PDF and other static assets used in the website; if you add a `file.pdf` in this folder, it will be served as `https://<your_host>/file.pdf`.
-- `docs` - contains the `.md` and `.mdx` files that are served as `https://<your_host>/<file_id>` ; the `file_id` is defined at the top of the file.
+The website uses Docusaurus 3. Its content comes from `docs/`, `specs/`, and
+`.specify/`; configuration and frontend assets live in `website/`.
 
-## Local run
+## Local development
 
-Running Docusaurus locally is very simple, just follow these steps:
-- Make sure `node` version is 14 or higher, using `node -v` ; you can use [nvm](https://github.com/nvm-sh/nvm) to install different node versions in your system.
-- `cd website ; npm install ; npm run start`
+Use Node.js 22, matching the docs publishing workflow and Netlify configuration.
+From the repository root:
 
-The command should open your browser and point to `http://localhost:3000`.
+```sh
+npm --prefix website ci --no-audit --no-fund
+npm --prefix website start
+```
 
-## Deployment
+The development site is available at <http://localhost:3000>.
 
-[Netlify] (https://www.netlify.com/) is the default way to serve FINOS websites publicly. Find docs [here] (https://docs.netlify.com/configure-builds/get-started/).
+## Production publishing
 
-You can configure Netlify using your own GitHub account, pointing to a personal repository (or fork); when adding a new site, please use the following configuration:
-- Woeking directory: `website`
-- Build command: `npm run build`
-- Build directory: `website/build`
+`.github/workflows/deploy-docusaurus-pages.yml` publishes
+<https://traderx.finos.org> through GitHub Pages on pushes to `main` or manual
+workflow dispatch. Netlify is used only for pull-request previews.
 
-If you want to serve your website through `https://<project_name>.finos.org`, please email [help@finos.org](mailto:help@finos.org). To check a preview, visit https://project-blueprint.finos.org .
+## Netlify pull-request previews
+
+The root `netlify.toml` sets the base directory to `website`, runs
+`pipeline/build-netlify-preview.sh`, and publishes `website/build`. The script
+refreshes catalog-derived state docs just like the production workflow, then
+builds with the preview URL as the Docusaurus site URL and `/` as its base path.
+Preview responses include `X-Robots-Tag: noindex, nofollow`.
+
+Connect the Netlify project to this GitHub repository and enable Deploy Previews
+for pull requests targeting `main`. The GitHub integration then adds the preview
+link and build status to each PR. This configuration cannot install or enable
+the integration itself; a first contribution may also require approval in Netlify.
+Keep the production domain on GitHub Pages and do not assign it to Netlify.
+
+All non-preview contexts are skipped by the ignore rule. The build script also
+rejects non-preview contexts, including build hooks that bypass the ignore rule.
+Every PR is built, including changes to shared inputs outside `website/` such as
+`docs/`, `specs/`, `.specify/`, `catalog/`, and `pipeline/`.
+
+To test the same build locally without deploying anything:
+
+```sh
+npm --prefix website ci --no-audit --no-fund
+CONTEXT=deploy-preview DEPLOY_PRIME_URL=http://localhost:3000 \
+  bash pipeline/build-netlify-preview.sh
+npm --prefix website run serve -- --host 127.0.0.1 --port 3000
+```
+
+The refresh step may update derived docs in the checkout, so use a clean worktree.
+For a linked Netlify project, `netlify build --context deploy-preview` can also
+exercise Netlify's build orchestration; set `DEPLOY_PRIME_URL` for local testing.
+Neither local build command publishes a site.

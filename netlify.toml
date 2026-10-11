@@ -1,2 +1,20 @@
+# Netlify hosts PR previews only. GitHub Actions owns the public GitHub Pages site.
 [build]
-  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF . ../{docs,website}/"
+  base = "website"
+  command = "bash ../pipeline/build-netlify-preview.sh"
+  publish = "build"
+  # Netlify: exit 0 skips a build; exit 1 continues it.
+  ignore = "true"
+
+[build.environment]
+  NODE_VERSION = "22"
+  # The docs build uses development dependencies (including the llms plugin).
+  NPM_FLAGS = "--include=dev"
+
+[context.deploy-preview]
+  ignore = "false"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
