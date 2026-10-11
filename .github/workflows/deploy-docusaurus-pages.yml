@@ -65,7 +65,7 @@ jobs:
 
       - name: Run AFDocs on published GitHub Pages URL
         env:
-          PUBLISHED_URL: ${{ steps.deployment.outputs.page_url }}
+          PUBLISHED_URL: https://traderx.finos.org
         run: |
           echo "[info] checking published docs at ${PUBLISHED_URL}"
           SUCCESS=0

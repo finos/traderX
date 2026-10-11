@@ -8,7 +8,7 @@
 
 [build.environment]
   NODE_VERSION = "22"
-  # The docs build uses development dependencies (including the llms plugin).
+  # The docs build uses development dependencies (including the Markdown generator).
   NPM_FLAGS = "--include=dev"
 
 [context.deploy-preview]

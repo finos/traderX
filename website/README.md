@@ -53,3 +53,25 @@ The refresh step may update derived docs in the checkout, so use a clean worktre
 For a linked Netlify project, `netlify build --context deploy-preview` can also
 exercise Netlify's build orchestration; set `DEPLOY_PRIME_URL` for local testing.
 Neither local build command publishes a site.
+
+## Markdown and documentation discovery
+
+Every build runs `scripts/generate-markdown-docs.cjs` after Docusaurus. It extracts
+rendered article content from published pages and writes a `.md` counterpart at
+each canonical route (for example, `/docs/home.md`). This includes guides,
+specifications, and constitution pages, using their published slugs rather than
+source filenames. Navigation and page controls are omitted; tables, code blocks,
+and rendered MDX content are preserved. Mermaid diagrams also expose a collapsible
+source block so their definitions survive static exports. Links to other published docs point to
+their Markdown counterparts, and image URLs are absolute.
+
+Each docs page offers **View Markdown** and **Documentation index** links.
+`llms.txt` indexes the generated Markdown, and `llms-full.txt` bundles it. The
+build rejects duplicate routes and missing or empty Markdown targets. Run
+`npm --prefix website run test:markdown` for route, content, and base-path tests.
+
+These are static files supported by both GitHub Pages and Netlify. Request the
+explicit `.md` URL; `Accept: text/markdown` on an HTML URL does not switch formats.
+AFDocs may still report this hosting limitation or HTML navigation overhead.
+The production audit uses the canonical HTTPS URL to avoid treating HTTPS links
+as external to an HTTP audit origin.
