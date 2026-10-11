@@ -73,5 +73,6 @@ build rejects duplicate routes and missing or empty Markdown targets. Run
 These are static files supported by both GitHub Pages and Netlify. Request the
 explicit `.md` URL; `Accept: text/markdown` on an HTML URL does not switch formats.
 AFDocs may still report this hosting limitation or HTML navigation overhead.
-The production audit uses the canonical HTTPS URL to avoid treating HTTPS links
-as external to an HTTP audit origin.
+The production audit uses the deployment URL returned by GitHub Pages, upgrading
+an HTTP scheme to HTTPS while preserving the host and path. This avoids treating
+HTTPS links as external to an HTTP audit origin without hardcoding a domain.

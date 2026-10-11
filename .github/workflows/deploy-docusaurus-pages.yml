@@ -65,8 +65,10 @@ jobs:
 
       - name: Run AFDocs on published GitHub Pages URL
         env:
-          PUBLISHED_URL: https://traderx.finos.org
+          PUBLISHED_URL: ${{ steps.deployment.outputs.page_url }}
         run: |
+          # Pages may report HTTP even when the site is served over HTTPS.
+          PUBLISHED_URL="${PUBLISHED_URL/#http:/https:}"
           echo "[info] checking published docs at ${PUBLISHED_URL}"
           SUCCESS=0
           for attempt in $(seq 1 10); do
