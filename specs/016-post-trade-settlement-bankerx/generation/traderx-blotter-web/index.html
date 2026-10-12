@@ -591,8 +591,14 @@ setInterval(() => {
 }, 1500);
 
 // ─── Listen for synaptic.settlementStatus from BankerX (FR-01606) ──────────
+// Origin admission is explicit per source:
+//  - BANKERX_ORIGIN (terminal.synapticchain.xyz): the reference adapter
+//  - *.synapticchain.xyz host windows: the estate estate-DA relays
+//  - window.location.origin: the pack-served mock receiver's opener relay
+//    (same acceptance pack, same static origin — see mock-receiver
+//    emitSettlementStatus fallback path)
 window.addEventListener('message', (evt) => {
-  if (evt.origin !== BANKERX_ORIGIN && !evt.origin.includes('synapticchain.xyz')) return;
+  if (evt.origin !== BANKERX_ORIGIN && !evt.origin.includes('synapticchain.xyz') && evt.origin !== window.location.origin) return;
   const d = evt.data;
   if (!d) return;
   if (d.type === 'synaptic.settlementStatus' || d.traderxSettlementStatus || d.uetr) {
@@ -611,7 +617,57 @@ window.addEventListener('message', (evt) => {
   }
 });
 
-// Universal FDC3 Status Relay Poller (works across tabs, split-screen, windows)
+// Agent-mediated status path (FR-01606): the mock receiver (or the BankerX
+// desk) may emit `synaptic.settlementStatus` on the desktop agent's user
+// channel — the standards path, and the only path a real Sail/DA deployment
+// has. Subscribe so agent-delivered statuses correlate the row exactly like
+// the Angular blotter's addContextListener does. Idempotent with the
+// postMessage path: applySettlementStatus short-circuits on row SETTLED.
+(async () => {
+  // The desktop agent is published asynchronously (after the app directory
+  // loads and the DA handshake completes) — poll for it instead of checking
+  // once at parse time, when window.SynapticFDC3Agent does not exist yet.
+  let agent = window.SynapticFDC3Agent;
+  for (let i = 0; !agent?.addContextListener && i < 50; i++) {
+    await new Promise((r) => setTimeout(r, 200));
+    agent = window.SynapticFDC3Agent;
+  }
+  if (!agent?.addContextListener) {
+    console.warn('[FDC3] desktop agent never appeared — agent channel parity listener not registered');
+    return;
+  }
+  try {
+    await agent.ready;
+    // Join the default user channel first: the server delivers a channel
+    // broadcast only to listeners on that channel (or whose instance joined
+    // it). Same semantics the Angular blotter relies on (join channels[0] +
+    // addContextListener).
+    if (agent.getUserChannels && agent.joinUserChannel) {
+      try {
+        const channels = await agent.getUserChannels();
+        if (Array.isArray(channels) && channels.length && channels[0].id) {
+          await agent.joinUserChannel(channels[0].id);
+        }
+      } catch (e) {
+        console.warn('[FDC3] user channel join failed', e);
+      }
+    }
+    await agent.addContextListener('synaptic.settlementStatus', (ctx) => {
+      const uetr = ctx?.uetr || ctx?.id?.UETR;
+      const status = ctx?.status || ctx?.traderxSettlementStatus;
+      if (!uetr || !status) return;
+      applySettlementStatus({
+        uetr,
+        status: status === 'Acsc' ? STATUS.ACCEPTED : status,
+        txSignature: ctx.txHash,
+        alcoveVerified: undefined
+      });
+    });
+    console.info('[FDC3] synaptic.settlementStatus context listener registered (agent channel parity)');
+  } catch (e) {
+    console.warn('[FDC3] agent context listener registration failed', e);
+  }
+})();
 let lastProcessedStatusTs = Date.now() - 5000;
 setInterval(async () => {
   try {

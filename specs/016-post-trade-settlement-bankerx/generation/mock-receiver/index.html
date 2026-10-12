@@ -33,8 +33,9 @@ h1 { font-size: 15px; letter-spacing:.06em; text-transform:uppercase; color:var(
 // Status home relay (state 016 acceptance loop): when this receiver was
 // opened by the TraderX blotter's desktop agent, deliver the settlement
 // outcome back to the blotter so its FR-01606 correlation can flip the row.
-// Same-origin scoped — the pack-served offline flow opens blotter and
-// receiver from one origin. No-op on direct opens.
+// FALLBACK path only — primary emission goes through the real FDC3 agent
+// (emitSettlementStatus). Same-origin scoped — the pack-served offline flow
+// opens blotter and receiver from one origin. No-op on direct opens.
 window.__receiverRelayHome = (payload) => {
   try { window.opener && window.opener.postMessage(payload, window.location.origin); } catch {}
 };
@@ -71,6 +72,10 @@ const channel = {
   broadcast: (ctx) => { userChannelContexts.push(ctx); },
   getCurrentContext: async () => userChannelContexts[userChannelContexts.length - 1] ?? null
 };
+// Real desktop agent (WCP) when connected — the status emission path the
+// originating blotter actually listens on. Null on direct opens (stub mode).
+let wcpAgent = null;
+let wcpChannel = null;
 // NOTE: window.fdc3 is NOT installed at parse time. When this page is opened
 // by the blotter's desktop agent, fdc3-client.js runs getAgent() whose
 // DesktopAgentPreloadLoader strategy polls window.fdc3 — an early stub wins
@@ -91,6 +96,62 @@ function installStubAgent() {
 }
 
 const receiver = new PaymentReceiver();
+
+// Join the default user channel on the real agent so context broadcast by this
+// participant reaches every other participant on that channel (the FDC3 2.0
+// channel semantics the originating blotter subscribes to). Channel-less
+// agents fall back to direct agent broadcast (emitSettlementStatus).
+async function joinDefaultUserChannel(agent) {
+  try {
+    if (!agent?.getUserChannels || !agent?.joinUserChannel) return null;
+    const userChannels = await Promise.resolve(agent.getUserChannels());
+    const target = Array.isArray(userChannels) && userChannels.length ? userChannels[0] : null;
+    if (!target?.id) return null;
+    await Promise.resolve(agent.joinUserChannel(target.id));
+    const current = agent.getCurrentChannel ? await Promise.resolve(agent.getCurrentChannel()) : target;
+    console.info('[MockReceiver] joined user channel for status emission', { channelId: current?.id ?? target.id });
+    return current ?? target;
+  } catch (e) {
+    console.warn('[MockReceiver] user channel join failed — agent.broadcast fallback stays', e?.message ?? e);
+    return null;
+  }
+}
+
+/**
+ * FR-01606 emission path — how a settlement outcome reaches the originating
+ * blotter, in priority order and single-sourced (the emitter that claims delivery
+ * is the only one that sends):
+ *   1. real WCP agent user channel — what the originating blotter subscribes to
+ *      via addContextListener('synaptic.settlementStatus');
+ *   2. real WCP agent broadcast — agents without channel support;
+ *   3. opener postMessage relay — same-origin opener flows only (pack-served;
+ *      the standalone blotter accepts this origin);
+ *   4. stub channel — private in-page array, display only on direct opens.
+ * A verdict delivered only to the stub array never flips a row — that was the
+ * acceptance defect (round trip lost between desk and blotter).
+ */
+async function emitSettlementStatus(record) {
+  const statusContext = toSettlementStatusContext(record);
+  let delivered = false;
+  if (wcpChannel?.broadcast) {
+    try { await Promise.resolve(wcpChannel.broadcast(statusContext)); delivered = true; }
+    catch (e) { console.warn('[MockReceiver] agent channel broadcast failed', e?.message ?? e); }
+  }
+  if (!delivered && wcpAgent?.broadcast) {
+    try { await Promise.resolve(wcpAgent.broadcast(statusContext)); delivered = true; }
+    catch (e) { console.warn('[MockReceiver] agent broadcast failed', e?.message ?? e); }
+  }
+  if (!delivered) {
+    if (window.opener && !window.opener.closed) {
+      window.__receiverRelayHome(statusContext);
+    }
+    channel.broadcast(statusContext); // stub: display-only on direct opens
+    console.info('[MockReceiver] settlement status emitted via opener relay');
+    return 'opening-relay';
+  }
+  console.info('[MockReceiver] settlement status emitted via FDC3 agent', { channelId: wcpChannel?.id ?? null });
+  return 'agent';
+}
 
 async function handleStartPayment(context) {
   paymentsEl.textContent = '';
@@ -115,14 +176,10 @@ async function handleStartPayment(context) {
     </dl>
     <div class="raw">${JSON.stringify(context, null, 2)}</div>`;
   list.prepend(verdictBlock);
-  if (!record.duplicate) {
-    channel.broadcast(toSettlementStatusContext(record));
-  }
-  // Status home (acceptance loop): FR-01606 correlation in the blotter.
-  // Replay duplicates intentionally re-deliver the first outcome — the
-  // blotter-side guard (row already SETTLED) and the receiver-side duplicate
-  // record are the two disclosed halves of duplicate suppression.
-  window.__receiverRelayHome(toSettlementStatusContext(record));
+  // Duplicates replay the FIRST outcome deliberately — the blotter-side guard
+  // (row already SETTLED) and the receiver-side duplicate record are the two
+  // disclosed halves of duplicate suppression.
+  emitSettlementStatus(record);
 }
 
 // Wire the agent's StartPayment intent to the receiver: registering the intent
@@ -145,7 +202,9 @@ async function bindIntentListener() {
     setTimeout(() => res(window.__MOCK_RECEIVER_AGENT ?? null), 6000);
   });
   if (client) {
+    wcpAgent = client;
     await client.addIntentListener('StartPayment', (ctx) => handleStartPayment(ctx));
+    wcpChannel = await joinDefaultUserChannel(client); // status emission path
     agentState.innerHTML = 'FDC3 desktop agent: <b>CONNECTED (WCP)</b> — declaring intent <code>StartPayment</code>';
     return;
   }
