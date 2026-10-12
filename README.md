@@ -141,6 +141,7 @@ run twice unless noted.
 | R15 watermark rolling settlement | 24/24 ×2 |
 | R13 multi-rail (Solana + XRPL mixed) phase 10 | 14/14 ×2 |
 | Corridor 17 (sUSD/cTZS) | 24/24 ×2 |
+| Stripe-compatible card-rail shim (honest-core :8092, `syn-stripe-bridge`) | E2E ×2 GREEN, F1–F9 closed, custodian spend-cap 9/9 ×2 ([syn-stripe-bridge](https://github.com/Synaptics-Lab/syn-stripe-bridge)) |
 | 10-stage live wire loop (FDC3 intent → clearinghouse seal → dual-rail evidence → margin settlement → finalize → outbound pacs.008 render) | ALL 11 stages GREEN ×2, 2026-10-12 (sessions 102/103 sealed; same-UETR pacs.008.001.08 rendered) |
 | Uhuru/UTA audit battery | 17/17 ×2 (remediation + SSOT-frame); UTA-2026-10-03-003 verdict PASS-WITH-NOTES |
 | Daily preflight + phase ladder (cron) | 2 GREEN pairs/day since 2026-10-08 |
