@@ -92,6 +92,7 @@ export function validatePaymentContext(context) {
  * One instance per receiving app session; state is in-memory only.
  */
 export class PaymentReceiver {
+    #inflight;
     constructor(options = {}) {
         // rails: ordered list of settlement handlers; each handler receives
         // (context) and returns { status, txHash?, detail? } synchronously or
@@ -100,14 +101,38 @@ export class PaymentReceiver {
         this.rejectedReasons = options.rejectedReasons ?? [];
         this.settlements = new Map(); // uetr -> { status, txHash?, rail }
         this.events = [];
+        // Per-UETR in-flight serialization: two concurrent receives of the
+        // same payment must not run the rails twice (the settlements check
+        // alone only guards AFTER the first outcome lands).
+        this.#inflight = new Map();
     }
 
     /**
      * Handles an inbound StartPayment context. Returns the pacs.002-style
      * status event to broadcast, or a rejection. A UETR that was already
      * processed replays its FIRST outcome — it is never settled twice.
+     * A UETR currently in flight (two concurrent receives) does not run the
+     * rails a second time: the second caller awaits the first one's outcome
+     * and replays it, marked duplicate, exactly as a post-facto duplicate.
      */
     async receive(context) {
+        const uetr = context?.id?.UETR;
+        if (uetr && this.#inflight.has(uetr)) {
+            const inFlight = this.#inflight.get(uetr);
+            const first = await inFlight;
+            return { ...first, duplicate: true };
+        }
+        const run = this.#receiveNow(context);
+        if (!uetr) return run;
+        this.#inflight.set(uetr, run);
+        try {
+            return await run;
+        } finally {
+            this.#inflight.delete(uetr);
+        }
+    }
+
+    async #receiveNow(context) {
         const verdict = validatePaymentContext(context);
         if (!verdict.valid) {
             return this.#record(context?.id?.UETR ?? 'unknown', STATUS.REJECTED, null, `schema: ${verdict.reason}`);
@@ -122,7 +147,16 @@ export class PaymentReceiver {
             return this.#record(uetr, STATUS.REJECTED, null, rejected.detail ?? 'honest rejection');
         }
         for (const rail of this.rails) {
-            const outcome = await rail.settle(context);
+            let outcome;
+            try {
+                outcome = await rail.settle(context);
+            } catch (error) {
+                // A rail that throws must never reject receive(): the caller
+                // (the receiver page) broadcasts whatever this returns, and
+                // "the rail crashed before a status" is honestly Pndg —
+                // never a fake Acsc (lifecycle test gate I).
+                return this.#record(uetr, STATUS.PENDING, rail.id ?? null, `rail error: ${error?.message ?? error}`);
+            }
             if (outcome?.status === STATUS.ACCEPTED || outcome?.status === STATUS.REJECTED) {
                 return this.#record(uetr, outcome.status, rail.id, outcome.detail, outcome.txHash);
             }

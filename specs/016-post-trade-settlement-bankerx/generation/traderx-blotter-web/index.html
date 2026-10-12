@@ -991,8 +991,22 @@ window.settleTrade = async (id, mode) => {
       }
       return;
     } catch (err) {
+      // An available-but-rejected agent raise is a dispatch OUTCOME, not an
+      // invitation to fire the same UETR again over legacy channels: the
+      // agent saw the intent, and it may have partially delivered — a legacy
+      // re-dispatch here is a double-dispatch risk. The row lands RJCT with
+      // the real reason and the duplicate-dispatch guard releases the UETR
+      // (the deliberate re-raise handle stays available); the legacy
+      // channels below are reserved for the no-agent case (FR-01605) only.
       hideIntentModal();
-      log('w', `[FDC3] Agent raiseIntent failed (${err.message ?? err}) — legacy dispatch channels engaged`);
+      t.status = 'REJECTED';
+      t.reason = `agent raise rejected: ${err.message ?? err} — legacy redispatch withheld`;
+      t.dispatchedAt = null;
+      dispatchedUetrs.delete(t.uetr);
+      log('e', `[FDC3 FR-01605] Agent raise rejected — no legacy redispatch: ${err.message ?? err}`);
+      renderBlotter();
+      toast(`⚠ Agent raise rejected (${err.message ?? err}) — legacy channels not engaged`);
+      return;
     }
   }
 

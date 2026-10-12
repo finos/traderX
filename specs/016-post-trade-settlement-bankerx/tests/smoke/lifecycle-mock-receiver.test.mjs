@@ -123,6 +123,53 @@ await gate('J: status context carries UETR correlation fields', async () => {
   assert.equal(status.id.UETR, validContext.id.UETR);
 });
 
+await gate('K: concurrent same-UETR receives run the rails exactly once', async () => {
+  // DovOps negative-path item: two simultaneous receives of the same payment
+  // must not invoke the settlement rail twice. The settlements check alone
+  // only guards AFTER the first outcome is recorded.
+  let railCalls = 0;
+  const slowRail = {
+    id: 'Slow Mock Rail',
+    settle: async () => {
+      railCalls += 1;
+      await new Promise((resolve) => setTimeout(resolve, 25));
+      return { status: STATUS.ACCEPTED, detail: 'simulated rail window' };
+    }
+  };
+  const receiver = new PaymentReceiver({ rails: [slowRail] });
+  const [first, second] = await Promise.all([receiver.receive(validContext), receiver.receive(validContext)]);
+  assert.equal(railCalls, 1, `the rail must be invoked once, got ${railCalls}`);
+  assert.equal(first.status, 'Acsc');
+  assert.equal(second.status, 'Acsc');
+  assert.equal(second.duplicate, true, 'the loser of the race replays the winner as a duplicate');
+  const settled = receiver.settlements.get(validContext.id.UETR);
+  assert.equal(settled.status, 'Acsc');
+  const nonDuplicateEvents = receiver.events.filter((e) => e.uetr === validContext.id.UETR && !e.duplicate);
+  assert.equal(nonDuplicateEvents.length, 1, 'exactly one settlement record per UETR');
+});
+
+await gate('L: a throwing rail is an honest Pndg, and receive() never rejects', async () => {
+  // DovOps negative-path item: a rail error escaping outcome handling would
+  // leave both the receive() caller and the status broadcast stranded.
+  const receiver = new PaymentReceiver({
+    rails: [{ id: 'Crashy Rail', settle: async () => { throw new Error('rail socket reset'); } }]
+  });
+  const record = await receiver.receive(validContext);
+  assert.equal(record.status, 'Pndg');
+  assert.match(record.detail, /rail error: rail socket reset/);
+  assert.equal(record.rail, 'Crashy Rail', 'the crashed rail is named, honestly');
+  await assert.doesNotReject(receiver.receive(validContext), 'receive() must never reject');
+});
+
+await gate('M: the vendored blotter mirror stays byte-identical (keep-synced law)', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const base = join(import.meta.dirname ?? '.');
+  const a = readFileSync(join(base, '../../generation/mock-receiver/payment-lifecycle.mjs'));
+  const b = readFileSync(join(base, '../../generation/traderx-blotter-web/payment-lifecycle.mjs'));
+  assert.ok(a.equals(b), 'vendored traderx-blotter-web/payment-lifecycle.mjs must mirror the spec copy');
+});
+
 if (process.exitCode) {
   console.error(`[fail] lifecycle smoke failed at gate ${gates}`);
 } else {
