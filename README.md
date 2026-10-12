@@ -128,7 +128,7 @@ run twice unless noted.
 - **1,161 SDK test functions** (Python + TypeScript SDKs, 37 test files) and ~310 more
   across the gateway, terminal, and service suites — **>4,800 test
   functions/assertions platform-wide**.
-
+- **+1 TradFi-facing rail**: Stripe-shaped card rail over Solana OUSD (TD-019 Sovereign Stripe) — Stripe-compatible honest shim, E2E ×2 GREEN ([syn-stripe-bridge](https://github.com/Synaptics-Lab/syn-stripe-bridge)).
 | Suite | Score |
 |---|---|
 | Formal invariant verification (FIV v4.4) | 12/12 invariants PASS |
