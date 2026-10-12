@@ -4,6 +4,11 @@
 
 # FINOS | TraderX (SpecKit-First Baseline)
 
+> 🖥️ This desk runs live for Colosseum Radar judges at
+> **[colosseum.synapticchain.xyz](https://colosseum.synapticchain.xyz)** — clearinghouse console,
+> nine-stage live-fire demo (`/demo`), Continuous Atomic Netting (`/can`), position brief (`/brief`),
+> and milestone receipts (`/milestones`). Verification fast-path: [JUDGES_FLOW.md](https://github.com/Synaptics-Lab/synaptic-fx-terminal/blob/main/JUDGES_FLOW.md).
+
 TraderX is now organized as a root-canonical GitHub SpecKit project.  
 The baseline implementation is generated and validated from requirements, stories, acceptance criteria, contracts, and conformance gates.
 
