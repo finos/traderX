@@ -162,8 +162,14 @@ async function handleStartPayment(context) {
     : record.status === 'Rjct' ? '<span class="badge bad">Rjct — REJECTED</span>'
     : '<span class="badge warn">Pndg — PENDING</span>';
   const dupBadge = record.duplicate ? ' <span class="badge dup">DUPLICATE — first outcome replayed</span>' : '';
+  // Evidence boundary (#130): this receiver settles on a demo rail — an Acsc
+  // from it is the counterparty's own broadcast, never on-chain proof (no
+  // tx hash unless a rail explicitly returns one).
+  const evidence = record.txHash
+    ? ''
+    : ' <span class="badge warn">simulated settlement — no tx evidence (demo rail)</span>';
   verdictBlock.innerHTML = `
-    <h2>${new Date().toISOString()} ${statusBadge}${dupBadge}</h2>
+    <h2>${new Date().toISOString()} ${statusBadge}${dupBadge}${evidence}</h2>
     <dl class="kv">
       <dt>UETR</dt><dd>${record.uetr}</dd>
       <dt>rail</dt><dd>${record.rail ?? '—'}</dd>

@@ -449,10 +449,10 @@ tbody tr:hover td{background:rgba(255,255,255,.015);}
     <div class="mrow"><span class="k">STATUS</span><span class="v mv-ok">ACSC ✓ · SETTLEMENT COMPLETED</span></div>
     <div class="mrow"><span class="k">UETR</span><span class="v" id="rmUetr">—</span></div>
     <div class="mrow"><span class="k">PAIR / AMOUNT</span><span class="v" id="rmPairAmt">—</span></div>
-    <div class="mrow"><span class="k">RAIL</span><span class="v" id="rmRail">Solana Token-2022 · DEVNET</span></div>
+    <div class="mrow"><span class="k">RAIL</span><span class="v" id="rmRail">—</span></div>
     <div class="mrow"><span class="k">TX SIGNATURE</span><span class="v" id="rmTx">—</span></div>
     <div class="mrow"><span class="k">SLOT</span><span class="v" id="rmSlot">—</span></div>
-    <div class="mrow"><span class="k">RECEIPT</span><span class="v mv-ok">pacs.008 memo verified · pacs.002 Acsc emitted</span></div>
+    <div class="mrow"><span class="k">VERIFICATION</span><span class="v" id="rmVerif">—</span></div>
   </div>
 </div>
 
@@ -736,6 +736,11 @@ function applySettlementStatus({ uetr, status, txSignature, explorerUrl, slot, a
       if (txSignature) {
         log('s', `[ON-CHAIN SETTLED] Solana Token-2022 Slot #${slot || 'DEVNET'} · Tx: ${txSignature.slice(0,16)}…`);
         log('s', `[ISO 20022] Cryptographic pacs.008 memo verified on Solana consensus`);
+      } else {
+        // Evidence classification (#130): a mock-receiver Acsc is the
+        // counterparty's own word — recorded honestly as such, never logged
+        // as on-chain proof.
+        log('w', `[FDC3 FR-01606] Acsc carried NO tx evidence — counterparty broadcast only (mock/demo boundary) · UETR: ${uetr.slice(0,12)}…`);
       }
       const settled = trades.find((x) => x.uetr === uetr && x.status === 'SETTLED');
       if (settled) showReceiptModal(settled);
@@ -1106,6 +1111,20 @@ function showReceiptModal(t) {
   document.getElementById('rmTx').textContent = t.txSignature
     ? `${t.txSignature.slice(0, 22)}…` : '—';
   document.getElementById('rmSlot').textContent = t.slot ? `#${t.slot}` : '—';
+  // Evidence classification (#130): a TX SIGNATURE on the row means the
+  // settlement was verified against the rail's own ledger (devnet memo
+  // watcher). An Acsc WITHOUT one is the counterparty's own broadcast — it
+  // is recorded, but it is NOT on-chain evidence, and the modal must say so.
+  const railEl = document.getElementById('rmRail');
+  const verifEl = document.getElementById('rmVerif');
+  if (t.txSignature) {
+    railEl.textContent = 'Solana Token-2022 · DEVNET';
+    railEl.className = 'v mv-ok';
+    verifEl.innerHTML = '<span class="mv-ok">pacs.008 memo verified from the Solana ledger · tx signed on devnet</span>';
+  } else {
+    railEl.textContent = 'Mock receiver broadcast (demo)';
+    verifEl.innerHTML = '<span class="mv-warn">counterparty Acsc — no tx evidence (mock/demo boundary)</span>';
+  }
   const m = document.getElementById('receiptModal');
   m.classList.add('open');
   // The receipt supersedes the in-flight intent card.

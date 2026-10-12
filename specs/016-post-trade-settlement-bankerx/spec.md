@@ -24,6 +24,31 @@ status reflects only that the trade's cash obligation settled.
 
 ---
 
+## 0b. Evidence classification — what an `Acsc` actually proves here
+
+Per the acceptance review (PR #470): a settlement claim must be matched to
+the evidence behind it. Statuses reach the blotter over three channels with
+three different evidence strengths, and the state classifies them honestly
+instead of presenting all three as on-chain proof:
+
+| Channel | Evidence behind the `Acsc` | How the UI classifies it |
+|---|---|---|
+| Solana devnet ledger (Estate rail legs) | **On-chain proof.** The desk's settlement memo (carrying the row's UETR) exists on an actual devnet transaction to the creditor token account; the blotter's memo watcher (`checkOnChainSettlement`) reads the ledger itself, records the `txSignature`, and the desk's own WOTS+ re-derivation verdict rides along (`alcoveVerified`). | Receipt modal shows the TX SIGNATURE and `VERIFICATION: pacs.008 memo verified from the Solana ledger`; log lines say ON-CHAIN SETTLED. |
+| Settlement registry adapter (`synaptic-traderx-adapter`, demo port 8415) | **Counterparty/peer broadcast persisted by a demo adapter.** Entries are published and reconciled across browsers (fingerprint + UETR adoption guards prevent wrong-row stamps), but the adapter is file-backed and unauthenticated — it is demo-estate infrastructure, not a source of cryptographic proof. | Row-level state only; treated the same as a broadcast (no tx evidence shown). |
+| Mock receiver / reference adapter broadcast (`synaptic.settlementStatus`) | **The receiver's own word.** In the offline acceptance flow the mock receiver settles on a *demo rail* and returns no tx hash; validation of asset/amount/counterparties happened at dispatch (`validatePaymentContext`: ISO 4217 currency, canonical pair+rate, complete debtor/creditor, UUIDv4 UETR) and the receiver page echoes those fields for operator review — but there is no cryptographic attestation behind the acceptance. | Receipt modal VERIFICATION row reads `counterparty Acsc — no tx evidence (mock/demo boundary)`; the blotter log states the broadcast carried no tx evidence; the mock receiver badge marks the settlement `simulated settlement — no tx evidence (demo rail)`. |
+
+**Trust boundary, stated plainly:** in this state only the Solana-memo/ledger
+path verifies transaction success; the adapter and mock-receiver paths carry
+unauthenticated counterparty claims, which is acceptable for a demo estate
+because the same channels cannot be used to forge money movement — only to
+mislabel a row. Production settlement would close this boundary with a signed
+pacs.002 from the settling desk (or the ADR-555 enclave attestation the
+Estate rail already runs) and amount/counterparty correlation inside the
+signed envelope; that hardening is out of scope for the reference
+implementation and is deliberately documented rather than faked.
+
+---
+
 ## 1. Executive Summary
 
 While **TraderX** provides institutional-grade pricing awareness, order matching, and trade execution blotters, enterprise capital markets currently suffer from a **T+2 settlement latency gap**. Trades executed in milliseconds must wait 48 hours to clear across legacy correspondent banking networks due to disconnected post-trade clearing systems.

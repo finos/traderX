@@ -83,3 +83,10 @@ else keeps the position-service upstream.
 
 - Mocked DesktopAgent integration tests cover the `raiseIntent` → settlement-confirmation round-trip.
 - Degraded-mode tests prove the baseline blotter behavior is unchanged when FDC3 is absent.
+- Evidence classification (spec §0b): only the Solana-memo path verifies a
+  settlement from the rail's own ledger (`txSignature` shown on the receipt);
+  mock-receiver `Acsc`s are labeled `counterparty Acsc — no tx evidence
+  (mock/demo boundary)` on the receipt modal, in the blotter log, and on the
+  receiver page itself. The settlement registry adapter is demo-estate
+  infrastructure (unauthenticated, file-backed) — the trust boundary is
+  documented, not faked.
