@@ -6,12 +6,13 @@
     "clear": "docusaurus clear",
     "start": "docusaurus start",
     "swizzle": "docusaurus swizzle",
-    "build": "docusaurus build && node ./scripts/normalize-llms-links.mjs",
+    "build": "docusaurus build && node ./scripts/generate-markdown-docs.cjs",
     "publish-gh-pages": "docusaurus deploy",
     "gen:api-docs": "mkdir -p ../generated/api-docs && rm -rf ../generated/api-docs/account-service ../generated/api-docs/people-service ../generated/api-docs/position-service ../generated/api-docs/reference-data ../generated/api-docs/trade-processor ../generated/api-docs/trade-service && docusaurus gen-api-docs account-service && docusaurus gen-api-docs people-service && docusaurus gen-api-docs position-service && docusaurus gen-api-docs reference-data && docusaurus gen-api-docs trade-processor && docusaurus gen-api-docs trade-service && npm run gen:api-overviews && npm run gen:api-index && npm run gen:api-sidebar",
     "gen:api-overviews": "node ./scripts/enrich-api-service-overviews.mjs",
     "gen:api-index": "node ./scripts/generate-api-index.mjs",
-    "gen:api-sidebar": "node ./scripts/generate-api-sidebar.mjs"
+    "gen:api-sidebar": "node ./scripts/generate-api-sidebar.mjs",
+    "test:markdown": "node --test scripts/generate-markdown-docs.test.cjs"
   },
   "dependencies": {
     "@docusaurus/core": "^3.2.0",
@@ -31,9 +32,11 @@
     "unist-util-visit": "^5.1.0"
   },
   "devDependencies": {
-    "docusaurus-plugin-llms": "^0.4.0",
+    "cheerio": "1.0.0",
     "eslint": "^8.0.0",
-    "eslint-plugin-react": "^7.23.2"
+    "eslint-plugin-react": "^7.23.2",
+    "turndown": "7.2.1",
+    "turndown-plugin-gfm": "1.0.2"
   },
   "overrides": {
     "lodash": "^4.18.1",

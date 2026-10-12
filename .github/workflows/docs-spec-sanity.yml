@@ -41,7 +41,10 @@ jobs:
       - name: Validate aggregate coverage
         run: bash pipeline/verify-spec-coverage.sh
 
-      - name: Build docs (includes on-demand API docs generation)
+      - name: Test Markdown publishing
+        run: npm --prefix website run test:markdown
+
+      - name: Build docs (includes Markdown publishing)
         run: npm --prefix website run build
 
       - name: Run AFDocs scorecard on local built site
