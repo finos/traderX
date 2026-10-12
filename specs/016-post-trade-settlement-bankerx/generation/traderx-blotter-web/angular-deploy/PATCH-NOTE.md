@@ -236,3 +236,18 @@ carried one hand-written injection vs the pristine upstream build
   grid rows would carry raw company names and the post-trade settle flow
   (which builds `fdc3.payment` from the row's `security` pair) would have
   no pair to settle against.
+## 2026-10-12 — templates settlement code moved to the 016 overlay
+
+The `fdc3-interop.service.ts`, `trade-blotter.component.ts`,
+`position.service.ts`, `account.model.ts` and `trade.model.ts` copies that
+used to sit in the shared `templates/web-front-end/angular` tree are gone from
+the shared tree: 014's baseline and 016's pack overlay are the only sources
+(now `specs/016-post-trade-settlement-bankerx/generation/frontend-overrides/
+...`carries all of them, plus the newer cash-leg mapping). The canonical app
+bundle build source is unchanged — but a rebuild MUST apply the 016
+frontend-overrides on top of the generated trees (per
+`../generation-hook.md`), which is now also scripted in
+`scripts/start-state-016-post-trade-settlement-bankerx-generated.sh`. The
+`TradeTicket` company-name normalization block stays in the templates tree
+(estate build source; the generated trees take 014's `trade-ticket` override,
+so the block never reaches a generated baseline).
