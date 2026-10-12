@@ -46,8 +46,12 @@ await gate('C: wrong context type is rejected', async () => {
 await gate('D: malformed payloads rejected field-by-field', async () => {
   for (const [mutate, reason] of [
     [(c) => ({ ...c, amount: -1 }), 'amount_invalid'],
-    [(c) => ({ ...c, currency: 'USDX' }), 'currency_not_iso4217_alpha3'],
+    [(c) => ({ ...c, currency: 'USDX' }), 'currency_not_iso4217'],
+    // An equity symbol is alpha-3-shaped but not a currency — the 2026-10-12
+    // validator tightening refuses it, not just non-alpha3 strings.
+    [(c) => ({ ...c, currency: 'BAC' }), 'currency_not_iso4217'],
     [(c) => ({ ...c, pair: 'USD-KES' }), 'pair_not_canonical'],
+    [(c) => ({ ...c, pair: 'BAC/KES' }), 'fx_leg_not_iso4217'],
     [(c) => ({ ...c, rate: 0 }), 'rate_invalid'],
     [(c) => ({ ...c, debtor: { name: '', account: 'x' } }), 'debtor_incomplete'],
     [(c) => ({ ...c, creditor: { name: 'x' } }), 'creditor_incomplete'],

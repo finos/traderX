@@ -173,8 +173,12 @@ export class Fdc3InteropService {
     async raiseStartPayment(paymentContext: {
         amount: number;
         currency: string;
-        pair: string;
-        rate: number;
+        // pair/rate are a coupled OPTIONAL frame: FX cash legs carry both
+        // (the pair is the traded instrument, rate its fill); same-currency
+        // cash transfers (equity settlements) carry neither — the blotter
+        // holds no FX data for those and none is invented here.
+        pair?: string;
+        rate?: number;
         debtor: { name: string; account: string };
         creditor: { name: string; account: string };
         uetr?: string;
@@ -188,13 +192,11 @@ export class Fdc3InteropService {
         }
 
         const uetr = paymentContext.uetr || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `UETR-${Date.now()}`);
-        const context = {
+        const context: Record<string, unknown> = {
             type: 'fdc3.payment', // FINOS PR #2204 context type
             id: { UETR: uetr },
             amount: paymentContext.amount,
             currency: paymentContext.currency,
-            pair: paymentContext.pair,
-            rate: paymentContext.rate,
             debtor: paymentContext.debtor,
             creditor: paymentContext.creditor,
             networkRouting: {
@@ -203,12 +205,23 @@ export class Fdc3InteropService {
                 uetr
             }
         };
+        // FX frame on the wire only when both halves exist — never a lone
+        // pair or a lone rate, which the receiver's validator rejects as a
+        // malformed instruction.
+        if (paymentContext.pair != null && paymentContext.rate != null) {
+            context.pair = paymentContext.pair;
+            context.rate = paymentContext.rate;
+        }
 
         try {
             await Promise.resolve(this.agent.raiseIntent('StartPayment', context));
             console.info('[fdc3] successfully raised StartPayment to BankerX', { context });
             this.trackDispatchedUetr(uetr);
-            this.statusMessage$.next(`FDC3: StartPayment dispatched (${paymentContext.pair} ${paymentContext.amount})`);
+            this.statusMessage$.next(
+                `FDC3: StartPayment dispatched (${paymentContext.currency} ${paymentContext.amount}`
+                + (paymentContext.pair ? ` · ${paymentContext.pair}` : '')
+                + ')'
+            );
             return true;
         } catch (error) {
             console.error('[fdc3] failed to raise StartPayment intent', error);

@@ -460,6 +460,9 @@ tbody tr:hover td{background:rgba(255,255,255,.015);}
 <script src="./fdc3-agent.js?v=12"></script>
 <script type="module">
 import { validatePaymentContext, toSettlementStatusContext, STATUS } from './payment-lifecycle.mjs';
+// Minor-unit rounding ships in the instruction-mapping SSOT — a typed-in
+// notional like 14020.965 must not hit the wire as 14020.964999999998.
+import { roundMinorUnit } from '../payment-instruction.mjs';
 
 // ─── State ─────────────────────────────────────────────────────────────────
 const BANKERX_ORIGIN = 'https://terminal.synapticchain.xyz';
@@ -917,7 +920,7 @@ window.settleTrade = async (id, mode) => {
   const ctx = {
     type: 'fdc3.payment',
     id: { UETR: t.uetr },
-    amount: t.amount,
+    amount: roundMinorUnit(t.amount),
     currency: t.pair.split('/')[0],
     pair: t.pair,
     rate: t.rate,

@@ -51,14 +51,12 @@ This specification completes the financial trading lifecycle by bridging **Trade
 
 * **FR-01601**: TraderX Trade Blotter SHALL provide an action button labelled `SETTLE (BANKERX)` on trade rows **only when `fdc3.findIntent("StartPayment")` resolves to at least one workspace participant**. Base TraderX with no post-trade participant (no mock receiver, no BankerX) SHALL render the pristine 014 blotter with no action column; the button appears dynamically when a participant declaring `StartPayment` support joins the workspace.
 * **FR-01602**: Clicking `SETTLE (BANKERX)` SHALL raise standard FDC3 3.0 intent `StartPayment` with a fully formed `fdc3.payment` payload per FINOS PR #2204.
-* **FR-01603**: The `fdc3.payment` payload SHALL include:
+* **FR-01603**: The `fdc3.payment` payload SHALL carry the trade's **cash obligation**, mapped from the trade by the settlement-instruction module (`generation/payment-instruction.mjs`; Angular mirror in the trade-blotter overlay) — never the traded instrument verbatim:
   - `type`: `"fdc3.payment"` (PR #2204; receivers accept legacy `"fdc3.paymentContext"` for backward compatibility)
-  - `amount`: Gross executed notional quantity
-  - `currency`: Base currency of the traded instrument (e.g. `USD`)
-  - `pair`: Canonical currency pair (e.g. `USD/KES`, `USD/ZMW`, `EUR/USD`)
-  - `rate`: Execution fill price
-  - `debtor`: Trade buyer entity name and settlement account
-  - `creditor`: Trade seller entity name and settlement account
+  - `amount`: the cash amount in `currency`'s minor units. FX pair trade: the traded base-currency quantity. Equity trade: `quantity × fill price` rounded to minor units (float drift such as `14020.964999999998` MUST NOT reach the wire).
+  - `currency`: an active ISO 4217 code — the base leg of an FX pair security, or the venue quote currency (`KES`) for an equity trade. An instrument symbol (`BAC`) is never a `currency`; the blotter refuses to dispatch, and the receiver validator rejects, any code outside the ISO 4217 set.
+  - `pair` + `rate`: a coupled OPTIONAL frame, present only on FX cash legs (`pair` = the traded pair, `rate` = the execution fill price). Equity settlements are same-currency transfers and carry neither — the blotter holds no FX data for them and none is invented. A lone `pair` or a lone `rate` is an invalid instruction.
+  - `debtor` / `creditor`: party names and settlement accounts following the trade side — the buyer owes the cash (debtor = executing desk on Buys, counterparty desk on Sells).
   - `networkRouting`: Declared routing preference (`Trilateral Powerhouse`, `Solana Token-2022`, or `XRPL Altnet`) and RFC 4122 UUIDv4 `uetr`
 * **FR-01604**: If the FDC3 Desktop Agent returns an `IntentResolution`, TraderX SHALL log the target application ID and resolution status in structured diagnostic logs.
 * **FR-01605**: If FDC3 is unavailable, the blotter SHALL remain fully functional (014 baseline behavior; no action column is rendered because intent discovery cannot resolve). If a dispatched `StartPayment` intent fails to raise, TraderX SHALL display a non-blocking toast notification: `"FDC3 Desktop Agent unavailable — launching BankerX via direct web dispatch"` and provide a fallback URI link to `https://terminal.synapticchain.xyz`.

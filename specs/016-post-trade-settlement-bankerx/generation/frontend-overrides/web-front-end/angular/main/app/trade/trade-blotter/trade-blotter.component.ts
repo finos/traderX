@@ -6,6 +6,7 @@ import { Account } from 'main/app/model/account.model';
 import { PositionService } from 'main/app/service/position.service';
 import { Trade } from '../../model/trade.model';
 import { TradeFeedService } from 'main/app/service/trade-feed.service';
+import { buildPaymentInstruction } from './payment-instruction';
 
 @Component({
     standalone: false,
@@ -170,24 +171,47 @@ export class TradeBlotterComponent implements OnChanges, OnDestroy {
             );
             return;
         }
-        const pair = `${trade.security || 'USD'}/KES`;
+        // The payment instruction is the trade's CASH obligation, mapped by
+        // payment-instruction.ts (NOT trade.security — an equity symbol is not
+        // a currency): FX pairs settle their base leg at the fill rate; equity
+        // trades are same-currency venue (KES) transfers of the rounded
+        // notional with no pair/rate, and parties follow the trade side
+        // (the buyer owes the cash). Unsettleable securities are refused here,
+        // never dispatched in a broken shape for the receiver to reject.
+        const desks = {
+            executionDesk: {
+                name: 'TraderX Institutional Execution Desk',
+                account: this.account?.name || 'traderx-desk-01'
+            },
+            counterpartyDesk: {
+                name: 'BankerX Institutional Liquidity Desk',
+                account: 'bankerx-settler-01'
+            }
+        };
+        const instruction = buildPaymentInstruction(trade, desks);
+        if (!instruction.ok) {
+            console.warn('[settlement] payment instruction rejected — trade not settleable', {
+                rowId,
+                security: trade.security,
+                reason: instruction.reason
+            });
+            this.interop.statusMessage$.next(
+                `FDC3: payment instruction rejected for ${trade.security || 'unknown security'} (${instruction.reason})`
+            );
+            return;
+        }
+        const { instruction: ctxFields } = instruction;
         const uetr = this.newUetr();
         this.settlementByRow.set(rowId, { uetr, status: 'Pndg' });
         this.persistSettlementLedger();
         this.refreshSettlementCells();
         const dispatched = await this.interop.raiseStartPayment({
-            amount: (trade.price || 1) * (trade.quantity || 1000),
-            currency: trade.security || 'USD',
-            pair,
-            rate: trade.price || 1.0,
-            debtor: {
-                name: 'TraderX Institutional Execution Desk',
-                account: this.account?.name || 'traderx-desk-01'
-            },
-            creditor: {
-                name: 'BankerX Institutional Liquidity Desk',
-                account: 'bankerx-settler-01'
-            },
+            amount: ctxFields.amount,
+            currency: ctxFields.currency,
+            pair: ctxFields.pair ?? undefined,
+            rate: ctxFields.rate ?? undefined,
+            debtor: ctxFields.debtor,
+            creditor: ctxFields.creditor,
             uetr
         });
         if (!dispatched) {

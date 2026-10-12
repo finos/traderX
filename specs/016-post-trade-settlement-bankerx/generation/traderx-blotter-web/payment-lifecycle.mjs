@@ -1,6 +1,11 @@
 // Post-trade settlement lifecycle — provider-neutral, dependency-free module.
 // Used by the local mock receiver page AND by the lifecycle smoke tests, so the
-// request-to-outcome lesson is identical in demo and test contexts.
+// request-to-outcome lesson is identical in demo and test contexts. The
+// traderx-blotter-web copy is a vendored mirror of this file — keep in sync.
+
+// The ISO 4217 admission set comes from the settlement-instruction mapping
+// module (one definition of "a real currency code" — see ../payment-instruction.mjs).
+import { ISO4217_CURRENCIES } from '../payment-instruction.mjs';
 
 /** ISO 20022 pacs.002 status codes the lifecycle demonstrates. */
 export const STATUS = {
@@ -10,6 +15,10 @@ export const STATUS = {
 };
 
 const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+// Canonical FX pair: both legs must be REAL ISO 4217 codes — 'BAC/KES' is
+// alpha-3-shaped but BAC is an instrument symbol, not a currency, and this
+// validator is the boundary that refuses it.
+const CANONICAL_PAIR = /^[A-Z]{3}\/[A-Z]{3}$/i;
 
 /**
  * Validates an fdc3.payment payload (FINOS PR #2204 name; legacy Spec 016
@@ -32,14 +41,39 @@ export function validatePaymentContext(context) {
     if (!Number.isFinite(amount) || amount <= 0) {
         return { valid: false, reason: 'amount_invalid' };
     }
-    if (typeof context.currency !== 'string' || context.currency.trim().length !== 3) {
-        return { valid: false, reason: 'currency_not_iso4217_alpha3' };
+    const currency = context.currency;
+    if (typeof currency !== 'string' || currency.length !== 3 || !ISO4217_CURRENCIES.has(currency.toUpperCase())) {
+        return { valid: false, reason: 'currency_not_iso4217' };
     }
-    if (typeof context.pair !== 'string' || !context.pair.includes('/')) {
-        return { valid: false, reason: 'pair_not_canonical' };
+    // pair/rate are a coupled OPTIONAL frame: present on FX cash legs (the
+    // pair is the traded instrument and rate its fill), absent on same-currency
+    // cash transfers (equity settlements carry no FX conversion, and inventing
+    // a corridor/rate the blotter does not hold is fabrication). Strictly
+    // coupled: neither half alone is a valid instruction.
+    const pair = context.pair;
+    const rate = context.rate;
+    const hasPair = pair !== undefined && pair !== null;
+    const hasRate = rate !== undefined && rate !== null;
+    if (hasPair) {
+        if (!hasRate) {
+            return { valid: false, reason: 'pair_without_rate' };
+        }
+        if (!Number.isFinite(Number(rate)) || Number(rate) <= 0) {
+            return { valid: false, reason: 'rate_invalid' };
+        }
     }
-    if (!Number.isFinite(Number(context.rate)) || Number(context.rate) <= 0) {
-        return { valid: false, reason: 'rate_invalid' };
+    if (!hasPair && hasRate) {
+        return { valid: false, reason: 'rate_without_pair' };
+    }
+    if (hasPair) {
+        const p = String(pair);
+        if (!CANONICAL_PAIR.test(p)) {
+            return { valid: false, reason: 'pair_not_canonical' };
+        }
+        const [base, quote] = p.toUpperCase().split('/');
+        if (!ISO4217_CURRENCIES.has(base) || !ISO4217_CURRENCIES.has(quote)) {
+            return { valid: false, reason: 'fx_leg_not_iso4217' };
+        }
     }
     for (const party of ['debtor', 'creditor']) {
         const p = context[party];
