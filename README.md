@@ -147,5 +147,5 @@ run twice unless noted.
 | Daily preflight + phase ladder (cron) | 2 GREEN pairs/day since 2026-10-08 |
 
 Live consoles: [terminal.synapticchain.xyz](https://terminal.synapticchain.xyz) ·
-[colosseum.synapticchain.xyz](https://colosseum.synapticchain.xyz). Full record in the
-[Synaptic-Source README](https://github.com/Synaptics-Lab/Synaptic-Source).
+[colosseum.synapticchain.xyz](https://colosseum.synapticchain.xyz). Full record mirrors publicly at
+[github.com/Synaptics-Lab](https://github.com/Synaptics-Lab) (the org profile carries the same table).
