@@ -146,6 +146,10 @@ run twice unless noted.
 | Uhuru/UTA audit battery | 17/17 ×2 (remediation + SSOT-frame); UTA-2026-10-03-003 verdict PASS-WITH-NOTES |
 | Daily preflight + phase ladder (cron) | 2 GREEN pairs/day since 2026-10-08 |
 
+Run it without the source: [synaptic-open](https://github.com/Synaptics-Lab/synaptic-open) —
+production node binaries, genesis, example SynapticLang contracts, and runnable local/public probes
+(local node 3/3 ×2, public surface 7/7 ×2).
+
 Live consoles: [terminal.synapticchain.xyz](https://terminal.synapticchain.xyz) ·
 [colosseum.synapticchain.xyz](https://colosseum.synapticchain.xyz). Full record mirrors publicly at
 [github.com/Synaptics-Lab](https://github.com/Synaptics-Lab) (the org profile carries the same table).
