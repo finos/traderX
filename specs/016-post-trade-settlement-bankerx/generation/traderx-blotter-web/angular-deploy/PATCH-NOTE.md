@@ -105,7 +105,7 @@ requests:
 1. **UETR under the badge** — `settlementCellHtml` appends `uetrLine(uetr)`
    to every non-button state: the truncated UETR (`first8…last4`,
    9px monospace, muted) with the FULL UETR on the `title` attribute. The
-   UETR is the pacs.008 ↔ pacs.002 correlation ID; judges can now trace a
+   UETR is the pacs.008 ↔ pacs.002 correlation ID; reviewers can now trace a
    row into the desk receipt modal / explorer without opening anything.
    Lifecycle stays one-way: `SETTLING…` → `SETTLED` (~15s trilateral round
    trip live-traced; see receipt).
