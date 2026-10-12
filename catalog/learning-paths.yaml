@@ -33,6 +33,7 @@ tracks:
       - 008-pricing-awareness-market-data
       - 009-order-management-matcher
       - 014-fdc3-intent-interoperability
+      - 016-post-trade-settlement-bankerx
   nonfunctional:
     description: "Non-functional overlays (observability, resilience, operations)."
     states:
@@ -41,6 +42,7 @@ tracks:
     description: "Optional side branches not in primary publish lineage."
     states:
       - 013-radius-kubernetes-platform
+      - 016-post-trade-settlement-bankerx
   convergence:
     description: "Named convergence milestones (C0/C1/C2/C3)."
     states:
@@ -147,3 +149,10 @@ stateCatalog:
     isConvergence: false
     lineageRole: canonical
     spec: specs/014-fdc3-intent-interoperability/spec.md
+  - id: 016-post-trade-settlement-bankerx
+    previous:
+      - 014-fdc3-intent-interoperability
+    convergenceLevel: none
+    isConvergence: false
+    lineageRole: optional
+    spec: specs/016-post-trade-settlement-bankerx/spec.md

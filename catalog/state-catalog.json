@@ -395,6 +395,25 @@
         "branch": "code/generated-state-014-fdc3-intent-interoperability",
         "tag": "generated/014-fdc3-intent-interoperability/v1"
       }
+    },
+    {
+      "id": "016-post-trade-settlement-bankerx",
+      "title": "FDC3 Post-Trade Cash-Leg Payment Transfer",
+      "status": "experimental",
+      "track": "functional",
+      "convergenceLevel": "none",
+      "isConvergence": false,
+      "dottedParents": [],
+      "primaryLineageRole": "optional",
+      "featurePack": "specs/016-post-trade-settlement-bankerx",
+      "previous": [
+        "014-fdc3-intent-interoperability"
+      ],
+      "generation": {
+        "mode": "experimental",
+        "entrypoint": "bash pipeline/generate-state.sh 016-post-trade-settlement-bankerx",
+        "runtime": "./scripts/start-state-016-post-trade-settlement-bankerx-generated.sh"
+      }
     }
   ]
 }
