@@ -2,6 +2,8 @@
 [![FINOS Hosted Platform - TraderX demo 009](https://img.shields.io/badge/FINOS%20Hosted%20Platform-TraderX%20Demo%20009-teal)](https://demo-advanced.traderx.finos.org/)
 [![FINOS - Incubating](https://cdn.jsdelivr.net/gh/finos/contrib-toolbox@master/images/badge-incubating.svg)](https://finosfoundation.atlassian.net/wiki/display/FINOS/Incubating)
 
+<p align="center"><img src="colosseum-2026-banner.svg" width="1280" alt="traderX BankerX banner — Colosseum Radar 2026"/></p>
+
 # FINOS | TraderX (SpecKit-First Baseline)
 
 > This desk runs live for Colosseum Radar judges at
