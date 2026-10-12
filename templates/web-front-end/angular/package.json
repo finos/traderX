@@ -24,6 +24,7 @@
     "@angular/platform-browser": "^20.3.28",
     "@angular/platform-browser-dynamic": "^20.3.28",
     "@angular/router": "^20.3.28",
+    "@robmoffat/fdc3-get-agent": "^2.2.2-beta.3",
     "ag-grid-angular": "^32.2.1",
     "ag-grid-community": "^32.2.1",
     "bootstrap": "^5.3.8",

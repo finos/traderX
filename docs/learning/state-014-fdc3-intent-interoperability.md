@@ -8,7 +8,7 @@ title: "State 014: FDC3 Intent Interoperability on C3"
 
 - Previous state(s): [012-platform-convergence-c3](/docs/learning/state-012-platform-convergence-c3)
 - Dotted-line parent(s): none
-- Next state(s): none
+- Next state(s): [016-post-trade-settlement-bankerx](/docs/learning/state-016-post-trade-settlement-bankerx)
 
 ## Convergence Metadata
 

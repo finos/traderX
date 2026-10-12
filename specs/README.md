@@ -21,6 +21,7 @@ This repository now uses the GitHub Spec Kit canonical structure at repo root:
 - `012-platform-convergence-c3`
 - `013-radius-kubernetes-platform`
 - `014-fdc3-intent-interoperability`
+- `016-post-trade-settlement-bankerx`
 
 ## Portal Feature Packs
 
