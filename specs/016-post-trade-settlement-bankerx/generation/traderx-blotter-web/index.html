@@ -465,7 +465,7 @@ import { validatePaymentContext, toSettlementStatusContext, STATUS } from './pay
 import { roundMinorUnit } from '../payment-instruction.mjs';
 
 // ─── State ─────────────────────────────────────────────────────────────────
-const BANKERX_ORIGIN = 'https://terminal.synapticchain.xyz';
+const BANKERX_ORIGIN = 'https://bankerx.synapticchain.xyz';
 let bankerxWin = null;
 let receiverAvailable = false;   // FR-01601: gates SETTLE button visibility
 let direction = 'BUY';
@@ -556,7 +556,7 @@ window.launchBankerX = async () => {
   setReceiverAvailable(true);
   document.getElementById('launchBtn').classList.add('live');
   document.getElementById('launchTxt').textContent = 'BANKERX CONNECTED ✓';
-  log('x', '[FDC3] BankerX Clearing Desk launched at terminal.synapticchain.xyz');
+  log('x', '[FDC3] BankerX Clearing Desk launched at bankerx.synapticchain.xyz');
   log('i', '[FDC3] fdc3.findIntent("StartPayment") → BankerX Reference Receiver registered');
   log('s', '[SPEC-016 FR-01601] paymentReceiverAvailable = true → SETTLE (BANKERX) actions enabled');
 };
