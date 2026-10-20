@@ -1,8 +1,9 @@
 import esbuild from "esbuild";
 
 // Desk-side FDC3 client (estate-desk-client.ts) → ../fdc3-desk-client.js.
-// Companion to build.mjs (the Desktop Agent): this bundle runs INSIDE the
-// estate desk page (bankerx root) and connects the desk itself over WCP.
+// Companion to ../fdc3-agent/build.mjs (the Desktop Agent): this bundle runs
+// INSIDE the estate desk page (bankerx root) and connects the desk itself
+// over WCP. This package owns its node_modules on purpose — see package.json.
 await esbuild.build({
   entryPoints: ["src/estate-desk-client.ts"],
   bundle: true,

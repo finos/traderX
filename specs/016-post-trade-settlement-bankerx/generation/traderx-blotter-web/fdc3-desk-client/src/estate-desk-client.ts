@@ -46,22 +46,51 @@ const TERMINAL_SEND_ORIGINS = [TERMINAL_ORIGIN, "https://terminal.synapticchain.
 
 let agentRef: any = null;
 
-function findTerminalFrame(): Window | null {
-  const frame = document.getElementById("f1-terminal-frame") as HTMLIFrameElement | null;
-  return frame?.contentWindow ?? null;
+function findTerminalFrame(): HTMLIFrameElement | null {
+  return document.getElementById("f1-terminal-frame") as HTMLIFrameElement | null;
 }
+
+/** Cold-launch delivery law (operator live-fire 2026-10-20): on a fresh desk
+ * tab the F1 embed (a full Next.js app) mounts seconds AFTER the desk's
+ * intent listener does — a context forwarded pre-load is lost with no error,
+ * and the payment only lands later via whatever fallback survives. So the
+ * desk client holds the latest context (pendingCtx) and forwards the moment
+ * the frame reports a real (non-blank, cross-origin-or-not) document.
+ * Cross-origin probes: reading location.href of about:blank does NOT throw
+ * (same-origin), a loaded cross-origin frame DOES throw — throw means loaded. */
+let pendingCtx: unknown = null;
+
+function frameLooksLoaded(frame: HTMLIFrameElement | null): boolean {
+  const win = frame?.contentWindow;
+  if (!win) return false;
+  try {
+    const href = win.location.href;
+    return !!href && !href.startsWith("about:");
+  } catch {
+    return true; // cross-origin read refused ⇒ a real document is loaded
+  }
+}
+
+function tryForwardPending(): boolean {
+  if (pendingCtx === null) return false;
+  const frame = findTerminalFrame();
+  if (!frame || !frameLooksLoaded(frame)) return false;
+  frame.contentWindow!.postMessage({ intent: "StartPayment", context: pendingCtx }, TERMINAL_ORIGIN);
+  console.info("[EstateDesk] StartPayment context forwarded to F1 terminal (executor of record)", (pendingCtx as any)?.id?.UETR);
+  pendingCtx = null;
+  return true;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  findTerminalFrame()?.addEventListener("load", () => { tryForwardPending(); });
+});
 
 /** Forward an inbound StartPayment context into the F1 embed. The envelope
  * shape (`intent` + `context`) matches the terminal PaymentPanel's
  * message handler, which already guards against duplicate execution. */
 function forwardToTerminal(context: unknown): void {
-  const frame = findTerminalFrame();
-  if (!frame) {
-    console.warn("[EstateDesk] F1 terminal frame not present — StartPayment context dropped. UETR:", (context as any)?.id?.UETR);
-    return;
-  }
-  frame.postMessage({ intent: "StartPayment", context }, TERMINAL_ORIGIN);
-  console.info("[EstateDesk] StartPayment context forwarded to F1 terminal (executor of record)", (context as any)?.id?.UETR);
+  pendingCtx = context;
+  tryForwardPending();
 }
 
 /** Terminal → desk status relay: broadcast over the real FDC3 user channel

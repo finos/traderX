@@ -1,0 +1,16 @@
+{
+  "name": "traderx-fdc3-estate-desk-client",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Estate desk-side FDC3 client (Spec 016). Runs INSIDE the estate desk page and connects the desk over WCP with the launching Desktop Agent. KEPT AS ITS OWN PACKAGE: its dependency tree (@finos/fdc3-get-agent + fdc3-agent-proxy) must never share node_modules with the Desktop Agent build — an install here once floated fdc3-schema to a beta and broke the agent bundle.",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@finos/fdc3-get-agent": "3.0.0-alpha.5"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}
