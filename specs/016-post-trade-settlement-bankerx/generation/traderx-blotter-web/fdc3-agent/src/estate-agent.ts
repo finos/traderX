@@ -1077,16 +1077,13 @@ class EstateServerContext implements ServerContext<AppRegistration> {
     // creating a second instance — the conformance suite opens two instances
     // of IntentAppA and expects two distinct instanceIds.
     const instanceId = this.createUUID();
-    // Open as a SEPARATE OS window, not a browser tab: passing a features
-    // string (including 'popup') makes the UA spawn an independent window.
-    // Size it to roughly half the operator's viewport, positioned on the
-    // right, so TraderX blotter and the clearing desk sit side by side
-    // during the demo. Minimums keep the desk usable on narrow windows.
-    const deskW = Math.max(480, Math.round(window.innerWidth * 0.52));
-    const deskH = Math.max(560, Math.round(window.innerHeight * 0.94));
-    const deskL = Math.max(0, window.innerWidth - deskW);
+    // Operator ruling 2026-10-20: directory apps open as browser TABS, not
+    // popup windows — the desk is an operator surface, not a demo prop. Any
+    // features string (including 'popup=yes') makes the UA spawn an OS
+    // window, so none is passed; the unique target name must stay (see
+    // above: reuse/focus + conformance two-instance behavior).
     const windowPromise = Promise.resolve(
-      window.open(launchUrl, `${appId}-${instanceId}`, `popup=yes,width=${deskW},height=${deskH},left=${deskL},top=0`)
+      window.open(launchUrl, `${appId}-${instanceId}`)
     );
     this.setInstanceDetails(instanceId, {
       appId,
