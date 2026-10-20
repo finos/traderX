@@ -927,6 +927,27 @@ class EstateServerContext implements ServerContext<AppRegistration> {
   }
 
   async post(message: object, to: InstanceID): Promise<void> {
+    // Protocol trace (heartbeats/trace-events excluded): every response the
+    // server emits — including the addIntentListener registration response
+    // and raiseIntent errors — with the requestUuid prefix it answers, so
+    // dead raises and dead listener registrations are visible per-uuid.
+    const om = message as {
+      type?: string;
+      payload?: { error?: string };
+      meta?: { requestUuid?: string };
+    };
+    if (
+      om.type &&
+      om.type !== "heartbeatRequest" &&
+      om.type !== "heartbeatResponse" &&
+      !om.type.startsWith("traceEvent")
+    ) {
+      console.info(
+        `[EstateDA] post ${om.type} to=${String(to).slice(0, 8)}` +
+          `${om.meta?.requestUuid ? ` rq=${om.meta.requestUuid.slice(0, 8)}` : ""}` +
+          `${om.payload?.error ? ` err=${om.payload.error}` : ""}`
+      );
+    }
     // Adapter path FIRST: a raiseIntent error response for an
     // adapter-eligible (fdc3.payment) directory miss is resolved in-place —
     // screened through the Alcove enclave, delivered to the bound desk, and
@@ -1070,6 +1091,26 @@ class EstateServerContext implements ServerContext<AppRegistration> {
       throw new Error("ErrorOnLaunch");
     }
     const launchUrl = resolveDirectoryAppUrl(url, readConfig().directories);
+    // Desk launch dedupe (operator live-fire 2026-10-20): the clearing desk
+    // is a single-instance estate app. A raise dispatched while a desk
+    // launch is in flight (or the desk window exists but has not completed
+    // its WCP handshake) must resolve to the EXISTING instance, not open a
+    // second tab — previously this was done raiser-side by awaiting the
+    // Connected transition (the ~10 s burn on a zombie registration); the
+    // dedupe now lives here at the launch boundary, matching the reference
+    // raise flow (dispatch immediately, sc.open resolves the live instance).
+    // Conformance opens (two-instance tests) are NOT desks and keep a fresh
+    // instanceId per launch.
+    if (this.deskAppIds().has(appId)) {
+      const routedUrl = launchUrl;
+      const live = this.connections.find(
+        (c) =>
+          c.appId === appId &&
+          c.state !== State.Terminated &&
+          (!routedUrl || c.url === routedUrl)
+      );
+      if (live) return live.instanceId;
+    }
     // Register the launching instance BEFORE the window realizes, so a fast
     // WCP1Hello from the new window resolves via getInstanceForWindow.
     // The window target must be unique per launch: window.open with an
@@ -1214,11 +1255,14 @@ class EstateServerContext implements ServerContext<AppRegistration> {
     for (;;) {
       const connected = this.connections.find((x) => x.appId === appId && x.state === State.Connected);
       if (connected) return connected.instanceId;
+      // Only a genuine launch in flight qualifies — a realized window stuck
+      // Pending must NOT keep callers waiting: handshaken desks are flipped
+      // Connected on WCP3Handshake, so a realized-but-never-handshaken
+      // registration is a zombie (desk client failed before its hello) and
+      // waiting on it just burns the wait budget (the 10 s lane of the
+      // 2026-10-20 regressions).
       const inFlight = this.connections.find(
-        (x) =>
-          x.appId === appId &&
-          x.state !== State.Terminated &&
-          (isLaunching(x) || x.state !== State.Connected)
+        (x) => x.appId === appId && x.state !== State.Terminated && isLaunching(x)
       );
       // Nothing in flight → genuine first launch: let the caller proceed.
       if (!inFlight) return null;
@@ -1334,6 +1378,19 @@ function bindWcpHelloListener(
     const channel = new MessageChannel();
     channel.port2.onmessage = async (message: MessageEvent) => {
       const msg = message.data as any;
+      if (
+        msg?.type &&
+        msg.type !== "heartbeatRequest" &&
+        msg.type !== "heartbeatResponse" &&
+        !msg.type.startsWith("traceEvent")
+      ) {
+        const who =
+          msg.meta?.source?.instanceId ?? msg.meta?.source?.appId ?? "unknown";
+        console.info(
+          `[EstateDA] recv ${msg.type} from=${String(who).slice(0, 8)}` +
+            `${msg.meta?.requestUuid ? ` rq=${msg.meta.requestUuid.slice(0, 8)}` : ""}`
+        );
+      }
       // ADR-555 Alcove adapter: consume directory-miss raises before the
       // server sees them (fdc3.payment-gated — see maybeConsumeAdapterRaise).
       if (await sc.maybeConsumeAdapterRaise(msg, instance.instanceId)) return;
@@ -1345,8 +1402,14 @@ function bindWcpHelloListener(
       }
     };
 
+    // WCP3Handshake = the connected moment (FDC3 spec §Desktop Agent Proxy):
+    // port established ⇒ the instance is Connected. This is what makes a
+    // handshake-completed desk resolvable by getConnectedInstanceForAppId
+    // (instant raise re-targeting onto a live desk) and keeps a half-open
+    // handshake from being indistinguishable from a healthy registration.
     await sc.setInstanceDetails(instance.instanceId, {
       ...instance,
+      state: State.Connected,
       messagePort: channel.port2,
     });
 
@@ -1388,6 +1451,19 @@ class LoopbackDA {
     // port2 (registration.messagePort), which lands on port1 for the client.
     channel.port2.onmessage = async (message: MessageEvent) => {
       const msg = message.data as any;
+      if (
+        msg?.type &&
+        msg.type !== "heartbeatRequest" &&
+        msg.type !== "heartbeatResponse" &&
+        !msg.type.startsWith("traceEvent")
+      ) {
+        const who =
+          msg.meta?.source?.instanceId ?? msg.meta?.source?.appId ?? "unknown";
+        console.info(
+          `[EstateDA] recv ${msg.type} from=${String(who).slice(0, 8)}` +
+            `${msg.meta?.requestUuid ? ` rq=${msg.meta.requestUuid.slice(0, 8)}` : ""}`
+        );
+      }
       // ADR-555 Alcove adapter: consume directory-miss raises before the
       // server sees them (fdc3.payment-gated — see maybeConsumeAdapterRaise).
       if (await this.sc.maybeConsumeAdapterRaise(msg, this.instanceId)) return;
@@ -1624,15 +1700,18 @@ class LoopbackDA {
   async raiseIntent(intent: string, context: any, targetAppId?: string): Promise<any> {
     // Spec-correct targeting: when a Connected instance of the target app
     // exists, deliver to IT (instanceId) instead of letting the library's
-    // by-appId path launch a second instance of the same app. Desk-reuse
-    // (2026-10-01): an in-flight launch of the same app also resolves to the
-    // single instance — a raise during the desk's WCP handshake must not
-    // spawn a second instance of it.
+    // by-appId path launch a second instance of the same app. Second-window
+    // prevention for an in-flight launch is handled server-side in open()
+    // (desk launch dedupe, 2026-10-20) — the raiser NEVER waits: awaiting a
+    // cold target's connection before dispatch burned ~10 s per raise
+    // (operator live-fire 2026-10-20: "it should be instant, the 10 second
+    // is a fallback that shouldn't be necessary, not part of the honest
+    // flow"). This matches the FINOS reference we conformed against: the
+    // raise dispatches immediately; the pending-intent machinery delivers at
+    // the desk's addIntentListener.
     let target: { appId?: string; instanceId?: string } | undefined;
     if (targetAppId) {
-      const instanceId =
-        this.sc.getConnectedInstanceForAppId(targetAppId) ??
-        (await this.sc.awaitConnectedInstanceForAppId(targetAppId));
+      const instanceId = this.sc.getConnectedInstanceForAppId(targetAppId);
       target = { appId: targetAppId, ...(instanceId ? { instanceId } : {}) };
     }
     return this.request(

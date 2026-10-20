@@ -51,7 +51,9 @@ function partitionDesk(lane) {
   const logs = { traderx: [], desk: [] };
   const tConsole = (lines, msg) => {
     const text = msg.text();
-    if (/Cannot message|EstateDA|Alcove|FDC3|BankerX|SPEC-016|UETR/.test(text)) lines.push(text.slice(0, 300));
+    // Heartbeats flood the captured page (5/s per connected instance) — skip.
+    if (/Responding to heartbeat|heartbeatEvent/.test(text)) return;
+    if (/Cannot message|EstateDA|EstateDesk|Alcove|FDC3|BankerX|SPEC-016|UETR|FR-016/.test(text)) lines.push(text.slice(0, 300));
   };
   page.on('console', (m) => tConsole(logs.traderx, m));
   // Auto-attach console capture to EVERY popup (main desk + routed eu desk).
@@ -73,7 +75,7 @@ function partitionDesk(lane) {
   // 2. Wait for the WCP-bound StartPayment listener
   let wcpBound = false;
   for (let i = 0; i < 20; i++) {
-    wcpBound = logs.desk.some((l) => l.includes('listener registered via getAgent()'));
+    wcpBound = logs.desk.some((l) => l.includes('listener registered on the estate desk'));
     if (wcpBound) break;
     await page.waitForTimeout(500);
   }
