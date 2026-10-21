@@ -75,9 +75,15 @@ function tryForwardPending(): boolean {
   if (pendingCtx === null) return false;
   const frame = findTerminalFrame();
   if (!frame || !frameLooksLoaded(frame)) return false;
-  frame.contentWindow!.postMessage({ intent: "StartPayment", context: pendingCtx }, TERMINAL_ORIGIN);
+  frame.contentWindow!.postMessage(
+    pendingHold
+      ? { intent: "StartPayment", context: pendingCtx, holdForReview: true }
+      : { intent: "StartPayment", context: pendingCtx },
+    TERMINAL_ORIGIN
+  );
   console.info("[EstateDesk] StartPayment context forwarded to F1 terminal (executor of record)", (pendingCtx as any)?.id?.UETR);
   pendingCtx = null;
+  pendingHold = false;
   return true;
 }
 
@@ -88,10 +94,13 @@ document.addEventListener("DOMContentLoaded", () => {
 /** Forward an inbound StartPayment context into the F1 embed. The envelope
  * shape (`intent` + `context`) matches the terminal PaymentPanel's
  * message handler, which already guards against duplicate execution. */
-function forwardToTerminal(context: unknown): void {
+function forwardToTerminal(context: unknown, opts?: { holdForReview?: boolean }): void {
   pendingCtx = context;
+  pendingHold = opts?.holdForReview === true;
   tryForwardPending();
 }
+
+let pendingHold = false;
 
 /** Terminal → desk status relay: broadcast over the real FDC3 user channel
  * and echo to the agent's opener (blotter postMessage listener). The
@@ -124,7 +133,37 @@ window.addEventListener("message", (evt: MessageEvent) => {
   relaySettlementStatus(d);
 });
 
+/** Standalone dispatch (desk-only demo): with no Desktop Agent the desk
+ * page's legacy shim owns window.fdc3, so the estate dispatch (D) raises a
+ * local `fdc3_intent_StartPayment` CustomEvent. Route it into the SAME
+ * forward mechanism (pendingCtx + frame-load law): no second transport, no
+ * duplicated postMessage contract. holdForReview = the demo raise must be
+ * VISIBLE but must NOT book — it holds in the terminal's review modal. */
+function registerStandaloneDispatch(): void {
+  window.addEventListener("fdc3_intent_StartPayment", (evt: Event) => {
+    const ctx = (evt as CustomEvent)?.detail;
+    if (!ctx) return;
+    console.info("[EstateDesk] local StartPayment raised via desk shim (no Desktop Agent) — forwarding to F1 embed", ctx?.id?.UETR ?? ctx?.uetr);
+    forwardToTerminal(ctx, { holdForReview: true });
+  });
+}
+
 async function boot(): Promise<void> {
+  // fdc3-get-agent wedge law (operator console receipt 2026-10-21): the
+  // library's DesktopAgentPreloadLoader reacts to the BARE presence of
+  // window.fdc3 and awaits fdc3.getInfo() on it. The desk's legacy shim
+  // carries no getInfo, so prepareSelection throws
+  // "TypeError: e.getInfo is not a function" (uncaught, in promise) AND its
+  // get() promise never settles — prepareSelection cancels the loader
+  // timeout before touching getInfo — wedging boot forever and starving the
+  // standalone dispatch path. So when the only fdc3 on the page is a bare
+  // shim, never enter getAgent(): run the standalone dispatch path directly.
+  const shimAgent = (window as any).fdc3;
+  if (shimAgent && typeof shimAgent.getInfo !== "function") {
+    console.info("[EstateDesk] no Desktop Agent (desk shim present, no getInfo) — standalone dispatch path");
+    registerStandaloneDispatch();
+    return;
+  }
   try {
     const agent = await getAgent({ timeoutMs: 5000, intentResolver: false, channelSelector: false });
     if (typeof (agent as any)?.addIntentListener !== "function") return;
@@ -155,6 +194,7 @@ async function boot(): Promise<void> {
       "[EstateDesk] getAgent() found no desktop agent (expected when opened directly) — desk stays on relay/postMessage parity:",
       (e as Error)?.message ?? e
     );
+    registerStandaloneDispatch();
   }
 }
 
