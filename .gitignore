@@ -486,3 +486,4 @@ website/.docusaurus
 website/npm-debug.log*
 website/yarn-debug.log*
 website/yarn-error.log*
+templates/web-front-end/angular/dist/

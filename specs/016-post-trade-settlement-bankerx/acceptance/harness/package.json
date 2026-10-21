@@ -1,0 +1,12 @@
+{
+  "name": "state-016-acceptance-harness",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Headless 10-gate E2E harness for the state 016 offline acceptance flow (estate-owned coverage, not FINOS-upstream).",
+  "scripts": {
+    "test": "node acceptance-016.cjs http://localhost:8090 run"
+  },
+  "dependencies": {
+    "playwright-core": "^1.45.0"
+  }
+}

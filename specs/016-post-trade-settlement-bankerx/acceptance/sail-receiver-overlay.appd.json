@@ -1,0 +1,31 @@
+{
+  "message": "OK",
+  "applications": [
+    {
+      "appId": "bankerx-clearing-desk",
+      "name": "BankerX Clearing Desk (mock receiver)",
+      "title": "BankerX Clearing Desk (mock receiver)",
+      "version": "1.0.0",
+      "description": "Local post-trade settlement receiver (state 016 default) — StartPayment listener with offline Acsc/Rjct lifecycle.",
+      "contactEmail": "traderx@finos.org",
+      "supportEmail": "traderx@finos.org",
+      "publisher": "FINOS TraderX Spec 016",
+      "customConfig": [],
+      "hostManifests": {},
+      "interop": {
+        "intents": {
+          "listensFor": {
+            "StartPayment": {
+              "displayName": "Start Payment",
+              "contexts": ["fdc3.payment"]
+            }
+          },
+          "broadcasts": ["synaptic.settlementStatus"]
+        },
+        "standardContexts": ["fdc3.payment"]
+      },
+      "details": { "url": "http://localhost:8090/generation/mock-receiver/index.html" },
+      "type": "web"
+    }
+  ]
+}

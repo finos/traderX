@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<!--
+  TraderX Angular — FDC3 conformance host entry (2026-09-30).
+
+  Purpose: run the FINOS fdc3-conformance suite against the Angular surface's
+  Desktop Agent. This host entry boots the REAL estate DA, byte-identical to
+  the v12 file served at /fdc3-agent.js
+  (md5 ff564e040d4870b074e24512e85e9435 — 2026-09-30 unfreeze deployed v12 to
+  both the estate root and /angular/; edit only via fdc3-agent/build-v12.mjs,
+  never by hand); this entry only references it.
+
+  Usage (same protocol as the estate run):
+    https://traderx.synapticchain.xyz/angular/conf.html?launcher=1&directory=
+      <encodeURIComponent('https://terminal.synapticchain.xyz/api/fdc3/appd/v2/apps?include=conformance')>
+
+  The agent reads `directory`/`launcher` from location.search (confirmed in
+  the frozen bytes), so no agent config changes are needed.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>FINOS TraderX (Angular) — FDC3 Desktop Agent</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+  <body>
+    <div id="fdc3-da-console"></div>
+    <script src="../fdc3-agent.js?v=12"></script>
+    <script>
+      // Surface marker: proves (and lets the suite/audit see) the DA is
+      // running on the Angular sub-path, not the standalone web blotter.
+      window.__TRADERX_ANGULAR_DA_HOST = true;
+      console.info(
+        '[AngularConf] real estate DA v11 hosting FDC3 on /angular/ — ' +
+        'bankerx-bridge stub intentionally NOT loaded (it would overwrite window.fdc3).'
+      );
+    </script>
+  </body>
+</html>
