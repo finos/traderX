@@ -1,8 +1,85 @@
 ---
 title: "State 009: Order Management and Matcher"
+pagination_prev: null
+pagination_next: null
 ---
 
 # State 009 Learning Guide
+
+<!-- Generated from specs/009-order-management-matcher/learning-contract.json; edit the source. -->
+
+## Model an order before it becomes a trade
+
+An intention to buy may remain unfulfilled, fill in pieces, or be canceled. For developers moving beyond immediate trade booking, this chapter introduces the order lifecycle and shows why an order’s requested quantity cannot be treated as an executed position.
+
+[How to learn with TraderX states](/docs/learning/how-to-learn)
+
+**Maturity:** implemented. Run the exercises in a disposable local environment; use the quickstart for setup and cleanup.
+
+### Starting point
+
+The pricing state shows quotes and can book trades, but has no persistent pending-order lifecycle.
+
+Entry route: **combined**. Bring the knowledge from every declared predecessor.
+
+#### From 008-pricing-awareness-market-data
+
+[Predecessor guide](/docs/learning/state-008-pricing-awareness-market-data)
+
+- **Carry forward:** Stream simulated market data and use price awareness while retaining the booking workflow.
+- **Why move:** The pricing state shows quotes and can book trades, but has no persistent pending-order lifecycle.
+- **Add or revise:** Introduce limit orders, matching and fills while keeping orders distinct from executed trades.
+- **Evidence to collect:** A resting order is not a booked trade. A qualifying tick can trigger a fill; the matcher policy is a demonstration, not an exchange matching engine. Cancellation of the remainder does not reverse an already booked fill. Large quantities can produce partial fills under the demonstration policy.
+- **Objectives:** `trace-increment`, `interpret-evidence`
+
+| Before | After |
+| --- | --- |
+| The pricing state shows quotes and can book trades, but has no persistent pending-order lifecycle. | Introduce limit orders, matching and fills while keeping orders distinct from executed trades. |
+
+### Concepts before tools
+
+- An order expresses an intention. A fill executes some quantity. A limit caps a buy price or sets a sell floor; partial fills leave a remainder.
+
+**Runtime prerequisites:** Use the state quickstart for tool versions, generation, start and stop commands. Run one local state at a time because ports and generated output directories are shared.
+
+### Learning objectives
+
+- **trace-increment:** Distinguish a resting order, a fill and a booked trade by reconciling their identifiers and quantities.
+- **interpret-evidence:** Explain the evidence boundary: Cancellation of the remainder does not reverse an already booked fill. Large quantities can produce partial fills under the demonstration policy.
+
+### Guided walkthrough
+
+#### 1. observe (available)
+
+Objectives: `trace-increment`.
+
+Start this state, choose a ticker with current quotes, and create a small buy limit order below the displayed market. Record its identifier and remaining quantity. Compare the order view with the trade view. Then create an executable small limit order and observe the matcher and resulting fill.
+
+**Expected observation and meaning:** A resting order is not a booked trade. A qualifying tick can trigger a fill; the matcher policy is a demonstration, not an exchange matching engine.
+
+Supporting material: [quickstart](/specs/order-management-matcher/quickstart) · [architecture](/specs/order-management-matcher/system/architecture) · [runtime-topology](/specs/order-management-matcher/system/runtime-topology).
+
+#### 2. challenge (available)
+
+Objectives: `interpret-evidence`.
+
+Create an unfilled order and cancel it. Verify its terminal state and compare trade records before and after cancellation. Inspect the documented partial-fill policy for quantities at or above 1000.
+
+**Expected observation and meaning:** Cancellation of the remainder does not reverse an already booked fill. Large quantities can produce partial fills under the demonstration policy.
+
+Supporting material: [spec](/specs/order-management-matcher/spec) · [contract-delta](/specs/order-management-matcher/contracts/contract-delta).
+
+### Demonstrate your understanding
+
+**Question (`trace-increment`, `interpret-evidence`):** How would you reconcile an order that is partially filled and then canceled?
+
+**Assessment guidance:** Account for filled quantity in executions and positions, and the unfilled remainder in the canceled order. Do not treat the original requested quantity as fully traded.
+
+### Scope and limitations
+
+- Cancellation of the remainder does not reverse an already booked fill. Large quantities can produce partial fills under the demonstration policy.
+- This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode.
+
 
 ## Position In Learning Graph
 

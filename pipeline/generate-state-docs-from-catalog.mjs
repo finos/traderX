@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import {readContract, renderContract} from './learning-contract.mjs'
 import path from 'node:path'
 import {fileURLToPath} from 'node:url'
 
@@ -78,7 +79,7 @@ const normalizeSiteRoot = (value) => {
 const siteRoot = normalizeSiteRoot(process.env.TRADERX_SITE_ROOT || process.env.DOCUSAURUS_BASE_URL || '')
 const withSiteRoot = (route) => siteRoot ? `${siteRoot}${route}` : route
 const specRouteForLearningPathsMermaid = (stateId) =>
-  withSiteRoot(`/specs/${stripNumericPrefix(stateId)}`)
+  withSiteRoot(`/docs/learning/state-${stateId}`)
 const specRouteForLearningPathsDoc = (stateId) => `pathname:///specs/${stripNumericPrefix(stateId)}`
 const learningRouteFor = (stateId) => `/docs/learning/state-${stateId}`
 const learningRouteForLearningPathsDoc = (stateId) => `pathname:///docs/learning/state-${stateId}`
@@ -311,7 +312,7 @@ const writeLearningGuides = () => {
     const generatedBranchLink = generatedBranch ? branchLinkFor(generatedBranch) : null
     const compareLinks = compareLinksMarkdown(state, previousIds)
     const deltaBullets = plainEnglishDeltaFor(state)
-    const runtimeCommand = state.generation?.runtime ?? state.generation?.entrypoint ?? 'not defined'
+    const runtimeCommand = ['implemented', 'released'].includes(state.status) ? (state.generation?.runtime ?? state.generation?.entrypoint ?? 'not defined') : '# Planned state: runtime exercise unavailable'
     const adrRoute = adrRouteFor(state.decisionRecord)
     const researchRoute = stateDocRouteIfExists(state, 'research.md', 'research')
     const dataModelRoute = stateDocRouteIfExists(state, 'data-model.md', 'data-model')
@@ -321,9 +322,13 @@ const writeLearningGuides = () => {
 
     const body = `---
 title: "State ${stateNumber(state.id)}: ${state.title}"
+pagination_prev: null
+pagination_next: null
 ---
 
 # State ${stateNumber(state.id)} Learning Guide
+
+${renderContract(readContract(root, state), state)}
 
 ## Position In Learning Graph
 
@@ -393,41 +398,20 @@ ${adrRoute ? `- State ADR: [link](${adrRoute})` : ''}
 
 const writeLearningIndex = () => {
   const rows = states.map((state) => {
-    const specRoute = specRouteFor(state.id)
-    const learningRoute = learningRouteFor(state.id)
-    const branchName = state.publish?.branch ?? 'n/a'
-    const branchCell = branchName === 'n/a'
-      ? '`n/a`'
-      : `[${branchName}](${branchLinkFor(branchName)})`
-    const previousIds = Array.isArray(state.previous) ? state.previous : []
-    const dottedParentIds = dottedParentIdsFor(state)
-    const convergenceLevel = convergenceLevelFor(state)
-    const convergenceCell = isConvergenceState(state) ? `\`${convergenceLevel}\`` : '`none`'
-    const dottedCell = dottedParentIds.length === 0
-      ? '`none`'
-      : dottedParentIds.map((id) => `[${id}](${learningRouteFor(id)})`).join('<br/>')
-    const adrRoute = adrRouteFor(state.decisionRecord)
-    const adrCell = adrRoute ? `[link](${adrRoute})` : '`n/a`'
-    const previousCell = previousIds.length === 0
-      ? '`none`'
-      : previousIds.map((id) => `[${id}](${learningRouteFor(id)})`).join('<br/>')
-    const compareCell = compareLinksMarkdown(state, previousIds)
-      .map((line) => {
-        const urlMatch = line.match(/\((https:\/\/[^)]+)\)$/)
-        return urlMatch ? `[link](${urlMatch[1]})` : '`n/a`'
-      })
-      .join('<br/>')
-
-    return `| \`${state.id}\` | [link](${learningRoute}) | [link](${specRoute}) | ${branchCell} | ${convergenceCell} | ${dottedCell} | ${previousCell} | ${compareCell} | ${adrCell} |`
+    const contract = readContract(root, state)
+    const previous = (state.previous ?? []).map(id => `[${id}](${learningRouteFor(id)})`).join('<br/>')
+    return `| [${stateNumber(state.id)}: ${contract.title}](${learningRouteFor(state.id)}) | ${contract.after} | ${previous || 'Foundation: start here'} |`
   })
 
   const body = `---
-title: Learning Guides
+title: Learning Guide
 ---
 
-# Learning Guides
+# Learning Guide
 
-This section is the developer-focused learning layer for generated TraderX code states.
+Learn by building and explaining a working system, one architectural or domain decision at a time.
+
+Start with [How to learn with TraderX states](/docs/learning/how-to-learn), then choose a chapter below or explore the [visual state diagram](/docs/learning-paths). Each chapter carries forward prior knowledge, introduces a concrete change, and asks you to explain the evidence you observe.
 
 Canonical requirements, contracts, and architecture remain in \`specs/**\`.  
 These guides explain how to read each generated code snapshot, compare it to previous states, and understand the code delta in plain English.
@@ -436,16 +420,16 @@ For the visual progression map, see [Visual Learning Paths](/docs/learning-paths
 
 ## State Guide Catalog
 
-| State | Learning Guide | Spec Pack | Generated Code Branch | Convergence | Dotted Parents | Previous State(s) | Compare To Previous | ADR |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Chapter | What you will learn | Start from |
+| --- | --- | --- |
 ${rows.join('\n')}
 
 ## How To Use This Section
 
 1. Open a state guide from this catalog.
-2. Use the GitHub compare link to inspect exact code changes against previous state(s).
-3. Read the plain-English delta for rationale and intent.
-4. Follow links back to spec architecture/flows/contracts when you need system context.
+2. Read its purpose and incoming transition, then follow the guided experiment.
+3. Record observations and answer the assessment questions.
+4. Use the system references and code comparison to explain what changed, then choose an onward learning state.
 
 ## Recommended Starting Points For New State Design
 
@@ -509,6 +493,10 @@ hide_table_of_contents: true
 ---
 
 # State Docs
+
+[How to learn with TraderX states](/docs/learning/how-to-learn) · [Learning Guide index](/docs/learning)
+
+Select a state in the diagram to open its learning guide. Solid arrows are declared predecessor routes; dotted arrows identify retained context.
 
 This page is generated from \`catalog/state-catalog.json\` and links the most important per-state artifacts.
 
@@ -589,7 +577,7 @@ const writeVisualLearningGraphs = () => {
   }
 
   const clickLines = sortedStates.map((state) =>
-    `  click ${mermaidNodeIdFor(state.id)} href "${specRouteForLearningPathsMermaid(state.id)}" "Open State ${stateNumber(state.id)} Spec Pack"`
+    `  click ${mermaidNodeIdFor(state.id)} href "${specRouteForLearningPathsMermaid(state.id)}" "Open State ${stateNumber(state.id)} Learning Guide"`
   )
 
   const trackOrder = ['prelude', 'baseline', 'architecture', 'nonfunctional', 'functional', 'devex']
@@ -674,6 +662,10 @@ title: Learning Paths
 ---
 
 # Learning Paths
+
+[How to learn with TraderX states](/docs/learning/how-to-learn) · [Learning Guide index](/docs/learning)
+
+Select a state in the diagram to open its learning guide. Solid arrows are declared predecessor routes; dotted arrows identify retained context.
 
 This page is generated from \`catalog/state-catalog.json\`.
 Green nodes represent convergence checkpoints (C-level milestones such as \`[C0]\`, \`[C1]\`, \`[C2]\`, \`[C3]\`).

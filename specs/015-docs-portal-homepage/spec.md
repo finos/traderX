@@ -89,3 +89,18 @@ Then the control exposes an accessible label and visible focus state that identi
 - SC-01505: The homepage footer accurately names `catalog/state-catalog.json` as the source for the state list.
 - SC-01506: The visual learning graph route is reachable from the hero Knowledge Graph link.
 - SC-01507: The SDD section includes a core requirements example, an internal overlay example, and copy that connects generated demos back to reviewed specs.
+
+## Incremental Learning Guide (issue 476)
+
+- FR-01522: The homepage and main navigation SHALL expose a first-class Learning Guide using the existing index and visual paths. Every diagram state SHALL open its single canonical learning guide.
+- FR-01523: Every catalog state SHALL own a structured learning contract explaining purpose, entry assumptions, all incoming transitions, concepts, objectives, mapped walkthroughs, assessments and limitations. Catalog lineage SHALL govern predecessor and onward links.
+- FR-01524: The documentation generator SHALL render contracts before implementation reference details. Every state-specific technical page SHALL link back to the corresponding learning guide.
+- FR-01525: Local coverage and PR CI SHALL reject incomplete contracts, dangling references, stale generated guides and incomplete objective coverage, without legacy exemptions. The website build SHALL verify both learning-to-system and system-to-learning journeys in rendered output.
+- FR-01526: Planned states SHALL mark exercises unavailable. Human review SHALL verify runnable implemented lessons and the evidence supporting their claims; automated structure validation SHALL NOT be presented as instructional review.
+
+### Acceptance scenarios
+
+1. A learner follows homepage → index → state → experiment → architecture and returns to the same chapter, then follows its declared predecessor or onward route.
+2. Removing a purpose, parent transition, objective mapping or assessment guidance fails coverage with the affected state and corrective source path.
+3. Baseline entry has no invented predecessor; a multi-parent contract covers every parent and declares combined or alternative entry.
+4. A technical page nested within a catalog state exposes the same return link as its overview.

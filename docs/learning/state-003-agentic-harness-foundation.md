@@ -1,8 +1,85 @@
 ---
 title: "State 003: Agentic Harness Foundation"
+pagination_prev: null
+pagination_next: null
 ---
 
 # State 003 Learning Guide
+
+<!-- Generated from specs/003-agentic-harness-foundation/learning-contract.json; edit the source. -->
+
+## Make an agent work within an explicit contract
+
+A working application is difficult to change safely when its conventions live only in a contributor’s memory. This chapter is for developers introducing agent-assisted changes: make the source of authority and the verification process explicit, then test whether an edit survives generation.
+
+[How to learn with TraderX states](/docs/learning/how-to-learn)
+
+**Maturity:** implemented. Run the exercises in a disposable local environment; use the quickstart for setup and cleanup.
+
+### Starting point
+
+The edge-proxied application works, but a contributor must reconstruct conventions from code.
+
+Entry route: **combined**. Bring the knowledge from every declared predecessor.
+
+#### From 002-edge-proxy-uncontainerized
+
+[Predecessor guide](/docs/learning/state-002-edge-proxy-uncontainerized)
+
+- **Carry forward:** Route UI, REST and streaming traffic through one NGINX edge while retaining the baseline business flow.
+- **Why move:** The edge-proxied application works, but a contributor must reconstruct conventions from code.
+- **Add or revise:** Add generated instructions, architecture context and contributor guidance for repeatable agent-assisted work.
+- **Evidence to collect:** The harness connects a proposed change to its authority and verification. Its value is a reproducible workflow, not a claim that the agent is correct. The disposable output change is lost or replaced. Persistent customization belongs in canonical sources or overlays.
+- **Objectives:** `trace-increment`, `interpret-evidence`
+
+| Before | After |
+| --- | --- |
+| The edge-proxied application works, but a contributor must reconstruct conventions from code. | Add generated instructions, architecture context and contributor guidance for repeatable agent-assisted work. |
+
+### Concepts before tools
+
+- An agent harness is the instructions and verification environment around an agent. Generated files are outputs; changing an output alone does not change the next generation.
+
+**Runtime prerequisites:** Use the state quickstart for tool versions, generation, start and stop commands. Run one local state at a time because ports and generated output directories are shared.
+
+### Learning objectives
+
+- **trace-increment:** Locate the canonical source and verification command for a proposed change, and explain why an output-only edit is not durable.
+- **interpret-evidence:** Explain the evidence boundary: The disposable output change is lost or replaced. Persistent customization belongs in canonical sources or overlays.
+
+### Guided walkthrough
+
+#### 1. observe (available)
+
+Objectives: `trace-increment`.
+
+Generate this state and inspect generated/code/target-generated/AGENTS.md, ARCHITECTURE.md and CONTRIBUTING.md. Pick the trade request path and locate its source contract, implementation and documented verification command.
+
+**Expected observation and meaning:** The harness connects a proposed change to its authority and verification. Its value is a reproducible workflow, not a claim that the agent is correct.
+
+Supporting material: [quickstart](/specs/agentic-harness-foundation/quickstart) · [architecture](/specs/agentic-harness-foundation/system/architecture) · [runtime-topology](/specs/agentic-harness-foundation/system/runtime-topology).
+
+#### 2. challenge (available)
+
+Objectives: `interpret-evidence`.
+
+In a disposable generated checkout, add a comment to an output file, regenerate from unchanged sources, and compare the result. Keep this experiment separate from authored changes.
+
+**Expected observation and meaning:** The disposable output change is lost or replaced. Persistent customization belongs in canonical sources or overlays.
+
+Supporting material: [spec](/specs/agentic-harness-foundation/spec) · [contract-delta](/specs/agentic-harness-foundation/contracts/contract-delta).
+
+### Demonstrate your understanding
+
+**Question (`trace-increment`, `interpret-evidence`):** Where would you make a durable behavior change, and what evidence would you request from an agent?
+
+**Assessment guidance:** Identify the canonical spec/template or overlay and a relevant behavior check. Generated instructions cannot substitute for the check result.
+
+### Scope and limitations
+
+- The disposable output change is lost or replaced. Persistent customization belongs in canonical sources or overlays.
+- This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode.
+
 
 ## Position In Learning Graph
 

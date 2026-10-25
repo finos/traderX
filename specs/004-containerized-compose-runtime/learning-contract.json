@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "state": "004-containerized-compose-runtime",
+  "title": "Package the same application reproducibly",
+  "purpose": "Installing every service runtime by hand makes an application hard to reproduce. For developers familiar with the host-based stack, this chapter packages the same workflow in containers and examines the gap between a process starting and a service being ready.",
+  "entryAssumptions": "The harness and proxied application depend on host-installed service runtimes.",
+  "concepts": [
+    "An image packages a process environment. A container runs it. Compose networking uses service names; localhost inside a container refers to that container."
+  ],
+  "runtimePrerequisites": "Use the state quickstart for tool versions, generation, start and stop commands. Run one local state at a time because ports and generated output directories are shared.",
+  "entryMode": "combined",
+  "transitions": [
+    {
+      "from": "003-agentic-harness-foundation",
+      "carriesForward": "Add generated instructions, architecture context and contributor guidance for repeatable agent-assisted work.",
+      "motivation": "The harness and proxied application depend on host-installed service runtimes.",
+      "increment": "Run the application as Compose services behind NGINX and distinguish process startup from readiness.",
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "evidence": "The business workflow is retained while process placement changes. Container state, service readiness and successful booking are three different observations. A running container can still be unavailable during initialization. Recovery of a read route does not prove that an uncertain write failed."
+    }
+  ],
+  "before": "The harness and proxied application depend on host-installed service runtimes.",
+  "after": "Run the application as Compose services behind NGINX and distinguish process startup from readiness.",
+  "objectives": [
+    {
+      "id": "trace-increment",
+      "outcome": "Map the retained trade workflow to Compose services and distinguish container state, readiness and a successful business result."
+    },
+    {
+      "id": "interpret-evidence",
+      "outcome": "Explain the evidence boundary: A running container can still be unavailable during initialization. Recovery of a read route does not prove that an uncertain write failed."
+    }
+  ],
+  "walkthrough": [
+    {
+      "id": "observe",
+      "objectiveIds": [
+        "trace-increment"
+      ],
+      "availability": "available",
+      "action": "Generate and start the Compose state using the quickstart. Run its status and smoke commands. Compare the Compose service names, exposed ports and dependencies with the topology, then submit a small trade through ingress.",
+      "expected": "The business workflow is retained while process placement changes. Container state, service readiness and successful booking are three different observations.",
+      "references": [
+        "/specs/containerized-compose-runtime/quickstart",
+        "/specs/containerized-compose-runtime/system/architecture",
+        "/specs/containerized-compose-runtime/system/runtime-topology"
+      ]
+    },
+    {
+      "id": "challenge",
+      "objectiveIds": [
+        "interpret-evidence"
+      ],
+      "availability": "available",
+      "action": "In the disposable local stack, restart one application container identified in the generated Compose file. Watch status and retry a read through ingress after readiness returns; do not blindly resubmit a timed-out trade.",
+      "expected": "A running container can still be unavailable during initialization. Recovery of a read route does not prove that an uncertain write failed.",
+      "references": [
+        "/specs/containerized-compose-runtime/spec"
+      ]
+    }
+  ],
+  "assessments": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "question": "Why can Compose report running while the browser still receives an error?",
+      "guidance": "Explain readiness and upstream dependencies using the restarted service. Show the later successful read and separately verify any uncertain trade."
+    }
+  ],
+  "limitations": [
+    "A running container can still be unavailable during initialization. Recovery of a read route does not prove that an uncertain write failed.",
+    "This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode."
+  ]
+}

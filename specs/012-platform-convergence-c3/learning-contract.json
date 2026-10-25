@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "state": "012-platform-convergence-c3",
+  "title": "Establish a reusable platform checkpoint",
+  "purpose": "Before branching into more integrations, establish what the platform actually contains. This chapter is for developers extending C3: gather functional and platform evidence together so that a reusable checkpoint means more than a collection of healthy containers.",
+  "entryAssumptions": "Tilt supplies the local Kubernetes loop and carries the earlier C2 trading capabilities.",
+  "concepts": [
+    "Convergence records a compatible combination of capabilities. A dotted relationship records retained context; it is not automatically a second generation parent.",
+    "State 011 is the required incoming route. The dotted state 009 relationship highlights retained C2 knowledge already carried through states 010 and 011; it is not an alternative entry route that bypasses Kubernetes and Tilt."
+  ],
+  "runtimePrerequisites": "Use the state quickstart for tool versions, generation, start and stop commands. Run one local state at a time because ports and generated output directories are shared.",
+  "entryMode": "combined",
+  "transitions": [
+    {
+      "from": "011-tilt-kubernetes-dev-loop",
+      "carriesForward": "Use Tilt to orchestrate the local Kubernetes development loop.",
+      "motivation": "Tilt supplies the local Kubernetes loop and carries the earlier C2 trading capabilities.",
+      "increment": "Treat C3 as a combined platform and functional checkpoint for subsequent branches.",
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "evidence": "C3 combines the C2 order/pricing/observability knowledge carried through states 010 and 011 with the development platform. One successful layer is not sufficient to establish the checkpoint. Published images can differ from local edits and may use emulation on Apple Silicon. Startup timing alone is not a functional regression verdict."
+    }
+  ],
+  "before": "Tilt supplies the local Kubernetes loop and carries the earlier C2 trading capabilities.",
+  "after": "Treat C3 as a combined platform and functional checkpoint for subsequent branches.",
+  "objectives": [
+    {
+      "id": "trace-increment",
+      "outcome": "Demonstrate the retained C2 order behavior and C3 platform assets for the same generated snapshot."
+    },
+    {
+      "id": "interpret-evidence",
+      "outcome": "Explain the evidence boundary: Published images can differ from local edits and may use emulation on Apple Silicon. Startup timing alone is not a functional regression verdict."
+    }
+  ],
+  "walkthrough": [
+    {
+      "id": "observe",
+      "objectiveIds": [
+        "trace-increment"
+      ],
+      "availability": "available",
+      "action": "Start C3 using the kind quickstart and run its smoke test. Exercise a small order and inspect its telemetry, then inspect the generated Kubernetes and Tilt assets. Record both business and platform evidence for the same snapshot.",
+      "expected": "C3 combines the C2 order/pricing/observability knowledge carried through states 010 and 011 with the development platform. One successful layer is not sufficient to establish the checkpoint.",
+      "references": [
+        "/specs/platform-convergence-c3/quickstart",
+        "/specs/platform-convergence-c3/system/architecture",
+        "/specs/platform-convergence-c3/system/runtime-topology"
+      ]
+    },
+    {
+      "id": "challenge",
+      "objectiveIds": [
+        "interpret-evidence"
+      ],
+      "availability": "available",
+      "action": "Compare the published-image and local-build procedures in the quickstart. Record the selected image source and target platform before interpreting a slow startup or an unexpected UI version.",
+      "expected": "Published images can differ from local edits and may use emulation on Apple Silicon. Startup timing alone is not a functional regression verdict.",
+      "references": [
+        "/specs/platform-convergence-c3/spec",
+        "/specs/platform-convergence-c3/contracts/contract-delta"
+      ]
+    }
+  ],
+  "assessments": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "question": "Why is state 009 shown as a dotted parent when state 011 is the declared predecessor?",
+      "guidance": "C2 supplies retained functional knowledge through 010 and 011; 011 is the actual generation lineage. Demonstrate both functional and platform behavior, without inventing a separate merge."
+    }
+  ],
+  "limitations": [
+    "Published images can differ from local edits and may use emulation on Apple Silicon. Startup timing alone is not a functional regression verdict.",
+    "This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode."
+  ]
+}

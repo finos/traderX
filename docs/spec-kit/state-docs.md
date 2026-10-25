@@ -5,6 +5,10 @@ hide_table_of_contents: true
 
 # State Docs
 
+[How to learn with TraderX states](/docs/learning/how-to-learn) · [Learning Guide index](/docs/learning)
+
+Select a state in the diagram to open its learning guide. Solid arrows are declared predecessor routes; dotted arrows identify retained context.
+
 This page is generated from `catalog/state-catalog.json` and links the most important per-state artifacts.
 
 For progression context, see [Visual Learning Paths](/docs/learning-paths).

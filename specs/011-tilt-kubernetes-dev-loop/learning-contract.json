@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "state": "011-tilt-kubernetes-dev-loop",
+  "title": "Shorten the edit-and-observe loop",
+  "purpose": "A slow rebuild-and-deploy loop interrupts experimentation. For developers already comfortable running TraderX on Kubernetes, use Tilt to connect a local change to a running workload and distinguish the last successful deployment from the latest attempted edit.",
+  "entryAssumptions": "The Kubernetes state requires explicit build and deployment steps for changes.",
+  "concepts": [
+    "A reconciliation loop tries to make running resources match desired configuration. File watching can trigger updates, but an update finishing does not prove the changed behavior."
+  ],
+  "runtimePrerequisites": "Use the state quickstart for tool versions, generation, start and stop commands. Run one local state at a time because ports and generated output directories are shared.",
+  "entryMode": "combined",
+  "transitions": [
+    {
+      "from": "010-kubernetes-runtime",
+      "carriesForward": "Run C2 on Kubernetes and explain ingress, service routing and pod readiness.",
+      "motivation": "The Kubernetes state requires explicit build and deployment steps for changes.",
+      "increment": "Use Tilt to orchestrate the local Kubernetes development loop.",
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "evidence": "The loop connects a local edit with a rebuilt or updated workload. Record which resource changed and how long it took; do not assume every edit uses live update. A failed rebuild can leave the old application serving. A responsive browser is therefore insufficient evidence that the latest edit deployed."
+    }
+  ],
+  "before": "The Kubernetes state requires explicit build and deployment steps for changes.",
+  "after": "Use Tilt to orchestrate the local Kubernetes development loop.",
+  "objectives": [
+    {
+      "id": "trace-increment",
+      "outcome": "Correlate a local edit, its Tilt resource update and the visible application version."
+    },
+    {
+      "id": "interpret-evidence",
+      "outcome": "Explain the evidence boundary: A failed rebuild can leave the old application serving. A responsive browser is therefore insufficient evidence that the latest edit deployed."
+    }
+  ],
+  "walkthrough": [
+    {
+      "id": "observe",
+      "objectiveIds": [
+        "trace-increment"
+      ],
+      "availability": "available",
+      "action": "Follow the state quickstart and inspect the generated Tiltfile and watched paths. In a disposable generated checkout make a visible UI text change, observe the Tilt resource update, and reload the UI to verify that the change reached the browser.",
+      "expected": "The loop connects a local edit with a rebuilt or updated workload. Record which resource changed and how long it took; do not assume every edit uses live update.",
+      "references": [
+        "/specs/tilt-kubernetes-dev-loop/quickstart",
+        "/specs/tilt-kubernetes-dev-loop/system/architecture",
+        "/specs/tilt-kubernetes-dev-loop/system/runtime-topology"
+      ]
+    },
+    {
+      "id": "challenge",
+      "objectiveIds": [
+        "interpret-evidence"
+      ],
+      "availability": "available",
+      "action": "Introduce a reversible syntax error in that disposable file, observe the build error, then undo it. Check whether the browser still shows the previous successful version while the new build fails.",
+      "expected": "A failed rebuild can leave the old application serving. A responsive browser is therefore insufficient evidence that the latest edit deployed.",
+      "references": [
+        "/specs/tilt-kubernetes-dev-loop/spec",
+        "/specs/tilt-kubernetes-dev-loop/contracts/contract-delta"
+      ]
+    }
+  ],
+  "assessments": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "question": "How can you prove the browser is serving your latest edit?",
+      "guidance": "Correlate the successful Tilt update with the exact visible change. Explain why a failed build and a healthy old pod can coexist."
+    }
+  ],
+  "limitations": [
+    "A failed rebuild can leave the old application serving. A responsive browser is therefore insufficient evidence that the latest edit deployed.",
+    "This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode."
+  ]
+}

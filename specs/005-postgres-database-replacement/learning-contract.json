@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "state": "005-postgres-database-replacement",
+  "title": "Replace persistence without changing the business contract",
+  "purpose": "Changing databases tests how much of an application\u2019s behavior depends on its storage engine. For developers exploring persistence, replace H2 with PostgreSQL and use a trade record to investigate the boundary between application lifetime and stored data.",
+  "entryAssumptions": "Compose packages the application with H2 persistence.",
+  "concepts": [
+    "A database dialect defines SQL behavior; a JDBC driver connects Java to it. Persistence across an application restart is different from retention after deleting a database volume."
+  ],
+  "runtimePrerequisites": "Use the state quickstart for tool versions, generation, start and stop commands. Run one local state at a time because ports and generated output directories are shared.",
+  "entryMode": "combined",
+  "transitions": [
+    {
+      "from": "004-containerized-compose-runtime",
+      "carriesForward": "Run the application as Compose services behind NGINX and distinguish process startup from readiness.",
+      "motivation": "Compose packages the application with H2 persistence.",
+      "increment": "Move persistence to PostgreSQL while retaining account, trade and position behavior.",
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "evidence": "The connection targets PostgreSQL and the trade survives an application restart. Business contract parity must be observed, not assumed from successful connectivity. An application restart leaves database storage intact. Volume deletion has a different durability boundary and is not a routine parity check."
+    }
+  ],
+  "before": "Compose packages the application with H2 persistence.",
+  "after": "Move persistence to PostgreSQL while retaining account, trade and position behavior.",
+  "objectives": [
+    {
+      "id": "trace-increment",
+      "outcome": "Identify the PostgreSQL connection boundary and demonstrate that a trade survives an application-only restart."
+    },
+    {
+      "id": "interpret-evidence",
+      "outcome": "Explain the evidence boundary: An application restart leaves database storage intact. Volume deletion has a different durability boundary and is not a routine parity check."
+    }
+  ],
+  "walkthrough": [
+    {
+      "id": "observe",
+      "objectiveIds": [
+        "trace-increment"
+      ],
+      "availability": "available",
+      "action": "Start this state and run its smoke test. Inspect the generated database service and application connection configuration. Book a small trade, record its identifier, restart only the application service, and retrieve the trade again.",
+      "expected": "The connection targets PostgreSQL and the trade survives an application restart. Business contract parity must be observed, not assumed from successful connectivity.",
+      "references": [
+        "/specs/postgres-database-replacement/quickstart",
+        "/specs/postgres-database-replacement/system/architecture",
+        "/specs/postgres-database-replacement/system/runtime-topology"
+      ]
+    },
+    {
+      "id": "challenge",
+      "objectiveIds": [
+        "interpret-evidence"
+      ],
+      "availability": "available",
+      "action": "Inspect the Compose volume configuration and stop procedure before shutting down. Explain what would happen if the database volume were explicitly removed; do not delete a volume containing valued data.",
+      "expected": "An application restart leaves database storage intact. Volume deletion has a different durability boundary and is not a routine parity check.",
+      "references": [
+        "/specs/postgres-database-replacement/spec",
+        "/specs/postgres-database-replacement/contracts/contract-delta"
+      ]
+    }
+  ],
+  "assessments": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "question": "What did your restart prove, and what did it leave untested?",
+      "guidance": "It demonstrated persistence outside the application process. It did not demonstrate backup recovery, production availability or safe destructive volume removal."
+    }
+  ],
+  "limitations": [
+    "An application restart leaves database storage intact. Volume deletion has a different durability boundary and is not a routine parity check.",
+    "This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode."
+  ]
+}

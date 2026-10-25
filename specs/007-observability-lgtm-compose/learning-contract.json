@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "state": "007-observability-lgtm-compose",
+  "title": "Explain behavior with telemetry",
+  "purpose": "When a trade seems to disappear, a healthy service status gives little help. This chapter is for developers diagnosing a distributed workflow: use complementary telemetry signals to narrow a question, and learn why missing telemetry cannot settle it.",
+  "entryAssumptions": "NATS and PostgreSQL carry the workflow, but scattered logs make diagnosis difficult.",
+  "concepts": [
+    "A metric summarizes measurements; a log records an event; a trace relates timed operations. Correlation is evidence of a path, not proof that every business effect committed."
+  ],
+  "runtimePrerequisites": "Use the state quickstart for tool versions, generation, start and stop commands. Run one local state at a time because ports and generated output directories are shared.",
+  "entryMode": "combined",
+  "transitions": [
+    {
+      "from": "006-messaging-nats-replacement",
+      "carriesForward": "Replace internal messaging with NATS while preserving the trade-to-position workflow.",
+      "motivation": "NATS and PostgreSQL carry the workflow, but scattered logs make diagnosis difficult.",
+      "increment": "Add LGTM telemetry to connect a user action with logs, metrics and traces.",
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "evidence": "The signals provide complementary evidence. Record which services are represented and which gaps remain instead of treating an empty panel as a successful run. Missing telemetry can reflect selection, sampling or collection problems. It is not evidence that no trade exists."
+    }
+  ],
+  "before": "NATS and PostgreSQL carry the workflow, but scattered logs make diagnosis difficult.",
+  "after": "Add LGTM telemetry to connect a user action with logs, metrics and traces.",
+  "objectives": [
+    {
+      "id": "trace-increment",
+      "outcome": "Correlate one trade with available logs, metrics and traces, and identify gaps in the observed request path."
+    },
+    {
+      "id": "interpret-evidence",
+      "outcome": "Explain the evidence boundary: Missing telemetry can reflect selection, sampling or collection problems. It is not evidence that no trade exists."
+    }
+  ],
+  "walkthrough": [
+    {
+      "id": "observe",
+      "objectiveIds": [
+        "trace-increment"
+      ],
+      "availability": "available",
+      "action": "Start this state and open Grafana through /grafana/ as described in the quickstart. Submit one small trade and note its time and identifier. Find the relevant service logs and metrics, and inspect any available trace for that request.",
+      "expected": "The signals provide complementary evidence. Record which services are represented and which gaps remain instead of treating an empty panel as a successful run.",
+      "references": [
+        "/specs/observability-lgtm-compose/quickstart",
+        "/specs/observability-lgtm-compose/system/architecture",
+        "/specs/observability-lgtm-compose/system/runtime-topology"
+      ]
+    },
+    {
+      "id": "challenge",
+      "objectiveIds": [
+        "interpret-evidence"
+      ],
+      "availability": "available",
+      "action": "Change the dashboard time range to exclude the request and compare it with a range that includes it. If a trace is absent, inspect instrumentation and collection health before concluding the request did not run.",
+      "expected": "Missing telemetry can reflect selection, sampling or collection problems. It is not evidence that no trade exists.",
+      "references": [
+        "/specs/observability-lgtm-compose/spec",
+        "/specs/observability-lgtm-compose/contracts/contract-delta"
+      ]
+    }
+  ],
+  "assessments": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "question": "Can you diagnose a missing trade from an empty dashboard alone?",
+      "guidance": "No. Check time range and collection, then reconcile the persisted trade and processing evidence. Name the limits of the available signals."
+    }
+  ],
+  "limitations": [
+    "Missing telemetry can reflect selection, sampling or collection problems. It is not evidence that no trade exists.",
+    "This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode."
+  ]
+}

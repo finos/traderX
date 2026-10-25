@@ -51,3 +51,7 @@
 - Every visible state block has useful links to canonical specs, docs, learning material, and generated code.
 - The homepage contract is documented in this feature pack and referenced from the Spec Kit portal map.
 - Website build succeeds.
+
+## Incremental Learning Guide implementation
+
+Use state-local JSON contracts, a versioned schema and dependency-free root validation. Extend the existing catalog renderer rather than introducing another guide surface. Inject technical return links through a catalog-aware remark plugin. Validate actual rendered routes after Docusaurus builds and preserve human walkthrough review as a PR acceptance requirement. Backfill the fourteen states on main; future states receive identical enforcement.

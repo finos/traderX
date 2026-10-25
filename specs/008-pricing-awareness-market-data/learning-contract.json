@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "state": "008-pricing-awareness-market-data",
+  "title": "Distinguish a market observation from a trade",
+  "purpose": "A trader needs market context before making a decision, but a changing number on a screen can be misleading. For developers extending the application\u2019s domain, follow a synthetic quote from publisher to UI and distinguish a fresh observation from a guaranteed execution price.",
+  "entryAssumptions": "The observable application books trades without a live pricing context.",
+  "concepts": [
+    "A quote is an observation with a timestamp, not an execution promise. A stream can become stale even while the last price remains visible."
+  ],
+  "runtimePrerequisites": "Use the state quickstart for tool versions, generation, start and stop commands. Run one local state at a time because ports and generated output directories are shared.",
+  "entryMode": "combined",
+  "transitions": [
+    {
+      "from": "007-observability-lgtm-compose",
+      "carriesForward": "Add LGTM telemetry to connect a user action with logs, metrics and traces.",
+      "motivation": "The observable application books trades without a live pricing context.",
+      "increment": "Stream simulated market data and use price awareness while retaining the booking workflow.",
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "evidence": "Price updates are independent events. A displayed quote supplies context; it does not establish that a trade executed at that price. A retained value can be stale. This synthetic publisher demonstrates propagation, not the quality or availability of a real market feed."
+    }
+  ],
+  "before": "The observable application books trades without a live pricing context.",
+  "after": "Stream simulated market data and use price awareness while retaining the booking workflow.",
+  "objectives": [
+    {
+      "id": "trace-increment",
+      "outcome": "Trace two quote updates from the synthetic publisher to the UI and distinguish them from a trade execution record."
+    },
+    {
+      "id": "interpret-evidence",
+      "outcome": "Explain the evidence boundary: A retained value can be stale. This synthetic publisher demonstrates propagation, not the quality or availability of a real market feed."
+    }
+  ],
+  "walkthrough": [
+    {
+      "id": "observe",
+      "objectiveIds": [
+        "trace-increment"
+      ],
+      "availability": "available",
+      "action": "Start this state and run both the state and messaging smoke commands from the quickstart. Select one ticker in the UI, record two successive displayed prices and their timing, and trace the price-publisher route through NATS to the UI.",
+      "expected": "Price updates are independent events. A displayed quote supplies context; it does not establish that a trade executed at that price.",
+      "references": [
+        "/specs/pricing-awareness-market-data/quickstart",
+        "/specs/pricing-awareness-market-data/system/architecture",
+        "/specs/pricing-awareness-market-data/system/runtime-topology"
+      ]
+    },
+    {
+      "id": "challenge",
+      "objectiveIds": [
+        "interpret-evidence"
+      ],
+      "availability": "available",
+      "action": "Pause or stop only the price-publisher in the disposable local stack and observe whether the last price remains visible. Resume it and compare update timing. Use telemetry to distinguish stale data from a quiet market.",
+      "expected": "A retained value can be stale. This synthetic publisher demonstrates propagation, not the quality or availability of a real market feed.",
+      "references": [
+        "/specs/pricing-awareness-market-data/spec",
+        "/specs/pricing-awareness-market-data/contracts/contract-delta"
+      ]
+    }
+  ],
+  "assessments": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "question": "What additional evidence would you require before treating a displayed quote as an execution price?",
+      "guidance": "A distinct execution record with price and identity. Explain the quote timestamp and the synthetic feed limitation."
+    }
+  ],
+  "limitations": [
+    "A retained value can be stale. This synthetic publisher demonstrates propagation, not the quality or availability of a real market feed.",
+    "This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode."
+  ]
+}
