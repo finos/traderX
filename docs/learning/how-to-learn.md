@@ -11,7 +11,7 @@ Start with [the baseline chapter](/docs/learning/state-001-baseline-uncontaineri
 ## Choose a question, then a path
 
 - **How does a trade become a position?** Begin at 001 and follow the request and event flow before adding infrastructure.
-- **How do deployment and persistence change the design?** Follow the edge and harness chapters into Compose (004), PostgreSQL (005), and NATS (006).
+- **How do deployment and persistence change the design?** Follow the edge and harness chapters into application containerization and Docker Compose (004), PostgreSQL (005), and NATS (006).
 - **How do I explain and extend behavior?** Continue through observability (007), market data (008), and order matching (009).
 - **How do I run and develop the same application on a platform?** Follow Kubernetes (010), Tilt (011), and the C3 checkpoint (012).
 - **Which integration problem do I want to investigate?** Branch from C3 to Radius (013) for platform abstraction or FDC3 (014) for application interoperability. Radius is not a prerequisite for FDC3.
