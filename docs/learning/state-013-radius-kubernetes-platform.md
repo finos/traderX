@@ -12,7 +12,7 @@ pagination_next: null
 
 Platform teams may want application intent expressed above individual Kubernetes resources. This optional chapter is for developers evaluating that trade-off: trace a Radius declaration into deployed resources and identify which operational responsibilities the abstraction moves.
 
-[How to learn with TraderX states](/docs/learning/how-to-learn)
+[How to learn with TraderX states](/docs/learning/how-to-learn) · [Structured lesson JSON](/learning/contracts/013-radius-kubernetes-platform.json)
 
 **Maturity:** implemented. Run the exercises in a disposable local environment; use the quickstart for setup and cleanup.
 
@@ -74,6 +74,25 @@ Supporting material: [spec](/specs/radius-kubernetes-platform/spec) · [contract
 **Question (`trace-increment`, `interpret-evidence`):** When would you choose this branch over continuing directly from C3?
 
 **Assessment guidance:** Justify whether the resource abstraction helps your platform use case and name its operational cost. State 013 is optional and is not required for state 014.
+
+### Work with a learning partner
+
+Use the [learning-partner protocol](/docs/learning/how-to-learn#learn-with-an-agent) with a human or an agent. Ask for a prediction before running the exercise, offer one hint at a time, and discuss the assessment guidance after the learner has attempted an explanation.
+
+**Objectives:** `trace-increment`, `interpret-evidence`.
+
+**Check the starting point:** Which Kubernetes responsibilities does the C3 application expose directly?
+
+**Ask before the experiment:** Predict what a valid Radius declaration establishes before provisioning finishes.
+
+**Hints, in order:**
+
+1. Trace one declared resource relationship to a resulting Kubernetes resource.
+2. Separate platform provisioning output from application readiness and the business smoke result.
+
+**Misconception to probe (not a fact):** A platform abstraction removes infrastructure responsibility or makes the application healthy by definition.
+
+**Evidence to ask the learner for:** Ask for the declaration-to-resource mapping, deployment/health observations and a reasoned comparison with staying on C3.
 
 ### Scope and limitations
 

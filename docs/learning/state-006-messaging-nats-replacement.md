@@ -12,7 +12,7 @@ pagination_next: null
 
 A messaging replacement changes more than a connection string. For developers who understand the booking flow, this chapter follows that flow through NATS and asks what publishing, reconnecting and recording a business result each establish.
 
-[How to learn with TraderX states](/docs/learning/how-to-learn)
+[How to learn with TraderX states](/docs/learning/how-to-learn) · [Structured lesson JSON](/learning/contracts/006-messaging-nats-replacement.json)
 
 **Maturity:** implemented. Run the exercises in a disposable local environment; use the quickstart for setup and cleanup.
 
@@ -74,6 +74,25 @@ Supporting material: [spec](/specs/messaging-nats-replacement/spec) · [contract
 **Question (`trace-increment`, `interpret-evidence`):** What evidence distinguishes broker recovery from business recovery?
 
 **Assessment guidance:** Show the connection returning and separately reconcile the relevant trade identifiers and positions. State the configured delivery limitations.
+
+### Work with a learning partner
+
+Use the [learning-partner protocol](/docs/learning/how-to-learn#learn-with-an-agent) with a human or an agent. Ask for a prediction before running the exercise, offer one hint at a time, and discuss the assessment guidance after the learner has attempted an explanation.
+
+**Objectives:** `trace-increment`, `interpret-evidence`.
+
+**Check the starting point:** How does an event connect trade submission to the processor in the previous state?
+
+**Ask before the experiment:** Predict whether reconnecting a subscriber proves that every event from an outage was recovered.
+
+**Hints, in order:**
+
+1. Trace the event subject and payload rather than stopping at the broker connection.
+2. Check the configured delivery mode and reconcile the business records for the relevant identifiers.
+
+**Misconception to probe (not a fact):** Broker connectivity proves replay, exactly-once processing or a completed business result.
+
+**Evidence to ask the learner for:** Ask for the subject/payload route, reconnection evidence and matching persisted trade/position; keep any unobserved outage result unknown.
 
 ### Scope and limitations
 

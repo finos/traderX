@@ -34,6 +34,35 @@ For each experiment, write four sentences: “I expected…”, “I observed…
 
 A ticket opening does not submit a trade, and an order is not a fill. A request being accepted does not mean the operation completed. Use the current chapter’s observations to distinguish preparation, submission and the recorded business result.
 
+## Learn with an agent
+
+An agent can be your learning partner: help you choose a chapter, ask a useful question, explain a concept in another way, or examine the evidence you collected. The goal is for you to explain the system, not simply to watch an agent complete the steps.
+
+Try this starting prompt:
+
+> Be my TraderX learning partner. Ask about my goal and prior experience, then help me choose a chapter from the Learning Guide. Check the chapter’s actual predecessors. Ask me to predict an outcome before we run an experiment. Offer one hint at a time, let me attempt the explanation before discussing assessment guidance, and distinguish what we observed from what we inferred. Keep a short progress note so we can resume later.
+
+### A session protocol for learning partners
+
+1. **Orient.** Ask what the learner wants to understand and what they have already tried. Load the selected state’s purpose, maturity and incoming transitions. Use its diagnostic question to check prerequisites; link to the relevant predecessor when a gap appears. Do not assume prior knowledge from a state number.
+2. **Predict.** Select an objective by its stable ID and ask the chapter’s prediction question. Let the learner explain their reasoning before showing the expected observation.
+3. **Experiment together.** Agree who will run the documented step and in which environment. Prefer learner participation; execute commands only within the learner’s authorized scope. If no runtime is available, offer a clearly labeled reading exercise and leave runtime evidence unverified. Never invent command output or imply that reading the guide is an executed test.
+4. **Help progressively.** Ask one focused question at a time. Use the first hint, wait for an attempt, and offer the next hint if needed. Probe the named misconception without treating it as true. If the learner requests a full explanation, provide it and invite them to apply it to a new example.
+5. **Assess the evidence.** Ask for the chapter’s evidence, compare it with the mapped objective and assessment guidance, and ask the learner to explain any difference. Separate expected behavior, reported observations, directly inspected results and inferences. Treat a missing observation as unknown, not success or failure. Cite the relevant guide section or system reference when explaining a claim.
+6. **Reflect and continue.** Ask what the experiment establishes and what it does not establish. Record an objective as demonstrated only when the learner explains it using adequate evidence. Choose an onward state from the declared relationships or revisit a prerequisite; do not automatically advance through numbered chapters.
+
+### Resume without guessing
+
+Keep a short session note with the state ID, documentation source revision, chosen predecessor route, objective IDs, attempted walkthrough step, evidence and its provenance, the learner’s explanation, remaining misconception or uncertainty, and the next agreed action. Mark each objective as **not attempted**, **practiced**, or **demonstrated**. Do not record secrets or private runtime data; retain only the identifiers or redacted observations needed for the lesson. Recheck the source revision when resuming with different documentation.
+
+### Readable by people and software
+
+Use [the machine-readable learning index](/learning/index.json) to discover every current chapter’s status, predecessor and next-state IDs, canonical source path, HTML guide, Markdown guide, and structured JSON contract. It identifies the source revision of the build. The [published schema](/learning/contract.schema.json) describes the contracts. URLs in the index resolve on the same site, including a PR preview; do not mix preview content with another revision from the live site.
+
+Every chapter’s **Structured lesson JSON** link provides the exact state-local contract used to render that guide, including objectives, exercises, assessment guidance and coaching prompts. The **View Markdown** link exposes the same human-readable lesson without requiring JavaScript or diagram interpretation. [llms.txt](/llms.txt) provides broader documentation discovery. The JSON is a reading format, not a command-execution API; runtime actions still need the learner’s environment and authorization.
+
+An agent should use the coaching prompts and assessment guidance to support understanding rather than present an answer key before the learner has tried. Human reviewers should trial a session with a novice explanation, a misconception and missing runtime evidence; assess whether the partner responds usefully and stays within what the evidence supports.
+
 ## Read maturity honestly
 
 Implemented and released chapters provide runnable exercises. Planned chapters describe intended objectives and explicitly mark runtime exercises unavailable. An implemented label is not a production guarantee. Local demonstrations may use synthetic prices, simplified matching, external applications or incomplete failure coverage; read each chapter's limitations before generalizing its results.

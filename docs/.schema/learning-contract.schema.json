@@ -17,7 +17,8 @@
     "objectives",
     "walkthrough",
     "assessments",
-    "limitations"
+    "limitations",
+    "coaching"
   ],
   "additionalProperties": false,
   "properties": {
@@ -238,6 +239,61 @@
         "type": "string",
         "minLength": 20,
         "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+      }
+    },
+    "coaching": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "objectiveIds",
+          "diagnosticQuestion",
+          "predictionPrompt",
+          "hints",
+          "misconception",
+          "evidenceToRequest"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "objectiveIds": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]*$"
+            }
+          },
+          "diagnosticQuestion": {
+            "type": "string",
+            "minLength": 20,
+            "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+          },
+          "predictionPrompt": {
+            "type": "string",
+            "minLength": 20,
+            "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+          },
+          "hints": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "string",
+              "minLength": 20,
+              "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+            }
+          },
+          "misconception": {
+            "type": "string",
+            "minLength": 20,
+            "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+          },
+          "evidenceToRequest": {
+            "type": "string",
+            "minLength": 20,
+            "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+          }
+        }
       }
     }
   }

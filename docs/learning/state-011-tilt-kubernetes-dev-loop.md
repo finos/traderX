@@ -12,7 +12,7 @@ pagination_next: null
 
 A slow rebuild-and-deploy loop interrupts experimentation. For developers already comfortable running TraderX on Kubernetes, use Tilt to connect a local change to a running workload and distinguish the last successful deployment from the latest attempted edit.
 
-[How to learn with TraderX states](/docs/learning/how-to-learn)
+[How to learn with TraderX states](/docs/learning/how-to-learn) · [Structured lesson JSON](/learning/contracts/011-tilt-kubernetes-dev-loop.json)
 
 **Maturity:** implemented. Run the exercises in a disposable local environment; use the quickstart for setup and cleanup.
 
@@ -74,6 +74,25 @@ Supporting material: [spec](/specs/tilt-kubernetes-dev-loop/spec) · [contract-d
 **Question (`trace-increment`, `interpret-evidence`):** How can you prove the browser is serving your latest edit?
 
 **Assessment guidance:** Correlate the successful Tilt update with the exact visible change. Explain why a failed build and a healthy old pod can coexist.
+
+### Work with a learning partner
+
+Use the [learning-partner protocol](/docs/learning/how-to-learn#learn-with-an-agent) with a human or an agent. Ask for a prediction before running the exercise, offer one hint at a time, and discuss the assessment guidance after the learner has attempted an explanation.
+
+**Objectives:** `trace-increment`, `interpret-evidence`.
+
+**Check the starting point:** What steps connected a source edit to a new deployed version in the Kubernetes state?
+
+**Ask before the experiment:** Predict which version the browser may show while a new build fails.
+
+**Hints, in order:**
+
+1. Identify the watched file and the Tilt resource affected by the edit.
+2. Correlate the successful resource update with the exact visible change rather than with browser responsiveness.
+
+**Misconception to probe (not a fact):** A responsive browser proves that the latest local edit has deployed.
+
+**Evidence to ask the learner for:** Ask for the attempted edit, Tilt update/build result and observed UI version; distinguish the latest attempt from the last successful deployment.
 
 ### Scope and limitations
 

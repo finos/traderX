@@ -76,5 +76,21 @@
   "limitations": [
     "An application restart leaves database storage intact. Volume deletion has a different durability boundary and is not a routine parity check.",
     "This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode."
+  ],
+  "coaching": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "diagnosticQuestion": "Which process owns the trade record, and which storage survives an application restart?",
+      "predictionPrompt": "Predict whether restarting only the application should remove the recorded trade.",
+      "hints": [
+        "Find the PostgreSQL connection target and the Compose storage mapping.",
+        "Compare an application restart with deleting the database volume; identify the different persistence boundaries."
+      ],
+      "misconception": "Surviving one restart establishes backup recovery or protects data after deleting storage.",
+      "evidenceToRequest": "Ask for the recorded trade identifier before and after restart, the connection target and an explanation of what remains untested."
+    }
   ]
 }

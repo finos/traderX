@@ -76,5 +76,21 @@
   "limitations": [
     "A valid application description is not proof that required infrastructure was provisioned. The platform and application have distinct failure evidence.",
     "This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode."
+  ],
+  "coaching": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "diagnosticQuestion": "Which Kubernetes responsibilities does the C3 application expose directly?",
+      "predictionPrompt": "Predict what a valid Radius declaration establishes before provisioning finishes.",
+      "hints": [
+        "Trace one declared resource relationship to a resulting Kubernetes resource.",
+        "Separate platform provisioning output from application readiness and the business smoke result."
+      ],
+      "misconception": "A platform abstraction removes infrastructure responsibility or makes the application healthy by definition.",
+      "evidenceToRequest": "Ask for the declaration-to-resource mapping, deployment/health observations and a reasoned comparison with staying on C3."
+    }
   ]
 }

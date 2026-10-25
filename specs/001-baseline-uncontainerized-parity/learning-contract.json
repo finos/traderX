@@ -64,5 +64,21 @@
   "limitations": [
     "A rejected request should not produce a booked trade. If the result is uncertain, query the record before resubmitting; a timeout alone does not prove rejection.",
     "This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode."
+  ],
+  "coaching": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "diagnosticQuestion": "What is the difference between a trade and the position shown for an account?",
+      "predictionPrompt": "Before submitting the buy, predict which records must change and which service will write them.",
+      "hints": [
+        "Begin at the ticket request and identify the next boundary in flow F3.",
+        "Follow F4 to the persisted trade and position; compare their identifiers with the submission."
+      ],
+      "misconception": "A successful click or HTTP response proves the holding has already changed.",
+      "evidenceToRequest": "Ask for the request result, trade identifier and before/after position, then ask the learner to explain the asynchronous boundary."
+    }
   ]
 }

@@ -12,7 +12,7 @@ pagination_next: null
 
 A working application is difficult to change safely when its conventions live only in a contributor’s memory. This chapter is for developers introducing agent-assisted changes: make the source of authority and the verification process explicit, then test whether an edit survives generation.
 
-[How to learn with TraderX states](/docs/learning/how-to-learn)
+[How to learn with TraderX states](/docs/learning/how-to-learn) · [Structured lesson JSON](/learning/contracts/003-agentic-harness-foundation.json)
 
 **Maturity:** implemented. Run the exercises in a disposable local environment; use the quickstart for setup and cleanup.
 
@@ -74,6 +74,25 @@ Supporting material: [spec](/specs/agentic-harness-foundation/spec) · [contract
 **Question (`trace-increment`, `interpret-evidence`):** Where would you make a durable behavior change, and what evidence would you request from an agent?
 
 **Assessment guidance:** Identify the canonical spec/template or overlay and a relevant behavior check. Generated instructions cannot substitute for the check result.
+
+### Work with a learning partner
+
+Use the [learning-partner protocol](/docs/learning/how-to-learn#learn-with-an-agent) with a human or an agent. Ask for a prediction before running the exercise, offer one hint at a time, and discuss the assessment guidance after the learner has attempted an explanation.
+
+**Objectives:** `trace-increment`, `interpret-evidence`.
+
+**Check the starting point:** Where do durable changes belong when a checkout is generated from canonical sources?
+
+**Ask before the experiment:** Predict what regeneration will do to the comment added only to disposable generated output.
+
+**Hints, in order:**
+
+1. Locate the instruction that names the authoritative source of the chosen component.
+2. Compare that source with the regenerated output and identify which verification command tests behavior.
+
+**Misconception to probe (not a fact):** Generated instructions guarantee correctness, or an output-only edit becomes a lasting customization.
+
+**Evidence to ask the learner for:** Ask for the source path, before/after generated diff and relevant verification result; distinguish reading an instruction from executing its check.
 
 ### Scope and limitations
 

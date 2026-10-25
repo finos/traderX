@@ -40,10 +40,10 @@ export function validateContract(contract, state, states, schema) {
   if ((!parents.length) !== (contract.entryMode === 'foundation')) errors.push('entryMode: baseline must be foundation; descendants must declare combined or alternative entry');
   for (const group of ['objectives', 'walkthrough']) if (new Set(contract[group].map(o => o.id)).size !== contract[group].length) errors.push(`${group}: duplicate stable identifiers`);
   const objectives = new Set(contract.objectives.map(o => o.id));
-  for (const group of ['transitions', 'walkthrough', 'assessments']) {
+  for (const group of ['transitions', 'walkthrough', 'assessments', 'coaching']) {
     for (const item of contract[group]) for (const id of item.objectiveIds) if (!objectives.has(id)) errors.push(`${group}: dangling objective ${id}`);
   }
-  for (const id of objectives) for (const group of ['walkthrough', 'assessments']) if (!contract[group].some(x => x.objectiveIds.includes(id))) errors.push(`${group}: uncovered objective ${id}`);
+  for (const id of objectives) for (const group of ['walkthrough', 'assessments', 'coaching']) if (!contract[group].some(x => x.objectiveIds.includes(id))) errors.push(`${group}: uncovered objective ${id}`);
   const implemented = ['implemented', 'released'].includes(state.status) || state.generation?.mode === 'implemented';
   if (implemented && contract.walkthrough.some(w => w.availability !== 'available')) errors.push('walkthrough: implemented states require available exercises');
   if (!implemented && contract.walkthrough.some(w => w.availability !== 'unavailable')) errors.push('walkthrough: planned states must mark exercises unavailable');
@@ -60,7 +60,7 @@ export function renderContract(c, state) {
 
 ${c.purpose}
 
-[How to learn with TraderX states](/docs/learning/how-to-learn)
+[How to learn with TraderX states](/docs/learning/how-to-learn) · [Structured lesson JSON](/learning/contracts/${state.id}.json)
 
 **Maturity:** ${state.status}. ${c.walkthrough.every(w => w.availability === 'unavailable') ? 'Intended lesson: runtime exercises are unavailable.' : 'Run the exercises in a disposable local environment; use the quickstart for setup and cleanup.'}
 
@@ -109,6 +109,24 @@ Supporting material: ${w.references.map((url, j) => `[${url.split('/').pop()}]($
 ${c.assessments.map(a => `**Question (${mapped(a.objectiveIds)}):** ${a.question}
 
 **Assessment guidance:** ${a.guidance}`).join('\n\n')}
+
+### Work with a learning partner
+
+Use the [learning-partner protocol](/docs/learning/how-to-learn#learn-with-an-agent) with a human or an agent. Ask for a prediction before running the exercise, offer one hint at a time, and discuss the assessment guidance after the learner has attempted an explanation.
+
+${c.coaching.map(p => `**Objectives:** ${mapped(p.objectiveIds)}.
+
+**Check the starting point:** ${p.diagnosticQuestion}
+
+**Ask before the experiment:** ${p.predictionPrompt}
+
+**Hints, in order:**
+
+${p.hints.map((h, i) => `${i + 1}. ${h}`).join('\n')}
+
+**Misconception to probe (not a fact):** ${p.misconception}
+
+**Evidence to ask the learner for:** ${p.evidenceToRequest}`).join('\n\n')}
 
 ### Scope and limitations
 

@@ -76,5 +76,21 @@
   "limitations": [
     "A failed rebuild can leave the old application serving. A responsive browser is therefore insufficient evidence that the latest edit deployed.",
     "This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode."
+  ],
+  "coaching": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "diagnosticQuestion": "What steps connected a source edit to a new deployed version in the Kubernetes state?",
+      "predictionPrompt": "Predict which version the browser may show while a new build fails.",
+      "hints": [
+        "Identify the watched file and the Tilt resource affected by the edit.",
+        "Correlate the successful resource update with the exact visible change rather than with browser responsiveness."
+      ],
+      "misconception": "A responsive browser proves that the latest local edit has deployed.",
+      "evidenceToRequest": "Ask for the attempted edit, Tilt update/build result and observed UI version; distinguish the latest attempt from the last successful deployment."
+    }
   ]
 }

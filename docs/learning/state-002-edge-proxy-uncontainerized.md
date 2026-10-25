@@ -12,7 +12,7 @@ pagination_next: null
 
 A browser should not need to know where every backend lives. For developers who have traced the baseline workflow, this chapter uses a reverse proxy to establish one public entry point and investigates why REST traffic and streaming traffic need separate attention.
 
-[How to learn with TraderX states](/docs/learning/how-to-learn)
+[How to learn with TraderX states](/docs/learning/how-to-learn) · [Structured lesson JSON](/learning/contracts/002-edge-proxy-uncontainerized.json)
 
 **Maturity:** implemented. Run the exercises in a disposable local environment; use the quickstart for setup and cleanup.
 
@@ -74,6 +74,25 @@ Supporting material: [spec](/specs/edge-proxy-uncontainerized/spec).
 **Question (`trace-increment`, `interpret-evidence`):** Which connection would you inspect when accounts load but the trade blotter stops updating?
 
 **Assessment guidance:** Identify the streaming route and upgrade behavior, and distinguish it from the account REST route. Explain which upstream logs would narrow the failure.
+
+### Work with a learning partner
+
+Use the [learning-partner protocol](/docs/learning/how-to-learn#learn-with-an-agent) with a human or an agent. Ask for a prediction before running the exercise, offer one hint at a time, and discuss the assessment guidance after the learner has attempted an explanation.
+
+**Objectives:** `trace-increment`, `interpret-evidence`.
+
+**Check the starting point:** How did the baseline browser find each backend, and what constitutes an origin?
+
+**Ask before the experiment:** Predict whether a successful account request establishes that streaming updates will also work.
+
+**Hints, in order:**
+
+1. Compare the browser-visible host and path for the REST and streaming connections.
+2. Inspect the WebSocket handshake and its upstream route separately from a normal REST response.
+
+**Misconception to probe (not a fact):** One working route proves every connection through the proxy is healthy.
+
+**Evidence to ask the learner for:** Ask for the two observed connection paths and handshake/result, and an explanation of the corresponding upstream services.
 
 ### Scope and limitations
 

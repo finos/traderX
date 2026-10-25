@@ -46,3 +46,6 @@
 - [x] T476C Expose homepage, navigation, diagram and technical return paths.
 - [x] T476D Add contract rejection tests and built-portal journey enforcement to coverage and build commands.
 - [ ] T476E Record human runtime walkthrough review and preview acceptance in the PR before closing issue 476.
+
+- [x] T476F Add objective-mapped coaching for current states, shared learning-partner guidance and published JSON/Markdown discovery with parity gates.
+- [ ] T476G Review a learning-partner session for prerequisite diagnosis, progressive hints, misconception correction and honest handling of unavailable runtime evidence.

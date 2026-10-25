@@ -77,5 +77,21 @@
   "limitations": [
     "Published images can differ from local edits and may use emulation on Apple Silicon. Startup timing alone is not a functional regression verdict.",
     "This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode."
+  ],
+  "coaching": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "diagnosticQuestion": "Which C2 capabilities arrive through states 010 and 011, and what did those states add?",
+      "predictionPrompt": "Predict whether a passing order check alone is enough to establish the C3 platform checkpoint.",
+      "hints": [
+        "List functional evidence and platform evidence separately for one snapshot.",
+        "Check the image source and platform before interpreting startup speed or differences from local edits."
+      ],
+      "misconception": "The dotted C2 relationship is a separate generation parent, or one healthy layer proves the whole checkpoint.",
+      "evidenceToRequest": "Ask for the snapshot/image source, retained order and telemetry observations, and Kubernetes/Tilt assets; explain the actual 011 lineage."
+    }
   ]
 }

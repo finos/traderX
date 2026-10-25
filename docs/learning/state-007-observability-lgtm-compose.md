@@ -12,7 +12,7 @@ pagination_next: null
 
 When a trade seems to disappear, a healthy service status gives little help. This chapter is for developers diagnosing a distributed workflow: use complementary telemetry signals to narrow a question, and learn why missing telemetry cannot settle it.
 
-[How to learn with TraderX states](/docs/learning/how-to-learn)
+[How to learn with TraderX states](/docs/learning/how-to-learn) · [Structured lesson JSON](/learning/contracts/007-observability-lgtm-compose.json)
 
 **Maturity:** implemented. Run the exercises in a disposable local environment; use the quickstart for setup and cleanup.
 
@@ -74,6 +74,25 @@ Supporting material: [spec](/specs/observability-lgtm-compose/spec) · [contract
 **Question (`trace-increment`, `interpret-evidence`):** Can you diagnose a missing trade from an empty dashboard alone?
 
 **Assessment guidance:** No. Check time range and collection, then reconcile the persisted trade and processing evidence. Name the limits of the available signals.
+
+### Work with a learning partner
+
+Use the [learning-partner protocol](/docs/learning/how-to-learn#learn-with-an-agent) with a human or an agent. Ask for a prediction before running the exercise, offer one hint at a time, and discuss the assessment guidance after the learner has attempted an explanation.
+
+**Objectives:** `trace-increment`, `interpret-evidence`.
+
+**Check the starting point:** What question can a log answer that a service-health indicator cannot?
+
+**Ask before the experiment:** Predict what an empty dashboard means when the time range excludes your request.
+
+**Hints, in order:**
+
+1. Check the selected time window and whether the collector received any signals.
+2. Compare the available logs, metrics and trace with the separately recorded trade identifier.
+
+**Misconception to probe (not a fact):** Missing telemetry proves that the business action never occurred.
+
+**Evidence to ask the learner for:** Ask for the request time, selected range, available correlated signals and missing spans; distinguish telemetry gaps from absent business records.
 
 ### Scope and limitations
 

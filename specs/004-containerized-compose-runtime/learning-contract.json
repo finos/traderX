@@ -75,5 +75,21 @@
   "limitations": [
     "A running container can still be unavailable during initialization. Recovery of a read route does not prove that an uncertain write failed.",
     "This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode."
+  ],
+  "coaching": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "diagnosticQuestion": "What changes when localhost is evaluated inside a container rather than on your host?",
+      "predictionPrompt": "Predict what the browser will observe while a restarted backend is running but not yet ready.",
+      "hints": [
+        "Separate container process status from the readiness of its dependencies.",
+        "Trace the ingress request to that backend and compare its status before and after readiness returns."
+      ],
+      "misconception": "A running container establishes that the complete trading workflow is available.",
+      "evidenceToRequest": "Ask for container/readiness observations, the ingress read result and independent evidence for any uncertain trade."
+    }
   ]
 }

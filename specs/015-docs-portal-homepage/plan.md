@@ -55,3 +55,5 @@
 ## Incremental Learning Guide implementation
 
 Use state-local JSON contracts, a versioned schema and dependency-free root validation. Extend the existing catalog renderer rather than introducing another guide surface. Inject technical return links through a catalog-aware remark plugin. Validate actual rendered routes after Docusaurus builds and preserve human walkthrough review as a PR acceptance requirement. Backfill the fourteen states on main; future states receive identical enforcement.
+
+Extend the same contracts with coaching metadata and publish lossless JSON alongside the existing HTML-to-Markdown output. Derive a revisioned index from the catalog; validate source equality, discovery and mapped coaching in the standard gates. Do not create a parallel agent curriculum.

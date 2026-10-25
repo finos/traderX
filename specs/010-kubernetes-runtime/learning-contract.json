@@ -76,5 +76,21 @@
   "limitations": [
     "An unready backend and a missing ingress route require different fixes. Healthy pods alone do not establish working end-to-end routing.",
     "This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode."
+  ],
+  "coaching": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "diagnosticQuestion": "How did Compose route the retained order workflow, and what does readiness mean?",
+      "predictionPrompt": "Predict whether healthy pods alone establish that the public ingress route works.",
+      "hints": [
+        "Map ingress to the Service and inspect which ready endpoints it selects.",
+        "Use pod events and readiness to separate scheduling trouble from application routing trouble."
+      ],
+      "misconception": "Pod health proves end-to-end reachability or correct order processing.",
+      "evidenceToRequest": "Ask for pod/readiness, Service routing and ingress observations plus an order result; require a boundary-by-boundary explanation."
+    }
   ]
 }

@@ -2,10 +2,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {load} from 'cheerio';
+import {execFileSync} from 'node:child_process';
+import {validatePublishedLearning} from '../../pipeline/learning-publication.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const build = path.join(root, 'website/build');
 const {states} = JSON.parse(fs.readFileSync(path.join(root, 'catalog/state-catalog.json')));
-const errors = [];
+const sourceRevision = process.env.COMMIT_REF || execFileSync('git', ['rev-parse', 'HEAD'], {cwd:root, encoding:'utf8'}).trim();
+const errors = validatePublishedLearning(root, build, sourceRevision, process.env.DOCUSAURUS_BASE_URL);
 const base = (process.env.DOCUSAURUS_BASE_URL || '/').replace(/\/$/, '');
 const files = fs.readdirSync(build, {recursive:true}).filter(f => f.endsWith('.html'));
 const pages = new Map();
@@ -28,6 +31,10 @@ const hasLink = (from, to) => {
 hasLink('/', '/docs/learning');
 hasLink('/docs/learning', '/docs/learning/how-to-learn');
 hasLink('/docs/learning', '/docs/learning-paths');
+const intro = pages.get('/docs/learning/how-to-learn');
+for (const route of ['/learning/index.json', '/learning/contract.schema.json']) {
+  if (!intro || !intro('a[href]').toArray().some(a => normalize(intro(a).attr('href')).route === route)) errors.push(`Learning introduction: missing agent discovery link ${route}`);
+}
 for (const state of states) {
   const route = `/docs/learning/state-${state.id}`;
   const spec = `/specs/${state.id.slice(4)}`;
@@ -44,7 +51,7 @@ for (const state of states) {
   if ($) {
     const normalizeText = text => text.replace(/\s+/g, ' ').trim();
     const visible = normalizeText($('article').text());
-    for (const required of [contract.purpose, contract.entryAssumptions, ...contract.objectives.map(o => o.outcome), ...contract.walkthrough.flatMap(w => [w.action, w.expected]), ...contract.assessments.map(a => a.guidance)]) {
+    for (const required of [contract.purpose, contract.entryAssumptions, ...contract.objectives.map(o => o.outcome), ...contract.walkthrough.flatMap(w => [w.action, w.expected]), ...contract.assessments.map(a => a.guidance), ...contract.coaching.flatMap(p => [p.diagnosticQuestion, p.predictionPrompt, ...p.hints, p.misconception, p.evidenceToRequest])]) {
       if (!visible.includes(normalizeText(required))) errors.push(`${route}: built guide omits contract content: ${required.slice(0, 65)}`);
     }
     if ($('nav.pagination-nav a').length) errors.push(`${route}: remove sidebar-order pagination; use catalog relationships`);

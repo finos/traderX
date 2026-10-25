@@ -12,7 +12,7 @@ pagination_next: null
 
 A trader needs market context before making a decision, but a changing number on a screen can be misleading. For developers extending the application’s domain, follow a synthetic quote from publisher to UI and distinguish a fresh observation from a guaranteed execution price.
 
-[How to learn with TraderX states](/docs/learning/how-to-learn)
+[How to learn with TraderX states](/docs/learning/how-to-learn) · [Structured lesson JSON](/learning/contracts/008-pricing-awareness-market-data.json)
 
 **Maturity:** implemented. Run the exercises in a disposable local environment; use the quickstart for setup and cleanup.
 
@@ -74,6 +74,25 @@ Supporting material: [spec](/specs/pricing-awareness-market-data/spec) · [contr
 **Question (`trace-increment`, `interpret-evidence`):** What additional evidence would you require before treating a displayed quote as an execution price?
 
 **Assessment guidance:** A distinct execution record with price and identity. Explain the quote timestamp and the synthetic feed limitation.
+
+### Work with a learning partner
+
+Use the [learning-partner protocol](/docs/learning/how-to-learn#learn-with-an-agent) with a human or an agent. Ask for a prediction before running the exercise, offer one hint at a time, and discuss the assessment guidance after the learner has attempted an explanation.
+
+**Objectives:** `trace-increment`, `interpret-evidence`.
+
+**Check the starting point:** What distinguishes a quote from a record of a trade execution?
+
+**Ask before the experiment:** Predict what you might see if the publisher stops while the UI retains its last price.
+
+**Hints, in order:**
+
+1. Record update timing as well as the displayed number.
+2. Follow the publisher-to-UI route and compare a quote with a separate execution record.
+
+**Misconception to probe (not a fact):** A visible quote is necessarily fresh or guarantees an execution at that price.
+
+**Evidence to ask the learner for:** Ask for two timed quote observations, the pause/resume observation and an explanation of synthetic data and execution boundaries.
 
 ### Scope and limitations
 

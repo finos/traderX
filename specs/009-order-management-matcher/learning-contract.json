@@ -76,5 +76,21 @@
   "limitations": [
     "Cancellation of the remainder does not reverse an already booked fill. Large quantities can produce partial fills under the demonstration policy.",
     "This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode."
+  ],
+  "coaching": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "diagnosticQuestion": "How are requested quantity, filled quantity and remaining quantity related?",
+      "predictionPrompt": "Predict which records should exist for a resting limit order before it receives a qualifying tick.",
+      "hints": [
+        "Start by separating the order identifier from execution identifiers.",
+        "Reconcile requested quantity with filled quantity and the canceled or still-open remainder."
+      ],
+      "misconception": "Creating or canceling an order creates or reverses a trade for the entire requested quantity.",
+      "evidenceToRequest": "Ask for the order lifecycle and quantities plus associated executions/positions, and have the learner explain any partially filled remainder."
+    }
   ]
 }

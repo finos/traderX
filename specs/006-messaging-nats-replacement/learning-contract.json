@@ -76,5 +76,21 @@
   "limitations": [
     "Reconnection establishes a new connection, not proof of recovery of every missed event. Check the configured messaging mode before making delivery claims.",
     "This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode."
+  ],
+  "coaching": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "diagnosticQuestion": "How does an event connect trade submission to the processor in the previous state?",
+      "predictionPrompt": "Predict whether reconnecting a subscriber proves that every event from an outage was recovered.",
+      "hints": [
+        "Trace the event subject and payload rather than stopping at the broker connection.",
+        "Check the configured delivery mode and reconcile the business records for the relevant identifiers."
+      ],
+      "misconception": "Broker connectivity proves replay, exactly-once processing or a completed business result.",
+      "evidenceToRequest": "Ask for the subject/payload route, reconnection evidence and matching persisted trade/position; keep any unobserved outage result unknown."
+    }
   ]
 }

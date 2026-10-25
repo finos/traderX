@@ -12,7 +12,7 @@ pagination_next: null
 
 Copying a ticker between trading, charting and news applications breaks the user’s workflow. This chapter is for developers building desktop interoperability: pass instrument context and request a ticket through Sail, while preserving the distinction between preparing an action and executing it.
 
-[How to learn with TraderX states](/docs/learning/how-to-learn)
+[How to learn with TraderX states](/docs/learning/how-to-learn) · [Structured lesson JSON](/learning/contracts/014-fdc3-intent-interoperability.json)
 
 **Maturity:** implemented. Run the exercises in a disposable local environment; use the quickstart for setup and cleanup.
 
@@ -74,6 +74,25 @@ Supporting material: [spec](/specs/fdc3-intent-interoperability/spec) · [contra
 **Question (`trace-increment`, `interpret-evidence`):** What does a successful Create Trade Ticket intent establish?
 
 **Assessment guidance:** It establishes dispatch and ticket preparation with the expected context. Only a later submission and booking evidence establish a trade; neither proves payment or settlement.
+
+### Work with a learning partner
+
+Use the [learning-partner protocol](/docs/learning/how-to-learn#learn-with-an-agent) with a human or an agent. Ask for a prediction before running the exercise, offer one hint at a time, and discuss the assessment guidance after the learner has attempted an explanation.
+
+**Objectives:** `trace-increment`, `interpret-evidence`.
+
+**Check the starting point:** What is the difference between describing an instrument and requesting an action on it?
+
+**Ask before the experiment:** Predict whether opening a prefilled ticket should create an order or trade.
+
+**Hints, in order:**
+
+1. Inspect the instrument context and the ticket fields before considering submission.
+2. Compare orders/trades before and after opening; distinguish the bare ticker contract from widget-specific symbol translation.
+
+**Misconception to probe (not a fact):** A successfully dispatched intent means an order was submitted or a trade was booked.
+
+**Evidence to ask the learner for:** Ask for the context/ticker, opened ticket type and unchanged order/trade records before submission; explain what dispatch actually establishes.
 
 ### Scope and limitations
 

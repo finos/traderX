@@ -76,5 +76,21 @@
   "limitations": [
     "Missing telemetry can reflect selection, sampling or collection problems. It is not evidence that no trade exists.",
     "This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode."
+  ],
+  "coaching": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "diagnosticQuestion": "What question can a log answer that a service-health indicator cannot?",
+      "predictionPrompt": "Predict what an empty dashboard means when the time range excludes your request.",
+      "hints": [
+        "Check the selected time window and whether the collector received any signals.",
+        "Compare the available logs, metrics and trace with the separately recorded trade identifier."
+      ],
+      "misconception": "Missing telemetry proves that the business action never occurred.",
+      "evidenceToRequest": "Ask for the request time, selected range, available correlated signals and missing spans; distinguish telemetry gaps from absent business records."
+    }
   ]
 }

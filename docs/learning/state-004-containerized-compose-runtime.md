@@ -12,7 +12,7 @@ pagination_next: null
 
 Installing every service runtime by hand makes an application hard to reproduce. For developers familiar with the host-based stack, this chapter packages the same workflow in containers and examines the gap between a process starting and a service being ready.
 
-[How to learn with TraderX states](/docs/learning/how-to-learn)
+[How to learn with TraderX states](/docs/learning/how-to-learn) · [Structured lesson JSON](/learning/contracts/004-containerized-compose-runtime.json)
 
 **Maturity:** implemented. Run the exercises in a disposable local environment; use the quickstart for setup and cleanup.
 
@@ -74,6 +74,25 @@ Supporting material: [spec](/specs/containerized-compose-runtime/spec).
 **Question (`trace-increment`, `interpret-evidence`):** Why can Compose report running while the browser still receives an error?
 
 **Assessment guidance:** Explain readiness and upstream dependencies using the restarted service. Show the later successful read and separately verify any uncertain trade.
+
+### Work with a learning partner
+
+Use the [learning-partner protocol](/docs/learning/how-to-learn#learn-with-an-agent) with a human or an agent. Ask for a prediction before running the exercise, offer one hint at a time, and discuss the assessment guidance after the learner has attempted an explanation.
+
+**Objectives:** `trace-increment`, `interpret-evidence`.
+
+**Check the starting point:** What changes when localhost is evaluated inside a container rather than on your host?
+
+**Ask before the experiment:** Predict what the browser will observe while a restarted backend is running but not yet ready.
+
+**Hints, in order:**
+
+1. Separate container process status from the readiness of its dependencies.
+2. Trace the ingress request to that backend and compare its status before and after readiness returns.
+
+**Misconception to probe (not a fact):** A running container establishes that the complete trading workflow is available.
+
+**Evidence to ask the learner for:** Ask for container/readiness observations, the ingress read result and independent evidence for any uncertain trade.
 
 ### Scope and limitations
 

@@ -76,5 +76,21 @@
   "limitations": [
     "The disposable output change is lost or replaced. Persistent customization belongs in canonical sources or overlays.",
     "This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode."
+  ],
+  "coaching": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "diagnosticQuestion": "Where do durable changes belong when a checkout is generated from canonical sources?",
+      "predictionPrompt": "Predict what regeneration will do to the comment added only to disposable generated output.",
+      "hints": [
+        "Locate the instruction that names the authoritative source of the chosen component.",
+        "Compare that source with the regenerated output and identify which verification command tests behavior."
+      ],
+      "misconception": "Generated instructions guarantee correctness, or an output-only edit becomes a lasting customization.",
+      "evidenceToRequest": "Ask for the source path, before/after generated diff and relevant verification result; distinguish reading an instruction from executing its check."
+    }
   ]
 }

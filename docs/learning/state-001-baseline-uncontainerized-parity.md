@@ -12,7 +12,7 @@ pagination_next: null
 
 When a trader clicks Buy, several services must cooperate before the application can show a new holding. This opening chapter is for developers learning the trading domain: follow that small action through the system and learn which records establish that it happened.
 
-[How to learn with TraderX states](/docs/learning/how-to-learn)
+[How to learn with TraderX states](/docs/learning/how-to-learn) · [Structured lesson JSON](/learning/contracts/001-baseline-uncontainerized-parity.json)
 
 **Maturity:** released. Run the exercises in a disposable local environment; use the quickstart for setup and cleanup.
 
@@ -64,6 +64,25 @@ Supporting material: [spec](/specs/baseline-uncontainerized-parity/spec) · [sys
 **Question (`trace-increment`, `interpret-evidence`):** Why is a successful HTTP request insufficient evidence that the position changed?
 
 **Assessment guidance:** Name the asynchronous processor and persisted result, then show the matching trade and position. Do not infer cash settlement from either.
+
+### Work with a learning partner
+
+Use the [learning-partner protocol](/docs/learning/how-to-learn#learn-with-an-agent) with a human or an agent. Ask for a prediction before running the exercise, offer one hint at a time, and discuss the assessment guidance after the learner has attempted an explanation.
+
+**Objectives:** `trace-increment`, `interpret-evidence`.
+
+**Check the starting point:** What is the difference between a trade and the position shown for an account?
+
+**Ask before the experiment:** Before submitting the buy, predict which records must change and which service will write them.
+
+**Hints, in order:**
+
+1. Begin at the ticket request and identify the next boundary in flow F3.
+2. Follow F4 to the persisted trade and position; compare their identifiers with the submission.
+
+**Misconception to probe (not a fact):** A successful click or HTTP response proves the holding has already changed.
+
+**Evidence to ask the learner for:** Ask for the request result, trade identifier and before/after position, then ask the learner to explain the asynchronous boundary.
 
 ### Scope and limitations
 

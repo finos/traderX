@@ -12,7 +12,7 @@ pagination_next: null
 
 An application that works on Compose still needs service discovery, readiness and ingress when moved to a cluster. This chapter is for developers learning Kubernetes through a familiar workload: keep the order workflow fixed while investigating its new runtime boundaries.
 
-[How to learn with TraderX states](/docs/learning/how-to-learn)
+[How to learn with TraderX states](/docs/learning/how-to-learn) · [Structured lesson JSON](/learning/contracts/010-kubernetes-runtime.json)
 
 **Maturity:** implemented. Run the exercises in a disposable local environment; use the quickstart for setup and cleanup.
 
@@ -74,6 +74,25 @@ Supporting material: [spec](/specs/kubernetes-runtime/spec) · [contract-delta](
 **Question (`trace-increment`, `interpret-evidence`):** Which observations separate a scheduling problem from an application routing problem?
 
 **Assessment guidance:** Use pod events/readiness and Service endpoints, then test ingress and the business result. Explain which boundary each observation tests.
+
+### Work with a learning partner
+
+Use the [learning-partner protocol](/docs/learning/how-to-learn#learn-with-an-agent) with a human or an agent. Ask for a prediction before running the exercise, offer one hint at a time, and discuss the assessment guidance after the learner has attempted an explanation.
+
+**Objectives:** `trace-increment`, `interpret-evidence`.
+
+**Check the starting point:** How did Compose route the retained order workflow, and what does readiness mean?
+
+**Ask before the experiment:** Predict whether healthy pods alone establish that the public ingress route works.
+
+**Hints, in order:**
+
+1. Map ingress to the Service and inspect which ready endpoints it selects.
+2. Use pod events and readiness to separate scheduling trouble from application routing trouble.
+
+**Misconception to probe (not a fact):** Pod health proves end-to-end reachability or correct order processing.
+
+**Evidence to ask the learner for:** Ask for pod/readiness, Service routing and ingress observations plus an order result; require a boundary-by-boundary explanation.
 
 ### Scope and limitations
 

@@ -12,7 +12,7 @@ pagination_next: null
 
 An intention to buy may remain unfulfilled, fill in pieces, or be canceled. For developers moving beyond immediate trade booking, this chapter introduces the order lifecycle and shows why an order’s requested quantity cannot be treated as an executed position.
 
-[How to learn with TraderX states](/docs/learning/how-to-learn)
+[How to learn with TraderX states](/docs/learning/how-to-learn) · [Structured lesson JSON](/learning/contracts/009-order-management-matcher.json)
 
 **Maturity:** implemented. Run the exercises in a disposable local environment; use the quickstart for setup and cleanup.
 
@@ -74,6 +74,25 @@ Supporting material: [spec](/specs/order-management-matcher/spec) · [contract-d
 **Question (`trace-increment`, `interpret-evidence`):** How would you reconcile an order that is partially filled and then canceled?
 
 **Assessment guidance:** Account for filled quantity in executions and positions, and the unfilled remainder in the canceled order. Do not treat the original requested quantity as fully traded.
+
+### Work with a learning partner
+
+Use the [learning-partner protocol](/docs/learning/how-to-learn#learn-with-an-agent) with a human or an agent. Ask for a prediction before running the exercise, offer one hint at a time, and discuss the assessment guidance after the learner has attempted an explanation.
+
+**Objectives:** `trace-increment`, `interpret-evidence`.
+
+**Check the starting point:** How are requested quantity, filled quantity and remaining quantity related?
+
+**Ask before the experiment:** Predict which records should exist for a resting limit order before it receives a qualifying tick.
+
+**Hints, in order:**
+
+1. Start by separating the order identifier from execution identifiers.
+2. Reconcile requested quantity with filled quantity and the canceled or still-open remainder.
+
+**Misconception to probe (not a fact):** Creating or canceling an order creates or reverses a trade for the entire requested quantity.
+
+**Evidence to ask the learner for:** Ask for the order lifecycle and quantities plus associated executions/positions, and have the learner explain any partially filled remainder.
 
 ### Scope and limitations
 

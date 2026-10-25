@@ -11,6 +11,10 @@ test('all existing states, including foundation, satisfy schema and semantics', 
   for (const state of states) assert.deepEqual(validate(read(state), state), [], state.id);
 });
 for (const [name, mutate, pattern] of [
+  ['missing coaching', c => delete c.coaching, /coaching/],
+  ['missing coaching objective', c => c.coaching[0].objectiveIds = ['trace-increment'], /coaching: uncovered/],
+  ['invalid coaching objective', c => c.coaching[0].objectiveIds = ['unknown'], /coaching: dangling/],
+  ['missing graduated hints', c => c.coaching[0].hints = ['Only one hint with sufficient text.'], /hints/],
   ['missing purpose', c => delete c.purpose, /purpose/],
   ['placeholder purpose', c => c.purpose = 'TODO', /purpose/],
   ['repeated placeholders', c => c.purpose = 'TODO TBD TODO TBD TODO TBD', /purpose/],
@@ -69,4 +73,41 @@ test('repository gate rejects missing contracts, stale presentation and broken s
   assert.match(validateLearningContracts(root).join('\n'), /current contract/);
   fs.unlinkSync(path.join(root, baseline.featurePack, 'learning-contract.json'));
   assert.match(validateLearningContracts(root).join('\n'), /learning-contract.json/);
+});
+
+import {learningIndex, validatePublishedLearning} from './learning-publication.mjs';
+test('agent publication preserves lineage, base paths and source revision', () => {
+  const index = learningIndex(states, 'test-revision', '/traderX/');
+  const c3 = index.states.find(s => s.id.startsWith('012'));
+  assert.deepEqual(c3.next, states.filter(s => s.previous.includes(c3.id)).map(s => s.id));
+  assert.equal(index.sourceRevision, 'test-revision');
+  assert.equal(index.schema, '/traderX/learning/contract.schema.json');
+  assert.equal(index.states[0].markdown, '/traderX/docs/learning/state-' + baseline.id + '.md');
+});
+test('agent publication rejects drift, missing destinations and omitted Markdown coaching', t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'learning-publication-test-'));
+  t.after(() => fs.rmSync(root, {recursive:true, force:true}));
+  const write = (name, value) => {const file = path.join(root, name); fs.mkdirSync(path.dirname(file), {recursive:true}); fs.writeFileSync(file, value);};
+  const c = read(baseline), index = learningIndex([baseline], 'revision', '/traderX/');
+  const stem = 'build/docs/learning/state-' + baseline.id;
+  write('catalog/state-catalog.json', JSON.stringify({states:[baseline]}));
+  write('docs/.schema/learning-contract.schema.json', JSON.stringify(schema));
+  write(`${baseline.featurePack}/learning-contract.json`, JSON.stringify(c));
+  write('build/learning/index.json', JSON.stringify(index));
+  write('build/learning/contract.schema.json', JSON.stringify(schema));
+  write(`build/learning/contracts/${baseline.id}.json`, JSON.stringify(c));
+  write('build/docs/learning/how-to-learn.md', '# Protocol');
+  write(stem + '.html', '<h1>Lesson</h1>');
+  write(stem + '.md', renderContract(c, baseline));
+  const validate = () => validatePublishedLearning(root, path.join(root, 'build'), 'revision', '/traderX/');
+  assert.deepEqual(validate(), []);
+  index.sourceRevision = 'stale';
+  write('build/learning/index.json', JSON.stringify(index));
+  assert.match(validate().join('\n'), /agent index.*differs/);
+  write(`build/learning/contracts/${baseline.id}.json`, '{}');
+  assert.match(validate().join('\n'), /001.*differs/);
+  write(stem + '.md', '# Incomplete export');
+  assert.match(validate().join('\n'), /Markdown omits coaching/);
+  fs.unlinkSync(path.join(root, stem + '.html'));
+  assert.match(validate().join('\n'), /missing published HTML/);
 });

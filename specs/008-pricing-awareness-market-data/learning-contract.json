@@ -76,5 +76,21 @@
   "limitations": [
     "A retained value can be stale. This synthetic publisher demonstrates propagation, not the quality or availability of a real market feed.",
     "This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode."
+  ],
+  "coaching": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "diagnosticQuestion": "What distinguishes a quote from a record of a trade execution?",
+      "predictionPrompt": "Predict what you might see if the publisher stops while the UI retains its last price.",
+      "hints": [
+        "Record update timing as well as the displayed number.",
+        "Follow the publisher-to-UI route and compare a quote with a separate execution record."
+      ],
+      "misconception": "A visible quote is necessarily fresh or guarantees an execution at that price.",
+      "evidenceToRequest": "Ask for two timed quote observations, the pause/resume observation and an explanation of synthetic data and execution boundaries."
+    }
   ]
 }

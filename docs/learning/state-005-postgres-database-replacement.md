@@ -12,7 +12,7 @@ pagination_next: null
 
 Changing databases tests how much of an application’s behavior depends on its storage engine. For developers exploring persistence, replace H2 with PostgreSQL and use a trade record to investigate the boundary between application lifetime and stored data.
 
-[How to learn with TraderX states](/docs/learning/how-to-learn)
+[How to learn with TraderX states](/docs/learning/how-to-learn) · [Structured lesson JSON](/learning/contracts/005-postgres-database-replacement.json)
 
 **Maturity:** implemented. Run the exercises in a disposable local environment; use the quickstart for setup and cleanup.
 
@@ -74,6 +74,25 @@ Supporting material: [spec](/specs/postgres-database-replacement/spec) · [contr
 **Question (`trace-increment`, `interpret-evidence`):** What did your restart prove, and what did it leave untested?
 
 **Assessment guidance:** It demonstrated persistence outside the application process. It did not demonstrate backup recovery, production availability or safe destructive volume removal.
+
+### Work with a learning partner
+
+Use the [learning-partner protocol](/docs/learning/how-to-learn#learn-with-an-agent) with a human or an agent. Ask for a prediction before running the exercise, offer one hint at a time, and discuss the assessment guidance after the learner has attempted an explanation.
+
+**Objectives:** `trace-increment`, `interpret-evidence`.
+
+**Check the starting point:** Which process owns the trade record, and which storage survives an application restart?
+
+**Ask before the experiment:** Predict whether restarting only the application should remove the recorded trade.
+
+**Hints, in order:**
+
+1. Find the PostgreSQL connection target and the Compose storage mapping.
+2. Compare an application restart with deleting the database volume; identify the different persistence boundaries.
+
+**Misconception to probe (not a fact):** Surviving one restart establishes backup recovery or protects data after deleting storage.
+
+**Evidence to ask the learner for:** Ask for the recorded trade identifier before and after restart, the connection target and an explanation of what remains untested.
 
 ### Scope and limitations
 

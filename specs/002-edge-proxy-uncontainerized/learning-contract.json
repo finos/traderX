@@ -75,5 +75,21 @@
   "limitations": [
     "Routing and business processing fail at different boundaries. A live HTTP endpoint does not establish a healthy event path.",
     "This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode."
+  ],
+  "coaching": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "diagnosticQuestion": "How did the baseline browser find each backend, and what constitutes an origin?",
+      "predictionPrompt": "Predict whether a successful account request establishes that streaming updates will also work.",
+      "hints": [
+        "Compare the browser-visible host and path for the REST and streaming connections.",
+        "Inspect the WebSocket handshake and its upstream route separately from a normal REST response."
+      ],
+      "misconception": "One working route proves every connection through the proxy is healthy.",
+      "evidenceToRequest": "Ask for the two observed connection paths and handshake/result, and an explanation of the corresponding upstream services."
+    }
   ]
 }

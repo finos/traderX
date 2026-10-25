@@ -12,7 +12,7 @@ pagination_next: null
 
 Before branching into more integrations, establish what the platform actually contains. This chapter is for developers extending C3: gather functional and platform evidence together so that a reusable checkpoint means more than a collection of healthy containers.
 
-[How to learn with TraderX states](/docs/learning/how-to-learn)
+[How to learn with TraderX states](/docs/learning/how-to-learn) · [Structured lesson JSON](/learning/contracts/012-platform-convergence-c3.json)
 
 **Maturity:** implemented. Run the exercises in a disposable local environment; use the quickstart for setup and cleanup.
 
@@ -75,6 +75,25 @@ Supporting material: [spec](/specs/platform-convergence-c3/spec) · [contract-de
 **Question (`trace-increment`, `interpret-evidence`):** Why is state 009 shown as a dotted parent when state 011 is the declared predecessor?
 
 **Assessment guidance:** C2 supplies retained functional knowledge through 010 and 011; 011 is the actual generation lineage. Demonstrate both functional and platform behavior, without inventing a separate merge.
+
+### Work with a learning partner
+
+Use the [learning-partner protocol](/docs/learning/how-to-learn#learn-with-an-agent) with a human or an agent. Ask for a prediction before running the exercise, offer one hint at a time, and discuss the assessment guidance after the learner has attempted an explanation.
+
+**Objectives:** `trace-increment`, `interpret-evidence`.
+
+**Check the starting point:** Which C2 capabilities arrive through states 010 and 011, and what did those states add?
+
+**Ask before the experiment:** Predict whether a passing order check alone is enough to establish the C3 platform checkpoint.
+
+**Hints, in order:**
+
+1. List functional evidence and platform evidence separately for one snapshot.
+2. Check the image source and platform before interpreting startup speed or differences from local edits.
+
+**Misconception to probe (not a fact):** The dotted C2 relationship is a separate generation parent, or one healthy layer proves the whole checkpoint.
+
+**Evidence to ask the learner for:** Ask for the snapshot/image source, retained order and telemetry observations, and Kubernetes/Tilt assets; explain the actual 011 lineage.
 
 ### Scope and limitations
 

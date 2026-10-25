@@ -76,5 +76,21 @@
   "limitations": [
     "Ticket navigation must not silently book a trade. Widget-specific symbol translation is separate from the canonical fdc3.instrument payload.",
     "This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode."
+  ],
+  "coaching": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "diagnosticQuestion": "What is the difference between describing an instrument and requesting an action on it?",
+      "predictionPrompt": "Predict whether opening a prefilled ticket should create an order or trade.",
+      "hints": [
+        "Inspect the instrument context and the ticket fields before considering submission.",
+        "Compare orders/trades before and after opening; distinguish the bare ticker contract from widget-specific symbol translation."
+      ],
+      "misconception": "A successfully dispatched intent means an order was submitted or a trade was booked.",
+      "evidenceToRequest": "Ask for the context/ticker, opened ticket type and unchanged order/trade records before submission; explain what dispatch actually establishes."
+    }
   ]
 }
