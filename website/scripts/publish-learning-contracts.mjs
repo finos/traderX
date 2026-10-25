@@ -1,0 +1,17 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+import {learningIndex} from '../../pipeline/learning-publication.mjs';
+import {validateLearningContracts} from '../../pipeline/validate-learning-contract.mjs';
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const errors = validateLearningContracts(root);
+if (errors.length) throw new Error(errors.join('\n'));
+const {states} = JSON.parse(fs.readFileSync(path.join(root, 'catalog/state-catalog.json')));
+const sourceRevision = process.env.COMMIT_REF || execFileSync('git', ['rev-parse', 'HEAD'], {cwd: root, encoding:'utf8'}).trim();
+const target = path.join(root, 'website/build/learning');
+fs.mkdirSync(path.join(target, 'contracts'), {recursive:true});
+fs.copyFileSync(path.join(root, 'docs/.schema/learning-contract.schema.json'), path.join(target, 'contract.schema.json'));
+for (const state of states) fs.copyFileSync(path.join(root, state.featurePack, 'learning-contract.json'), path.join(target, 'contracts', state.id + '.json'));
+fs.writeFileSync(path.join(target, 'index.json'), JSON.stringify(learningIndex(states, sourceRevision, process.env.DOCUSAURUS_BASE_URL), null, 2) + '\n');
+console.log(`[ok] Published ${states.length} canonical learning contracts, schema and revisioned agent index`);

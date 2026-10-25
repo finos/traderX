@@ -52,6 +52,7 @@ module.exports = {
             'spec-kit/spec-kit-generation-guide',
             'spec-kit/spec-kit-workflow',
             'spec-kit/state-docs',
+            'spec-kit/learning-contract',
             'spec-kit/live-environments',
             'spec-kit/convergence-states',
             'spec-kit/generated-state-branches',
@@ -101,9 +102,10 @@ module.exports = {
     },
     {
       type: 'category',
-      label: 'Learning Paths',
+      label: 'Learning Guide',
+      link: {type: 'doc', id: 'learning/index'},
       items: [
-        'learning/index',
+        'learning/how-to-learn',
         'learning/state-001-baseline-uncontainerized-parity',
         'learning/state-002-edge-proxy-uncontainerized',
         'learning/state-003-agentic-harness-foundation',

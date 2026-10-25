@@ -1,8 +1,104 @@
 ---
 title: "State 006: Messaging Layer Replacement with NATS"
+pagination_prev: null
+pagination_next: null
 ---
 
 # State 006 Learning Guide
+
+<!-- Generated from specs/006-messaging-nats-replacement/learning-contract.json; edit the source. -->
+
+## Separate messaging semantics from transport
+
+A messaging replacement changes more than a connection string. For developers who understand the booking flow, this chapter follows that flow through NATS and asks what publishing, reconnecting and recording a business result each establish.
+
+[How to learn with TraderX states](/docs/learning/how-to-learn) · [Structured lesson JSON](/learning/contracts/006-messaging-nats-replacement.json)
+
+**Maturity:** implemented. Run the exercises in a disposable local environment; use the quickstart for setup and cleanup.
+
+### Starting point
+
+The PostgreSQL state still uses the earlier messaging transport.
+
+Entry route: **combined**. Bring the knowledge from every declared predecessor.
+
+#### From 005-postgres-database-replacement
+
+[Predecessor guide](/docs/learning/state-005-postgres-database-replacement)
+
+- **Carry forward:** Move persistence to PostgreSQL while retaining account, trade and position behavior.
+- **Why move:** The PostgreSQL state still uses the earlier messaging transport.
+- **Add or revise:** Replace internal messaging with NATS while preserving the trade-to-position workflow.
+- **Evidence to collect:** NATS carries the internal event while the business result remains recognizable. Subject names and payload fields determine interoperability. Reconnection establishes a new connection, not proof of recovery of every missed event. Check the configured messaging mode before making delivery claims.
+- **Objectives:** `trace-increment`, `interpret-evidence`
+
+| Before | After |
+| --- | --- |
+| The PostgreSQL state still uses the earlier messaging transport. | Replace internal messaging with NATS while preserving the trade-to-position workflow. |
+
+### Concepts before tools
+
+- A subject names an event channel. Publishing, receiving and committing a business change are separate events; transport availability alone does not guarantee replay or exactly-once processing.
+
+**Runtime prerequisites:** Use the state quickstart for tool versions, generation, start and stop commands. Run one local state at a time because ports and generated output directories are shared.
+
+### Learning objectives
+
+- **trace-increment:** Trace a trade’s subject and payload from publisher to subscriber and reconcile its persisted business result.
+- **interpret-evidence:** Explain the evidence boundary: Reconnection establishes a new connection, not proof of recovery of every missed event. Check the configured messaging mode before making delivery claims.
+
+### Guided walkthrough
+
+#### 1. observe (available)
+
+Objectives: `trace-increment`.
+
+Start this state, run the quickstart smoke checks, and trace one small trade through the messaging subject map and publisher/subscriber code. Record the trade identifier in the resulting trade and position views.
+
+**Expected observation and meaning:** NATS carries the internal event while the business result remains recognizable. Subject names and payload fields determine interoperability.
+
+Supporting material: [quickstart](/specs/messaging-nats-replacement/quickstart) · [architecture](/specs/messaging-nats-replacement/system/architecture) · [runtime-topology](/specs/messaging-nats-replacement/system/runtime-topology).
+
+#### 2. challenge (available)
+
+Objectives: `interpret-evidence`.
+
+In a disposable demo, restart the NATS service identified in Compose and observe subscriber reconnection. Compare a trade submitted after recovery with prior records; do not assume events sent during an outage are replayed.
+
+**Expected observation and meaning:** Reconnection establishes a new connection, not proof of recovery of every missed event. Check the configured messaging mode before making delivery claims.
+
+Supporting material: [spec](/specs/messaging-nats-replacement/spec) · [contract-delta](/specs/messaging-nats-replacement/contracts/contract-delta).
+
+### Demonstrate your understanding
+
+**Question (`trace-increment`, `interpret-evidence`):** What evidence distinguishes broker recovery from business recovery?
+
+**Assessment guidance:** Show the connection returning and separately reconcile the relevant trade identifiers and positions. State the configured delivery limitations.
+
+### Work with a learning partner
+
+Use the [learning-partner protocol](/docs/learning/how-to-learn#learn-with-an-agent) with a human or an agent. Ask for a prediction before running the exercise, offer one hint at a time, and discuss the assessment guidance after the learner has attempted an explanation.
+
+**Objectives:** `trace-increment`, `interpret-evidence`.
+
+**Check the starting point:** How does an event connect trade submission to the processor in the previous state?
+
+**Ask before the experiment:** Predict whether reconnecting a subscriber proves that every event from an outage was recovered.
+
+**Hints, in order:**
+
+1. Trace the event subject and payload rather than stopping at the broker connection.
+2. Check the configured delivery mode and reconcile the business records for the relevant identifiers.
+
+**Misconception to probe (not a fact):** Broker connectivity proves replay, exactly-once processing or a completed business result.
+
+**Evidence to ask the learner for:** Ask for the subject/payload route, reconnection evidence and matching persisted trade/position; keep any unobserved outage result unknown.
+
+### Scope and limitations
+
+- Reconnection establishes a new connection, not proof of recovery of every missed event. Check the configured messaging mode before making delivery claims.
+- This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode.
+
 
 ## Position In Learning Graph
 

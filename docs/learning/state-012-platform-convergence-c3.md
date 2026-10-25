@@ -1,8 +1,105 @@
 ---
 title: "State 012: Platform Convergence C3"
+pagination_prev: null
+pagination_next: null
 ---
 
 # State 012 Learning Guide
+
+<!-- Generated from specs/012-platform-convergence-c3/learning-contract.json; edit the source. -->
+
+## Establish a reusable platform checkpoint
+
+Before branching into more integrations, establish what the platform actually contains. This chapter is for developers extending C3: gather functional and platform evidence together so that a reusable checkpoint means more than a collection of healthy containers.
+
+[How to learn with TraderX states](/docs/learning/how-to-learn) · [Structured lesson JSON](/learning/contracts/012-platform-convergence-c3.json)
+
+**Maturity:** implemented. Run the exercises in a disposable local environment; use the quickstart for setup and cleanup.
+
+### Starting point
+
+Tilt supplies the local Kubernetes loop and carries the earlier C2 trading capabilities.
+
+Entry route: **combined**. Bring the knowledge from every declared predecessor.
+
+#### From 011-tilt-kubernetes-dev-loop
+
+[Predecessor guide](/docs/learning/state-011-tilt-kubernetes-dev-loop)
+
+- **Carry forward:** Use Tilt to orchestrate the local Kubernetes development loop.
+- **Why move:** Tilt supplies the local Kubernetes loop and carries the earlier C2 trading capabilities.
+- **Add or revise:** Treat C3 as a combined platform and functional checkpoint for subsequent branches.
+- **Evidence to collect:** C3 combines the C2 order/pricing/observability knowledge carried through states 010 and 011 with the development platform. One successful layer is not sufficient to establish the checkpoint. Published images can differ from local edits and may use emulation on Apple Silicon. Startup timing alone is not a functional regression verdict.
+- **Objectives:** `trace-increment`, `interpret-evidence`
+
+| Before | After |
+| --- | --- |
+| Tilt supplies the local Kubernetes loop and carries the earlier C2 trading capabilities. | Treat C3 as a combined platform and functional checkpoint for subsequent branches. |
+
+### Concepts before tools
+
+- Convergence records a compatible combination of capabilities. A dotted relationship records retained context; it is not automatically a second generation parent.
+- State 011 is the required incoming route. The dotted state 009 relationship highlights retained C2 knowledge already carried through states 010 and 011; it is not an alternative entry route that bypasses Kubernetes and Tilt.
+
+**Runtime prerequisites:** Use the state quickstart for tool versions, generation, start and stop commands. Run one local state at a time because ports and generated output directories are shared.
+
+### Learning objectives
+
+- **trace-increment:** Demonstrate the retained C2 order behavior and C3 platform assets for the same generated snapshot.
+- **interpret-evidence:** Explain the evidence boundary: Published images can differ from local edits and may use emulation on Apple Silicon. Startup timing alone is not a functional regression verdict.
+
+### Guided walkthrough
+
+#### 1. observe (available)
+
+Objectives: `trace-increment`.
+
+Start C3 using the kind quickstart and run its smoke test. Exercise a small order and inspect its telemetry, then inspect the generated Kubernetes and Tilt assets. Record both business and platform evidence for the same snapshot.
+
+**Expected observation and meaning:** C3 combines the C2 order/pricing/observability knowledge carried through states 010 and 011 with the development platform. One successful layer is not sufficient to establish the checkpoint.
+
+Supporting material: [quickstart](/specs/platform-convergence-c3/quickstart) · [architecture](/specs/platform-convergence-c3/system/architecture) · [runtime-topology](/specs/platform-convergence-c3/system/runtime-topology).
+
+#### 2. challenge (available)
+
+Objectives: `interpret-evidence`.
+
+Compare the published-image and local-build procedures in the quickstart. Record the selected image source and target platform before interpreting a slow startup or an unexpected UI version.
+
+**Expected observation and meaning:** Published images can differ from local edits and may use emulation on Apple Silicon. Startup timing alone is not a functional regression verdict.
+
+Supporting material: [spec](/specs/platform-convergence-c3/spec) · [contract-delta](/specs/platform-convergence-c3/contracts/contract-delta).
+
+### Demonstrate your understanding
+
+**Question (`trace-increment`, `interpret-evidence`):** Why is state 009 shown as a dotted parent when state 011 is the declared predecessor?
+
+**Assessment guidance:** C2 supplies retained functional knowledge through 010 and 011; 011 is the actual generation lineage. Demonstrate both functional and platform behavior, without inventing a separate merge.
+
+### Work with a learning partner
+
+Use the [learning-partner protocol](/docs/learning/how-to-learn#learn-with-an-agent) with a human or an agent. Ask for a prediction before running the exercise, offer one hint at a time, and discuss the assessment guidance after the learner has attempted an explanation.
+
+**Objectives:** `trace-increment`, `interpret-evidence`.
+
+**Check the starting point:** Which C2 capabilities arrive through states 010 and 011, and what did those states add?
+
+**Ask before the experiment:** Predict whether a passing order check alone is enough to establish the C3 platform checkpoint.
+
+**Hints, in order:**
+
+1. List functional evidence and platform evidence separately for one snapshot.
+2. Check the image source and platform before interpreting startup speed or differences from local edits.
+
+**Misconception to probe (not a fact):** The dotted C2 relationship is a separate generation parent, or one healthy layer proves the whole checkpoint.
+
+**Evidence to ask the learner for:** Ask for the snapshot/image source, retained order and telemetry observations, and Kubernetes/Tilt assets; explain the actual 011 lineage.
+
+### Scope and limitations
+
+- Published images can differ from local edits and may use emulation on Apple Silicon. Startup timing alone is not a functional regression verdict.
+- This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode.
+
 
 ## Position In Learning Graph
 

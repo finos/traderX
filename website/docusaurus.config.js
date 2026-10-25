@@ -63,6 +63,8 @@ module.exports = {
   },
   themes: ['@docusaurus/theme-mermaid'],
   themeConfig: {
+    // Diagrams are repository-authored; enable their declared learning links.
+    mermaid: {options: {securityLevel: 'loose'}},
     navbar: {
       title: `TraderX`,
       logo: {
@@ -75,7 +77,7 @@ module.exports = {
         {to: '/specs', label: 'Specs', position: 'right'},
         {to: '/docs/spec-kit/state-docs', label: 'State Docs', position: 'right'},
         {to: '/docs/adr', label: 'ADRs', position: 'right'},
-        {to: '/docs/learning', label: 'Learning', position: 'right'},
+        {to: '/docs/learning', label: 'Learning Guide', position: 'right'},
         {type: 'search', position: 'right'},
         {
           href: repoUrl,
@@ -194,7 +196,7 @@ module.exports = {
         routeBasePath: 'specs',
         sidebarPath: require.resolve('./traderspec-root-specs.sidebars.js'),
         sidebarItemsGenerator: require('./plugins/specs-sidebar-items-generator'),
-        remarkPlugins: [require('./plugins/remark-speckit-reference-links')],
+        remarkPlugins: [require('./plugins/remark-learning-return'), require('./plugins/remark-speckit-reference-links')],
         include: ['**/*.md'],
         editUrl: 'https://github.com/finos/traderX/edit/main/specs/',
       },
