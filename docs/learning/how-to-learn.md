@@ -32,7 +32,7 @@ The numbers identify states; they do not determine prerequisites or rank archite
 
 For each experiment, write four sentences: “I expected…”, “I observed…”, “This establishes…”, and “This does not establish…”. Add the state, source revision and identifiers needed to reproduce the observation. This makes the progression cumulative without repeating every earlier chapter.
 
-A booked trade, a cash-payment instruction, a payment response and settlement are different facts. A ticket opening does not submit a trade. A request being accepted does not mean the operation completed. A future payment lesson must introduce these distinctions before an external application or blockchain mechanism and explain exactly which evidence supports requested, pending, rejected or confirmed outcomes.
+A ticket opening does not submit a trade, and an order is not a fill. A request being accepted does not mean the operation completed. Use the current chapter’s observations to distinguish preparation, submission and the recorded business result.
 
 ## Read maturity honestly
 

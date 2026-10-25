@@ -51,7 +51,3 @@ Before accepting a chapter, a reviewer must:
 - Navigate homepage → Learning Guide → state → walkthrough → system material, then system material → the same guide → predecessor/next state, in the preview.
 
 Keep review results and PR-specific evaluation reports in GitHub, outside the published learning portal. These checks cannot be replaced by automation. Runtime maturity does not imply that a newly written lesson has already been manually reviewed.
-
-## Future payment and settlement chapter
-
-State 016 is not yet in the current catalog. When adding it, derive its predecessor from the catalog rather than hard-coding an assumed route. Begin with obligations remaining after trade booking. Explain a cash-payment instruction and cross-application workflow, then requested, pending, rejected and confirmed responses. Only then introduce BankerX or an optional blockchain mechanism. Require a traceable instruction and evidence for the reported outcome; a ledger transaction or green UI indicator alone must not be presented as proof of complete settlement. Apply the same schema and review criteria as every other state.
