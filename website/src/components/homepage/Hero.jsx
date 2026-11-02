@@ -73,6 +73,9 @@ export default function Hero() {
           </p>
 
           <div className={styles.heroActions}>
+            <Link to="/docs/learning" className={styles.primaryAction}>
+              Learning Guide
+            </Link>
             <Link to={catalogSource.liveEnvironmentsDocs} className={styles.primaryAction}>
               Live Demos
             </Link>

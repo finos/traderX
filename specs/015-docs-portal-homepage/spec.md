@@ -89,3 +89,27 @@ Then the control exposes an accessible label and visible focus state that identi
 - SC-01505: The homepage footer accurately names `catalog/state-catalog.json` as the source for the state list.
 - SC-01506: The visual learning graph route is reachable from the hero Knowledge Graph link.
 - SC-01507: The SDD section includes a core requirements example, an internal overlay example, and copy that connects generated demos back to reviewed specs.
+
+## Incremental Learning Guide (issue 476)
+
+- FR-01522: The homepage and main navigation SHALL expose a first-class Learning Guide using the existing index and visual paths. Every diagram state SHALL open its single canonical learning guide.
+- FR-01523: Every catalog state SHALL own a structured learning contract explaining purpose, entry assumptions, all incoming transitions, concepts, objectives, mapped walkthroughs, assessments and limitations. Catalog lineage SHALL govern predecessor and onward links.
+- FR-01524: The documentation generator SHALL render contracts before implementation reference details. Every state-specific technical page SHALL link back to the corresponding learning guide.
+- FR-01525: Local coverage and PR CI SHALL reject incomplete contracts, dangling references, stale generated guides and incomplete objective coverage, without legacy exemptions. The website build SHALL verify both learning-to-system and system-to-learning journeys in rendered output.
+- FR-01526: Planned states SHALL mark exercises unavailable. Human review SHALL verify runnable implemented lessons and the evidence supporting their claims; automated structure validation SHALL NOT be presented as instructional review.
+
+### Acceptance scenarios
+
+1. A learner follows homepage → index → state → experiment → architecture and returns to the same chapter, then follows its declared predecessor or onward route.
+2. Removing a purpose, parent transition, objective mapping or assessment guidance fails coverage with the affected state and corrective source path.
+3. Baseline entry has no invented predecessor; a multi-parent contract covers every parent and declares combined or alternative entry.
+4. A technical page nested within a catalog state exposes the same return link as its overview.
+
+### Human and agent learning partners
+
+- FR-01527: Every current state lesson SHALL support both independent human study and agent-assisted learning through a single canonical contract, with objective-mapped diagnostic questions, prediction prompts, graduated hints, misconceptions and evidence requests.
+- FR-01528: The portal SHALL publish discoverable Markdown guides, exact JSON contracts, their schema, and a catalog-derived index containing source revision, maturity, lineage, onward paths and same-site guide/contract links. These surfaces SHALL be usable without executing browser JavaScript.
+- FR-01529: Shared learning-partner guidance SHALL require prerequisite checks, learner participation, progressive help, evidence-grounded assessment and a resumable progress note. It SHALL distinguish intended behavior, reported observations, inspected results and inference; unavailable runtime evidence SHALL remain unverified. It SHALL NOT grant agents blanket command-execution authority.
+- FR-01530: Coverage and build gates SHALL reject missing coaching, invalid objective mappings, divergent published contracts and broken agent discovery destinations. Human review SHALL assess the usefulness of hints and misconception handling, not infer teaching quality from schema validation.
+
+Acceptance: an agent starting from the learning index can select a current state, retrieve its lesson without browser execution, ask a diagnostic and prediction question, offer hints after an attempt, assess observed evidence against stable objectives, cite supporting sources and hand off the learner’s progress. A missing runtime must result in an explicitly unverified exercise. Scope remains the current live-site states 001–014; state 016 is separate.

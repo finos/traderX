@@ -1,0 +1,300 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TraderX incremental learning contract",
+  "type": "object",
+  "required": [
+    "version",
+    "state",
+    "title",
+    "purpose",
+    "entryAssumptions",
+    "concepts",
+    "runtimePrerequisites",
+    "entryMode",
+    "transitions",
+    "before",
+    "after",
+    "objectives",
+    "walkthrough",
+    "assessments",
+    "limitations",
+    "coaching"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "state": {
+      "type": "string",
+      "pattern": "^[0-9]{3}-[a-z0-9-]+$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 8
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 20,
+      "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+    },
+    "entryAssumptions": {
+      "type": "string",
+      "minLength": 20,
+      "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+    },
+    "concepts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 20,
+        "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+      }
+    },
+    "runtimePrerequisites": {
+      "type": "string",
+      "minLength": 20,
+      "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+    },
+    "entryMode": {
+      "enum": [
+        "foundation",
+        "combined",
+        "alternative"
+      ]
+    },
+    "transitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "from",
+          "carriesForward",
+          "motivation",
+          "increment",
+          "objectiveIds",
+          "evidence"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "from": {
+            "type": "string"
+          },
+          "carriesForward": {
+            "type": "string",
+            "minLength": 20,
+            "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+          },
+          "motivation": {
+            "type": "string",
+            "minLength": 20,
+            "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+          },
+          "increment": {
+            "type": "string",
+            "minLength": 20,
+            "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+          },
+          "objectiveIds": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]*$"
+            }
+          },
+          "evidence": {
+            "type": "string",
+            "minLength": 20,
+            "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+          }
+        }
+      }
+    },
+    "before": {
+      "type": "string",
+      "minLength": 20,
+      "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+    },
+    "after": {
+      "type": "string",
+      "minLength": 20,
+      "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+    },
+    "objectives": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "outcome"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "outcome": {
+            "type": "string",
+            "minLength": 20,
+            "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+          }
+        }
+      }
+    },
+    "walkthrough": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "objectiveIds",
+          "availability",
+          "action",
+          "expected",
+          "references"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "objectiveIds": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]*$"
+            }
+          },
+          "availability": {
+            "enum": [
+              "available",
+              "unavailable"
+            ]
+          },
+          "action": {
+            "type": "string",
+            "minLength": 20,
+            "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+          },
+          "expected": {
+            "type": "string",
+            "minLength": 20,
+            "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+          },
+          "references": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "pattern": "^/specs/[a-z0-9/-]+(?:#[a-z0-9-]+)?$"
+            }
+          }
+        }
+      }
+    },
+    "assessments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "objectiveIds",
+          "question",
+          "guidance"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "objectiveIds": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]*$"
+            }
+          },
+          "question": {
+            "type": "string",
+            "minLength": 20,
+            "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+          },
+          "guidance": {
+            "type": "string",
+            "minLength": 20,
+            "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+          }
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 20,
+        "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+      }
+    },
+    "coaching": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "objectiveIds",
+          "diagnosticQuestion",
+          "predictionPrompt",
+          "hints",
+          "misconception",
+          "evidenceToRequest"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "objectiveIds": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]*$"
+            }
+          },
+          "diagnosticQuestion": {
+            "type": "string",
+            "minLength": 20,
+            "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+          },
+          "predictionPrompt": {
+            "type": "string",
+            "minLength": 20,
+            "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+          },
+          "hints": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "string",
+              "minLength": 20,
+              "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+            }
+          },
+          "misconception": {
+            "type": "string",
+            "minLength": 20,
+            "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+          },
+          "evidenceToRequest": {
+            "type": "string",
+            "minLength": 20,
+            "pattern": "^(?!\\s*(?:(?:TODO|TBD|placeholder|coming soon|n/a)[\\s.!;,/-]*)+$)\\S[\\s\\S]*"
+          }
+        }
+      }
+    }
+  }
+}

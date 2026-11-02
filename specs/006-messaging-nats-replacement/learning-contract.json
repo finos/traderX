@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "state": "006-messaging-nats-replacement",
+  "title": "Separate messaging semantics from transport",
+  "purpose": "A messaging replacement changes more than a connection string. For developers who understand the booking flow, this chapter follows that flow through NATS and asks what publishing, reconnecting and recording a business result each establish.",
+  "entryAssumptions": "The PostgreSQL state still uses the earlier messaging transport.",
+  "concepts": [
+    "A subject names an event channel. Publishing, receiving and committing a business change are separate events; transport availability alone does not guarantee replay or exactly-once processing."
+  ],
+  "runtimePrerequisites": "Use the state quickstart for tool versions, generation, start and stop commands. Run one local state at a time because ports and generated output directories are shared.",
+  "entryMode": "combined",
+  "transitions": [
+    {
+      "from": "005-postgres-database-replacement",
+      "carriesForward": "Move persistence to PostgreSQL while retaining account, trade and position behavior.",
+      "motivation": "The PostgreSQL state still uses the earlier messaging transport.",
+      "increment": "Replace internal messaging with NATS while preserving the trade-to-position workflow.",
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "evidence": "NATS carries the internal event while the business result remains recognizable. Subject names and payload fields determine interoperability. Reconnection establishes a new connection, not proof of recovery of every missed event. Check the configured messaging mode before making delivery claims."
+    }
+  ],
+  "before": "The PostgreSQL state still uses the earlier messaging transport.",
+  "after": "Replace internal messaging with NATS while preserving the trade-to-position workflow.",
+  "objectives": [
+    {
+      "id": "trace-increment",
+      "outcome": "Trace a trade\u2019s subject and payload from publisher to subscriber and reconcile its persisted business result."
+    },
+    {
+      "id": "interpret-evidence",
+      "outcome": "Explain the evidence boundary: Reconnection establishes a new connection, not proof of recovery of every missed event. Check the configured messaging mode before making delivery claims."
+    }
+  ],
+  "walkthrough": [
+    {
+      "id": "observe",
+      "objectiveIds": [
+        "trace-increment"
+      ],
+      "availability": "available",
+      "action": "Start this state, run the quickstart smoke checks, and trace one small trade through the messaging subject map and publisher/subscriber code. Record the trade identifier in the resulting trade and position views.",
+      "expected": "NATS carries the internal event while the business result remains recognizable. Subject names and payload fields determine interoperability.",
+      "references": [
+        "/specs/messaging-nats-replacement/quickstart",
+        "/specs/messaging-nats-replacement/system/architecture",
+        "/specs/messaging-nats-replacement/system/runtime-topology"
+      ]
+    },
+    {
+      "id": "challenge",
+      "objectiveIds": [
+        "interpret-evidence"
+      ],
+      "availability": "available",
+      "action": "In a disposable demo, restart the NATS service identified in Compose and observe subscriber reconnection. Compare a trade submitted after recovery with prior records; do not assume events sent during an outage are replayed.",
+      "expected": "Reconnection establishes a new connection, not proof of recovery of every missed event. Check the configured messaging mode before making delivery claims.",
+      "references": [
+        "/specs/messaging-nats-replacement/spec",
+        "/specs/messaging-nats-replacement/contracts/contract-delta"
+      ]
+    }
+  ],
+  "assessments": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "question": "What evidence distinguishes broker recovery from business recovery?",
+      "guidance": "Show the connection returning and separately reconcile the relevant trade identifiers and positions. State the configured delivery limitations."
+    }
+  ],
+  "limitations": [
+    "Reconnection establishes a new connection, not proof of recovery of every missed event. Check the configured messaging mode before making delivery claims.",
+    "This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode."
+  ],
+  "coaching": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "diagnosticQuestion": "How does an event connect trade submission to the processor in the previous state?",
+      "predictionPrompt": "Predict whether reconnecting a subscriber proves that every event from an outage was recovered.",
+      "hints": [
+        "Trace the event subject and payload rather than stopping at the broker connection.",
+        "Check the configured delivery mode and reconcile the business records for the relevant identifiers."
+      ],
+      "misconception": "Broker connectivity proves replay, exactly-once processing or a completed business result.",
+      "evidenceToRequest": "Ask for the subject/payload route, reconnection evidence and matching persisted trade/position; keep any unobserved outage result unknown."
+    }
+  ]
+}

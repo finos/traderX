@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "state": "003-agentic-harness-foundation",
+  "title": "Make an agent work within an explicit contract",
+  "purpose": "A working application is difficult to change safely when its conventions live only in a contributor\u2019s memory. This chapter is for developers introducing agent-assisted changes: make the source of authority and the verification process explicit, then test whether an edit survives generation.",
+  "entryAssumptions": "The edge-proxied application works, but a contributor must reconstruct conventions from code.",
+  "concepts": [
+    "An agent harness is the instructions and verification environment around an agent. Generated files are outputs; changing an output alone does not change the next generation."
+  ],
+  "runtimePrerequisites": "Use the state quickstart for tool versions, generation, start and stop commands. Run one local state at a time because ports and generated output directories are shared.",
+  "entryMode": "combined",
+  "transitions": [
+    {
+      "from": "002-edge-proxy-uncontainerized",
+      "carriesForward": "Route UI, REST and streaming traffic through one NGINX edge while retaining the baseline business flow.",
+      "motivation": "The edge-proxied application works, but a contributor must reconstruct conventions from code.",
+      "increment": "Add generated instructions, architecture context and contributor guidance for repeatable agent-assisted work.",
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "evidence": "The harness connects a proposed change to its authority and verification. Its value is a reproducible workflow, not a claim that the agent is correct. The disposable output change is lost or replaced. Persistent customization belongs in canonical sources or overlays."
+    }
+  ],
+  "before": "The edge-proxied application works, but a contributor must reconstruct conventions from code.",
+  "after": "Add generated instructions, architecture context and contributor guidance for repeatable agent-assisted work.",
+  "objectives": [
+    {
+      "id": "trace-increment",
+      "outcome": "Locate the canonical source and verification command for a proposed change, and explain why an output-only edit is not durable."
+    },
+    {
+      "id": "interpret-evidence",
+      "outcome": "Explain the evidence boundary: The disposable output change is lost or replaced. Persistent customization belongs in canonical sources or overlays."
+    }
+  ],
+  "walkthrough": [
+    {
+      "id": "observe",
+      "objectiveIds": [
+        "trace-increment"
+      ],
+      "availability": "available",
+      "action": "Generate this state and inspect generated/code/target-generated/AGENTS.md, ARCHITECTURE.md and CONTRIBUTING.md. Pick the trade request path and locate its source contract, implementation and documented verification command.",
+      "expected": "The harness connects a proposed change to its authority and verification. Its value is a reproducible workflow, not a claim that the agent is correct.",
+      "references": [
+        "/specs/agentic-harness-foundation/quickstart",
+        "/specs/agentic-harness-foundation/system/architecture",
+        "/specs/agentic-harness-foundation/system/runtime-topology"
+      ]
+    },
+    {
+      "id": "challenge",
+      "objectiveIds": [
+        "interpret-evidence"
+      ],
+      "availability": "available",
+      "action": "In a disposable generated checkout, add a comment to an output file, regenerate from unchanged sources, and compare the result. Keep this experiment separate from authored changes.",
+      "expected": "The disposable output change is lost or replaced. Persistent customization belongs in canonical sources or overlays.",
+      "references": [
+        "/specs/agentic-harness-foundation/spec",
+        "/specs/agentic-harness-foundation/contracts/contract-delta"
+      ]
+    }
+  ],
+  "assessments": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "question": "Where would you make a durable behavior change, and what evidence would you request from an agent?",
+      "guidance": "Identify the canonical spec/template or overlay and a relevant behavior check. Generated instructions cannot substitute for the check result."
+    }
+  ],
+  "limitations": [
+    "The disposable output change is lost or replaced. Persistent customization belongs in canonical sources or overlays.",
+    "This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode."
+  ],
+  "coaching": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "diagnosticQuestion": "Where do durable changes belong when a checkout is generated from canonical sources?",
+      "predictionPrompt": "Predict what regeneration will do to the comment added only to disposable generated output.",
+      "hints": [
+        "Locate the instruction that names the authoritative source of the chosen component.",
+        "Compare that source with the regenerated output and identify which verification command tests behavior."
+      ],
+      "misconception": "Generated instructions guarantee correctness, or an output-only edit becomes a lasting customization.",
+      "evidenceToRequest": "Ask for the source path, before/after generated diff and relevant verification result; distinguish reading an instruction from executing its check."
+    }
+  ]
+}

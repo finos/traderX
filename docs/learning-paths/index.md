@@ -4,6 +4,10 @@ title: Learning Paths
 
 # Learning Paths
 
+[How to learn with TraderX states](/docs/learning/how-to-learn) · [Learning Guide index](/docs/learning)
+
+Select a state in the diagram to open its learning guide. Solid arrows are declared predecessor routes; dotted arrows identify retained context.
+
 This page is generated from `catalog/state-catalog.json`.
 Green nodes represent convergence checkpoints (C-level milestones such as `[C0]`, `[C1]`, `[C2]`, `[C3]`).
 
@@ -20,10 +24,10 @@ flowchart LR
   S004_containerized_compose_runtime --> S007_observability_lgtm_compose
   S007_observability_lgtm_compose --> S009_order_management_matcher
   S009_order_management_matcher --> S012_platform_convergence_c3
-  click S004_containerized_compose_runtime href "/specs/containerized-compose-runtime" "Open 004-containerized-compose-runtime"
-  click S007_observability_lgtm_compose href "/specs/observability-lgtm-compose" "Open 007-observability-lgtm-compose"
-  click S009_order_management_matcher href "/specs/order-management-matcher" "Open 009-order-management-matcher"
-  click S012_platform_convergence_c3 href "/specs/platform-convergence-c3" "Open 012-platform-convergence-c3"
+  click S004_containerized_compose_runtime href "/docs/learning/state-004-containerized-compose-runtime" "Open 004-containerized-compose-runtime"
+  click S007_observability_lgtm_compose href "/docs/learning/state-007-observability-lgtm-compose" "Open 007-observability-lgtm-compose"
+  click S009_order_management_matcher href "/docs/learning/state-009-order-management-matcher" "Open 009-order-management-matcher"
+  click S012_platform_convergence_c3 href "/docs/learning/state-012-platform-convergence-c3" "Open 012-platform-convergence-c3"
   classDef convergence fill:#d7f5dd,stroke:#2e7d32,stroke-width:2px
   class S004_containerized_compose_runtime convergence
   class S007_observability_lgtm_compose convergence
@@ -63,20 +67,20 @@ flowchart TB
   S012_platform_convergence_c3 --> S013_radius_kubernetes_platform
   S012_platform_convergence_c3 --> S014_fdc3_intent_interoperability
   S009_order_management_matcher -.-> S012_platform_convergence_c3
-  click S001_baseline_uncontainerized_parity href "/specs/baseline-uncontainerized-parity" "Open State 001 Spec Pack"
-  click S002_edge_proxy_uncontainerized href "/specs/edge-proxy-uncontainerized" "Open State 002 Spec Pack"
-  click S003_agentic_harness_foundation href "/specs/agentic-harness-foundation" "Open State 003 Spec Pack"
-  click S004_containerized_compose_runtime href "/specs/containerized-compose-runtime" "Open State 004 Spec Pack"
-  click S005_postgres_database_replacement href "/specs/postgres-database-replacement" "Open State 005 Spec Pack"
-  click S006_messaging_nats_replacement href "/specs/messaging-nats-replacement" "Open State 006 Spec Pack"
-  click S007_observability_lgtm_compose href "/specs/observability-lgtm-compose" "Open State 007 Spec Pack"
-  click S008_pricing_awareness_market_data href "/specs/pricing-awareness-market-data" "Open State 008 Spec Pack"
-  click S009_order_management_matcher href "/specs/order-management-matcher" "Open State 009 Spec Pack"
-  click S010_kubernetes_runtime href "/specs/kubernetes-runtime" "Open State 010 Spec Pack"
-  click S011_tilt_kubernetes_dev_loop href "/specs/tilt-kubernetes-dev-loop" "Open State 011 Spec Pack"
-  click S012_platform_convergence_c3 href "/specs/platform-convergence-c3" "Open State 012 Spec Pack"
-  click S013_radius_kubernetes_platform href "/specs/radius-kubernetes-platform" "Open State 013 Spec Pack"
-  click S014_fdc3_intent_interoperability href "/specs/fdc3-intent-interoperability" "Open State 014 Spec Pack"
+  click S001_baseline_uncontainerized_parity href "/docs/learning/state-001-baseline-uncontainerized-parity" "Open State 001 Learning Guide"
+  click S002_edge_proxy_uncontainerized href "/docs/learning/state-002-edge-proxy-uncontainerized" "Open State 002 Learning Guide"
+  click S003_agentic_harness_foundation href "/docs/learning/state-003-agentic-harness-foundation" "Open State 003 Learning Guide"
+  click S004_containerized_compose_runtime href "/docs/learning/state-004-containerized-compose-runtime" "Open State 004 Learning Guide"
+  click S005_postgres_database_replacement href "/docs/learning/state-005-postgres-database-replacement" "Open State 005 Learning Guide"
+  click S006_messaging_nats_replacement href "/docs/learning/state-006-messaging-nats-replacement" "Open State 006 Learning Guide"
+  click S007_observability_lgtm_compose href "/docs/learning/state-007-observability-lgtm-compose" "Open State 007 Learning Guide"
+  click S008_pricing_awareness_market_data href "/docs/learning/state-008-pricing-awareness-market-data" "Open State 008 Learning Guide"
+  click S009_order_management_matcher href "/docs/learning/state-009-order-management-matcher" "Open State 009 Learning Guide"
+  click S010_kubernetes_runtime href "/docs/learning/state-010-kubernetes-runtime" "Open State 010 Learning Guide"
+  click S011_tilt_kubernetes_dev_loop href "/docs/learning/state-011-tilt-kubernetes-dev-loop" "Open State 011 Learning Guide"
+  click S012_platform_convergence_c3 href "/docs/learning/state-012-platform-convergence-c3" "Open State 012 Learning Guide"
+  click S013_radius_kubernetes_platform href "/docs/learning/state-013-radius-kubernetes-platform" "Open State 013 Learning Guide"
+  click S014_fdc3_intent_interoperability href "/docs/learning/state-014-fdc3-intent-interoperability" "Open State 014 Learning Guide"
   classDef convergence fill:#d7f5dd,stroke:#2e7d32,stroke-width:2px
   class S004_containerized_compose_runtime convergence
   class S007_observability_lgtm_compose convergence

@@ -117,10 +117,10 @@ export const tabs = [
 ];
 
 export const internalNav = [
+  {to: '/docs/learning', label: 'Learning Guide'},
   {to: '/docs/home', label: 'Docs'},
   {to: '/docs/spec-kit/getting-started-with-traderx', label: 'Getting Started'},
   {to: '/specs', label: 'Specs'},
-  {to: '/docs/learning', label: 'Learning'},
   {to: '/docs/blog', label: 'Blog'},
 ];
 

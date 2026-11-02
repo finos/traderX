@@ -14,3 +14,7 @@ Rationale:
 - Issue #466 makes the C0 deployment boundary require exact-snapshot build/test/security evidence and scanned image digests. Descendant demo states inherit these checks through canonical generators while retaining one snapshot commit per generated branch.
 
 - Generated CI workflows come from the canonical CI asset installer after state overlays; historical workflow patches in states 004–007 are omitted so dependency remediation and deployment hardening compose without restoring stale checks.
+
+## Learning evidence at this checkpoint
+
+At C0, the learning contract combines the inherited edge and agent-harness knowledge with application containerization and the Compose runtime. The learner traces backend and frontend Dockerfiles into images and running containers before examining how Compose connects them. A learning partner asks the learner to distinguish container startup, service readiness and the retained trade result, using separate observations for each boundary. The canonical `learning-contract.json` supplies objective mappings, diagnostic questions, graduated hints and assessment evidence for both human and agent-assisted study.

@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "state": "013-radius-kubernetes-platform",
+  "title": "Explore a platform abstraction as an alternative",
+  "purpose": "Platform teams may want application intent expressed above individual Kubernetes resources. This optional chapter is for developers evaluating that trade-off: trace a Radius declaration into deployed resources and identify which operational responsibilities the abstraction moves.",
+  "entryAssumptions": "C3 exposes Kubernetes resources and their development lifecycle directly.",
+  "concepts": [
+    "A platform abstraction declares application intent and resolves infrastructure through its deployment model. It shifts responsibility rather than removing infrastructure."
+  ],
+  "runtimePrerequisites": "Use the state quickstart for tool versions, generation, start and stop commands. Run one local state at a time because ports and generated output directories are shared.",
+  "entryMode": "combined",
+  "transitions": [
+    {
+      "from": "012-platform-convergence-c3",
+      "carriesForward": "Treat C3 as a combined platform and functional checkpoint for subsequent branches.",
+      "motivation": "C3 exposes Kubernetes resources and their development lifecycle directly.",
+      "increment": "Use Radius to describe the application and its resource relationships on Kubernetes.",
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "evidence": "The application model adds a layer above Kubernetes. The underlying trading contract remains a useful regression check. A valid application description is not proof that required infrastructure was provisioned. The platform and application have distinct failure evidence."
+    }
+  ],
+  "before": "C3 exposes Kubernetes resources and their development lifecycle directly.",
+  "after": "Use Radius to describe the application and its resource relationships on Kubernetes.",
+  "objectives": [
+    {
+      "id": "trace-increment",
+      "outcome": "Trace a Radius application dependency to its deployed Kubernetes resources and explain the additional abstraction."
+    },
+    {
+      "id": "interpret-evidence",
+      "outcome": "Explain the evidence boundary: A valid application description is not proof that required infrastructure was provisioned. The platform and application have distinct failure evidence."
+    }
+  ],
+  "walkthrough": [
+    {
+      "id": "observe",
+      "objectiveIds": [
+        "trace-increment"
+      ],
+      "availability": "available",
+      "action": "Follow the Radius state quickstart and smoke test. Compare the generated Radius application definition with the resulting Kubernetes resources. Trace one service dependency from the application model to the deployed workload.",
+      "expected": "The application model adds a layer above Kubernetes. The underlying trading contract remains a useful regression check.",
+      "references": [
+        "/specs/radius-kubernetes-platform/quickstart",
+        "/specs/radius-kubernetes-platform/system/architecture",
+        "/specs/radius-kubernetes-platform/system/runtime-topology"
+      ]
+    },
+    {
+      "id": "challenge",
+      "objectiveIds": [
+        "interpret-evidence"
+      ],
+      "availability": "available",
+      "action": "Inspect the model and deployment output for an unresolved resource or deployment prerequisite. Explain how you would distinguish a Radius provisioning error from an application health failure using those outputs.",
+      "expected": "A valid application description is not proof that required infrastructure was provisioned. The platform and application have distinct failure evidence.",
+      "references": [
+        "/specs/radius-kubernetes-platform/spec",
+        "/specs/radius-kubernetes-platform/contracts/contract-delta"
+      ]
+    }
+  ],
+  "assessments": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "question": "When would you choose this branch over continuing directly from C3?",
+      "guidance": "Justify whether the resource abstraction helps your platform use case and name its operational cost. State 013 is optional and is not required for state 014."
+    }
+  ],
+  "limitations": [
+    "A valid application description is not proof that required infrastructure was provisioned. The platform and application have distinct failure evidence.",
+    "This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode."
+  ],
+  "coaching": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "diagnosticQuestion": "Which Kubernetes responsibilities does the C3 application expose directly?",
+      "predictionPrompt": "Predict what a valid Radius declaration establishes before provisioning finishes.",
+      "hints": [
+        "Trace one declared resource relationship to a resulting Kubernetes resource.",
+        "Separate platform provisioning output from application readiness and the business smoke result."
+      ],
+      "misconception": "A platform abstraction removes infrastructure responsibility or makes the application healthy by definition.",
+      "evidenceToRequest": "Ask for the declaration-to-resource mapping, deployment/health observations and a reasoned comparison with staying on C3."
+    }
+  ]
+}

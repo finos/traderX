@@ -1,6 +1,6 @@
 # Runtime Topology (State 004)
 
-State `004-containerized-compose-runtime` retains state `002` routing behavior while moving runtime orchestration to Docker Compose.
+State `004-containerized-compose-runtime` retains the predecessor stack’s browser-routing behavior while containerizing the application services and web frontend. Dockerfiles package the components into images; Docker Compose defines how the resulting containers run together, with NGINX ingress, service networking and runtime configuration.
 
 ## Entry Points
 

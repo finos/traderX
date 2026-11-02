@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "state": "001-baseline-uncontainerized-parity",
+  "title": "Follow a trade beyond the screen",
+  "purpose": "When a trader clicks Buy, several services must cooperate before the application can show a new holding. This opening chapter is for developers learning the trading domain: follow that small action through the system and learn which records establish that it happened.",
+  "entryAssumptions": "You can read HTTP requests and run local processes, but have not yet traced TraderX.",
+  "concepts": [
+    "A trade records an executed purchase or sale. A position aggregates holdings. Booking records the trade; it does not transfer cash or prove settlement."
+  ],
+  "runtimePrerequisites": "Use the state quickstart for tool versions, generation, start and stop commands. Run one local state at a time because ports and generated output directories are shared.",
+  "entryMode": "foundation",
+  "transitions": [],
+  "before": "You can read HTTP requests and run local processes, but have not yet traced TraderX.",
+  "after": "Trace the browser, trade service, event transport, processor, database and position view as one business workflow.",
+  "objectives": [
+    {
+      "id": "trace-increment",
+      "outcome": "Trace one submitted trade from its HTTP request through processing to the persisted trade and changed position."
+    },
+    {
+      "id": "interpret-evidence",
+      "outcome": "Explain the evidence boundary: A rejected request should not produce a booked trade. If the result is uncertain, query the record before resubmitting; a timeout alone does not prove rejection."
+    }
+  ],
+  "walkthrough": [
+    {
+      "id": "observe",
+      "objectiveIds": [
+        "trace-increment"
+      ],
+      "availability": "available",
+      "action": "Open the local UI printed by the start script. Select an account, record its position for one ticker, and submit a small buy using the trade ticket. Record the trade identifier and compare the trade and position views. Follow F3 and F4 in the flow reference to identify the writer of each result.",
+      "expected": "The ticket request and downstream processing are separate steps. The trade record and resulting position provide stronger evidence than a successful button click.",
+      "references": [
+        "/specs/baseline-uncontainerized-parity/quickstart",
+        "/specs/baseline-uncontainerized-parity/system/architecture",
+        "/specs/baseline-uncontainerized-parity/system/end-to-end-flows"
+      ]
+    },
+    {
+      "id": "challenge",
+      "objectiveIds": [
+        "interpret-evidence"
+      ],
+      "availability": "available",
+      "action": "In the local demo, submit a ticket with a missing required value. Compare the validation response and the blotters with the successful submission; inspect the trade-service contract to identify which boundary rejects it.",
+      "expected": "A rejected request should not produce a booked trade. If the result is uncertain, query the record before resubmitting; a timeout alone does not prove rejection.",
+      "references": [
+        "/specs/baseline-uncontainerized-parity/spec",
+        "/specs/baseline-uncontainerized-parity/system/system-requirements"
+      ]
+    }
+  ],
+  "assessments": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "question": "Why is a successful HTTP request insufficient evidence that the position changed?",
+      "guidance": "Name the asynchronous processor and persisted result, then show the matching trade and position. Do not infer cash settlement from either."
+    }
+  ],
+  "limitations": [
+    "A rejected request should not produce a booked trade. If the result is uncertain, query the record before resubmitting; a timeout alone does not prove rejection.",
+    "This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode."
+  ],
+  "coaching": [
+    {
+      "objectiveIds": [
+        "trace-increment",
+        "interpret-evidence"
+      ],
+      "diagnosticQuestion": "What is the difference between a trade and the position shown for an account?",
+      "predictionPrompt": "Before submitting the buy, predict which records must change and which service will write them.",
+      "hints": [
+        "Begin at the ticket request and identify the next boundary in flow F3.",
+        "Follow F4 to the persisted trade and position; compare their identifiers with the submission."
+      ],
+      "misconception": "A successful click or HTTP response proves the holding has already changed.",
+      "evidenceToRequest": "Ask for the request result, trade identifier and before/after position, then ask the learner to explain the asynchronous boundary."
+    }
+  ]
+}

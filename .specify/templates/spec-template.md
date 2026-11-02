@@ -126,3 +126,9 @@
 - [Assumption about scope boundaries, e.g., "Mobile support is out of scope for v1"]
 - [Assumption about data/environment, e.g., "Existing authentication system will be reused"]
 - [Dependency on existing system/service, e.g., "Requires access to the existing user profile API"]
+
+## Incremental learning acceptance
+
+For catalog states, author `learning-contract.json` according to `docs/spec-kit/learning-contract.md`. Explain every incoming transition, distinguish conceptual and runtime prerequisites, and map observable objectives to walkthroughs and assessments. Planned exercises must be marked unavailable. Review evidence and navigation in the PR; do not publish PR evaluation reports as learning content.
+
+Support human and agent learning partners through the same canonical lesson. Include objective-mapped diagnostics, predictions, graduated hints, misconceptions and evidence prompts; verify HTML, Markdown and published JSON parity and a resumable, evidence-based coaching session.
