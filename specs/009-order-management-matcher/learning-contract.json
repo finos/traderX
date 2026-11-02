@@ -55,8 +55,8 @@
         "interpret-evidence"
       ],
       "availability": "available",
-      "action": "Create an unfilled order and cancel it. Verify its terminal state and compare trade records before and after cancellation. Inspect the documented partial-fill policy for quantities at or above 1000.",
-      "expected": "Cancellation of the remainder does not reverse an already booked fill. Large quantities can produce partial fills under the demonstration policy.",
+      "action": "Create an unfilled order and cancel it. Record its status, filled and remaining quantities and compare trade records before and after. Then, as a reading exercise, apply the documented partial-fill policy to a hypothetical order of 1200 with 600 already filled and predict what canceling the remainder should preserve.",
+      "expected": "Unfilled cancellation should produce CANCELED with no new booked fill. The reading exercise predicts preservation of previously booked fills, but does not verify partial-fill cancellation at runtime.",
       "references": [
         "/specs/order-management-matcher/spec",
         "/specs/order-management-matcher/contracts/contract-delta"
@@ -70,7 +70,7 @@
         "interpret-evidence"
       ],
       "question": "How would you reconcile an order that is partially filled and then canceled?",
-      "guidance": "Account for filled quantity in executions and positions, and the unfilled remainder in the canceled order. Do not treat the original requested quantity as fully traded."
+      "guidance": "Account for filled quantity in executions and positions, and the unfilled remainder in the canceled order. Do not treat the original requested quantity as fully traded. Label a hypothetical reconciliation as reading practice. Demonstrating partial-fill cancellation requires actual before-and-after order, trade and position records."
     }
   ],
   "limitations": [

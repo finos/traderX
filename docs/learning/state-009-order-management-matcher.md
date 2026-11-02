@@ -63,9 +63,9 @@ Supporting material: [quickstart](/specs/order-management-matcher/quickstart) ·
 
 Objectives: `interpret-evidence`.
 
-Create an unfilled order and cancel it. Verify its terminal state and compare trade records before and after cancellation. Inspect the documented partial-fill policy for quantities at or above 1000.
+Create an unfilled order and cancel it. Record its status, filled and remaining quantities and compare trade records before and after. Then, as a reading exercise, apply the documented partial-fill policy to a hypothetical order of 1200 with 600 already filled and predict what canceling the remainder should preserve.
 
-**Expected observation and meaning:** Cancellation of the remainder does not reverse an already booked fill. Large quantities can produce partial fills under the demonstration policy.
+**Expected observation and meaning:** Unfilled cancellation should produce CANCELED with no new booked fill. The reading exercise predicts preservation of previously booked fills, but does not verify partial-fill cancellation at runtime.
 
 Supporting material: [spec](/specs/order-management-matcher/spec) · [contract-delta](/specs/order-management-matcher/contracts/contract-delta).
 
@@ -73,7 +73,7 @@ Supporting material: [spec](/specs/order-management-matcher/spec) · [contract-d
 
 **Question (`trace-increment`, `interpret-evidence`):** How would you reconcile an order that is partially filled and then canceled?
 
-**Assessment guidance:** Account for filled quantity in executions and positions, and the unfilled remainder in the canceled order. Do not treat the original requested quantity as fully traded.
+**Assessment guidance:** Account for filled quantity in executions and positions, and the unfilled remainder in the canceled order. Do not treat the original requested quantity as fully traded. Label a hypothetical reconciliation as reading practice. Demonstrating partial-fill cancellation requires actual before-and-after order, trade and position records.
 
 ### Work with a learning partner
 

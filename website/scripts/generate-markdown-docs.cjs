@@ -50,7 +50,12 @@ function convertPage(page, routes, indexUrl) {
     filter: node => node.nodeName === 'PRE' && Boolean(node.querySelector('code')),
     replacement: (_, node) => {
       const code = node.querySelector('code')
-      const text = code.textContent.replace(/\n$/, '')
+      // Prism renders adjacent token-line elements without text newlines. A
+      // blank line contains only <br>; joining the lines preserves it exactly.
+      const lines = [...code.querySelectorAll('.token-line')]
+      const text = (lines.length
+        ? lines.map(line => line.textContent).join('\n')
+        : code.textContent).replace(/\n$/, '')
       const language = `${node.className} ${code.className}`.match(/language-([\w+-]+)/)?.[1] || ''
       const longest = Math.max(0, ...(text.match(/`+/g) || []).map(value => value.length))
       const fence = '`'.repeat(Math.max(3, longest + 1))

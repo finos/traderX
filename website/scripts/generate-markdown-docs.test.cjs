@@ -3,7 +3,7 @@ const assert = require('node:assert/strict')
 const fs = require('node:fs/promises')
 const os = require('node:os')
 const path = require('node:path')
-const {generate, outputPath} = require('./generate-markdown-docs.cjs')
+const {generate, convertPage, outputPath} = require('./generate-markdown-docs.cjs')
 
 function html(url, body) {
   return `<html><head><link rel="canonical" href="${url}"></head><body>
@@ -53,4 +53,19 @@ test('rejects malformed route mappings instead of silently generating broken ind
   await fs.writeFile(path.join(dir, 'a.html'), page)
   await fs.writeFile(path.join(dir, 'b.html'), page)
   await assert.rejects(generate(dir), /Duplicate documentation route/)
+})
+
+
+test('preserves Prism token-line commands, indentation, and blank lines', () => {
+  const url = new URL('https://preview.example/docs/quickstart')
+  const body = '<h1>Quickstart</h1><pre class="language-bash"><code>' +
+    '<div class="token-line"><span class="token plain">./scripts/start.sh</span><br></div>' +
+    '<div class="token-line"><span class="token plain">./scripts/start.sh --skip-build</span><br></div>' +
+    '<div class="token-line"><br></div>' +
+    '<div class="token-line"><span class="token plain">PORT=18080</span><br></div>' +
+    '<div class="token-line"><span class="token comment"># Check health</span><br></div>' +
+    '<div class="token-line"><span class="token plain">  curl localhost:$PORT/health</span><br></div>' +
+    '</code></pre>'
+  const markdown = convertPage({url, title: 'Quickstart', html: html(url, body)}, new Map(), 'https://preview.example/llms.txt')
+  assert.match(markdown, /```bash\n\.\/scripts\/start\.sh\n\.\/scripts\/start\.sh --skip-build\n\nPORT=18080\n# Check health\n  curl localhost:\$PORT\/health\n```/)
 })
