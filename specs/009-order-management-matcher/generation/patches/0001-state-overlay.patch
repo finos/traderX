@@ -3961,7 +3961,7 @@ index 0000000..8a7c840
 +<div class="order-admin-container p-4">
 +  <h4 class="mb-2">Order Matcher Admin</h4>
 +  <div class="text-muted mb-3">
-+    Open orders with live market price stream (<code>pricing.&lt;TICKER&gt;</code>) shown next to strike.
++    Open orders with live market price stream (<code>pricing.&lt;TICKER&gt;</code>) shown next to the limit price.
 +  </div>
 +
 +  <div
@@ -4023,7 +4023,7 @@ index 0000000..133578b
 +
 +type OrderRow = OrderRecord & {
 +    marketPrice?: number;
-+    spreadToStrike?: number;
++    spreadToLimit?: number;
 +};
 +
 +@Component({
@@ -4063,7 +4063,7 @@ index 0000000..133578b
 +            valueFormatter: ({ value }) => this.formatInteger(value)
 +        },
 +        {
-+            headerName: 'STRIKE',
++            headerName: 'LIMIT PRICE',
 +            field: 'limitPrice',
 +            headerClass: 'ag-right-aligned-header',
 +            cellClass: 'ag-right-aligned-cell',
@@ -4079,7 +4079,7 @@ index 0000000..133578b
 +        },
 +        {
 +            headerName: 'DELTA',
-+            field: 'spreadToStrike',
++            field: 'spreadToLimit',
 +            headerClass: 'ag-right-aligned-header',
 +            cellClass: 'ag-right-aligned-cell',
 +            valueFormatter: ({ value }) => this.formatSignedCurrency(value),
@@ -4217,11 +4217,11 @@ index 0000000..133578b
 +    private withLivePricing(order: OrderRecord): OrderRow {
 +        const limitPrice = Number(order.limitPrice ?? 0);
 +        const marketPrice = this.marketPriceByTicker.get(order.security);
-+        const spreadToStrike = marketPrice == null ? undefined : Number(marketPrice) - limitPrice;
++        const spreadToLimit = marketPrice == null ? undefined : Number(marketPrice) - limitPrice;
 +        return Object.assign({}, order, {
 +            limitPrice,
 +            marketPrice: marketPrice == null ? undefined : Number(marketPrice),
-+            spreadToStrike
++            spreadToLimit
 +        });
 +    }
 +
@@ -4260,11 +4260,11 @@ index 0000000..133578b
 +            return {};
 +        }
 +        const market = Number(data.marketPrice);
-+        const strike = Number(data.limitPrice);
-+        if (!Number.isFinite(market) || !Number.isFinite(strike)) {
++        const limit = Number(data.limitPrice);
++        if (!Number.isFinite(market) || !Number.isFinite(limit)) {
 +            return {};
 +        }
-+        const favorable = data.side === 'Buy' ? market <= strike : market >= strike;
++        const favorable = data.side === 'Buy' ? market <= limit : market >= limit;
 +        return { color: favorable ? '#14532d' : '#991b1b', fontWeight: 700 };
 +    }
 +
@@ -4504,7 +4504,7 @@ index 0000000..62cf0a4
 +
 +type OrderRow = OrderRecord & {
 +  marketPrice?: number;
-+  spreadToStrike?: number;
++  spreadToLimit?: number;
 +  accountDisplayName?: string;
 +};
 +
@@ -4543,7 +4543,7 @@ index 0000000..62cf0a4
 +      valueFormatter: ({ value }) => this.formatInteger(value)
 +    },
 +    {
-+      headerName: 'STRIKE',
++      headerName: 'LIMIT PRICE',
 +      field: 'limitPrice',
 +      headerClass: 'ag-right-aligned-header',
 +      cellClass: 'ag-right-aligned-cell',
@@ -4559,7 +4559,7 @@ index 0000000..62cf0a4
 +    },
 +    {
 +      headerName: 'DELTA',
-+      field: 'spreadToStrike',
++      field: 'spreadToLimit',
 +      headerClass: 'ag-right-aligned-header',
 +      cellClass: 'ag-right-aligned-cell',
 +      valueFormatter: ({ value }) => this.formatSignedCurrency(value),
@@ -4698,11 +4698,11 @@ index 0000000..62cf0a4
 +  private withLivePricing(order: OrderRecord): OrderRow {
 +    const marketPrice = this.marketPriceByTicker.get(order.security);
 +    const limitPrice = Number(order.limitPrice ?? 0);
-+    const spreadToStrike = marketPrice == null ? undefined : Number(marketPrice) - limitPrice;
++    const spreadToLimit = marketPrice == null ? undefined : Number(marketPrice) - limitPrice;
 +    const accountDisplayName = this.accountNameById[order.accountId] ?? `#${order.accountId}`;
 +    return Object.assign({}, order, {
 +      marketPrice: marketPrice == null ? undefined : Number(marketPrice),
-+      spreadToStrike,
++      spreadToLimit,
 +      accountDisplayName
 +    });
 +  }
@@ -4751,11 +4751,11 @@ index 0000000..62cf0a4
 +      return {};
 +    }
 +    const market = Number(data.marketPrice);
-+    const strike = Number(data.limitPrice);
-+    if (!Number.isFinite(market) || !Number.isFinite(strike)) {
++    const limit = Number(data.limitPrice);
++    if (!Number.isFinite(market) || !Number.isFinite(limit)) {
 +      return {};
 +    }
-+    const favorable = data.side === 'Buy' ? market <= strike : market >= strike;
++    const favorable = data.side === 'Buy' ? market <= limit : market >= limit;
 +    return { color: favorable ? '#14532d' : '#991b1b', fontWeight: 700 };
 +  }
 +
@@ -4902,7 +4902,7 @@ index 0000000..d759355
 +    </div>
 +
 +    <div class="mb-3 row">
-+        <label class="col-sm-2 col-form-label me-3">Strike Price</label>
++        <label class="col-sm-2 col-form-label me-3">Limit Price</label>
 +        <div class="col-sm-8">
 +            <input class="form-control d-inline-block" id="orderStrikeField" type="number" step="0.001" [(ngModel)]="ticket.limitPrice" />
 +        </div>
