@@ -8,7 +8,7 @@ import { PriceSnapshotService } from '../service/price-snapshot.service';
 
 type OrderRow = OrderRecord & {
     marketPrice?: number;
-    spreadToStrike?: number;
+    spreadToLimit?: number;
 };
 
 @Component({
@@ -49,7 +49,7 @@ export class OrderAdminComponent implements OnInit, OnDestroy {
             valueFormatter: ({ value }) => this.formatInteger(value)
         },
         {
-            headerName: 'STRIKE',
+            headerName: 'LIMIT PRICE',
             field: 'limitPrice',
             headerClass: 'ag-right-aligned-header',
             cellClass: 'ag-right-aligned-cell',
@@ -65,7 +65,7 @@ export class OrderAdminComponent implements OnInit, OnDestroy {
         },
         {
             headerName: 'DELTA',
-            field: 'spreadToStrike',
+            field: 'spreadToLimit',
             headerClass: 'ag-right-aligned-header',
             cellClass: 'ag-right-aligned-cell',
             valueFormatter: ({ value }) => this.formatSignedCurrency(value),
@@ -261,12 +261,12 @@ export class OrderAdminComponent implements OnInit, OnDestroy {
         const normalizedTicker = String(order.security || '').trim().toUpperCase();
         const limitPrice = Number(order.limitPrice ?? 0);
         const marketPrice = this.marketPriceByTicker.get(normalizedTicker);
-        const spreadToStrike = marketPrice == null ? undefined : Number(marketPrice) - limitPrice;
+        const spreadToLimit = marketPrice == null ? undefined : Number(marketPrice) - limitPrice;
         return Object.assign({}, order, {
             security: normalizedTicker,
             limitPrice,
             marketPrice: marketPrice == null ? undefined : Number(marketPrice),
-            spreadToStrike
+            spreadToLimit
         });
     }
 
@@ -313,11 +313,11 @@ export class OrderAdminComponent implements OnInit, OnDestroy {
             return {};
         }
         const market = Number(data.marketPrice);
-        const strike = Number(data.limitPrice);
-        if (!Number.isFinite(market) || !Number.isFinite(strike)) {
+        const limit = Number(data.limitPrice);
+        if (!Number.isFinite(market) || !Number.isFinite(limit)) {
             return {};
         }
-        const favorable = data.side === 'Buy' ? market <= strike : market >= strike;
+        const favorable = data.side === 'Buy' ? market <= limit : market >= limit;
         return { color: favorable ? '#14532d' : '#991b1b', fontWeight: 700 };
     }
 
