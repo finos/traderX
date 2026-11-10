@@ -28,6 +28,47 @@ SHA = 'a' * 40
 DIGEST = 'sha256:' + 'b' * 64
 
 
+class SnapshotRunnerTests(unittest.TestCase):
+    def test_state004_keeps_corrected_shared_test_fixtures(self):
+        patch_text = (ROOT / 'specs/004-containerized-compose-runtime/generation/patches/0001-state-overlay.patch').read_text()
+        for relative in ['test-utils/mocks.service.ts',
+                         'accounts/account.component.spec.ts',
+                         'trade/trade.component.spec.ts',
+                         'trade/trade-blotter/trade-blotter.component.spec.ts',
+                         'trade/position-blotter/position-blotter.component.spec.ts']:
+            path = 'web-front-end/angular/main/app/' + relative
+            block = patch_text.split('diff --git a/' + path + ' b/' + path + '\n', 1)[1].split('\ndiff --git ', 1)[0]
+            added = '\n'.join(line[1:] for line in block.splitlines()
+                              if line.startswith('+') and not line.startswith('+++')) + '\n'
+            self.assertEqual(added, (ROOT / 'templates' / path).read_text(), path)
+
+    def test_missing_metadata_cannot_silently_skip_tests(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            ci = Path(tmp) / 'ci'
+            ci.mkdir()
+            runner = ci / 'build-test-generated-snapshot.sh'
+            runner.write_text((ROOT / 'pipeline' / runner.name).read_text())
+            def run():
+                return subprocess.run(['bash', str(runner)], capture_output=True).returncode
+            self.assertNotEqual(run(), 0)
+            metadata = ci / 'state-metadata.json'
+            metadata.write_text('{}')
+            self.assertNotEqual(run(), 0)
+            metadata.write_text(json.dumps({'modules': {'node': [], 'gradle': [], 'dotnet': []}}))
+            self.assertEqual(run(), 0)
+
+
+class NodeAuditTests(unittest.TestCase):
+    def test_audit_results_fail_closed(self):
+        audit = module('scan-node-audit')
+        clean = {'auditReportVersion': 2, 'vulnerabilities': {}}
+        self.assertEqual(audit.classify(clean, 0), 0)
+        self.assertEqual(audit.classify(clean | {'vulnerabilities': {'qs': {}}}, 1), 1)
+        for report, code in [(clean, 1), ({'error': {'code': 'E503'}}, 1),
+                             ({}, 0), ([], 0), (clean, 2)]:
+            self.assertEqual(audit.classify(report, code), 2)
+
+
 class AuthorizationTests(unittest.TestCase):
     def run_record(self, **overrides):
         record = dict(id=10, run_attempt=2, head_sha=SHA, head_branch='code/generated-state-004',

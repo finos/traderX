@@ -37,31 +37,32 @@
   "npm": {
     "dependencies": {
       "jasmine-core": "~5.13.0",
-      "@angular/animations": "^20.3.28",
-      "@angular/common": "^20.3.28",
-      "@angular/compiler": "^20.3.28",
-      "@angular/core": "^20.3.28",
-      "@angular/forms": "^20.3.28",
-      "@angular/platform-browser": "^20.3.28",
-      "@angular/platform-browser-dynamic": "^20.3.28",
-      "@angular/router": "^20.3.28",
-      "@angular-devkit/build-angular": "^20.3.28",
-      "@angular/cli": "^20.3.28",
-      "@angular/compiler-cli": "^20.3.28",
-      "@angular/language-service": "^20.3.28"
+      "@angular/animations": "^20.3.35",
+      "@angular/common": "^20.3.35",
+      "@angular/compiler": "^20.3.35",
+      "@angular/core": "^20.3.35",
+      "@angular/forms": "^20.3.35",
+      "@angular/platform-browser": "^20.3.35",
+      "@angular/platform-browser-dynamic": "^20.3.35",
+      "@angular/router": "^20.3.35",
+      "@angular-devkit/build-angular": "^20.3.35",
+      "@angular/cli": "^20.3.35",
+      "@angular/compiler-cli": "^20.3.35",
+      "@angular/language-service": "^20.3.35"
     },
     "overrides": {
-      "engine.io": "6.6.9",
+      "engine.io": "6.6.10",
       "postcss": "^8.5.13",
-      "qs": "6.16.0",
+      "qs": "6.16.1",
       "serialize-javascript": "^7.0.5",
       "tar": "^7.5.13",
-      "multer": "2.3.0",
+      "multer": "2.5.0",
       "uuid": "^14.0.0",
       "ws": "8.21.3",
       "http-proxy-middleware": "3.0.7",
       "socket.io-parser": "4.2.7",
-      "body-parser": "2.3.0"
+      "body-parser": "2.4.0",
+      "proxy-addr": "2.0.8"
     }
   },
   "nuget": {

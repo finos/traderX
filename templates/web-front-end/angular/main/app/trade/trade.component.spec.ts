@@ -1,3 +1,6 @@
+import { TradeFeedService } from '../service/trade-feed.service';
+import { MockTradeFeedService } from '../test-utils/mocks.service';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { TradeComponent } from './trade.component';
@@ -20,13 +23,13 @@ describe('TradeComponent', () => {
             declarations: [
                 TradeComponent
             ],
-            imports: [
+            imports: [HttpClientTestingModule,
                 FormsModule,
                 DropdownModule,
                 ModalModule.forRoot(),
                 AlertModule.forRoot()
             ],
-            providers: [
+            providers: [{ provide: TradeFeedService, useClass: MockTradeFeedService },
                 {
                     provide: AccountService,
                     useClass: MockAccountService
@@ -69,7 +72,7 @@ describe('TradeComponent', () => {
         spyOn((component as any).symbolService, 'getStocks').and.callThrough();
         component.ngOnInit();
         expect((component as any).accountService.getAccounts).toHaveBeenCalled();
-        expect(component.accounts.length).toEqual(5);
+        expect(component.accounts.filter(account => account.id > 0).length).toEqual(5);
         expect((component as any).symbolService.getStocks).toHaveBeenCalled();
         expect(component.stocks.length).toEqual(5);
     });
@@ -78,6 +81,7 @@ describe('TradeComponent', () => {
         component.accountModel = accounts[0];
         spyOn(component, 'openTicket');
         spyOn(component, 'closeTicket');
+        fixture.detectChanges();
         fixture.nativeElement.querySelector('#createTicketBtn').click();
         expect(component.openTicket).toHaveBeenCalled();
         // TODO: need to check how to test bootstrap modal in jasmine

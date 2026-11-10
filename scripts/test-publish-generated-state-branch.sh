@@ -32,6 +32,9 @@ make_state_012_fixture() {
     "${fixture_root}/web-front-end" \
     "${fixture_root}/will-be-pruned"
 
+  mkdir -p "${fixture_root}/ci"
+  printf '{}\n' > "${fixture_root}/ci/state-metadata.json"
+  cp "${ROOT}/pipeline/build-test-generated-snapshot.sh" "${fixture_root}/ci/build-test-generated-snapshot.sh"
   touch "${fixture_root}/api-explorer/Dockerfile"
   cat > "${fixture_root}/kubernetes-runtime/build-plan.json" <<EOF
 {
@@ -115,3 +118,22 @@ printf '{bad json' > "${malformed_fixture}/kubernetes-runtime/build-plan.json"
 expect_publish_fixture_failure "${malformed_fixture}" "kubernetes build plan must contain"
 
 echo "[done] generated-state publisher snapshot checks passed"
+
+echo "[check] publisher rejects a missing CI helper after pruning"
+missing_ci_fixture="${TMP_DIR}/missing-ci"
+make_state_012_fixture "${missing_ci_fixture}"
+rm "${missing_ci_fixture}/ci/build-test-generated-snapshot.sh"
+expect_publish_fixture_failure "${missing_ci_fixture}" "missing published CI input"
+
+for state in 010-kubernetes-runtime 011-tilt-kubernetes-dev-loop 012-platform-convergence-c3 013-radius-kubernetes-platform 014-fdc3-intent-interoperability; do
+  lineage_fixture="${TMP_DIR}/lineage-${state}"
+  mkdir -p "${lineage_fixture}/api-explorer" "${lineage_fixture}/ci" "${lineage_fixture}/scripts"
+  touch "${lineage_fixture}/RUN_FROM_CLONE.md" "${lineage_fixture}/start-env.sh" "${lineage_fixture}/stop-env.sh" "${lineage_fixture}/status-env.sh" "${lineage_fixture}/test-env.sh"
+  bash "${ROOT}/pipeline/validate-generated-state-lineage-invariants.sh" --state-id "${state}" --snapshot-dir "${lineage_fixture}"
+done
+
+echo "[check] state 001 remains publishable without CI assets"
+STATE_ID="001-baseline-uncontainerized-parity"
+baseline_fixture="${TMP_DIR}/baseline"
+mkdir -p "${baseline_fixture}/api-explorer" "${baseline_fixture}/catalog" "${baseline_fixture}/generated" "${baseline_fixture}/scripts"
+TRADERX_SKIP_RUNTIME_PREFLIGHT=1 run_publish_fixture "${baseline_fixture}" >/dev/null

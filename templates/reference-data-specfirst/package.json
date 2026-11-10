@@ -23,8 +23,9 @@
     "typescript": "^5.8.2"
   },
   "overrides": {
-    "multer": "2.3.0",
-    "qs": "6.16.0",
-    "body-parser": "2.3.0"
+    "multer": "2.5.0",
+    "qs": "6.16.1",
+    "body-parser": "2.4.0",
+    "proxy-addr": "2.0.8"
   }
 }

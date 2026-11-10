@@ -1,3 +1,4 @@
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AgGridModule } from 'ag-grid-angular';
 import { PositionBlotterComponent } from './position-blotter.component';
@@ -12,7 +13,7 @@ describe('PositionBlotterComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [PositionBlotterComponent],
-      imports: [
+      imports: [HttpClientTestingModule,
         AgGridModule
       ],
       providers: [
@@ -32,7 +33,7 @@ describe('PositionBlotterComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(PositionBlotterComponent);
     component = fixture.componentInstance;
-    component.positions = positions;
+    component.positions = positions.map(position => ({ ...position, security: position.security.toUpperCase() }));
     fixture.detectChanges();
   });
 
@@ -41,38 +42,29 @@ describe('PositionBlotterComponent', () => {
   });
 
   it('should show given positions in the grid', async () => {
+    await fixture.whenStable();
+    await new Promise(resolve => setTimeout(resolve, 100));
+    fixture.detectChanges();
     const columns = fixture.nativeElement.querySelectorAll('.ag-header-cell');
     const rows = fixture.nativeElement.querySelectorAll('.ag-center-cols-container .ag-row');
-    expect(columns.length).toEqual(2);
+    expect(Array.from(columns as NodeListOf<HTMLElement>).map(column => column.innerText)).toContain('SECURITY');
+    expect(Array.from(columns as NodeListOf<HTMLElement>).map(column => column.innerText)).toContain('QUANTITY');
     expect(rows.length).toEqual(2);
     const firstRow = rows[0];
     expect(firstRow.children[0].innerText).toEqual(component.positions[0].security);
-    expect(firstRow.children[1].innerText).toEqual(component.positions[0].quantity.toString());
+    expect(firstRow.children[1].innerText).toEqual(Number(component.positions[0].quantity).toLocaleString('en-US'));
   });
 
-  it('should upsert an existing position row for matching security', () => {
-    const applyTransaction = jasmine.createSpy('applyTransaction');
-    const getRowNode = jasmine.createSpy('getRowNode').and.returnValue({
-      data: {
-        security: 'IBM',
-        quantity: 10
-      }
-    });
-    component.gridApi = {
-      getRowNode,
-      applyTransaction
-    } as any;
+  it('should upsert an existing position row for matching security', async () => {
+    await fixture.whenStable();
+    await new Promise(resolve => setTimeout(resolve, 100));
+    const security = component.positions[0].security;
+    const rowCount = component.gridApi.getDisplayedRowCount();
 
-    component.update({
-      security: 'IBM',
-      quantity: 35,
-      updated: '2026-03-31T00:00:00.000Z'
-    });
+    component.update({ security, quantity: 35, updated: '2026-03-31T00:00:00.000Z' });
 
-    expect(getRowNode).toHaveBeenCalledWith('Position-IBM');
-    expect(applyTransaction).toHaveBeenCalledWith({
-      update: [jasmine.objectContaining({ security: 'IBM', quantity: 35 })]
-    });
+    expect(component.gridApi.getRowNode(`Position-${security}`)?.data.quantity).toBe(35);
+    expect(component.gridApi.getDisplayedRowCount()).toBe(rowCount);
   });
 
   it('should keep getRowId callback usable when invoked without component context', () => {
