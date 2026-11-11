@@ -1,6 +1,6 @@
 # State 009 recovery and generator follow-up
 
-Tracking: [#487](https://github.com/finos/traderX/issues/487), recovery [PR #488](https://github.com/finos/traderX/pull/488), publishing prerequisite [PR #485](https://github.com/finos/traderX/pull/485).
+Full refresh umbrella: [#486](https://github.com/finos/traderX/issues/486). Tracking: [#487](https://github.com/finos/traderX/issues/487), recovery [PR #488](https://github.com/finos/traderX/pull/488), publishing prerequisite [PR #485](https://github.com/finos/traderX/pull/485).
 
 ## Recovery evidence
 
@@ -24,7 +24,7 @@ The candidate disposition is limited to these two IDs, this exact image digest, 
 - [ ] Replace legacy Promtail with a maintained log collector and preserve dashboard labels and log coverage.
 - [ ] Implement complete Runtime Image Security CI inventory/evidence for all publishing states, including Kubernetes init/sidecar containers.
 - [ ] Bind infrastructure digests to exact snapshot/run/attempt/platform and enforce freshness and complete host coverage before SSH.
-- [ ] Add meaningful application/ingress/broker/observability readiness and trading-flow/persistence acceptance tests.
+- [ ] Add meaningful application/ingress/broker/observability readiness and trading-flow/persistence acceptance tests; fix the public Prometheus route, invalid collector health-port scrape, and prove live application trace export.
 - [ ] Keep database-volume detection, backup and restore checks in the deployment path.
 - [ ] Reconcile #485 and #488 into main, then regenerate descendants sequentially through the supported publisher.
 - [ ] Remove the scoped Grafana disposition when upstream metadata/scanner evidence no longer needs it, and never extend it automatically.
@@ -42,9 +42,23 @@ All exact-head CI completed successfully:
 
 Local deployment regressions: 27 passed. All four repository quality gates passed; workflow YAML and embedded shell syntax validated.
 
-## Completion evidence still required
+## Live recovery result — 2026-11-11
 
-Exact generated SHA and one-snapshot ancestry; successful required CI runs; all-image scan reports and approved dispositions; database backup; deployment run; public ingress and message-bus health; order create/cancel/fill; settled trades and positions surviving reload; observability queries. This document does not claim recovery is complete.
+[Deployment 42981784916](https://github.com/finos/traderX/actions/runs/42981784916) successfully deployed `bb97d232904bbd2aea73d8702302b4e25006cd09` after all nine host scans passed. Eight images have no HIGH/CRITICAL findings; Grafana has only the two approved already-fixed findings. [Preflight artifacts](https://github.com/finos/traderX/actions/runs/42981110497) and deployment artifacts retain raw reports.
+
+The existing PostgreSQL 16 volume was preserved and backed up before starting containers. Backup SHA-256: `bbcdc9d4e6338f839b871e2f1340103d9e7f357deaea727a3a296c636266e7ae`; the private backup remains on the host. [Post-deployment diagnosis](https://github.com/finos/traderX/actions/runs/42982479252) records the path, snapshot, pinned service images and all 19 running containers. Root disk has 8.2 GiB free (59% used).
+
+Verified live:
+
+- Public HTTPS application and ingress health return 200; UI identifies state 009 and displays Message Bus Connected.
+- Trade service, trade processor and order matcher report connected messaging; NATS WebSocket CONNECT/PING/PONG passes.
+- Order create/list/cancel (`ord-013-0008`), force-fill (`ord-013-0009`), settled trade creation and position update (JPM 0 to -3), and automatic price-driven fill (`ord-013-0010`) pass.
+- Fresh API requests and browser reload preserve settled trades and positions.
+- Grafana, Prometheus, Loki and Tempo local readiness endpoints return 200. Loki returns live container logs. Grafana's Prometheus datasource returns four connected-message-bus series; all 14 blackbox HTTP probes succeed.
+
+Known remaining observability work: the inherited public `/prometheus/` route returns 404; port 13133 is incorrectly included as a Prometheus metrics target (collector metrics on 8888/8889 work); live Tempo search returned no application traces, although the rebuilt Tempo passed local OTLP ingestion/query. These are explicitly unfinished generator/acceptance tasks, not security exceptions or a claim of complete cross-state observability validation.
+
+Recovery is complete for the application demo. Cross-state remediation and complete runtime CI gating remain open under #486 and #487.
 
 ## Final runtime compatibility checks
 
