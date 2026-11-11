@@ -20,6 +20,14 @@ def main():
               'disk': command('df', '-h', '/'),
               'nginx_test': command('sudo', '-n', 'nginx', '-t')}
     ids = command('docker', 'ps', '-aq').get('stdout', '').split()
+    report['postgres'] = {}
+    volume = 'traderx-009-order-management-matcher_postgres_state_009_data'
+    volume_data = command('docker', 'volume', 'inspect', volume)
+    if volume_data.get('exit_code') == 0:
+        mount = json.loads(volume_data['stdout'])[0]['Mountpoint']
+        report['postgres'] = {'volume': volume,
+            'version': command('sudo', '-n', 'cat', mount + '/PG_VERSION'),
+            'size': command('sudo', '-n', 'du', '-sb', mount)}
     report['runtime'] = []
     for cid in ids:
         data = command('docker', 'inspect', cid)
