@@ -193,6 +193,64 @@ class AuthorizationTests(unittest.TestCase):
 
 
 class ScannerTests(unittest.TestCase):
+    def test_infrastructure_inventory_continues_after_findings_and_pull_failure(self):
+        images = {'app': 'app@' + DIGEST}
+        config = {'services': {
+            'app': {'image': images['app']},
+            'vulnerable': {'image': 'old:1'},
+            'unavailable': {'image': 'missing:1'},
+            'clean': {'image': 'new:1'},
+        }}
+        def fake_run(*args, **kwargs):
+            if args[:3] == ('docker', 'pull', 'missing:1'):
+                raise subprocess.CalledProcessError(1, args)
+            return subprocess.CompletedProcess(args, 0, stdout=json.dumps(['repo@' + DIGEST]))
+        vulnerable = json.dumps({'Results': [{'Vulnerabilities': [{'Severity': 'CRITICAL'}]}]})
+        clean = json.dumps({'Results': []})
+        with tempfile.TemporaryDirectory() as tmp:
+            reports = Path(tmp) / 'reports'
+            with patch.object(deploy, 'run', side_effect=fake_run), \
+                 patch.object(deploy.subprocess, 'run', side_effect=[
+                     subprocess.CompletedProcess([], 1, vulnerable, ''),
+                     subprocess.CompletedProcess([], 0, clean, '')]) as scans:
+                with self.assertRaisesRegex(ValueError, 'vulnerable, unavailable'):
+                    deploy.scan_infrastructure(config, images, reports)
+            summary = json.loads((reports / 'summary.json').read_text())
+            self.assertEqual([r['status'] for r in summary], ['findings', 'error', 'success'])
+            self.assertEqual(summary[0]['critical'], 1)
+            self.assertEqual(scans.call_count, 2)
+            self.assertEqual(config['services']['clean']['image'], 'repo@' + DIGEST)
+            self.assertEqual(json.loads((reports / 'vulnerable.trivy.json').read_text()), json.loads(vulnerable))
+
+    def test_infrastructure_invalid_report_and_scanner_error_fail_closed(self):
+        for rc, report in [(0, '{}'), (0, 'invalid'), (0, '{"Results": [null]}'),
+                           (2, '{"Results": []}'), (1, '{"Results": []}')]:
+            with self.subTest(rc=rc, report=report), tempfile.TemporaryDirectory() as tmp:
+                config = {'services': {'infra': {'image': 'repo:1'}}}
+                with patch.object(deploy, 'run', return_value=subprocess.CompletedProcess(
+                        [], 0, json.dumps(['repo@' + DIGEST]))), \
+                     patch.object(deploy.subprocess, 'run', return_value=subprocess.CompletedProcess(
+                        [], rc, report, 'scanner diagnostic')):
+                    with self.assertRaisesRegex(ValueError, 'infrastructure preflight blocked'):
+                        deploy.scan_infrastructure(config, {}, Path(tmp) / 'reports')
+
+    def test_preflight_does_not_start_compose_or_write_deployed_record(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work = Path(tmp)
+            (work / '.git').mkdir()
+            manifest = work / 'manifest.json'
+            manifest.write_text(json.dumps(dict(snapshot=SHA, state='009-test', target='demo.test',
+                                                repository='finos/traderX', images={})))
+            with patch.object(sys, 'argv', ['deploy', str(manifest), '--workdir', str(work), '--preflight-only']), \
+                 patch.object(deploy, 'run', return_value=subprocess.CompletedProcess(
+                     [], 0, json.dumps({'services': {}}))) as commands, \
+                 patch.object(deploy.subprocess, 'check_output', return_value=SHA + '\n'), \
+                 patch.object(deploy, 'scan_infrastructure') as scan:
+                deploy.main()
+            scan.assert_called_once()
+            self.assertFalse(any('up' in c.args or 'pull' in c.args for c in commands.call_args_list))
+            self.assertFalse((work / '.traderx-deploy/deployed.json').exists())
+
     def command(self, tmp, phase, program):
         return [sys.executable, str(ROOT / 'pipeline/bounded-security-command.py'), '--timeout', '1',
                 '--phase', phase, '--result', str(Path(tmp) / 'result.json'), '--', sys.executable, '-c', program]

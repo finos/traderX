@@ -16,6 +16,26 @@ The non-GHCR bundle path and clone-first scripts remain available for local deve
 
 ## Failure recovery
 
+Use the workflow's `preflight_only=true` input to authorize the exact snapshot,
+check it out on the host, pull and scan all infrastructure images, and stop before
+Compose pull/up or writing a deployment record. Direct helper invocation supports
+`--preflight-only` and `--report-dir <new-private-directory>`. This mode changes
+the host checkout and image cache; it is not a read-only host diagnosis.
+
+The host inventories all infrastructure blockers instead of stopping at the first
+finding. Each scan has a ten-minute deadline and scoped scanner cleanup. The
+workflow retrieves `infrastructure-scans-<run>-<attempt>` diagnostics even when
+scans fail: per-service Trivy JSON, stderr and `summary.json`. Missing reports,
+malformed results, scanner failures and HIGH/CRITICAL findings block replacement.
+These reports are diagnostic artifacts, not successful runtime-image authorization.
+
+Issue [#487](https://github.com/finos/traderX/issues/487) tracks the complete generated
+runtime-image CI gate, immutable infrastructure evidence, image remediation and
+state 009 recovery. Preflight does not implement that gate or make vulnerable
+images eligible. Before replacement, diagnose any existing 502 independently,
+identify the live Compose project and database volume, and back up PostgreSQL.
+Compose `--wait` alone does not establish application or trading-flow readiness.
+
 Local reports live under `ci/local-security-reports/<project>/`. `acquisition.json` and `result.json` distinguish success (exit 0), findings (10), infrastructure failure (20), timeout (124), and cancellation (130). Dependency-Check's findings exit status is mapped separately from its analyzer/update failures. The overall `ci/local-security-status.json` stays incomplete if execution stops early.
 
 For acquisition failures, restore registry/Docker access and rerun; increase the acquisition deadline only when the download needs more time. For scanner execution failures, restore its database/NVD access or adjust the execution deadline. Reusing an existing database via `TRADERX_DEPENDENCY_CHECK_NO_UPDATE=1` remains supported. Inspect the named container if cleanup could not be confirmed. Findings require remediation or reviewed, narrowly scoped canonical suppression changes, followed by regeneration and successful CI.

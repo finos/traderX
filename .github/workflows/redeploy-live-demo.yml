@@ -14,6 +14,11 @@ on:
         options:
           - demo.traderx.finos.org
           - demo-advanced.traderx.finos.org
+      preflight_only:
+        description: Verify snapshot and scan infrastructure without replacing containers
+        required: false
+        default: false
+        type: boolean
 
 # Requires repository secret DEMO_EC2_SSH_PRIVATE_KEY (PEM private key for ec2-user).
 permissions:
@@ -63,14 +68,31 @@ jobs:
       - name: Deploy verified snapshot over SSH
         env:
           TARGET: ${{ inputs.target }}
+          PREFLIGHT_ONLY: ${{ inputs.preflight_only }}
         run: |
           remote_dir=$(ssh -i ~/.ssh/demo_ec2.pem -o BatchMode=yes -o StrictHostKeyChecking=yes "ec2-user@$TARGET" 'mktemp -d /tmp/traderx-deploy.XXXXXXXX')
           [[ "$remote_dir" =~ ^/tmp/traderx-deploy\.[a-zA-Z0-9]+$ ]]
           trap 'ssh -i ~/.ssh/demo_ec2.pem -o BatchMode=yes -o StrictHostKeyChecking=yes "ec2-user@$TARGET" "rm -rf $remote_dir"' EXIT
           scp -i ~/.ssh/demo_ec2.pem -o BatchMode=yes -o StrictHostKeyChecking=yes \
             verified-deployment.json pipeline/deploy-verified-snapshot.py "ec2-user@$TARGET:$remote_dir/"
+          args=""
+          if [[ "$PREFLIGHT_ONLY" == true ]]; then args="--preflight-only"; fi
+          status=0
           ssh -i ~/.ssh/demo_ec2.pem -o BatchMode=yes -o StrictHostKeyChecking=yes \
-            "ec2-user@$TARGET" "python3 $remote_dir/deploy-verified-snapshot.py $remote_dir/verified-deployment.json"
+            "ec2-user@$TARGET" "python3 $remote_dir/deploy-verified-snapshot.py $remote_dir/verified-deployment.json --report-dir $remote_dir/reports $args" || status=$?
+          mkdir -p infrastructure-scans
+          scp -r -i ~/.ssh/demo_ec2.pem -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "ec2-user@$TARGET:$remote_dir/reports/." infrastructure-scans/ || status=1
+          exit "$status"
+
+      - name: Retain infrastructure scan diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: infrastructure-scans-${{ github.run_id }}-${{ github.run_attempt }}
+          path: infrastructure-scans/
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Remove SSH private key
         if: always()

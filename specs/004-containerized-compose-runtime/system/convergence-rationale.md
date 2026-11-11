@@ -17,4 +17,10 @@ Rationale:
 
 ## Learning evidence at this checkpoint
 
+PR #485 refreshes the inherited Node dependencies and Angular test fixtures in
+the C0 overlay so generated descendants retain the same fixes as the canonical
+templates. Retaining generated CI helpers makes exact-snapshot checks executable;
+neither the dependency updates nor successful application checks establish the
+security of third-party runtime images (tracked separately in issue #487).
+
 At C0, the learning contract combines the inherited edge and agent-harness knowledge with application containerization and the Compose runtime. The learner traces backend and frontend Dockerfiles into images and running containers before examining how Compose connects them. A learning partner asks the learner to distinguish container startup, service readiness and the retained trade result, using separate observations for each boundary. The canonical `learning-contract.json` supplies objective mappings, diagnostic questions, graduated hints and assessment evidence for both human and agent-assisted study.
