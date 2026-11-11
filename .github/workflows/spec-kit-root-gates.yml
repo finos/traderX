@@ -22,7 +22,9 @@ jobs:
           sudo apt-get install -y jq ripgrep
 
       - name: Test publishing security and snapshot authorization
-        run: python3 scripts/test-publishing-security.py
+        run: |
+          python3 scripts/test-publishing-security.py
+          python3 scripts/test-deployment-recovery.py
 
       - name: Validate root Spec Kit integrity and branch-resolution behavior
         run: |
@@ -71,3 +73,11 @@ jobs:
           bash pipeline/generate-state.sh 009-order-management-matcher
           cmp templates/state-010-pricing-awareness-market-data-overlay/trade-processor/src/main/java/finos/traderx/tradeprocessor/service/TradeService.java generated/code/target-generated/trade-processor/src/main/java/finos/traderx/tradeprocessor/service/TradeService.java
           cmp templates/trade-processor-specfirst/src/main/java/finos/traderx/tradeprocessor/service/CommittedTradeEvents.java generated/code/target-generated/trade-processor/src/main/java/finos/traderx/tradeprocessor/service/CommittedTradeEvents.java
+
+  deployment-backup-restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - name: Verify scoped PostgreSQL backup and independent restore
+        run: bash scripts/test-deployment-recovery-integration.sh
