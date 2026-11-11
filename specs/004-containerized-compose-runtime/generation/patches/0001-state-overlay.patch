@@ -494,14 +494,15 @@ new file mode 100644
 index 0000000..2dc2847
 --- /dev/null
 +++ b/account-service/build.gradle
-@@ -0,0 +1,40 @@
+@@ -0,0 +1,41 @@
 +plugins {
 +  id 'java'
 +  id 'org.springframework.boot' version '4.0.8'
 +  id 'io.spring.dependency-management' version '1.1.7'
 +}
 +
-+ext['jackson-bom.version'] = '3.1.5'
++ext['jackson-bom.version'] = '3.1.7'
++ext['jackson-2-bom.version'] = '2.21.7'
 +ext['tomcat.version'] = '11.0.26'
 +
 +group = 'finos.traderx.account-service-specfirst'
@@ -4559,14 +4560,15 @@ new file mode 100644
 index 0000000..5d22c03
 --- /dev/null
 +++ b/position-service/build.gradle
-@@ -0,0 +1,40 @@
+@@ -0,0 +1,41 @@
 +plugins {
 +  id 'java'
 +  id 'org.springframework.boot' version '4.0.8'
 +  id 'io.spring.dependency-management' version '1.1.7'
 +}
 +
-+ext['jackson-bom.version'] = '3.1.5'
++ext['jackson-bom.version'] = '3.1.7'
++ext['jackson-2-bom.version'] = '2.21.7'
 +ext['tomcat.version'] = '11.0.26'
 +
 +group = 'finos.traderx.position-service-specfirst'
@@ -15064,14 +15066,15 @@ new file mode 100644
 index 0000000..3b645d6
 --- /dev/null
 +++ b/trade-processor/build.gradle
-@@ -0,0 +1,53 @@
+@@ -0,0 +1,54 @@
 +plugins {
 +  id 'java'
 +  id 'org.springframework.boot' version '4.0.8'
 +  id 'io.spring.dependency-management' version '1.1.7'
 +}
 +
-+ext['jackson-bom.version'] = '3.1.5'
++ext['jackson-bom.version'] = '3.1.7'
++ext['jackson-2-bom.version'] = '2.21.7'
 +ext['tomcat.version'] = '11.0.26'
 +
 +group = 'finos.traderx.trade-processor-specfirst'
@@ -16469,14 +16472,15 @@ new file mode 100644
 index 0000000..434cc4d
 --- /dev/null
 +++ b/trade-service/build.gradle
-@@ -0,0 +1,57 @@
+@@ -0,0 +1,58 @@
 +plugins {
 +  id 'java'
 +  id 'org.springframework.boot' version '4.0.8'
 +  id 'io.spring.dependency-management' version '1.1.7'
 +}
 +
-+ext['jackson-bom.version'] = '3.1.5'
++ext['jackson-bom.version'] = '3.1.7'
++ext['jackson-2-bom.version'] = '2.21.7'
 +ext['tomcat.version'] = '11.0.26'
 +
 +group = 'finos.traderx.trade-service-specfirst'

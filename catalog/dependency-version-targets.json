@@ -6,8 +6,9 @@
       "io.spring.dependency-management": "1.1.7"
     },
     "properties": {
-      "jackson-bom.version": "3.1.5",
-      "tomcat.version": "11.0.26"
+      "jackson-bom.version": "3.1.7",
+      "tomcat.version": "11.0.26",
+      "jackson-2-bom.version": "2.21.7"
     },
     "dependencies": {
       "org.springdoc:springdoc-openapi-starter-webmvc-api": "3.0.3",

@@ -4,7 +4,8 @@ plugins {
   id 'io.spring.dependency-management' version '1.1.7'
 }
 
-ext['jackson-bom.version'] = '3.1.5'
+ext['jackson-bom.version'] = '3.1.7'
+ext['jackson-2-bom.version'] = '2.21.7'
 ext['tomcat.version'] = '11.0.26'
 
 group = 'finos.traderx.trade-service-specfirst'
