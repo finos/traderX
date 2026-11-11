@@ -18,6 +18,8 @@ def main():
               'containers': command('docker', 'ps', '-a', '--format', '{{json .}}'),
               'volumes': command('docker', 'volume', 'ls', '--format', '{{json .}}'),
               'disk': command('df', '-h', '/'),
+              'docker_disk': command('docker', 'system', 'df'),
+              'memory': command('free', '-m'),
               'nginx_test': command('sudo', '-n', 'nginx', '-t')}
     ids = command('docker', 'ps', '-aq').get('stdout', '').split()
     report['postgres'] = {}
