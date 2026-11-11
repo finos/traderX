@@ -1,0 +1,28 @@
+.trade-container {
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
+
+    .trade-blotter {
+        padding: 5px;
+    }
+
+    .trade-ops {
+        display: flex;
+        justify-content: flex-start;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+    
+    .trade-blotter {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .trade-blotter-items,
+    .position-blotter-items {
+        flex: 1 1 calc(50% - 6px);
+        min-width: 700px;
+    }
+}
