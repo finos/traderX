@@ -28,6 +28,28 @@ SHA = 'a' * 40
 DIGEST = 'sha256:' + 'b' * 64
 
 
+class RecoveryCacheTests(unittest.TestCase):
+    def test_refuses_other_hosts_states_and_existing_containers(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.object(deploy, 'run') as run:
+            for state, host in [('004-containerized-compose-runtime', 'demo-advanced.traderx.finos.org'), ('009-order-management-matcher', 'demo.traderx.finos.org')]:
+                with self.assertRaises(ValueError):
+                    deploy.reclaim_recovery_image_cache({'state': state, 'target': host}, Path(tmp))
+            run.assert_not_called()
+            run.return_value.stdout = 'existing-container'
+            with self.assertRaises(ValueError):
+                deploy.reclaim_recovery_image_cache({'state': '009-order-management-matcher', 'target': 'demo-advanced.traderx.finos.org'}, Path(tmp))
+            self.assertEqual(run.call_count, 1)
+
+    def test_removes_only_old_unused_images_and_records_result(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.object(deploy, 'run') as run:
+            run.return_value.stdout = ''
+            deploy.reclaim_recovery_image_cache({'state': '009-order-management-matcher', 'target': 'demo-advanced.traderx.finos.org'}, Path(tmp))
+            self.assertEqual([call.args for call in run.call_args_list], [
+                ('docker', 'ps', '-aq'), ('df', '-h', '/'),
+                ('docker', 'image', 'prune', '-a', '-f', '--filter', 'until=24h'), ('df', '-h', '/')])
+            self.assertTrue((Path(tmp) / 'recovery-image-cache.json').is_file())
+
+
 class SnapshotRunnerTests(unittest.TestCase):
     def test_state004_keeps_corrected_shared_test_fixtures(self):
         patch_text = (ROOT / 'specs/004-containerized-compose-runtime/generation/patches/0001-state-overlay.patch').read_text()
