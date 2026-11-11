@@ -80,6 +80,17 @@ jobs:
           cmp templates/state-010-pricing-awareness-market-data-overlay/trade-processor/src/main/java/finos/traderx/tradeprocessor/service/TradeService.java generated/code/target-generated/trade-processor/src/main/java/finos/traderx/tradeprocessor/service/TradeService.java
           cmp templates/trade-processor-specfirst/src/main/java/finos/traderx/tradeprocessor/service/CommittedTradeEvents.java generated/code/target-generated/trade-processor/src/main/java/finos/traderx/tradeprocessor/service/CommittedTradeEvents.java
 
+  fdc3-generation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install generation dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq ripgrep
+      - name: Verify final FDC3 generation and frozen dependency overlay
+        env:
+          TRADERX_SKIP_LOCKFILE_REFRESH: '1'
+        run: bash pipeline/generate-state.sh 014-fdc3-intent-interoperability
+
   deployment-backup-restore:
     runs-on: ubuntu-latest
     timeout-minutes: 20
