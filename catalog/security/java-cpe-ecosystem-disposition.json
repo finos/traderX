@@ -1,19 +1,26 @@
 {
   "schemaVersion": 1,
-  "status": "review-pending",
-  "approved": false,
-  "active": false,
+  "status": "approved",
+  "approved": true,
+  "active": true,
   "owner": "TraderX maintainers",
   "trackingIssue": "https://github.com/finos/traderX/issues/486",
   "expires": "2026-12-11T00:00:00Z",
-  "approval": null,
+  "approval": {
+    "decision": "Approve the exact scoped disposition",
+    "authority": "Repository owner explicit approval in Codex conversation",
+    "date": "2026-11-11",
+    "reviewPullRequest": "https://github.com/finos/traderX/pull/489",
+    "scope": "Nine listed cross-ecosystem CVEs on four exact artifact hashes only; expires 2026-12-11T00:00:00Z; raw reports retained.",
+    "reference": "https://github.com/finos/traderX/pull/489#issuecomment-6794024705"
+  },
   "scope": "Only the explicit CVEs on these four exact Maven artifact bytes. All other findings and versions remain blocking.",
   "matching": {
     "schema": "https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd",
     "selector": "sha1",
     "reason": "The actual nested-JAR report has no package URL software identifier. Schema1.3 allows one selector only; exact artifact SHA-1 matches the reported identity. Maven package URL/version and SHA-256 independently identify the reviewed artifacts.",
-    "implementationReference": "https://github.com/dependency-check/DependencyCheck/blob/main/core/src/main/java/org/owasp/dependencycheck/xml/suppression/SuppressionRule.java",
-    "xmlInactiveUntilReviewed": true
+    "implementationReference": "https://github.com/dependency-check/DependencyCheck/blob/v13.0.0/core/src/main/java/org/owasp/dependencycheck/xml/suppression/SuppressionRule.java",
+    "xmlInactiveUntilReviewed": false
   },
   "rawReport": {
     "snapshot": "69e0c05b072cc58098b0c32826dd21fa31897996",
@@ -225,5 +232,6 @@
   "notIncluded": [
     "CVE-2026-53914 Kotlin baseline drift; remediate centrally to selected2.4.21.",
     "Any new Java advisory or any vulnerability on other artifact bytes."
-  ]
+  ],
+  "canonicalSuppressionFile": ".github/gradle-cve-ignore-list.xml"
 }

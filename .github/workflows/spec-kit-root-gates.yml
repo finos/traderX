@@ -30,6 +30,7 @@ jobs:
           python3 scripts/test-node-resolved-minimums.py
           python3 scripts/test-jackson-bom-targets.py
           python3 scripts/test-kotlin-bom-targets.py
+          python3 scripts/test-java-cpe-disposition.py
           python3 scripts/test-sail-dependency-overlay.py
           python3 scripts/test-frozen-node-runtime.py
           python3 scripts/test-nonpublishing-runtime-security.py
