@@ -10,5 +10,7 @@
   "fixed_findings": {
     "CVE-2026-21728": "650eb1985a0776789c8564122990f588a742356f",
     "CVE-2026-28377": "bb8ca663db34a0980c9758b40d918fda3b4dbec3"
-  }
+  },
+  "approved": true,
+  "approval": "User explicitly approved the exact scoped disposition in the state-009 recovery chat on 2026-11-11; recorded in PR #488."
 }

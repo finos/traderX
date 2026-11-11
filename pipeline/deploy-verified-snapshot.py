@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import uuid
 
@@ -29,17 +30,35 @@ def pin_services(config, images):
     return config
 
 
-def scan_infrastructure(config, images, reports):
+def already_fixed(finding, image, policy, now=None):
+    if not policy or image != policy.get('image'):
+        return False
+    if policy.get('approved') is not True:
+        raise ValueError('fixed-source disposition is not approved')
+    now = now or datetime.datetime.now(datetime.timezone.utc)
+    expiry = datetime.datetime.fromisoformat(policy['expires'].replace('Z', '+00:00'))
+    if now >= expiry:
+        raise ValueError('fixed-source disposition expired')
+    return (finding.get('PkgName') == policy['package']
+            and finding.get('InstalledVersion') == policy['installed_version']
+            and finding.get('VulnerabilityID') in policy['fixed_findings'])
+
+
+def scan_infrastructure(config, images, reports, policy=None):
     """Inventory every infrastructure blocker; diagnostic output is not authorization."""
     reports.mkdir(mode=0o700, parents=True, exist_ok=False)
     summary = []
     for name, service in config['services'].items():
         image = service['image']
-        if image in images.values():
+        # Rebuilt infrastructure now has published-image evidence too, but
+        # must retain its independent host scan before runtime replacement.
+        infrastructure = {'database', 'blackbox-exporter', 'prometheus', 'loki', 'tempo',
+                          'grafana', 'promtail', 'otel-collector', 'nats-broker'}
+        if image in images.values() and name not in infrastructure:
             continue
         if not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9_.-]*', name):
             raise ValueError('invalid service name')
-        entry = dict(service=name, source=image, status='error', high=0, critical=0)
+        entry = dict(service=name, source=image, status='error', high=0, critical=0, fixed_findings=[])
         scanner = 'traderx-security-' + uuid.uuid4().hex
         try:
             run('docker', 'pull', image, capture_output=True, text=True)
@@ -68,9 +87,18 @@ def scan_infrastructure(config, images, reports):
                     if not isinstance(finding, dict) or finding.get('Severity') not in ('UNKNOWN', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'):
                         raise ValueError('malformed vulnerability')
                     if finding['Severity'] in ('HIGH', 'CRITICAL'):
-                        entry[finding['Severity'].lower()] += 1
+                        if already_fixed(finding, service['image'], policy):
+                            entry['fixed_findings'].append({k: finding.get(k) for k in
+                                ('VulnerabilityID', 'PkgName', 'InstalledVersion', 'Severity')})
+                        else:
+                            entry[finding['Severity'].lower()] += 1
+                for secret in target.get('Secrets', []):
+                    if not isinstance(secret, dict) or 'Severity' not in secret:
+                        raise ValueError('malformed secret finding')
+                    if secret['Severity'] in ('HIGH', 'CRITICAL'):
+                        entry[secret['Severity'].lower()] += 1
             findings = entry['high'] + entry['critical']
-            if result.returncode not in (0, 1) or (result.returncode == 1 and not findings):
+            if result.returncode not in (0, 1) or (result.returncode == 1 and not findings and not entry['fixed_findings']):
                 raise ValueError(f'scanner failed with exit code {result.returncode}')
             entry['status'] = 'findings' if findings else 'success'
         except (OSError, subprocess.SubprocessError, ValueError, TypeError) as exc:
@@ -84,12 +112,55 @@ def scan_infrastructure(config, images, reports):
                 entry['cleanup_warning'] = f'inspect {scanner}'
             summary.append(entry)
             (reports / 'summary.json').write_text(json.dumps(summary, indent=2) + '\n')
-        print(f"[scan] {name}: {entry['status']} HIGH={entry['high']} CRITICAL={entry['critical']}")
+        print(f"[scan] {name}: {entry['status']} HIGH={entry['high']} CRITICAL={entry['critical']} already-fixed={len(entry['fixed_findings'])}")
     # Also retain a complete empty inventory for application-only runtimes.
     (reports / 'summary.json').write_text(json.dumps(summary, indent=2) + '\n')
     blocked = [e['service'] for e in summary if e['status'] != 'success']
     if blocked:
         raise ValueError('infrastructure preflight blocked: ' + ', '.join(blocked))
+
+
+def backup_state009_database(record, project, audit):
+    """Never silently create an empty replacement for the recovered demo volume."""
+    if record['state'] != '009-order-management-matcher':
+        return
+    volume = project + '_postgres_state_009_data'
+    details = json.loads(run('docker', 'volume', 'inspect', volume, capture_output=True, text=True).stdout)
+    if len(details) != 1 or details[0].get('Name') != volume:
+        raise ValueError('expected existing PostgreSQL volume was not found')
+    mount = details[0]['Mountpoint']
+    version = run('sudo', '-n', 'cat', mount + '/PG_VERSION', capture_output=True, text=True).stdout.strip()
+    if version != '16':
+        raise ValueError(f'PostgreSQL volume major version is {version}, expected 16')
+    writers = run('docker', 'ps', '-q', '--filter', 'volume=' + volume,
+                  capture_output=True, text=True).stdout.strip()
+    if writers:
+        raise ValueError('database volume is in use; arrange a consistent online backup before replacement')
+    size = int(run('sudo', '-n', 'du', '-sb', mount, capture_output=True, text=True).stdout.split()[0])
+    if shutil.disk_usage(audit).free < size + 512 * 1024 * 1024:
+        raise ValueError('insufficient space for database backup')
+    backups = audit / 'backups'
+    backups.mkdir(mode=0o700, exist_ok=True)
+    dest = backups / (record['snapshot'] + '-' + uuid.uuid4().hex + '.tar.gz')
+    # The database is offline; preserve ownership in a physical backup without
+    # changing the volume or exposing its contents in Actions logs/artifacts.
+    run('sudo', '-n', 'tar', '--numeric-owner', '-czf', str(dest), '-C', mount, '.', timeout=600)
+    run('sudo', '-n', 'chown', f'{os.getuid()}:{os.getgid()}', str(dest))
+    os.chmod(dest, 0o600)
+    listing = run('tar', '-tzf', str(dest), capture_output=True, text=True).stdout.splitlines()
+    if './PG_VERSION' not in listing:
+        raise ValueError('database backup verification failed')
+    import hashlib
+    with dest.open('rb') as source:
+        digest = hashlib.file_digest(source, 'sha256').hexdigest() if hasattr(hashlib, 'file_digest') else None
+        if digest is None:
+            hasher = hashlib.sha256()
+            for block in iter(lambda: source.read(1024 * 1024), b''):
+                hasher.update(block)
+            digest = hasher.hexdigest()
+    record['database_backup'] = {'volume': volume, 'path': str(dest), 'sha256': digest, 'major': version}
+    (backups / (dest.name + '.json')).write_text(json.dumps(record['database_backup'], indent=2) + '\n')
+    print(f'[ok] verified offline PostgreSQL 16 backup: {dest.name}')
 
 
 def main():
@@ -123,15 +194,18 @@ def main():
     audit = work / '.traderx-deploy'
     audit.mkdir(mode=0o700, exist_ok=True)
     os.chmod(audit, 0o700)
+    policy_file = Path(__file__).with_name('state-009-grafana-fixed-findings.json')
+    policy = json.loads(policy_file.read_text()) if policy_file.exists() else None
     scan_infrastructure(config, record['images'],
-                        a.report_dir or audit / f'{sha}.scans-{uuid.uuid4().hex}')
+                        a.report_dir or audit / f'{sha}.scans-{uuid.uuid4().hex}', policy=policy)
     if a.preflight_only:
         print(f'[ok] preflight passed for {sha}; no containers replaced')
         return
     resolved = audit / f'{sha}.compose.json'
     resolved.write_text(json.dumps(config, indent=2) + '\n')
-    command = ['docker', 'compose', '-f', str(resolved), '--project-name',
-               os.environ.get('TRADERX_COMPOSE_PROJECT_NAME', 'traderx-' + record['state'])]
+    project = os.environ.get('TRADERX_COMPOSE_PROJECT_NAME', 'traderx-' + record['state'])
+    backup_state009_database(record, project, audit)
+    command = ['docker', 'compose', '-f', str(resolved), '--project-name', project]
     run(*command, 'pull', env=env)
     run(*command, 'up', '-d', '--no-build', '--wait', '--wait-timeout', '180', env=env)
     record['deployed_at'] = datetime.datetime.now(datetime.timezone.utc).isoformat()

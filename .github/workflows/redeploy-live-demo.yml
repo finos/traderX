@@ -80,7 +80,8 @@ jobs:
           [[ "$remote_dir" =~ ^/tmp/traderx-deploy\.[a-zA-Z0-9]+$ ]]
           trap 'ssh -i ~/.ssh/demo_ec2.pem -o BatchMode=yes -o StrictHostKeyChecking=yes "ec2-user@$TARGET" "rm -rf $remote_dir"' EXIT
           scp -i ~/.ssh/demo_ec2.pem -o BatchMode=yes -o StrictHostKeyChecking=yes \
-            verified-deployment.json pipeline/deploy-verified-snapshot.py "ec2-user@$TARGET:$remote_dir/"
+            verified-deployment.json pipeline/deploy-verified-snapshot.py \
+            catalog/security/state-009-grafana-fixed-findings.json "ec2-user@$TARGET:$remote_dir/"
           args=""
           if [[ "$PREFLIGHT_ONLY" == true ]]; then args="--preflight-only"; fi
           status=0

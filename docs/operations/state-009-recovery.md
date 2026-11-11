@@ -9,14 +9,14 @@ Tracking: [#487](https://github.com/finos/traderX/issues/487), recovery [PR #488
 - Preserve and back up this volume before replacement. Root disk had 4.2 GiB free; check capacity before pulling the replacement.
 - Rebuilt PostgreSQL 16 and blackbox-exporter v0.29.1 candidate scans have zero HIGH/CRITICAL findings. Loki/Tempo/Prometheus rebuild validation remains in progress. Vector 0.61.0-alpine has zero HIGH/CRITICAL findings and is the candidate maintained Docker log collector.
 
-## Grafana 12.4.15 fixed-source findings: proposed scoped disposition
+## Grafana 12.4.15 fixed-source findings: approved scoped disposition
 
 The immutable Grafana image in `catalog/security/state-009-grafana-fixed-findings.json` has two HIGH findings against its Tempo module's Go pseudo-version. Both upstream fixes are already ancestors of the source revision embedded in the scanned binary:
 
 - [CVE-2026-21728 advisory](https://grafana.com/security/security-advisories/cve-2026-21728/): [fix-to-embedded-source comparison](https://github.com/grafana/tempo/compare/650eb1985a0776789c8564122990f588a742356f...525d1bab07e0) is ahead by 337 commits, behind by zero.
 - [CVE-2026-28377 advisory](https://grafana.com/security/security-advisories/cve-2026-28377/): [fix-to-embedded-source comparison](https://github.com/grafana/tempo/compare/bb8ca663db34a0980c9758b40d918fda3b4dbec3...525d1bab07e0) is ahead by 218 commits, behind by zero.
 
-The candidate disposition is limited to these two IDs, this exact image digest, this exact package/version, with expiry 2026-12-11. It must not exclude either CVE from any other image or version. Raw reports must be retained and these findings recorded as already fixed, separately from zero-finding scans. Any additional finding, changed digest/version, expired disposition or scanner error must block deployment. The policy file is proposed evidence, not an active deployment exception; approval and implementation are pending under the repository's reviewed-suppression contract.
+The candidate disposition is limited to these two IDs, this exact image digest, this exact package/version, with expiry 2026-12-11. It must not exclude either CVE from any other image or version. Raw reports must be retained and these findings recorded as already fixed, separately from zero-finding scans. Any additional finding, changed digest/version, expired disposition or scanner error must block deployment. The user explicitly approved this exact disposition on 2026-11-11. The deployment helper applies it only to the matching immutable image, package/version and CVE before expiry, retaining the raw reports and disposition in scan summaries.
 
 ## Main-generator work to complete after recovery
 
@@ -27,7 +27,7 @@ The candidate disposition is limited to these two IDs, this exact image digest, 
 - [ ] Add meaningful application/ingress/broker/observability readiness and trading-flow/persistence acceptance tests.
 - [ ] Keep database-volume detection, backup and restore checks in the deployment path.
 - [ ] Reconcile #485 and #488 into main, then regenerate descendants sequentially through the supported publisher.
-- [ ] Remove the proposed scoped Grafana disposition when upstream metadata/scanner evidence no longer needs it, and never extend it automatically.
+- [ ] Remove the scoped Grafana disposition when upstream metadata/scanner evidence no longer needs it, and never extend it automatically.
 
 ## Completion evidence still required
 

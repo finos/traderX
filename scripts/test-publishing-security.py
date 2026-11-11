@@ -192,6 +192,68 @@ class AuthorizationTests(unittest.TestCase):
             self.assertTrue(any('--no-build' in call.args and '--wait' in call.args for call in commands.call_args_list))
 
 
+class FixedSourceDispositionTests(unittest.TestCase):
+    def setUp(self):
+        self.policy = json.loads((ROOT / 'catalog/security/state-009-grafana-fixed-findings.json').read_text())
+        self.finding = {'VulnerabilityID': 'CVE-2026-21728', 'PkgName': self.policy['package'],
+                        'InstalledVersion': self.policy['installed_version'], 'Severity': 'HIGH'}
+        self.now = deploy.datetime.datetime(2026, 11, 11, tzinfo=deploy.datetime.timezone.utc)
+
+    def test_disposition_is_exact_and_expires(self):
+        self.assertTrue(deploy.already_fixed(self.finding, self.policy['image'], self.policy, self.now))
+        self.assertFalse(deploy.already_fixed(self.finding, 'other@' + DIGEST, self.policy, self.now))
+        for change in [{'VulnerabilityID': 'CVE-9999-9999'}, {'PkgName': 'other'}, {'InstalledVersion': 'other'}]:
+            self.assertFalse(deploy.already_fixed(self.finding | change, self.policy['image'], self.policy, self.now))
+        with self.assertRaisesRegex(ValueError, 'expired'):
+            deploy.already_fixed(self.finding, self.policy['image'], self.policy,
+                                 deploy.datetime.datetime(2026, 12, 11, tzinfo=deploy.datetime.timezone.utc))
+        with self.assertRaisesRegex(ValueError, 'not approved'):
+            deploy.already_fixed(self.finding, self.policy['image'], self.policy | {'approved': False}, self.now)
+
+    def test_disposition_retains_raw_findings_and_never_exempts_secrets(self):
+        self.policy['expires'] = (deploy.datetime.datetime.now(deploy.datetime.timezone.utc)
+                                  + deploy.datetime.timedelta(days=1)).isoformat()
+        for secrets, expected in [([], 'success'), ([{'Severity': 'HIGH'}], 'findings')]:
+            with self.subTest(secrets=secrets), tempfile.TemporaryDirectory() as tmp:
+                report = json.dumps({'Results': [{'Vulnerabilities': [self.finding], 'Secrets': secrets}]})
+                config = {'services': {'grafana': {'image': 'grafana:12.4.15'}}}
+                with patch.object(deploy, 'run', return_value=subprocess.CompletedProcess(
+                        [], 0, json.dumps([self.policy['image']]))), \
+                     patch.object(deploy.subprocess, 'run', return_value=subprocess.CompletedProcess([], 1, report, '')):
+                    if secrets:
+                        with self.assertRaises(ValueError):
+                            deploy.scan_infrastructure(config, {}, Path(tmp) / 'reports', self.policy)
+                    else:
+                        deploy.scan_infrastructure(config, {}, Path(tmp) / 'reports', self.policy)
+                row, = json.loads((Path(tmp) / 'reports/summary.json').read_text())
+                self.assertEqual(row['status'], expected)
+                self.assertEqual(row['fixed_findings'], [self.finding])
+                self.assertEqual((Path(tmp) / 'reports/grafana.trivy.json').read_text(), report)
+
+
+class DatabaseRecoveryTests(unittest.TestCase):
+    def test_recovery_rejects_wrong_major_or_active_database(self):
+        for version, writers in [('17', ''), ('16', 'running-container')]:
+            with self.subTest(version=version, writers=writers), tempfile.TemporaryDirectory() as tmp:
+                record = {'state': '009-order-management-matcher', 'snapshot': SHA}
+                volume = 'demo_postgres_state_009_data'
+                replies = [json.dumps([{'Name': volume, 'Mountpoint': '/volume'}]), version, writers]
+                def fake(*args, **kwargs):
+                    return subprocess.CompletedProcess(args, 0, replies.pop(0), '')
+                with patch.object(deploy, 'run', side_effect=fake) as commands:
+                    with self.assertRaises(ValueError):
+                        deploy.backup_state009_database(record, 'demo', Path(tmp))
+                self.assertFalse(any('tar' in c.args for c in commands.call_args_list))
+                self.assertNotIn('database_backup', record)
+
+    def test_missing_recovery_volume_blocks_instead_of_creating_one(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.object(deploy, 'run',
+                side_effect=subprocess.CalledProcessError(1, ['docker', 'volume', 'inspect'])):
+            with self.assertRaises(subprocess.CalledProcessError):
+                deploy.backup_state009_database({'state': '009-order-management-matcher', 'snapshot': SHA},
+                                                'demo', Path(tmp))
+
+
 class ScannerTests(unittest.TestCase):
     def test_infrastructure_timeout_continues_and_cleans_only_owned_scanners(self):
         with tempfile.TemporaryDirectory() as tmp:

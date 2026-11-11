@@ -1,0 +1,15 @@
+FROM --platform=$BUILDPLATFORM golang:1.27.3-alpine AS build
+ARG TARGETARCH
+ENV GOMEMLIMIT=512MiB GOMAXPROCS=2
+RUN apk add --no-cache git
+WORKDIR /src
+RUN git init && git remote add origin https://github.com/grafana/loki.git \
+ && git config core.sparseCheckout true \
+ && printf '/*\n!/vendor/\n' > .git/info/sparse-checkout \
+ && git fetch --filter=blob:none --depth=1 origin d3b4a2f76bfc5625abee7ceb00b8896fa3c31549 && git checkout --detach FETCH_HEAD
+ENV GOFLAGS=-mod=mod
+RUN --mount=type=cache,target=/go/pkg/mod go get golang.org/x/net@v0.62.0
+RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
+ CGO_ENABLED=0 GOOS=linux GOARCH=$TARGETARCH go build -p 1 -trimpath -o /out/loki ./cmd/loki
+FROM grafana/loki:3.7.9@sha256:0db216b630ae1f348a1584c67f3cead8b4c1fc839169a39501db664744158e28
+COPY --from=build /out/loki /usr/bin/loki
