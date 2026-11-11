@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Validate the frozen Sail graph and fail-closed source commit guard."""
 import json
+import importlib.util
 from pathlib import Path
 import shutil
 import subprocess
@@ -24,6 +25,29 @@ class SailOverlayTests(unittest.TestCase):
         self.assertNotIn('packages/electron', lock['']['workspaces'])
         self.assertNotIn('node_modules/electron', lock)
         self.assertEqual(lock['packages/web']['devDependencies']['pm2'], POLICY['dependencies']['pm2'])
+
+    def test_generation_preserves_frozen_graph_and_rejects_drift(self):
+        spec = importlib.util.spec_from_file_location('sail_validator', ROOT / 'pipeline/validate-generated-sail-dependencies.py')
+        validator = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(validator)
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp)
+            overlay = target / validator.RELATIVE
+            shutil.copytree(OVERLAY, overlay)
+            (overlay / 'policy.json').write_text(json.dumps(POLICY))
+            targets = ROOT / 'catalog/dependency-version-targets.json'
+            self.assertTrue(validator.validate(target, targets))
+            subprocess.run(['bash', str(ROOT / 'pipeline/sync-node-dependency-overrides.sh'), str(target)], check=True, capture_output=True)
+            subprocess.run(['bash', str(ROOT / 'pipeline/refresh-generated-node-lockfiles.sh'), str(target)], check=True, capture_output=True)
+            self.assertTrue(validator.validate(target, targets))
+            manifest = overlay / 'package.json'
+            manifest.write_text(manifest.read_text() + '\n')
+            with self.assertRaisesRegex(ValueError, 'overlay changed'):
+                validator.validate(target, targets)
+            shutil.copyfile(OVERLAY / 'package.json', manifest)
+            (overlay / 'policy.json').write_text(json.dumps(dict(POLICY, sourceCommit='f' * 40)))
+            with self.assertRaisesRegex(ValueError, 'policy differs'):
+                validator.validate(target, targets)
 
     def test_wrong_source_commit_is_rejected_before_copy(self):
         with tempfile.TemporaryDirectory() as tmp:

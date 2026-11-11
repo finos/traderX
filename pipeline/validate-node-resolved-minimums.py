@@ -35,6 +35,8 @@ def main():
     count = 0
     for root in args.roots:
         for lockfile in root.rglob('package-lock.json'):
+            if lockfile.is_relative_to(root / 'fdc3-intent-interoperability/sail/bootstrap/dependency-overlay'):
+                continue  # Independently checked byte-for-byte against the frozen Sail graph.
             if any(part in ('node_modules', 'runtime-cache', '.git') for part in lockfile.relative_to(root).parts):
                 continue
             try:

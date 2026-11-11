@@ -30,6 +30,7 @@ for scan_root in "$@"; do
   find "${scan_root}" -type f \
     \( -name 'build.gradle' -o -name 'gradle-wrapper.properties' -o -name 'package.json' -o -name '*.csproj' -o -name '*.yml' -o -name '*.yaml' -o -name '*.json' -o -name 'Dockerfile.compose' \) \
     ! -path '*/node_modules/*' \
+    ! -path "${scan_root%/}/fdc3-intent-interoperability/sail/bootstrap/dependency-overlay/*" \
     -print >> "${tmp_files}"
 done
 
@@ -217,6 +218,8 @@ while IFS=$'\t' read -r module expected_image; do
     check_equals "runtime image ${module}" "${dockerfile}" "${expected_image}" "${actual_image}"
   done < <(rg 'Dockerfile\.compose$' "${tmp_files}" || true)
 done < <(jq -r '(.docker.runtimeImages // {}) | to_entries[] | [.key, .value] | @tsv' "${TARGETS_FILE}")
+
+python3 "${ROOT}/pipeline/validate-generated-sail-dependencies.py" --targets "${TARGETS_FILE}" "$@"
 
 python3 "${ROOT}/pipeline/validate-node-resolved-minimums.py" --targets "${TARGETS_FILE}" "$@"
 

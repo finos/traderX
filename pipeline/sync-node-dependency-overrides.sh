@@ -101,6 +101,7 @@ for scan_root in "$@"; do
   done < <(
     find "${scan_root}" -type f -name package.json \
       ! -path '*/node_modules/*' \
+    ! -path "${scan_root%/}/fdc3-intent-interoperability/sail/bootstrap/dependency-overlay/*" \
       ! -path '*/dist/*' \
       ! -path '*/build/*' \
       ! -path '*/coverage/*' \
