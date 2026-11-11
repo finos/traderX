@@ -1,14 +1,14 @@
 # Functional Testing Guide
 
-State: `001-baseline-uncontainerized-parity`
+State: `002-edge-proxy-uncontainerized`
 
 This guide captures intended functional behavior for this generated snapshot branch.
 
 ## What Should Work
 
-- Base case for TraderX generated code.
-- Runtime model: uncontainerized local processes in deterministic startup order.
-- Browser directly calls multiple service ports (cross-origin CORS behavior is part of this state).
+- Builds on state `001` while keeping uncontainerized process runtime.
+- Adds `edge-proxy` as a single browser-facing origin for UI + API + WebSocket traffic.
+- Preserves baseline functional behavior with topology-focused NFR deltas.
 
 ## Suggested Functional Validation
 
@@ -27,7 +27,7 @@ Use the script matching this state id when available.
 
 ## Canonical References
 
-- Spec pack: `specs/001-baseline-uncontainerized-parity`
+- Spec pack: `specs/002-edge-proxy-uncontainerized`
 - Runtime guide: [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
 - Snapshot learning guide: [LEARNING.md](./LEARNING.md)
 - Snapshot metadata: [STATE.md](./STATE.md)

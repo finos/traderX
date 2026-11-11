@@ -1,10 +1,11 @@
 # Component Diagram
 
-State: `001-baseline-uncontainerized-parity`
+State: `002-edge-proxy-uncontainerized`
 
 ```mermaid
 flowchart LR
   trader["Trader Browser"]
+  edge["Edge Proxy"]
   web["Web Front End Angular"]
   account["Account Service"]
   position["Position Service"]
@@ -15,13 +16,14 @@ flowchart LR
   tradeProcessor["Trade Processor"]
   database["Database"]
 
-  trader -->|Uses UI| web
-  web -->|REST /account + /accountuser| account
-  web -->|REST /trades + /positions| position
-  web -->|REST /trade| tradeService
-  web -->|REST /stocks| referenceData
-  web -->|REST /People| people
-  web -->|Socket.IO subscribe| tradeFeed
+  trader -->|Single browser entrypoint| edge
+  edge -->|/| web
+  edge -->|/account-service| account
+  edge -->|/position-service| position
+  edge -->|/trade-service| tradeService
+  edge -->|/reference-data| referenceData
+  edge -->|/people-service| people
+  edge -->|/socket.io| tradeFeed
   tradeService -->|Validate account| account
   tradeService -->|Validate ticker| referenceData
   tradeService -->|Publish trades/new| tradeFeed

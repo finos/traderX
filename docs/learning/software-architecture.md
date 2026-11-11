@@ -1,21 +1,21 @@
 # Software Architecture
 
-State: `001-baseline-uncontainerized-parity`
-Title: `Architecture (State 001 Baseline)`
+State: `002-edge-proxy-uncontainerized`
+Title: `Architecture (State 002 Edge Proxy Uncontainerized)`
 
 ## Architecture Summary
 
-Baseline pre-containerized architecture with direct browser-to-service calls and Socket.IO trade/position subscriptions.
+State 002 keeps uncontainerized services and introduces an edge proxy as the single browser-facing entrypoint.
 
 ## Entrypoints
 
-- `web-front-end-angular` -> `http://localhost:18093`
-- `trade-feed` -> `http://localhost:18086`
+- `edge-proxy` -> `http://localhost:18080`
+- `angular-upstream` -> `http://localhost:18093`
 
 ## Notes
 
-- This state is intentionally pre-ingress and cross-origin.
-- CORS behavior is part of baseline non-functional requirements.
+- State 002 preserves baseline functional flows F1-F6.
+- Primary delta is topology and origin model, not business behavior.
 
 ## Diagram
 
@@ -23,23 +23,25 @@ See [Component Diagram](./component-diagram.md).
 
 ## Detailed Architecture (Spec Extract)
 
-# Architecture (State 001 Baseline)
+# Architecture (State 002 Edge Proxy Uncontainerized)
 
-Baseline pre-containerized architecture with direct browser-to-service calls and Socket.IO trade/position subscriptions.
+State 002 keeps uncontainerized services and introduces an edge proxy as the single browser-facing entrypoint.
 
+- Inherits architectural baseline from: `001-baseline-uncontainerized-parity`
 - Generated from: `system/architecture.model.json`
-- Canonical flows: `system/end-to-end-flows.md`
+- Canonical flows: `../001-baseline-uncontainerized-parity/system/end-to-end-flows.md`
 
 ## Entry Points
 
-- `web-front-end-angular`: `http://localhost:18093`
-- `trade-feed`: `http://localhost:18086`
+- `edge-proxy`: `http://localhost:18080`
+- `angular-upstream`: `http://localhost:18093`
 
 ## Architecture Diagram
 
 ```mermaid
 flowchart LR
   trader["Trader Browser"]
+  edge["Edge Proxy"]
   web["Web Front End Angular"]
   account["Account Service"]
   position["Position Service"]
@@ -49,13 +51,14 @@ flowchart LR
   tradeFeed["Trade Feed"]
   tradeProcessor["Trade Processor"]
   database["Database"]
-  trader -->|"Uses UI"| web
-  web -->|"REST /account + /accountuser"| account
-  web -->|"REST /trades + /positions"| position
-  web -->|"REST /trade"| tradeService
-  web -->|"REST /stocks"| referenceData
-  web -->|"REST /People"| people
-  web -->|"Socket.IO subscribe"| tradeFeed
+  trader -->|"Single browser entrypoint"| edge
+  edge -->|"/"| web
+  edge -->|"/account-service"| account
+  edge -->|"/position-service"| position
+  edge -->|"/trade-service"| tradeService
+  edge -->|"/reference-data"| referenceData
+  edge -->|"/people-service"| people
+  edge -->|"/socket.io"| tradeFeed
   tradeService -->|"Validate account"| account
   tradeService -->|"Validate ticker"| referenceData
   tradeService -->|"Publish trades/new"| tradeFeed
@@ -70,8 +73,9 @@ flowchart LR
 
 | Node | Kind | Label | Notes |
 | --- | --- | --- | --- |
-| `trader` | actor | Trader Browser | Human user interacting with Angular UI. |
-| `web` | frontend | Web Front End Angular | Browser-hosted UI. |
+| `trader` | actor | Trader Browser | User enters only through edge proxy. |
+| `edge` | gateway | Edge Proxy | Single browser-facing origin. |
+| `web` | frontend | Web Front End Angular | Served behind edge proxy. |
 | `account` | service | Account Service | Account and account-user CRUD. |
 | `position` | service | Position Service | Trades and positions query endpoints. |
 | `tradeService` | service | Trade Service | Trade submission and validation. |
@@ -83,6 +87,6 @@ flowchart LR
 
 ## State Notes
 
-- This state is intentionally pre-ingress and cross-origin.
-- CORS behavior is part of baseline non-functional requirements.
+- State 002 preserves baseline functional flows F1-F6.
+- Primary delta is topology and origin model, not business behavior.
 

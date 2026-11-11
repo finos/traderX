@@ -1,13 +1,12 @@
-// This is for running everything off of the local machine, connecting 
-// to each service by its port number, not behind an aggregator/gateway
+// State 002 overlay: route browser traffic through edge proxy endpoint.
 import { Environment } from './environment.interface';
 
 export const environment: Environment = {
     production:         false,
-    accountUrl:         `//${window.location.hostname}:18088`,
-    refrenceDataUrl:    `//${window.location.hostname}:18085`,
-    tradesUrl:          `//${window.location.hostname}:18092/trade/`,
-    positionsUrl:       `//${window.location.hostname}:18090`,
-    peopleUrl:          `//${window.location.hostname}:18089`,
-    tradeFeedUrl:       `//${window.location.hostname}:18086`
+    accountUrl:         `//${window.location.host}/account-service`,
+    refrenceDataUrl:    `//${window.location.host}/reference-data`,
+    tradesUrl:          `//${window.location.host}/trade-service/trade/`,
+    positionsUrl:       `//${window.location.host}/position-service`,
+    peopleUrl:          `//${window.location.host}/people-service`,
+    tradeFeedUrl:       `//${window.location.host}`
 };

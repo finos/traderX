@@ -1,0 +1,31 @@
+{
+  "stateId": "002-edge-proxy-uncontainerized",
+  "isConvergence": false,
+  "convergenceLevel": "none",
+  "convergenceNamespace": "",
+  "modules": {
+    "node": [
+      "edge-proxy",
+      "reference-data",
+      "trade-feed",
+      "web-front-end/angular"
+    ],
+    "gradle": [
+      "account-service",
+      "database",
+      "position-service",
+      "trade-processor",
+      "trade-service"
+    ],
+    "dotnet": [
+      "people-service/PeopleService.WebApi"
+    ],
+    "docker": []
+  },
+  "deploy": {
+    "enabled": false,
+    "profile": "",
+    "environment": "",
+    "domainHint": ""
+  }
+}
