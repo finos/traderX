@@ -69,6 +69,12 @@ def main():
         report['log_query'] = {'status': logs['status'], 'streams': len(logs['data']['result'])}
     except Exception as exc:
         report['log_query'] = {'error': str(exc)}
+    try:
+        with urllib.request.urlopen('http://127.0.0.1:3200/api/search?limit=1', timeout=10) as response:
+            traces = json.load(response)
+        report['trace_query'] = {'traces': len(traces.get('traces', []))}
+    except Exception as exc:
+        report['trace_query'] = {'error': str(exc)}
     audit = Path.home() / 'traderx/.traderx-deploy'
     for name in ['deployed.json', 'recovery-image-cache.json']:
         if (audit / name).is_file():
