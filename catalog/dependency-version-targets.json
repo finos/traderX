@@ -238,6 +238,10 @@
       "nats.ws": {
         "version": "1.30.3",
         "integrity": "sha512-aM77V2SEc+B6lbxCMZK3qfRy4jg8pmHj+wZzQKDiDIQYhLPj6U2NSHHBex0syj72Ayzl4uR5Lp3aKXTaVLbRpw=="
+      },
+      "swagger-ui-dist": {
+        "version": "5.34.1",
+        "integrity": "sha512-VSr8fXfI93obYaQicLJbLUKGRxDojj/SfRJDDLCioGTUBj4BK/Nj4eE9jCeCAnJxVLi7iS+08PbiZLyrQKBkJQ=="
       }
     }
   },
