@@ -94,7 +94,16 @@ class ImagePolicyTests(unittest.TestCase):
                 (tilt / 'upstream-build-plan.json').write_text('{}')
                 (tilt / 'tilt').mkdir()
                 (tilt / 'tilt/Tiltfile').write_text("k8s_yaml('../manifests/base/*.yaml')\ndocker_build('old', '../old')\n")
+                if number == 14:
+                    companion = self.target / 'fdc3-intent-interoperability/sail/docker-compose.yml'
+                    companion.parent.mkdir(parents=True, exist_ok=True)
+                    renderer = (ROOT / 'pipeline/render-state-014-fdc3-intent-interoperability.sh').read_text()
+                    compose = renderer.split('name: traderx-state-014-sail', 1)[1].split('\nEOF', 1)[0]
+                    companion.write_text('name: traderx-state-014-sail' + compose)
                 policy_module.install(f'{number:03d}-fixture', self.target, self.policy)
+                if number == 14:
+                    self.assertIn(self.policy['docker']['infrastructure']['sail']['image'], companion.read_text())
+                    self.assertNotIn('node:20-bookworm', companion.read_text())
                 plan = json.loads((self.target / 'kubernetes-runtime/build-plan.json').read_text())
                 by_name = {i['name']:i for i in plan['images']}
                 for name in ('database','blackbox-exporter','prometheus','loki','tempo'):

@@ -312,6 +312,18 @@ def install_application_tracing(target, number):
             path.write_text(json.dumps(spec, indent=2) + '\n')
 
 
+def install_sail_companion(target, policy):
+    path = target / 'fdc3-intent-interoperability/sail/docker-compose.yml'
+    if not path.is_file():
+        raise ValueError('state014 Sail companion Compose is missing')
+    text, count = re.subn(r'(^  sail:\n(?:    [^\n]*\n)*?    image:)[^\n]*',
+                          lambda match: match[1] + ' ' + policy['docker']['infrastructure']['sail']['image'],
+                          path.read_text(), count=1, flags=re.M)
+    if count != 1:
+        raise ValueError('state014 Sail companion image is missing')
+    path.write_text(text)
+
+
 def install(state_id, target, policy=None):
     number = int(state_id.split('-', 1)[0])
     policy = policy or load_policy()
@@ -323,6 +335,8 @@ def install(state_id, target, policy=None):
     else:
         install_kubernetes(target, number, policy)
     normalize_base_images(target, policy)
+    if number >= 14:
+        install_sail_companion(target, policy)
     if number >= 7:
         install_application_tracing(target, number)
 
