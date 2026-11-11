@@ -201,8 +201,14 @@ def install_kubernetes(target, number, policy):
         raise ValueError('missing Kubernetes build plan')
     plan = json.loads(plan_file.read_text())
     rebuilt = []
+    # Sail is a separate Compose companion, never a Kubernetes build module.
+    stale_sail = runtime / 'runtime-images/sail/Dockerfile.compose'
+    stale_sail.unlink(missing_ok=True)
+    if stale_sail.parent.is_dir() and not any(stale_sail.parent.iterdir()):
+        stale_sail.parent.rmdir()
+    plan['images'] = [e for e in plan['images'] if e['name'] != 'sail']
     for service, item in policy['docker']['infrastructure'].items():
-        if 'recipe' in item:
+        if 'recipe' in item and service != 'sail':
             context = install_recipe(policy, service, target, runtime)
             rebuilt.append({'name': service, 'image': image_ref(policy, service, number),
                             'context': context, 'dockerfile': 'Dockerfile.compose'})

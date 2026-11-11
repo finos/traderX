@@ -113,6 +113,8 @@ class ImagePolicyTests(unittest.TestCase):
                     self.assertNotIn('node:20-bookworm', companion.read_text())
                 plan = json.loads((self.target / 'kubernetes-runtime/build-plan.json').read_text())
                 by_name = {i['name']:i for i in plan['images']}
+                self.assertNotIn('sail', by_name)
+                self.assertFalse((self.target / 'kubernetes-runtime/runtime-images/sail/Dockerfile.compose').exists())
                 for name in ('database','blackbox-exporter','prometheus','loki','tempo'):
                     entry = by_name[name]
                     self.assertTrue((self.target / entry['context'] / entry['dockerfile']).is_file())
