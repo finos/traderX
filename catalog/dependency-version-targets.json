@@ -233,7 +233,13 @@
         "@cucumber/messages"
       ]
     },
-    "nodeVersion": "24"
+    "nodeVersion": "24",
+    "browserAssets": {
+      "nats.ws": {
+        "version": "1.30.3",
+        "integrity": "sha512-aM77V2SEc+B6lbxCMZK3qfRy4jg8pmHj+wZzQKDiDIQYhLPj6U2NSHHBex0syj72Ayzl4uR5Lp3aKXTaVLbRpw=="
+      }
+    }
   },
   "nuget": {
     "packages": {

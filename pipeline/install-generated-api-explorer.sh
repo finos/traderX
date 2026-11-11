@@ -39,17 +39,29 @@ install_nats_ws_vendor() {
   local vendor_dir="${explorer_abs}/vendor/nats.ws"
   mkdir -p "${vendor_dir}"
 
+  local policy_file="${TRADERX_DEPENDENCY_TARGETS_FILE:-${ROOT}/catalog/dependency-version-targets.json}"
+  local version integrity
+  version="$(jq -er '.npm.browserAssets["nats.ws"].version | select(type == "string" and test("^[0-9]+\\.[0-9]+\\.[0-9]+$"))' "${policy_file}")"
+  integrity="$(jq -er '.npm.browserAssets["nats.ws"].integrity | select(type == "string" and test("^sha512-[A-Za-z0-9+/]+={0,2}$"))' "${policy_file}")"
   local tmp_dir
   tmp_dir="$(mktemp -d)"
   (
+    trap 'rm -rf "${tmp_dir}"' EXIT
     cd "${tmp_dir}"
     local pkg
-    pkg="$(npm pack nats.ws --silent)"
+    pkg="$(npm pack "nats.ws@${version}" --ignore-scripts --silent)"
+    node - "${pkg}" "${integrity}" <<'VERIFY_NATS'
+const fs = require('node:fs');
+const crypto = require('node:crypto');
+const actual = 'sha512-' + crypto.createHash('sha512').update(fs.readFileSync(process.argv[2])).digest('base64');
+if (actual !== process.argv[3]) {
+  throw new Error('nats.ws browser asset integrity mismatch');
+}
+VERIFY_NATS
     tar -xzf "${pkg}"
     cp package/esm/nats.js "${vendor_dir}/nats.js"
     cp package/LICENSE "${vendor_dir}/LICENSE-nats.ws"
   )
-  rm -rf "${tmp_dir}"
 }
 
 if (( PUBSUB_INSPECTOR_ENABLED == 1 )); then
