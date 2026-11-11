@@ -283,4 +283,15 @@ while IFS= read -r pkg; do
   fi
 done < <(find "${ROOT}/templates" -type d -name node_modules -prune -o -name package.json -print | sort)
 
+echo "[check] state 014 builds and scans dedicated Sail companion without publication"
+mkdir -p "${TARGET_ROOT}/fdc3-intent-interoperability/sail/runtime-images/sail"
+cp "${ROOT}/templates/runtime-image-rebuilds/sail/Dockerfile" "${TARGET_ROOT}/fdc3-intent-interoperability/sail/runtime-images/sail/Dockerfile.compose"
+printf '%s\n' 'services:' '  sail:' '    image: traderx-remediation/sail:014' > "${TARGET_ROOT}/fdc3-intent-interoperability/sail/docker-compose.yml"
+bash "${ROOT}/pipeline/install-generated-ci-assets.sh" 014-fdc3-intent-interoperability "${TARGET_ROOT}"
+jq -e '.modules.docker | any(.imageName == "sail" and .directory == "fdc3-intent-interoperability/sail/runtime-images/sail")' "${TARGET_ROOT}/ci/state-metadata.json" >/dev/null
+[[ ! -f "${TARGET_ROOT}/.github/workflows/build-and-publish.yml" ]]
+grep -q 'fdc3-intent-interoperability/sail/runtime-images/sail' "${TARGET_ROOT}/.github/workflows/build-container-images.yml"
+grep -q 'fdc3-intent-interoperability/sail/runtime-images/sail' "${TARGET_ROOT}/.github/workflows/security.yml"
+jq -e '.runtime.companions[0].path == "fdc3-intent-interoperability/sail/docker-compose.yml"' "${TARGET_ROOT}/ci/state-metadata.json" >/dev/null
+
 echo "[done] generated CI assets checks passed"

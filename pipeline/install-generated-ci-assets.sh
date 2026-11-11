@@ -1685,7 +1685,7 @@ fi
 if [[ -f "${TARGET_ROOT}/fdc3-intent-interoperability/sail/docker-compose.yml" ]]; then
   cp "${ROOT}/pipeline/runtime_image_security.py" "${TARGET_ROOT}/ci/"
   cp "${ROOT}/catalog/dependency-version-targets.json" "${TARGET_ROOT}/ci/"
-  jq '.runtime = {kind:"kubernetes",path:"kubernetes-runtime/manifests/base",buildPlan:"kubernetes-runtime/build-plan.json",companions:[{kind:"compose",path:"fdc3-intent-interoperability/sail/docker-compose.yml"}]}' \
+  jq '.runtime = {kind:"kubernetes",path:"kubernetes-runtime/manifests/base",buildPlan:"kubernetes-runtime/build-plan.json",companions:[{kind:"compose",path:"fdc3-intent-interoperability/sail/docker-compose.yml",buildPlan:"fdc3-intent-interoperability/sail/build-plan.json"}]}' \
     "${TARGET_ROOT}/ci/state-metadata.json" > "${temp_dir}/metadata.json"
   mv "${temp_dir}/metadata.json" "${TARGET_ROOT}/ci/state-metadata.json"
 fi

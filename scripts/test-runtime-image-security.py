@@ -86,6 +86,20 @@ class InventoryTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 security.runtime_inventory(Path('/snapshot'), metadata, SHA)
 
+    def test_companion_alias_requires_publishing_metadata_and_build_module(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'plan.json').write_text(json.dumps({'images': [{'name': 'sail', 'image': 'traderx-remediation/sail:014'}]}))
+            runtime = {'kind': 'compose', 'path': 'compose.yml', 'buildPlan': 'plan.json'}
+            metadata = dict(METADATA, runtime=runtime, isConvergence=True, modules={'docker': [{'imageName': 'sail'}]})
+            config = {'services': {'sail': {'image': 'traderx-remediation/sail:014'}}}
+            with patch.object(security, 'command', return_value=type('Result', (), {'stdout': json.dumps(config)})()):
+                entries = security.runtime_inventory(root, metadata, SHA)
+                self.assertEqual(entries[0]['source'], 'ghcr.io/finos/traderx-c2/sail:' + SHA)
+                for change in [{'isConvergence': False}, {'modules': {'docker': []}}]:
+                    with self.assertRaises(ValueError):
+                        security.runtime_inventory(root, metadata | change, SHA)
+
     def test_inventory_hash_detects_added_image_and_reference_change(self):
         baseline = security.inventory_hash(ENTRIES)
         self.assertNotEqual(baseline, security.inventory_hash(ENTRIES + [{'key': 'compose/db', 'source': 'postgres:16'}]))
@@ -152,6 +166,13 @@ class EvidenceTests(unittest.TestCase):
         for published in [{}, {IMAGE: IMAGE + '@sha256:' + 'f' * 64}]:
             with self.assertRaises(ValueError):
                 security.validate_published_binding(locks, published)
+
+    def test_tagged_pinned_source_accepts_same_repository_and_digest(self):
+        entries = [dict(ENTRIES[0], source=IMAGE + ':stable@' + DIGEST)]
+        lock = lock_fixture()
+        lock['inventory_sha256'] = security.inventory_hash(entries)
+        lock['images'][0]['source'] = entries[0]['source']
+        validate(lock, entries)
 
     def test_pinned_source_digest_cannot_be_substituted_with_same_repository(self):
         entries = [dict(ENTRIES[0], source=IMAGE + '@sha256:' + 'f' * 64)]

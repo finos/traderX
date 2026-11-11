@@ -102,7 +102,14 @@ class ImagePolicyTests(unittest.TestCase):
                     companion.write_text('name: traderx-state-014-sail' + compose)
                 policy_module.install(f'{number:03d}-fixture', self.target, self.policy)
                 if number == 14:
-                    self.assertIn(self.policy['docker']['infrastructure']['sail']['image'], companion.read_text())
+                    self.assertIn('image: traderx-remediation/sail:014', companion.read_text())
+                    self.assertIn('context: ./runtime-images/sail', companion.read_text())
+                    build = json.loads((companion.parent / 'build-plan.json').read_text())['images'][0]
+                    self.assertEqual(build['image'], 'traderx-remediation/sail:014')
+                    self.assertTrue((self.target / build['context'] / build['dockerfile']).is_file())
+                    recipe = (companion.parent / 'runtime-images/sail/Dockerfile.compose').read_text()
+                    self.assertIn(self.policy['docker']['infrastructure']['sail']['image'], recipe)
+                    self.assertIn('brace-expansion@5.0.12 undici@6.29.1', recipe)
                     self.assertNotIn('node:20-bookworm', companion.read_text())
                 plan = json.loads((self.target / 'kubernetes-runtime/build-plan.json').read_text())
                 by_name = {i['name']:i for i in plan['images']}

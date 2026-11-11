@@ -31,8 +31,9 @@ def image_ref(policy, service, number):
 def recipe_text(policy, recipe):
     item = policy['docker']['rebuilds'][recipe]
     tokens = {'BASE_IMAGE': item['baseImage'], 'GO_BUILDER_IMAGE': policy['docker']['buildImages']['go'],
-              'SOURCE_COMMIT': item['sourceCommit'], 'SOURCE_REPOSITORY': item['sourceRepository'],
+              'SOURCE_COMMIT': item.get('sourceCommit', ''), 'SOURCE_REPOSITORY': item.get('sourceRepository', ''),
               'SOURCE_TAG': item.get('sourceTag', ''), 'VERSION': item.get('version', ''),
+              'NPM_DEPENDENCIES': ' '.join(item.get('npmDependencies', [])),
               'GO_DEPENDENCIES': ' '.join(item.get('goDependencies', [])),
               'UI_ARCHIVE': item.get('uiArchive', ''), 'UI_ARCHIVE_SHA256': item.get('uiArchiveSha256', '')}
     text = (ROOT / 'templates/runtime-image-rebuilds' / recipe / 'Dockerfile').read_text()
@@ -329,9 +330,18 @@ def install_sail_companion(target, policy):
     path = target / 'fdc3-intent-interoperability/sail/docker-compose.yml'
     if not path.is_file():
         raise ValueError('state014 Sail companion Compose is missing')
+    recipe_dir = path.parent / 'runtime-images/sail'
+    recipe_dir.mkdir(parents=True, exist_ok=True)
+    (recipe_dir / 'Dockerfile.compose').write_text(recipe_text(policy, 'sail'))
+    plan = {'images': [{'name': 'sail', 'image': image_ref(policy, 'sail', 14),
+                        'context': recipe_dir.relative_to(target).as_posix(), 'dockerfile': 'Dockerfile.compose'}]}
+    (path.parent / 'build-plan.json').write_text(json.dumps(plan, indent=2) + '\n')
+    # Normalize our own build block before insertion so repeated installation is stable.
+    text = re.sub(r'    build:\n      context: ./runtime-images/sail\n      dockerfile: Dockerfile.compose\n', '', path.read_text())
     text, count = re.subn(r'(^  sail:\n(?:    [^\n]*\n)*?    image:)[^\n]*',
-                          lambda match: match[1] + ' ' + policy['docker']['infrastructure']['sail']['image'],
-                          path.read_text(), count=1, flags=re.M)
+                          lambda match: match[1] + ' ' + image_ref(policy, 'sail', 14)
+                          + '\n    build:\n      context: ./runtime-images/sail\n      dockerfile: Dockerfile.compose',
+                          text, count=1, flags=re.M)
     if count != 1:
         raise ValueError('state014 Sail companion image is missing')
     path.write_text(text)

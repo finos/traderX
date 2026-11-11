@@ -120,6 +120,23 @@ def runtime_inventory(root, metadata, snapshot):
     return canonical_inventory(entries)
 
 
+def published_aliases(root, runtime, metadata, snapshot):
+    if metadata.get('isConvergence') is not True or not metadata.get('convergenceNamespace'):
+        raise ValueError('build-only runtime aliases require local build validation, not publication authorization')
+    plan_path = (root / runtime['buildPlan']).resolve()
+    if not plan_path.is_relative_to(root.resolve()):
+        raise ValueError('build plan escapes snapshot')
+    build_plan = json.loads(plan_path.read_text())
+    modules = {item['imageName'] for item in metadata['modules']['docker']}
+    aliases = {}
+    for entry in build_plan['images']:
+        alias = entry['image']
+        if alias in aliases or entry['name'] not in modules:
+            raise ValueError('duplicate or unpublished runtime build alias')
+        aliases[alias] = 'ghcr.io/finos/' + metadata['convergenceNamespace'] + '/' + entry['name'] + ':' + snapshot
+    return aliases
+
+
 def primary_runtime_inventory(root, metadata, snapshot):
     runtime = metadata['runtime']
     target = (root / runtime['path']).resolve()
@@ -128,6 +145,10 @@ def primary_runtime_inventory(root, metadata, snapshot):
     if runtime['kind'] == 'compose':
         config = json.loads(command('docker', 'compose', '-f', str(target), 'config', '--format', 'json',
                                     env=dict(os.environ, TRADERX_IMAGE_TAG=snapshot)).stdout)
+        if runtime.get('buildPlan'):
+            aliases = published_aliases(root, runtime, metadata, snapshot)
+            for service in config.get('services', {}).values():
+                service['image'] = aliases.get(service.get('image'), service.get('image'))
         return compose_inventory(config)
     if runtime['kind'] == 'kubernetes':
         import yaml
@@ -135,13 +156,7 @@ def primary_runtime_inventory(root, metadata, snapshot):
         client = json.loads(command('kubectl', 'version', '--client', '-o', 'json').stdout)
         if client['clientVersion']['gitVersion'] != settings['kubernetesManifestRenderer']['version'] or yaml.__version__ != settings['kubernetesManifestParser']['version']:
             raise ValueError('runtime inventory parser/renderer differs from canonical tool pins')
-        build_plan = json.loads((root / runtime['buildPlan']).read_text())
-        aliases = {}
-        for entry in build_plan['images']:
-            alias = entry['image']
-            if alias in aliases:
-                raise ValueError('duplicate Kubernetes build alias')
-            aliases[alias] = 'ghcr.io/finos/' + metadata['convergenceNamespace'] + '/' + entry['name'] + ':' + snapshot
+        aliases = published_aliases(root, runtime, metadata, snapshot)
         rendered = command('kubectl', 'kustomize', str(target)).stdout
         return kubernetes_inventory(list(yaml.safe_load_all(rendered)), aliases)
     raise ValueError('unsupported active runtime')
@@ -326,7 +341,7 @@ def validate_lock(lock, metadata, entries, repository, snapshot, run_id, attempt
             ref = record.get(field, '')
             if '@' not in ref or not DIGEST.fullmatch(ref.rsplit('@', 1)[1]) or image_repository(ref) != image_repository(record['source']):
                 raise ValueError('invalid authorized image digest/repository')
-        if '@' in record['source'] and record['source'] != record['index_image']:
+        if '@' in record['source'] and (image_repository(record['source']) + '@' + record['source'].rsplit('@', 1)[1]) != record['index_image']:
             raise ValueError('authorized digest differs from the pinned runtime source')
         verify_image_binding(record)
         fresh(record.get('scanned_at'), policy['maxEvidenceAgeHours'], now)
