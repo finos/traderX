@@ -29,3 +29,32 @@ If deployment stops before Compose starts, the previous running containers remai
 There is no built-in force-deploy or security-check bypass. Any exceptional policy change must be reviewed as a canonical pull request with the incident/approval link, precise scope, owner, expiry and recovery plan. Retain that review and deployment authorization artifact for audit. An ad hoc local skip or manually edited manifest is not an approved exception.
 
 Regression coverage: `python3 scripts/test-publishing-security.py` and `bash scripts/test-generated-ci-assets.sh`. Dependency version remediation is tracked separately in issue #465; issue #466 defines these publishing/deployment guarantees.
+
+### Local Node scanner alternative
+
+Set `TRADERX_NODE_SECURITY_SCANNER=npm-audit` when publishing to audit generated
+Node production lockfiles via [npm audit](https://docs.npmjs.com/cli/v11/commands/npm-audit/) directly against the npm registry without NVD. This
+opt-in mode fails on **any** production advisory (including low severity), does
+not apply Dependency-Check XML suppressions, and retains the scanner deadline
+and separate findings/infrastructure-failure results. Reports stay in
+`ci/local-security-reports/` locally and are excluded from published snapshots.
+Java/.NET scans and GitHub security checks still use Dependency-Check; this is
+not a replacement for their coverage or a way to authorize deployment on failure.
+
+[OSV-Scanner](https://google.github.io/osv-scanner/supported-languages-and-lockfiles/) is another option for npm and Gradle lockfiles, while [Trivy](https://trivy.dev/docs/latest/guide/target/filesystem/) can scan
+lockfiles and compiled Java archives. Adopting either as a full replacement
+requires validating coverage and suppression policy across all generated modules.
+
+### Snapshot packaging regression checks
+
+The publisher retains `ci/` alongside the workflows and checks that the build/test
+helper and module metadata survived pruning. Keep local scanner reports out of
+snapshots. Run `scripts/test-publish-generated-state-branch.sh` before publishing;
+its fixtures also cover the API-explorer lineage policy for states 010–014.
+
+The missing-helper regression originated in commit `57878613` (PR #467,
+2026-09-18), which added the build/test workflow without retaining `ci/` in the
+publisher's root allowlist. The API-explorer mismatch originated in `224e2429`
+(PR #457, 2026-09-16), which retained that build context without updating the
+lineage validator. These are canonical pipeline fixes; do not patch generated
+branches by hand.

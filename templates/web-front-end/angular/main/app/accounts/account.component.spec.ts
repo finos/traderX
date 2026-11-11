@@ -1,3 +1,4 @@
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed, waitForAsync, tick, fakeAsync } from '@angular/core/testing';
 import { AccountService } from 'main/app/service/account.service';
 import { AccountComponent } from './account.component';
@@ -15,7 +16,7 @@ describe('Account tests', () => {
     waitForAsync(() => {
       TestBed.configureTestingModule({
         declarations: [AccountComponent],
-        imports: [AgGridModule],
+        imports: [HttpClientTestingModule,AgGridModule],
         providers: [
           {
             provide: AccountService,

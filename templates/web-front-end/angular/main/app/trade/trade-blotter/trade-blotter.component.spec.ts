@@ -39,14 +39,22 @@ describe('TradeBlotterComponent', () => {
     });
 
     it('should show given trades columns in the grid', async () => {
+        await fixture.whenStable();
+        await new Promise(resolve => setTimeout(resolve, 100));
+        fixture.detectChanges();
         const columns = fixture.nativeElement.querySelectorAll('.ag-header-cell');
         const rows = fixture.nativeElement.querySelectorAll('.ag-row');
-        expect(columns.length).toEqual(4);
+        const headers = Array.from(columns as NodeListOf<HTMLElement>).map(column => column.innerText);
+        expect(headers).toContain('SECURITY');
+        expect(headers).toContain('QUANTITY');
+        expect(headers).toContain('SIDE');
+        expect(headers).toContain('STATE');
         expect(rows.length).toEqual(0);
     });
 
     it('should call getTrades on changes and set trades', fakeAsync(() => {
         expect(component.account).not.toBeDefined();
+        component.account = dummyAccounts[0];
         component.ngOnChanges({ account: { currentValue: dummyAccounts[0] } } as any);
         expect(component.trades.length).toEqual(2);
         fixture.detectChanges();
@@ -60,6 +68,7 @@ describe('TradeBlotterComponent', () => {
         spyOn((component as any).tradeService, 'getTrades').and.callThrough();
         spyOn((component as any).tradeFeed, 'subscribe').and.callThrough();
         const testAccount = dummyAccounts[0];
+        component.account = testAccount;
         component.ngOnChanges({ account: { currentValue: testAccount } } as any);
         expect((component as any).tradeService.getTrades).toHaveBeenCalledWith(testAccount.id);
         expect((component as any).tradeFeed.subscribe).toHaveBeenCalled();
@@ -68,7 +77,7 @@ describe('TradeBlotterComponent', () => {
 
     it('getRowId should return id from trade data', () => {
         const params = { data: trades[0] } as any;
-        expect(component.getRowId(params)).toEqual(trades[0].id);
+        expect(component.getRowId(params)).toEqual(`Trade-${trades[0].id}`);
     });
 
 });

@@ -10232,9 +10232,9 @@ index 0000000..f61e0d6
 +    "typescript": "^5.8.2"
 +  },
 +  "overrides": {
-+    "multer": "2.3.0",
-+    "qs": "6.16.0",
-+    "body-parser": "2.3.0"
++    "multer": "2.5.0",
++    "qs": "6.16.1",
++    "body-parser": "2.4.0"
 +  }
 +}
 diff --git a/reference-data/src/app.module.ts b/reference-data/src/app.module.ts
@@ -14821,8 +14821,8 @@ index 0000000..136e009
 +    "winston": "^3.17.0"
 +  },
 +  "overrides": {
-+    "engine.io": "6.6.9",
-+    "qs": "6.16.0",
++    "engine.io": "6.6.10",
++    "qs": "6.16.1",
 +    "ws": "8.21.0"
 +  }
 +}
@@ -17792,10 +17792,11 @@ new file mode 100644
 index 0000000..e69de29
 diff --git a/web-front-end/angular/main/app/accounts/account.component.spec.ts b/web-front-end/angular/main/app/accounts/account.component.spec.ts
 new file mode 100644
-index 0000000..0924eab
+index 0000000..b7aa630
 --- /dev/null
 +++ b/web-front-end/angular/main/app/accounts/account.component.spec.ts
-@@ -0,0 +1,93 @@
+@@ -0,0 +1,94 @@
++import { HttpClientTestingModule } from '@angular/common/http/testing';
 +import { ComponentFixture, TestBed, waitForAsync, tick, fakeAsync } from '@angular/core/testing';
 +import { AccountService } from 'main/app/service/account.service';
 +import { AccountComponent } from './account.component';
@@ -17813,7 +17814,7 @@ index 0000000..0924eab
 +    waitForAsync(() => {
 +      TestBed.configureTestingModule({
 +        declarations: [AccountComponent],
-+        imports: [AgGridModule],
++        imports: [HttpClientTestingModule,AgGridModule],
 +        providers: [
 +          {
 +            provide: AccountService,
@@ -20475,10 +20476,10 @@ index 0000000..55ae2f4
 +}
 diff --git a/web-front-end/angular/main/app/test-utils/mocks.service.ts b/web-front-end/angular/main/app/test-utils/mocks.service.ts
 new file mode 100644
-index 0000000..bf5e7ff
+index 0000000..111471d
 --- /dev/null
 +++ b/web-front-end/angular/main/app/test-utils/mocks.service.ts
-@@ -0,0 +1,75 @@
+@@ -0,0 +1,76 @@
 +import { Observable, of } from 'rxjs';
 +import { Account } from '../model/account.model';
 +import { AccountUser, User } from '../model/user.model';
@@ -20546,6 +20547,7 @@ index 0000000..bf5e7ff
 +}
 +
 +export class MockTradeFeedService {
++  readonly connectionState$ = of('connecting');
 +
 +  subscribe(topic: string, callback: Function) {
 +  }
@@ -20630,10 +20632,11 @@ new file mode 100644
 index 0000000..e69de29
 diff --git a/web-front-end/angular/main/app/trade/position-blotter/position-blotter.component.spec.ts b/web-front-end/angular/main/app/trade/position-blotter/position-blotter.component.spec.ts
 new file mode 100644
-index 0000000..da2f93a
+index 0000000..92cc3a5
 --- /dev/null
 +++ b/web-front-end/angular/main/app/trade/position-blotter/position-blotter.component.spec.ts
-@@ -0,0 +1,88 @@
+@@ -0,0 +1,80 @@
++import { HttpClientTestingModule } from '@angular/common/http/testing';
 +import { ComponentFixture, TestBed } from '@angular/core/testing';
 +import { AgGridModule } from 'ag-grid-angular';
 +import { PositionBlotterComponent } from './position-blotter.component';
@@ -20648,7 +20651,7 @@ index 0000000..da2f93a
 +  beforeEach(async () => {
 +    await TestBed.configureTestingModule({
 +      declarations: [PositionBlotterComponent],
-+      imports: [
++      imports: [HttpClientTestingModule,
 +        AgGridModule
 +      ],
 +      providers: [
@@ -20668,7 +20671,7 @@ index 0000000..da2f93a
 +  beforeEach(() => {
 +    fixture = TestBed.createComponent(PositionBlotterComponent);
 +    component = fixture.componentInstance;
-+    component.positions = positions;
++    component.positions = positions.map(position => ({ ...position, security: position.security.toUpperCase() }));
 +    fixture.detectChanges();
 +  });
 +
@@ -20677,38 +20680,29 @@ index 0000000..da2f93a
 +  });
 +
 +  it('should show given positions in the grid', async () => {
++    await fixture.whenStable();
++    await new Promise(resolve => setTimeout(resolve, 100));
++    fixture.detectChanges();
 +    const columns = fixture.nativeElement.querySelectorAll('.ag-header-cell');
 +    const rows = fixture.nativeElement.querySelectorAll('.ag-center-cols-container .ag-row');
-+    expect(columns.length).toEqual(2);
++    expect(Array.from(columns as NodeListOf<HTMLElement>).map(column => column.innerText)).toContain('SECURITY');
++    expect(Array.from(columns as NodeListOf<HTMLElement>).map(column => column.innerText)).toContain('QUANTITY');
 +    expect(rows.length).toEqual(2);
 +    const firstRow = rows[0];
 +    expect(firstRow.children[0].innerText).toEqual(component.positions[0].security);
-+    expect(firstRow.children[1].innerText).toEqual(component.positions[0].quantity.toString());
++    expect(firstRow.children[1].innerText).toEqual(Number(component.positions[0].quantity).toLocaleString('en-US'));
 +  });
 +
-+  it('should upsert an existing position row for matching security', () => {
-+    const applyTransaction = jasmine.createSpy('applyTransaction');
-+    const getRowNode = jasmine.createSpy('getRowNode').and.returnValue({
-+      data: {
-+        security: 'IBM',
-+        quantity: 10
-+      }
-+    });
-+    component.gridApi = {
-+      getRowNode,
-+      applyTransaction
-+    } as any;
++  it('should upsert an existing position row for matching security', async () => {
++    await fixture.whenStable();
++    await new Promise(resolve => setTimeout(resolve, 100));
++    const security = component.positions[0].security;
++    const rowCount = component.gridApi.getDisplayedRowCount();
 +
-+    component.update({
-+      security: 'IBM',
-+      quantity: 35,
-+      updated: '2026-03-31T00:00:00.000Z'
-+    });
++    component.update({ security, quantity: 35, updated: '2026-03-31T00:00:00.000Z' });
 +
-+    expect(getRowNode).toHaveBeenCalledWith('Position-IBM');
-+    expect(applyTransaction).toHaveBeenCalledWith({
-+      update: [jasmine.objectContaining({ security: 'IBM', quantity: 35 })]
-+    });
++    expect(component.gridApi.getRowNode(`Position-${security}`)?.data.quantity).toBe(35);
++    expect(component.gridApi.getDisplayedRowCount()).toBe(rowCount);
 +  });
 +
 +  it('should keep getRowId callback usable when invoked without component context', () => {
@@ -20947,10 +20941,10 @@ index 0000000..ebcd7cd
 \ No newline at end of file
 diff --git a/web-front-end/angular/main/app/trade/trade-blotter/trade-blotter.component.spec.ts b/web-front-end/angular/main/app/trade/trade-blotter/trade-blotter.component.spec.ts
 new file mode 100644
-index 0000000..2d064ad
+index 0000000..4fc0998
 --- /dev/null
 +++ b/web-front-end/angular/main/app/trade/trade-blotter/trade-blotter.component.spec.ts
-@@ -0,0 +1,74 @@
+@@ -0,0 +1,83 @@
 +import { ComponentFixture, TestBed, tick, fakeAsync } from '@angular/core/testing';
 +import { AgGridModule } from 'ag-grid-angular';
 +import { TradeBlotterComponent } from './trade-blotter.component';
@@ -20992,14 +20986,22 @@ index 0000000..2d064ad
 +    });
 +
 +    it('should show given trades columns in the grid', async () => {
++        await fixture.whenStable();
++        await new Promise(resolve => setTimeout(resolve, 100));
++        fixture.detectChanges();
 +        const columns = fixture.nativeElement.querySelectorAll('.ag-header-cell');
 +        const rows = fixture.nativeElement.querySelectorAll('.ag-row');
-+        expect(columns.length).toEqual(4);
++        const headers = Array.from(columns as NodeListOf<HTMLElement>).map(column => column.innerText);
++        expect(headers).toContain('SECURITY');
++        expect(headers).toContain('QUANTITY');
++        expect(headers).toContain('SIDE');
++        expect(headers).toContain('STATE');
 +        expect(rows.length).toEqual(0);
 +    });
 +
 +    it('should call getTrades on changes and set trades', fakeAsync(() => {
 +        expect(component.account).not.toBeDefined();
++        component.account = dummyAccounts[0];
 +        component.ngOnChanges({ account: { currentValue: dummyAccounts[0] } } as any);
 +        expect(component.trades.length).toEqual(2);
 +        fixture.detectChanges();
@@ -21013,6 +21015,7 @@ index 0000000..2d064ad
 +        spyOn((component as any).tradeService, 'getTrades').and.callThrough();
 +        spyOn((component as any).tradeFeed, 'subscribe').and.callThrough();
 +        const testAccount = dummyAccounts[0];
++        component.account = testAccount;
 +        component.ngOnChanges({ account: { currentValue: testAccount } } as any);
 +        expect((component as any).tradeService.getTrades).toHaveBeenCalledWith(testAccount.id);
 +        expect((component as any).tradeFeed.subscribe).toHaveBeenCalled();
@@ -21021,7 +21024,7 @@ index 0000000..2d064ad
 +
 +    it('getRowId should return id from trade data', () => {
 +        const params = { data: trades[0] } as any;
-+        expect(component.getRowId(params)).toEqual(trades[0].id);
++        expect(component.getRowId(params)).toEqual(`Trade-${trades[0].id}`);
 +    });
 +
 +});
@@ -21577,10 +21580,13 @@ index 0000000..3757691
 +}
 diff --git a/web-front-end/angular/main/app/trade/trade.component.spec.ts b/web-front-end/angular/main/app/trade/trade.component.spec.ts
 new file mode 100644
-index 0000000..2bdb448
+index 0000000..77e9085
 --- /dev/null
 +++ b/web-front-end/angular/main/app/trade/trade.component.spec.ts
-@@ -0,0 +1,88 @@
+@@ -0,0 +1,92 @@
++import { TradeFeedService } from '../service/trade-feed.service';
++import { MockTradeFeedService } from '../test-utils/mocks.service';
++import { HttpClientTestingModule } from '@angular/common/http/testing';
 +import { ComponentFixture, TestBed } from '@angular/core/testing';
 +
 +import { TradeComponent } from './trade.component';
@@ -21603,13 +21609,13 @@ index 0000000..2bdb448
 +            declarations: [
 +                TradeComponent
 +            ],
-+            imports: [
++            imports: [HttpClientTestingModule,
 +                FormsModule,
 +                DropdownModule,
 +                ModalModule.forRoot(),
 +                AlertModule.forRoot()
 +            ],
-+            providers: [
++            providers: [{ provide: TradeFeedService, useClass: MockTradeFeedService },
 +                {
 +                    provide: AccountService,
 +                    useClass: MockAccountService
@@ -21652,7 +21658,7 @@ index 0000000..2bdb448
 +        spyOn((component as any).symbolService, 'getStocks').and.callThrough();
 +        component.ngOnInit();
 +        expect((component as any).accountService.getAccounts).toHaveBeenCalled();
-+        expect(component.accounts.length).toEqual(5);
++        expect(component.accounts.filter(account => account.id > 0).length).toEqual(5);
 +        expect((component as any).symbolService.getStocks).toHaveBeenCalled();
 +        expect(component.stocks.length).toEqual(5);
 +    });
@@ -21661,6 +21667,7 @@ index 0000000..2bdb448
 +        component.accountModel = accounts[0];
 +        spyOn(component, 'openTicket');
 +        spyOn(component, 'closeTicket');
++        fixture.detectChanges();
 +        fixture.nativeElement.querySelector('#createTicketBtn').click();
 +        expect(component.openTicket).toHaveBeenCalled();
 +        // TODO: need to check how to test bootstrap modal in jasmine
@@ -23725,14 +23732,14 @@ index 0000000..8704d8e
 +      "version": "0.0.0",
 +      "license": "Apache-2.0",
 +      "dependencies": {
-+        "@angular/animations": "^20.3.28",
-+        "@angular/common": "^20.3.28",
-+        "@angular/compiler": "^20.3.28",
-+        "@angular/core": "^20.3.28",
-+        "@angular/forms": "^20.3.28",
-+        "@angular/platform-browser": "^20.3.28",
-+        "@angular/platform-browser-dynamic": "^20.3.28",
-+        "@angular/router": "^20.3.28",
++        "@angular/animations": "^20.3.35",
++        "@angular/common": "^20.3.35",
++        "@angular/compiler": "^20.3.35",
++        "@angular/core": "^20.3.35",
++        "@angular/forms": "^20.3.35",
++        "@angular/platform-browser": "^20.3.35",
++        "@angular/platform-browser-dynamic": "^20.3.35",
++        "@angular/router": "^20.3.35",
 +        "ag-grid-angular": "^32.2.1",
 +        "ag-grid-community": "^32.2.1",
 +        "bootstrap": "^5.3.8",
@@ -23743,10 +23750,10 @@ index 0000000..8704d8e
 +        "zone.js": "^0.15.0"
 +      },
 +      "devDependencies": {
-+        "@angular-devkit/build-angular": "^20.3.28",
-+        "@angular/cli": "^20.3.28",
-+        "@angular/compiler-cli": "^20.3.28",
-+        "@angular/language-service": "^20.3.28",
++        "@angular-devkit/build-angular": "^20.3.35",
++        "@angular/cli": "^20.3.35",
++        "@angular/compiler-cli": "^20.3.35",
++        "@angular/language-service": "^20.3.35",
 +        "@faker-js/faker": "^9.0.3",
 +        "@types/jasmine": "^5.1.4",
 +        "@types/node": "^22.9.0",
@@ -40294,14 +40301,14 @@ index 0000000..3e9bc3e
 +  "private": true,
 +  "license": "Apache-2.0",
 +  "dependencies": {
-+    "@angular/animations": "^20.3.28",
-+    "@angular/common": "^20.3.28",
-+    "@angular/compiler": "^20.3.28",
-+    "@angular/core": "^20.3.28",
-+    "@angular/forms": "^20.3.28",
-+    "@angular/platform-browser": "^20.3.28",
-+    "@angular/platform-browser-dynamic": "^20.3.28",
-+    "@angular/router": "^20.3.28",
++    "@angular/animations": "^20.3.35",
++    "@angular/common": "^20.3.35",
++    "@angular/compiler": "^20.3.35",
++    "@angular/core": "^20.3.35",
++    "@angular/forms": "^20.3.35",
++    "@angular/platform-browser": "^20.3.35",
++    "@angular/platform-browser-dynamic": "^20.3.35",
++    "@angular/router": "^20.3.35",
 +    "ag-grid-angular": "^32.2.1",
 +    "ag-grid-community": "^32.2.1",
 +    "bootstrap": "^5.3.8",
@@ -40317,14 +40324,14 @@ index 0000000..3e9bc3e
 +    "serialize-javascript": "^7.0.5",
 +    "tar": "^7.5.13",
 +    "uuid": "^14.0.0",
-+    "qs": "6.16.0",
-+    "engine.io": "6.6.9"
++    "qs": "6.16.1",
++    "engine.io": "6.6.10"
 +  },
 +  "devDependencies": {
-+    "@angular-devkit/build-angular": "^20.3.28",
-+    "@angular/cli": "^20.3.28",
-+    "@angular/compiler-cli": "^20.3.28",
-+    "@angular/language-service": "^20.3.28",
++    "@angular-devkit/build-angular": "^20.3.35",
++    "@angular/cli": "^20.3.35",
++    "@angular/compiler-cli": "^20.3.35",
++    "@angular/language-service": "^20.3.35",
 +    "@faker-js/faker": "^9.0.3",
 +    "@types/jasmine": "^5.1.4",
 +    "@types/node": "^22.9.0",

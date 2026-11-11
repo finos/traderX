@@ -325,11 +325,23 @@ run_cve_scan() {
   [[ -f "${gradle_suppression}" ]] || fail "missing gradle CVE suppression file: ${gradle_suppression}"
   [[ -f "${dotnet_suppression}" ]] || fail "missing dotnet CVE suppression file: ${dotnet_suppression}"
 
-  local module
+  local module report_dir
   if ((${#NODE_MODULES[@]} > 0)); then
     for module in "${NODE_MODULES[@]}"; do
       echo "[step] cve scan (node): ${module}"
-      run_dependency_check_local "${module}-node" "${TARGET_ROOT}/${module}" "${node_suppression}" "--nodeAuditSkipDevDependencies --nodePackageSkipDevDependencies"
+      case "${TRADERX_NODE_SECURITY_SCANNER:-dependency-check}" in
+        dependency-check)
+          run_dependency_check_local "${module}-node" "${TARGET_ROOT}/${module}" "${node_suppression}" "--nodeAuditSkipDevDependencies --nodePackageSkipDevDependencies"
+          ;;
+        npm-audit)
+          report_dir="${TARGET_ROOT}/ci/local-security-reports/${module}-node"
+          python3 "${ROOT}/pipeline/bounded-security-command.py" \
+            --timeout "${TRADERX_SECURITY_SCAN_TIMEOUT_SECONDS:-1800}" --phase scan \
+            --result "${report_dir}/result.json" -- python3 "${ROOT}/pipeline/scan-node-audit.py" \
+            "${TARGET_ROOT}/${module}" "${report_dir}/npm-audit.json"
+          ;;
+        *) fail "unknown TRADERX_NODE_SECURITY_SCANNER" ;;
+      esac
     done
   fi
 

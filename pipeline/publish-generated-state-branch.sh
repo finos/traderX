@@ -411,6 +411,10 @@ C2_COMPONENT_DIRS=(
 )
 
 snapshot_keep_paths_for_state() {
+  # Workflows and deployment verification consume these generated helpers.
+  if (( 10#${state_num} >= 2 )); then
+    printf '%s\n' "ci"
+  fi
   case "${STATE_ID}" in
     001-baseline-uncontainerized-parity)
       if [[ "${SKIP_RUNTIME_PREFLIGHT}" == "1" ]]; then
@@ -517,6 +521,17 @@ prune_snapshot_for_state() {
 }
 
 prune_snapshot_for_state
+
+# Local scanner reports are diagnostic artifacts, not snapshot runtime inputs.
+rm -rf "${SNAPSHOT_DIR}/ci/local-security-reports"
+if (( 10#${state_num} >= 2 )); then
+  for required_ci in state-metadata.json build-test-generated-snapshot.sh; do
+    [[ -f "${SNAPSHOT_DIR}/ci/${required_ci}" ]] || {
+      echo "[fail] missing published CI input: ci/${required_ci}"
+      exit 1
+    }
+  done
+fi
 
 strip_precontainer_docker_artifacts() {
   if (( 10#${state_num} >= 4 )); then
