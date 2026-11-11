@@ -193,6 +193,33 @@ class AuthorizationTests(unittest.TestCase):
 
 
 class ScannerTests(unittest.TestCase):
+    def test_infrastructure_timeout_continues_and_cleans_only_owned_scanners(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            config = {'services': {'timeout': {'image': 'repo:1'}, 'clean': {'image': 'repo:2'}}}
+            with patch.object(deploy, 'run', return_value=subprocess.CompletedProcess(
+                    [], 0, json.dumps(['repo@' + DIGEST]))) as commands, \
+                 patch.object(deploy.subprocess, 'run', side_effect=[
+                     subprocess.TimeoutExpired('scanner', 600),
+                     subprocess.CompletedProcess([], 0, '{"Results": []}', '')]) as scans:
+                with self.assertRaisesRegex(ValueError, 'blocked: timeout'):
+                    deploy.scan_infrastructure(config, {}, Path(tmp) / 'reports')
+            summary = json.loads((Path(tmp) / 'reports/summary.json').read_text())
+            self.assertEqual([e['status'] for e in summary], ['error', 'success'])
+            self.assertEqual(scans.call_count, 2)
+            cleanups = [c for c in commands.call_args_list if c.args[:3] == ('docker', 'rm', '-f')]
+            self.assertEqual(len(cleanups), 2)
+            self.assertNotEqual(cleanups[0].args[3], cleanups[1].args[3])
+            self.assertTrue(all(c.args[3].startswith('traderx-security-') for c in cleanups))
+
+    def test_infrastructure_findings_block_even_when_scanner_returns_zero(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            report = json.dumps({'Results': [{'Vulnerabilities': [{'Severity': 'HIGH'}]}]})
+            with patch.object(deploy, 'run', return_value=subprocess.CompletedProcess(
+                    [], 0, json.dumps(['repo@' + DIGEST]))), \
+                 patch.object(deploy.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, report, '')):
+                with self.assertRaisesRegex(ValueError, 'blocked: infra'):
+                    deploy.scan_infrastructure({'services': {'infra': {'image': 'repo:1'}}}, {}, Path(tmp) / 'reports')
+
     def test_infrastructure_inventory_continues_after_findings_and_pull_failure(self):
         images = {'app': 'app@' + DIGEST}
         config = {'services': {
