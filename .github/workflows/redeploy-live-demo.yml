@@ -14,6 +14,11 @@ on:
         options:
           - demo.traderx.finos.org
           - demo-advanced.traderx.finos.org
+      diagnose_only:
+        description: Read-only host diagnosis; no checkout, pull or deployment on host
+        required: false
+        default: false
+        type: boolean
       preflight_only:
         description: Verify snapshot and scan infrastructure without replacing containers
         required: false
@@ -31,6 +36,7 @@ concurrency:
 
 jobs:
   redeploy:
+    if: ${{ !inputs.diagnose_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -97,3 +103,30 @@ jobs:
       - name: Remove SSH private key
         if: always()
         run: rm -f ~/.ssh/demo_ec2.pem
+
+  diagnose:
+    if: ${{ inputs.diagnose_only }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read-only host diagnosis over existing operator SSH access
+        env:
+          TARGET: ${{ inputs.target }}
+          DEMO_EC2_SSH_PRIVATE_KEY: ${{ secrets.DEMO_EC2_SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          trap 'rm -f ~/.ssh/demo_ec2.pem' EXIT
+          printf '%s\n' "$DEMO_EC2_SSH_PRIVATE_KEY" > ~/.ssh/demo_ec2.pem
+          chmod 600 ~/.ssh/demo_ec2.pem
+          ssh-keyscan -H "$TARGET" >> ~/.ssh/known_hosts
+          ssh -i ~/.ssh/demo_ec2.pem -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "ec2-user@$TARGET" 'python3 -' < pipeline/diagnose-demo-host.py > host-diagnosis.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: host-diagnosis-${{ github.run_id }}-${{ github.run_attempt }}
+          path: host-diagnosis.json
+          if-no-files-found: error
+          retention-days: 7
