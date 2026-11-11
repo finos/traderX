@@ -29,6 +29,19 @@ The candidate disposition is limited to these two IDs, this exact image digest, 
 - [ ] Reconcile #485 and #488 into main, then regenerate descendants sequentially through the supported publisher.
 - [ ] Remove the scoped Grafana disposition when upstream metadata/scanner evidence no longer needs it, and never extend it automatically.
 
+## Final generated candidate
+
+Snapshot `bb97d232904bbd2aea73d8702302b4e25006cd09` was published from source `a7a09d48` through the supported publisher. Its sole parent is state-008 snapshot `384e3c02e13417d1d9b06522c2800c503f9eb2af`; contract and lineage validation passed.
+
+All exact-head CI completed successfully:
+
+- [Build/test](https://github.com/finos/traderX/actions/runs/42980225780)
+- [Build/publish: 15 images](https://github.com/finos/traderX/actions/runs/42980225786)
+- [Security: 25 jobs](https://github.com/finos/traderX/actions/runs/42980226188)
+- [License](https://github.com/finos/traderX/actions/runs/42980225904)
+
+Local deployment regressions: 27 passed. All four repository quality gates passed; workflow YAML and embedded shell syntax validated.
+
 ## Completion evidence still required
 
 Exact generated SHA and one-snapshot ancestry; successful required CI runs; all-image scan reports and approved dispositions; database backup; deployment run; public ingress and message-bus health; order create/cancel/fill; settled trades and positions surviving reload; observability queries. This document does not claim recovery is complete.
