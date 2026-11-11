@@ -5185,7 +5185,6 @@ index e1fd0d3..18ed117 100644
 +    this.subscribeToTickerPrice(normalized);
 +  }
  }
-
 diff --git a/price-publisher/src/main.test.js b/price-publisher/src/main.test.js
 new file mode 100644
 --- /dev/null
