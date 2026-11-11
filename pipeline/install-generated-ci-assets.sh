@@ -74,7 +74,7 @@ is_ignored_dir() {
   case "${rel}" in
     .github*|runtime/*|scripts*|catalog*|generated/*|docs/*|ci/*|spec-source/*|.run/*|\
     *runtime-cache/*|runtime-cache/*|\
-    *node_modules/*|node_modules/*|\
+    *node_modules/*|node_modules/*|*/bootstrap/dependency-overlay*|\
     *.vite/*|.vite/*)
       return 0
       ;;
@@ -382,6 +382,30 @@ jobs:
 EOF
 
   local job_count=0
+
+  if [[ -f "${TARGET_ROOT}/fdc3-intent-interoperability/sail/bootstrap/dependency-overlay/package-lock.json" ]]; then
+    job_count=$((job_count + 1))
+    cat >> "${file_path}" <<'EOF'
+  sail-dependencies-scan:
+    name: Sail complete dependency graph
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Audit frozen runtime and development dependencies
+        working-directory: fdc3-intent-interoperability/sail/bootstrap/dependency-overlay
+        run: npm audit --package-lock-only --ignore-scripts --audit-level=high --json > sail-npm-audit.json
+      - name: Retain raw Sail dependency evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-sail-${{ github.run_id }}-${{ github.run_attempt }}
+          path: fdc3-intent-interoperability/sail/bootstrap/dependency-overlay/sail-npm-audit.json
+EOF
+  fi
 
   if ((${#node_modules[@]} > 0)); then
     job_count=$((job_count + 1))

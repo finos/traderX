@@ -197,6 +197,27 @@
         "docusaurus-plugin-openapi-docs",
         "docusaurus-theme-openapi-docs"
       ]
+    },
+    "sail": {
+      "sourceCommit": "4990547b06090eee167bbcadf850844e458babd5",
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "packages/common/package.json",
+        "packages/da-impl/package.json",
+        "packages/web/package.json"
+      ],
+      "dependencies": {
+        "pm2": "^7.1.2"
+      },
+      "excludedWorkspaces": [
+        "packages/electron"
+      ],
+      "removedDependencies": [
+        "electron",
+        "@cucumber/html-formatter",
+        "@cucumber/messages"
+      ]
     }
   },
   "nuget": {
