@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Read-only demo diagnosis. Never dump container environments or proxy credentials."""
 import json
+from pathlib import Path
+import urllib.request
+import urllib.parse
 import re
 import subprocess
 
@@ -40,6 +43,7 @@ def main():
         report['runtime'].append({'name': item['Name'], 'image': item['Config']['Image'],
             'status': item['State']['Status'], 'exit_code': item['State']['ExitCode'],
             'oom_killed': item['State']['OOMKilled'],
+            'health': item['State'].get('Health', {}).get('Status'),
             'project': labels.get('com.docker.compose.project'),
             'service': labels.get('com.docker.compose.service'),
             'working_dir': labels.get('com.docker.compose.project.working_dir'),
@@ -53,6 +57,22 @@ def main():
     for path in ('/', '/trade-service/system/health', '/order-matcher/system/health', '/grafana/api/health'):
         report['http'][path] = command('curl', '-sS', '-o', '/dev/null', '-w', '%{http_code}',
                                       '--max-time', '10', 'http://127.0.0.1:8080' + path)
+    report['observability'] = {}
+    for name, port, path in [('grafana', 3001, '/api/health'), ('prometheus', 9090, '/-/ready'),
+                             ('loki', 3100, '/ready'), ('tempo', 3200, '/ready')]:
+        report['observability'][name] = command('curl', '-sS', '-o', '/dev/null', '-w', '%{http_code}',
+                                               '--max-time', '10', f'http://127.0.0.1:{port}{path}')
+    try:
+        query = urllib.parse.urlencode({'query': '{compose_project="traderx-009-order-management-matcher"}', 'limit': '1'})
+        with urllib.request.urlopen('http://127.0.0.1:3100/loki/api/v1/query_range?' + query, timeout=10) as response:
+            logs = json.load(response)
+        report['log_query'] = {'status': logs['status'], 'streams': len(logs['data']['result'])}
+    except Exception as exc:
+        report['log_query'] = {'error': str(exc)}
+    audit = Path.home() / 'traderx/.traderx-deploy'
+    for name in ['deployed.json', 'recovery-image-cache.json']:
+        if (audit / name).is_file():
+            report[name] = json.loads((audit / name).read_text())
     print(json.dumps(report, indent=2))
 
 
