@@ -16,6 +16,7 @@ const DEFAULT_METADATA: StateUiMetadata = {
   sourceBranch: 'code/generated-state-001-baseline-uncontainerized-parity',
   sourceBranchUrl: '',
   lineageLinkUrl: '',
+  runtimeMetadataUrl: '',
   apiExplorerUrl: '/api/docs',
   pubSubInspectorUrl: '/api/docs/pubsub-inspector.html',
   features: {

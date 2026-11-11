@@ -33,19 +33,6 @@
     "tslib": "^2.7.0",
     "zone.js": "^0.15.0"
   },
-  "overrides": {
-    "engine.io": "6.6.10",
-    "ws": "8.21.3",
-    "postcss": "^8.5.13",
-    "serialize-javascript": "^7.0.5",
-    "tar": "^7.5.13",
-    "uuid": "^14.0.0",
-    "qs": "6.16.1",
-    "http-proxy-middleware": "3.0.7",
-    "socket.io-parser": "4.2.7",
-    "body-parser": "2.4.0",
-    "proxy-addr": "2.0.8"
-  },
   "devDependencies": {
     "@angular-devkit/build-angular": "^20.3.35",
     "@angular/cli": "^20.3.35",
@@ -53,7 +40,7 @@
     "@angular/language-service": "^20.3.35",
     "@faker-js/faker": "^9.0.3",
     "@types/jasmine": "^5.1.4",
-    "@types/node": "^22.9.0",
+    "@types/node": "^22.20.5",
     "cross-env": "^7.0.3",
     "jasmine-core": "~5.13.0",
     "jasmine-spec-reporter": "^7.0.0",
@@ -67,5 +54,8 @@
     "serve-handler": "^6.1.5",
     "ts-node": "^10.9.2",
     "typescript": "~5.8.2"
+  },
+  "overrides": {
+    "uuid": "^14.0.0"
   }
 }

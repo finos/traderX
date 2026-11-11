@@ -12,10 +12,5 @@
     "express": "5.2.1",
     "nats": "2.29.3",
     "yahoo-finance2": "2.14.0"
-  },
-  "overrides": {
-    "qs": "6.16.1",
-    "body-parser": "2.4.0",
-    "proxy-addr": "2.0.8"
   }
 }

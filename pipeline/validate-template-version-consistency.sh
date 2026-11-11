@@ -277,4 +277,6 @@ while IFS=$'\t' read -r nuget_dep nuget_target; do
   (( seen > 0 )) || fail "NuGet target ${nuget_dep} not found under templates/"
 done < <(jq -r '.nuget.packages | to_entries[] | [.key, .value] | @tsv' "${TARGETS_FILE}")
 
+python3 "${ROOT}/pipeline/validate-node-resolved-minimums.py" --targets "${TARGETS_FILE}" "${TEMPLATES_ROOT}"
+
 echo "[ok] template dependency targets validated (spring=${unique_boot_versions}, java=${unique_java_majors}, gradle=${unique_wrapper_versions})"

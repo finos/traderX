@@ -218,4 +218,6 @@ while IFS=$'\t' read -r module expected_image; do
   done < <(rg 'Dockerfile\.compose$' "${tmp_files}" || true)
 done < <(jq -r '(.docker.runtimeImages // {}) | to_entries[] | [.key, .value] | @tsv' "${TARGETS_FILE}")
 
+python3 "${ROOT}/pipeline/validate-node-resolved-minimums.py" --targets "${TARGETS_FILE}" "$@"
+
 echo "[ok] dependency targets validated for generated roots ($# root(s))"

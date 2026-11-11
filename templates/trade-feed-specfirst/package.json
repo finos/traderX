@@ -11,13 +11,5 @@
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.3",
     "winston": "^3.17.0"
-  },
-  "overrides": {
-    "engine.io": "6.6.10",
-    "qs": "6.16.1",
-    "ws": "8.21.3",
-    "socket.io-parser": "4.2.7",
-    "body-parser": "2.4.0",
-    "proxy-addr": "2.0.8"
   }
 }
