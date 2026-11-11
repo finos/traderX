@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Wrapper purpose: stable, state-local stop entrypoint.
 # This may delegate across multiple numbered state scripts to maximize reuse.
 # Execution flow:
-#  - scripts/stop-state-002-edge-proxy-generated.sh
+#  - scripts/stop-state-003-agentic-harness-foundation-generated.sh
 #  - scripts/stop-base-uncontainerized-generated.sh
 
-exec "${ROOT}/scripts/stop-state-002-edge-proxy-generated.sh" "$@"
+exec "${ROOT}/scripts/stop-state-003-agentic-harness-foundation-generated.sh" "$@"

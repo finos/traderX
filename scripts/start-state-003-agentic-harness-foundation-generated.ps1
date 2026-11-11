@@ -15,13 +15,13 @@ $sourceRepoRoot = if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironment
 Use-GeneratedRuntimeScript -ScriptPath $PSCommandPath -GeneratedRoot $generatedRoot -RepoRoot $repoRoot -ScriptArgs $args -AdditionalEnv @{ TRADERX_SOURCE_REPO_ROOT = $sourceRepoRoot }
 
 $target = Join-Path $generatedRoot 'code/target-generated'
-$expectedState = '002-edge-proxy-uncontainerized'
+$expectedState = '003-agentic-harness-foundation'
 $edgeComponentDir = Join-Path $generatedRoot 'code/components/edge-proxy-specfirst'
 $edgeTargetDir = Join-Path $target 'edge-proxy'
 $edgeProxyPort = if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable('EDGE_PROXY_PORT'))) { 18080 } else { [int][Environment]::GetEnvironmentVariable('EDGE_PROXY_PORT') }
 
 if (-not (Test-Path -LiteralPath $edgeComponentDir -PathType Container)) {
-  throw "[error] missing generated edge-proxy component: $edgeComponentDir`n[hint] run: bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized"
+  throw "[error] missing generated edge-proxy component: $edgeComponentDir`n[hint] run: bash pipeline/generate-state.sh 003-agentic-harness-foundation"
 }
 
 $baseStartScript = Join-Path $repoRoot 'scripts/start-base-uncontainerized-generated.ps1'
@@ -59,7 +59,7 @@ if ([string]::IsNullOrWhiteSpace($runRoot)) {
     $runRoot = "/var/tmp/$userName/traderx"
   }
 }
-$runDir = Join-Path $runRoot 'state-002-edge-proxy'
+$runDir = Join-Path $runRoot 'state-003-agentic-harness-foundation'
 
 New-Item -ItemType Directory -Path (Join-Path $runDir 'logs') -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $runDir 'pids') -Force | Out-Null
@@ -80,10 +80,10 @@ if ($BuildOnly) {
   }
 
   if ($DryRun) {
-    Write-Host '[done] dry run complete for state 002'
+    Write-Host '[done] dry run complete for state 003'
   }
   else {
-    Write-Host '[done] build phase complete for state 002'
+    Write-Host '[done] build phase complete for state 003'
     Write-Host '[hint] run without -BuildOnly to start services'
   }
   exit 0
@@ -91,7 +91,7 @@ if ($BuildOnly) {
 
 if (-not (Test-Path -LiteralPath (Join-Path $edgeTargetDir 'node_modules') -PathType Container)) {
   Write-Host '[error] edge-proxy build artifacts missing (node_modules).'
-  Write-Host '[hint] run ./scripts/start-state-002-edge-proxy-generated.ps1 -BuildOnly'
+  Write-Host '[hint] run ./scripts/start-state-003-agentic-harness-foundation-generated.ps1 -BuildOnly'
   exit 1
 }
 
@@ -105,13 +105,13 @@ if ($null -ne $oldPid -and (Test-ProcessAlive -Pid $oldPid)) {
 
 if (Test-PortOpen -Port $edgeProxyPort) {
   Write-Host "[error] port :$edgeProxyPort already in use before starting edge-proxy"
-  Write-Host '[hint] run ./scripts/stop-state-002-edge-proxy-generated.ps1 and retry.'
+  Write-Host '[hint] run ./scripts/stop-state-003-agentic-harness-foundation-generated.ps1 and retry.'
   exit 1
 }
 
 if ($DryRun) {
   Write-Host "[dry-run] edge-proxy: cd $edgeTargetDir && npm run start"
-  Write-Host '[done] dry run complete for state 002'
+  Write-Host '[done] dry run complete for state 003'
   exit 0
 }
 

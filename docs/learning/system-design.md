@@ -1,36 +1,30 @@
 # System Design
 
-State: `002-edge-proxy-uncontainerized`
+State: `003-agentic-harness-foundation`
 
 ## Design Intent
 
-State 002 keeps uncontainerized services and introduces an edge proxy as the single browser-facing entrypoint.
+Update this model with the authoritative architecture for this state.
 
 ## Runtime Topology / Flow (Spec Extract)
 
-# Runtime Topology (State 002)
+# Runtime Topology: 003-agentic-harness-foundation
 
-State `002-edge-proxy-uncontainerized` keeps all baseline backend processes and adds one browser-facing edge proxy endpoint.
+Runtime topology is intentionally unchanged from `002-edge-proxy-uncontainerized`.
 
-## Ports
+## Services
 
-- `18080` edge proxy (new)
-- `18093` Angular dev server (kept as upstream to edge)
-- backend service ports unchanged from state `001`
+- edge-proxy
+- web-front-end-angular
+- reference-data
+- people-service
+- account-service
+- position-service
+- trade-feed
+- trade-processor
+- trade-service
+- database
 
-## Browser Access Model
+## Notes
 
-- Browser enters only via `http://localhost:18080`.
-- UI and API calls resolve through the same origin (`localhost:18080`).
-- Direct browser cross-origin calls to backend service ports are no longer required.
-
-## Route Prefixes
-
-Defined in `system/edge-routing.json`:
-
-- `/account-service` -> account-service (`18088`)
-- `/reference-data` -> reference-data (`18085`)
-- `/trade-service` -> trade-service (`18092`)
-- `/position-service` -> position-service (`18090`)
-- `/people-service` -> people-service (`18089`)
-- `/socket.io` -> trade-feed (`18086`, websocket)
+This state adds generated repository harness metadata only. No runtime process graph changes.

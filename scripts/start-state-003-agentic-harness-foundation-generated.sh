@@ -15,9 +15,9 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
   fi
 fi
 TARGET="${GENERATED_ROOT}/code/target-generated"
-EXPECTED_STATE="002-edge-proxy-uncontainerized"
+EXPECTED_STATE="003-agentic-harness-foundation"
 RUN_ROOT="${TRADERX_RUN_DIR:-/var/tmp/${USER:-unknown-user}/traderx}"
-RUN_DIR="${RUN_ROOT}/state-002-edge-proxy"
+RUN_DIR="${RUN_ROOT}/state-003-agentic-harness-foundation"
 EDGE_COMPONENT_DIR="${GENERATED_ROOT}/code/components/edge-proxy-specfirst"
 EDGE_TARGET_DIR="${TARGET}/edge-proxy"
 EDGE_PROXY_PORT="${EDGE_PROXY_PORT:-18080}"
@@ -43,7 +43,7 @@ done
 
 [[ -d "${EDGE_COMPONENT_DIR}" ]] || {
   echo "[error] missing generated edge-proxy component: ${EDGE_COMPONENT_DIR}"
-  echo "[hint] run: bash pipeline/generate-state.sh 002-edge-proxy-uncontainerized"
+  echo "[hint] run: bash pipeline/generate-state.sh 003-agentic-harness-foundation"
   exit 1
 }
 
@@ -85,9 +85,9 @@ if (( BUILD_ONLY == 1 )); then
   fi
 
   if (( DRY_RUN == 1 )); then
-    echo "[done] dry run complete for state 002"
+    echo "[done] dry run complete for state 003"
   else
-    echo "[done] build phase complete for state 002"
+    echo "[done] build phase complete for state 003"
     echo "[hint] run without --build-only to start services"
   fi
   exit 0
@@ -95,7 +95,7 @@ fi
 
 if [[ ! -d "${EDGE_TARGET_DIR}/node_modules" ]]; then
   echo "[error] edge-proxy build artifacts missing (node_modules)."
-  echo "[hint] run ./scripts/start-state-002-edge-proxy-generated.sh --build-only"
+  echo "[hint] run ./scripts/start-state-003-agentic-harness-foundation-generated.sh --build-only"
   exit 1
 fi
 
@@ -112,13 +112,13 @@ fi
 
 if nc -z localhost "${EDGE_PROXY_PORT}" >/dev/null 2>&1; then
   echo "[error] port :${EDGE_PROXY_PORT} already in use before starting edge-proxy"
-  echo "[hint] run ./scripts/stop-state-002-edge-proxy-generated.sh and retry."
+  echo "[hint] run ./scripts/stop-state-003-agentic-harness-foundation-generated.sh and retry."
   exit 1
 fi
 
 if (( DRY_RUN == 1 )); then
   echo "[dry-run] edge-proxy: cd ${EDGE_TARGET_DIR} && npm run start"
-  echo "[done] dry run complete for state 002"
+  echo "[done] dry run complete for state 003"
   exit 0
 fi
 
