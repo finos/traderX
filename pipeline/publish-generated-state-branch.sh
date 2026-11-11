@@ -545,6 +545,15 @@ if [[ -f "${SNAPSHOT_DIR}/.github/workflows/build-and-publish.yml" ]]; then
   }
 fi
 
+if [[ -f "${SNAPSHOT_DIR}/.github/workflows/security.yml" ]] && grep -q 'nonpublishing_runtime_security.py' "${SNAPSHOT_DIR}/.github/workflows/security.yml"; then
+  for required_ci in nonpublishing_runtime_security.py runtime_image_security.py dependency-version-targets.json state-009-grafana-fixed-findings.json; do
+    [[ -f "${SNAPSHOT_DIR}/ci/${required_ci}" ]] || {
+      echo "[fail] missing build-only runtime scan input: ci/${required_ci}"
+      exit 1
+    }
+  done
+fi
+
 strip_precontainer_docker_artifacts() {
   if (( 10#${state_num} >= 4 )); then
     return

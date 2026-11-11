@@ -210,7 +210,7 @@ if TRADERX_SNAPSHOT=latest bash "${TARGET_ROOT}/runtime/deploy/aws-ec2-compose/d
   exit 1
 fi
 
-echo "[check] state 012 preserves local api-explorer without publishing it"
+echo "[check] state 012 publishes and scans its active api-explorer runtime"
 rm -rf "${TARGET_ROOT}"
 mkdir -p \
   "${TARGET_ROOT}/api-explorer" \
@@ -239,8 +239,8 @@ grep -q 'directory: ingress' "${TARGET_ROOT}/.github/workflows/build-and-publish
   exit 1
 }
 
-if grep -q 'directory: api-explorer' "${TARGET_ROOT}/.github/workflows/build-and-publish.yml"; then
-  echo "[fail] api-explorer should remain a local runtime build context, not a published image"
+if ! grep -q 'directory: api-explorer' "${TARGET_ROOT}/.github/workflows/build-and-publish.yml"; then
+  echo "[fail] active api-explorer must be published for complete immutable runtime coverage"
   exit 1
 fi
 
@@ -248,6 +248,8 @@ grep -q 'ingress=ghcr.io/finos/traderx-c3/ingress:latest' "${TARGET_ROOT}/runtim
   echo "[fail] state 012 GHCR image map should include publishable ingress image"
   exit 1
 }
+
+grep -q 'directory: api-explorer' "${TARGET_ROOT}/.github/workflows/security.yml"
 
 jq -e '.runtime.kind == "kubernetes" and .runtime.path == "kubernetes-runtime/manifests/base" and .runtime.buildPlan == "kubernetes-runtime/build-plan.json"' "${TARGET_ROOT}/ci/state-metadata.json" >/dev/null
 
@@ -293,5 +295,36 @@ jq -e '.modules.docker | any(.imageName == "sail" and .directory == "fdc3-intent
 grep -q 'fdc3-intent-interoperability/sail/runtime-images/sail' "${TARGET_ROOT}/.github/workflows/build-container-images.yml"
 grep -q 'fdc3-intent-interoperability/sail/runtime-images/sail' "${TARGET_ROOT}/.github/workflows/security.yml"
 jq -e '.runtime.companions[0].path == "fdc3-intent-interoperability/sail/docker-compose.yml"' "${TARGET_ROOT}/ci/state-metadata.json" >/dev/null
+
+grep -q 'Runtime Image Security (build only)' "${TARGET_ROOT}/.github/workflows/security.yml"
+grep -q 'needs: docker-image-scan' "${TARGET_ROOT}/.github/workflows/security.yml"
+grep -q 'local-image-.*github.run_attempt' "${TARGET_ROOT}/.github/workflows/security.yml"
+grep -q 'nonpublishing_runtime_security.py --artifacts local-images' "${TARGET_ROOT}/.github/workflows/security.yml"
+[[ -f "${TARGET_ROOT}/ci/nonpublishing_runtime_security.py" ]]
+! grep -q 'name: runtime-lock-' "${TARGET_ROOT}/.github/workflows/security.yml"
+if command -v actionlint >/dev/null 2>&1; then
+  actionlint -shellcheck= "${TARGET_ROOT}/.github/workflows/security.yml" "${TARGET_ROOT}/.github/workflows/build-container-images.yml"
+fi
+
+for mapping in '005-postgres-database-replacement:postgres-database-replacement' '006-messaging-nats-replacement:messaging-nats-replacement' '008-pricing-awareness-market-data:pricing-awareness-market-data'; do
+  state="${mapping%%:*}"
+  runtime="${mapping#*:}"
+  local_target="${TMP_DIR}/${state}"
+  mkdir -p "${local_target}/reference-data" "${local_target}/${runtime}"
+  printf '%s\n' 'FROM scratch' > "${local_target}/reference-data/Dockerfile.compose"
+  printf '%s\n' 'services:' '  app:' '    build:' '      context: ../reference-data' '      dockerfile: Dockerfile.compose' > "${local_target}/${runtime}/docker-compose.yml"
+  bash "${ROOT}/pipeline/install-generated-ci-assets.sh" "${state}" "${local_target}"
+  jq -e --arg path "${runtime}/docker-compose.yml" '.runtime.kind == "compose" and .runtime.path == $path' "${local_target}/ci/state-metadata.json" >/dev/null
+  grep -q 'Runtime Image Security (build only)' "${local_target}/.github/workflows/security.yml"
+  [[ ! -f "${local_target}/.github/workflows/build-and-publish.yml" ]]
+done
+
+mkdir -p "${TARGET_ROOT}/kubernetes-runtime/runtime-images/sail"
+printf '%s\n' 'FROM scratch' > "${TARGET_ROOT}/kubernetes-runtime/runtime-images/sail/Dockerfile.compose"
+if bash "${ROOT}/pipeline/install-generated-ci-assets.sh" 014-fdc3-intent-interoperability "${TARGET_ROOT}" > "${TMP_DIR}/duplicates.log" 2>&1; then
+  echo "[fail] duplicate Sail image names must block CI metadata generation"
+  exit 1
+fi
+grep -q 'duplicate Docker image names' "${TMP_DIR}/duplicates.log"
 
 echo "[done] generated CI assets checks passed"
