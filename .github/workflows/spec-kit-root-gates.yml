@@ -25,6 +25,10 @@ jobs:
         run: |
           python3 scripts/test-publishing-security.py
           python3 scripts/test-deployment-recovery.py
+          python3 scripts/test-runtime-image-security.py
+          python3 scripts/test-runtime-image-policy.py
+          python3 scripts/test-node-resolved-minimums.py
+          python3 pipeline/validate-portal-dependency-targets.py
 
       - name: Validate root Spec Kit integrity and branch-resolution behavior
         run: |
