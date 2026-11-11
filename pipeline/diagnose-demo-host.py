@@ -26,13 +26,6 @@ def main():
               'nginx_test': command('sudo', '-n', 'nginx', '-t')}
     ids = command('docker', 'ps', '-aq').get('stdout', '').split()
     report['postgres'] = {}
-    volume = 'traderx-009-order-management-matcher_postgres_state_009_data'
-    volume_data = command('docker', 'volume', 'inspect', volume)
-    if volume_data.get('exit_code') == 0:
-        mount = json.loads(volume_data['stdout'])[0]['Mountpoint']
-        report['postgres'] = {'volume': volume,
-            'version': command('sudo', '-n', 'cat', mount + '/PG_VERSION'),
-            'size': command('sudo', '-n', 'du', '-sb', mount)}
     report['runtime'] = []
     for cid in ids:
         data = command('docker', 'inspect', cid)
@@ -49,6 +42,19 @@ def main():
             'working_dir': labels.get('com.docker.compose.project.working_dir'),
             'mounts': [{k: m.get(k) for k in ('Type', 'Name', 'Source', 'Destination')}
                        for m in item.get('Mounts', [])]})
+    databases = [r for r in report['runtime']
+                 if r['project'] == 'traderx-009-order-management-matcher' and r['service'] == 'database']
+    if len(databases) == 1:
+        mounts = [m for m in databases[0]['mounts']
+                  if m['Type'] == 'volume' and m['Destination'] == '/var/lib/postgresql/data']
+        if len(mounts) == 1:
+            volume = mounts[0]['Name']
+            volume_data = command('docker', 'volume', 'inspect', volume)
+            if volume_data.get('exit_code') == 0:
+                mount = json.loads(volume_data['stdout'])[0]['Mountpoint']
+                report['postgres'] = {'volume': volume,
+                    'version': command('sudo', '-n', 'cat', mount + '/PG_VERSION'),
+                    'size': command('sudo', '-n', 'du', '-sb', mount)}
     config = command('sudo', '-n', 'nginx', '-T').get('stdout', '')
     report['proxy_routes'] = [re.sub(r'(https?://)[^/\s@]+@', r'\1[redacted]@', line.strip())
                               for line in config.splitlines()

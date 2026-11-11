@@ -136,11 +136,45 @@ def scan_infrastructure(config, images, reports, policy=None, authorized=None, s
         raise ValueError('infrastructure preflight blocked: ' + ', '.join(blocked))
 
 
-def backup_state009_database(record, project, audit):
+def state009_database_volume(config):
+    """Use Compose's resolved volume name, including explicit name overrides."""
+    mounts = config.get('services', {}).get('database', {}).get('volumes', [])
+    data = [m for m in mounts if isinstance(m, dict)
+            and m.get('target') == '/var/lib/postgresql/data']
+    if len(data) != 1 or data[0].get('type') != 'volume':
+        raise ValueError('expected one named PostgreSQL data volume')
+    volume = config.get('volumes', {}).get(data[0].get('source'), {}).get('name')
+    if not isinstance(volume, str) or not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9_.-]*', volume):
+        raise ValueError('PostgreSQL volume name must be resolved by Compose')
+    return volume
+
+
+def backup_state009_database(record, project, audit, config):
     """Preserve state-009 data; quiesce only its verified project for a physical backup."""
     if record['state'] != '009-order-management-matcher':
         return
-    volume = project + '_postgres_state_009_data'
+    volume = state009_database_volume(config)
+    # Inspect this project's database independently of the selected volume: an
+    # obsolete offline volume must never conceal a live database on another mount.
+    database_ids = run('docker', 'ps', '-aq', '--filter',
+                       'label=com.docker.compose.project=' + project, '--filter',
+                       'label=com.docker.compose.service=database',
+                       capture_output=True, text=True).stdout.split()
+    if database_ids:
+        if len(database_ids) != 1 or not re.fullmatch(r'[0-9a-f]{12,64}', database_ids[0]):
+            raise ValueError('expected one existing project database container')
+        existing = json.loads(run('docker', 'inspect', *database_ids,
+                                  capture_output=True, text=True).stdout)
+        if len(existing) != 1:
+            raise ValueError('invalid existing database inventory')
+        labels = existing[0].get('Config', {}).get('Labels') or {}
+        data_mounts = [m for m in existing[0].get('Mounts', [])
+                       if m.get('Destination') == '/var/lib/postgresql/data']
+        if (labels.get('com.docker.compose.project') != project
+                or labels.get('com.docker.compose.service') != 'database'
+                or len(data_mounts) != 1 or data_mounts[0].get('Type') != 'volume'
+                or data_mounts[0].get('Name') != volume):
+            raise ValueError('existing database mount differs from resolved Compose volume')
     details = json.loads(run('docker', 'volume', 'inspect', volume, capture_output=True, text=True).stdout)
     if len(details) != 1 or details[0].get('Name') != volume:
         raise ValueError('expected existing PostgreSQL volume was not found')
@@ -229,7 +263,7 @@ def backup_state009_database(record, project, audit):
     return stopped
 
 
-def resume_unchanged_containers(project, stopped):
+def resume_unchanged_containers(project, stopped, volume):
     """On failed startup, resume retained originals only; never replace newer data writers."""
     if not stopped:
         return
@@ -256,7 +290,7 @@ def resume_unchanged_containers(project, stopped):
         if any(item['Id'].startswith(cid) for cid in stopped) and not item['State']['Running']:
             if service == 'database':
                 active = run('docker', 'ps', '-q', '--filter',
-                             'volume=' + project + '_postgres_state_009_data',
+                             'volume=' + volume,
                              capture_output=True, text=True).stdout.strip()
                 if active:
                     continue
@@ -358,12 +392,12 @@ def main():
     command = ['docker', 'compose', '-f', str(resolved), '--project-name', project]
     run(*command, 'pull', env=env)
     # Pull every image before entering the brief database maintenance window.
-    stopped = backup_state009_database(record, project, audit)
+    stopped = backup_state009_database(record, project, audit, config)
     try:
         run(*command, 'up', '-d', '--no-build', '--wait', '--wait-timeout', '180', env=env)
     except BaseException:
         try:
-            resume_unchanged_containers(project, stopped)
+            resume_unchanged_containers(project, stopped, record['database_backup']['volume'])
         except (ValueError, OSError, subprocess.SubprocessError) as exc:
             print(f'[fail] resuming unchanged containers failed: {exc}')
         raise

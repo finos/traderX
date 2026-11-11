@@ -12,9 +12,11 @@ spec = importlib.util.spec_from_file_location('deploy', Path(__file__).resolve()
 deploy = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(deploy)
 DB, APP = 'a' * 12, 'b' * 12
+VOLUME = 'recovery-test-ghcr_postgres_state_009_data'
+CONFIG = {'services': {'database': {'volumes': [{'type': 'volume', 'source': 'postgres_state_009_data', 'target': '/var/lib/postgresql/data'}]}}, 'volumes': {'postgres_state_009_data': {'name': VOLUME}}}
 
 class RecoveryTests(unittest.TestCase):
-    def exercise(self, *, project='recovery-test', still_writing=False, tar_fails=False, free=10**10, symlink=False, nested_mount=False, host_mount=False):
+    def exercise(self, *, project='recovery-test', still_writing=False, tar_fails=False, free=10**10, symlink=False, nested_mount=False, host_mount=False, wrong_mount=False):
         record = {'state': '009-order-management-matcher', 'snapshot': 'c' * 40}
         commands = []
         checks = 0
@@ -23,18 +25,19 @@ class RecoveryTests(unittest.TestCase):
             commands.append(args)
             output = ''
             if args[:3] == ('docker', 'volume', 'inspect'):
-                output = json.dumps([{'Name': 'recovery-test_postgres_state_009_data', 'Mountpoint': '/test-volume'}])
+                output = json.dumps([{'Name': VOLUME, 'Mountpoint': '/test-volume'}])
             elif args[:3] == ('sudo', '-n', 'cat'):
                 output = ('1 0 0:1 / /test-volume/pg_wal rw - tmpfs tmpfs rw\n' if host_mount else '') if args[-1] == '/proc/self/mountinfo' else '16\n'
             elif args[:3] == ('sudo', '-n', 'find'): output = '/test-volume/pg_wal' if symlink else ''
             elif args[:3] == ('sudo', '-n', 'du'): output = '1024 /test-volume'
+            elif args[:3] == ('docker', 'ps', '-aq'): output = DB
             elif args[:3] == ('docker', 'ps', '-q'):
                 if args[-1].startswith('volume='):
                     checks += 1
                     output = DB if checks == 1 or still_writing else ''
                 else: output = DB + '\n' + APP
             elif args[:2] == ('docker', 'inspect'):
-                output = json.dumps([{'Mounts': [{'Name': 'recovery-test_postgres_state_009_data', 'Destination': '/data'}] + ([{'Destination': '/data/pg_wal'}] if nested_mount else []), 'Config': {'Labels': {'com.docker.compose.project': project, 'com.docker.compose.service': 'database'}}}])
+                output = json.dumps([{'Mounts': [{'Type': 'volume', 'Name': 'stale-volume' if wrong_mount else VOLUME, 'Destination': '/var/lib/postgresql/data'}] + ([{'Destination': '/var/lib/postgresql/data/pg_wal'}] if nested_mount else []), 'Config': {'Labels': {'com.docker.compose.project': project, 'com.docker.compose.service': 'database'}}}])
             elif args[:3] == ('sudo', '-n', 'tar'):
                 if tar_fails: raise subprocess.CalledProcessError(2, args)
                 Path(args[5]).write_bytes(b'private fixture backup')
@@ -43,7 +46,7 @@ class RecoveryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp, patch.object(deploy, 'run', side_effect=run), patch.object(deploy.shutil, 'disk_usage') as usage:
             usage.return_value.free = free
             error = None
-            try: deploy.backup_state009_database(record, 'recovery-test', Path(tmp))
+            try: deploy.backup_state009_database(record, 'recovery-test', Path(tmp), CONFIG)
             except (ValueError, subprocess.CalledProcessError) as exc: error = exc
             if not error:
                 self.assertEqual(Path(record['database_backup']['path']).stat().st_mode & 0o777, 0o600)
@@ -58,6 +61,19 @@ class RecoveryTests(unittest.TestCase):
         self.assertEqual(record['database_backup']['method'], 'quiesced-physical')
         self.assertEqual(len(record['database_backup']['sha256']), 64)
         self.assertFalse(any(c[:2] == ('docker','start') for c in commands))
+
+    def test_live_database_on_different_volume_rejects_offline_backup(self):
+        record, commands, error = self.exercise(wrong_mount=True)
+        self.assertIsInstance(error, ValueError)
+        self.assertIn('existing database mount differs', str(error))
+        self.assertFalse(any(c[:3] == ('docker', 'volume', 'inspect') for c in commands))
+        self.assertFalse(any(c[:2] == ('docker', 'stop') for c in commands))
+        self.assertNotIn('database_backup', record)
+
+    def test_resolved_explicit_volume_and_invalid_shapes(self):
+        self.assertEqual(deploy.state009_database_volume(CONFIG), VOLUME)
+        for config in ({}, {'services': CONFIG['services'], 'volumes': {'postgres_state_009_data': {}}}):
+            with self.assertRaises(ValueError): deploy.state009_database_volume(config)
 
     def test_foreign_writer_is_never_stopped(self):
         record, commands, error = self.exercise(project='another-project')
@@ -108,14 +124,14 @@ class RecoveryTests(unittest.TestCase):
             return subprocess.CompletedProcess(args, 0, output, '')
         containers = [old_db, new_db, old_app, running, replaced]
         with patch.object(deploy, 'run', side_effect=run):
-            deploy.resume_unchanged_containers('recovery-test', [DB, APP, 'd'*12, 'f'*12])
+            deploy.resume_unchanged_containers('recovery-test', [DB, APP, 'd'*12, 'f'*12], VOLUME)
         self.assertEqual([c for c in commands if c[:2] == ('docker', 'start')],
                          [('docker', 'start', old_app['Id'])])
         # A second recovery attempt must not restart the already resumed app.
         old_app['State']['Running'] = True
         commands.clear()
         with patch.object(deploy, 'run', side_effect=run):
-            deploy.resume_unchanged_containers('recovery-test', [DB, APP])
+            deploy.resume_unchanged_containers('recovery-test', [DB, APP], VOLUME)
         self.assertFalse(any(c[:2] == ('docker', 'start') for c in commands))
 
     def test_startup_recovery_refuses_database_when_foreign_volume_writer_exists(self):
@@ -133,7 +149,7 @@ class RecoveryTests(unittest.TestCase):
                 output = 'c'*12  # Writer outside this Compose project.
             return subprocess.CompletedProcess(args, 0, output, '')
         with patch.object(deploy, 'run', side_effect=run):
-            deploy.resume_unchanged_containers('recovery-test', [DB])
+            deploy.resume_unchanged_containers('recovery-test', [DB], VOLUME)
         self.assertFalse(any(c[:2] == ('docker', 'start') for c in commands))
 
 if __name__ == '__main__': unittest.main()

@@ -306,17 +306,19 @@ class FixedSourceDispositionTests(unittest.TestCase):
 
 
 class DatabaseRecoveryTests(unittest.TestCase):
+    config = {'services': {'database': {'volumes': [{'type': 'volume', 'source': 'data', 'target': '/var/lib/postgresql/data'}]}}, 'volumes': {'data': {'name': 'demo_postgres_state_009_data'}}}
+
     def test_recovery_rejects_wrong_major_or_active_database(self):
         for version, writers in [('17', ''), ('16', 'running-container')]:
             with self.subTest(version=version, writers=writers), tempfile.TemporaryDirectory() as tmp:
                 record = {'state': '009-order-management-matcher', 'snapshot': SHA}
                 volume = 'demo_postgres_state_009_data'
-                replies = [json.dumps([{'Name': volume, 'Mountpoint': '/volume'}]), version, writers]
+                replies = ['', json.dumps([{'Name': volume, 'Mountpoint': '/volume'}]), version, writers]
                 def fake(*args, **kwargs):
                     return subprocess.CompletedProcess(args, 0, replies.pop(0), '')
                 with patch.object(deploy, 'run', side_effect=fake) as commands:
                     with self.assertRaises(ValueError):
-                        deploy.backup_state009_database(record, 'demo', Path(tmp))
+                        deploy.backup_state009_database(record, 'demo', Path(tmp), self.config)
                 self.assertFalse(any('tar' in c.args for c in commands.call_args_list))
                 self.assertNotIn('database_backup', record)
 
@@ -325,7 +327,7 @@ class DatabaseRecoveryTests(unittest.TestCase):
                 side_effect=subprocess.CalledProcessError(1, ['docker', 'volume', 'inspect'])):
             with self.assertRaises(subprocess.CalledProcessError):
                 deploy.backup_state009_database({'state': '009-order-management-matcher', 'snapshot': SHA},
-                                                'demo', Path(tmp))
+                                                'demo', Path(tmp), self.config)
 
 
 class ScannerTests(unittest.TestCase):

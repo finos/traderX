@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 [[ "$(uname -s)" == Linux ]] || { echo '[fail] requires Linux Docker host mount access'; exit 1; }
 project="traderx-recovery-test-$(date +%s)-$$"
-volume="${project}_postgres_state_009_data"
+volume="${project}-ghcr_postgres_state_009_data"
 restored_volume="${project}_restored"
 source_container="${project}-database"
 restored_container="${project}-restore"
@@ -42,13 +42,18 @@ ready() {
 }
 ready "$source_container"
 docker exec "$source_container" psql -U postgres -v ON_ERROR_STOP=1 -c "CREATE TABLE recovery_probe (value text); INSERT INTO recovery_probe VALUES ('preserved');" >/dev/null
-python3 - "$project" "$audit" <<'PY'
-import importlib.util,json,sys
+python3 - "$project" "$audit" "$volume" <<'PY'
+import importlib.util,json,sys,subprocess
 from pathlib import Path
 spec=importlib.util.spec_from_file_location('deploy',Path('pipeline/deploy-verified-snapshot.py'))
 deploy=importlib.util.module_from_spec(spec);spec.loader.exec_module(deploy)
 record={'state':'009-order-management-matcher','snapshot':'a'*40}
-deploy.backup_state009_database(record,sys.argv[1],Path(sys.argv[2]))
+compose=Path(sys.argv[2])/'compose.json'
+compose.write_text(json.dumps({'name':sys.argv[1]+'-ghcr','services':{'database':{'image':'postgres:16','volumes':['postgres_state_009_data:/var/lib/postgresql/data']}},'volumes':{'postgres_state_009_data':{}}}))
+config=json.loads(subprocess.check_output(['docker','compose','-f',str(compose),'config','--format','json'],text=True))
+assert config['volumes']['postgres_state_009_data']['name']==sys.argv[3]
+deploy.backup_state009_database(record,sys.argv[1],Path(sys.argv[2]),config)
+assert record['database_backup']['volume']==sys.argv[3]
 assert record['database_backup']['method']=='quiesced-physical'
 Path(sys.argv[2],'result.json').write_text(json.dumps(record))
 PY
