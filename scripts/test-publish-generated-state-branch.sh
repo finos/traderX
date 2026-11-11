@@ -125,6 +125,19 @@ make_state_012_fixture "${missing_ci_fixture}"
 rm "${missing_ci_fixture}/ci/build-test-generated-snapshot.sh"
 expect_publish_fixture_failure "${missing_ci_fixture}" "missing published CI input"
 
+echo "[check] publisher rejects missing runtime security inputs"
+for missing in runtime_image_security.py dependency-version-targets.json; do
+  runtime_fixture="${TMP_DIR}/missing-${missing}"
+  make_state_012_fixture "${runtime_fixture}"
+  mkdir -p "${runtime_fixture}/.github/workflows"
+  touch "${runtime_fixture}/.github/workflows/build-and-publish.yml"
+  printf '%s\n' '{"runtime":{"kind":"kubernetes","path":"kubernetes-runtime/manifests/base"}}' > "${runtime_fixture}/ci/state-metadata.json"
+  cp "${ROOT}/pipeline/runtime_image_security.py" "${runtime_fixture}/ci/"
+  cp "${ROOT}/catalog/dependency-version-targets.json" "${runtime_fixture}/ci/"
+  rm "${runtime_fixture}/ci/${missing}"
+  expect_publish_fixture_failure "${runtime_fixture}" "missing runtime security input"
+done
+
 for state in 010-kubernetes-runtime 011-tilt-kubernetes-dev-loop 012-platform-convergence-c3 013-radius-kubernetes-platform 014-fdc3-intent-interoperability; do
   lineage_fixture="${TMP_DIR}/lineage-${state}"
   mkdir -p "${lineage_fixture}/api-explorer" "${lineage_fixture}/ci" "${lineage_fixture}/scripts"

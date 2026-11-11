@@ -6,17 +6,19 @@
       "io.spring.dependency-management": "1.1.7"
     },
     "properties": {
-      "jackson-bom.version": "3.1.5",
-      "tomcat.version": "11.0.26"
+      "jackson-bom.version": "3.1.7",
+      "tomcat.version": "11.0.26",
+      "jackson-2-bom.version": "2.21.7",
+      "kotlin.version": "2.4.21"
     },
     "dependencies": {
       "org.springdoc:springdoc-openapi-starter-webmvc-api": "3.0.3",
       "org.apache.logging.log4j:log4j-api": "2.26.1",
       "org.apache.logging.log4j:log4j-to-slf4j": "2.26.1",
-      "ch.qos.logback:logback-core": "1.6.3",
-      "ch.qos.logback:logback-classic": "1.6.3",
+      "ch.qos.logback:logback-core": "1.6.6",
+      "ch.qos.logback:logback-classic": "1.6.6",
       "org.apache.commons:commons-lang3": "3.20.0",
-      "org.jetbrains.kotlin:kotlin-stdlib": "2.4.10"
+      "org.jetbrains.kotlin:kotlin-stdlib": "2.4.21"
     }
   },
   "gradleWrapper": {
@@ -28,10 +30,127 @@
       "nats": "2.14-alpine"
     },
     "runtimeImages": {
-      "reference-data": "node:24-alpine",
-      "trade-feed": "node:24-alpine",
-      "price-publisher": "node:24-alpine",
-      "people-service": "mcr.microsoft.com/dotnet/aspnet:9.0-noble-chiseled-extra"
+      "reference-data": "node:24-alpine@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8",
+      "trade-feed": "node:24-alpine@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8",
+      "price-publisher": "node:24-alpine@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8",
+      "people-service": "mcr.microsoft.com/dotnet/aspnet:9.0-noble-chiseled-extra@sha256:a14213a1dcdee4dd4873f4f38f6a4e7c7d49857b02245c83b295192c7584a91f"
+    },
+    "infrastructure": {
+      "loki": {
+        "image": "grafana/loki:3.7.9@sha256:0db216b630ae1f348a1584c67f3cead8b4c1fc839169a39501db664744158e28",
+        "recipe": "loki"
+      },
+      "tempo": {
+        "image": "grafana/tempo:3.1.1@sha256:64e2fbd56d9c2b3412a4b430a58ea59e91a670b1e75f920a0c702213ad145044",
+        "recipe": "tempo"
+      },
+      "blackbox-exporter": {
+        "image": "prom/blackbox-exporter:v0.29.1@sha256:ea1c7aa3ef3f307cd03e85f34abb604478ccb90b567fc690da0cd9776da76b13",
+        "recipe": "blackbox-exporter"
+      },
+      "prometheus": {
+        "image": "prom/prometheus:v3.16.0@sha256:e04987641b57704f408e31f6373ba4138ecf27cb4a165d24aabb6c38fddd0f06",
+        "recipe": "prometheus"
+      },
+      "database": {
+        "image": "postgres:16-alpine@sha256:aa6cb33cf4c19c765cefcf48d96176258800870a9a1e930ad126200f9d825139",
+        "recipe": "postgres"
+      },
+      "grafana": {
+        "image": "grafana/grafana:12.4.15@sha256:2894082f6cf7081aefdc1389265c04000812309208c190d75e8c65f7a30e4b7e"
+      },
+      "otel-collector": {
+        "image": "otel/opentelemetry-collector-contrib:0.165.0@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea"
+      },
+      "promtail": {
+        "image": "timberio/vector:0.61.0-alpine@sha256:3bb7ed5152910ed51729e256937b1d8a4bf67ff624e9d565e8e5877bffd015c7"
+      },
+      "nats-broker": {
+        "image": "nats:2.14-alpine@sha256:c9706755679d8bcf05b4ce275fdd2ac8890058b1535881208a65b3cd613f00bd"
+      },
+      "edge-proxy": {
+        "image": "nginx:alpine-slim@sha256:4c734d33ee731135dc9f2349914a34551c920f4451fca8bb05bf5880eb9079e8"
+      },
+      "sail": {
+        "image": "node:24-alpine@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8",
+        "recipe": "sail"
+      }
+    },
+    "rebuilds": {
+      "loki": {
+        "baseImage": "grafana/loki:3.7.9@sha256:0db216b630ae1f348a1584c67f3cead8b4c1fc839169a39501db664744158e28",
+        "sourceRepository": "https://github.com/grafana/loki.git",
+        "sourceCommit": "d3b4a2f76bfc5625abee7ceb00b8896fa3c31549",
+        "goDependencies": [
+          "golang.org/x/net@v0.62.0"
+        ]
+      },
+      "postgres": {
+        "baseImage": "postgres:16-alpine@sha256:aa6cb33cf4c19c765cefcf48d96176258800870a9a1e930ad126200f9d825139",
+        "sourceRepository": "https://github.com/tianon/gosu.git",
+        "sourceCommit": "29b939aa5bd4dc588af765b8248f6e39150d2565"
+      },
+      "tempo": {
+        "baseImage": "grafana/tempo:3.1.1@sha256:64e2fbd56d9c2b3412a4b430a58ea59e91a670b1e75f920a0c702213ad145044",
+        "sourceRepository": "https://github.com/grafana/tempo.git",
+        "sourceCommit": "9db7df79d2af105a90d96484e6403e1fda0d011e",
+        "goDependencies": [
+          "golang.org/x/net@v0.62.0",
+          "github.com/go-jose/go-jose/v4@v4.1.6"
+        ],
+        "sourceTag": "v3.1.1",
+        "version": "3.1.1"
+      },
+      "blackbox-exporter": {
+        "baseImage": "prom/blackbox-exporter:v0.29.1@sha256:ea1c7aa3ef3f307cd03e85f34abb604478ccb90b567fc690da0cd9776da76b13",
+        "sourceRepository": "https://github.com/prometheus/blackbox_exporter.git",
+        "sourceCommit": "ad91668339ca265f460c23fc422a27ba6d788db9",
+        "goDependencies": [
+          "golang.org/x/net@v0.62.0"
+        ]
+      },
+      "prometheus": {
+        "baseImage": "prom/prometheus:v3.16.0@sha256:e04987641b57704f408e31f6373ba4138ecf27cb4a165d24aabb6c38fddd0f06",
+        "sourceRepository": "https://github.com/prometheus/prometheus.git",
+        "sourceCommit": "e2e28adeee2c5883d000fc82aca6008cfbf7e96d",
+        "goDependencies": [
+          "golang.org/x/net@v0.62.0"
+        ],
+        "sourceTag": "v3.16.0",
+        "version": "3.16.0",
+        "uiArchive": "https://github.com/prometheus/prometheus/releases/download/v3.16.0/prometheus-web-ui-3.16.0.tar.gz",
+        "uiArchiveSha256": "000a45231f6dd22a5703218aad3ee11da125c8a44d1824a27670416c07531001"
+      },
+      "sail": {
+        "baseImage": "node:24-alpine@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8",
+        "npmDependencies": [
+          "brace-expansion@5.0.12",
+          "undici@6.29.1"
+        ]
+      }
+    },
+    "buildImages": {
+      "go": "golang:1.27.3-alpine@sha256:fa3d596898d9f126af7c01d14ee7597bab3f39cccf392ef36b69fe77cd681f18"
+    },
+    "baseImages": {
+      "node:24-alpine": "node:24-alpine@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8",
+      "node:22-alpine": "node:22-alpine@sha256:0e1754758c2df4cfa3e68d59e2e1b7374bb7fd9ea6328eaaacf15cc934af8202",
+      "node:22-bookworm-slim": "node:22-bookworm-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d",
+      "nginx:alpine": "nginx:alpine@sha256:713fc2ebfd92e8217db451477182ee91944b123d2b1ee9fd5a8c6e91ca6c3a11",
+      "nginx:alpine-slim": "nginx:alpine-slim@sha256:4c734d33ee731135dc9f2349914a34551c920f4451fca8bb05bf5880eb9079e8",
+      "eclipse-temurin:21-jdk": "eclipse-temurin:21-jdk@sha256:ebfbb18d11ff163ee83b21258acf12248af48d22a0fdfdc68fa1a1516c05976a",
+      "eclipse-temurin:21-jre": "eclipse-temurin:21-jre@sha256:0b99b3376fbb50dbf9c0af8535fdd5b8eb0d3fdfc8b1e4967f383b6919f6901a",
+      "mcr.microsoft.com/dotnet/sdk:9.0": "mcr.microsoft.com/dotnet/sdk:9.0-noble@sha256:eeaa543fc683baaae7389e83786f749add545f68cd2fecff19212f23a3bec58f",
+      "mcr.microsoft.com/dotnet/aspnet:9.0-noble-chiseled-extra": "mcr.microsoft.com/dotnet/aspnet:9.0-noble-chiseled-extra@sha256:a14213a1dcdee4dd4873f4f38f6a4e7c7d49857b02245c83b295192c7584a91f",
+      "nginx:1.27-alpine": "nginx:alpine-slim@sha256:4c734d33ee731135dc9f2349914a34551c920f4451fca8bb05bf5880eb9079e8",
+      "node:20-bookworm": "node:24-bookworm@sha256:8fa96264f302f58bbb13aa7339c541547b56975766ce956c875da149452a3e40",
+      "node:24-bookworm": "node:24-bookworm@sha256:8fa96264f302f58bbb13aa7339c541547b56975766ce956c875da149452a3e40"
+    },
+    "baseImageRefresh": {
+      "eclipse-temurin:21-jdk": "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && rm -rf /var/lib/apt/lists/*",
+      "eclipse-temurin:21-jre": "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && rm -rf /var/lib/apt/lists/*",
+      "nginx:alpine": "apk upgrade --no-cache",
+      "mcr.microsoft.com/dotnet/sdk:9.0-noble": "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && rm -rf /var/lib/apt/lists/*"
     }
   },
   "npm": {
@@ -48,26 +167,109 @@
       "@angular-devkit/build-angular": "^20.3.35",
       "@angular/cli": "^20.3.35",
       "@angular/compiler-cli": "^20.3.35",
-      "@angular/language-service": "^20.3.35"
+      "@angular/language-service": "^20.3.35",
+      "@types/node": "^22.20.5",
+      "@faker-js/faker": "^10.6.0",
+      "puppeteer": "^25.17.0"
     },
     "overrides": {
-      "engine.io": "6.6.10",
-      "postcss": "^8.5.13",
-      "qs": "6.16.1",
-      "serialize-javascript": "^7.0.5",
-      "tar": "^7.5.13",
-      "multer": "2.5.0",
-      "uuid": "^14.0.0",
-      "ws": "8.21.3",
-      "http-proxy-middleware": "3.0.7",
-      "socket.io-parser": "4.2.7",
-      "body-parser": "2.4.0",
-      "proxy-addr": "2.0.8"
+      "uuid": "^14.0.0"
+    },
+    "resolvedMinimums": {
+      "engine.io": "6.6.11"
+    },
+    "portal": {
+      "dependencies": {
+        "@docusaurus/core": "3.10.2",
+        "@docusaurus/preset-classic": "3.10.2",
+        "@docusaurus/theme-mermaid": "3.10.2"
+      },
+      "overrides": {
+        "serialize-javascript": "7.1.4",
+        "tinypool": "2.2.0",
+        "uuid": "14.0.0"
+      },
+      "overrideExceptions": {
+        "serialize-javascript": {
+          "owner": "TraderX maintainers",
+          "trackingIssue": 486,
+          "reason": "Current Docusaurus bundler constrains the serializer to vulnerable 6.x.",
+          "removeWhen": "The compatible upstream dependency graph resolves serialize-javascript >=7.1.3 without override."
+        },
+        "tinypool": {
+          "owner": "TraderX maintainers",
+          "trackingIssue": 486,
+          "reason": "Docusaurus 3.10.2 requires tinypool ^1.0.2, which has critical worker-option prototype-pollution findings.",
+          "removeWhen": "Docusaurus resolves patched tinypool >=2.1.2 without override."
+        },
+        "uuid": {
+          "owner": "TraderX maintainers",
+          "trackingIssue": 486,
+          "reason": "Compatible development server dependencies retain older vulnerable uuid versions.",
+          "removeWhen": "All compatible upstream paths resolve uuid >=11.1.1 without override."
+        }
+      },
+      "removedDependencies": [
+        "docusaurus-plugin-openapi-docs",
+        "docusaurus-theme-openapi-docs"
+      ]
+    },
+    "sail": {
+      "sourceCommit": "4990547b06090eee167bbcadf850844e458babd5",
+      "files": [
+        "package.json",
+        "package-lock.json",
+        "packages/common/package.json",
+        "packages/da-impl/package.json",
+        "packages/web/package.json"
+      ],
+      "dependencies": {
+        "pm2": "^7.1.2"
+      },
+      "excludedWorkspaces": [
+        "packages/electron"
+      ],
+      "removedDependencies": [
+        "electron",
+        "@cucumber/html-formatter",
+        "@cucumber/messages"
+      ]
+    },
+    "nodeVersion": "24",
+    "browserAssets": {
+      "nats.ws": {
+        "version": "1.30.3",
+        "integrity": "sha512-aM77V2SEc+B6lbxCMZK3qfRy4jg8pmHj+wZzQKDiDIQYhLPj6U2NSHHBex0syj72Ayzl4uR5Lp3aKXTaVLbRpw=="
+      },
+      "swagger-ui-dist": {
+        "version": "5.34.1",
+        "integrity": "sha512-VSr8fXfI93obYaQicLJbLUKGRxDojj/SfRJDDLCioGTUBj4BK/Nj4eE9jCeCAnJxVLi7iS+08PbiZLyrQKBkJQ=="
+      }
     }
   },
   "nuget": {
     "packages": {
       "Swashbuckle.AspNetCore": "8.1.4"
     }
+  },
+  "security": {
+    "runtimeImageScanner": {
+      "image": "aquasec/trivy:0.76.2@sha256:8f6bb947dbc528902e11f2f5be52f7b519f6a39d5d148f41166f2040499768fb",
+      "version": "0.76.2"
+    },
+    "supportedPlatforms": [
+      "linux/amd64"
+    ],
+    "maxEvidenceAgeHours": 24,
+    "maxDatabaseAgeHours": 24,
+    "kubernetesManifestParser": {
+      "package": "PyYAML",
+      "version": "6.0.3"
+    },
+    "kubernetesManifestRenderer": {
+      "version": "v1.37.2",
+      "sha256": "c04487523e7aa7d1493f7808174c899db93d7a9cf57531420cd76b9bd415f8f4"
+    },
+    "maxJavaDatabaseAgeHours": 96
   }
 }

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Offline regression tests for scanner deadlines and deployment authorization."""
 import importlib.util
+import io
+import tarfile
 import json
 import os
 from pathlib import Path
@@ -26,6 +28,46 @@ verify = module('verify-deployment-snapshot')
 deploy = module('deploy-verified-snapshot')
 SHA = 'a' * 40
 DIGEST = 'sha256:' + 'b' * 64
+TEST_SETTINGS = {'security': {'runtimeImageScanner': {'image': 'scanner@' + DIGEST, 'version': 'test'}, 'supportedPlatforms': ['linux/amd64'], 'maxEvidenceAgeHours': 24, 'maxDatabaseAgeHours': 24, 'maxJavaDatabaseAgeHours': 96}}
+
+
+class SnapshotArchiveTests(unittest.TestCase):
+    def archive(self, member_name='repo/file.txt', member_type=tarfile.REGTYPE):
+        buffer = io.BytesIO()
+        with tarfile.open(fileobj=buffer, mode='w:gz') as archive:
+            member = tarfile.TarInfo(member_name)
+            member.type = member_type
+            if member_type == tarfile.REGTYPE:
+                member.size = 4
+                archive.addfile(member, io.BytesIO(b'safe'))
+            else:
+                member.linkname = 'file.txt'
+                archive.addfile(member)
+        return buffer.getvalue()
+
+    def download(self, destination, payload):
+        def download(*args, **kwargs):
+            kwargs['stdout'].write(payload)
+        with patch.object(verify.subprocess, 'run', side_effect=download):
+            return verify.download_snapshot('finos/traderX', SHA, destination)
+
+    def test_safe_archive_accepts_symlinked_temporary_directory_root(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            real = root / 'real';real.mkdir()
+            alias = root / 'alias';alias.symlink_to(real, target_is_directory=True)
+            extracted = self.download(alias, self.archive())
+            self.assertEqual(extracted, real.resolve() / 'snapshot/repo')
+            self.assertEqual((extracted / 'file.txt').read_text(), 'safe')
+
+    def test_archive_rejects_traversal_absolute_paths_and_all_links(self):
+        for name, kind in [('../escape', tarfile.REGTYPE), ('/absolute/escape', tarfile.REGTYPE),
+                           ('repo/link', tarfile.SYMTYPE), ('repo/link', tarfile.LNKTYPE),
+                           ('repo/device', tarfile.CHRTYPE)]:
+            with self.subTest(name=name, kind=kind), tempfile.TemporaryDirectory() as tmp:
+                with self.assertRaisesRegex(ValueError, 'unsafe path or link'):
+                    self.download(Path(tmp), self.archive(name, kind))
+                self.assertFalse((Path(tmp) / 'escape').exists())
 
 
 class RecoveryCacheTests(unittest.TestCase):
@@ -147,7 +189,7 @@ class AuthorizationTests(unittest.TestCase):
         jobs = {
             '1': ['Build and test snapshot'],
             '2': ['svc-node-scan', 'ingress-docker-scan'],
-            '3': ['Build and push ingress'],
+            '3': ['Build and push ingress', 'Runtime Image Security'],
         }
         failed = False
         def api(*args):
@@ -169,13 +211,17 @@ class AuthorizationTests(unittest.TestCase):
         def download(args, **kwargs):
             dest = Path(args[-1])
             dest.mkdir(parents=True)
+            (dest / 'runtime-lock.json').write_text('{}')
             (dest / 'image.json').write_text(json.dumps(dict(snapshot=SHA, image=image, digest=DIGEST,
                                                             run_id='3', run_attempt='2')))
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp) / 'verified.json'
             argv = ['verify', '--snapshot', SHA, '--target', 'demo.traderx.finos.org', '--output', str(output)]
             with patch.object(sys, 'argv', argv), patch.object(verify, 'gh_json', side_effect=api), \
-                 patch.object(verify.subprocess, 'run', side_effect=download):
+                 patch.object(verify.subprocess, 'run', side_effect=download), \
+                 patch.object(verify, 'download_snapshot', return_value=Path(tmp)), \
+                 patch.object(verify, 'runtime_inventory', return_value=[]), \
+                 patch.object(verify, 'validate_lock', return_value={}):
                 verify.main()
                 self.assertEqual(json.loads(output.read_text())['images'], {image: image + '@' + DIGEST})
                 output.unlink()
@@ -206,16 +252,47 @@ class AuthorizationTests(unittest.TestCase):
                 return subprocess.CompletedProcess(args, 0, stdout=json.dumps(config))
             with patch.object(sys, 'argv', ['deploy', str(manifest), '--workdir', str(work)]), \
                  patch.object(deploy, 'run', side_effect=fake_run) as commands, \
-                 patch.object(deploy.subprocess, 'check_output', return_value=SHA + '\n'):
+                 patch.object(deploy.subprocess, 'check_output', return_value=SHA + '\n'), \
+                 patch.object(deploy, 'authorize_runtime', side_effect=lambda config, *args: deploy.pin_services(config, {image: image + '@' + DIGEST})), \
+                 patch.object(deploy, 'policy_settings', return_value={'runtimeImageScanner': {'image': 'scanner'}}), \
+                 patch.object(deploy, 'scan_infrastructure'):
                 deploy.main()
             audit = json.loads((work / '.traderx-deploy/deployed.json').read_text())
             self.assertEqual(audit['snapshot'], SHA)
             self.assertEqual(audit['services']['ingress'], image + '@' + DIGEST)
             self.assertTrue(any('--no-build' in call.args and '--wait' in call.args for call in commands.call_args_list))
 
+    def test_non009_startup_failure_preserves_original_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work = Path(tmp)
+            (work / '.git').mkdir()
+            manifest = work / 'manifest.json'
+            image = 'ghcr.io/finos/traderx-c1/ingress'
+            manifest.write_text(json.dumps(dict(snapshot=SHA, state='004-test', target='demo.test',
+                                                repository='finos/traderX', images={image: image + '@' + DIGEST})))
+            config = {'services': {'ingress': {'image': image + ':' + SHA, 'build': {'context': '.'}}}}
+            failure = subprocess.CalledProcessError(17, ['docker', 'compose', 'up'])
+            def fake_run(*args, **kwargs):
+                if 'up' in args:
+                    raise failure
+                return subprocess.CompletedProcess(args, 0, stdout=json.dumps(config))
+            with patch.object(sys, 'argv', ['deploy', str(manifest), '--workdir', str(work)]), \
+                 patch.object(deploy, 'run', side_effect=fake_run) as commands, \
+                 patch.object(deploy.subprocess, 'check_output', return_value=SHA + '\n'), \
+                 patch.object(deploy, 'authorize_runtime', side_effect=lambda config, *args: deploy.pin_services(config, {image: image + '@' + DIGEST})), \
+                 patch.object(deploy, 'policy_settings', return_value={'runtimeImageScanner': {'image': 'scanner'}}), \
+                 patch.object(deploy, 'scan_infrastructure'):
+                with self.assertRaises(subprocess.CalledProcessError) as caught:
+                    deploy.main()
+                self.assertIs(caught.exception, failure)
+            self.assertFalse((work / '.traderx-deploy/deployed.json').exists())
+
 
 class FixedSourceDispositionTests(unittest.TestCase):
     def setUp(self):
+        settings = patch.object(deploy, 'security_settings', return_value=TEST_SETTINGS)
+        settings.start()
+        self.addCleanup(settings.stop)
         self.policy = json.loads((ROOT / 'catalog/security/state-009-grafana-fixed-findings.json').read_text())
         self.finding = {'VulnerabilityID': 'CVE-2026-21728', 'PkgName': self.policy['package'],
                         'InstalledVersion': self.policy['installed_version'], 'Severity': 'HIGH'}
@@ -254,17 +331,19 @@ class FixedSourceDispositionTests(unittest.TestCase):
 
 
 class DatabaseRecoveryTests(unittest.TestCase):
+    config = {'services': {'database': {'volumes': [{'type': 'volume', 'source': 'data', 'target': '/var/lib/postgresql/data'}]}}, 'volumes': {'data': {'name': 'demo_postgres_state_009_data'}}}
+
     def test_recovery_rejects_wrong_major_or_active_database(self):
         for version, writers in [('17', ''), ('16', 'running-container')]:
             with self.subTest(version=version, writers=writers), tempfile.TemporaryDirectory() as tmp:
                 record = {'state': '009-order-management-matcher', 'snapshot': SHA}
                 volume = 'demo_postgres_state_009_data'
-                replies = [json.dumps([{'Name': volume, 'Mountpoint': '/volume'}]), version, writers]
+                replies = ['', json.dumps([{'Name': volume, 'Mountpoint': '/volume'}]), version, writers]
                 def fake(*args, **kwargs):
                     return subprocess.CompletedProcess(args, 0, replies.pop(0), '')
                 with patch.object(deploy, 'run', side_effect=fake) as commands:
                     with self.assertRaises(ValueError):
-                        deploy.backup_state009_database(record, 'demo', Path(tmp))
+                        deploy.backup_state009_database(record, 'demo', Path(tmp), self.config)
                 self.assertFalse(any('tar' in c.args for c in commands.call_args_list))
                 self.assertNotIn('database_backup', record)
 
@@ -273,10 +352,15 @@ class DatabaseRecoveryTests(unittest.TestCase):
                 side_effect=subprocess.CalledProcessError(1, ['docker', 'volume', 'inspect'])):
             with self.assertRaises(subprocess.CalledProcessError):
                 deploy.backup_state009_database({'state': '009-order-management-matcher', 'snapshot': SHA},
-                                                'demo', Path(tmp))
+                                                'demo', Path(tmp), self.config)
 
 
 class ScannerTests(unittest.TestCase):
+    def setUp(self):
+        settings = patch.object(deploy, 'security_settings', return_value=TEST_SETTINGS)
+        settings.start()
+        self.addCleanup(settings.stop)
+
     def test_infrastructure_timeout_continues_and_cleans_only_owned_scanners(self):
         with tempfile.TemporaryDirectory() as tmp:
             config = {'services': {'timeout': {'image': 'repo:1'}, 'clean': {'image': 'repo:2'}}}
@@ -356,6 +440,8 @@ class ScannerTests(unittest.TestCase):
                  patch.object(deploy, 'run', return_value=subprocess.CompletedProcess(
                      [], 0, json.dumps({'services': {}}))) as commands, \
                  patch.object(deploy.subprocess, 'check_output', return_value=SHA + '\n'), \
+                 patch.object(deploy, 'authorize_runtime', return_value={}), \
+                 patch.object(deploy, 'policy_settings', return_value={'runtimeImageScanner': {'image': 'scanner'}}), \
                  patch.object(deploy, 'scan_infrastructure') as scan:
                 deploy.main()
             scan.assert_called_once()

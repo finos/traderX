@@ -9,6 +9,10 @@ import re
 import shutil
 import subprocess
 import uuid
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from runtime_image_security import compose_inventory, validate_lock, policy_settings, timestamp
 
 
 def run(*args, **kwargs):
@@ -36,7 +40,7 @@ def already_fixed(finding, image, policy, now=None):
     if policy.get('approved') is not True:
         raise ValueError('fixed-source disposition is not approved')
     now = now or datetime.datetime.now(datetime.timezone.utc)
-    expiry = datetime.datetime.fromisoformat(policy['expires'].replace('Z', '+00:00'))
+    expiry = timestamp(policy['expires'])
     if now >= expiry:
         raise ValueError('fixed-source disposition expired')
     return (finding.get('PkgName') == policy['package']
@@ -44,32 +48,44 @@ def already_fixed(finding, image, policy, now=None):
             and finding.get('VulnerabilityID') in policy['fixed_findings'])
 
 
-def scan_infrastructure(config, images, reports, policy=None):
+def scan_infrastructure(config, images, reports, policy=None, authorized=None, scanner_image=None):
     """Inventory every infrastructure blocker; diagnostic output is not authorization."""
     reports.mkdir(mode=0o700, parents=True, exist_ok=False)
     summary = []
+    cache = reports.parent / '.trivy-cache'
+    cache.mkdir(mode=0o700, exist_ok=True)
     for name, service in config['services'].items():
         image = service['image']
         # Rebuilt infrastructure now has published-image evidence too, but
         # must retain its independent host scan before runtime replacement.
         infrastructure = {'database', 'blackbox-exporter', 'prometheus', 'loki', 'tempo',
                           'grafana', 'promtail', 'otel-collector', 'nats-broker'}
-        if image in images.values() and name not in infrastructure:
+        if authorized is None and image in images.values() and name not in infrastructure:
             continue
         if not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9_.-]*', name):
             raise ValueError('invalid service name')
         entry = dict(service=name, source=image, status='error', high=0, critical=0, fixed_findings=[])
         scanner = 'traderx-security-' + uuid.uuid4().hex
         try:
-            run('docker', 'pull', image, capture_output=True, text=True)
-            digests = json.loads(run('docker', 'image', 'inspect', image, '--format', '{{json .RepoDigests}}',
-                                    capture_output=True, text=True).stdout)
-            if not isinstance(digests, list) or not digests or not isinstance(digests[0], str) or not re.search(r'@sha256:[0-9a-f]{64}$', digests[0]):
-                raise ValueError('cannot resolve immutable infrastructure image')
-            entry['digest'] = service['image'] = digests[0]
+            if authorized is not None:
+                lock = authorized['compose/' + name]
+                if image != lock['image']:
+                    raise ValueError('host image differs from verified platform digest')
+                entry['digest'] = image
+                disposition_image = lock['index_image']
+                run('docker', 'pull', '--platform', lock['platform'], image, capture_output=True, text=True)
+            else:
+                run('docker', 'pull', image, capture_output=True, text=True)
+                digests = json.loads(run('docker', 'image', 'inspect', image, '--format', '{{json .RepoDigests}}',
+                                        capture_output=True, text=True).stdout)
+                if not isinstance(digests, list) or not digests or not isinstance(digests[0], str) or not re.search(r'@sha256:[0-9a-f]{64}$', digests[0]):
+                    raise ValueError('cannot resolve immutable infrastructure image')
+                entry['digest'] = service['image'] = digests[0]
+                disposition_image = service['image']
             result = subprocess.run(
-                ['docker', 'run', '--rm', '--name', scanner, 'aquasec/trivy:0.76.2@sha256:8f6bb947dbc528902e11f2f5be52f7b519f6a39d5d148f41166f2040499768fb',
-                 'image', '--exit-code', '1', '--severity', 'HIGH,CRITICAL',
+                ['docker', 'run', '--rm', '--name', scanner, '--user', f'{os.getuid()}:{os.getgid()}',
+                 '-v', str(cache.resolve()) + ':/cache', scanner_image or policy_settings(security_settings())['runtimeImageScanner']['image'],
+                 'image', '--cache-dir', '/cache', '--scanners', 'vuln,secret', '--exit-code', '1', '--severity', 'HIGH,CRITICAL',
                  '--format', 'json', '--no-progress', service['image']],
                 capture_output=True, text=True, timeout=600)
             (reports / f'{name}.trivy.json').write_text(result.stdout)
@@ -87,13 +103,13 @@ def scan_infrastructure(config, images, reports, policy=None):
                     if not isinstance(finding, dict) or finding.get('Severity') not in ('UNKNOWN', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'):
                         raise ValueError('malformed vulnerability')
                     if finding['Severity'] in ('HIGH', 'CRITICAL'):
-                        if already_fixed(finding, service['image'], policy):
+                        if already_fixed(finding, disposition_image, policy):
                             entry['fixed_findings'].append({k: finding.get(k) for k in
                                 ('VulnerabilityID', 'PkgName', 'InstalledVersion', 'Severity')})
                         else:
                             entry[finding['Severity'].lower()] += 1
                 for secret in target.get('Secrets', []):
-                    if not isinstance(secret, dict) or 'Severity' not in secret:
+                    if not isinstance(secret, dict) or secret.get('Severity') not in ('UNKNOWN', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'):
                         raise ValueError('malformed secret finding')
                     if secret['Severity'] in ('HIGH', 'CRITICAL'):
                         entry[secret['Severity'].lower()] += 1
@@ -120,11 +136,45 @@ def scan_infrastructure(config, images, reports, policy=None):
         raise ValueError('infrastructure preflight blocked: ' + ', '.join(blocked))
 
 
-def backup_state009_database(record, project, audit):
-    """Never silently create an empty replacement for the recovered demo volume."""
+def state009_database_volume(config):
+    """Use Compose's resolved volume name, including explicit name overrides."""
+    mounts = config.get('services', {}).get('database', {}).get('volumes', [])
+    data = [m for m in mounts if isinstance(m, dict)
+            and m.get('target') == '/var/lib/postgresql/data']
+    if len(data) != 1 or data[0].get('type') != 'volume':
+        raise ValueError('expected one named PostgreSQL data volume')
+    volume = config.get('volumes', {}).get(data[0].get('source'), {}).get('name')
+    if not isinstance(volume, str) or not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9_.-]*', volume):
+        raise ValueError('PostgreSQL volume name must be resolved by Compose')
+    return volume
+
+
+def backup_state009_database(record, project, audit, config):
+    """Preserve state-009 data; quiesce only its verified project for a physical backup."""
     if record['state'] != '009-order-management-matcher':
         return
-    volume = project + '_postgres_state_009_data'
+    volume = state009_database_volume(config)
+    # Inspect this project's database independently of the selected volume: an
+    # obsolete offline volume must never conceal a live database on another mount.
+    database_ids = run('docker', 'ps', '-aq', '--filter',
+                       'label=com.docker.compose.project=' + project, '--filter',
+                       'label=com.docker.compose.service=database',
+                       capture_output=True, text=True).stdout.split()
+    if database_ids:
+        if len(database_ids) != 1 or not re.fullmatch(r'[0-9a-f]{12,64}', database_ids[0]):
+            raise ValueError('expected one existing project database container')
+        existing = json.loads(run('docker', 'inspect', *database_ids,
+                                  capture_output=True, text=True).stdout)
+        if len(existing) != 1:
+            raise ValueError('invalid existing database inventory')
+        labels = existing[0].get('Config', {}).get('Labels') or {}
+        data_mounts = [m for m in existing[0].get('Mounts', [])
+                       if m.get('Destination') == '/var/lib/postgresql/data']
+        if (labels.get('com.docker.compose.project') != project
+                or labels.get('com.docker.compose.service') != 'database'
+                or len(data_mounts) != 1 or data_mounts[0].get('Type') != 'volume'
+                or data_mounts[0].get('Name') != volume):
+            raise ValueError('existing database mount differs from resolved Compose volume')
     details = json.loads(run('docker', 'volume', 'inspect', volume, capture_output=True, text=True).stdout)
     if len(details) != 1 or details[0].get('Name') != volume:
         raise ValueError('expected existing PostgreSQL volume was not found')
@@ -133,34 +183,121 @@ def backup_state009_database(record, project, audit):
     if version != '16':
         raise ValueError(f'PostgreSQL volume major version is {version}, expected 16')
     writers = run('docker', 'ps', '-q', '--filter', 'volume=' + volume,
-                  capture_output=True, text=True).stdout.strip()
+                  capture_output=True, text=True).stdout.split()
+    stopped = []
     if writers:
-        raise ValueError('database volume is in use; arrange a consistent online backup before replacement')
+        if any(not re.fullmatch(r'[0-9a-f]{12,64}', cid) for cid in writers):
+            raise ValueError('invalid database writer identity')
+        owners = json.loads(run('docker', 'inspect', *writers, capture_output=True, text=True).stdout)
+        if len(owners) != 1:
+            raise ValueError('expected one database writer')
+        labels = owners[0].get('Config', {}).get('Labels') or {}
+        if (labels.get('com.docker.compose.project') != project
+                or labels.get('com.docker.compose.service') != 'database'):
+            raise ValueError('database volume has an unexpected writer; refusing to stop it')
+        mounts = owners[0].get('Mounts', [])
+        destinations = [m['Destination'] for m in mounts if m.get('Name') == volume]
+        if len(destinations) != 1:
+            raise ValueError('cannot identify database volume destination')
+        if any(m['Destination'].startswith(destinations[0].rstrip('/') + '/') for m in mounts):
+            raise ValueError('physical backup refuses nested database container mounts')
+        stopped = run('docker', 'ps', '-q', '--filter', 'label=com.docker.compose.project=' + project,
+                      capture_output=True, text=True).stdout.split()
+        if not stopped or any(not re.fullmatch(r'[0-9a-f]{12,64}', cid) for cid in stopped):
+            raise ValueError('invalid project container inventory')
+        if not set(writers).issubset(set(stopped)):
+            raise ValueError('database writer is absent from project inventory')
+    # Container mounts and host bind mounts can hide data outside this volume.
+    mountinfo = run('sudo', '-n', 'cat', '/proc/self/mountinfo', capture_output=True, text=True).stdout
+    for line in mountinfo.splitlines():
+        fields = line.split()
+        if len(fields) < 6:
+            raise ValueError('invalid host mount inventory')
+        location = re.sub(r'\\([0-7]{3})', lambda m: chr(int(m[1], 8)), fields[4])
+        if location.startswith(mount.rstrip('/') + '/'):
+            raise ValueError('physical backup refuses nested database host mounts')
+    if run('sudo', '-n', 'find', mount, '-type', 'l', '-print', capture_output=True, text=True).stdout.strip():
+        raise ValueError('physical backup requires standard PostgreSQL layout without data symlinks')
     size = int(run('sudo', '-n', 'du', '-sb', mount, capture_output=True, text=True).stdout.split()[0])
     if shutil.disk_usage(audit).free < size + 512 * 1024 * 1024:
         raise ValueError('insufficient space for database backup')
     backups = audit / 'backups'
     backups.mkdir(mode=0o700, exist_ok=True)
     dest = backups / (record['snapshot'] + '-' + uuid.uuid4().hex + '.tar.gz')
-    # The database is offline; preserve ownership in a physical backup without
-    # changing the volume or exposing its contents in Actions logs/artifacts.
-    run('sudo', '-n', 'tar', '--numeric-owner', '-czf', str(dest), '-C', mount, '.', timeout=600)
-    run('sudo', '-n', 'chown', f'{os.getuid()}:{os.getgid()}', str(dest))
-    os.chmod(dest, 0o600)
-    listing = run('tar', '-tzf', str(dest), capture_output=True, text=True).stdout.splitlines()
-    if './PG_VERSION' not in listing:
-        raise ValueError('database backup verification failed')
-    import hashlib
-    with dest.open('rb') as source:
-        digest = hashlib.file_digest(source, 'sha256').hexdigest() if hasattr(hashlib, 'file_digest') else None
-        if digest is None:
-            hasher = hashlib.sha256()
+    try:
+        if stopped:
+            run('docker', 'stop', '--time', '60', *stopped, capture_output=True, text=True, timeout=120)
+        # Check immediately before copying, including the initially offline path.
+        if run('docker', 'ps', '-q', '--filter', 'volume=' + volume,
+               capture_output=True, text=True).stdout.strip():
+            raise ValueError('database volume still has a running writer; backup refused')
+        run('sudo', '-n', 'tar', '--numeric-owner', '-czf', str(dest), '-C', mount, '.', timeout=600)
+        run('sudo', '-n', 'chown', f'{os.getuid()}:{os.getgid()}', str(dest))
+        os.chmod(dest, 0o600)
+        listing = run('tar', '-tzf', str(dest), capture_output=True, text=True).stdout.splitlines()
+        if './PG_VERSION' not in listing:
+            raise ValueError('database backup verification failed')
+        import hashlib
+        hasher = hashlib.sha256()
+        with dest.open('rb') as source:
             for block in iter(lambda: source.read(1024 * 1024), b''):
                 hasher.update(block)
-            digest = hasher.hexdigest()
-    record['database_backup'] = {'volume': volume, 'path': str(dest), 'sha256': digest, 'major': version}
-    (backups / (dest.name + '.json')).write_text(json.dumps(record['database_backup'], indent=2) + '\n')
-    print(f'[ok] verified offline PostgreSQL 16 backup: {dest.name}')
+        record['database_backup'] = {'volume': volume, 'path': str(dest),
+                                     'sha256': hasher.hexdigest(), 'major': version,
+                                     'method': 'quiesced-physical' if stopped else 'offline-physical'}
+        (backups / (dest.name + '.json')).write_text(json.dumps(record['database_backup'], indent=2) + '\n')
+    except BaseException:
+        if stopped:
+            try:
+                active = run('docker', 'ps', '-q', '--filter', 'volume=' + volume,
+                             capture_output=True, text=True).stdout.split()
+                # A writer that appeared during backup invalidates the copy;
+                # never start the old database alongside that writer.
+                safe = [cid for cid in stopped if not active or cid not in writers]
+                if safe:
+                    run('docker', 'start', *safe, capture_output=True, text=True, timeout=120)
+            except (OSError, subprocess.SubprocessError) as exc:
+                print(f'[fail] restoring quiesced project failed: {exc}')
+        raise
+    print(f'[ok] verified PostgreSQL 16 backup ({record["database_backup"]["method"]}): {dest.name}')
+    return stopped
+
+
+def resume_unchanged_containers(project, stopped, volume):
+    """On failed startup, resume retained originals only; never replace newer data writers."""
+    if not stopped:
+        return
+    ids = run('docker', 'ps', '-aq', '--filter', 'label=com.docker.compose.project=' + project,
+              capture_output=True, text=True).stdout.split()
+    if not ids:
+        return
+    if any(not re.fullmatch(r'[0-9a-f]{12,64}', cid) for cid in ids):
+        raise ValueError('invalid project container identity during startup recovery')
+    containers = json.loads(run('docker', 'inspect', *ids, capture_output=True, text=True).stdout)
+    by_service = {}
+    for item in containers:
+        labels = item.get('Config', {}).get('Labels') or {}
+        if labels.get('com.docker.compose.project') != project:
+            raise ValueError('unexpected project during startup recovery')
+        by_service.setdefault(labels.get('com.docker.compose.service'), []).append(item)
+    resume = []
+    for service, items in by_service.items():
+        # A replacement may already have committed writes. Never start an old
+        # container alongside it or roll back its database filesystem.
+        if len(items) != 1:
+            continue
+        item = items[0]
+        if any(item['Id'].startswith(cid) for cid in stopped) and not item['State']['Running']:
+            if service == 'database':
+                active = run('docker', 'ps', '-q', '--filter',
+                             'volume=' + volume,
+                             capture_output=True, text=True).stdout.strip()
+                if active:
+                    continue
+            resume.append(item['Id'])
+    if resume:
+        run('docker', 'start', *resume, capture_output=True, text=True, timeout=120)
+        print(f'[warn] resumed {len(resume)} unchanged prior containers after failed startup')
 
 
 def reclaim_recovery_image_cache(record, audit):
@@ -176,6 +313,34 @@ def reclaim_recovery_image_cache(record, audit):
         {'before': before, 'prune': result.stdout, 'after': after}, indent=2) + '\n')
     print('[ok] reclaimed old unused image cache; no containers or volumes removed')
     print(after)
+
+
+
+def security_settings():
+    adjacent = Path(__file__).with_name('dependency-version-targets.json')
+    path = adjacent if adjacent.exists() else Path(__file__).resolve().parents[1] / 'catalog/dependency-version-targets.json'
+    return json.loads(path.read_text())
+
+
+def authorize_runtime(config, record, settings, policy):
+    platform = run('docker', 'version', '--format', '{{.Server.Os}}/{{.Server.Arch}}',
+                   capture_output=True, text=True).stdout.strip()
+    if platform != 'linux/amd64':
+        raise ValueError('host platform is not covered by runtime security evidence')
+    metadata = record['runtime_metadata']
+    if metadata['stateId'] != record['state'] or metadata['runtime']['kind'] != 'compose':
+        raise ValueError('runtime metadata does not match deployment state')
+    evidence = record['checks']['build-and-publish.yml']
+    locks = validate_lock(record['runtime_lock'], metadata, compose_inventory(config),
+                          record['repository'], record['snapshot'], evidence['id'], evidence['attempt'],
+                          settings, disposition=policy)
+    if record.get('runtime_images') != locks:
+        raise ValueError('deployment runtime image map differs from verified evidence')
+    for name, service in config['services'].items():
+        service['image'] = locks['compose/' + name]['image']
+        service.pop('build', None)
+    return locks
+
 
 
 def main():
@@ -206,7 +371,6 @@ def main():
     compose = work / 'runtime/ghcr' / record['state'] / 'docker-compose.ghcr.yml'
     config = json.loads(run('docker', 'compose', '-f', str(compose), 'config', '--format', 'json',
                             env=env, capture_output=True, text=True).stdout)
-    config = pin_services(config, record['images'])
     audit = work / '.traderx-deploy'
     audit.mkdir(mode=0o700, exist_ok=True)
     os.chmod(audit, 0o700)
@@ -214,18 +378,30 @@ def main():
         reclaim_recovery_image_cache(record, audit)
     policy_file = Path(__file__).with_name('state-009-grafana-fixed-findings.json')
     policy = json.loads(policy_file.read_text()) if policy_file.exists() else None
+    settings = security_settings()
+    authorized = authorize_runtime(config, record, settings, policy)
     scan_infrastructure(config, record['images'],
-                        a.report_dir or audit / f'{sha}.scans-{uuid.uuid4().hex}', policy=policy)
+                        a.report_dir or audit / f'{sha}.scans-{uuid.uuid4().hex}', policy=policy,
+                        authorized=authorized, scanner_image=policy_settings(settings)['runtimeImageScanner']['image'])
     if a.preflight_only:
         print(f'[ok] preflight passed for {sha}; no containers replaced')
         return
     resolved = audit / f'{sha}.compose.json'
     resolved.write_text(json.dumps(config, indent=2) + '\n')
     project = os.environ.get('TRADERX_COMPOSE_PROJECT_NAME', 'traderx-' + record['state'])
-    backup_state009_database(record, project, audit)
     command = ['docker', 'compose', '-f', str(resolved), '--project-name', project]
     run(*command, 'pull', env=env)
-    run(*command, 'up', '-d', '--no-build', '--wait', '--wait-timeout', '180', env=env)
+    # Pull every image before entering the brief database maintenance window.
+    stopped = backup_state009_database(record, project, audit, config)
+    try:
+        run(*command, 'up', '-d', '--no-build', '--wait', '--wait-timeout', '180', env=env)
+    except BaseException:
+        try:
+            if stopped:
+                resume_unchanged_containers(project, stopped, record['database_backup']['volume'])
+        except (ValueError, OSError, subprocess.SubprocessError) as exc:
+            print(f'[fail] resuming unchanged containers failed: {exc}')
+        raise
     record['deployed_at'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
     record['services'] = {n: s['image'] for n, s in config['services'].items()}
     (audit / f'{sha}.json').write_text(json.dumps(record, indent=2) + '\n')

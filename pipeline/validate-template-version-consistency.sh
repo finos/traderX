@@ -49,6 +49,16 @@ extract_jackson_bom_version() {
   sed -n "s/.*ext\\['jackson-bom\\.version'\\][[:space:]]*=[[:space:]]*'\\([^']*\\)'.*/\\1/p" "${file}" | head -n1
 }
 
+extract_jackson_2_bom_version() {
+  local file="$1"
+  sed -n "s/.*ext\\['jackson-2-bom\\.version'\\][[:space:]]*=[[:space:]]*'\\([^']*\\)'.*/\\1/p" "${file}" | head -n1
+}
+
+extract_kotlin_bom_version() {
+  local file="$1"
+  sed -n "s/.*ext\\['kotlin\\.version'\\][[:space:]]*=[[:space:]]*'\\([^']*\\)'.*/\\1/p" "${file}" | head -n1
+}
+
 extract_gradle_wrapper_version() {
   local file="$1"
   sed -n 's#.*distributionUrl=.*gradle-\([0-9.]*\)-bin\.zip.*#\1#p' "${file}" | head -n1
@@ -105,6 +115,8 @@ target_boot_version="$(jq -er '.java.plugins["org.springframework.boot"]' "${TAR
 target_dep_mgmt_version="$(jq -er '.java.plugins["io.spring.dependency-management"]' "${TARGETS_FILE}")"
 target_java_major="$(jq -er '.java.sourceCompatibility' "${TARGETS_FILE}")"
 target_jackson_bom_version="$(jq -er '.java.properties["jackson-bom.version"]' "${TARGETS_FILE}")"
+target_jackson_2_bom_version="$(jq -er '.java.properties["jackson-2-bom.version"]' "${TARGETS_FILE}")"
+target_kotlin_bom_version="$(jq -er '.java.properties["kotlin.version"]' "${TARGETS_FILE}")"
 target_tomcat_version="$(jq -er '.java.properties["tomcat.version"]' "${TARGETS_FILE}")"
 target_wrapper_version="$(jq -er '.gradleWrapper.distributionVersion' "${TARGETS_FILE}")"
 target_wrapper_sha="$(jq -er '.gradleWrapper.distributionSha256Sum' "${TARGETS_FILE}")"
@@ -120,11 +132,15 @@ for file in "${spring_build_files[@]}"; do
   dep_mgmt_version="$(extract_dep_mgmt_version "${file}")"
   java_major="$(extract_java_major "${file}")"
   jackson_bom_version="$(extract_jackson_bom_version "${file}")"
+  jackson_2_bom_version="$(extract_jackson_2_bom_version "${file}")"
+  kotlin_bom_version="$(extract_kotlin_bom_version "${file}")"
   tomcat_version="$(extract_tomcat_version "${file}")"
 
   [[ -n "${boot_version}" ]] || fail "missing Spring Boot plugin version in ${file}"
   [[ -n "${dep_mgmt_version}" ]] || fail "missing dependency-management plugin version in ${file}"
   [[ -n "${java_major}" ]] || fail "missing Java sourceCompatibility in ${file}"
+  [[ "${jackson_2_bom_version}" == "${target_jackson_2_bom_version}" ]] || fail "jackson-2-bom.version mismatch in ${file}: ${jackson_2_bom_version}"
+  [[ "${kotlin_bom_version}" == "${target_kotlin_bom_version}" ]] || fail "kotlin.version mismatch in ${file}: ${kotlin_bom_version}"
   [[ -n "${jackson_bom_version}" ]] || fail "missing jackson-bom.version in ${file}"
   [[ -n "${tomcat_version}" ]] || fail "missing tomcat.version in ${file}"
 
@@ -276,5 +292,7 @@ while IFS=$'\t' read -r nuget_dep nuget_target; do
   done < <(find "${TEMPLATES_ROOT}" -type f -name '*.csproj' -print | sort)
   (( seen > 0 )) || fail "NuGet target ${nuget_dep} not found under templates/"
 done < <(jq -r '.nuget.packages | to_entries[] | [.key, .value] | @tsv' "${TARGETS_FILE}")
+
+python3 "${ROOT}/pipeline/validate-node-resolved-minimums.py" --targets "${TARGETS_FILE}" "${TEMPLATES_ROOT}"
 
 echo "[ok] template dependency targets validated (spring=${unique_boot_versions}, java=${unique_java_majors}, gradle=${unique_wrapper_versions})"

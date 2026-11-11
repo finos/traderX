@@ -1,0 +1,23 @@
+{
+  "name": "@finos/fdc3-sail-common",
+  "version": "0.0.0",
+  "description": "",
+  "scripts": {
+    "clean": "npx rimraf dist",
+    "build": "tsc"
+  },
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "rimraf": "^6.0.1"
+  },
+  "dependencies": {
+    "@finos/fdc3": "2.2.1-beta.3",
+    "socket.io-client": "^4.7.5",
+    "typescript": "^5.7.3",
+    "uuid": "^11.0.5"
+  }
+}

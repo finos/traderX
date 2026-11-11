@@ -28,33 +28,59 @@ case "${STATE_ID}" in
     ;;
 esac
 
-install_nats_ws_vendor() {
+install_verified_browser_package() {
+  local package_name="$1"
+  shift
   if ! command -v npm >/dev/null 2>&1; then
-    echo "[fail] npm is required to vendor nats.ws for API explorer inspector"
+    echo "[fail] npm is required to vendor API explorer browser assets"
     exit 1
   fi
 
   local explorer_abs
   explorer_abs="$(cd "${EXPLORER_ROOT}" && pwd)"
-  local vendor_dir="${explorer_abs}/vendor/nats.ws"
+  local vendor_dir="${explorer_abs}/vendor/${package_name}"
   mkdir -p "${vendor_dir}"
 
+  local policy_file="${TRADERX_DEPENDENCY_TARGETS_FILE:-${ROOT}/catalog/dependency-version-targets.json}"
+  local version integrity
+  version="$(jq -er --arg name "${package_name}" '.npm.browserAssets[$name].version | select(type == "string" and test("^[0-9]+\\.[0-9]+\\.[0-9]+$"))' "${policy_file}")"
+  integrity="$(jq -er --arg name "${package_name}" '.npm.browserAssets[$name].integrity | select(type == "string" and test("^sha512-[A-Za-z0-9+/]+={0,2}$"))' "${policy_file}")"
   local tmp_dir
   tmp_dir="$(mktemp -d)"
   (
+    trap 'rm -rf "${tmp_dir}"' EXIT
     cd "${tmp_dir}"
     local pkg
-    pkg="$(npm pack nats.ws --silent)"
+    pkg="$(npm pack "${package_name}@${version}" --ignore-scripts --silent)"
+    node - "${pkg}" "${integrity}" <<'VERIFY_BROWSER_ASSET'
+const fs = require('node:fs');
+const crypto = require('node:crypto');
+const actual = 'sha512-' + crypto.createHash('sha512').update(fs.readFileSync(process.argv[2])).digest('base64');
+if (actual !== process.argv[3]) {
+  throw new Error('browser asset integrity mismatch');
+}
+VERIFY_BROWSER_ASSET
     tar -xzf "${pkg}"
-    cp package/esm/nats.js "${vendor_dir}/nats.js"
-    cp package/LICENSE "${vendor_dir}/LICENSE-nats.ws"
+    local asset
+    for asset in "$@"; do
+      cp "package/${asset}" "${vendor_dir}/$(basename "${asset}")"
+    done
   )
-  rm -rf "${tmp_dir}"
+}
+
+install_nats_ws_vendor() {
+  install_verified_browser_package nats.ws esm/nats.js LICENSE
+  mv "${EXPLORER_ROOT}/vendor/nats.ws/LICENSE" "${EXPLORER_ROOT}/vendor/nats.ws/LICENSE-nats.ws"
+}
+
+install_swagger_ui_vendor() {
+  install_verified_browser_package swagger-ui-dist swagger-ui.css swagger-ui-bundle.js swagger-ui-standalone-preset.js LICENSE NOTICE
 }
 
 if (( PUBSUB_INSPECTOR_ENABLED == 1 )); then
   install_nats_ws_vendor
 fi
+install_swagger_ui_vendor
 
 cat > "${EXPLORER_ROOT}/index.html" <<'EOF'
 <!doctype html>
@@ -63,7 +89,7 @@ cat > "${EXPLORER_ROOT}/index.html" <<'EOF'
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>TraderX API Docs</title>
-    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+    <link rel="stylesheet" href="./vendor/swagger-ui-dist/swagger-ui.css" />
     <style>
       body { margin: 0; background: #f5f7fb; }
       .topbar {
@@ -109,8 +135,8 @@ cat > "${EXPLORER_ROOT}/index.html" <<'EOF'
       </div>
     </div>
     <div id="swagger-ui"></div>
-    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
-    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
+    <script src="./vendor/swagger-ui-dist/swagger-ui-bundle.js"></script>
+    <script src="./vendor/swagger-ui-dist/swagger-ui-standalone-preset.js"></script>
     <script>
       function deriveRuntimeBasePath(service) {
         if (!service || !service.runtimeSpecPath) {

@@ -35,6 +35,7 @@ while IFS= read -r -d '' package_file; do
 done < <(
   find "${TARGET_ROOT}" -type f -name package.json \
     -not -path '*/node_modules/*' \
+    ! -path "${TARGET_ROOT%/}/fdc3-intent-interoperability/sail/bootstrap/dependency-overlay/*" \
     -not -path '*/dist/*' \
     -not -path '*/coverage/*' \
     -not -path '*/runtime-cache/*' \

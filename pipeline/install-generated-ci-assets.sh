@@ -74,7 +74,7 @@ is_ignored_dir() {
   case "${rel}" in
     .github*|runtime/*|scripts*|catalog*|generated/*|docs/*|ci/*|spec-source/*|.run/*|\
     *runtime-cache/*|runtime-cache/*|\
-    *node_modules/*|node_modules/*|\
+    *node_modules/*|node_modules/*|*/bootstrap/dependency-overlay*|\
     *.vite/*|.vite/*)
       return 0
       ;;
@@ -267,7 +267,9 @@ skip_docker_ci_dir() {
   local dir="$1"
   case "${dir}" in
     api-explorer)
-      return 0
+      # Kubernetes states run API Explorer as a separate active container.
+      if (( 10#${STATE_ID:0:3} < 10 )); then return 0; fi
+      return 1
       ;;
     *)
       return 1
@@ -292,7 +294,7 @@ discover_docker_entries() {
     state_allows_dir "${dir}" || continue
     skip_docker_ci_dir "${dir}" && continue
     image_name="$(printf '%s' "${dir}" | tr '/' '-')"
-    if [[ "${dir}" == order-management-matcher/runtime-images/* ]]; then image_name="${dir##*/}"; fi
+    if [[ "${dir}" == */runtime-images/* ]]; then image_name="${dir##*/}"; fi
     printf '%s|%s|%s\n' "${dir}" "$(basename "${dockerfile}")" "${image_name}" >> "${out_file}"
   done < <(find "${TARGET_ROOT}" -type f -name Dockerfile.compose | sort)
 
@@ -307,7 +309,7 @@ discover_docker_entries() {
       continue
     fi
     image_name="$(printf '%s' "${dir}" | tr '/' '-')"
-    if [[ "${dir}" == order-management-matcher/runtime-images/* ]]; then image_name="${dir##*/}"; fi
+    if [[ "${dir}" == */runtime-images/* ]]; then image_name="${dir##*/}"; fi
     printf '%s|%s|%s\n' "${dir}" "$(basename "${dockerfile}")" "${image_name}" >> "${out_file}"
   done < <(find "${TARGET_ROOT}" -type f -name Dockerfile | sort)
 
@@ -318,6 +320,11 @@ discover_node_modules "${temp_dir}/node-modules.txt"
 discover_gradle_modules "${temp_dir}/gradle-modules.txt"
 discover_dotnet_modules "${temp_dir}/dotnet-modules.txt"
 discover_docker_entries "${temp_dir}/docker-entries.txt"
+duplicate_images="$(cut -d'|' -f3 "${temp_dir}/docker-entries.txt" | sort | uniq -d)"
+if [[ -n "${duplicate_images}" ]]; then
+  echo "[fail] duplicate Docker image names in generated metadata: ${duplicate_images}"
+  exit 1
+fi
 
 while IFS= read -r line; do
   [[ -z "${line}" ]] && continue
@@ -383,6 +390,30 @@ EOF
 
   local job_count=0
 
+  if [[ -f "${TARGET_ROOT}/fdc3-intent-interoperability/sail/bootstrap/dependency-overlay/package-lock.json" ]]; then
+    job_count=$((job_count + 1))
+    cat >> "${file_path}" <<'EOF'
+  sail-dependencies-scan:
+    name: Sail complete dependency graph
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '@@NODE_VERSION@@'
+      - name: Audit frozen runtime and development dependencies
+        working-directory: fdc3-intent-interoperability/sail/bootstrap/dependency-overlay
+        run: npm audit --package-lock-only --ignore-scripts --audit-level=high --json > sail-npm-audit.json
+      - name: Retain raw Sail dependency evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-sail-${{ github.run_id }}-${{ github.run_attempt }}
+          path: fdc3-intent-interoperability/sail/bootstrap/dependency-overlay/sail-npm-audit.json
+EOF
+  fi
+
   if ((${#node_modules[@]} > 0)); then
     job_count=$((job_count + 1))
     cat >> "${file_path}" <<'EOF'
@@ -405,9 +436,9 @@ EOF
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '@@NODE_VERSION@@'
       - name: Install production dependencies
-        run: npm install --omit=dev
+        run: npm ci --omit=dev
         working-directory: ${{ matrix.module_folder }}
       - name: Prepare artifact name
         shell: bash
@@ -574,13 +605,38 @@ EOF
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Build image for scan
-        run: docker build -f "${{ matrix.directory }}/${{ matrix.dockerfile }}" -t "traderx-security/${{ matrix.image_name }}:scan" "${{ matrix.directory }}"
+        run: docker build --platform linux/amd64 -f "${{ matrix.directory }}/${{ matrix.dockerfile }}" -t "traderx-security/${{ matrix.image_name }}:scan" "${{ matrix.directory }}"
+EOF
+    if [[ "${is_convergence}" == "true" ]]; then
+      cat >> "${file_path}" <<'EOF'
       - name: Scan image for vulnerabilities
         uses: crazy-max/ghaction-container-scan@v3
         with:
           image: traderx-security/${{ matrix.image_name }}:scan
           severity: HIGH
 EOF
+    else
+      cat >> "${file_path}" <<'EOF'
+      - name: Restore scanner databases (freshness checked after download)
+        uses: actions/cache@v4
+        with:
+          path: |
+            .runtime-security-cache/db
+            .runtime-security-cache/java-db
+          key: runtime-databases-${{ runner.os }}-${{ hashFiles('ci/dependency-version-targets.json') }}-${{ github.run_id }}
+          restore-keys: runtime-databases-${{ runner.os }}-${{ hashFiles('ci/dependency-version-targets.json') }}-
+      - name: Scan immutable local build and record exact-run evidence
+        run: python3 ci/nonpublishing_runtime_security.py --module '${{ matrix.image_name }}'
+      - name: Retain local build scan diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: local-image-${{ matrix.image_name }}-${{ github.run_attempt }}
+          path: runtime-security-reports/
+          if-no-files-found: error
+          retention-days: 14
+EOF
+    fi
   fi
 
   if ((job_count == 0)); then
@@ -639,9 +695,9 @@ EOF
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '@@NODE_VERSION@@'
       - name: Install production dependencies
-        run: npm install --omit=dev
+        run: npm ci --omit=dev
         working-directory: ${{ matrix.module_folder }}
       - name: Install license validator
         run: npm install -g node-license-validator
@@ -717,6 +773,7 @@ EOF
           context: ${{ matrix.directory }}
           file: ${{ matrix.directory }}/${{ matrix.dockerfile }}
           push: true
+          platforms: linux/amd64
           tags: |
             ${{ env.GHCR_ORG }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image_name }}:${{ github.sha }}
             ${{ env.GHCR_ORG }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image_name }}:latest
@@ -867,7 +924,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '@@NODE_VERSION@@'
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -884,9 +941,23 @@ EOF
 write_security_workflow "${TARGET_ROOT}/.github/workflows/security.yml"
 write_license_workflow "${TARGET_ROOT}/.github/workflows/license-scanning-node.yml"
 
+# Resolve the canonical Node runtime in all workflows emitted above.
+python3 - "${ROOT}/catalog/dependency-version-targets.json" "${TARGET_ROOT}/.github/workflows" <<'PYNODE'
+import json,re,sys
+from pathlib import Path
+version = json.loads(Path(sys.argv[1]).read_text())['npm']['nodeVersion']
+if not isinstance(version, str) or not re.fullmatch(r'[0-9]+(?:\.[0-9]+){0,2}', version):
+    raise ValueError('invalid canonical npm.nodeVersion')
+for path in Path(sys.argv[2]).glob('*.yml'):
+    text = path.read_text()
+    if '@@NODE_VERSION@@' in text:
+        path.write_text(text.replace('@@NODE_VERSION@@', version))
+PYNODE
+
 # Prevent inherited workflow leakage across state lineage.
 rm -f "${TARGET_ROOT}/.github/workflows/build-and-publish.yml"
 rm -f "${TARGET_ROOT}/.github/workflows/build-container-images.yml"
+rm -f "${TARGET_ROOT}/ci/runtime_image_security.py" "${TARGET_ROOT}/ci/nonpublishing_runtime_security.py" "${TARGET_ROOT}/ci/dependency-version-targets.json"
 
 write_compose_ghcr_bundle() {
   local bundle_dir="$1"
@@ -1584,9 +1655,159 @@ if ((${#docker_entries[@]} > 0)); then
   if [[ -n "${convergence_namespace}" && "${is_convergence}" == "true" ]]; then
     write_build_publish_workflow "${TARGET_ROOT}/.github/workflows/build-and-publish.yml" "${convergence_namespace}"
     write_ghcr_run_bundle "${convergence_namespace}"
+    # One required job after publication keeps runtime authorization on the exact
+    # push/run/attempt and avoids a second workflow racing image publication.
+    cp "${ROOT}/pipeline/runtime_image_security.py" "${TARGET_ROOT}/ci/"
+    cp "${ROOT}/catalog/dependency-version-targets.json" "${TARGET_ROOT}/ci/"
+    cp "${ROOT}/catalog/security/state-009-grafana-fixed-findings.json" "${TARGET_ROOT}/ci/"
+    if [[ -n "${compose_file_rel}" ]]; then
+      runtime_json="$(jq -n --arg path "runtime/ghcr/${STATE_ID}/docker-compose.ghcr.yml" '{kind:"compose",path:$path}')"
+    elif [[ -f "${TARGET_ROOT}/kubernetes-runtime/build-plan.json" ]]; then
+      runtime_json='{"kind":"kubernetes","path":"kubernetes-runtime/manifests/base","buildPlan":"kubernetes-runtime/build-plan.json"}'
+    else
+      echo "[fail] publishing runtime is not mapped for ${STATE_ID}"
+      exit 1
+    fi
+    jq --argjson runtime "${runtime_json}" '.runtime = $runtime' "${TARGET_ROOT}/ci/state-metadata.json" > "${temp_dir}/metadata.json"
+    mv "${temp_dir}/metadata.json" "${TARGET_ROOT}/ci/state-metadata.json"
+    cat >> "${TARGET_ROOT}/.github/workflows/build-and-publish.yml" <<'EOF'
+
+  runtime-image-security:
+    name: Runtime Image Security
+    needs: build-ghcr
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      actions: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Install pinned Kubernetes manifest parser
+        run: |
+          version=$(jq -er '.security.kubernetesManifestParser | select(.package == "PyYAML") | .version' ci/dependency-version-targets.json)
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          python3 -m pip install --disable-pip-version-check "PyYAML==$version"
+      - name: Install checksum-pinned Kubernetes manifest renderer
+        run: |
+          version=$(jq -er '.security.kubernetesManifestRenderer.version' ci/dependency-version-targets.json)
+          checksum=$(jq -er '.security.kubernetesManifestRenderer.sha256' ci/dependency-version-targets.json)
+          [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$checksum" =~ ^[0-9a-f]{64}$ ]]
+          curl --fail --silent --show-error --location --retry 3 --max-time 120 "https://dl.k8s.io/release/$version/bin/linux/amd64/kubectl" -o kubectl
+          printf '%s  kubectl\n' "$checksum" | sha256sum --check
+          sudo install -m 0755 kubectl /usr/local/bin/kubectl
+      - name: Download exact-run published image evidence
+        uses: actions/download-artifact@v4
+        with:
+          pattern: image-digest-*-${{ github.run_attempt }}
+          path: published-images
+      - name: Inventory and scan complete runtime
+        run: python3 ci/runtime_image_security.py --published published-images
+      - name: Retain complete runtime diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-security-diagnostics-${{ github.run_attempt }}
+          path: runtime-security-reports/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Publish successful runtime authorization
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-lock-${{ github.run_attempt }}
+          path: runtime-lock.json
+          if-no-files-found: error
+EOF
   else
     write_build_only_workflow "${TARGET_ROOT}/.github/workflows/build-container-images.yml"
   fi
+fi
+
+# State 014 is build-only, but its default Sail companion is still part of
+# the runtime inventory used by full-wave validation.
+if [[ -f "${TARGET_ROOT}/fdc3-intent-interoperability/sail/docker-compose.yml" ]]; then
+  cp "${ROOT}/pipeline/runtime_image_security.py" "${TARGET_ROOT}/ci/"
+  cp "${ROOT}/catalog/dependency-version-targets.json" "${TARGET_ROOT}/ci/"
+  jq '.runtime = {kind:"kubernetes",path:"kubernetes-runtime/manifests/base",buildPlan:"kubernetes-runtime/build-plan.json",companions:[{kind:"compose",path:"fdc3-intent-interoperability/sail/docker-compose.yml",buildPlan:"fdc3-intent-interoperability/sail/build-plan.json"}]}' \
+    "${TARGET_ROOT}/ci/state-metadata.json" > "${temp_dir}/metadata.json"
+  mv "${temp_dir}/metadata.json" "${TARGET_ROOT}/ci/state-metadata.json"
+fi
+
+# Build-only states retain distributed module scans; the inventory job joins
+# exact-run configuration-ID evidence and independently scans pulled images.
+if ((${#docker_entries[@]} > 0)) && [[ "${is_convergence}" != "true" ]]; then
+  cp "${ROOT}/pipeline/runtime_image_security.py" "${ROOT}/pipeline/nonpublishing_runtime_security.py" "${TARGET_ROOT}/ci/"
+  cp "${ROOT}/catalog/dependency-version-targets.json" "${ROOT}/catalog/security/state-009-grafana-fixed-findings.json" "${TARGET_ROOT}/ci/"
+  case "${STATE_ID:0:3}" in
+    005) local_runtime_path="postgres-database-replacement/docker-compose.yml" ;;
+    006) local_runtime_path="messaging-nats-replacement/docker-compose.yml" ;;
+    008) local_runtime_path="pricing-awareness-market-data/docker-compose.yml" ;;
+    *) local_runtime_path="" ;;
+  esac
+  if [[ -n "${local_runtime_path}" ]]; then
+    runtime_json="$(jq -n --arg path "${local_runtime_path}" '{kind:"compose",path:$path}')"
+  elif [[ -f "${TARGET_ROOT}/kubernetes-runtime/build-plan.json" ]]; then
+    runtime_json='{"kind":"kubernetes","path":"kubernetes-runtime/manifests/base","buildPlan":"kubernetes-runtime/build-plan.json"}'
+  else
+    echo "[fail] build-only runtime is not mapped for ${STATE_ID}"
+    exit 1
+  fi
+  jq --argjson runtime "${runtime_json}" '.runtime = (.runtime // $runtime)' "${TARGET_ROOT}/ci/state-metadata.json" > "${temp_dir}/metadata.json"
+  mv "${temp_dir}/metadata.json" "${TARGET_ROOT}/ci/state-metadata.json"
+  cat >> "${TARGET_ROOT}/.github/workflows/security.yml" <<'EOF'
+
+  runtime-image-security:
+    name: Runtime Image Security (build only)
+    needs: docker-image-scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      actions: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Install pinned Kubernetes manifest parser
+        run: |
+          version=$(jq -er '.security.kubernetesManifestParser | select(.package == "PyYAML") | .version' ci/dependency-version-targets.json)
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          python3 -m pip install --disable-pip-version-check "PyYAML==$version"
+      - name: Install checksum-pinned Kubernetes manifest renderer
+        run: |
+          version=$(jq -er '.security.kubernetesManifestRenderer.version' ci/dependency-version-targets.json)
+          checksum=$(jq -er '.security.kubernetesManifestRenderer.sha256' ci/dependency-version-targets.json)
+          [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$checksum" =~ ^[0-9a-f]{64}$ ]]
+          curl --fail --silent --show-error --location --retry 3 --max-time 120 "https://dl.k8s.io/release/$version/bin/linux/amd64/kubectl" -o kubectl
+          printf '%s  kubectl\n' "$checksum" | sha256sum --check
+          sudo install -m 0755 kubectl /usr/local/bin/kubectl
+      - name: Download exact-run local scan evidence
+        uses: actions/download-artifact@v4
+        with:
+          pattern: local-image-*-${{ github.run_attempt }}
+          path: local-images
+      - name: Restore scanner databases (freshness checked after download)
+        uses: actions/cache@v4
+        with:
+          path: |
+            .runtime-security-cache/db
+            .runtime-security-cache/java-db
+          key: runtime-databases-${{ runner.os }}-${{ hashFiles('ci/dependency-version-targets.json') }}-${{ github.run_id }}
+          restore-keys: runtime-databases-${{ runner.os }}-${{ hashFiles('ci/dependency-version-targets.json') }}-
+      - name: Scan complete build-only runtime inventory
+        run: python3 ci/nonpublishing_runtime_security.py --artifacts local-images
+      - name: Retain full inventory and diagnostics (not deployment authorization)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-only-runtime-diagnostics-${{ github.run_attempt }}
+          path: runtime-security-reports/
+          if-no-files-found: error
+          retention-days: 14
+EOF
 fi
 
 if [[ "${deploy_enabled}" == "true" ]]; then
