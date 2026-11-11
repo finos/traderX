@@ -109,7 +109,7 @@ def install_compose(target, number, policy):
 
 def write_configmap(path, namespace, key, content):
     # Keep existing metadata and replace the single generated data payload.
-    prefix = path.read_text().split('data:\n', 1)[0]
+    prefix = re.split(r'^data:\n', path.read_text(), maxsplit=1, flags=re.M)[0]
     path.write_text(prefix + f'data:\n  {key}: |\n' + ''.join('    ' + line + '\n' for line in content.splitlines()))
 
 

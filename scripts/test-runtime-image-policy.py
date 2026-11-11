@@ -119,6 +119,12 @@ class ImagePolicyTests(unittest.TestCase):
                     self.assertIn('/var/log/pods', ds)
                     self.assertNotIn('docker.sock', ds)
                     self.assertIn('readOnly: true', ds)
+                    for config_name in ('promtail', 'tempo', 'otel'):
+                        cm = (directory / f'observability-{config_name}-configmap.yaml').read_text()
+                        name = 'otel-collector' if config_name == 'otel' else config_name
+                        self.assertIn(f'  name: observability-{name}-config', cm)
+                        self.assertIn('  namespace: traderx', cm)
+                        self.assertIn('\ndata:\n', cm)
                     config = (directory / 'observability-promtail-configmap.yaml').read_text()
                     self.assertIn('type = "kubernetes_logs"', config)
                     self.assertIn('metadata.namespace=${VECTOR_NAMESPACE}', config)
