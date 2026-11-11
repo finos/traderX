@@ -178,6 +178,21 @@ assert '@${{ steps.publish.outputs.digest }}' in publish
 assert 'image-digest-${{ matrix.image_name }}-${{ github.run_attempt }}' in publish
 assert (root / '.github/workflows/build-and-test.yml').exists()
 assert 'paths:' not in (root / '.github/workflows/security.yml').read_text()
+assert 'paths:' not in publish
+assert 'name: Runtime Image Security' in publish
+assert 'needs: build-ghcr' in publish
+assert 'kubernetesManifestRenderer.version' in publish
+assert 'kubernetesManifestRenderer.sha256' in publish
+assert 'sha256sum --check' in publish
+assert 'kubernetesManifestParser' in publish
+assert 'runtime-lock-${{ github.run_attempt }}' in publish
+assert 'runtime-security-diagnostics-${{ github.run_attempt }}' in publish
+assert 'platforms: linux/amd64' in publish
+import json
+assert json.loads((root / 'ci/state-metadata.json').read_text())['runtime'] == {
+    'kind': 'compose', 'path': 'runtime/ghcr/009-order-management-matcher/docker-compose.ghcr.yml'}
+for helper in ['runtime_image_security.py', 'dependency-version-targets.json']:
+    assert (root / 'ci' / helper).is_file()
 deploy = (root / 'runtime/deploy/aws-ec2-compose/deploy.sh').read_text()
 assert 'TRADERX_SNAPSHOT' in deploy
 assert 'verify-deployment-snapshot.py' in deploy
@@ -200,7 +215,9 @@ rm -rf "${TARGET_ROOT}"
 mkdir -p \
   "${TARGET_ROOT}/api-explorer" \
   "${TARGET_ROOT}/ingress" \
-  "${TARGET_ROOT}/scripts"
+  "${TARGET_ROOT}/scripts" \
+  "${TARGET_ROOT}/kubernetes-runtime/manifests/base"
+printf '%s\n' '{"images":[]}' > "${TARGET_ROOT}/kubernetes-runtime/build-plan.json"
 touch \
   "${TARGET_ROOT}/api-explorer/Dockerfile" \
   "${TARGET_ROOT}/ingress/Dockerfile.compose"
@@ -231,6 +248,8 @@ grep -q 'ingress=ghcr.io/finos/traderx-c3/ingress:latest' "${TARGET_ROOT}/runtim
   echo "[fail] state 012 GHCR image map should include publishable ingress image"
   exit 1
 }
+
+jq -e '.runtime.kind == "kubernetes" and .runtime.path == "kubernetes-runtime/manifests/base" and .runtime.buildPlan == "kubernetes-runtime/build-plan.json"' "${TARGET_ROOT}/ci/state-metadata.json" >/dev/null
 
 echo "[check] generated-state contract validation guards order-matcher schema"
 mkdir -p "${TARGET_ROOT}/order-matcher" "${TARGET_ROOT}/database" "${TARGET_ROOT}/ci"

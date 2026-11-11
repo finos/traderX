@@ -292,7 +292,7 @@ discover_docker_entries() {
     state_allows_dir "${dir}" || continue
     skip_docker_ci_dir "${dir}" && continue
     image_name="$(printf '%s' "${dir}" | tr '/' '-')"
-    if [[ "${dir}" == order-management-matcher/runtime-images/* ]]; then image_name="${dir##*/}"; fi
+    if [[ "${dir}" == */runtime-images/* ]]; then image_name="${dir##*/}"; fi
     printf '%s|%s|%s\n' "${dir}" "$(basename "${dockerfile}")" "${image_name}" >> "${out_file}"
   done < <(find "${TARGET_ROOT}" -type f -name Dockerfile.compose | sort)
 
@@ -307,7 +307,7 @@ discover_docker_entries() {
       continue
     fi
     image_name="$(printf '%s' "${dir}" | tr '/' '-')"
-    if [[ "${dir}" == order-management-matcher/runtime-images/* ]]; then image_name="${dir##*/}"; fi
+    if [[ "${dir}" == */runtime-images/* ]]; then image_name="${dir##*/}"; fi
     printf '%s|%s|%s\n' "${dir}" "$(basename "${dockerfile}")" "${image_name}" >> "${out_file}"
   done < <(find "${TARGET_ROOT}" -type f -name Dockerfile | sort)
 
@@ -717,6 +717,7 @@ EOF
           context: ${{ matrix.directory }}
           file: ${{ matrix.directory }}/${{ matrix.dockerfile }}
           push: true
+          platforms: linux/amd64
           tags: |
             ${{ env.GHCR_ORG }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image_name }}:${{ github.sha }}
             ${{ env.GHCR_ORG }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image_name }}:latest
@@ -887,6 +888,7 @@ write_license_workflow "${TARGET_ROOT}/.github/workflows/license-scanning-node.y
 # Prevent inherited workflow leakage across state lineage.
 rm -f "${TARGET_ROOT}/.github/workflows/build-and-publish.yml"
 rm -f "${TARGET_ROOT}/.github/workflows/build-container-images.yml"
+rm -f "${TARGET_ROOT}/ci/runtime_image_security.py" "${TARGET_ROOT}/ci/dependency-version-targets.json"
 
 write_compose_ghcr_bundle() {
   local bundle_dir="$1"
@@ -1584,9 +1586,84 @@ if ((${#docker_entries[@]} > 0)); then
   if [[ -n "${convergence_namespace}" && "${is_convergence}" == "true" ]]; then
     write_build_publish_workflow "${TARGET_ROOT}/.github/workflows/build-and-publish.yml" "${convergence_namespace}"
     write_ghcr_run_bundle "${convergence_namespace}"
+    # One required job after publication keeps runtime authorization on the exact
+    # push/run/attempt and avoids a second workflow racing image publication.
+    cp "${ROOT}/pipeline/runtime_image_security.py" "${TARGET_ROOT}/ci/"
+    cp "${ROOT}/catalog/dependency-version-targets.json" "${TARGET_ROOT}/ci/"
+    cp "${ROOT}/catalog/security/state-009-grafana-fixed-findings.json" "${TARGET_ROOT}/ci/"
+    if [[ -n "${compose_file_rel}" ]]; then
+      runtime_json="$(jq -n --arg path "runtime/ghcr/${STATE_ID}/docker-compose.ghcr.yml" '{kind:"compose",path:$path}')"
+    elif [[ -f "${TARGET_ROOT}/kubernetes-runtime/build-plan.json" ]]; then
+      runtime_json='{"kind":"kubernetes","path":"kubernetes-runtime/manifests/base","buildPlan":"kubernetes-runtime/build-plan.json"}'
+    else
+      echo "[fail] publishing runtime is not mapped for ${STATE_ID}"
+      exit 1
+    fi
+    jq --argjson runtime "${runtime_json}" '.runtime = $runtime' "${TARGET_ROOT}/ci/state-metadata.json" > "${temp_dir}/metadata.json"
+    mv "${temp_dir}/metadata.json" "${TARGET_ROOT}/ci/state-metadata.json"
+    cat >> "${TARGET_ROOT}/.github/workflows/build-and-publish.yml" <<'EOF'
+
+  runtime-image-security:
+    name: Runtime Image Security
+    needs: build-ghcr
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      actions: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Install pinned Kubernetes manifest parser
+        run: |
+          version=$(jq -er '.security.kubernetesManifestParser | select(.package == "PyYAML") | .version' ci/dependency-version-targets.json)
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          python3 -m pip install --disable-pip-version-check "PyYAML==$version"
+      - name: Install checksum-pinned Kubernetes manifest renderer
+        run: |
+          version=$(jq -er '.security.kubernetesManifestRenderer.version' ci/dependency-version-targets.json)
+          checksum=$(jq -er '.security.kubernetesManifestRenderer.sha256' ci/dependency-version-targets.json)
+          [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$checksum" =~ ^[0-9a-f]{64}$ ]]
+          curl --fail --silent --show-error --location --retry 3 --max-time 120 "https://dl.k8s.io/release/$version/bin/linux/amd64/kubectl" -o kubectl
+          printf '%s  kubectl\n' "$checksum" | sha256sum --check
+          sudo install -m 0755 kubectl /usr/local/bin/kubectl
+      - name: Download exact-run published image evidence
+        uses: actions/download-artifact@v4
+        with:
+          pattern: image-digest-*-${{ github.run_attempt }}
+          path: published-images
+      - name: Inventory and scan complete runtime
+        run: python3 ci/runtime_image_security.py --published published-images
+      - name: Retain complete runtime diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-security-diagnostics-${{ github.run_attempt }}
+          path: runtime-security-reports/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Publish successful runtime authorization
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-lock-${{ github.run_attempt }}
+          path: runtime-lock.json
+          if-no-files-found: error
+EOF
   else
     write_build_only_workflow "${TARGET_ROOT}/.github/workflows/build-container-images.yml"
   fi
+fi
+
+# State 014 is build-only, but its default Sail companion is still part of
+# the runtime inventory used by full-wave validation.
+if [[ -f "${TARGET_ROOT}/fdc3-intent-interoperability/sail/docker-compose.yml" ]]; then
+  cp "${ROOT}/pipeline/runtime_image_security.py" "${TARGET_ROOT}/ci/"
+  cp "${ROOT}/catalog/dependency-version-targets.json" "${TARGET_ROOT}/ci/"
+  jq '.runtime = {kind:"kubernetes",path:"kubernetes-runtime/manifests/base",buildPlan:"kubernetes-runtime/build-plan.json",companions:[{kind:"compose",path:"fdc3-intent-interoperability/sail/docker-compose.yml"}]}' \
+    "${TARGET_ROOT}/ci/state-metadata.json" > "${temp_dir}/metadata.json"
+  mv "${temp_dir}/metadata.json" "${TARGET_ROOT}/ci/state-metadata.json"
 fi
 
 if [[ "${deploy_enabled}" == "true" ]]; then

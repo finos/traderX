@@ -532,6 +532,18 @@ if (( 10#${state_num} >= 2 )); then
     }
   done
 fi
+if [[ -f "${SNAPSHOT_DIR}/.github/workflows/build-and-publish.yml" ]]; then
+  for required_ci in runtime_image_security.py dependency-version-targets.json; do
+    [[ -f "${SNAPSHOT_DIR}/ci/${required_ci}" ]] || {
+      echo "[fail] missing runtime security input: ci/${required_ci}"
+      exit 1
+    }
+  done
+  jq -e '.runtime.kind and .runtime.path' "${SNAPSHOT_DIR}/ci/state-metadata.json" >/dev/null || {
+    echo "[fail] missing active runtime security metadata"
+    exit 1
+  }
+fi
 
 strip_precontainer_docker_artifacts() {
   if (( 10#${state_num} >= 4 )); then

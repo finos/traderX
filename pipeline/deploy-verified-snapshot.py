@@ -9,6 +9,10 @@ import re
 import shutil
 import subprocess
 import uuid
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from runtime_image_security import compose_inventory, validate_lock, policy_settings
 
 
 def run(*args, **kwargs):
@@ -44,32 +48,44 @@ def already_fixed(finding, image, policy, now=None):
             and finding.get('VulnerabilityID') in policy['fixed_findings'])
 
 
-def scan_infrastructure(config, images, reports, policy=None):
+def scan_infrastructure(config, images, reports, policy=None, authorized=None, scanner_image=None):
     """Inventory every infrastructure blocker; diagnostic output is not authorization."""
     reports.mkdir(mode=0o700, parents=True, exist_ok=False)
     summary = []
+    cache = reports.parent / '.trivy-cache'
+    cache.mkdir(mode=0o700, exist_ok=True)
     for name, service in config['services'].items():
         image = service['image']
         # Rebuilt infrastructure now has published-image evidence too, but
         # must retain its independent host scan before runtime replacement.
         infrastructure = {'database', 'blackbox-exporter', 'prometheus', 'loki', 'tempo',
                           'grafana', 'promtail', 'otel-collector', 'nats-broker'}
-        if image in images.values() and name not in infrastructure:
+        if authorized is None and image in images.values() and name not in infrastructure:
             continue
         if not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9_.-]*', name):
             raise ValueError('invalid service name')
         entry = dict(service=name, source=image, status='error', high=0, critical=0, fixed_findings=[])
         scanner = 'traderx-security-' + uuid.uuid4().hex
         try:
-            run('docker', 'pull', image, capture_output=True, text=True)
-            digests = json.loads(run('docker', 'image', 'inspect', image, '--format', '{{json .RepoDigests}}',
-                                    capture_output=True, text=True).stdout)
-            if not isinstance(digests, list) or not digests or not isinstance(digests[0], str) or not re.search(r'@sha256:[0-9a-f]{64}$', digests[0]):
-                raise ValueError('cannot resolve immutable infrastructure image')
-            entry['digest'] = service['image'] = digests[0]
+            if authorized is not None:
+                lock = authorized['compose/' + name]
+                if image != lock['image']:
+                    raise ValueError('host image differs from verified platform digest')
+                entry['digest'] = image
+                disposition_image = lock['index_image']
+                run('docker', 'pull', '--platform', lock['platform'], image, capture_output=True, text=True)
+            else:
+                run('docker', 'pull', image, capture_output=True, text=True)
+                digests = json.loads(run('docker', 'image', 'inspect', image, '--format', '{{json .RepoDigests}}',
+                                        capture_output=True, text=True).stdout)
+                if not isinstance(digests, list) or not digests or not isinstance(digests[0], str) or not re.search(r'@sha256:[0-9a-f]{64}$', digests[0]):
+                    raise ValueError('cannot resolve immutable infrastructure image')
+                entry['digest'] = service['image'] = digests[0]
+                disposition_image = service['image']
             result = subprocess.run(
-                ['docker', 'run', '--rm', '--name', scanner, 'aquasec/trivy:0.76.2@sha256:8f6bb947dbc528902e11f2f5be52f7b519f6a39d5d148f41166f2040499768fb',
-                 'image', '--exit-code', '1', '--severity', 'HIGH,CRITICAL',
+                ['docker', 'run', '--rm', '--name', scanner, '--user', f'{os.getuid()}:{os.getgid()}',
+                 '-v', str(cache.resolve()) + ':/cache', scanner_image or policy_settings(security_settings())['runtimeImageScanner']['image'],
+                 'image', '--cache-dir', '/cache', '--scanners', 'vuln,secret', '--exit-code', '1', '--severity', 'HIGH,CRITICAL',
                  '--format', 'json', '--no-progress', service['image']],
                 capture_output=True, text=True, timeout=600)
             (reports / f'{name}.trivy.json').write_text(result.stdout)
@@ -87,13 +103,13 @@ def scan_infrastructure(config, images, reports, policy=None):
                     if not isinstance(finding, dict) or finding.get('Severity') not in ('UNKNOWN', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'):
                         raise ValueError('malformed vulnerability')
                     if finding['Severity'] in ('HIGH', 'CRITICAL'):
-                        if already_fixed(finding, service['image'], policy):
+                        if already_fixed(finding, disposition_image, policy):
                             entry['fixed_findings'].append({k: finding.get(k) for k in
                                 ('VulnerabilityID', 'PkgName', 'InstalledVersion', 'Severity')})
                         else:
                             entry[finding['Severity'].lower()] += 1
                 for secret in target.get('Secrets', []):
-                    if not isinstance(secret, dict) or 'Severity' not in secret:
+                    if not isinstance(secret, dict) or secret.get('Severity') not in ('UNKNOWN', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'):
                         raise ValueError('malformed secret finding')
                     if secret['Severity'] in ('HIGH', 'CRITICAL'):
                         entry[secret['Severity'].lower()] += 1
@@ -265,6 +281,34 @@ def reclaim_recovery_image_cache(record, audit):
     print(after)
 
 
+
+def security_settings():
+    adjacent = Path(__file__).with_name('dependency-version-targets.json')
+    path = adjacent if adjacent.exists() else Path(__file__).resolve().parents[1] / 'catalog/dependency-version-targets.json'
+    return json.loads(path.read_text())
+
+
+def authorize_runtime(config, record, settings, policy):
+    platform = run('docker', 'version', '--format', '{{.Server.Os}}/{{.Server.Arch}}',
+                   capture_output=True, text=True).stdout.strip()
+    if platform != 'linux/amd64':
+        raise ValueError('host platform is not covered by runtime security evidence')
+    metadata = record['runtime_metadata']
+    if metadata['stateId'] != record['state'] or metadata['runtime']['kind'] != 'compose':
+        raise ValueError('runtime metadata does not match deployment state')
+    evidence = record['checks']['build-and-publish.yml']
+    locks = validate_lock(record['runtime_lock'], metadata, compose_inventory(config),
+                          record['repository'], record['snapshot'], evidence['id'], evidence['attempt'],
+                          settings, disposition=policy)
+    if record.get('runtime_images') != locks:
+        raise ValueError('deployment runtime image map differs from verified evidence')
+    for name, service in config['services'].items():
+        service['image'] = locks['compose/' + name]['image']
+        service.pop('build', None)
+    return locks
+
+
+
 def main():
     p = argparse.ArgumentParser(__doc__)
     p.add_argument('manifest')
@@ -293,7 +337,6 @@ def main():
     compose = work / 'runtime/ghcr' / record['state'] / 'docker-compose.ghcr.yml'
     config = json.loads(run('docker', 'compose', '-f', str(compose), 'config', '--format', 'json',
                             env=env, capture_output=True, text=True).stdout)
-    config = pin_services(config, record['images'])
     audit = work / '.traderx-deploy'
     audit.mkdir(mode=0o700, exist_ok=True)
     os.chmod(audit, 0o700)
@@ -301,8 +344,11 @@ def main():
         reclaim_recovery_image_cache(record, audit)
     policy_file = Path(__file__).with_name('state-009-grafana-fixed-findings.json')
     policy = json.loads(policy_file.read_text()) if policy_file.exists() else None
+    settings = security_settings()
+    authorized = authorize_runtime(config, record, settings, policy)
     scan_infrastructure(config, record['images'],
-                        a.report_dir or audit / f'{sha}.scans-{uuid.uuid4().hex}', policy=policy)
+                        a.report_dir or audit / f'{sha}.scans-{uuid.uuid4().hex}', policy=policy,
+                        authorized=authorized, scanner_image=policy_settings(settings)['runtimeImageScanner']['image'])
     if a.preflight_only:
         print(f'[ok] preflight passed for {sha}; no containers replaced')
         return
