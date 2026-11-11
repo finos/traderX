@@ -121,7 +121,7 @@ def scan_infrastructure(config, images, reports, policy=None):
 
 
 def backup_state009_database(record, project, audit):
-    """Never silently create an empty replacement for the recovered demo volume."""
+    """Preserve state-009 data; quiesce only its verified project for a physical backup."""
     if record['state'] != '009-order-management-matcher':
         return
     volume = project + '_postgres_state_009_data'
@@ -133,34 +133,60 @@ def backup_state009_database(record, project, audit):
     if version != '16':
         raise ValueError(f'PostgreSQL volume major version is {version}, expected 16')
     writers = run('docker', 'ps', '-q', '--filter', 'volume=' + volume,
-                  capture_output=True, text=True).stdout.strip()
+                  capture_output=True, text=True).stdout.split()
+    stopped = []
     if writers:
-        raise ValueError('database volume is in use; arrange a consistent online backup before replacement')
+        if any(not re.fullmatch(r'[0-9a-f]{12,64}', cid) for cid in writers):
+            raise ValueError('invalid database writer identity')
+        owners = json.loads(run('docker', 'inspect', *writers, capture_output=True, text=True).stdout)
+        if len(owners) != 1:
+            raise ValueError('expected one database writer')
+        labels = owners[0].get('Config', {}).get('Labels') or {}
+        if (labels.get('com.docker.compose.project') != project
+                or labels.get('com.docker.compose.service') != 'database'):
+            raise ValueError('database volume has an unexpected writer; refusing to stop it')
+        stopped = run('docker', 'ps', '-q', '--filter', 'label=com.docker.compose.project=' + project,
+                      capture_output=True, text=True).stdout.split()
+        if not stopped or any(not re.fullmatch(r'[0-9a-f]{12,64}', cid) for cid in stopped):
+            raise ValueError('invalid project container inventory')
+        if not set(writers).issubset(set(stopped)):
+            raise ValueError('database writer is absent from project inventory')
     size = int(run('sudo', '-n', 'du', '-sb', mount, capture_output=True, text=True).stdout.split()[0])
     if shutil.disk_usage(audit).free < size + 512 * 1024 * 1024:
         raise ValueError('insufficient space for database backup')
     backups = audit / 'backups'
     backups.mkdir(mode=0o700, exist_ok=True)
     dest = backups / (record['snapshot'] + '-' + uuid.uuid4().hex + '.tar.gz')
-    # The database is offline; preserve ownership in a physical backup without
-    # changing the volume or exposing its contents in Actions logs/artifacts.
-    run('sudo', '-n', 'tar', '--numeric-owner', '-czf', str(dest), '-C', mount, '.', timeout=600)
-    run('sudo', '-n', 'chown', f'{os.getuid()}:{os.getgid()}', str(dest))
-    os.chmod(dest, 0o600)
-    listing = run('tar', '-tzf', str(dest), capture_output=True, text=True).stdout.splitlines()
-    if './PG_VERSION' not in listing:
-        raise ValueError('database backup verification failed')
-    import hashlib
-    with dest.open('rb') as source:
-        digest = hashlib.file_digest(source, 'sha256').hexdigest() if hasattr(hashlib, 'file_digest') else None
-        if digest is None:
-            hasher = hashlib.sha256()
+    try:
+        if stopped:
+            run('docker', 'stop', '--time', '60', *stopped, capture_output=True, text=True, timeout=120)
+        # Check immediately before copying, including the initially offline path.
+        if run('docker', 'ps', '-q', '--filter', 'volume=' + volume,
+               capture_output=True, text=True).stdout.strip():
+            raise ValueError('database volume still has a running writer; backup refused')
+        run('sudo', '-n', 'tar', '--numeric-owner', '-czf', str(dest), '-C', mount, '.', timeout=600)
+        run('sudo', '-n', 'chown', f'{os.getuid()}:{os.getgid()}', str(dest))
+        os.chmod(dest, 0o600)
+        listing = run('tar', '-tzf', str(dest), capture_output=True, text=True).stdout.splitlines()
+        if './PG_VERSION' not in listing:
+            raise ValueError('database backup verification failed')
+        import hashlib
+        hasher = hashlib.sha256()
+        with dest.open('rb') as source:
             for block in iter(lambda: source.read(1024 * 1024), b''):
                 hasher.update(block)
-            digest = hasher.hexdigest()
-    record['database_backup'] = {'volume': volume, 'path': str(dest), 'sha256': digest, 'major': version}
-    (backups / (dest.name + '.json')).write_text(json.dumps(record['database_backup'], indent=2) + '\n')
-    print(f'[ok] verified offline PostgreSQL 16 backup: {dest.name}')
+        record['database_backup'] = {'volume': volume, 'path': str(dest),
+                                     'sha256': hasher.hexdigest(), 'major': version,
+                                     'method': 'quiesced-physical' if stopped else 'offline-physical'}
+        (backups / (dest.name + '.json')).write_text(json.dumps(record['database_backup'], indent=2) + '\n')
+    except BaseException:
+        if stopped:
+            try:
+                run('docker', 'start', *stopped, capture_output=True, text=True, timeout=120)
+            except (OSError, subprocess.SubprocessError) as exc:
+                print(f'[fail] restoring quiesced project failed: {exc}')
+        raise
+    print(f'[ok] verified PostgreSQL 16 backup ({record["database_backup"]["method"]}): {dest.name}')
 
 
 def reclaim_recovery_image_cache(record, audit):
@@ -222,9 +248,10 @@ def main():
     resolved = audit / f'{sha}.compose.json'
     resolved.write_text(json.dumps(config, indent=2) + '\n')
     project = os.environ.get('TRADERX_COMPOSE_PROJECT_NAME', 'traderx-' + record['state'])
-    backup_state009_database(record, project, audit)
     command = ['docker', 'compose', '-f', str(resolved), '--project-name', project]
     run(*command, 'pull', env=env)
+    # Pull every image before entering the brief database maintenance window.
+    backup_state009_database(record, project, audit)
     run(*command, 'up', '-d', '--no-build', '--wait', '--wait-timeout', '180', env=env)
     record['deployed_at'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
     record['services'] = {n: s['image'] for n, s in config['services'].items()}
