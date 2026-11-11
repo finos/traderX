@@ -33,6 +33,7 @@ jobs:
           python3 scripts/test-sail-dependency-overlay.py
           python3 scripts/test-frozen-node-runtime.py
           python3 scripts/test-nonpublishing-runtime-security.py
+          python3 scripts/test-state006-compose-patch.py
           python3 scripts/test-api-explorer-image-policy.py
           python3 scripts/test-browser-asset-integrity.py
           python3 pipeline/validate-portal-dependency-targets.py
