@@ -185,7 +185,7 @@ def normalize_manifests(directory, number, policy):
             file.write_text(text)
     write_configmap(directory / 'observability-tempo-configmap.yaml', namespace, 'config.yaml', template('tempo.yaml'))
     write_configmap(directory / 'observability-otel-configmap.yaml', namespace, 'config.yaml', template('collector.yaml'))
-    write_configmap(directory / 'observability-promtail-configmap.yaml', namespace, 'vector.toml', template('vector-kubernetes.toml'))
+    write_configmap(directory / 'observability-promtail-configmap.yaml', namespace, 'vector.toml', template('vector-kubernetes.toml').replace('${VECTOR_NAMESPACE}', namespace))
     (directory / 'promtail-daemonset.yaml').write_text(vector_daemonset(namespace, image_ref(policy, 'promtail', number)))
     role = directory / 'promtail-clusterrole.yaml'
     role.write_text(role.read_text().replace(', "services"', ''))
