@@ -38,7 +38,7 @@
     "@angular/cli": "^20.3.35",
     "@angular/compiler-cli": "^20.3.35",
     "@angular/language-service": "^20.3.35",
-    "@faker-js/faker": "^9.0.3",
+    "@faker-js/faker": "^10.6.0",
     "@types/jasmine": "^5.1.4",
     "@types/node": "^22.20.5",
     "cross-env": "^7.0.3",
@@ -50,7 +50,7 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.2.0",
     "karma-junit-reporter": "^2.0.1",
-    "puppeteer": "^23.8.0",
+    "puppeteer": "^25.17.0",
     "serve-handler": "^6.1.5",
     "ts-node": "^10.9.2",
     "typescript": "~5.8.2"

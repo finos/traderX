@@ -3,10 +3,9 @@
 
 const path = require('path');
 
-// See: https://github.com/karma-runner/karma-chrome-launcher#headless-chromium-with-puppeteer
-process.env.CHROME_BIN = require('puppeteer').executablePath();
-
-module.exports = function (config) {
+// Puppeteer 25 resolves the browser path asynchronously. Honor an explicit test browser.
+module.exports = async function (config) {
+    process.env.CHROME_BIN = process.env.CHROME_BIN || await require('puppeteer').executablePath();
     config.set({
         basePath: '',
         frameworks: ['jasmine', '@angular-devkit/build-angular'],
