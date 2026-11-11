@@ -32,8 +32,10 @@ docker run -d --name "$source_container" --network none \
   --label "com.docker.compose.project=$project" --label com.docker.compose.service=database \
   -e POSTGRES_HOST_AUTH_METHOD=trust -v "$volume:/var/lib/postgresql/data" "$image" >/dev/null
 ready() {
+  # The entrypoint starts a temporary Unix-socket-only initialization server.
+  # Wait for TCP so the probe cannot race its shutdown before the real server.
   for attempt in {1..60}; do
-    if docker exec "$1" pg_isready -U postgres >/dev/null 2>&1; then return 0; fi
+    if docker exec "$1" pg_isready -h 127.0.0.1 -U postgres >/dev/null 2>&1; then return 0; fi
     sleep 1
   done
   return 1
