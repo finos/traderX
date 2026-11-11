@@ -31,7 +31,7 @@
     "vite": "^6.1.6"
   },
   "dependencies": {
-    "@finos/fdc3": "2.2.1-beta.3",
+    "@finos/fdc3": "2.2.3",
     "@finos/fdc3-sail-common": "0.0.0",
     "@finos/fdc3-sail-da-impl": "0.0.0",
     "pino": "^9.6.0",
