@@ -12,7 +12,7 @@ import uuid
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from runtime_image_security import compose_inventory, validate_lock, policy_settings
+from runtime_image_security import compose_inventory, validate_lock, policy_settings, timestamp
 
 
 def run(*args, **kwargs):
@@ -40,7 +40,7 @@ def already_fixed(finding, image, policy, now=None):
     if policy.get('approved') is not True:
         raise ValueError('fixed-source disposition is not approved')
     now = now or datetime.datetime.now(datetime.timezone.utc)
-    expiry = datetime.datetime.fromisoformat(policy['expires'].replace('Z', '+00:00'))
+    expiry = timestamp(policy['expires'])
     if now >= expiry:
         raise ValueError('fixed-source disposition expired')
     return (finding.get('PkgName') == policy['package']

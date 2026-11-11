@@ -19,19 +19,33 @@ def command(*args, timeout=600, **kwargs):
     return subprocess.run(args, check=True, capture_output=True, text=True, timeout=timeout, **kwargs)
 
 
-def timestamp(value):
+def timestamp(value, round_up=False):
+    """Parse RFC3339 on Python3.9, bounding sub-microsecond precision safely."""
     if not isinstance(value, str):
         raise ValueError('missing timestamp')
-    value = dt.datetime.fromisoformat(value.replace('Z', '+00:00'))
-    if value.tzinfo is None:
-        raise ValueError('timestamp must include timezone')
-    return value
+    match = re.fullmatch(r'([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2})'
+                         r'(?:\.([0-9]+))?(Z|[+-][0-9]{2}:[0-9]{2})', value)
+    if not match:
+        raise ValueError('timestamp must be RFC3339 and include timezone')
+    whole, fraction, zone = match.groups()
+    fraction = fraction or ''
+    if zone != 'Z' and (int(zone[1:3]) >= 24 or int(zone[4:6]) >= 60):
+        raise ValueError('invalid timestamp timezone offset')
+    # Python3.9 accepts exactly 3 or 6 fractional digits, unlike Go's RFC3339Nano.
+    normalized = whole + '.' + fraction[:6].ljust(6, '0') + ('+00:00' if zone == 'Z' else zone)
+    parsed = dt.datetime.fromisoformat(normalized)
+    if round_up and any(digit != '0' for digit in fraction[6:]):
+        parsed += dt.timedelta(microseconds=1)
+    return parsed
 
 
 def fresh(value, hours, now=None):
     now = now or dt.datetime.now(UTC)
+    # Floor for maximum age/expiry, ceil for the future boundary: precision loss
+    # can reject evidence by <1us, but cannot extend either authorization window.
     age = now - timestamp(value)
-    if age < -dt.timedelta(minutes=5) or age > dt.timedelta(hours=hours):
+    future_age = now - timestamp(value, round_up=True)
+    if future_age < -dt.timedelta(minutes=5) or age > dt.timedelta(hours=hours):
         raise ValueError('security evidence/database is stale or future-dated')
 
 

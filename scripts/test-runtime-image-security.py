@@ -47,6 +47,45 @@ def validate(lock, entries=ENTRIES):
     return security.validate_lock(lock, METADATA, entries, 'finos/traderX', SHA, 12, 2, SETTINGS, now=NOW)
 
 
+class TimestampTests(unittest.TestCase):
+    def test_trivy_nanoseconds_and_fraction_lengths(self):
+        stamp = security.timestamp('2026-11-10T19:01:23.081219346+00:00')
+        self.assertEqual(stamp, dt.datetime(2026, 11, 10, 19, 1, 23, 81219, tzinfo=security.UTC))
+        self.assertEqual(security.timestamp('2026-11-10T19:01:23.081219346Z', round_up=True),
+                         stamp + dt.timedelta(microseconds=1))
+        for fraction in ['', '.1', '.12', '.123', '.1234', '.12345', '.123456', '.123456000']:
+            value = security.timestamp('2026-11-11T12:00:00' + fraction + 'Z')
+            expected = int(fraction[1:7].ljust(6, '0')) if fraction else 0
+            self.assertEqual(value.microsecond, expected)
+
+    def test_offsets_and_invalid_timezone(self):
+        for stamp in ['2026-11-11T17:30:00+05:30', '2026-11-11T08:00:00-04:00']:
+            self.assertEqual(security.timestamp(stamp), NOW)
+        for stamp in [None, '2026-11-11T12:00:00', '2026-11-11T12:00:00+24:00',
+                      '2026-11-11T12:00:00+00:60', '2026-11-11T12:00:00+01',
+                      '2026-11-11T12:00:00Zjunk', '2026-11-11T12:00:00.+00:00',
+                      '2026-11-11T25:00:00Z', '2026-02-30T12:00:00Z']:
+            with self.subTest(stamp=stamp), self.assertRaises(ValueError):
+                security.timestamp(stamp)
+
+    def test_freshness_nanosecond_boundaries_fail_closed(self):
+        for stamp in ['2026-11-10T12:00:00Z', '2026-11-10T12:00:00.000000001Z',
+                      '2026-11-11T12:05:00.000000000Z', '2026-11-11T12:04:59.999999999Z']:
+            security.fresh(stamp, 24, NOW)
+        for stamp in ['2026-11-10T11:59:59.999999999Z', '2026-11-11T12:05:00.000000001Z']:
+            with self.subTest(stamp=stamp), self.assertRaises(ValueError):
+                security.fresh(stamp, 24, NOW)
+
+    def test_expiry_floor_does_not_extend_disposition(self):
+        finding = {'PkgName': 'example', 'InstalledVersion': '1', 'VulnerabilityID': 'CVE-2026-1'}
+        policy = {'image': IMAGE, 'approved': True, 'package': 'example', 'installed_version': '1',
+                  'fixed_findings': ['CVE-2026-1'], 'expires': '2026-11-11T12:00:00.000000001Z'}
+        self.assertTrue(security.accepted_disposition(finding, IMAGE, policy, NOW - dt.timedelta(microseconds=1)))
+        for expiry in ['2026-11-11T12:00:00Z', '2026-11-11T12:00:00.000000001Z', '2026-11-11T11:59:59.999999999Z']:
+            with self.subTest(expiry=expiry), self.assertRaises(ValueError):
+                security.accepted_disposition(finding, IMAGE, dict(policy, expires=expiry), NOW)
+
+
 class InventoryTests(unittest.TestCase):
     def test_compose_requires_every_active_service_to_have_resolved_image(self):
         self.assertEqual(security.compose_inventory({'services': {'ingress': {'image': IMAGE + ':' + SHA}}}), ENTRIES)
