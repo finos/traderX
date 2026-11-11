@@ -145,12 +145,29 @@ def backup_state009_database(record, project, audit):
         if (labels.get('com.docker.compose.project') != project
                 or labels.get('com.docker.compose.service') != 'database'):
             raise ValueError('database volume has an unexpected writer; refusing to stop it')
+        mounts = owners[0].get('Mounts', [])
+        destinations = [m['Destination'] for m in mounts if m.get('Name') == volume]
+        if len(destinations) != 1:
+            raise ValueError('cannot identify database volume destination')
+        if any(m['Destination'].startswith(destinations[0].rstrip('/') + '/') for m in mounts):
+            raise ValueError('physical backup refuses nested database container mounts')
         stopped = run('docker', 'ps', '-q', '--filter', 'label=com.docker.compose.project=' + project,
                       capture_output=True, text=True).stdout.split()
         if not stopped or any(not re.fullmatch(r'[0-9a-f]{12,64}', cid) for cid in stopped):
             raise ValueError('invalid project container inventory')
         if not set(writers).issubset(set(stopped)):
             raise ValueError('database writer is absent from project inventory')
+    # Container mounts and host bind mounts can hide data outside this volume.
+    mountinfo = run('sudo', '-n', 'cat', '/proc/self/mountinfo', capture_output=True, text=True).stdout
+    for line in mountinfo.splitlines():
+        fields = line.split()
+        if len(fields) < 6:
+            raise ValueError('invalid host mount inventory')
+        location = re.sub(r'\\([0-7]{3})', lambda m: chr(int(m[1], 8)), fields[4])
+        if location.startswith(mount.rstrip('/') + '/'):
+            raise ValueError('physical backup refuses nested database host mounts')
+    if run('sudo', '-n', 'find', mount, '-type', 'l', '-print', capture_output=True, text=True).stdout.strip():
+        raise ValueError('physical backup requires standard PostgreSQL layout without data symlinks')
     size = int(run('sudo', '-n', 'du', '-sb', mount, capture_output=True, text=True).stdout.split()[0])
     if shutil.disk_usage(audit).free < size + 512 * 1024 * 1024:
         raise ValueError('insufficient space for database backup')
@@ -182,11 +199,55 @@ def backup_state009_database(record, project, audit):
     except BaseException:
         if stopped:
             try:
-                run('docker', 'start', *stopped, capture_output=True, text=True, timeout=120)
+                active = run('docker', 'ps', '-q', '--filter', 'volume=' + volume,
+                             capture_output=True, text=True).stdout.split()
+                # A writer that appeared during backup invalidates the copy;
+                # never start the old database alongside that writer.
+                safe = [cid for cid in stopped if not active or cid not in writers]
+                if safe:
+                    run('docker', 'start', *safe, capture_output=True, text=True, timeout=120)
             except (OSError, subprocess.SubprocessError) as exc:
                 print(f'[fail] restoring quiesced project failed: {exc}')
         raise
     print(f'[ok] verified PostgreSQL 16 backup ({record["database_backup"]["method"]}): {dest.name}')
+    return stopped
+
+
+def resume_unchanged_containers(project, stopped):
+    """On failed startup, resume retained originals only; never replace newer data writers."""
+    if not stopped:
+        return
+    ids = run('docker', 'ps', '-aq', '--filter', 'label=com.docker.compose.project=' + project,
+              capture_output=True, text=True).stdout.split()
+    if not ids:
+        return
+    if any(not re.fullmatch(r'[0-9a-f]{12,64}', cid) for cid in ids):
+        raise ValueError('invalid project container identity during startup recovery')
+    containers = json.loads(run('docker', 'inspect', *ids, capture_output=True, text=True).stdout)
+    by_service = {}
+    for item in containers:
+        labels = item.get('Config', {}).get('Labels') or {}
+        if labels.get('com.docker.compose.project') != project:
+            raise ValueError('unexpected project during startup recovery')
+        by_service.setdefault(labels.get('com.docker.compose.service'), []).append(item)
+    resume = []
+    for service, items in by_service.items():
+        # A replacement may already have committed writes. Never start an old
+        # container alongside it or roll back its database filesystem.
+        if len(items) != 1:
+            continue
+        item = items[0]
+        if any(item['Id'].startswith(cid) for cid in stopped) and not item['State']['Running']:
+            if service == 'database':
+                active = run('docker', 'ps', '-q', '--filter',
+                             'volume=' + project + '_postgres_state_009_data',
+                             capture_output=True, text=True).stdout.strip()
+                if active:
+                    continue
+            resume.append(item['Id'])
+    if resume:
+        run('docker', 'start', *resume, capture_output=True, text=True, timeout=120)
+        print(f'[warn] resumed {len(resume)} unchanged prior containers after failed startup')
 
 
 def reclaim_recovery_image_cache(record, audit):
@@ -251,8 +312,15 @@ def main():
     command = ['docker', 'compose', '-f', str(resolved), '--project-name', project]
     run(*command, 'pull', env=env)
     # Pull every image before entering the brief database maintenance window.
-    backup_state009_database(record, project, audit)
-    run(*command, 'up', '-d', '--no-build', '--wait', '--wait-timeout', '180', env=env)
+    stopped = backup_state009_database(record, project, audit)
+    try:
+        run(*command, 'up', '-d', '--no-build', '--wait', '--wait-timeout', '180', env=env)
+    except BaseException:
+        try:
+            resume_unchanged_containers(project, stopped)
+        except (ValueError, OSError, subprocess.SubprocessError) as exc:
+            print(f'[fail] resuming unchanged containers failed: {exc}')
+        raise
     record['deployed_at'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
     record['services'] = {n: s['image'] for n, s in config['services'].items()}
     (audit / f'{sha}.json').write_text(json.dumps(record, indent=2) + '\n')

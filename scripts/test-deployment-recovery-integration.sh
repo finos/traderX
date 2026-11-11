@@ -18,7 +18,15 @@ cleanup() {
 }
 trap cleanup EXIT
 cd "$ROOT"
-docker build -t "$image" -f templates/runtime-image-rebuilds/postgres/Dockerfile templates/runtime-image-rebuilds/postgres
+python3 - "$audit" <<'PYRECIPE'
+import importlib.util,sys
+from pathlib import Path
+spec=importlib.util.spec_from_file_location('policy',Path('pipeline/install-runtime-image-policy.py'))
+policy=importlib.util.module_from_spec(spec);spec.loader.exec_module(policy)
+recipe=Path(sys.argv[1])/'recipe';recipe.mkdir()
+(recipe/'Dockerfile').write_text(policy.recipe_text(policy.load_policy(),'postgres'))
+PYRECIPE
+docker build -t "$image" "$audit/recipe"
 docker volume create --label traderx.test=recovery "$volume" >/dev/null
 docker run -d --name "$source_container" --network none \
   --label "com.docker.compose.project=$project" --label com.docker.compose.service=database \
