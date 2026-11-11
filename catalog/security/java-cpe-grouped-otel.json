@@ -1,9 +1,16 @@
 {
   "schemaVersion": 1,
-  "status": "review-pending",
-  "approved": false,
-  "active": false,
-  "approval": null,
+  "status": "approved",
+  "approved": true,
+  "active": true,
+  "approval": {
+    "decision": "Ok approve the additional 13 exact hashes for that CVE.",
+    "authority": "Repository owner explicit approval in Codex conversation",
+    "date": "2026-11-11",
+    "reviewPullRequest": "https://github.com/finos/traderX/pull/489",
+    "scope": "Only the listed thirteen additional exact artifact hashes and CVE-2026-54285; expiry2026-12-11 unchanged.",
+    "reference": "https://github.com/finos/traderX/pull/489#issuecomment-6794836886"
+  },
   "owner": "TraderX maintainers",
   "trackingIssue": "https://github.com/finos/traderX/issues/486",
   "reviewPullRequest": "https://github.com/finos/traderX/pull/489",
@@ -337,5 +344,19 @@
     "unrelatedCvesRetained": 13,
     "expiredRulesRejected": 13,
     "logSha256": "93c504a248de020a9f8d3a578ff90de7273e59636f5f04f44c38c138ec539c68"
+  },
+  "canonicalSuppressionFile": ".github/gradle-cve-ignore-list.xml",
+  "activationVerification": {
+    "status": "passed",
+    "scannerVersion": "13.0.0",
+    "canonicalSuppressionSha256": "22a44b69175e61c1a5429b3bbc8058a30e0cdf3d955fb546ae8663cf56b15503",
+    "exitCode": 0,
+    "reportedDependencyGroups": 81,
+    "unsuppressedFindings": 0,
+    "reportJsonSha256": "0f4c7bdfc8a90e68fdec328379293ea6f542d55e8ab87b211ef92de51054c0d6",
+    "reportHtmlSha256": "0f587e121c1f11c4c8a63962c910326333982571f09d28be240f45c61a646710",
+    "logSha256": "e0bb4245c58be96c6a91209d2ab2f1dd13ece2a5e6e9bd151ebd319c715a7886",
+    "sourceImage": "ghcr.io/finos/traderx-c2/account-service@sha256:f1b7a675aff60f10883a47ca4694f6d59b5dd901d253a7d83ba113be2002e1cd",
+    "scannerImage": "owasp/dependency-check-action@sha256:9f800737124f89ef8d34a0ad266311bd27230e818be97f910645ddb5e4e9cbf7"
   }
 }
