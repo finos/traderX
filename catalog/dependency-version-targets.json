@@ -232,7 +232,8 @@
         "@cucumber/html-formatter",
         "@cucumber/messages"
       ]
-    }
+    },
+    "nodeVersion": "24"
   },
   "nuget": {
     "packages": {

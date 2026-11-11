@@ -394,7 +394,7 @@ EOF
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '@@NODE_VERSION@@'
       - name: Audit frozen runtime and development dependencies
         working-directory: fdc3-intent-interoperability/sail/bootstrap/dependency-overlay
         run: npm audit --package-lock-only --ignore-scripts --audit-level=high --json > sail-npm-audit.json
@@ -429,9 +429,9 @@ EOF
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '@@NODE_VERSION@@'
       - name: Install production dependencies
-        run: npm install --omit=dev
+        run: npm ci --omit=dev
         working-directory: ${{ matrix.module_folder }}
       - name: Prepare artifact name
         shell: bash
@@ -663,9 +663,9 @@ EOF
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '@@NODE_VERSION@@'
       - name: Install production dependencies
-        run: npm install --omit=dev
+        run: npm ci --omit=dev
         working-directory: ${{ matrix.module_folder }}
       - name: Install license validator
         run: npm install -g node-license-validator
@@ -892,7 +892,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '@@NODE_VERSION@@'
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -908,6 +908,19 @@ EOF
 
 write_security_workflow "${TARGET_ROOT}/.github/workflows/security.yml"
 write_license_workflow "${TARGET_ROOT}/.github/workflows/license-scanning-node.yml"
+
+# Resolve the canonical Node runtime in all workflows emitted above.
+python3 - "${ROOT}/catalog/dependency-version-targets.json" "${TARGET_ROOT}/.github/workflows" <<'PYNODE'
+import json,re,sys
+from pathlib import Path
+version = json.loads(Path(sys.argv[1]).read_text())['npm']['nodeVersion']
+if not isinstance(version, str) or not re.fullmatch(r'[0-9]+(?:\.[0-9]+){0,2}', version):
+    raise ValueError('invalid canonical npm.nodeVersion')
+for path in Path(sys.argv[2]).glob('*.yml'):
+    text = path.read_text()
+    if '@@NODE_VERSION@@' in text:
+        path.write_text(text.replace('@@NODE_VERSION@@', version))
+PYNODE
 
 # Prevent inherited workflow leakage across state lineage.
 rm -f "${TARGET_ROOT}/.github/workflows/build-and-publish.yml"

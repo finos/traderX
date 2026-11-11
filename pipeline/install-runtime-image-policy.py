@@ -269,6 +269,15 @@ def normalize_base_images(target, policy):
             return line
         text = re.sub(r'^# Canonical base OS security refresh\nRUN [^\n]+\n', '', text, flags=re.M)
         text = re.sub(r'^(FROM\s+(?:--platform=\S+\s+)?)(\S+)[^\n]*\n', refresh, text, flags=re.M | re.I)
+        # Application contexts carry a frozen lock; preserve package-specific
+        # tool installation commands and runtime-image recipes (including Sail).
+        if (path.parent / 'package-lock.json').is_file() and 'runtime-images' not in path.parts:
+            text = re.sub(r'^(RUN\s+)npm install(?=\s*(?:&&|$)|\s+--(?:omit|include|ignore-scripts|no-audit|no-fund))',
+                          r'\1npm ci', text, flags=re.M)
+            text = re.sub(r'^(COPY\s+)package\.json(\s+\./?\s*)$',
+                          r'\1package.json package-lock.json\2', text, flags=re.M)
+            text = text.replace('# Install dependencies using npm install since package-lock.json might not exist',
+                                '# Install dependencies from the committed lockfile')
         path.write_text(text)
 
 
