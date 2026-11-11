@@ -156,10 +156,15 @@ def policy_settings(targets):
     # Explicitly constrain currently supported deployment, rather than implying untested multiarch coverage.
     if platforms != ['linux/amd64']:
         raise ValueError('unsupported runtime security platform policy')
-    for key in ('maxEvidenceAgeHours', 'maxDatabaseAgeHours'):
-        if not isinstance(policy[key], (int, float)) or not 0 < policy[key] <= 24:
-            raise ValueError('security freshness policy must be positive and at most 24 hours')
+    for key, limit in [('maxEvidenceAgeHours', 24), ('maxDatabaseAgeHours', 24), ('maxJavaDatabaseAgeHours', 96)]:
+        if not isinstance(policy[key], (int, float)) or not 0 < policy[key] <= limit:
+            raise ValueError('security freshness policy exceeds its permitted bound')
     return policy
+
+
+def database_age_limit(policy, name):
+    # Java DB maps archive hashes to Maven coordinates; CVE data remains <=24h.
+    return policy['maxJavaDatabaseAgeHours' if name == 'java' else 'maxDatabaseAgeHours']
 
 
 def accepted_disposition(finding, index_image, policy, now=None):
@@ -217,6 +222,15 @@ def validate_published(records, metadata, snapshot, run_id, attempt):
     if set(images) != expected or not expected:
         raise ValueError('missing published image evidence')
     return images
+
+
+def validate_published_binding(locks, published):
+    for lock in locks.values():
+        repository = image_repository(lock['source'])
+        if repository.startswith('ghcr.io/finos/') and repository not in published:
+            raise ValueError('runtime application lacks independently verified publication')
+        if repository in published and lock['index_image'] != published[repository]:
+            raise ValueError('runtime scan does not match published application digest')
 
 
 def platform_digest(raw_manifest, index_digest, platform):
@@ -293,8 +307,8 @@ def validate_lock(lock, metadata, entries, repository, snapshot, run_id, attempt
     databases = lock.get('databases')
     if not isinstance(databases, dict) or set(databases) != {'vulnerability', 'java'}:
         raise ValueError('missing scanner database evidence')
-    for database in databases.values():
-        fresh(database.get('UpdatedAt'), policy['maxDatabaseAgeHours'], now)
+    for name, database in databases.items():
+        fresh(database.get('UpdatedAt'), database_age_limit(policy, name), now)
         if not DIGEST.fullmatch(database.get('metadata_sha256', '')):
             raise ValueError('missing database identity')
     records = lock.get('images')
@@ -312,6 +326,8 @@ def validate_lock(lock, metadata, entries, repository, snapshot, run_id, attempt
             ref = record.get(field, '')
             if '@' not in ref or not DIGEST.fullmatch(ref.rsplit('@', 1)[1]) or image_repository(ref) != image_repository(record['source']):
                 raise ValueError('invalid authorized image digest/repository')
+        if '@' in record['source'] and record['source'] != record['index_image']:
+            raise ValueError('authorized digest differs from the pinned runtime source')
         verify_image_binding(record)
         fresh(record.get('scanned_at'), policy['maxEvidenceAgeHours'], now)
         if not isinstance(record.get('fixed_findings'), list):
@@ -361,7 +377,7 @@ def main():
             (args.reports / (name + '-database.stderr.txt')).write_text(result.stderr)
             raw = (cache / relative).read_bytes()
             data = json.loads(raw)
-            fresh(data.get('UpdatedAt'), policy['maxDatabaseAgeHours'])
+            fresh(data.get('UpdatedAt'), database_age_limit(policy, name))
             databases[name] = {'UpdatedAt': data['UpdatedAt'], 'metadata_sha256': 'sha256:' + hashlib.sha256(raw).hexdigest()}
         disposition_file = root / 'ci/state-009-grafana-fixed-findings.json'
         disposition = json.loads(disposition_file.read_text()) if disposition_file.exists() else None

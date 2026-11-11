@@ -26,7 +26,7 @@ verify = module('verify-deployment-snapshot')
 deploy = module('deploy-verified-snapshot')
 SHA = 'a' * 40
 DIGEST = 'sha256:' + 'b' * 64
-TEST_SETTINGS = {'security': {'runtimeImageScanner': {'image': 'scanner@' + DIGEST, 'version': 'test'}, 'supportedPlatforms': ['linux/amd64'], 'maxEvidenceAgeHours': 24, 'maxDatabaseAgeHours': 24}}
+TEST_SETTINGS = {'security': {'runtimeImageScanner': {'image': 'scanner@' + DIGEST, 'version': 'test'}, 'supportedPlatforms': ['linux/amd64'], 'maxEvidenceAgeHours': 24, 'maxDatabaseAgeHours': 24, 'maxJavaDatabaseAgeHours': 96}}
 
 
 class RecoveryCacheTests(unittest.TestCase):

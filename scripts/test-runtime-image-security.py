@@ -23,7 +23,7 @@ DIGEST = 'sha256:' + hashlib.sha256(MANIFEST.encode()).hexdigest()
 IMAGE = 'ghcr.io/finos/traderx-c2/ingress'
 NOW = dt.datetime(2026, 11, 11, 12, tzinfo=dt.timezone.utc)
 SETTINGS = {'security': {'runtimeImageScanner': {'image': 'aquasec/trivy:0.76.2@' + DIGEST, 'version': '0.76.2'},
-                         'supportedPlatforms': ['linux/amd64'], 'maxEvidenceAgeHours': 24, 'maxDatabaseAgeHours': 24}}
+                         'supportedPlatforms': ['linux/amd64'], 'maxEvidenceAgeHours': 24, 'maxDatabaseAgeHours': 24, 'maxJavaDatabaseAgeHours': 96}}
 METADATA = {'stateId': '009-order-management-matcher', 'convergenceNamespace': 'traderx-c2',
             'modules': {'docker': [{'imageName': 'ingress'}]},
             'runtime': {'kind': 'compose', 'path': 'runtime/ghcr/009-order-management-matcher/docker-compose.ghcr.yml'}}
@@ -127,6 +127,38 @@ class EvidenceTests(unittest.TestCase):
                 with self.subTest(delta=delta, field=field), self.assertRaises(ValueError): validate(bad)
         for databases in [{}, {'vulnerability': lock_fixture()['databases']['vulnerability']}]:
             with self.assertRaises(ValueError): validate(lock_fixture() | {'databases': databases})
+
+    def test_database_freshness_separates_mapping_from_vulnerability_data(self):
+        for hours in [25, 72, 96]:
+            lock = lock_fixture()
+            lock['databases']['java']['UpdatedAt'] = (NOW - dt.timedelta(hours=hours)).isoformat()
+            validate(lock)
+        for name, hours in [('java', 97), ('vulnerability', 25)]:
+            lock = lock_fixture()
+            lock['databases'][name]['UpdatedAt'] = (NOW - dt.timedelta(hours=hours)).isoformat()
+            with self.subTest(database=name), self.assertRaises(ValueError): validate(lock)
+        for name in ['java', 'vulnerability']:
+            lock = lock_fixture()
+            lock['databases'][name]['UpdatedAt'] = (NOW + dt.timedelta(minutes=6)).isoformat()
+            with self.assertRaises(ValueError): validate(lock)
+        for key, value in [('maxJavaDatabaseAgeHours', 97), ('maxDatabaseAgeHours', 25)]:
+            settings = copy.deepcopy(SETTINGS)
+            settings['security'][key] = value
+            with self.assertRaises(ValueError): security.policy_settings(settings)
+
+    def test_runtime_app_requires_matching_independent_publication(self):
+        locks = validate(lock_fixture())
+        security.validate_published_binding(locks, {IMAGE: IMAGE + '@' + DIGEST})
+        for published in [{}, {IMAGE: IMAGE + '@sha256:' + 'f' * 64}]:
+            with self.assertRaises(ValueError):
+                security.validate_published_binding(locks, published)
+
+    def test_pinned_source_digest_cannot_be_substituted_with_same_repository(self):
+        entries = [dict(ENTRIES[0], source=IMAGE + '@sha256:' + 'f' * 64)]
+        lock = lock_fixture()
+        lock['inventory_sha256'] = security.inventory_hash(entries)
+        lock['images'][0]['source'] = entries[0]['source']
+        with self.assertRaises(ValueError): validate(lock, entries)
 
     def test_parent_child_binding_requires_digest_verified_platform_manifest(self):
         for change in [{'index_manifest': '{}'}, {'image': IMAGE + '@' + ('sha256:' + 'f' * 64)},

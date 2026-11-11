@@ -10,7 +10,7 @@ import sys
 import tarfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from runtime_image_security import runtime_inventory, validate_lock, image_repository
+from runtime_image_security import runtime_inventory, validate_lock, validate_published_binding
 
 
 def gh_json(*args):
@@ -151,10 +151,7 @@ def main():
         entries = runtime_inventory(snapshot_root, metadata, a.snapshot)
         locks = validate_lock(runtime_lock, metadata, entries, a.repository, a.snapshot,
                               run['id'], run['run_attempt'], security_settings(), disposition=disposition_policy())
-        for lock in locks.values():
-            repo = image_repository(lock['source'])
-            if repo in verified and lock['index_image'] != verified[repo]:
-                raise ValueError('runtime scan does not match published application digest')
+        validate_published_binding(locks, verified)
     record = {'snapshot': a.snapshot, 'state': state['id'], 'target': a.target,
               'repository': a.repository, 'branch': branch, 'images': verified,
               'runtime_lock': runtime_lock, 'runtime_metadata': metadata,
