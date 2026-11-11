@@ -6,6 +6,7 @@ plugins {
 
 ext['jackson-bom.version'] = '3.1.7'
 ext['jackson-2-bom.version'] = '2.21.7'
+ext['kotlin.version'] = '2.4.21'
 ext['tomcat.version'] = '11.0.26'
 
 group = 'finos.traderx.account-service-specfirst'

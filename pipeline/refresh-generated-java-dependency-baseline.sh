@@ -26,6 +26,7 @@ LOG4J_TO_SLF4J_VERSION="$(jq -er '.java.dependencies["org.apache.logging.log4j:l
 KOTLIN_STDLIB_VERSION="$(jq -er '.java.dependencies["org.jetbrains.kotlin:kotlin-stdlib"]' "${TARGETS_FILE}")"
 JACKSON_BOM_VERSION="$(jq -er '.java.properties["jackson-bom.version"]' "${TARGETS_FILE}")"
 JACKSON_2_BOM_VERSION="$(jq -er '.java.properties["jackson-2-bom.version"]' "${TARGETS_FILE}")"
+KOTLIN_BOM_VERSION="$(jq -er '.java.properties["kotlin.version"]' "${TARGETS_FILE}")"
 TOMCAT_VERSION="$(jq -er '.java.properties["tomcat.version"]' "${TARGETS_FILE}")"
 
 normalize_gradle_file() {
@@ -58,6 +59,14 @@ normalize_gradle_file() {
     perl -0pi -e "s/(ext\\['tomcat\\.version'\\]\\s*=\\s*'[^']+')/ext['jackson-2-bom.version'] = '${JACKSON_2_BOM_VERSION}'\\n\${1}/g" "${gradle_file}"
   else
     perl -0pi -e "s/(plugins\\s*\\{[^}]*\\}\\n\\n)/\${1}ext['jackson-2-bom.version'] = '${JACKSON_2_BOM_VERSION}'\\n/s" "${gradle_file}"
+  fi
+
+  if rg -q "ext\\['kotlin\\.version'\\]" "${gradle_file}"; then
+    perl -0pi -e "s/ext\\['kotlin\\.version'\\]\\s*=\\s*'[^']+'/ext['kotlin.version'] = '${KOTLIN_BOM_VERSION}'/g" "${gradle_file}"
+  elif rg -q "ext\\['tomcat\\.version'\\]" "${gradle_file}"; then
+    perl -0pi -e "s/(ext\\['tomcat\\.version'\\]\\s*=\\s*'[^']+')/ext['kotlin.version'] = '${KOTLIN_BOM_VERSION}'\\n\${1}/g" "${gradle_file}"
+  else
+    perl -0pi -e "s/(plugins\\s*\\{[^}]*\\}\\n\\n)/\${1}ext['kotlin.version'] = '${KOTLIN_BOM_VERSION}'\\n/s" "${gradle_file}"
   fi
 
   if rg -q "ext\\['tomcat\\.version'\\]" "${gradle_file}"; then

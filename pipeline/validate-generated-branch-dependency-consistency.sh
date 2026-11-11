@@ -232,6 +232,11 @@ while IFS=$'\t' read -r state_id publish_branch; do
         printf 'gradle\t%s\tproperty\tjackson-2-bom.version\t%s\t%s\n' "${file_path}" "${state_id}" "${jackson_2_bom_version}" >> "${rows_file}"
       fi
 
+      kotlin_bom_version="$(sed -n "s/.*ext\\['kotlin\\.version'\\][[:space:]]*=[[:space:]]*'\\([^']*\\)'.*/\\1/p" "${tmp_gradle}" | head -n1)"
+      if [[ -n "${kotlin_bom_version}" ]]; then
+        printf 'gradle\t%s\tproperty\tkotlin.version\t%s\t%s\n' "${file_path}" "${state_id}" "${kotlin_bom_version}" >> "${rows_file}"
+      fi
+
       tomcat_version="$(sed -n "s/.*ext\\['tomcat\\.version'\\][[:space:]]*=[[:space:]]*'\\([^']*\\)'.*/\\1/p" "${tmp_gradle}" | head -n1)"
       if [[ -n "${tomcat_version}" ]]; then
         printf 'gradle\t%s\tproperty\ttomcat.version\t%s\t%s\n' "${file_path}" "${state_id}" "${tomcat_version}" >> "${rows_file}"
@@ -334,6 +339,7 @@ else
   assert_target_if_present "gradle" "java" "sourceCompatibility" "$(jq -er '.java.sourceCompatibility' "${TARGETS_FILE}")"
   assert_target_if_present "gradle" "property" "jackson-bom.version" "$(jq -er '.java.properties["jackson-bom.version"]' "${TARGETS_FILE}")"
   assert_target_if_present "gradle" "property" "jackson-2-bom.version" "$(jq -er '.java.properties["jackson-2-bom.version"]' "${TARGETS_FILE}")"
+  assert_target_if_present "gradle" "property" "kotlin.version" "$(jq -er '.java.properties["kotlin.version"]' "${TARGETS_FILE}")"
   assert_target_if_present "gradle" "property" "tomcat.version" "$(jq -er '.java.properties["tomcat.version"]' "${TARGETS_FILE}")"
   assert_target_if_present "gradle-wrapper" "wrapper" "distributionVersion" "$(jq -er '.gradleWrapper.distributionVersion' "${TARGETS_FILE}")"
   assert_target_if_present "gradle-wrapper" "wrapper" "distributionSha256Sum" "$(jq -er '.gradleWrapper.distributionSha256Sum' "${TARGETS_FILE}")"

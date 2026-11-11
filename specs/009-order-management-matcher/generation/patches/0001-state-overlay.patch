@@ -2206,7 +2206,7 @@ new file mode 100644
 index 0000000..ac3802f
 --- /dev/null
 +++ b/order-matcher/build.gradle
-@@ -0,0 +1,55 @@
+@@ -0,0 +1,56 @@
 +plugins {
 +  id 'java'
 +  id 'org.springframework.boot' version '4.0.8'
@@ -2215,6 +2215,7 @@ index 0000000..ac3802f
 +
 +ext['jackson-bom.version'] = '3.1.7'
 +ext['jackson-2-bom.version'] = '2.21.7'
++ext['kotlin.version'] = '2.4.21'
 +ext['tomcat.version'] = '11.0.26'
 +
 +group = 'finos.traderx.order-matcher-specfirst'

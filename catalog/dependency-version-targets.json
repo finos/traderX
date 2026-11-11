@@ -8,7 +8,8 @@
     "properties": {
       "jackson-bom.version": "3.1.7",
       "tomcat.version": "11.0.26",
-      "jackson-2-bom.version": "2.21.7"
+      "jackson-2-bom.version": "2.21.7",
+      "kotlin.version": "2.4.21"
     },
     "dependencies": {
       "org.springdoc:springdoc-openapi-starter-webmvc-api": "3.0.3",
