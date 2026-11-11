@@ -1534,13 +1534,13 @@ new file mode 100644
 +      }
 +    }
 +  },
-+  "traderxPackageJsonSha256": "bdad7b1fc2e1046f07c34d30961b311352eff0588f88a6b8b9edd8f649cc90ec"
++  "traderxPackageJsonSha256": "0bd0b40c234347981b28824b3d69195e879a9f075f72474341abd4361320ba68"
 +}
 diff --git a/price-publisher/package.json b/price-publisher/package.json
 new file mode 100644
 --- /dev/null
 +++ b/price-publisher/package.json
-@@ -0,0 +1,16 @@
+@@ -0,0 +1,17 @@
 +{
 +  "name": "price-publisher-specfirst",
 +  "version": "0.1.0",
@@ -1549,7 +1549,8 @@ new file mode 100644
 +  "description": "TraderX synthetic market price publisher for state 011",
 +  "main": "src/main.js",
 +  "scripts": {
-+    "start": "node src/main.js"
++    "start": "node src/main.js",
++    "test": "node --test src/main.test.js"
 +  },
 +  "dependencies": {
 +    "express": "5.2.1",
@@ -1559,15 +1560,14 @@ new file mode 100644
 +}
 diff --git a/price-publisher/src/main.js b/price-publisher/src/main.js
 new file mode 100644
-index 0000000..4957d15
 --- /dev/null
 +++ b/price-publisher/src/main.js
-@@ -0,0 +1,312 @@
+@@ -0,0 +1,314 @@
 +const fs = require('fs');
 +const path = require('path');
 +const express = require('express');
 +const { connect } = require('nats');
-+const yahooFinance = require('yahoo-finance2').default;
++let yahooFinance;
 +
 +const PORT = Number(process.env.PRICE_PUBLISHER_PORT || '18100');
 +const NATS_URL = process.env.NATS_ADDRESS || `nats://${process.env.NATS_BROKER_HOST || 'localhost'}:4222`;
@@ -1862,6 +1862,8 @@ index 0000000..4957d15
 +});
 +
 +async function main() {
++  // Use the package's ESM export; its CommonJS loader reads an unexported package.json.
++  ({ default: yahooFinance } = await import('yahoo-finance2'));
 +  await bootstrapPrices();
 +  assignStartupVolatilityBands();
 +  state.nats = await connect({ servers: NATS_URL, maxReconnectAttempts: -1 });
@@ -5183,3 +5185,64 @@ index e1fd0d3..18ed117 100644
 +    this.subscribeToTickerPrice(normalized);
 +  }
  }
+
+diff --git a/price-publisher/src/main.test.js b/price-publisher/src/main.test.js
+new file mode 100644
+--- /dev/null
++++ b/price-publisher/src/main.test.js
+@@ -0,0 +1,55 @@
++const test = require('node:test');
++const assert = require('node:assert/strict');
++const net = require('node:net');
++const { spawn } = require('node:child_process');
++const { once } = require('node:events');
++const path = require('node:path');
++
++test('real publisher starts with the locked Yahoo import and serves snapshot prices', { timeout: 15000 }, async (t) => {
++  // Implement only the NATS handshake needed by this HTTP startup regression.
++  const sockets = new Set();
++  const broker = net.createServer((socket) => {
++    sockets.add(socket);
++    socket.on('close', () => sockets.delete(socket));
++    socket.write('INFO {"server_id":"test","version":"2.10.0","proto":1,"max_payload":1048576}\r\n');
++    socket.on('data', (data) => {
++      if (data.toString().includes('PING\r\n')) socket.write('PONG\r\n');
++    });
++  });
++  broker.listen(0, '127.0.0.1');
++  await once(broker, 'listening');
++  const portProbe = net.createServer();
++  portProbe.listen(0, '127.0.0.1');
++  await once(portProbe, 'listening');
++  const port = portProbe.address().port;
++  await new Promise((resolve) => portProbe.close(resolve));
++  const child = spawn(process.execPath, [path.join(__dirname, 'main.js')], {
++    env: { ...process.env, PRICE_PUBLISHER_PORT: String(port), PRICE_BOOTSTRAP_MODE: 'snapshot',
++      PRICE_TICKERS: 'AAPL,MSFT', NATS_ADDRESS: `nats://127.0.0.1:${broker.address().port}` },
++    stdio: ['ignore', 'pipe', 'pipe']
++  });
++  let output = '';
++  child.stdout.on('data', (data) => { output += data; });
++  child.stderr.on('data', (data) => { output += data; });
++  t.after(async () => {
++    if (child.exitCode === null) { child.kill(); await once(child, 'exit'); }
++    for (const socket of sockets) socket.destroy();
++    await new Promise((resolve) => broker.close(resolve));
++  });
++  const url = `http://127.0.0.1:${port}`;
++  let health;
++  for (let attempt = 0; attempt < 100; attempt += 1) {
++    assert.equal(child.exitCode, null, output);
++    try { health = await (await fetch(`${url}/health`)).json(); break; } catch (_) { /* startup */ }
++    await new Promise((resolve) => setTimeout(resolve, 50));
++  }
++  assert.ok(health, output);
++  assert.equal(health.status, 'ok');
++  assert.equal(health.tickers, 2);
++  const { prices } = await (await fetch(`${url}/prices`)).json();
++  assert.equal(prices.length, 2);
++  const apple = await (await fetch(`${url}/prices/AAPL`)).json();
++  assert.equal(apple.ticker, 'AAPL');
++  assert.equal(apple.source, 'snapshot');
++  assert.ok(Number.isFinite(apple.price) && apple.price > 0);
++});
