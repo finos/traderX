@@ -89,7 +89,7 @@ const stateList = states
 const contractsRoot = `${activeState.featurePack}/contracts/**/openapi.yaml`
 
 const servicesBlock = serviceLinks.length === 0
-  ? '- No generated API docs found. Run `npm --prefix website run gen:api-docs`.'
+  ? '- No generated API docs found. Use the state OpenAPI contracts or the generated runtime API explorer at `/api/docs`.'
   : serviceLinks
       .map((item) => {
         const purposeLines = item.responsibilities.length === 0

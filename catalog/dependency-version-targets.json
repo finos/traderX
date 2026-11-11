@@ -156,6 +156,42 @@
     },
     "resolvedMinimums": {
       "engine.io": "6.6.11"
+    },
+    "portal": {
+      "dependencies": {
+        "@docusaurus/core": "3.10.2",
+        "@docusaurus/preset-classic": "3.10.2",
+        "@docusaurus/theme-mermaid": "3.10.2"
+      },
+      "overrides": {
+        "serialize-javascript": "7.1.4",
+        "tinypool": "2.2.0",
+        "uuid": "14.0.0"
+      },
+      "overrideExceptions": {
+        "serialize-javascript": {
+          "owner": "TraderX maintainers",
+          "trackingIssue": 486,
+          "reason": "Current Docusaurus bundler constrains the serializer to vulnerable 6.x.",
+          "removeWhen": "The compatible upstream dependency graph resolves serialize-javascript >=7.1.3 without override."
+        },
+        "tinypool": {
+          "owner": "TraderX maintainers",
+          "trackingIssue": 486,
+          "reason": "Docusaurus 3.10.2 requires tinypool ^1.0.2, which has critical worker-option prototype-pollution findings.",
+          "removeWhen": "Docusaurus resolves patched tinypool >=2.1.2 without override."
+        },
+        "uuid": {
+          "owner": "TraderX maintainers",
+          "trackingIssue": 486,
+          "reason": "Compatible development server dependencies retain older vulnerable uuid versions.",
+          "removeWhen": "All compatible upstream paths resolve uuid >=11.1.1 without override."
+        }
+      },
+      "removedDependencies": [
+        "docusaurus-plugin-openapi-docs",
+        "docusaurus-theme-openapi-docs"
+      ]
     }
   },
   "nuget": {
