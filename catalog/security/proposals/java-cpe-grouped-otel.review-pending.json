@@ -1,0 +1,341 @@
+{
+  "schemaVersion": 1,
+  "status": "review-pending",
+  "approved": false,
+  "active": false,
+  "approval": null,
+  "owner": "TraderX maintainers",
+  "trackingIssue": "https://github.com/finos/traderX/issues/486",
+  "reviewPullRequest": "https://github.com/finos/traderX/pull/489",
+  "expires": "2026-12-11T00:00:00Z",
+  "scope": "Only CVE-2026-54285 on thirteen additional exact Maven Java artifact hashes. Original four approved artifacts remain unchanged. No broad CPE or version-range suppression.",
+  "reasonNotApplicable": "CNA identifies opentelemetry-js W3C Baggage propagation. These exact io.opentelemetry Maven artifacts implement Java, not the vulnerable JavaScript implementation.",
+  "primaryEvidence": {
+    "cnaRecord": "https://cveawg.mitre.org/api/cve/CVE-2026-54285",
+    "cnaRecordSha256": "5a3d49761ab11c5dfbacf3c95d74e3b5741fb393c530670117a1fbf87bd0c53c",
+    "affectedProducts": [
+      "opentelemetry-js"
+    ],
+    "references": [
+      "https://github.com/open-telemetry/opentelemetry-js/security/advisories/GHSA-8988-4f7v-96qf"
+    ]
+  },
+  "grouping": {
+    "scannerVersion": "13.0.0",
+    "suppressionPhase": "POST_FINDING_ANALYSIS",
+    "bundlingPhase": "FINAL",
+    "explanation": "DependencyBundlingAnalyzer groups same-path/similar-name dependencies only when CPE identifiers and vulnerability sets match. Prior raw HTML exposed opentelemetry-api as representative of fourteen Java1.55.0 JARs. Exact API suppression removed that finding only from API; the remaining thirteen regrouped under SDK. All thirteen hashes must be evaluated independently before final bundling.",
+    "sourceReferences": [
+      "https://github.com/dependency-check/DependencyCheck/blob/v13.0.0/core/src/main/java/org/owasp/dependencycheck/analyzer/VulnerabilitySuppressionAnalyzer.java",
+      "https://github.com/dependency-check/DependencyCheck/blob/v13.0.0/core/src/main/java/org/owasp/dependencycheck/analyzer/DependencyBundlingAnalyzer.java"
+    ],
+    "reportRepresentative": "opentelemetry-sdk-1.55.0.jar",
+    "relatedArtifactCount": 12,
+    "apiIncubator": "Not present in either final007 or final009 raw reports or exact published final009 account JAR; no rule proposed."
+  },
+  "artifacts": [
+    {
+      "file": "opentelemetry-sdk-1.55.0.jar",
+      "sha1": "457309ce1ed276bd9b1f4029c97c22721f58f346",
+      "sha256": "d63231ea6fd33e0457c776a9aa8ae7ba778379b03119228ec56a5c8c16f9480e",
+      "groupId": "io.opentelemetry",
+      "artifactId": "opentelemetry-sdk",
+      "version": "1.55.0",
+      "packageUrl": "pkg:maven/io.opentelemetry/opentelemetry-sdk@1.55.0",
+      "mavenCentral": "https://repo.maven.apache.org/maven2/io/opentelemetry/opentelemetry-sdk/1.55.0/opentelemetry-sdk-1.55.0.jar",
+      "cves": [
+        "CVE-2026-54285"
+      ],
+      "verification": "Downloaded Maven Central JAR matches raw report SHA1 and SHA256"
+    },
+    {
+      "file": "opentelemetry-common-1.55.0.jar",
+      "sha1": "a979f45396c5332f43b9198ebf3eb52f5451e83f",
+      "sha256": "fca14bb87309d1193347d179b91c63045fa05a856f1fbeec6ef61c4a7f81b227",
+      "groupId": "io.opentelemetry",
+      "artifactId": "opentelemetry-common",
+      "version": "1.55.0",
+      "packageUrl": "pkg:maven/io.opentelemetry/opentelemetry-common@1.55.0",
+      "mavenCentral": "https://repo.maven.apache.org/maven2/io/opentelemetry/opentelemetry-common/1.55.0/opentelemetry-common-1.55.0.jar",
+      "cves": [
+        "CVE-2026-54285"
+      ],
+      "verification": "Downloaded Maven Central JAR matches raw report SHA1 and SHA256"
+    },
+    {
+      "file": "opentelemetry-context-1.55.0.jar",
+      "sha1": "a3e7c14152b6b6c62e0c64f991791fa0c5cbf02d",
+      "sha256": "f34a4718b70446ec462703ced5cc2c9ad4c9b7c69dcb41d0f032ba51c625a3dd",
+      "groupId": "io.opentelemetry",
+      "artifactId": "opentelemetry-context",
+      "version": "1.55.0",
+      "packageUrl": "pkg:maven/io.opentelemetry/opentelemetry-context@1.55.0",
+      "mavenCentral": "https://repo.maven.apache.org/maven2/io/opentelemetry/opentelemetry-context/1.55.0/opentelemetry-context-1.55.0.jar",
+      "cves": [
+        "CVE-2026-54285"
+      ],
+      "verification": "Downloaded Maven Central JAR matches raw report SHA1 and SHA256"
+    },
+    {
+      "file": "opentelemetry-exporter-common-1.55.0.jar",
+      "sha1": "c464ca72cbf4af1961ab366a1074534ca0fdc6cf",
+      "sha256": "3b4faaae49dd87bdefae13528d069a271f8476e2a64420e32f4e959a8d09c132",
+      "groupId": "io.opentelemetry",
+      "artifactId": "opentelemetry-exporter-common",
+      "version": "1.55.0",
+      "packageUrl": "pkg:maven/io.opentelemetry/opentelemetry-exporter-common@1.55.0",
+      "mavenCentral": "https://repo.maven.apache.org/maven2/io/opentelemetry/opentelemetry-exporter-common/1.55.0/opentelemetry-exporter-common-1.55.0.jar",
+      "cves": [
+        "CVE-2026-54285"
+      ],
+      "verification": "Downloaded Maven Central JAR matches raw report SHA1 and SHA256"
+    },
+    {
+      "file": "opentelemetry-exporter-otlp-1.55.0.jar",
+      "sha1": "cb70230f3dfed778047865de58880572446e6464",
+      "sha256": "cf42ce6e7cc6755182149f269447f6677f69c0a31e101464594dbcf62fe874c3",
+      "groupId": "io.opentelemetry",
+      "artifactId": "opentelemetry-exporter-otlp",
+      "version": "1.55.0",
+      "packageUrl": "pkg:maven/io.opentelemetry/opentelemetry-exporter-otlp@1.55.0",
+      "mavenCentral": "https://repo.maven.apache.org/maven2/io/opentelemetry/opentelemetry-exporter-otlp/1.55.0/opentelemetry-exporter-otlp-1.55.0.jar",
+      "cves": [
+        "CVE-2026-54285"
+      ],
+      "verification": "Downloaded Maven Central JAR matches raw report SHA1 and SHA256"
+    },
+    {
+      "file": "opentelemetry-exporter-otlp-common-1.55.0.jar",
+      "sha1": "b26d3a697e4d42fa12e61e5e9c6dfacb46250766",
+      "sha256": "7ddfa417d88a5ff8626dad9ebe0c8c59776491478ab1f72aedfacd75b984931f",
+      "groupId": "io.opentelemetry",
+      "artifactId": "opentelemetry-exporter-otlp-common",
+      "version": "1.55.0",
+      "packageUrl": "pkg:maven/io.opentelemetry/opentelemetry-exporter-otlp-common@1.55.0",
+      "mavenCentral": "https://repo.maven.apache.org/maven2/io/opentelemetry/opentelemetry-exporter-otlp-common/1.55.0/opentelemetry-exporter-otlp-common-1.55.0.jar",
+      "cves": [
+        "CVE-2026-54285"
+      ],
+      "verification": "Downloaded Maven Central JAR matches raw report SHA1 and SHA256"
+    },
+    {
+      "file": "opentelemetry-exporter-sender-okhttp-1.55.0.jar",
+      "sha1": "3057a2a4776bb095342599524e82a92cfef676b9",
+      "sha256": "e9cd97f59b18a89772ececbebccd773740eec2cd3ff67a4542eff73738acd60f",
+      "groupId": "io.opentelemetry",
+      "artifactId": "opentelemetry-exporter-sender-okhttp",
+      "version": "1.55.0",
+      "packageUrl": "pkg:maven/io.opentelemetry/opentelemetry-exporter-sender-okhttp@1.55.0",
+      "mavenCentral": "https://repo.maven.apache.org/maven2/io/opentelemetry/opentelemetry-exporter-sender-okhttp/1.55.0/opentelemetry-exporter-sender-okhttp-1.55.0.jar",
+      "cves": [
+        "CVE-2026-54285"
+      ],
+      "verification": "Downloaded Maven Central JAR matches raw report SHA1 and SHA256"
+    },
+    {
+      "file": "opentelemetry-extension-trace-propagators-1.55.0.jar",
+      "sha1": "02c4f1eddd4ba35a82d27d6c784e3d4fbb3c8a3a",
+      "sha256": "27861a2b49b3acf3166f489426808032c3addd9c082999f74a110eb7ac6985ce",
+      "groupId": "io.opentelemetry",
+      "artifactId": "opentelemetry-extension-trace-propagators",
+      "version": "1.55.0",
+      "packageUrl": "pkg:maven/io.opentelemetry/opentelemetry-extension-trace-propagators@1.55.0",
+      "mavenCentral": "https://repo.maven.apache.org/maven2/io/opentelemetry/opentelemetry-extension-trace-propagators/1.55.0/opentelemetry-extension-trace-propagators-1.55.0.jar",
+      "cves": [
+        "CVE-2026-54285"
+      ],
+      "verification": "Downloaded Maven Central JAR matches raw report SHA1 and SHA256"
+    },
+    {
+      "file": "opentelemetry-sdk-common-1.55.0.jar",
+      "sha1": "c43e69b259fe060b67520e4f011fa776a2dcca58",
+      "sha256": "e28bb83d0ae5a760ba95952daf820180ee7defb0c5783c9d21f9c00ada80020e",
+      "groupId": "io.opentelemetry",
+      "artifactId": "opentelemetry-sdk-common",
+      "version": "1.55.0",
+      "packageUrl": "pkg:maven/io.opentelemetry/opentelemetry-sdk-common@1.55.0",
+      "mavenCentral": "https://repo.maven.apache.org/maven2/io/opentelemetry/opentelemetry-sdk-common/1.55.0/opentelemetry-sdk-common-1.55.0.jar",
+      "cves": [
+        "CVE-2026-54285"
+      ],
+      "verification": "Downloaded Maven Central JAR matches raw report SHA1 and SHA256"
+    },
+    {
+      "file": "opentelemetry-sdk-extension-autoconfigure-spi-1.55.0.jar",
+      "sha1": "f20fc03f7ea80cd062520f6cda3b1a61a107860f",
+      "sha256": "3ee1f647238bb77df7b7bde47bc87a35a7807b3c5bb389ca81b0ba16c77824ff",
+      "groupId": "io.opentelemetry",
+      "artifactId": "opentelemetry-sdk-extension-autoconfigure-spi",
+      "version": "1.55.0",
+      "packageUrl": "pkg:maven/io.opentelemetry/opentelemetry-sdk-extension-autoconfigure-spi@1.55.0",
+      "mavenCentral": "https://repo.maven.apache.org/maven2/io/opentelemetry/opentelemetry-sdk-extension-autoconfigure-spi/1.55.0/opentelemetry-sdk-extension-autoconfigure-spi-1.55.0.jar",
+      "cves": [
+        "CVE-2026-54285"
+      ],
+      "verification": "Downloaded Maven Central JAR matches raw report SHA1 and SHA256"
+    },
+    {
+      "file": "opentelemetry-sdk-logs-1.55.0.jar",
+      "sha1": "0b4c62673fb2f2385b691d6600a194f98fbc8625",
+      "sha256": "d917bb833899057c7cbdbcc30290e816071b90e52c965693aaad4cc1b32ecc11",
+      "groupId": "io.opentelemetry",
+      "artifactId": "opentelemetry-sdk-logs",
+      "version": "1.55.0",
+      "packageUrl": "pkg:maven/io.opentelemetry/opentelemetry-sdk-logs@1.55.0",
+      "mavenCentral": "https://repo.maven.apache.org/maven2/io/opentelemetry/opentelemetry-sdk-logs/1.55.0/opentelemetry-sdk-logs-1.55.0.jar",
+      "cves": [
+        "CVE-2026-54285"
+      ],
+      "verification": "Downloaded Maven Central JAR matches raw report SHA1 and SHA256"
+    },
+    {
+      "file": "opentelemetry-sdk-metrics-1.55.0.jar",
+      "sha1": "2db32c617c5d37c9ee69d58009edcc9a12ba6a24",
+      "sha256": "6219d69c3abdd6113bee35df94826f48e84b742041f5124b5857a2b801f74573",
+      "groupId": "io.opentelemetry",
+      "artifactId": "opentelemetry-sdk-metrics",
+      "version": "1.55.0",
+      "packageUrl": "pkg:maven/io.opentelemetry/opentelemetry-sdk-metrics@1.55.0",
+      "mavenCentral": "https://repo.maven.apache.org/maven2/io/opentelemetry/opentelemetry-sdk-metrics/1.55.0/opentelemetry-sdk-metrics-1.55.0.jar",
+      "cves": [
+        "CVE-2026-54285"
+      ],
+      "verification": "Downloaded Maven Central JAR matches raw report SHA1 and SHA256"
+    },
+    {
+      "file": "opentelemetry-sdk-trace-1.55.0.jar",
+      "sha1": "b0334b4edb3d14e181f9f4fdc40a0dd5a6bcbffd",
+      "sha256": "e593660b9fad8bfdb5e981ccd392aa030f788d577c55f8bac3b6c4c6dae509bb",
+      "groupId": "io.opentelemetry",
+      "artifactId": "opentelemetry-sdk-trace",
+      "version": "1.55.0",
+      "packageUrl": "pkg:maven/io.opentelemetry/opentelemetry-sdk-trace@1.55.0",
+      "mavenCentral": "https://repo.maven.apache.org/maven2/io/opentelemetry/opentelemetry-sdk-trace/1.55.0/opentelemetry-sdk-trace-1.55.0.jar",
+      "cves": [
+        "CVE-2026-54285"
+      ],
+      "verification": "Downloaded Maven Central JAR matches raw report SHA1 and SHA256"
+    }
+  ],
+  "rawReports": [
+    {
+      "artifactName": "security-gradle-account-service-43009810084-1",
+      "sha256": "16f91757fd32b445a6000abdd125f62600aa7b8e10b9bbd6a15382cc690515f0",
+      "run": "https://github.com/finos/traderX/actions/runs/43009810084",
+      "artifact": "https://github.com/finos/traderX/actions/runs/43009810084/artifacts/13850136500",
+      "file": "dependency-check-report.html"
+    },
+    {
+      "artifactName": "security-gradle-database-43009810084-1",
+      "sha256": "63d91cea4a2be99b593633afb5ac0c48e510259f510f026819af0eea572ff363",
+      "run": "https://github.com/finos/traderX/actions/runs/43009810084",
+      "artifact": "https://github.com/finos/traderX/actions/runs/43009810084/artifacts/13849498795",
+      "file": "dependency-check-report.html"
+    },
+    {
+      "artifactName": "security-gradle-position-service-43009810084-1",
+      "sha256": "8896843d6014d683f278bba367cd26fc1ba2850a9a5c27dfc94267e24a98df72",
+      "run": "https://github.com/finos/traderX/actions/runs/43009810084",
+      "artifact": "https://github.com/finos/traderX/actions/runs/43009810084/artifacts/13850500586",
+      "file": "dependency-check-report.html"
+    },
+    {
+      "artifactName": "security-gradle-trade-processor-43009810084-1",
+      "sha256": "6c73ee1c0d8a15de72cc78ff610d78bd8ca6b5d6f8d460b8f1aa86634eb0851a",
+      "run": "https://github.com/finos/traderX/actions/runs/43009810084",
+      "artifact": "https://github.com/finos/traderX/actions/runs/43009810084/artifacts/13850650599",
+      "file": "dependency-check-report.html"
+    },
+    {
+      "artifactName": "security-gradle-trade-service-43009810084-1",
+      "sha256": "3bccef14104b9a75730ca3b9ad85133eae4c3859be91c4ad7f86ff9099316ea7",
+      "run": "https://github.com/finos/traderX/actions/runs/43009810084",
+      "artifact": "https://github.com/finos/traderX/actions/runs/43009810084/artifacts/13850790186",
+      "file": "dependency-check-report.html"
+    },
+    {
+      "artifactName": "security-gradle-account-service-43009989048-1",
+      "sha256": "98af1fa04be04c70a98e73a8ab446663d13a63b648a21dde8e9653819902d40c",
+      "run": "https://github.com/finos/traderX/actions/runs/43009989048",
+      "artifact": "https://github.com/finos/traderX/actions/runs/43009989048/artifacts/13849713475",
+      "file": "dependency-check-report.html"
+    },
+    {
+      "artifactName": "security-gradle-database-43009989048-1",
+      "sha256": "49f4bf983083b284a18a846884749deb761e75d8f9a56506430fc9ba4784a0a5",
+      "run": "https://github.com/finos/traderX/actions/runs/43009989048",
+      "artifact": "https://github.com/finos/traderX/actions/runs/43009989048/artifacts/13849204804",
+      "file": "dependency-check-report.html"
+    },
+    {
+      "artifactName": "security-gradle-order-matcher-43009989048-1",
+      "sha256": "cc777fdfde0e9177dd309e938da386885ac90529cc8c890a0a6f1bbe005acd8f",
+      "run": "https://github.com/finos/traderX/actions/runs/43009989048",
+      "artifact": "https://github.com/finos/traderX/actions/runs/43009989048/artifacts/13850766074",
+      "file": "dependency-check-report.html"
+    },
+    {
+      "artifactName": "security-gradle-position-service-43009989048-1",
+      "sha256": "93cb9dab192499f4df99bdaff09d81ee97e90712fef04c152274901372a3acc4",
+      "run": "https://github.com/finos/traderX/actions/runs/43009989048",
+      "artifact": "https://github.com/finos/traderX/actions/runs/43009989048/artifacts/13849917875",
+      "file": "dependency-check-report.html"
+    },
+    {
+      "artifactName": "security-gradle-trade-processor-43009989048-1",
+      "sha256": "963ce4819dce83c78d505df5a2035cadd52f31c55d8a01a6d73c74d53968e942",
+      "run": "https://github.com/finos/traderX/actions/runs/43009989048",
+      "artifact": "https://github.com/finos/traderX/actions/runs/43009989048/artifacts/13850935465",
+      "file": "dependency-check-report.html"
+    },
+    {
+      "artifactName": "security-gradle-trade-service-43009989048-1",
+      "sha256": "eb48edf22ebd4bafdc2d4532e2a19bb2cedaf12dc845043b602d5a8b1aae4465",
+      "run": "https://github.com/finos/traderX/actions/runs/43009989048",
+      "artifact": "https://github.com/finos/traderX/actions/runs/43009989048/artifacts/13849454254",
+      "file": "dependency-check-report.html"
+    }
+  ],
+  "fullScanVerification": {
+    "status": "passed",
+    "sourceSnapshot": "7922f64f138c5e22b3b8ba1cabd8bd1f184a093c",
+    "sourceImage": "ghcr.io/finos/traderx-c2/account-service@sha256:f1b7a675aff60f10883a47ca4694f6d59b5dd901d253a7d83ba113be2002e1cd",
+    "publishRun": "https://github.com/finos/traderX/actions/runs/43009989120",
+    "imageArtifact": "https://github.com/finos/traderX/actions/runs/43009989120/artifacts/13849773185",
+    "jarSha256": "eb28cc3c4c2d7480e91e2c0a306768f52bcdafe471528bbf74dec2c64e4ade1e",
+    "scannerImage": "owasp/dependency-check-action@sha256:9f800737124f89ef8d34a0ad266311bd27230e818be97f910645ddb5e4e9cbf7",
+    "suppressionInput": "Isolated temporary combination of existing canonical suppression and this inactive proposal; not installed in CI.",
+    "exitCode": 0,
+    "reportedDependencyGroups": 81,
+    "unsuppressedFindings": 0,
+    "threshold": "--failOnCVSS 5",
+    "arguments": [
+      "--scan /work/input",
+      "--format ALL",
+      "--noupdate",
+      "--suppression /work/combined-candidate.xml",
+      "--failOnCVSS 5",
+      "--enableRetired",
+      "--disableCentral"
+    ],
+    "reportJsonSha256": "a34db02acf88720b74e9de4904d0d2d2b54fd6e04e98cbd34ed71aed4c146932",
+    "reportHtmlSha256": "b9abfdb310a8208ee0b9c86b4f30b21ef5bd158a27f510169e381589f113c780",
+    "logSha256": "ea14fb57621e3f172de9ac398644224cd7705c42dc5545024d3cdecfa7229c16",
+    "representativeAfterSuppression": "opentelemetry-api-1.55.0.jar, with all13 additional exact Java artifacts grouped as related dependencies after their finding sets became equal"
+  },
+  "activationRequirements": [
+    "Separate explicit approval of these thirteen additional hashes and one CVE.",
+    "Record approval reference before adding exact rules to canonical Gradle suppression input.",
+    "Regenerate affected states and require successful exact-snapshot dependency and runtime security gates.",
+    "Retain all original raw scanner reports and exact-artifact verification evidence."
+  ],
+  "recoveryPlan": "Remove rules at expiry, on artifact byte/version changes, or once Dependency-Check fixes ecosystem identity; regenerate and revalidate.",
+  "negativeVerification": {
+    "engine": "Dependency-Check13.0.0",
+    "exactPairsMatched": 13,
+    "wrongHashesRejected": 13,
+    "unrelatedCvesRetained": 13,
+    "expiredRulesRejected": 13,
+    "logSha256": "93c504a248de020a9f8d3a578ff90de7273e59636f5f04f44c38c138ec539c68"
+  }
+}

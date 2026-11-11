@@ -1,0 +1,69 @@
+<?xml version='1.0' encoding='utf-8'?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+  <!--INACTIVE REVIEW CANDIDATE. Thirteen additional exact hashes; only CVE-2026-54285. Separate approval required.-->
+  <suppress until="2026-12-11Z">
+    <notes>REVIEW PENDING; owner TraderX maintainers; issue486 / PR489. pkg:maven/io.opentelemetry/opentelemetry-sdk@1.55.0; SHA256 d63231ea6fd33e0457c776a9aa8ae7ba778379b03119228ec56a5c8c16f9480e. Java artifact does not contain the affected OpenTelemetry JavaScript Baggage implementation. See companion proposal JSON for grouped report evidence.</notes>
+    <sha1>457309ce1ed276bd9b1f4029c97c22721f58f346</sha1>
+    <cve>CVE-2026-54285</cve>
+  </suppress>
+  <suppress until="2026-12-11Z">
+    <notes>REVIEW PENDING; owner TraderX maintainers; issue486 / PR489. pkg:maven/io.opentelemetry/opentelemetry-common@1.55.0; SHA256 fca14bb87309d1193347d179b91c63045fa05a856f1fbeec6ef61c4a7f81b227. Java artifact does not contain the affected OpenTelemetry JavaScript Baggage implementation. See companion proposal JSON for grouped report evidence.</notes>
+    <sha1>a979f45396c5332f43b9198ebf3eb52f5451e83f</sha1>
+    <cve>CVE-2026-54285</cve>
+  </suppress>
+  <suppress until="2026-12-11Z">
+    <notes>REVIEW PENDING; owner TraderX maintainers; issue486 / PR489. pkg:maven/io.opentelemetry/opentelemetry-context@1.55.0; SHA256 f34a4718b70446ec462703ced5cc2c9ad4c9b7c69dcb41d0f032ba51c625a3dd. Java artifact does not contain the affected OpenTelemetry JavaScript Baggage implementation. See companion proposal JSON for grouped report evidence.</notes>
+    <sha1>a3e7c14152b6b6c62e0c64f991791fa0c5cbf02d</sha1>
+    <cve>CVE-2026-54285</cve>
+  </suppress>
+  <suppress until="2026-12-11Z">
+    <notes>REVIEW PENDING; owner TraderX maintainers; issue486 / PR489. pkg:maven/io.opentelemetry/opentelemetry-exporter-common@1.55.0; SHA256 3b4faaae49dd87bdefae13528d069a271f8476e2a64420e32f4e959a8d09c132. Java artifact does not contain the affected OpenTelemetry JavaScript Baggage implementation. See companion proposal JSON for grouped report evidence.</notes>
+    <sha1>c464ca72cbf4af1961ab366a1074534ca0fdc6cf</sha1>
+    <cve>CVE-2026-54285</cve>
+  </suppress>
+  <suppress until="2026-12-11Z">
+    <notes>REVIEW PENDING; owner TraderX maintainers; issue486 / PR489. pkg:maven/io.opentelemetry/opentelemetry-exporter-otlp@1.55.0; SHA256 cf42ce6e7cc6755182149f269447f6677f69c0a31e101464594dbcf62fe874c3. Java artifact does not contain the affected OpenTelemetry JavaScript Baggage implementation. See companion proposal JSON for grouped report evidence.</notes>
+    <sha1>cb70230f3dfed778047865de58880572446e6464</sha1>
+    <cve>CVE-2026-54285</cve>
+  </suppress>
+  <suppress until="2026-12-11Z">
+    <notes>REVIEW PENDING; owner TraderX maintainers; issue486 / PR489. pkg:maven/io.opentelemetry/opentelemetry-exporter-otlp-common@1.55.0; SHA256 7ddfa417d88a5ff8626dad9ebe0c8c59776491478ab1f72aedfacd75b984931f. Java artifact does not contain the affected OpenTelemetry JavaScript Baggage implementation. See companion proposal JSON for grouped report evidence.</notes>
+    <sha1>b26d3a697e4d42fa12e61e5e9c6dfacb46250766</sha1>
+    <cve>CVE-2026-54285</cve>
+  </suppress>
+  <suppress until="2026-12-11Z">
+    <notes>REVIEW PENDING; owner TraderX maintainers; issue486 / PR489. pkg:maven/io.opentelemetry/opentelemetry-exporter-sender-okhttp@1.55.0; SHA256 e9cd97f59b18a89772ececbebccd773740eec2cd3ff67a4542eff73738acd60f. Java artifact does not contain the affected OpenTelemetry JavaScript Baggage implementation. See companion proposal JSON for grouped report evidence.</notes>
+    <sha1>3057a2a4776bb095342599524e82a92cfef676b9</sha1>
+    <cve>CVE-2026-54285</cve>
+  </suppress>
+  <suppress until="2026-12-11Z">
+    <notes>REVIEW PENDING; owner TraderX maintainers; issue486 / PR489. pkg:maven/io.opentelemetry/opentelemetry-extension-trace-propagators@1.55.0; SHA256 27861a2b49b3acf3166f489426808032c3addd9c082999f74a110eb7ac6985ce. Java artifact does not contain the affected OpenTelemetry JavaScript Baggage implementation. See companion proposal JSON for grouped report evidence.</notes>
+    <sha1>02c4f1eddd4ba35a82d27d6c784e3d4fbb3c8a3a</sha1>
+    <cve>CVE-2026-54285</cve>
+  </suppress>
+  <suppress until="2026-12-11Z">
+    <notes>REVIEW PENDING; owner TraderX maintainers; issue486 / PR489. pkg:maven/io.opentelemetry/opentelemetry-sdk-common@1.55.0; SHA256 e28bb83d0ae5a760ba95952daf820180ee7defb0c5783c9d21f9c00ada80020e. Java artifact does not contain the affected OpenTelemetry JavaScript Baggage implementation. See companion proposal JSON for grouped report evidence.</notes>
+    <sha1>c43e69b259fe060b67520e4f011fa776a2dcca58</sha1>
+    <cve>CVE-2026-54285</cve>
+  </suppress>
+  <suppress until="2026-12-11Z">
+    <notes>REVIEW PENDING; owner TraderX maintainers; issue486 / PR489. pkg:maven/io.opentelemetry/opentelemetry-sdk-extension-autoconfigure-spi@1.55.0; SHA256 3ee1f647238bb77df7b7bde47bc87a35a7807b3c5bb389ca81b0ba16c77824ff. Java artifact does not contain the affected OpenTelemetry JavaScript Baggage implementation. See companion proposal JSON for grouped report evidence.</notes>
+    <sha1>f20fc03f7ea80cd062520f6cda3b1a61a107860f</sha1>
+    <cve>CVE-2026-54285</cve>
+  </suppress>
+  <suppress until="2026-12-11Z">
+    <notes>REVIEW PENDING; owner TraderX maintainers; issue486 / PR489. pkg:maven/io.opentelemetry/opentelemetry-sdk-logs@1.55.0; SHA256 d917bb833899057c7cbdbcc30290e816071b90e52c965693aaad4cc1b32ecc11. Java artifact does not contain the affected OpenTelemetry JavaScript Baggage implementation. See companion proposal JSON for grouped report evidence.</notes>
+    <sha1>0b4c62673fb2f2385b691d6600a194f98fbc8625</sha1>
+    <cve>CVE-2026-54285</cve>
+  </suppress>
+  <suppress until="2026-12-11Z">
+    <notes>REVIEW PENDING; owner TraderX maintainers; issue486 / PR489. pkg:maven/io.opentelemetry/opentelemetry-sdk-metrics@1.55.0; SHA256 6219d69c3abdd6113bee35df94826f48e84b742041f5124b5857a2b801f74573. Java artifact does not contain the affected OpenTelemetry JavaScript Baggage implementation. See companion proposal JSON for grouped report evidence.</notes>
+    <sha1>2db32c617c5d37c9ee69d58009edcc9a12ba6a24</sha1>
+    <cve>CVE-2026-54285</cve>
+  </suppress>
+  <suppress until="2026-12-11Z">
+    <notes>REVIEW PENDING; owner TraderX maintainers; issue486 / PR489. pkg:maven/io.opentelemetry/opentelemetry-sdk-trace@1.55.0; SHA256 e593660b9fad8bfdb5e981ccd392aa030f788d577c55f8bac3b6c4c6dae509bb. Java artifact does not contain the affected OpenTelemetry JavaScript Baggage implementation. See companion proposal JSON for grouped report evidence.</notes>
+    <sha1>b0334b4edb3d14e181f9f4fdc40a0dd5a6bcbffd</sha1>
+    <cve>CVE-2026-54285</cve>
+  </suppress>
+</suppressions>
