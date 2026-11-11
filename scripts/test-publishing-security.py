@@ -262,6 +262,31 @@ class AuthorizationTests(unittest.TestCase):
             self.assertEqual(audit['services']['ingress'], image + '@' + DIGEST)
             self.assertTrue(any('--no-build' in call.args and '--wait' in call.args for call in commands.call_args_list))
 
+    def test_non009_startup_failure_preserves_original_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work = Path(tmp)
+            (work / '.git').mkdir()
+            manifest = work / 'manifest.json'
+            image = 'ghcr.io/finos/traderx-c1/ingress'
+            manifest.write_text(json.dumps(dict(snapshot=SHA, state='004-test', target='demo.test',
+                                                repository='finos/traderX', images={image: image + '@' + DIGEST})))
+            config = {'services': {'ingress': {'image': image + ':' + SHA, 'build': {'context': '.'}}}}
+            failure = subprocess.CalledProcessError(17, ['docker', 'compose', 'up'])
+            def fake_run(*args, **kwargs):
+                if 'up' in args:
+                    raise failure
+                return subprocess.CompletedProcess(args, 0, stdout=json.dumps(config))
+            with patch.object(sys, 'argv', ['deploy', str(manifest), '--workdir', str(work)]), \
+                 patch.object(deploy, 'run', side_effect=fake_run) as commands, \
+                 patch.object(deploy.subprocess, 'check_output', return_value=SHA + '\n'), \
+                 patch.object(deploy, 'authorize_runtime', side_effect=lambda config, *args: deploy.pin_services(config, {image: image + '@' + DIGEST})), \
+                 patch.object(deploy, 'policy_settings', return_value={'runtimeImageScanner': {'image': 'scanner'}}), \
+                 patch.object(deploy, 'scan_infrastructure'):
+                with self.assertRaises(subprocess.CalledProcessError) as caught:
+                    deploy.main()
+                self.assertIs(caught.exception, failure)
+            self.assertFalse((work / '.traderx-deploy/deployed.json').exists())
+
 
 class FixedSourceDispositionTests(unittest.TestCase):
     def setUp(self):

@@ -397,7 +397,8 @@ def main():
         run(*command, 'up', '-d', '--no-build', '--wait', '--wait-timeout', '180', env=env)
     except BaseException:
         try:
-            resume_unchanged_containers(project, stopped, record['database_backup']['volume'])
+            if stopped:
+                resume_unchanged_containers(project, stopped, record['database_backup']['volume'])
         except (ValueError, OSError, subprocess.SubprocessError) as exc:
             print(f'[fail] resuming unchanged containers failed: {exc}')
         raise
