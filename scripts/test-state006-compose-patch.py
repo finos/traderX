@@ -31,6 +31,23 @@ class ComposePatchTests(unittest.TestCase):
             for name, service in config['services'].items():
                 self.assertEqual(service['restart'], 'unless-stopped', name)
 
+    def test_state008_delta_applies_after_corrected_state006_volume(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp)
+            subprocess.run(['git', 'init', '-q', tmp], check=True)
+            for number, source in ((4, 'containerized-compose/docker-compose.yml'),
+                                   (6, 'containerized-compose/docker-compose.yml'),
+                                   (8, 'messaging-nats-replacement/docker-compose.yml')):
+                subprocess.run(['git', 'apply', '--whitespace=nowarn', '-'], input=block(number, source),
+                               text=True, cwd=target, check=True)
+            compose = target / 'pricing-awareness-market-data/docker-compose.yml'
+            result = subprocess.run(['docker', 'compose', '-f', str(compose), 'config', '--format', 'json'],
+                                    check=True, capture_output=True, text=True)
+            config = json.loads(result.stdout)
+            self.assertNotIn('restart', config['volumes']['postgres_state_009_data'])
+            self.assertIn('price-publisher', config['services'])
+            self.assertIn('nats-broker', config['services'])
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -2079,7 +2079,7 @@ index f4fff9c..d26d6ef 100644
        WEB_FRONTEND_URL: "http://web-front-end-angular:18093/"
      ports:
        - "8080:8080"
-@@ -181,6 +208,82 @@ services:
+@@ -181,5 +208,82 @@ services:
        - people-service
        - nats-broker
 
@@ -2162,7 +2162,6 @@ index f4fff9c..d26d6ef 100644
 +
  volumes:
    postgres_state_009_data:
--    restart: unless-stopped
 diff --git a/messaging-nats-replacement/nats/nats.conf b/pricing-awareness-market-data/nats/nats.conf
 similarity index 100%
 rename from messaging-nats-replacement/nats/nats.conf
