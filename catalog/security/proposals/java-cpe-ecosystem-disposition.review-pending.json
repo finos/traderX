@@ -1,0 +1,229 @@
+{
+  "schemaVersion": 1,
+  "status": "review-pending",
+  "approved": false,
+  "active": false,
+  "owner": "TraderX maintainers",
+  "trackingIssue": "https://github.com/finos/traderX/issues/486",
+  "expires": "2026-12-11T00:00:00Z",
+  "approval": null,
+  "scope": "Only the explicit CVEs on these four exact Maven artifact bytes. All other findings and versions remain blocking.",
+  "matching": {
+    "schema": "https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd",
+    "selector": "sha1",
+    "reason": "The actual nested-JAR report has no package URL software identifier. Schema1.3 allows one selector only; exact artifact SHA-1 matches the reported identity. Maven package URL/version and SHA-256 independently identify the reviewed artifacts.",
+    "implementationReference": "https://github.com/dependency-check/DependencyCheck/blob/main/core/src/main/java/org/owasp/dependencycheck/xml/suppression/SuppressionRule.java",
+    "xmlInactiveUntilReviewed": true
+  },
+  "rawReport": {
+    "snapshot": "69e0c05b072cc58098b0c32826dd21fa31897996",
+    "run": "https://github.com/finos/traderX/actions/runs/42998354538",
+    "job": "https://github.com/finos/traderX/actions/runs/42998354538/job/130447986355",
+    "artifact": "https://github.com/finos/traderX/actions/runs/42998354538/artifacts/13844169588",
+    "artifactName": "security-gradle-trade-processor-42998354538-1",
+    "file": "dependency-check-report.html",
+    "sha256": "64da5f835135a9d39bd6be0c56e4c59760e3d50f7a5ec64a9367986938998c4a"
+  },
+  "artifacts": [
+    {
+      "groupId": "io.opentelemetry",
+      "artifactId": "opentelemetry-api",
+      "version": "1.55.0",
+      "packageUrl": "pkg:maven/io.opentelemetry/opentelemetry-api@1.55.0",
+      "mavenCentral": "https://repo.maven.apache.org/maven2/io/opentelemetry/opentelemetry-api/1.55.0/opentelemetry-api-1.55.0.jar",
+      "sha1": "a71c43562e4d55c75997ccaa0c0513e5f881b703",
+      "sha256": "387b4bf98631fc2ede9470879a8ff28dd8c5cb2d3dcf5b6ef77f5ee2bdb7b4f1",
+      "xmlSelector": {
+        "sha1": "a71c43562e4d55c75997ccaa0c0513e5f881b703"
+      },
+      "reportedPackageUrl": null,
+      "cves": [
+        "CVE-2026-54285"
+      ]
+    },
+    {
+      "groupId": "io.opentelemetry.proto",
+      "artifactId": "opentelemetry-proto",
+      "version": "1.8.0-alpha",
+      "packageUrl": "pkg:maven/io.opentelemetry.proto/opentelemetry-proto@1.8.0-alpha",
+      "mavenCentral": "https://repo.maven.apache.org/maven2/io/opentelemetry/proto/opentelemetry-proto/1.8.0-alpha/opentelemetry-proto-1.8.0-alpha.jar",
+      "sha1": "02b40108f65cbbbc142c1abf9f4a0599c968434a",
+      "sha256": "c551873983e22b308c738860da0903cdff2e47182140cf2a8dd9abb1adf31d08",
+      "xmlSelector": {
+        "sha1": "02b40108f65cbbbc142c1abf9f4a0599c968434a"
+      },
+      "reportedPackageUrl": null,
+      "cves": [
+        "CVE-2026-54285",
+        "CVE-2026-39882",
+        "CVE-2026-40894",
+        "CVE-2026-44967",
+        "CVE-2026-41178"
+      ]
+    },
+    {
+      "groupId": "io.opentelemetry.semconv",
+      "artifactId": "opentelemetry-semconv",
+      "version": "1.37.0",
+      "packageUrl": "pkg:maven/io.opentelemetry.semconv/opentelemetry-semconv@1.37.0",
+      "mavenCentral": "https://repo.maven.apache.org/maven2/io/opentelemetry/semconv/opentelemetry-semconv/1.37.0/opentelemetry-semconv-1.37.0.jar",
+      "sha1": "c6f9a930842c93c08fd87349db3defcbc228e925",
+      "sha256": "693ad6f04f29b4b593a04adef5f575d28b3a91ea3449ab5b1e1e2e5c6efc6cdc",
+      "xmlSelector": {
+        "sha1": "c6f9a930842c93c08fd87349db3defcbc228e925"
+      },
+      "reportedPackageUrl": null,
+      "cves": [
+        "CVE-2026-54285",
+        "CVE-2026-24051",
+        "CVE-2026-39882",
+        "CVE-2026-39883",
+        "CVE-2026-41178",
+        "CVE-2026-29181"
+      ]
+    },
+    {
+      "groupId": "com.google.protobuf",
+      "artifactId": "protobuf-java",
+      "version": "4.32.0",
+      "packageUrl": "pkg:maven/com.google.protobuf/protobuf-java@4.32.0",
+      "mavenCentral": "https://repo.maven.apache.org/maven2/com/google/protobuf/protobuf-java/4.32.0/protobuf-java-4.32.0.jar",
+      "sha1": "325c56fe5bb79cf288162d2d8d5f70b53fe1f507",
+      "sha256": "e902c91b454812b7d056b8d303a572733bf0587576ff157c1049116c9626241d",
+      "xmlSelector": {
+        "sha1": "325c56fe5bb79cf288162d2d8d5f70b53fe1f507"
+      },
+      "reportedPackageUrl": null,
+      "cves": [
+        "CVE-2026-0994"
+      ]
+    }
+  ],
+  "advisories": {
+    "CVE-2026-0994": {
+      "title": "Denial of Service in Python Protobuf",
+      "affectedProducts": [
+        "Protobuf"
+      ],
+      "cnaRecord": "https://cveawg.mitre.org/api/cve/CVE-2026-0994",
+      "primaryReferences": [
+        "https://github.com/protocolbuffers/protobuf/pull/25239"
+      ],
+      "reasonNotApplicable": "The CNA identifies Protobuf, not the selected Maven Java artifact."
+    },
+    "CVE-2026-24051": {
+      "title": "OpenTelemetry-Go Affected by Arbitrary Code Execution via PATH Hijacking",
+      "affectedProducts": [
+        "opentelemetry-go"
+      ],
+      "cnaRecord": "https://cveawg.mitre.org/api/cve/CVE-2026-24051",
+      "primaryReferences": [
+        "https://github.com/open-telemetry/opentelemetry-go/security/advisories/GHSA-9h8m-3fm2-qjrq",
+        "https://github.com/open-telemetry/opentelemetry-go/commit/d45961bcda453fcbdb6469c22d6e88a1f9970a53"
+      ],
+      "reasonNotApplicable": "The CNA identifies opentelemetry-go, not the selected Maven Java artifact."
+    },
+    "CVE-2026-29181": {
+      "title": "OpenTelemetry-Go multi-value `baggage` header extraction causes excessive allocations (remote dos amplification)",
+      "affectedProducts": [
+        "opentelemetry-go"
+      ],
+      "cnaRecord": "https://cveawg.mitre.org/api/cve/CVE-2026-29181",
+      "primaryReferences": [
+        "https://github.com/open-telemetry/opentelemetry-go/security/advisories/GHSA-mh2q-q3fh-2475"
+      ],
+      "reasonNotApplicable": "The CNA identifies opentelemetry-go, not the selected Maven Java artifact."
+    },
+    "CVE-2026-39882": {
+      "title": "OpenTelemetry-Go OTLP HTTP exporters read unbounded HTTP response bodies",
+      "affectedProducts": [
+        "opentelemetry-go"
+      ],
+      "cnaRecord": "https://cveawg.mitre.org/api/cve/CVE-2026-39882",
+      "primaryReferences": [
+        "https://github.com/open-telemetry/opentelemetry-go/security/advisories/GHSA-w8rr-5gcm-pp58",
+        "https://github.com/open-telemetry/opentelemetry-go/pull/8108"
+      ],
+      "reasonNotApplicable": "The CNA identifies opentelemetry-go, not the selected Maven Java artifact."
+    },
+    "CVE-2026-39883": {
+      "title": "OpenTelemetry-Go has an incomplete fix for CVE-2026-24051: BSD kenv command not using absolute path enables PATH hijacking",
+      "affectedProducts": [
+        "opentelemetry-go"
+      ],
+      "cnaRecord": "https://cveawg.mitre.org/api/cve/CVE-2026-39883",
+      "primaryReferences": [
+        "https://github.com/open-telemetry/opentelemetry-go/security/advisories/GHSA-hfvc-g4fc-pqhx",
+        "http://github.com/open-telemetry/opentelemetry-go/releases/tag/v1.43.0"
+      ],
+      "reasonNotApplicable": "The CNA identifies opentelemetry-go, not the selected Maven Java artifact."
+    },
+    "CVE-2026-40894": {
+      "title": "OpenTelemetry dotnet: Excessive memory allocation when parsing OpenTelemetry propagation headers",
+      "affectedProducts": [
+        "opentelemetry-dotnet",
+        "OpenTelemetry.Api",
+        "OpenTelemetry.Extensions.Propagators"
+      ],
+      "cnaRecord": "https://cveawg.mitre.org/api/cve/CVE-2026-40894",
+      "primaryReferences": [
+        "https://github.com/open-telemetry/opentelemetry-dotnet/security/advisories/GHSA-g94r-2vxg-569j",
+        "https://github.com/open-telemetry/opentelemetry-dotnet/pull/1048",
+        "https://github.com/open-telemetry/opentelemetry-dotnet/pull/3244",
+        "https://github.com/open-telemetry/opentelemetry-dotnet/pull/3309",
+        "https://github.com/open-telemetry/opentelemetry-dotnet/pull/533",
+        "https://github.com/open-telemetry/opentelemetry-dotnet/pull/7061"
+      ],
+      "reasonNotApplicable": "The CNA identifies opentelemetry-dotnet, OpenTelemetry.Api, OpenTelemetry.Extensions.Propagators, not the selected Maven Java artifact."
+    },
+    "CVE-2026-41178": {
+      "title": "OpenTelemetry-Go's baggage parsing no longer caps raw header length",
+      "affectedProducts": [
+        "go.opentelemetry.io/otel/baggage",
+        "go.opentelemetry.io/otel/propagation"
+      ],
+      "cnaRecord": "https://cveawg.mitre.org/api/cve/CVE-2026-41178",
+      "primaryReferences": [
+        "https://github.com/open-telemetry/opentelemetry-go/security/advisories/GHSA-5wrp-cwcj-q835",
+        "https://github.com/open-telemetry/opentelemetry-go/pull/7880"
+      ],
+      "reasonNotApplicable": "The CNA identifies go.opentelemetry.io/otel/baggage, go.opentelemetry.io/otel/propagation, not the selected Maven Java artifact."
+    },
+    "CVE-2026-44967": {
+      "title": "opentelemetry-cpp: OTLP HTTP exporters read unbounded HTTP response",
+      "affectedProducts": [
+        "opentelemetry-cpp"
+      ],
+      "cnaRecord": "https://cveawg.mitre.org/api/cve/CVE-2026-44967",
+      "primaryReferences": [
+        "https://github.com/open-telemetry/opentelemetry-cpp/security/advisories/GHSA-5qhm-4rfp-qqvj",
+        "https://github.com/open-telemetry/opentelemetry-go/security/advisories/GHSA-w8rr-5gcm-pp58",
+        "https://github.com/open-telemetry/opentelemetry-cpp/issues/3958",
+        "https://github.com/open-telemetry/opentelemetry-cpp/pull/4078"
+      ],
+      "reasonNotApplicable": "The CNA identifies opentelemetry-cpp, not the selected Maven Java artifact."
+    },
+    "CVE-2026-54285": {
+      "title": "opentelemetry-js: Unbounded memory allocation in W3C Baggage propagation",
+      "affectedProducts": [
+        "opentelemetry-js"
+      ],
+      "cnaRecord": "https://cveawg.mitre.org/api/cve/CVE-2026-54285",
+      "primaryReferences": [
+        "https://github.com/open-telemetry/opentelemetry-js/security/advisories/GHSA-8988-4f7v-96qf"
+      ],
+      "reasonNotApplicable": "The CNA identifies opentelemetry-js, not the selected Maven Java artifact."
+    }
+  },
+  "activationRequirements": [
+    "Reviewed canonical PR with explicit approval reference.",
+    "Copy only these exact selector/CVE rules into canonical suppression input after approval.",
+    "Regenerate states and require successful exact-snapshot dependency and runtime-image security jobs.",
+    "Retain original unsuppressed report and subsequent scanner diagnostics."
+  ],
+  "recoveryPlan": "Remove these rules at expiry, on artifact version/byte changes, or once Dependency-Check corrects ecosystem identity; regenerate and revalidate affected states.",
+  "notIncluded": [
+    "CVE-2026-53914 Kotlin baseline drift; remediate centrally to selected2.4.21.",
+    "Any new Java advisory or any vulnerability on other artifact bytes."
+  ]
+}
