@@ -19,6 +19,11 @@ on:
         required: false
         default: false
         type: boolean
+      reclaim_unused_images:
+        description: Empty state-009 demo host only; reclaim old unused images, preserve all volumes
+        required: false
+        default: false
+        type: boolean
       preflight_only:
         description: Verify snapshot and scan infrastructure without replacing containers
         required: false
@@ -75,6 +80,7 @@ jobs:
         env:
           TARGET: ${{ inputs.target }}
           PREFLIGHT_ONLY: ${{ inputs.preflight_only }}
+          RECLAIM_UNUSED_IMAGES: ${{ inputs.reclaim_unused_images }}
         run: |
           remote_dir=$(ssh -i ~/.ssh/demo_ec2.pem -o BatchMode=yes -o StrictHostKeyChecking=yes "ec2-user@$TARGET" 'mktemp -d /tmp/traderx-deploy.XXXXXXXX')
           [[ "$remote_dir" =~ ^/tmp/traderx-deploy\.[a-zA-Z0-9]+$ ]]
@@ -84,6 +90,7 @@ jobs:
             catalog/security/state-009-grafana-fixed-findings.json "ec2-user@$TARGET:$remote_dir/"
           args=""
           if [[ "$PREFLIGHT_ONLY" == true ]]; then args="--preflight-only"; fi
+          if [[ "$RECLAIM_UNUSED_IMAGES" == true ]]; then args="$args --reclaim-unused-images"; fi
           status=0
           ssh -i ~/.ssh/demo_ec2.pem -o BatchMode=yes -o StrictHostKeyChecking=yes \
             "ec2-user@$TARGET" "python3 $remote_dir/deploy-verified-snapshot.py $remote_dir/verified-deployment.json --report-dir $remote_dir/reports $args" || status=$?

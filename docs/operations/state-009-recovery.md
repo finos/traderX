@@ -7,7 +7,7 @@ Tracking: [#487](https://github.com/finos/traderX/issues/487), recovery [PR #488
 - Local state-009 regeneration completed on 2026-11-11.
 - Read-only [host diagnosis](https://github.com/finos/traderX/actions/runs/42973739192) found no containers, NGINX forwarding to the inactive localhost:8080 upstream, and the existing named PostgreSQL volume `traderx-009-order-management-matcher_postgres_state_009_data`. No host runtime was changed by diagnosis.
 - Preserve and back up this volume before replacement. Root disk had 4.2 GiB free; check capacity before pulling the replacement.
-- Rebuilt PostgreSQL 16 and blackbox-exporter v0.29.1 candidate scans have zero HIGH/CRITICAL findings. Loki/Tempo/Prometheus rebuild validation remains in progress. Vector 0.61.0-alpine has zero HIGH/CRITICAL findings and is the candidate maintained Docker log collector.
+- Rebuilt PostgreSQL 16 and blackbox-exporter v0.29.1 candidate scans have zero HIGH/CRITICAL findings. Loki and Prometheus rebuilds also passed the host-policy scan. Tempo 3.1.1 passed with Trivy 0.76.2; Trivy 0.69.3 misidentified the root module as a pre-release Go pseudo-version. The pinned updated scanner inventories the verified 3.1.1 release and its patched dependencies, with no additional suppression. Raw reports from both versions are retained locally. Vector 0.61.0-alpine has zero HIGH/CRITICAL findings and is the candidate maintained Docker log collector.
 
 ## Grafana 12.4.15 fixed-source findings: approved scoped disposition
 
@@ -32,3 +32,13 @@ The candidate disposition is limited to these two IDs, this exact image digest, 
 ## Completion evidence still required
 
 Exact generated SHA and one-snapshot ancestry; successful required CI runs; all-image scan reports and approved dispositions; database backup; deployment run; public ingress and message-bus health; order create/cancel/fill; settled trades and positions surviving reload; observability queries. This document does not claim recovery is complete.
+
+## Final runtime compatibility checks
+
+- Tempo 3 monolithic configuration validated; OTLP trace ingestion and trace-ID query passed.
+- Vector configuration validated; Docker log ingestion into Loki and label-filtered query passed.
+- Collector configuration validated with its current debug exporter and explicit port 8888 metrics reader.
+- Prometheus builds only the static-target discovery support needed by state 009, omitting unused cloud discovery plugins; its release tag is verified against the pinned source commit.
+- Final host scanner is Trivy 0.76.2 pinned by image digest. HIGH/CRITICAL vulnerabilities and secrets remain blocking; only the previously approved Grafana disposition applies.
+
+Host capacity diagnosis confirmed 15 GiB available RAM and 7.8 GB of unused image cache, with no containers. Recovery can explicitly reclaim images older than 24 hours through a state/host-scoped option that refuses nonempty container inventories. No volumes are pruned. This provides room for the replacement and Loki WAL disk headroom.

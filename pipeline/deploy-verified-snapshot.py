@@ -68,7 +68,7 @@ def scan_infrastructure(config, images, reports, policy=None):
                 raise ValueError('cannot resolve immutable infrastructure image')
             entry['digest'] = service['image'] = digests[0]
             result = subprocess.run(
-                ['docker', 'run', '--rm', '--name', scanner, 'aquasec/trivy:0.69.3',
+                ['docker', 'run', '--rm', '--name', scanner, 'aquasec/trivy:0.76.2@sha256:8f6bb947dbc528902e11f2f5be52f7b519f6a39d5d148f41166f2040499768fb',
                  'image', '--exit-code', '1', '--severity', 'HIGH,CRITICAL',
                  '--format', 'json', '--no-progress', service['image']],
                 capture_output=True, text=True, timeout=600)
@@ -163,12 +163,28 @@ def backup_state009_database(record, project, audit):
     print(f'[ok] verified offline PostgreSQL 16 backup: {dest.name}')
 
 
+def reclaim_recovery_image_cache(record, audit):
+    """Scoped empty-host recovery: remove only old unused image cache, never volumes."""
+    if record['state'] != '009-order-management-matcher' or record['target'] != 'demo-advanced.traderx.finos.org':
+        raise ValueError('image-cache recovery is restricted to state 009 on demo-advanced')
+    if run('docker', 'ps', '-aq', capture_output=True, text=True).stdout.strip():
+        raise ValueError('image-cache recovery requires an empty container inventory')
+    before = run('df', '-h', '/', capture_output=True, text=True).stdout
+    result = run('docker', 'image', 'prune', '-a', '-f', '--filter', 'until=24h', capture_output=True, text=True)
+    after = run('df', '-h', '/', capture_output=True, text=True).stdout
+    (audit / 'recovery-image-cache.json').write_text(json.dumps(
+        {'before': before, 'prune': result.stdout, 'after': after}, indent=2) + '\n')
+    print('[ok] reclaimed old unused image cache; no containers or volumes removed')
+    print(after)
+
+
 def main():
     p = argparse.ArgumentParser(__doc__)
     p.add_argument('manifest')
     p.add_argument('--workdir', default=str(Path.home() / 'traderx'))
     p.add_argument('--preflight-only', action='store_true',
                    help='verify and scan infrastructure without starting/replacing containers')
+    p.add_argument('--reclaim-unused-images', action='store_true', help='empty state-009 demo host only: reclaim old unused image cache')
     p.add_argument('--report-dir', type=Path, help='new private directory for infrastructure scan reports')
     a = p.parse_args()
     record = json.loads(Path(a.manifest).read_text())
@@ -194,6 +210,8 @@ def main():
     audit = work / '.traderx-deploy'
     audit.mkdir(mode=0o700, exist_ok=True)
     os.chmod(audit, 0o700)
+    if a.reclaim_unused_images:
+        reclaim_recovery_image_cache(record, audit)
     policy_file = Path(__file__).with_name('state-009-grafana-fixed-findings.json')
     policy = json.loads(policy_file.read_text()) if policy_file.exists() else None
     scan_infrastructure(config, record['images'],

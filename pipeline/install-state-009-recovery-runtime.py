@@ -46,8 +46,8 @@ docker_host = "unix:///var/run/docker.sock"
 type = "remap"
 inputs = ["docker"]
 source = \'\'\'
-.service = .label."com.docker.compose.service" ?? "unknown"
-.compose_project = .label."com.docker.compose.project" ?? "unknown"
+.service = string(.label."com.docker.compose.service") ?? "unknown"
+.compose_project = string(.label."com.docker.compose.project") ?? "unknown"
 .container = .container_name
 \'\'\'
 
@@ -62,4 +62,41 @@ service = "{{ service }}"
 compose_project = "{{ compose_project }}"
 container = "{{ container }}"
 ''')
+tempo = state / 'observability/tempo/config.yaml'
+tempo.write_text("""target: all
+server:
+  http_listen_port: 3200
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+storage:
+  trace:
+    backend: local
+    local:
+      path: /tmp/tempo/traces
+    wal:
+      path: /tmp/tempo/wal
+overrides:
+  defaults:
+    compaction:
+      block_retention: 24h
+""")
+collector_text = collector.read_text()
+if '  telemetry:' not in collector_text:
+    collector_text = collector_text.replace('service:\n', """service:
+  telemetry:
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: 0.0.0.0
+                port: 8888
+""")
+collector.write_text(collector_text)
 print('[ok] installed state-009 recovery runtime')
