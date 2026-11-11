@@ -120,6 +120,15 @@ class ImagePolicyTests(unittest.TestCase):
                 policy_module.install(f'{number:03d}-fixture', self.target, self.policy)
                 self.assertEqual(before,{p.relative_to(self.target):p.read_bytes() for p in self.target.rglob('*') if p.is_file()})
 
+    def test_runtime_image_replacement_preserves_unrelated_sidecar_images(self):
+        patch_fixture(self.target,10)
+        path = self.target / 'kubernetes-runtime/manifests/base/grafana-deployment.yaml'
+        text=path.read_text().replace('      containers:\n', '      containers:\n        - name: independent-sidecar\n          image: example/sidecar:original\n')
+        path.write_text(text)
+        policy_module.install('010-fixture',self.target,self.policy)
+        self.assertIn('image: example/sidecar:original',path.read_text())
+        self.assertIn(self.policy['docker']['infrastructure']['grafana']['image'],path.read_text())
+
     def test_all_application_build_stages_use_selected_digests(self):
         path = self.target / 'example/Dockerfile.compose'
         path.parent.mkdir()

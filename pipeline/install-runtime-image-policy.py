@@ -178,7 +178,11 @@ def normalize_manifests(directory, number, policy):
     for service in policy['docker']['infrastructure']:
         file = directory / f'{service}-deployment.yaml'
         if file.is_file():
-            file.write_text(re.sub(r'^(\s+image:) [^\n]+', rf'\1 {image_ref(policy, service, number)}', file.read_text(), flags=re.M))
+            pattern = rf'(^ +[-] name: {re.escape(service)}\n +image:) [^\n]+'
+            text, count = re.subn(pattern, rf'\1 {image_ref(policy, service, number)}', file.read_text(), flags=re.M)
+            if count != 1:
+                raise ValueError(f'expected one named {service} container in {file}')
+            file.write_text(text)
     write_configmap(directory / 'observability-tempo-configmap.yaml', namespace, 'config.yaml', template('tempo.yaml'))
     write_configmap(directory / 'observability-otel-configmap.yaml', namespace, 'config.yaml', template('collector.yaml'))
     write_configmap(directory / 'observability-promtail-configmap.yaml', namespace, 'vector.toml', template('vector-kubernetes.toml'))
