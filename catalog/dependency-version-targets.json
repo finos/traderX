@@ -130,11 +130,17 @@
       "nginx:alpine-slim": "nginx:alpine-slim@sha256:4c734d33ee731135dc9f2349914a34551c920f4451fca8bb05bf5880eb9079e8",
       "eclipse-temurin:21-jdk": "eclipse-temurin:21-jdk@sha256:ebfbb18d11ff163ee83b21258acf12248af48d22a0fdfdc68fa1a1516c05976a",
       "eclipse-temurin:21-jre": "eclipse-temurin:21-jre@sha256:0b99b3376fbb50dbf9c0af8535fdd5b8eb0d3fdfc8b1e4967f383b6919f6901a",
-      "mcr.microsoft.com/dotnet/sdk:9.0": "mcr.microsoft.com/dotnet/sdk:9.0@sha256:1dfdb27e9c2c345cb598925ccf6b13719ecfebea8467bd4745c23a3c108cdf84",
+      "mcr.microsoft.com/dotnet/sdk:9.0": "mcr.microsoft.com/dotnet/sdk:9.0-noble@sha256:eeaa543fc683baaae7389e83786f749add545f68cd2fecff19212f23a3bec58f",
       "mcr.microsoft.com/dotnet/aspnet:9.0-noble-chiseled-extra": "mcr.microsoft.com/dotnet/aspnet:9.0-noble-chiseled-extra@sha256:a14213a1dcdee4dd4873f4f38f6a4e7c7d49857b02245c83b295192c7584a91f",
       "nginx:1.27-alpine": "nginx:alpine-slim@sha256:4c734d33ee731135dc9f2349914a34551c920f4451fca8bb05bf5880eb9079e8",
       "node:20-bookworm": "node:24-bookworm@sha256:8fa96264f302f58bbb13aa7339c541547b56975766ce956c875da149452a3e40",
       "node:24-bookworm": "node:24-bookworm@sha256:8fa96264f302f58bbb13aa7339c541547b56975766ce956c875da149452a3e40"
+    },
+    "baseImageRefresh": {
+      "eclipse-temurin:21-jdk": "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && rm -rf /var/lib/apt/lists/*",
+      "eclipse-temurin:21-jre": "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && rm -rf /var/lib/apt/lists/*",
+      "nginx:alpine": "apk upgrade --no-cache",
+      "mcr.microsoft.com/dotnet/sdk:9.0-noble": "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && rm -rf /var/lib/apt/lists/*"
     }
   },
   "npm": {

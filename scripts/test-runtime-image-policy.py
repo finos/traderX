@@ -154,6 +154,22 @@ class ImagePolicyTests(unittest.TestCase):
         self.assertIn(self.policy['docker']['baseImages']['eclipse-temurin:21-jre'], path.read_text())
         self.assertNotIn('postgres',path.read_text())
 
+    def test_os_refresh_covers_each_selected_stage_and_is_idempotent(self):
+        path = self.target / 'app/Dockerfile.compose'
+        path.parent.mkdir()
+        path.write_text('FROM eclipse-temurin:21-jdk AS build\nRUN java -version\nFROM eclipse-temurin:21-jre\nUSER 1001\n')
+        policy_module.install('004-fixture', self.target, self.policy)
+        result = path.read_text()
+        self.assertEqual(result.count('RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y'), 2)
+        self.assertLess(result.rindex('RUN apt-get'), result.index('USER 1001'))
+        policy_module.install('004-fixture', self.target, self.policy)
+        self.assertEqual(path.read_text(), result)
+        path.write_text('FROM nginx:alpine\nFROM mcr.microsoft.com/dotnet/sdk:9.0 AS build\nFROM scratch\n')
+        policy_module.install('004-fixture', self.target, self.policy)
+        self.assertIn('RUN apk upgrade --no-cache', path.read_text())
+        self.assertIn('FROM mcr.microsoft.com/dotnet/sdk:9.0-noble@sha256:', path.read_text())
+        self.assertEqual(path.read_text().count('RUN apt-get'), 1)
+
     def test_tracing_is_limited_to_observability_spring_services(self):
         path = self.target / 'account-service/build.gradle'
         path.parent.mkdir()

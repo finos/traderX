@@ -249,13 +249,26 @@ TRACE_ENV = {
 
 def normalize_base_images(target, policy):
     references = policy['docker'].get('baseImages', {})
+    refreshes = policy['docker'].get('baseImageRefresh', {})
     for path in target.rglob('Dockerfile*'):
         if not path.is_file() or any(part in {'node_modules', 'runtime-cache', '.git'} for part in path.parts):
             continue
         def replace(match):
             source = match[2].split('@', 1)[0]
             return match[1] + references.get(source, match[2])
-        path.write_text(re.sub(r'^(FROM\s+(?:--platform=\S+\s+)?)(\S+)', replace, path.read_text(), flags=re.M | re.I))
+        text = re.sub(r'^(FROM\s+(?:--platform=\S+\s+)?)(\S+)', replace, path.read_text(), flags=re.M | re.I)
+        # Refresh selected OS packages in every stage before switching users or
+        # copying application artifacts. Keep this final pass idempotent.
+        def refresh(match):
+            source = match[2].split('@', 1)[0]
+            command = refreshes.get(source)
+            line = match[0]
+            if command:
+                line += '# Canonical base OS security refresh\nRUN ' + command + '\n'
+            return line
+        text = re.sub(r'^# Canonical base OS security refresh\nRUN [^\n]+\n', '', text, flags=re.M)
+        text = re.sub(r'^(FROM\s+(?:--platform=\S+\s+)?)(\S+)[^\n]*\n', refresh, text, flags=re.M | re.I)
+        path.write_text(text)
 
 
 def install_application_tracing(target, number):
