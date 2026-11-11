@@ -319,7 +319,7 @@ index 04a6023..f4fff9c 100644
        PEOPLE_SERVICE_URL: "http://people-service:18089/"
        ACCOUNT_SERVICE_URL: "http://account-service:18088/"
        POSITION_SERVICE_URL: "http://position-service:18090/"
-@@ -163,4 +179,8 @@ services:
+@@ -163,4 +179,7 @@ services:
        - trade-service
        - position-service
        - people-service
@@ -328,7 +328,6 @@ index 04a6023..f4fff9c 100644
 +
 +volumes:
 +  postgres_state_009_data:
-+    restart: unless-stopped
 diff --git a/messaging-nats-replacement/nats/nats.conf b/messaging-nats-replacement/nats/nats.conf
 new file mode 100644
 index 0000000..d194d1f

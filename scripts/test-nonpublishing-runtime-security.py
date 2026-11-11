@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import sys
+import subprocess
 import tempfile
 from types import SimpleNamespace
 import unittest
@@ -152,6 +153,31 @@ class LocalEvidence(unittest.TestCase):
             self.assertFalse((self.root / 'runtime-lock.json').exists())
             self.assertFalse((reports / 'build-only-result.json').exists())
             self.assertFalse(gate.read(reports / 'failure.json')['deployment_authorization'])
+        finally:
+            os.chdir(previous)
+
+    def test_inventory_command_failure_retains_stderr_without_authorization(self):
+        (self.root / 'ci').mkdir()
+        gate.write(self.root / 'ci/state-metadata.json', METADATA)
+        gate.write(self.root / 'ci/dependency-version-targets.json', {'security': POLICY})
+        previous = Path.cwd()
+        try:
+            os.chdir(self.root)
+            for index, stderr in enumerate(('volumes.database: additional property restart is not allowed', b'invalid compose volume')):
+                reports = self.root / f'failure-reports-{index}'
+                error = subprocess.CalledProcessError(1, ['docker', 'compose', 'config'], stderr=stderr)
+                with patch.object(sys, 'argv', ['gate', '--artifacts', str(self.root), '--reports', str(reports)]), \
+                     patch.object(gate, 'identity', return_value=IDENTITY), \
+                     patch.object(gate, 'command', return_value=SimpleNamespace(stdout=IDENTITY['snapshot'])), \
+                     patch.object(gate, 'validate_modules', return_value={'sail': fixture()}), \
+                     patch.object(gate, 'inventory', side_effect=error):
+                    with self.assertRaises(subprocess.CalledProcessError):
+                        gate.main()
+                result = gate.read(reports / 'failure.json')
+                self.assertEqual(result['stderr'], stderr.decode() if isinstance(stderr, bytes) else stderr)
+                self.assertEqual(result['returncode'], 1)
+                self.assertFalse(result['deployment_authorization'])
+                self.assertFalse((reports / 'build-only-result.json').exists())
         finally:
             os.chdir(previous)
 

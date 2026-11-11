@@ -248,7 +248,12 @@ def main():
         completed = {r['key'] for r in summary}
         summary.extend(dict(e, status='error', error='scan not completed') for e in entries if e['key'] not in completed)
         write(args.reports / 'summary.json', summary)
-        write(args.reports / 'failure.json', {'error': str(exc), 'deployment_authorization': False})
+        failure = {'error': str(exc), 'deployment_authorization': False}
+        if isinstance(exc, subprocess.CalledProcessError):
+            stderr = exc.stderr or ''
+            failure['stderr'] = stderr.decode('utf-8', errors='replace') if isinstance(stderr, bytes) else stderr
+            failure['returncode'] = exc.returncode
+        write(args.reports / 'failure.json', failure)
         raise
 
 
