@@ -14,3 +14,7 @@
 - [ ] T01312 Generate `runtime/deploy/aws-ec2-compose/` deployment bundle for this state (`demo-advanced` target profile) with dry-run-capable scripts and runbook.
 - [ ] T01313 Validate deployment bundle local dry-run and enforce no hardcoded secrets/token material in generated deployment artifacts.
 - [ ] T01314 Ensure generated deployment-bundle policy remains state-scoped: present for this containerized state, absent for uncontainerized states.
+- [x] T01315 Diagnose demo-advanced without replacing runtime or exposing environment secrets (#487).
+- [ ] T01316 Validate rebuilt infrastructure and maintained log collection with preserved dashboard labels.
+- [ ] T01317 Preserve/backup PostgreSQL data, publish one replacement snapshot and complete exact-snapshot checks.
+- [ ] T01318 Deploy the cleared snapshot and verify trading, persistence and observability; retain PR evidence.

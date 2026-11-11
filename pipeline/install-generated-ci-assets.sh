@@ -292,6 +292,7 @@ discover_docker_entries() {
     state_allows_dir "${dir}" || continue
     skip_docker_ci_dir "${dir}" && continue
     image_name="$(printf '%s' "${dir}" | tr '/' '-')"
+    if [[ "${dir}" == order-management-matcher/runtime-images/* ]]; then image_name="${dir##*/}"; fi
     printf '%s|%s|%s\n' "${dir}" "$(basename "${dockerfile}")" "${image_name}" >> "${out_file}"
   done < <(find "${TARGET_ROOT}" -type f -name Dockerfile.compose | sort)
 
@@ -306,6 +307,7 @@ discover_docker_entries() {
       continue
     fi
     image_name="$(printf '%s' "${dir}" | tr '/' '-')"
+    if [[ "${dir}" == order-management-matcher/runtime-images/* ]]; then image_name="${dir##*/}"; fi
     printf '%s|%s|%s\n' "${dir}" "$(basename "${dockerfile}")" "${image_name}" >> "${out_file}"
   done < <(find "${TARGET_ROOT}" -type f -name Dockerfile | sort)
 
@@ -1078,6 +1080,9 @@ write_aws_ec2_compose_deploy_bundle() {
   cp "${ROOT}/pipeline/verify-deployment-snapshot.py" "${TARGET_ROOT}/ci/verify-deployment-snapshot.py"
   cp "${ROOT}/pipeline/deploy-verified-snapshot.py" "${TARGET_ROOT}/ci/deploy-verified-snapshot.py"
   cp "${CATALOG}" "${TARGET_ROOT}/ci/deployment-catalog.json"
+  if [[ "${STATE_ID}" == "009-order-management-matcher" ]]; then
+    cp "${ROOT}/catalog/security/state-009-grafana-fixed-findings.json" "${TARGET_ROOT}/ci/"
+  fi
   local bundle_dir="${TARGET_ROOT}/runtime/deploy/aws-ec2-compose"
   local ingress_template="${TARGET_ROOT}/ingress/nginx.traderx.conf.template"
   local include_ng_cli_ws=0

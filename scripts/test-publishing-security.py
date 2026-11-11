@@ -28,6 +28,28 @@ SHA = 'a' * 40
 DIGEST = 'sha256:' + 'b' * 64
 
 
+class RecoveryCacheTests(unittest.TestCase):
+    def test_refuses_other_hosts_states_and_existing_containers(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.object(deploy, 'run') as run:
+            for state, host in [('004-containerized-compose-runtime', 'demo-advanced.traderx.finos.org'), ('009-order-management-matcher', 'demo.traderx.finos.org')]:
+                with self.assertRaises(ValueError):
+                    deploy.reclaim_recovery_image_cache({'state': state, 'target': host}, Path(tmp))
+            run.assert_not_called()
+            run.return_value.stdout = 'existing-container'
+            with self.assertRaises(ValueError):
+                deploy.reclaim_recovery_image_cache({'state': '009-order-management-matcher', 'target': 'demo-advanced.traderx.finos.org'}, Path(tmp))
+            self.assertEqual(run.call_count, 1)
+
+    def test_removes_only_old_unused_images_and_records_result(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.object(deploy, 'run') as run:
+            run.return_value.stdout = ''
+            deploy.reclaim_recovery_image_cache({'state': '009-order-management-matcher', 'target': 'demo-advanced.traderx.finos.org'}, Path(tmp))
+            self.assertEqual([call.args for call in run.call_args_list], [
+                ('docker', 'ps', '-aq'), ('df', '-h', '/'),
+                ('docker', 'image', 'prune', '-a', '-f', '--filter', 'until=24h'), ('df', '-h', '/')])
+            self.assertTrue((Path(tmp) / 'recovery-image-cache.json').is_file())
+
+
 class SnapshotRunnerTests(unittest.TestCase):
     def test_state004_keeps_corrected_shared_test_fixtures(self):
         patch_text = (ROOT / 'specs/004-containerized-compose-runtime/generation/patches/0001-state-overlay.patch').read_text()
@@ -192,7 +214,154 @@ class AuthorizationTests(unittest.TestCase):
             self.assertTrue(any('--no-build' in call.args and '--wait' in call.args for call in commands.call_args_list))
 
 
+class FixedSourceDispositionTests(unittest.TestCase):
+    def setUp(self):
+        self.policy = json.loads((ROOT / 'catalog/security/state-009-grafana-fixed-findings.json').read_text())
+        self.finding = {'VulnerabilityID': 'CVE-2026-21728', 'PkgName': self.policy['package'],
+                        'InstalledVersion': self.policy['installed_version'], 'Severity': 'HIGH'}
+        self.now = deploy.datetime.datetime(2026, 11, 11, tzinfo=deploy.datetime.timezone.utc)
+
+    def test_disposition_is_exact_and_expires(self):
+        self.assertTrue(deploy.already_fixed(self.finding, self.policy['image'], self.policy, self.now))
+        self.assertFalse(deploy.already_fixed(self.finding, 'other@' + DIGEST, self.policy, self.now))
+        for change in [{'VulnerabilityID': 'CVE-9999-9999'}, {'PkgName': 'other'}, {'InstalledVersion': 'other'}]:
+            self.assertFalse(deploy.already_fixed(self.finding | change, self.policy['image'], self.policy, self.now))
+        with self.assertRaisesRegex(ValueError, 'expired'):
+            deploy.already_fixed(self.finding, self.policy['image'], self.policy,
+                                 deploy.datetime.datetime(2026, 12, 11, tzinfo=deploy.datetime.timezone.utc))
+        with self.assertRaisesRegex(ValueError, 'not approved'):
+            deploy.already_fixed(self.finding, self.policy['image'], self.policy | {'approved': False}, self.now)
+
+    def test_disposition_retains_raw_findings_and_never_exempts_secrets(self):
+        self.policy['expires'] = (deploy.datetime.datetime.now(deploy.datetime.timezone.utc)
+                                  + deploy.datetime.timedelta(days=1)).isoformat()
+        for secrets, expected in [([], 'success'), ([{'Severity': 'HIGH'}], 'findings')]:
+            with self.subTest(secrets=secrets), tempfile.TemporaryDirectory() as tmp:
+                report = json.dumps({'Results': [{'Vulnerabilities': [self.finding], 'Secrets': secrets}]})
+                config = {'services': {'grafana': {'image': 'grafana:12.4.15'}}}
+                with patch.object(deploy, 'run', return_value=subprocess.CompletedProcess(
+                        [], 0, json.dumps([self.policy['image']]))), \
+                     patch.object(deploy.subprocess, 'run', return_value=subprocess.CompletedProcess([], 1, report, '')):
+                    if secrets:
+                        with self.assertRaises(ValueError):
+                            deploy.scan_infrastructure(config, {}, Path(tmp) / 'reports', self.policy)
+                    else:
+                        deploy.scan_infrastructure(config, {}, Path(tmp) / 'reports', self.policy)
+                row, = json.loads((Path(tmp) / 'reports/summary.json').read_text())
+                self.assertEqual(row['status'], expected)
+                self.assertEqual(row['fixed_findings'], [self.finding])
+                self.assertEqual((Path(tmp) / 'reports/grafana.trivy.json').read_text(), report)
+
+
+class DatabaseRecoveryTests(unittest.TestCase):
+    def test_recovery_rejects_wrong_major_or_active_database(self):
+        for version, writers in [('17', ''), ('16', 'running-container')]:
+            with self.subTest(version=version, writers=writers), tempfile.TemporaryDirectory() as tmp:
+                record = {'state': '009-order-management-matcher', 'snapshot': SHA}
+                volume = 'demo_postgres_state_009_data'
+                replies = [json.dumps([{'Name': volume, 'Mountpoint': '/volume'}]), version, writers]
+                def fake(*args, **kwargs):
+                    return subprocess.CompletedProcess(args, 0, replies.pop(0), '')
+                with patch.object(deploy, 'run', side_effect=fake) as commands:
+                    with self.assertRaises(ValueError):
+                        deploy.backup_state009_database(record, 'demo', Path(tmp))
+                self.assertFalse(any('tar' in c.args for c in commands.call_args_list))
+                self.assertNotIn('database_backup', record)
+
+    def test_missing_recovery_volume_blocks_instead_of_creating_one(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.object(deploy, 'run',
+                side_effect=subprocess.CalledProcessError(1, ['docker', 'volume', 'inspect'])):
+            with self.assertRaises(subprocess.CalledProcessError):
+                deploy.backup_state009_database({'state': '009-order-management-matcher', 'snapshot': SHA},
+                                                'demo', Path(tmp))
+
+
 class ScannerTests(unittest.TestCase):
+    def test_infrastructure_timeout_continues_and_cleans_only_owned_scanners(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            config = {'services': {'timeout': {'image': 'repo:1'}, 'clean': {'image': 'repo:2'}}}
+            with patch.object(deploy, 'run', return_value=subprocess.CompletedProcess(
+                    [], 0, json.dumps(['repo@' + DIGEST]))) as commands, \
+                 patch.object(deploy.subprocess, 'run', side_effect=[
+                     subprocess.TimeoutExpired('scanner', 600),
+                     subprocess.CompletedProcess([], 0, '{"Results": []}', '')]) as scans:
+                with self.assertRaisesRegex(ValueError, 'blocked: timeout'):
+                    deploy.scan_infrastructure(config, {}, Path(tmp) / 'reports')
+            summary = json.loads((Path(tmp) / 'reports/summary.json').read_text())
+            self.assertEqual([e['status'] for e in summary], ['error', 'success'])
+            self.assertEqual(scans.call_count, 2)
+            cleanups = [c for c in commands.call_args_list if c.args[:3] == ('docker', 'rm', '-f')]
+            self.assertEqual(len(cleanups), 2)
+            self.assertNotEqual(cleanups[0].args[3], cleanups[1].args[3])
+            self.assertTrue(all(c.args[3].startswith('traderx-security-') for c in cleanups))
+
+    def test_infrastructure_findings_block_even_when_scanner_returns_zero(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            report = json.dumps({'Results': [{'Vulnerabilities': [{'Severity': 'HIGH'}]}]})
+            with patch.object(deploy, 'run', return_value=subprocess.CompletedProcess(
+                    [], 0, json.dumps(['repo@' + DIGEST]))), \
+                 patch.object(deploy.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, report, '')):
+                with self.assertRaisesRegex(ValueError, 'blocked: infra'):
+                    deploy.scan_infrastructure({'services': {'infra': {'image': 'repo:1'}}}, {}, Path(tmp) / 'reports')
+
+    def test_infrastructure_inventory_continues_after_findings_and_pull_failure(self):
+        images = {'app': 'app@' + DIGEST}
+        config = {'services': {
+            'app': {'image': images['app']},
+            'vulnerable': {'image': 'old:1'},
+            'unavailable': {'image': 'missing:1'},
+            'clean': {'image': 'new:1'},
+        }}
+        def fake_run(*args, **kwargs):
+            if args[:3] == ('docker', 'pull', 'missing:1'):
+                raise subprocess.CalledProcessError(1, args)
+            return subprocess.CompletedProcess(args, 0, stdout=json.dumps(['repo@' + DIGEST]))
+        vulnerable = json.dumps({'Results': [{'Vulnerabilities': [{'Severity': 'CRITICAL'}]}]})
+        clean = json.dumps({'Results': []})
+        with tempfile.TemporaryDirectory() as tmp:
+            reports = Path(tmp) / 'reports'
+            with patch.object(deploy, 'run', side_effect=fake_run), \
+                 patch.object(deploy.subprocess, 'run', side_effect=[
+                     subprocess.CompletedProcess([], 1, vulnerable, ''),
+                     subprocess.CompletedProcess([], 0, clean, '')]) as scans:
+                with self.assertRaisesRegex(ValueError, 'vulnerable, unavailable'):
+                    deploy.scan_infrastructure(config, images, reports)
+            summary = json.loads((reports / 'summary.json').read_text())
+            self.assertEqual([r['status'] for r in summary], ['findings', 'error', 'success'])
+            self.assertEqual(summary[0]['critical'], 1)
+            self.assertEqual(scans.call_count, 2)
+            self.assertEqual(config['services']['clean']['image'], 'repo@' + DIGEST)
+            self.assertEqual(json.loads((reports / 'vulnerable.trivy.json').read_text()), json.loads(vulnerable))
+
+    def test_infrastructure_invalid_report_and_scanner_error_fail_closed(self):
+        for rc, report in [(0, '{}'), (0, 'invalid'), (0, '{"Results": [null]}'),
+                           (2, '{"Results": []}'), (1, '{"Results": []}')]:
+            with self.subTest(rc=rc, report=report), tempfile.TemporaryDirectory() as tmp:
+                config = {'services': {'infra': {'image': 'repo:1'}}}
+                with patch.object(deploy, 'run', return_value=subprocess.CompletedProcess(
+                        [], 0, json.dumps(['repo@' + DIGEST]))), \
+                     patch.object(deploy.subprocess, 'run', return_value=subprocess.CompletedProcess(
+                        [], rc, report, 'scanner diagnostic')):
+                    with self.assertRaisesRegex(ValueError, 'infrastructure preflight blocked'):
+                        deploy.scan_infrastructure(config, {}, Path(tmp) / 'reports')
+
+    def test_preflight_does_not_start_compose_or_write_deployed_record(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work = Path(tmp)
+            (work / '.git').mkdir()
+            manifest = work / 'manifest.json'
+            manifest.write_text(json.dumps(dict(snapshot=SHA, state='009-test', target='demo.test',
+                                                repository='finos/traderX', images={})))
+            with patch.object(sys, 'argv', ['deploy', str(manifest), '--workdir', str(work), '--preflight-only']), \
+                 patch.object(deploy, 'run', return_value=subprocess.CompletedProcess(
+                     [], 0, json.dumps({'services': {}}))) as commands, \
+                 patch.object(deploy.subprocess, 'check_output', return_value=SHA + '\n'), \
+                 patch.object(deploy, 'scan_infrastructure') as scan:
+                deploy.main()
+            scan.assert_called_once()
+            self.assertFalse(any('up' in c.args or 'pull' in c.args for c in commands.call_args_list))
+            self.assertFalse((work / '.traderx-deploy/deployed.json').exists())
+
     def command(self, tmp, phase, program):
         return [sys.executable, str(ROOT / 'pipeline/bounded-security-command.py'), '--timeout', '1',
                 '--phase', phase, '--result', str(Path(tmp) / 'result.json'), '--', sys.executable, '-c', program]

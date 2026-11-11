@@ -14,6 +14,21 @@ on:
         options:
           - demo.traderx.finos.org
           - demo-advanced.traderx.finos.org
+      diagnose_only:
+        description: Read-only host diagnosis; no checkout, pull or deployment on host
+        required: false
+        default: false
+        type: boolean
+      reclaim_unused_images:
+        description: Empty state-009 demo host only; reclaim old unused images, preserve all volumes
+        required: false
+        default: false
+        type: boolean
+      preflight_only:
+        description: Verify snapshot and scan infrastructure without replacing containers
+        required: false
+        default: false
+        type: boolean
 
 # Requires repository secret DEMO_EC2_SSH_PRIVATE_KEY (PEM private key for ec2-user).
 permissions:
@@ -26,6 +41,7 @@ concurrency:
 
 jobs:
   redeploy:
+    if: ${{ !inputs.diagnose_only }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -63,15 +79,62 @@ jobs:
       - name: Deploy verified snapshot over SSH
         env:
           TARGET: ${{ inputs.target }}
+          PREFLIGHT_ONLY: ${{ inputs.preflight_only }}
+          RECLAIM_UNUSED_IMAGES: ${{ inputs.reclaim_unused_images }}
         run: |
           remote_dir=$(ssh -i ~/.ssh/demo_ec2.pem -o BatchMode=yes -o StrictHostKeyChecking=yes "ec2-user@$TARGET" 'mktemp -d /tmp/traderx-deploy.XXXXXXXX')
           [[ "$remote_dir" =~ ^/tmp/traderx-deploy\.[a-zA-Z0-9]+$ ]]
           trap 'ssh -i ~/.ssh/demo_ec2.pem -o BatchMode=yes -o StrictHostKeyChecking=yes "ec2-user@$TARGET" "rm -rf $remote_dir"' EXIT
           scp -i ~/.ssh/demo_ec2.pem -o BatchMode=yes -o StrictHostKeyChecking=yes \
-            verified-deployment.json pipeline/deploy-verified-snapshot.py "ec2-user@$TARGET:$remote_dir/"
+            verified-deployment.json pipeline/deploy-verified-snapshot.py \
+            catalog/security/state-009-grafana-fixed-findings.json "ec2-user@$TARGET:$remote_dir/"
+          args=""
+          if [[ "$PREFLIGHT_ONLY" == true ]]; then args="--preflight-only"; fi
+          if [[ "$RECLAIM_UNUSED_IMAGES" == true ]]; then args="$args --reclaim-unused-images"; fi
+          status=0
           ssh -i ~/.ssh/demo_ec2.pem -o BatchMode=yes -o StrictHostKeyChecking=yes \
-            "ec2-user@$TARGET" "python3 $remote_dir/deploy-verified-snapshot.py $remote_dir/verified-deployment.json"
+            "ec2-user@$TARGET" "python3 $remote_dir/deploy-verified-snapshot.py $remote_dir/verified-deployment.json --report-dir $remote_dir/reports $args" || status=$?
+          mkdir -p infrastructure-scans
+          scp -r -i ~/.ssh/demo_ec2.pem -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "ec2-user@$TARGET:$remote_dir/reports/." infrastructure-scans/ || status=1
+          exit "$status"
+
+      - name: Retain infrastructure scan diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: infrastructure-scans-${{ github.run_id }}-${{ github.run_attempt }}
+          path: infrastructure-scans/
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Remove SSH private key
         if: always()
         run: rm -f ~/.ssh/demo_ec2.pem
+
+  diagnose:
+    if: ${{ inputs.diagnose_only }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read-only host diagnosis over existing operator SSH access
+        env:
+          TARGET: ${{ inputs.target }}
+          DEMO_EC2_SSH_PRIVATE_KEY: ${{ secrets.DEMO_EC2_SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          trap 'rm -f ~/.ssh/demo_ec2.pem' EXIT
+          printf '%s\n' "$DEMO_EC2_SSH_PRIVATE_KEY" > ~/.ssh/demo_ec2.pem
+          chmod 600 ~/.ssh/demo_ec2.pem
+          ssh-keyscan -H "$TARGET" >> ~/.ssh/known_hosts
+          ssh -i ~/.ssh/demo_ec2.pem -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "ec2-user@$TARGET" 'python3 -' < pipeline/diagnose-demo-host.py > host-diagnosis.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: host-diagnosis-${{ github.run_id }}-${{ github.run_attempt }}
+          path: host-diagnosis.json
+          if-no-files-found: error
+          retention-days: 7

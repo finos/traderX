@@ -735,5 +735,6 @@ else
 fi
 
 install_pricing_order_ux_contract_check
+python3 "${ROOT}/pipeline/install-state-009-recovery-runtime.py" "${TARGET_ROOT}"
 
 echo "[done] rendered state 009 order-management observability refinements into ${STATE_DIR}"
