@@ -136,6 +136,11 @@ esac
 # prune those artifacts and avoid stale references.
 bash "${ROOT}/pipeline/prune-generated-state-removed-assets.sh" "${STATE_ID}" "${TARGET_ROOT}" "${COMPONENTS_ROOT}"
 
+# Apply shared image/config policy only after all parent patches compose cleanly.
+if (( GEN_DEPTH == 1 )); then
+  python3 "${ROOT}/pipeline/install-runtime-image-policy.py" "${STATE_ID}" "${TARGET_ROOT}"
+fi
+
 # Validate dependency version targets across generated outputs. Dependency
 # versions are canonical in templates/patches and catalog/dependency-version-targets.json.
 # Optional apply mode is provided only for explicit bulk remediation.

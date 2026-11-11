@@ -198,12 +198,12 @@ while IFS=$'\t' read -r image_name expected_tag; do
 
     while IFS= read -r actual_tag; do
       [[ -n "${actual_tag}" ]] || continue
-      check_equals "Docker image ${image_name}" "${manifest_file}" "${expected_tag}" "${actual_tag}"
+      check_equals "Docker image ${image_name}" "${manifest_file}" "${expected_tag}" "${actual_tag%%@sha256:*}"
     done < <(extract_yaml_image_tags "${manifest_file}" "${image_name}")
 
     while IFS= read -r actual_tag; do
       [[ -n "${actual_tag}" ]] || continue
-      check_equals "Docker image ${image_name}" "${manifest_file}" "${expected_tag}" "${actual_tag}"
+      check_equals "Docker image ${image_name}" "${manifest_file}" "${expected_tag}" "${actual_tag%%@sha256:*}"
     done < <(extract_json_image_tags "${manifest_file}" "${image_name}")
   done < <(rg -N "" "${tmp_files}" | rg '(\.ya?ml|\.json)$' || true)
 done < <(jq -r '(.docker.images // {}) | to_entries[] | [.key, .value] | @tsv' "${TARGETS_FILE}")

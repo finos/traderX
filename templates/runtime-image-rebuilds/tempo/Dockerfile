@@ -1,17 +1,17 @@
-FROM --platform=$BUILDPLATFORM golang:1.27.3-alpine AS build
+FROM --platform=$BUILDPLATFORM @@GO_BUILDER_IMAGE@@ AS build
 ARG TARGETARCH
 ENV GOMEMLIMIT=512MiB GOMAXPROCS=2
 RUN apk add --no-cache git
 WORKDIR /src
-RUN git init && git remote add origin https://github.com/grafana/tempo.git \
+RUN git init && git remote add origin @@SOURCE_REPOSITORY@@ \
  && git config core.sparseCheckout true \
  && printf '/*\n!/vendor/\n' > .git/info/sparse-checkout \
- && git fetch --filter=blob:none --depth=1 origin 9db7df79d2af105a90d96484e6403e1fda0d011e && git checkout --detach FETCH_HEAD \
- && git fetch --depth=1 origin tag v3.1.1 \
- && test "$(git rev-parse v3.1.1^{commit})" = 9db7df79d2af105a90d96484e6403e1fda0d011e
+ && git fetch --filter=blob:none --depth=1 origin @@SOURCE_COMMIT@@ && git checkout --detach FETCH_HEAD \
+ && git fetch --depth=1 origin tag @@SOURCE_TAG@@ \
+ && test "$(git rev-parse @@SOURCE_TAG@@^{commit})" = @@SOURCE_COMMIT@@
 ENV GOFLAGS=-mod=mod
-RUN --mount=type=cache,target=/go/pkg/mod go get golang.org/x/net@v0.62.0 github.com/go-jose/go-jose/v4@v4.1.6
+RUN --mount=type=cache,target=/go/pkg/mod go get @@GO_DEPENDENCIES@@
 RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
- CGO_ENABLED=0 GOOS=linux GOARCH=$TARGETARCH go build -p 1 -trimpath -ldflags "-X main.Version=3.1.1 -X main.Revision=9db7df79d2af105a90d96484e6403e1fda0d011e" -o /out/tempo ./cmd/tempo
-FROM grafana/tempo:3.1.1@sha256:64e2fbd56d9c2b3412a4b430a58ea59e91a670b1e75f920a0c702213ad145044
+ CGO_ENABLED=0 GOOS=linux GOARCH=$TARGETARCH go build -p 1 -trimpath -ldflags "-X main.Version=@@VERSION@@ -X main.Revision=@@SOURCE_COMMIT@@" -o /out/tempo ./cmd/tempo
+FROM @@BASE_IMAGE@@
 COPY --from=build /out/tempo /tempo
