@@ -136,6 +136,16 @@ esac
 # prune those artifacts and avoid stale references.
 bash "${ROOT}/pipeline/prune-generated-state-removed-assets.sh" "${STATE_ID}" "${TARGET_ROOT}" "${COMPONENTS_ROOT}"
 
+# Install self-contained runtime scripts alongside the generated codebase.
+# API explorer install mutates runtime ingress/proxy configs, so avoid applying
+# it during nested parent-state generation where later patchsets may expect the
+# pre-install file shape.
+if (( GEN_DEPTH == 1 )) || [[ "${TRADERX_INSTALL_API_EXPLORER_IN_NESTED_GENERATION:-0}" == "1" ]]; then
+bash "${ROOT}/pipeline/install-generated-api-explorer.sh" "${STATE_ID}" "${TARGET_ROOT}" "${COMPONENTS_ROOT}"
+else
+  echo "[info] nested generation depth=${GEN_DEPTH}; skipping API explorer install"
+fi
+
 # Apply shared image/config policy only after all parent patches compose cleanly.
 if (( GEN_DEPTH == 1 )); then
   python3 "${ROOT}/pipeline/install-runtime-image-policy.py" "${STATE_ID}" "${TARGET_ROOT}"
@@ -171,15 +181,6 @@ else
   echo "[info] nested generation depth=${GEN_DEPTH}; skipping lockfile refresh"
 fi
 
-# Install self-contained runtime scripts alongside the generated codebase.
-# API explorer install mutates runtime ingress/proxy configs, so avoid applying
-# it during nested parent-state generation where later patchsets may expect the
-# pre-install file shape.
-if (( GEN_DEPTH == 1 )) || [[ "${TRADERX_INSTALL_API_EXPLORER_IN_NESTED_GENERATION:-0}" == "1" ]]; then
-bash "${ROOT}/pipeline/install-generated-api-explorer.sh" "${STATE_ID}" "${TARGET_ROOT}" "${COMPONENTS_ROOT}"
-else
-  echo "[info] nested generation depth=${GEN_DEPTH}; skipping API explorer install"
-fi
 bash "${ROOT}/pipeline/install-generated-ui-state-metadata.sh" "${STATE_ID}" "${TARGET_ROOT}" "${COMPONENTS_ROOT}"
 bash "${ROOT}/pipeline/validate-generated-ui-status-checks.sh" "${STATE_ID}" "${TARGET_ROOT}" "${COMPONENTS_ROOT}"
 bash "${ROOT}/pipeline/install-generated-runtime-harness.sh" "${STATE_ID}" "${TARGET_ROOT}"
