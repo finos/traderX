@@ -64,6 +64,8 @@ def disposition_policy():
 
 def download_snapshot(repository, snapshot, destination):
     """Inspect the actual snapshot runtime, never a caller-supplied image list."""
+    # macOS temp paths often traverse /var -> /private/var; compare canonical roots.
+    destination = destination.resolve()
     archive = destination / 'snapshot.tar.gz'
     with archive.open('wb') as output:
         subprocess.run(['gh', 'api', f'repos/{repository}/tarball/{snapshot}'], stdout=output, check=True)

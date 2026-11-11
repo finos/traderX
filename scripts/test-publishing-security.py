@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Offline regression tests for scanner deadlines and deployment authorization."""
 import importlib.util
+import io
+import tarfile
 import json
 import os
 from pathlib import Path
@@ -27,6 +29,45 @@ deploy = module('deploy-verified-snapshot')
 SHA = 'a' * 40
 DIGEST = 'sha256:' + 'b' * 64
 TEST_SETTINGS = {'security': {'runtimeImageScanner': {'image': 'scanner@' + DIGEST, 'version': 'test'}, 'supportedPlatforms': ['linux/amd64'], 'maxEvidenceAgeHours': 24, 'maxDatabaseAgeHours': 24, 'maxJavaDatabaseAgeHours': 96}}
+
+
+class SnapshotArchiveTests(unittest.TestCase):
+    def archive(self, member_name='repo/file.txt', member_type=tarfile.REGTYPE):
+        buffer = io.BytesIO()
+        with tarfile.open(fileobj=buffer, mode='w:gz') as archive:
+            member = tarfile.TarInfo(member_name)
+            member.type = member_type
+            if member_type == tarfile.REGTYPE:
+                member.size = 4
+                archive.addfile(member, io.BytesIO(b'safe'))
+            else:
+                member.linkname = 'file.txt'
+                archive.addfile(member)
+        return buffer.getvalue()
+
+    def download(self, destination, payload):
+        def download(*args, **kwargs):
+            kwargs['stdout'].write(payload)
+        with patch.object(verify.subprocess, 'run', side_effect=download):
+            return verify.download_snapshot('finos/traderX', SHA, destination)
+
+    def test_safe_archive_accepts_symlinked_temporary_directory_root(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            real = root / 'real';real.mkdir()
+            alias = root / 'alias';alias.symlink_to(real, target_is_directory=True)
+            extracted = self.download(alias, self.archive())
+            self.assertEqual(extracted, real.resolve() / 'snapshot/repo')
+            self.assertEqual((extracted / 'file.txt').read_text(), 'safe')
+
+    def test_archive_rejects_traversal_absolute_paths_and_all_links(self):
+        for name, kind in [('../escape', tarfile.REGTYPE), ('/absolute/escape', tarfile.REGTYPE),
+                           ('repo/link', tarfile.SYMTYPE), ('repo/link', tarfile.LNKTYPE),
+                           ('repo/device', tarfile.CHRTYPE)]:
+            with self.subTest(name=name, kind=kind), tempfile.TemporaryDirectory() as tmp:
+                with self.assertRaisesRegex(ValueError, 'unsafe path or link'):
+                    self.download(Path(tmp), self.archive(name, kind))
+                self.assertFalse((Path(tmp) / 'escape').exists())
 
 
 class RecoveryCacheTests(unittest.TestCase):
