@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "issue": "https://github.com/finos/traderX/issues/487",
+  "owner": "TraderX maintainers",
+  "expires": "2026-12-11T00:00:00Z",
+  "image": "grafana/grafana@sha256:2894082f6cf7081aefdc1389265c04000812309208c190d75e8c65f7a30e4b7e",
+  "package": "github.com/grafana/tempo",
+  "installed_version": "v1.5.1-0.20260427112133-525d1bab07e0",
+  "source_commit": "525d1bab07e0",
+  "fixed_findings": {
+    "CVE-2026-21728": "650eb1985a0776789c8564122990f588a742356f",
+    "CVE-2026-28377": "bb8ca663db34a0980c9758b40d918fda3b4dbec3"
+  }
+}
