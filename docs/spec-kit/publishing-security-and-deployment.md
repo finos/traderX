@@ -14,6 +14,8 @@ For direct generated-bundle use, authenticate `gh` with read access to repositor
 
 The non-GHCR bundle path and clone-first scripts remain available for local development builds. They do not grant live-demo deployment eligibility.
 
+Build-only container states also require complete runtime inventory scans. Their Docker scan matrix records immutable local image IDs, raw reports and exact snapshot/run/attempt evidence. A dependent job validates every built-image record and scans all pulled runtime images, including Kubernetes init containers, sidecars and the Sail companion. These reports do not grant publication or deployment authorization. API Explorer is included wherever Kubernetes runs it as a separate image.
+
 ## Failure recovery
 
 Use the workflow's `preflight_only=true` input to authorize the exact snapshot,
