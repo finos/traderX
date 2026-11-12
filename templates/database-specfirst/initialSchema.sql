@@ -31,12 +31,13 @@ CREATE TABLE OrderBook (
   Side VARCHAR(16) check (CASE Side WHEN 'Buy' THEN TRUE WHEN 'Sell' THEN TRUE ELSE Side IS NULL END),
   Quantity INTEGER NOT NULL check (Quantity > 0),
   RemainingQuantity INTEGER NOT NULL check (RemainingQuantity >= 0),
-  LimitPrice DECIMAL(18,3) NOT NULL,
+  LimitPrice DECIMAL(18,3),
   Status VARCHAR(24) check (CASE Status WHEN 'NEW' THEN TRUE WHEN 'PARTIALLY_FILLED' THEN TRUE WHEN 'FILLED' THEN TRUE WHEN 'CANCELED' THEN TRUE WHEN 'REJECTED' THEN TRUE ELSE Status IS NULL END),
   CreatedAt TIMESTAMP NOT NULL,
   UpdatedAt TIMESTAMP NOT NULL,
   LastExecutionPrice DECIMAL(18,3),
-  LastFillQuantity INTEGER
+  LastFillQuantity INTEGER,
+  OrderType VARCHAR(20) DEFAULT 'LIMIT' NOT NULL check (CASE OrderType WHEN 'LIMIT' THEN TRUE WHEN 'MARKET' THEN TRUE ELSE OrderType IS NULL END)
 );
 CREATE INDEX idx_orderbook_status ON OrderBook(Status);
 CREATE INDEX idx_orderbook_updatedat ON OrderBook(UpdatedAt);

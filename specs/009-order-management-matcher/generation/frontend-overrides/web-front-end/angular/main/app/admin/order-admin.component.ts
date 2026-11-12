@@ -32,6 +32,7 @@ export class OrderAdminComponent implements OnInit, OnDestroy {
     columnDefs: ColDef<OrderRow>[] = [
         { headerName: 'ORDER ID', field: 'orderId' },
         { headerName: 'ACCOUNT', field: 'accountId' },
+        { headerName: 'ORDER TYPE', field: 'orderType', width: 120 },
         { headerName: 'SECURITY', field: 'security' },
         { headerName: 'SIDE', field: 'side' },
         {
@@ -76,12 +77,16 @@ export class OrderAdminComponent implements OnInit, OnDestroy {
         {
             headerName: 'CANCEL',
             colId: 'cancel',
-            cellRenderer: () => '<button class="btn btn-outline-danger btn-sm">Cancel</button>'
+            cellRenderer: (params: any) => params?.data?.status === 'NEW'
+                ? '<button class="btn btn-outline-danger btn-sm">Cancel</button>'
+                : '-'
         },
         {
             headerName: 'FORCE FILL',
             colId: 'forceFill',
-            cellRenderer: () => '<button class="btn btn-outline-success btn-sm">Force Fill</button>'
+            cellRenderer: (params: any) => (params?.data?.status === 'NEW' && params?.data?.orderType !== 'MARKET')
+                ? '<button class="btn btn-outline-success btn-sm">Force Fill</button>'
+                : '-'
         }
     ];
 

@@ -62,6 +62,7 @@ export class OrderBlotterComponent implements OnChanges, OnDestroy {
 
   private readonly baseColumns: ColDef<OrderRow>[] = [
     { headerName: 'ORDER ID', field: 'orderId' },
+    { headerName: 'ORDER TYPE', field: 'orderType', width: 120 },
     { headerName: 'SECURITY', field: 'security' },
     { headerName: 'SIDE', field: 'side' },
     {

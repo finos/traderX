@@ -8,6 +8,7 @@ import finos.traderx.ordermatcher.api.OrderResponse;
 import finos.traderx.ordermatcher.model.OrderRecord;
 import finos.traderx.ordermatcher.model.OrderSide;
 import finos.traderx.ordermatcher.model.OrderStatus;
+import finos.traderx.ordermatcher.model.OrderType;
 import finos.traderx.ordermatcher.repository.OrderRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -163,13 +164,21 @@ public class OrderMatcherService {
             order.setSide(request.getSide());
             order.setQuantity(request.getQuantity());
             order.setRemainingQuantity(request.getQuantity());
+            order.setOrderType(request.getOrderType());
             order.setLimitPrice(roundPrice(request.getLimitPrice()));
             order.setStatus(OrderStatus.NEW);
             order.setCreatedAt(Instant.now());
             order.setUpdatedAt(order.getCreatedAt());
             OrderRecord saved = orderRepository.save(order);
             incrementEvent("create");
-            return OrderResponse.from(saved, lastPrices.get(saved.getSecurity()));
+
+            if (saved.getOrderType() == OrderType.MARKET) {
+                saved = processMarketOrderImmediateFill(saved);
+            }
+
+            OrderResponse response = OrderResponse.from(saved, lastPrices.get(saved.getSecurity()));
+            publishOrderUpdate(response);
+            return response;
         } finally {
             orderMutationLock.unlock();
         }
@@ -399,6 +408,9 @@ public class OrderMatcherService {
     }
 
     private boolean isInTheMoney(OrderRecord order, BigDecimal marketPrice) {
+        if (order.getOrderType() == OrderType.MARKET) {
+            return marketPrice != null;
+        }
         if (order.getLimitPrice() == null || marketPrice == null || order.getSide() == null) {
             return false;
         }
@@ -408,15 +420,60 @@ public class OrderMatcherService {
         };
     }
 
-    private void validateCreateRequest(OrderCreateRequest request) {
+    OrderRecord processMarketOrderImmediateFill(OrderRecord order) {
+        BigDecimal marketPrice = lastPrices.get(order.getSecurity());
+        if (marketPrice == null) {
+            log.info("Market order {} queued with status NEW: waiting for market tick on {}", order.getOrderId(), order.getSecurity());
+            return order;
+        }
+
+        int fillQty = order.getRemainingQuantity() != null ? order.getRemainingQuantity() : order.getQuantity();
+        if (fillQty <= 0) {
+            return order;
+        }
+
+        autoFillAttempts.incrementAndGet();
+        if (!submitTrade(order, fillQty)) {
+            tradeSubmitFailures.incrementAndGet();
+            incrementEvent("reject");
+            order.setUpdatedAt(Instant.now());
+            return orderRepository.save(order);
+        }
+
+        applyFill(order, fillQty, marketPrice, false);
+        OrderRecord saved = orderRepository.save(order);
+        autoFillSuccess.incrementAndGet();
+        return saved;
+    }
+
+    void validateCreateRequest(OrderCreateRequest request) {
+        validateCommonFields(request);
+        OrderType type = request.getOrderType();
+        if (type == OrderType.MARKET) {
+            validateMarketOrder(request);
+        } else {
+            validateLimitOrder(request);
+        }
+    }
+
+    void validateCommonFields(OrderCreateRequest request) {
         if (request == null
             || request.getAccountId() == null || request.getAccountId() <= 0
             || !StringUtils.hasText(request.getSecurity())
             || request.getSide() == null
-            || request.getQuantity() == null || request.getQuantity() <= 0
-            || request.getLimitPrice() == null || request.getLimitPrice().compareTo(BigDecimal.ZERO) <= 0) {
+            || request.getQuantity() == null || request.getQuantity() <= 0) {
             throw new ResponseStatusException(BAD_REQUEST, "invalid order payload");
         }
+    }
+
+    void validateLimitOrder(OrderCreateRequest request) {
+        if (request.getLimitPrice() == null || request.getLimitPrice().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ResponseStatusException(BAD_REQUEST, "invalid order payload");
+        }
+    }
+
+    void validateMarketOrder(OrderCreateRequest request) {
+        // Market orders execute at prevailing market price and do not require a limit price.
     }
 
     private String nextOrderId() {

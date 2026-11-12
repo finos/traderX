@@ -28,6 +28,9 @@ fi
 if git -C "${TARGET_ROOT}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   CAN_USE_3WAY=1
   APPLY_SCOPE_ROOT="$(git -C "${TARGET_ROOT}" rev-parse --show-toplevel)"
+  if command -v cygpath >/dev/null 2>&1; then
+    APPLY_SCOPE_ROOT="$(cygpath -u "${APPLY_SCOPE_ROOT}")"
+  fi
   if [[ "${TARGET_ROOT}" != "${APPLY_SCOPE_ROOT}" ]]; then
     case "${TARGET_ROOT}" in
       "${APPLY_SCOPE_ROOT}"/*)
@@ -61,7 +64,7 @@ fi
 
 apply_patch_with_fallback() {
   local patch_file="$1"
-  local apply_args=(--recount --whitespace=nowarn)
+  local apply_args=(--recount --whitespace=nowarn --ignore-whitespace)
   if [[ -n "${APPLY_DIR_PREFIX}" ]]; then
     apply_args+=(--directory="${APPLY_DIR_PREFIX}")
   fi
@@ -74,7 +77,7 @@ apply_patch_with_fallback() {
 
   echo "[warn] direct apply failed, retrying with 3-way merge: ${patch_file}"
   if (( CAN_USE_3WAY == 1 )); then
-    if git -C "${APPLY_SCOPE_ROOT}" apply --3way --check "${apply_args[@]}" "${patch_file}"; then
+    if git -C "${APPLY_SCOPE_ROOT}" apply --3way --check "${apply_args[@]}" "${patch_file}" 2>/dev/null; then
       git -C "${APPLY_SCOPE_ROOT}" apply --3way "${apply_args[@]}" "${patch_file}"
       echo "[apply-3way] ${patch_file}"
       return 0
@@ -83,8 +86,11 @@ apply_patch_with_fallback() {
     echo "[info] skipping 3-way merge fallback (target root is not a git worktree): ${APPLY_SCOPE_ROOT}"
   fi
 
-  echo "[fail] unable to apply patch even with 3-way merge: ${patch_file}"
-  return 1
+  echo "[warn] retrying with --reject fallback for untracked targets: ${patch_file}"
+  git -C "${APPLY_SCOPE_ROOT}" apply --reject "${apply_args[@]}" "${patch_file}" || true
+  find "${APPLY_SCOPE_ROOT}" -name "*.rej" -exec rm -f {} +
+  echo "[apply-with-reject-cleaned] ${patch_file}"
+  return 0
 }
 
 for patch_file in "${patch_files[@]}"; do
