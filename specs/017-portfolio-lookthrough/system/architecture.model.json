@@ -1,0 +1,36 @@
+{
+  "title": "Portfolio Look-Through",
+  "stateId": "017-portfolio-lookthrough",
+  "inheritsFrom": "009-order-management-matcher",
+  "description": "Explainable portfolio exposure on the C2 trading runtime.",
+  "flowDoc": "system/end-to-end-flows.md",
+  "nodes": [
+    {
+      "id": "ui",
+      "label": "Exposure UI",
+      "kind": "service"
+    },
+    {
+      "id": "api",
+      "label": "Exposure service",
+      "kind": "service"
+    },
+    {
+      "id": "pg",
+      "label": "PostgreSQL source / SQL projection",
+      "kind": "service"
+    }
+  ],
+  "edges": [
+    {
+      "from": "ui",
+      "to": "api",
+      "label": "Same exposure contract"
+    },
+    {
+      "from": "api",
+      "to": "pg",
+      "label": "Repeatable-read snapshot"
+    }
+  ]
+}

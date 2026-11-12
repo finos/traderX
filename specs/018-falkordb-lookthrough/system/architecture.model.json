@@ -1,0 +1,46 @@
+{
+  "title": "FalkorDB Portfolio Look-Through",
+  "stateId": "018-falkordb-lookthrough",
+  "inheritsFrom": "017-portfolio-lookthrough",
+  "description": "Explainable portfolio exposure on the C2 trading runtime.",
+  "flowDoc": "system/end-to-end-flows.md",
+  "nodes": [
+    {
+      "id": "ui",
+      "label": "Exposure UI",
+      "kind": "service"
+    },
+    {
+      "id": "api",
+      "label": "Exposure service",
+      "kind": "service"
+    },
+    {
+      "id": "pg",
+      "label": "PostgreSQL source / SQL projection",
+      "kind": "service"
+    },
+    {
+      "id": "graph",
+      "label": "FalkorDB projection",
+      "kind": "service"
+    }
+  ],
+  "edges": [
+    {
+      "from": "ui",
+      "to": "api",
+      "label": "Same exposure contract"
+    },
+    {
+      "from": "api",
+      "to": "pg",
+      "label": "Repeatable-read snapshot"
+    },
+    {
+      "from": "api",
+      "to": "graph",
+      "label": "Versioned load / Cypher traversal"
+    }
+  ]
+}

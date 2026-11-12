@@ -231,6 +231,12 @@ case "${STATE_ID}" in
     copy_script_if_exists "status-state-013-radius-kubernetes-platform-generated.sh"
     copy_script_if_exists "test-state-013-radius-kubernetes-platform.sh"
     ;;
+  017-portfolio-lookthrough|018-falkordb-lookthrough)
+    copy_script_if_exists "start-state-${STATE_ID}-generated.sh"
+    copy_script_if_exists "stop-state-${STATE_ID}-generated.sh"
+    copy_script_if_exists "status-state-${STATE_ID}-generated.sh"
+    copy_script_if_exists "test-state-${STATE_ID}.sh"
+    ;;
   014-fdc3-intent-interoperability)
     copy_script_if_exists "start-state-010-kubernetes-runtime-generated.sh"
     copy_script_if_exists "stop-state-010-kubernetes-runtime-generated.sh"
@@ -247,7 +253,7 @@ case "${STATE_ID}" in
 esac
 
 case "${STATE_ID}" in
-  004-*|005-*|006-*|007-*|008-*|009-*|010-*|011-*|012-*|013-*|014-*)
+  004-*|005-*|006-*|007-*|008-*|009-*|010-*|011-*|012-*|013-*|014-*|017-*|018-*)
     gen_depth="${TRADERX_GENERATION_DEPTH:-0}"
     if (( gen_depth <= 2 )) || [[ "${TRADERX_RUNTIME_NORMALIZE_IN_NESTED_GENERATION:-0}" == "1" ]]; then
       normalize_containerized_compose_cors_origins

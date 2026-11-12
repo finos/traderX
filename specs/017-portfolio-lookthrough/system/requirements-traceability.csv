@@ -1,0 +1,2 @@
+requirement,implementation,validation
+FR-01703,generation/exposure-service/engine.py,scripts/test-exposure-integration.py

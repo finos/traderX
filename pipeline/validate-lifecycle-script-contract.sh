@@ -69,7 +69,7 @@ for state_num in 002 003; do
 done
 
 # Every other generated state must have start/stop/readiness scripts and build/start separation flag.
-for state_num in 004 005 006 007 008 009 010 011 012 013 014; do
+for state_num in 004 005 006 007 008 009 010 011 012 013 014 017 018; do
   start_script="$(find "${SCRIPTS_DIR}" -maxdepth 1 -type f -name "start-state-${state_num}-*-generated.sh" | sort | head -n 1 || true)"
   stop_script="$(find "${SCRIPTS_DIR}" -maxdepth 1 -type f -name "stop-state-${state_num}-*-generated.sh" | sort | head -n 1 || true)"
   smoke_script="$(find "${SCRIPTS_DIR}" -maxdepth 1 -type f -name "test-state-${state_num}-*.sh" | sort | head -n 1 || true)"

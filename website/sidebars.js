@@ -120,6 +120,8 @@ module.exports = {
         'learning/state-012-platform-convergence-c3',
         'learning/state-013-radius-kubernetes-platform',
         'learning/state-014-fdc3-intent-interoperability',
+        'learning/state-017-portfolio-lookthrough',
+        'learning/state-018-falkordb-lookthrough',
         'learning-paths/index',
         'spec-kit/spec-kit-learning-path-strategy',
         'spec-kit/state-transition-generation-plan',

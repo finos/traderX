@@ -1,0 +1,71 @@
+openapi: 3.0.3
+info:
+  title: TraderX Portfolio Exposure
+  version: 1.0.0
+servers:
+  - url: /exposure
+paths:
+  /api/exposure:
+    get:
+      summary: Calculate direct and indirect corporate exposure
+      parameters:
+        - {name: account, in: query, schema: {type: integer, default: 70000}}
+        - {name: target, in: query, schema: {type: string, default: Z0G}}
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 1000, default: 100}}
+      responses:
+        '200':
+          description: Fractions, values and bounded explanation paths from one source revision
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [accountId, target, totalFraction, directFraction, indirectFraction, revision, paths]
+                properties:
+                  accountId: {type: integer}
+                  target: {type: string}
+                  totalFraction: {type: number}
+                  directFraction: {type: number}
+                  indirectFraction: {type: number}
+                  portfolioValue: {type: number}
+                  exposureValue: {type: number}
+                  pathCount: {type: integer}
+                  pathsTruncated: {type: boolean}
+                  backend: {type: string, enum: [postgres, falkor]}
+                  revision: {type: string}
+                  valuationAsOf: {type: string, format: date-time}
+                  projectedAt: {type: string, format: date-time}
+                  sourceCheckedAt: {type: number}
+                  elapsedMs: {type: number}
+                  paths:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        fraction: {type: number}
+                        nodes:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id: {type: string}
+                              name: {type: string}
+                              kind: {type: string}
+        '400': {description: Invalid request}
+        '404': {description: Unknown account or corporate entity}
+        '503': {description: Unavailable or stale projection}
+  /api/catalog:
+    get:
+      summary: List demonstration accounts and corporate targets
+      responses:
+        '200': {description: Accounts, targets and projection status}
+  /health:
+    get:
+      summary: Projection revision and freshness
+      responses:
+        '200': {description: Healthy projection}
+        '503': {description: Failed or stale projection}
+  /metrics:
+    get:
+      summary: Prometheus projection health and source-check age
+      responses:
+        '200': {description: Prometheus text exposition}
