@@ -28,6 +28,7 @@
         "id": "reference-data",
         "name": "Reference Data",
         "detectPath": "reference-data",
+        "runtimeBasePath": "/reference-data",
         "contractPath": "specs/001-baseline-uncontainerized-parity/contracts/reference-data/openapi.yaml"
       },
       {

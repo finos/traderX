@@ -959,7 +959,15 @@ for (const def of serviceDefs) {
   const hasContract = Boolean(contractFile && fs.existsSync(contractFile));
   if (hasContract) {
     const outFile = path.join(contractsRoot, contractName);
-    fs.copyFileSync(contractFile, outFile);
+    const staticBasePath = !def.runtimeSpecPath ? deriveRuntimeBasePath(def) : null;
+    const contractText = fs.readFileSync(contractFile, 'utf8');
+    if (staticBasePath && !/^servers:/m.test(contractText) && /^paths:/m.test(contractText)) {
+      // Static contracts have no ingress prefix; declare it so "Try it out" reaches the service.
+      const serversBlock = `servers:\n- url: ${staticBasePath}\n  description: Via the TraderX ingress\n`;
+      fs.writeFileSync(outFile, contractText.replace(/^paths:/m, `${serversBlock}paths:`));
+    } else {
+      fs.copyFileSync(contractFile, outFile);
+    }
     contracts.push(contractName);
   }
 
