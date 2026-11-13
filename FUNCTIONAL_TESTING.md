@@ -1,14 +1,12 @@
 # Functional Testing Guide
 
-State: `006-messaging-nats-replacement`
+State: `007-observability-lgtm-compose`
 
 This guide captures intended functional behavior for this generated snapshot branch.
 
 ## What Should Work
 
-- Builds on state `004` and preserves containerized ingress runtime behavior.
-- Replaces Socket.IO trade-feed with NATS broker for backend and browser streaming.
-- Preserves baseline user-visible behavior while changing messaging transport.
+- Generated code snapshot for TraderX state transition.
 
 ## Suggested Functional Validation
 
@@ -20,12 +18,12 @@ This guide captures intended functional behavior for this generated snapshot bra
 ## Smoke Test Commands
 
 ```bash
-./scripts/test-state-006-messaging-nats-replacement.sh
+./scripts/test-state-007-observability-lgtm-compose.sh
 ```
 
 ## Canonical References
 
-- Spec pack: `specs/006-messaging-nats-replacement`
+- Spec pack: `specs/007-observability-lgtm-compose`
 - Runtime guide: [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
 - Snapshot learning guide: [LEARNING.md](./LEARNING.md)
 - Snapshot metadata: [STATE.md](./STATE.md)

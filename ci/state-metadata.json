@@ -1,8 +1,8 @@
 {
-  "stateId": "006-messaging-nats-replacement",
-  "isConvergence": false,
-  "convergenceLevel": "none",
-  "convergenceNamespace": "",
+  "stateId": "007-observability-lgtm-compose",
+  "isConvergence": true,
+  "convergenceLevel": "C1",
+  "convergenceNamespace": "traderx-c1",
   "modules": {
     "node": [
       "reference-data",
@@ -33,6 +33,26 @@
         "directory": "ingress",
         "dockerfile": "Dockerfile.compose",
         "imageName": "ingress"
+      },
+      {
+        "directory": "observability-lgtm-compose/runtime-images/blackbox-exporter",
+        "dockerfile": "Dockerfile.compose",
+        "imageName": "blackbox-exporter"
+      },
+      {
+        "directory": "observability-lgtm-compose/runtime-images/loki",
+        "dockerfile": "Dockerfile.compose",
+        "imageName": "loki"
+      },
+      {
+        "directory": "observability-lgtm-compose/runtime-images/prometheus",
+        "dockerfile": "Dockerfile.compose",
+        "imageName": "prometheus"
+      },
+      {
+        "directory": "observability-lgtm-compose/runtime-images/tempo",
+        "dockerfile": "Dockerfile.compose",
+        "imageName": "tempo"
       },
       {
         "directory": "people-service",
@@ -74,6 +94,6 @@
   },
   "runtime": {
     "kind": "compose",
-    "path": "messaging-nats-replacement/docker-compose.yml"
+    "path": "runtime/ghcr/007-observability-lgtm-compose/docker-compose.ghcr.yml"
   }
 }

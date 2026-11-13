@@ -1,6 +1,6 @@
 # Learning Docs
 
-These docs are generated for the published code snapshot for state `006-messaging-nats-replacement`.
+These docs are generated for the published code snapshot for state `007-observability-lgtm-compose`.
 
 - [Component List](./component-list.md)
 - [System Design](./system-design.md)
@@ -11,6 +11,6 @@ These docs are generated for the published code snapshot for state `006-messagin
 
 Canonical source remains SpecKit artifacts in the main authoring branch:
 
-- Feature pack: `specs/006-messaging-nats-replacement`
-- Source feature pack at commit: https://github.com/finos/traderX/tree/ca0f66429bdf95552da0655eed56e34c4af67185/specs/006-messaging-nats-replacement
-- Source architecture model at commit: https://github.com/finos/traderX/blob/ca0f66429bdf95552da0655eed56e34c4af67185/specs/006-messaging-nats-replacement/system/architecture.model.json
+- Feature pack: `specs/007-observability-lgtm-compose`
+- Source feature pack at commit: https://github.com/finos/traderX/tree/ca0f66429bdf95552da0655eed56e34c4af67185/specs/007-observability-lgtm-compose
+- Source architecture model at commit: https://github.com/finos/traderX/blob/ca0f66429bdf95552da0655eed56e34c4af67185/specs/007-observability-lgtm-compose/system/architecture.model.json

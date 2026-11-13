@@ -1,6 +1,6 @@
 # Generated Docs
 
-This folder provides generated learning-oriented documentation for state `006-messaging-nats-replacement`.
+This folder provides generated learning-oriented documentation for state `007-observability-lgtm-compose`.
 
 - [Learning Index](./learning/README.md)
 - [Component List](./learning/component-list.md)

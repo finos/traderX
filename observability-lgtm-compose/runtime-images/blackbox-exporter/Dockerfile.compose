@@ -1,0 +1,13 @@
+# Rebuild v0.29.1 with the upstream x/net security fix; retain runtime/config layout.
+FROM --platform=$BUILDPLATFORM golang:1.27.3-alpine@sha256:fa3d596898d9f126af7c01d14ee7597bab3f39cccf392ef36b69fe77cd681f18 AS build
+ARG TARGETARCH
+ENV GOMEMLIMIT=512MiB GOMAXPROCS=2
+RUN apk add --no-cache git
+WORKDIR /src
+RUN git init && git remote add origin https://github.com/prometheus/blackbox_exporter.git \
+ && git fetch --depth=1 origin ad91668339ca265f460c23fc422a27ba6d788db9 \
+ && git checkout --detach FETCH_HEAD
+RUN go get golang.org/x/net@v0.62.0 && go mod tidy
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=$TARGETARCH go build -trimpath -o /out/blackbox_exporter .
+FROM prom/blackbox-exporter:v0.29.1@sha256:ea1c7aa3ef3f307cd03e85f34abb604478ccb90b567fc690da0cd9776da76b13
+COPY --from=build /out/blackbox_exporter /bin/blackbox_exporter

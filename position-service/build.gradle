@@ -22,6 +22,9 @@ repositories {
 
 dependencies {
   implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+  implementation 'org.springframework.boot:spring-boot-starter-actuator'
+  implementation 'org.springframework.boot:spring-boot-starter-opentelemetry'
+  runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
   implementation 'org.springframework.boot:spring-boot-starter-jdbc'
   implementation 'org.postgresql:postgresql:42.7.12'
   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:3.0.3'
