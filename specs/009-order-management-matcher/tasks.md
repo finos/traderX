@@ -14,3 +14,5 @@
 - [ ] T01312 Generate `runtime/deploy/aws-ec2-compose/` deployment bundle for this state (`demo-advanced` target profile) with dry-run-capable scripts and runbook.
 - [ ] T01313 Validate deployment bundle local dry-run and enforce no hardcoded secrets/token material in generated deployment artifacts.
 - [ ] T01314 Ensure generated deployment-bundle policy remains state-scoped: present for this containerized state, absent for uncontainerized states.
+- [x] T01315 Implement Market Order support with STP immediate execution and UI toggle (#481).
+- [x] T01316 Hardened review updates: PostgreSQL schema parity, admin grid partial-fill actions and safety guards, and fail-fast patch automation (#495).

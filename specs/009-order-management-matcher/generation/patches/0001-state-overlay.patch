@@ -3928,7 +3928,7 @@ index cde3c01..73459d4 100644
  DROP TABLE IF EXISTS accountusers;
  DROP TABLE IF EXISTS positions;
  DROP TABLE IF EXISTS accounts;
-@@ -38,6 +39,23 @@ CREATE TABLE trades (
+@@ -38,6 +39,24 @@ CREATE TABLE trades (
    state VARCHAR(20) CHECK (state in ('New', 'Processing', 'Settled', 'Cancelled'))
  );
  
@@ -3939,12 +3939,13 @@ index cde3c01..73459d4 100644
 +  side VARCHAR(16) CHECK (side in ('Buy', 'Sell')),
 +  quantity INTEGER NOT NULL CHECK (quantity > 0),
 +  remainingquantity INTEGER NOT NULL CHECK (remainingquantity >= 0),
-+  limitprice DECIMAL(18,3) NOT NULL,
++  limitprice DECIMAL(18,3),
 +  status VARCHAR(24) CHECK (status in ('NEW', 'PARTIALLY_FILLED', 'FILLED', 'CANCELED', 'REJECTED')),
 +  createdat TIMESTAMP NOT NULL,
 +  updatedat TIMESTAMP NOT NULL,
 +  lastexecutionprice DECIMAL(18,3),
-+  lastfillquantity INTEGER
++  lastfillquantity INTEGER,
++  ordertype VARCHAR(20) NOT NULL DEFAULT 'LIMIT' CHECK (ordertype in ('LIMIT', 'MARKET'))
 +);
 +CREATE INDEX idx_orderbook_status ON orderbook(status);
 +CREATE INDEX idx_orderbook_updatedat ON orderbook(updatedat);
@@ -4099,7 +4100,7 @@ new file mode 100644
 index 0000000..8888888
 --- /dev/null
 +++ b/web-front-end/angular/main/app/admin/order-admin.component.ts
-@@ -0,0 +1,401 @@
+@@ -0,0 +1,405 @@
 +import { CellClickedEvent, ColDef, GetRowIdParams, GridApi, GridReadyEvent } from 'ag-grid-community';
 +import { Component, OnDestroy, OnInit } from '@angular/core';
 +import { OrderRecord } from '../model/order.model';
@@ -4179,14 +4180,14 @@ index 0000000..8888888
 +        {
 +            headerName: 'CANCEL',
 +            colId: 'cancel',
-+            cellRenderer: (params: any) => params?.data?.status === 'NEW'
++            cellRenderer: (params: any) => ['NEW', 'PARTIALLY_FILLED'].includes(params?.data?.status)
 +                ? '<button class="btn btn-outline-danger btn-sm">Cancel</button>'
 +                : '-'
 +        },
 +        {
 +            headerName: 'FORCE FILL',
 +            colId: 'forceFill',
-+            cellRenderer: (params: any) => (params?.data?.status === 'NEW' && params?.data?.orderType !== 'MARKET')
++            cellRenderer: (params: any) => (['NEW', 'PARTIALLY_FILLED'].includes(params?.data?.status) && params?.data?.orderType !== 'MARKET')
 +                ? '<button class="btn btn-outline-success btn-sm">Force Fill</button>'
 +                : '-'
 +        }
@@ -4222,10 +4223,15 @@ index 0000000..8888888
 +
 +    onCellClicked(event: CellClickedEvent<OrderRow>): void {
 +        const orderId = event.data?.orderId;
++        const status = event.data?.status;
++        const orderType = event.data?.orderType;
 +        if (!orderId) {
 +            return;
 +        }
 +        if (event.colDef.colId === 'cancel') {
++            if (!['NEW', 'PARTIALLY_FILLED'].includes(status)) {
++                return;
++            }
 +            this.orderAdminService.cancelOrder(orderId).subscribe({
 +                next: (res) => {
 +                    this.actionMessage = { type: 'success', text: `Canceled ${res.orderId}` };
@@ -4237,6 +4243,9 @@ index 0000000..8888888
 +            return;
 +        }
 +        if (event.colDef.colId === 'forceFill') {
++            if (!['NEW', 'PARTIALLY_FILLED'].includes(status) || orderType === 'MARKET') {
++                return;
++            }
 +            this.orderAdminService.forceFillOrder(orderId).subscribe({
 +                next: (res) => {
 +                    this.actionMessage = { type: 'success', text: `Force-filled ${res.orderId}` };

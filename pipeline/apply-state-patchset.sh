@@ -86,11 +86,8 @@ apply_patch_with_fallback() {
     echo "[info] skipping 3-way merge fallback (target root is not a git worktree): ${APPLY_SCOPE_ROOT}"
   fi
 
-  echo "[warn] retrying with --reject fallback for untracked targets: ${patch_file}"
-  git -C "${APPLY_SCOPE_ROOT}" apply --reject "${apply_args[@]}" "${patch_file}" || true
-  find "${APPLY_SCOPE_ROOT}" -name "*.rej" -exec rm -f {} +
-  echo "[apply-with-reject-cleaned] ${patch_file}"
-  return 0
+  echo "[fail] unable to apply patch: ${patch_file}"
+  return 1
 }
 
 for patch_file in "${patch_files[@]}"; do
