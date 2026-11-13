@@ -275,6 +275,46 @@ class AuthorizationTests(unittest.TestCase):
                 deploy.review_runtime_scans({}, record | {'break_glass': {'enabled': False}}, {}, {}, None, Path(tmp) / 'reports')
             self.assertTrue(scan.call_args.kwargs['database_ready'])
 
+    def test_failed_refresh_retains_partial_evidence_without_raw_error(self):
+        evidence = {'updated_at': '2026-11-13T00:00:00+00:00', 'sha256': 'a' * 64}
+        def refresh(cache, settings, evidence):
+            evidence['vulnerability'] = dict(updated_at='2026-11-13T00:00:00+00:00', sha256='a' * 64)
+            raise ValueError('private-marker')
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch.object(deploy, 'refresh_scanner_databases', side_effect=refresh), \
+             patch.object(deploy, 'scan_infrastructure') as scan:
+            reports = Path(tmp) / 'reports'
+            with self.assertRaisesRegex(ValueError, 'private-marker'):
+                deploy.review_runtime_scans({}, {'images': {}}, {}, {}, None, reports)
+            scan.assert_not_called()
+            review = json.loads((reports / 'scan-review.json').read_text())
+            self.assertEqual(review['status'], 'blocked')
+            self.assertEqual(review['databases'], {'vulnerability': evidence})
+            self.assertEqual(json.loads((reports / 'public-summary.json').read_text()), [])
+            self.assertNotIn('private-marker', json.dumps(review))
+
+    def test_blocked_scan_retains_databases_and_sanitized_findings(self):
+        databases = {'vulnerability': {'sha256': 'a' * 64}}
+        def scan(config, images, reports, **kwargs):
+            reports.mkdir()
+            (reports / 'summary.json').write_text(json.dumps([
+                {'service': 'ingress', 'status': 'findings', 'high': 1, 'critical': 0,
+                 'stderr': 'private-marker'}]))
+            raise deploy.InfrastructureScanBlocked('private-marker')
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch.object(deploy, 'refresh_scanner_databases', return_value=databases), \
+             patch.object(deploy, 'policy_settings', return_value={'runtimeImageScanner': {'image': 'scanner'}}), \
+             patch.object(deploy, 'scan_infrastructure', side_effect=scan):
+            reports = Path(tmp) / 'reports'
+            with self.assertRaises(deploy.InfrastructureScanBlocked):
+                deploy.review_runtime_scans({}, {'images': {}}, {}, {}, None, reports)
+            review = json.loads((reports / 'scan-review.json').read_text())
+            self.assertEqual(review['status'], 'blocked')
+            self.assertEqual(review['databases'], databases)
+            self.assertEqual(review['results'][0]['high'], 1)
+            self.assertNotIn('private-marker', json.dumps(review))
+            self.assertNotIn('private-marker', (reports / 'public-summary.json').read_text())
+
     def test_compose_uses_verified_digest_and_removes_build(self):
         image = 'ghcr.io/finos/traderx-c1/ingress'
         result = deploy.pin_services({'services': {'ingress': {'image': image + ':' + SHA,
@@ -508,7 +548,7 @@ class ScannerTests(unittest.TestCase):
                  patch.object(deploy.subprocess, 'check_output', return_value=SHA + '\n'), \
                  patch.object(deploy, 'authorize_runtime', return_value={}), \
                  patch.object(deploy, 'policy_settings', return_value={'runtimeImageScanner': {'image': 'scanner'}}), \
-                 patch.object(deploy, 'refresh_scanner_databases'), \
+                 patch.object(deploy, 'refresh_scanner_databases', return_value={}), \
                  patch.object(deploy, 'scan_infrastructure') as scan:
                 deploy.main()
             scan.assert_called_once()
