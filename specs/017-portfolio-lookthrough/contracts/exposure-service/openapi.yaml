@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: TraderX Portfolio Exposure
-  version: 1.0.0
+  version: 1.1.0
 servers:
   - url: /exposure
 paths:
@@ -53,6 +53,67 @@ paths:
         '400': {description: Invalid request}
         '404': {description: Unknown account or corporate entity}
         '503': {description: Unavailable or stale projection}
+  /api/impact:
+    get:
+      summary: Rank all portfolios exposed to a corporate group and explain fund paths
+      description: One reverse traversal computes all totals before applying response limits. Monetary exposure is not a loss estimate. Ranking uses exposure rounded to cents with account ID as the tie-breaker.
+      parameters:
+        - {name: target, in: query, schema: {type: string, default: Z0G}}
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 1000, default: 20}}
+        - {name: pathLimit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 3}}
+      responses:
+        '200':
+          description: Complete exposed-book totals and bounded ranked portfolio explanations
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [target, revision, exposedPortfolioCount, totalExposureValue, pathCount, portfoliosTruncated, portfolios]
+                properties:
+                  target: {type: string}
+                  backend: {type: string, enum: [postgres, falkor]}
+                  revision: {type: string}
+                  valuationAsOf: {type: string, format: date-time}
+                  projectedAt: {type: string, format: date-time}
+                  sourceCheckedAt: {type: number}
+                  elapsedMs: {type: number}
+                  exposedPortfolioCount: {type: integer}
+                  totalExposureValue: {type: number}
+                  pathCount: {type: integer}
+                  portfoliosTruncated: {type: boolean}
+                  portfolios:
+                    type: array
+                    items:
+                      type: object
+                      required: [accountId, totalFraction, exposureValue, pathCount, paths]
+                      properties:
+                        accountId: {type: integer}
+                        name: {type: string}
+                        portfolioValue: {type: number}
+                        exposureValue: {type: number}
+                        totalFraction: {type: number}
+                        directFraction: {type: number}
+                        indirectFraction: {type: number}
+                        pathCount: {type: integer}
+                        pathsTruncated: {type: boolean}
+                        paths:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              fraction: {type: number}
+                              exposureValue: {type: number}
+                              nodes:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    id: {type: string}
+                                    name: {type: string}
+                                    kind: {type: string}
+        '400': {description: Invalid target type or result limits}
+        '404': {description: Unknown corporate group}
+        '503': {description: Failed or stale projection or traversal failure}
   /api/catalog:
     get:
       summary: List demonstration accounts and corporate targets

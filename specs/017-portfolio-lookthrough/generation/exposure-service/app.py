@@ -18,8 +18,8 @@ def make_handler(engine):
         def do_GET(self):
             url=urlparse(self.path)
             try:
-                if url.path in ('/','/exposure','/exposure/'):
-                    body=(STATIC/'index.html').read_bytes()
+                if url.path in ('/','/exposure','/exposure/','/impact'):
+                    body=(STATIC/('impact.html' if url.path=='/impact' else 'index.html')).read_bytes()
                     self.send_response(200); self.send_header('Content-Type','text/html; charset=utf-8')
                     self.end_headers(); self.wfile.write(body); return
                 if url.path=='/health':
@@ -30,6 +30,12 @@ def make_handler(engine):
                                                   key=lambda n:int(n['id'][1:]))[:1000],
                                 'targets':[n for n in engine.nodes.values() if n['kind']=='company'],
                                 'status':engine.status()}
+                    code=200
+                elif url.path=='/api/impact':
+                    q=parse_qs(url.query)
+                    result=engine.impact(q.get('target',['Z0G'])[0],
+                                         int(q.get('limit',['20'])[0]),
+                                         int(q.get('pathLimit',['3'])[0]))
                     code=200
                 elif url.path=='/api/exposure':
                     q=parse_qs(url.query)

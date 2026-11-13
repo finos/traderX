@@ -25,6 +25,7 @@ service=target/'exposure-service'
 shutil.copytree(ROOT/'specs/017-portfolio-lookthrough/generation/exposure-service',service,dirs_exist_ok=True,
                 ignore=shutil.ignore_patterns('__pycache__'))
 spec=importlib.util.spec_from_file_location('exposure_dataset',service/'dataset.py')
+sys.path.insert(0,str(service))
 module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 data=module.generate('demo')
 manifest={'profile':'demo','seed':42,'nodes':len(data['nodes']),'referenceLinks':len(data['links']),
@@ -70,7 +71,8 @@ if number=='018':
 compose=compose.replace('\nvolumes:', '\n'+addition+'\nvolumes:',1)
 if number=='018': compose+='  exposure_graph_data:\n'
 # Seeded instrument universe participates in reference lookup and price bootstrap.
-synthetic=[(i,n) for i,n,k,_ in data['nodes'] if k in ('fund','security')]
+impact=module.generate('impact')
+synthetic=[(i,n) for i,n,k,_ in data['nodes']+impact['nodes'] if k in ('fund','security')]
 core='AAPL,MSFT,AMZN,GOOGL,META,NVDA,TSLA,IBM,BAC,C,JPM,GS,MS,UBS,DB,COF,DFS,FNMA,FIS,FNF'
 tickers=core+','+','.join(i for i,_ in synthetic)
 compose=re.sub(r'(REFERENCE_DATA_SUPPORTED_TICKERS|PRICE_TICKERS): "[^"\n]*"',lambda m:m[1]+': "'+tickers+'"',compose)
@@ -98,8 +100,8 @@ if 'location /exposure/' not in text:
 ingress.write_text(text)
 header=target/'web-front-end/angular/main/app/header/header.component.html'
 text=header.read_text()
-if 'href="/exposure/"' not in text:
-    text=text.replace('</nav>','<a class="nav-link" href="/exposure/">Portfolio Exposure</a>\n</nav>',1)
+if 'href="/exposure/impact"' not in text:
+    text=text.replace('</nav>','<a class="nav-link" href="/exposure/impact">Corporate Impact</a>\n</nav>',1)
 header.write_text(text)
 prometheus=active/'observability/prometheus/prometheus.yml'
 text=prometheus.read_text()

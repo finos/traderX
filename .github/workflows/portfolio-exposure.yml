@@ -45,7 +45,11 @@ jobs:
       - run: python scripts/test-exposure-controlled-dataset.py
       - run: python scripts/test-exposure-integration.py
       - run: python scripts/benchmark-exposure.py > exposure-benchmark.json
+      - run: python scripts/test-exposure-impact.py
+      - run: python scripts/benchmark-exposure-impact.py --accounts 1000 --layers 3 --samples 5 --output impact-benchmark.json
       - uses: actions/upload-artifact@v4
         with:
           name: exposure-benchmark
-          path: exposure-benchmark.json
+          path: |
+            exposure-benchmark.json
+            impact-benchmark.json

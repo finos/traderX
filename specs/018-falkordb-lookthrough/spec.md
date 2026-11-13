@@ -16,6 +16,9 @@ A presenter compares PostgreSQL and FalkorDB using identical data, APIs, and ind
 - FR-01805: Poll a repeatable-read source snapshot every two seconds. Publish a replacement projection only after it is complete; reject reads when synchronization fails.
 - FR-01806: Execute variable-depth Cypher in a real FalkorDB graph. Rebuild after graph loss or service restart, and atomically switch completed graph versions.
 
+- FR-01807: Assess firm-wide corporate-group impact with one reverse traversal; rank exposed portfolios by monetary exposure and explain direct and shared-fund routes. Compute complete totals before limiting returned portfolios/paths.
+- FR-01808: Provide an analytical firm-wide fixture with direct, shared-fund, mixed and unexposed portfolios; vary account count and fund depth independently while preserving the expected economic fractions.
+
 ## Nonfunctional requirements
 - NFR-01801: Read-only HTTP endpoints; no public source mutation endpoint. Parameterize SQL and escape Cypher values. Limit path explanation responses to 1,000 and database queries to ten seconds.
 - NFR-01802: Support current-snapshot, single-currency long-only portfolios with fixed $100 synthetic marks. Fail closed on unknown marks, shorts, cycles, invalid fund weights or depth exceeding 12. Historical as-of queries and market-risk loss estimates are outside scope.
@@ -30,3 +33,14 @@ The exposure view is an independent addition with TraderX branding, a link from 
 4. Stop FalkorDB or introduce invalid source data; return 503 instead of a misleading successful result. Restart and rebuild to recover.
 5. Request a target containing quote/injection syntax; return 404 without mutating the graph.
 6. Restart seeding with the same profile; retain changed positions. Reject a conflicting profile.
+
+## Firm-wide impact acceptance
+
+The primary experiment is now corporate-group impact: which portfolios are exposed, and through which funds? The independent `/exposure/impact` view is linked from TraderX. `EXPOSURE_PROFILE=impact` seeds 1,000 portfolios with two shared fund layers in a fresh database; benchmark fixtures vary depth separately.
+
+7. Return correct monetary rankings and all-book totals with `limit=1` and `pathLimit=1`; limits must not change aggregates.
+8. Match analytical answers and SQL/Cypher paths for more than 10,000 economic paths, exceeding FalkorDB's default row cap without silently losing results.
+9. A shared-fund allocation change affects every dependent portfolio; a direct position change updates monetary ranking.
+10. Show no exposed portfolios for an unheld group; clear old rankings on errors. Exposure is not an event-loss prediction.
+
+Both implementations enumerate paths and use shared application aggregation. Response bounds do not bound traversal memory; measure complexity, update cost and concurrency before making capacity claims.

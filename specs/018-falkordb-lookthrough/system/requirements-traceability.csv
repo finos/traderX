@@ -8,3 +8,5 @@ FR-01806,specs/017-portfolio-lookthrough/generation/exposure-service/engine.py,s
 NFR-01801,specs/017-portfolio-lookthrough/generation/exposure-service/app.py,scripts/test-exposure-integration.py
 NFR-01802,specs/017-portfolio-lookthrough/generation/exposure-service/engine.py,scripts/test-exposure-integration.py
 NFR-01803,pipeline/render-portfolio-lookthrough.py,pipeline/validate-generated-state-lineage-invariants.sh
+FR-01807,specs/017-portfolio-lookthrough/generation/exposure-service/engine.py,scripts/test-exposure-impact.py
+FR-01808,specs/017-portfolio-lookthrough/generation/exposure-service/impact_dataset.py,scripts/test-exposure-impact.py

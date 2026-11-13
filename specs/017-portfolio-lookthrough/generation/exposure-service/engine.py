@@ -73,10 +73,13 @@ class Engine:
         self.nodes={}
         self.totals={}
         self.sql=None
-        with psycopg.connect(dsn) as db:
-            db.execute('''CREATE TABLE IF NOT EXISTS exposure.projected_edges (
-                source text NOT NULL,target text NOT NULL,weight float8 NOT NULL,
-                PRIMARY KEY(source,target))''')
+        if not self.redis:
+            with psycopg.connect(dsn) as db:
+                db.execute('''CREATE TABLE IF NOT EXISTS exposure.projected_edges (
+                    source text NOT NULL,target text NOT NULL,weight float8 NOT NULL,
+                    PRIMARY KEY(source,target))''')
+                db.execute('CREATE INDEX IF NOT EXISTS exposure_edges_target ON exposure.projected_edges(target)')
+                db.execute('CREATE TABLE IF NOT EXISTS exposure.projected_nodes (id text PRIMARY KEY,kind text NOT NULL)')
         self.refresh()
 
     def query_graph(self, graph, query):
@@ -99,9 +102,9 @@ class Engine:
                     if self.redis.exists(graph): self.redis.execute_command('GRAPH.DELETE',graph)
                     self.query_graph(graph,'CREATE INDEX FOR (n:Entity) ON (n.id)')
                     for start in range(0,len(nodes),500):
-                        batch=[{'id':r[0]} for r in nodes[start:start+500]]
-                        literal='['+','.join('{id:'+json.dumps(r['id'])+'}' for r in batch)+']'
-                        self.query_graph(graph,f'UNWIND {literal} AS row CREATE (:Entity {{id:row.id}})')
+                        batch=[{'id':r[0],'kind':r[2]} for r in nodes[start:start+500]]
+                        literal='['+','.join('{id:'+json.dumps(r['id'])+',kind:'+json.dumps(r['kind'])+'}' for r in batch)+']'
+                        self.query_graph(graph,f'UNWIND {literal} AS row CREATE (:Entity {{id:row.id,kind:row.kind}})')
                     for start in range(0,len(edges),500):
                         literal='['+','.join('{s:'+json.dumps(s)+',t:'+json.dumps(t)+',w:'+str(w)+'}'
                                              for s,t,w in edges[start:start+500])+']'
@@ -111,6 +114,10 @@ class Engine:
                     if not self.redis:
                         with psycopg.connect(self.dsn) as db:
                             db.execute('DELETE FROM exposure.projected_edges')
+                            db.execute('DELETE FROM exposure.projected_nodes')
+                            with db.cursor() as cur:
+                                with cur.copy('COPY exposure.projected_nodes FROM STDIN') as copy:
+                                    for row in nodes: copy.write_row((row[0],row[2]))
                             with db.cursor() as cur:
                                 with cur.copy('COPY exposure.projected_edges FROM STDIN') as copy:
                                     for row in edges: copy.write_row(row)
@@ -151,7 +158,7 @@ class Engine:
                 rows=self.query_graph(self.graph,
                     f'MATCH p=(a:Entity {{id:{json.dumps(source)}}})-[:EXPOSURE*1..{MAX_DEPTH}]->'
                     f'(t:Entity {{id:{json.dumps(target)}}}) '
-                    'RETURN [n IN nodes(p) | n.id], reduce(w=1.0, r IN relationships(p) | w*r.weight)')
+                    'RETURN collect([[n IN nodes(p) | n.id], reduce(w=1.0, r IN relationships(p) | w*r.weight)])')[0][0]
             else:
                 if self.sql is None or self.sql.closed:
                     self.sql=psycopg.connect(self.dsn,autocommit=True)
@@ -172,3 +179,73 @@ class Engine:
                     'pathCount':len(rows),'pathsTruncated':len(rows)>limit,
                     'paths':[{'nodes':[self.nodes[n] for n in path],'fraction':float(weight)} for path,weight in rows[:limit]],
                     'elapsedMs':round((time.perf_counter()-start)*1000,3)}
+
+    def impact(self, target, limit=20, path_limit=3):
+        """One reverse traversal for the whole book, followed by shared aggregation.
+
+        Limits bound the returned ranking/explanations, never the totals.
+        Both backends enumerate economic paths, including shared fund routes.
+        """
+        start=time.perf_counter()
+        if not 1 <= limit <= 1000 or not 1 <= path_limit <= 100:
+            raise ValueError('Invalid impact result limit')
+        with self.lock:
+            if not self.status()['healthy']: raise RuntimeError('Projection unavailable or stale')
+            if target not in self.nodes: raise KeyError('Unknown target')
+            if self.nodes[target]['kind']!='company': raise ValueError('Target must be a corporate entity')
+            if self.redis:
+                if not self.redis.exists(self.graph): raise RuntimeError('Projection graph is missing')
+                rows=self.query_graph(self.graph,impact_cypher(target))[0][0]
+                rows=[(list(reversed(path)),weight) for path,weight in rows]
+            else:
+                if self.sql is None or self.sql.closed:
+                    self.sql=psycopg.connect(self.dsn,autocommit=True)
+                    self.sql.execute("SET statement_timeout='10s'")
+                rows=self.sql.execute(IMPACT_SQL,(target,target,MAX_DEPTH)).fetchall()
+            grouped={}
+            for path,weight in rows:
+                account=int(path[0][1:])
+                grouped.setdefault(account,[]).append((path,float(weight)))
+            portfolios=[]
+            for account,paths in grouped.items():
+                paths.sort(key=lambda r:(-r[1],r[0]))
+                fraction=sum(weight for _,weight in paths)
+                direct=sum(weight for path,weight in paths
+                           if not any(self.nodes[node]['kind']=='fund' for node in path))
+                value=self.totals[account]
+                portfolios.append({'accountId':account,'name':self.nodes[f'A{account}']['name'],
+                    'portfolioValue':value,'exposureValue':value*fraction,'totalFraction':fraction,
+                    'directFraction':direct,'indirectFraction':fraction-direct,'pathCount':len(paths),
+                    'pathsTruncated':len(paths)>path_limit,
+                    'paths':[{'nodes':[self.nodes[node] for node in path],
+                              'fraction':weight,'exposureValue':value*weight}
+                             for path,weight in paths[:path_limit]]})
+            # Round only the ranking key to cents so floating reduction order cannot
+            # change tie ordering across databases. Preserve full response precision.
+            portfolios.sort(key=lambda r:(-round(r['exposureValue'],2),r['accountId']))
+            return {**self.status(),'target':target,'exposedPortfolioCount':len(portfolios),
+                    'totalExposureValue':sum(row['exposureValue'] for row in portfolios),
+                    'pathCount':len(rows),'portfoliosTruncated':len(portfolios)>limit,
+                    'portfolios':portfolios[:limit],
+                    'elapsedMs':round((time.perf_counter()-start)*1000,3)}
+
+
+IMPACT_SQL = """WITH RECURSIVE walk(node,path,weight,depth) AS (
+    SELECT %s::text,ARRAY[%s::text],1.0::float8,0
+    UNION ALL SELECT e.source,e.source||w.path,w.weight*e.weight,w.depth+1
+    FROM walk w JOIN exposure.projected_edges e ON e.target=w.node
+    WHERE w.depth<%s AND NOT e.source=ANY(w.path)
+) SELECT w.path,w.weight FROM walk w
+  JOIN exposure.projected_nodes n ON n.id=w.node
+  WHERE n.kind='account' AND w.depth>0"""
+
+
+def impact_cypher(target):
+    # WITH anchors the indexed corporate target before reverse traversal.
+    # Collect into one result row: FalkorDB's default RESULTSET_SIZE=10000
+    # otherwise silently truncates the economic paths and undercounts exposure.
+    return (f'MATCH (t:Entity {{id:{json.dumps(target)}}}) WITH t '
+            f'MATCH p=(t)<-[:EXPOSURE*1..{MAX_DEPTH}]-(a:Entity) '
+            "WHERE a.kind='account' "
+            'RETURN collect([[n IN nodes(p) | n.id], '
+            'reduce(w=1.0, r IN relationships(p) | w*r.weight)])')

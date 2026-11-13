@@ -9,6 +9,9 @@ PROFILES = {'small': (30, 200, 80, 20), 'demo': (1000, 5000, 2000, 500),
 
 
 def generate(profile='demo', seed=42):
+    if profile == 'impact':
+        from impact_dataset import generate_impact
+        return generate_impact()
     accounts, securities, entities, funds = PROFILES[profile]
     rng = random.Random(seed)
     nodes, links, positions = [], [], []
@@ -98,7 +101,7 @@ def seed_database(dsn, data):
 
 if __name__ == '__main__':
     parser=argparse.ArgumentParser()
-    parser.add_argument('--profile',choices=PROFILES,default='demo')
+    parser.add_argument('--profile',choices=[*PROFILES,'impact'],default='demo')
     parser.add_argument('--seed',type=int,default=42)
     parser.add_argument('--output',required=True)
     args=parser.parse_args()

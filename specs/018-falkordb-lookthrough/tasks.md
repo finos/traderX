@@ -10,7 +10,9 @@
 
 - [x] Preserve baseline results, including neutral/negative findings and full screenshots.
 - [x] Add a dataset-size control that preserves the exact queried portfolio subgraphs.
-- [ ] Confirm the primary business task and representative portfolio topology.
+- [x] Confirm firm-wide corporate-group impact as the primary task; add an analytical shared-fund fixture.
+- [x] Implement equivalent reverse traversals, API/UI and regression coverage beyond 10,000 paths.
+- [ ] Validate the synthetic topology with domain reviewers.
 - [ ] Compare equivalent queries across overlap/depth, impact fan-out and concurrency.
 - [ ] Measure read/update freshness and decide against agreed business requirements.
 - [ ] Review the representative example before marking the PR ready.
