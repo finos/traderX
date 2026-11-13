@@ -30,6 +30,7 @@ for scan_root in "$@"; do
   find "${scan_root}" -type f \
     \( -name 'build.gradle' -o -name 'gradle-wrapper.properties' -o -name 'package.json' -o -name '*.csproj' -o -name '*.yml' -o -name '*.yaml' -o -name '*.json' -o -name 'Dockerfile.compose' \) \
     ! -path '*/node_modules/*' \
+    ! -path "${scan_root%/}/fdc3-intent-interoperability/sail/bootstrap/dependency-overlay/*" \
     -print >> "${tmp_files}"
 done
 
@@ -67,6 +68,8 @@ JAVA_BOOT_TARGET="$(jq -er '.java.plugins["org.springframework.boot"]' "${TARGET
 JAVA_DEP_MGMT_TARGET="$(jq -er '.java.plugins["io.spring.dependency-management"]' "${TARGETS_FILE}")"
 JAVA_SOURCE_TARGET="$(jq -er '.java.sourceCompatibility' "${TARGETS_FILE}")"
 JAVA_JACKSON_BOM_TARGET="$(jq -er '.java.properties["jackson-bom.version"]' "${TARGETS_FILE}")"
+JAVA_JACKSON_2_BOM_TARGET="$(jq -er '.java.properties["jackson-2-bom.version"]' "${TARGETS_FILE}")"
+JAVA_KOTLIN_BOM_TARGET="$(jq -er '.java.properties["kotlin.version"]' "${TARGETS_FILE}")"
 JAVA_TOMCAT_TARGET="$(jq -er '.java.properties["tomcat.version"]' "${TARGETS_FILE}")"
 GRADLE_WRAPPER_TARGET="$(jq -er '.gradleWrapper.distributionVersion' "${TARGETS_FILE}")"
 GRADLE_WRAPPER_SHA_TARGET="$(jq -er '.gradleWrapper.distributionSha256Sum' "${TARGETS_FILE}")"
@@ -86,6 +89,8 @@ while IFS= read -r gradle_file; do
   dep_mgmt_version="$(sed -n "s/.*id 'io\\.spring\\.dependency-management' version '\\([^']*\\)'.*/\\1/p" "${gradle_file}" | head -n1)"
   java_source="$(sed -n "s/.*sourceCompatibility = JavaVersion\\.VERSION_\\([0-9][0-9]*\\).*/\\1/p" "${gradle_file}" | head -n1)"
   jackson_bom_version="$(sed -n "s/.*ext\\['jackson-bom\\.version'\\][[:space:]]*=[[:space:]]*'\\([^']*\\)'.*/\\1/p" "${gradle_file}" | head -n1)"
+  jackson_2_bom_version="$(sed -n "s/.*ext\\['jackson-2-bom\\.version'\\][[:space:]]*=[[:space:]]*'\\([^']*\\)'.*/\\1/p" "${gradle_file}" | head -n1)"
+  kotlin_bom_version="$(sed -n "s/.*ext\\['kotlin\\.version'\\][[:space:]]*=[[:space:]]*'\\([^']*\\)'.*/\\1/p" "${gradle_file}" | head -n1)"
   tomcat_version="$(sed -n "s/.*ext\\['tomcat\\.version'\\][[:space:]]*=[[:space:]]*'\\([^']*\\)'.*/\\1/p" "${gradle_file}" | head -n1)"
 
   [[ -n "${boot_version}" ]] || fail "missing Spring Boot plugin version in ${gradle_file}"
@@ -94,6 +99,10 @@ while IFS= read -r gradle_file; do
   check_equals "Spring Boot plugin" "${gradle_file}" "${JAVA_BOOT_TARGET}" "${boot_version}"
   check_equals "Dependency-management plugin" "${gradle_file}" "${JAVA_DEP_MGMT_TARGET}" "${dep_mgmt_version}"
   check_equals "Java sourceCompatibility" "${gradle_file}" "${JAVA_SOURCE_TARGET}" "${java_source}"
+  [[ -n "${jackson_2_bom_version}" ]] || fail "missing jackson-2-bom.version in ${gradle_file}"
+  [[ -n "${kotlin_bom_version}" ]] || fail "missing kotlin.version in ${gradle_file}"
+  check_equals "jackson-2-bom.version property" "${gradle_file}" "${JAVA_JACKSON_2_BOM_TARGET}" "${jackson_2_bom_version}"
+  check_equals "kotlin.version property" "${gradle_file}" "${JAVA_KOTLIN_BOM_TARGET}" "${kotlin_bom_version}"
   if [[ -n "${jackson_bom_version}" ]]; then
     jackson_bom_seen=$((jackson_bom_seen + 1))
     check_equals "jackson-bom.version property" "${gradle_file}" "${JAVA_JACKSON_BOM_TARGET}" "${jackson_bom_version}"
@@ -198,12 +207,12 @@ while IFS=$'\t' read -r image_name expected_tag; do
 
     while IFS= read -r actual_tag; do
       [[ -n "${actual_tag}" ]] || continue
-      check_equals "Docker image ${image_name}" "${manifest_file}" "${expected_tag}" "${actual_tag}"
+      check_equals "Docker image ${image_name}" "${manifest_file}" "${expected_tag}" "${actual_tag%%@sha256:*}"
     done < <(extract_yaml_image_tags "${manifest_file}" "${image_name}")
 
     while IFS= read -r actual_tag; do
       [[ -n "${actual_tag}" ]] || continue
-      check_equals "Docker image ${image_name}" "${manifest_file}" "${expected_tag}" "${actual_tag}"
+      check_equals "Docker image ${image_name}" "${manifest_file}" "${expected_tag}" "${actual_tag%%@sha256:*}"
     done < <(extract_json_image_tags "${manifest_file}" "${image_name}")
   done < <(rg -N "" "${tmp_files}" | rg '(\.ya?ml|\.json)$' || true)
 done < <(jq -r '(.docker.images // {}) | to_entries[] | [.key, .value] | @tsv' "${TARGETS_FILE}")
@@ -217,5 +226,9 @@ while IFS=$'\t' read -r module expected_image; do
     check_equals "runtime image ${module}" "${dockerfile}" "${expected_image}" "${actual_image}"
   done < <(rg 'Dockerfile\.compose$' "${tmp_files}" || true)
 done < <(jq -r '(.docker.runtimeImages // {}) | to_entries[] | [.key, .value] | @tsv' "${TARGETS_FILE}")
+
+python3 "${ROOT}/pipeline/validate-generated-sail-dependencies.py" --targets "${TARGETS_FILE}" "$@"
+
+python3 "${ROOT}/pipeline/validate-node-resolved-minimums.py" --targets "${TARGETS_FILE}" "$@"
 
 echo "[ok] dependency targets validated for generated roots ($# root(s))"

@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const { connect } = require('nats');
-const yahooFinance = require('yahoo-finance2').default;
+let yahooFinance;
 
 const PORT = Number(process.env.PRICE_PUBLISHER_PORT || '18100');
 const NATS_URL = process.env.NATS_ADDRESS || `nats://${process.env.NATS_BROKER_HOST || 'localhost'}:4222`;
@@ -297,6 +297,8 @@ app.get('/prices/:ticker', (req, res) => {
 });
 
 async function main() {
+  // Use the package's ESM export; its CommonJS loader reads an unexported package.json.
+  ({ default: yahooFinance } = await import('yahoo-finance2'));
   await bootstrapPrices();
   assignStartupVolatilityBands();
   state.nats = await connect({ servers: NATS_URL, maxReconnectAttempts: -1 });

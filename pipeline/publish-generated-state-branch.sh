@@ -411,6 +411,10 @@ C2_COMPONENT_DIRS=(
 )
 
 snapshot_keep_paths_for_state() {
+  # Workflows and deployment verification consume these generated helpers.
+  if (( 10#${state_num} >= 2 )); then
+    printf '%s\n' "ci"
+  fi
   case "${STATE_ID}" in
     001-baseline-uncontainerized-parity)
       if [[ "${SKIP_RUNTIME_PREFLIGHT}" == "1" ]]; then
@@ -517,6 +521,38 @@ prune_snapshot_for_state() {
 }
 
 prune_snapshot_for_state
+
+# Local scanner reports are diagnostic artifacts, not snapshot runtime inputs.
+rm -rf "${SNAPSHOT_DIR}/ci/local-security-reports"
+if (( 10#${state_num} >= 2 )); then
+  for required_ci in state-metadata.json build-test-generated-snapshot.sh; do
+    [[ -f "${SNAPSHOT_DIR}/ci/${required_ci}" ]] || {
+      echo "[fail] missing published CI input: ci/${required_ci}"
+      exit 1
+    }
+  done
+fi
+if [[ -f "${SNAPSHOT_DIR}/.github/workflows/build-and-publish.yml" ]]; then
+  for required_ci in runtime_image_security.py dependency-version-targets.json; do
+    [[ -f "${SNAPSHOT_DIR}/ci/${required_ci}" ]] || {
+      echo "[fail] missing runtime security input: ci/${required_ci}"
+      exit 1
+    }
+  done
+  jq -e '.runtime.kind and .runtime.path' "${SNAPSHOT_DIR}/ci/state-metadata.json" >/dev/null || {
+    echo "[fail] missing active runtime security metadata"
+    exit 1
+  }
+fi
+
+if [[ -f "${SNAPSHOT_DIR}/.github/workflows/security.yml" ]] && grep -q 'nonpublishing_runtime_security.py' "${SNAPSHOT_DIR}/.github/workflows/security.yml"; then
+  for required_ci in nonpublishing_runtime_security.py runtime_image_security.py dependency-version-targets.json state-009-grafana-fixed-findings.json; do
+    [[ -f "${SNAPSHOT_DIR}/ci/${required_ci}" ]] || {
+      echo "[fail] missing build-only runtime scan input: ci/${required_ci}"
+      exit 1
+    }
+  done
+fi
 
 strip_precontainer_docker_artifacts() {
   if (( 10#${state_num} >= 4 )); then

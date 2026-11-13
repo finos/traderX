@@ -29,6 +29,20 @@ jobs:
       - name: Install website dependencies
         run: npm --prefix website ci --no-audit --no-fund
 
+      - name: Verify portal version policy
+        run: python3 pipeline/validate-portal-dependency-targets.py
+
+      - name: Scan complete portal dependency graph
+        run: npm --prefix website audit --audit-level=high --json > portal-security.json
+
+      - name: Retain portal security report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: portal-security-${{ github.run_id }}-${{ github.run_attempt }}
+          path: portal-security.json
+          if-no-files-found: warn
+
       - name: Validate root Spec Kit gates
         run: bash pipeline/speckit/validate-root-spec-kit-gates.sh
 

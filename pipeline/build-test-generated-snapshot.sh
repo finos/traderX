@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
+jq -e '.modules | (.node | type == "array") and (.gradle | type == "array") and (.dotnet | type == "array")' ci/state-metadata.json >/dev/null
 while IFS= read -r module; do
   (
     cd "${module}"

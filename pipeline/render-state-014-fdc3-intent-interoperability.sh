@@ -196,9 +196,12 @@ if [[ -x /workspace/bootstrap/apply-tradingview-overrides.sh ]]; then
   /workspace/bootstrap/apply-tradingview-overrides.sh "${SAIL_REPO_DIR}"
 fi
 
-echo "[info] installing Sail dependencies"
-rm -rf node_modules
-npm install --no-audit --no-fund
+echo "[info] applying pinned Sail dependency graph"
+node /workspace/bootstrap/dependency-overlay/apply.cjs "${SAIL_REPO_DIR}"
+echo "[info] installing Sail dependencies from the reviewed lock"
+npm ci --no-audit --no-fund
+# Development tools serve the demo, so audit the complete installed graph.
+npm audit --audit-level=high --json > "${SAIL_REPO_DIR}/traderx-npm-audit.json"
 
 echo "[info] building Sail workspace packages required by web desktop agent"
 npm run build -w packages/da-impl --if-present
@@ -406,6 +409,8 @@ fi
 if compgen -G "${SAIL_TRADINGVIEW_MODES_OVERRIDE_SOURCE_DIR}/*.ts" > /dev/null; then
   cp "${SAIL_TRADINGVIEW_MODES_OVERRIDE_SOURCE_DIR}/"*.ts "${SAIL_BOOTSTRAP_TRADINGVIEW_OVERRIDE_MODES_DIR}/"
 fi
+cp -R "${STATE_SPEC_DIR}/generation/sail-dependencies" "${SAIL_BOOTSTRAP_DIR}/dependency-overlay"
+jq '.npm.sail' "${ROOT}/catalog/dependency-version-targets.json" > "${SAIL_BOOTSTRAP_DIR}/dependency-overlay/policy.json"
 cp "${SAIL_POLYGON_WIDGET_OVERRIDE_SOURCE_FILE}" "${SAIL_BOOTSTRAP_POLYGON_OVERRIDE_DIR}/PolygonWidget.tsx"
 cp "${SAIL_WEB_DEFAULT_STATE_SOURCE_FILE}" "${SAIL_BOOTSTRAP_WEB_OVERRIDE_DIR}/default-client-state.json"
 cp "${SAIL_WEB_CLIENT_INDEX_OVERRIDE_SOURCE_FILE}" "${SAIL_BOOTSTRAP_WEB_OVERRIDE_SRC_CLIENT_DIR}/index.tsx"

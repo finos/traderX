@@ -1,0 +1,58 @@
+{
+  "name": "@finos/fdc3-sail-web",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "tsc && vite build",
+    "dev": "nodemon -w src/server -x tsx src/server/main.ts  --trace-uncaught",
+    "prod": "pm2 start pm2.config.js"
+  },
+  "main": "src/server/main.js",
+  "types": "src/server/main.d.ts",
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@types/express": "^4.17.15",
+    "@types/node": "^20.9.3",
+    "@types/react": "^18.2.79",
+    "bun": "^1.2.5",
+    "concurrently": "^8.2.2",
+    "copyfiles": "^2.4.1",
+    "eslint": "^9.9.1",
+    "glob": "^10.3.10",
+    "nodemon": "^3.0.1",
+    "pm2": "^7.1.2",
+    "prettier": "^3.3.3",
+    "rimraf": "^6.0.1",
+    "ts-node": "^10.9.2",
+    "typescript-plugin-css-modules": "^5.1.0",
+    "vite": "^6.1.6"
+  },
+  "dependencies": {
+    "@finos/fdc3": "2.2.1-beta.3",
+    "@finos/fdc3-sail-common": "0.0.0",
+    "@finos/fdc3-sail-da-impl": "0.0.0",
+    "pino": "^9.6.0",
+    "pino-pretty": "^13.0.0",
+    "@types/react-dom": "^18.2.25",
+    "@types/uuid": "^9.0.8",
+    "@types/ws": "^8.5.10",
+    "color": "^5.0.0",
+    "express": "^4.18.3",
+    "gridstack": "^10.1.2",
+    "pretty-print-json": "^3.0.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hooks": "^1.0.1",
+    "react-widgets": "^5.8.6",
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.7.5",
+    "tsx": "^4.5.0",
+    "typescript": "^5.3.2",
+    "uuid": "^9.0.1",
+    "vite-express": "^0.22.1",
+    "ws": "^8.18.0"
+  }
+}

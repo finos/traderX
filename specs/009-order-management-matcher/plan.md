@@ -24,3 +24,12 @@
 - Smoke tests pass for this state, including order observability assertions.
 - Deployment bundle artifacts are generated and locally dry-run validated.
 - State can be published to `code/generated-state-009-order-management-matcher`.
+
+## Demo recovery (#487)
+
+Preserve the PostgreSQL 16 volume and back it up before replacement. Rebuild
+runtime binaries with fixed dependencies, upgrade compatible telemetry components,
+and replace legacy Promtail while preserving Docker log labels. Publish through
+the one-snapshot branch pipeline, require exact-snapshot CI and host scans, then
+verify public ingress, order lifecycle, retained trades/positions and observability.
+Track broader generator/CI work in `docs/operations/state-009-recovery.md`.

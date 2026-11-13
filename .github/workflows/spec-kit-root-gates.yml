@@ -22,7 +22,23 @@ jobs:
           sudo apt-get install -y jq ripgrep
 
       - name: Test publishing security and snapshot authorization
-        run: python3 scripts/test-publishing-security.py
+        run: |
+          python3 scripts/test-publishing-security.py
+          python3 scripts/test-deployment-recovery.py
+          python3 scripts/test-runtime-image-security.py
+          python3 scripts/test-runtime-image-policy.py
+          python3 scripts/test-node-resolved-minimums.py
+          python3 scripts/test-jackson-bom-targets.py
+          python3 scripts/test-kotlin-bom-targets.py
+          python3 scripts/test-java-cpe-disposition.py
+          python3 scripts/test-java-cpe-grouped-disposition.py
+          python3 scripts/test-sail-dependency-overlay.py
+          python3 scripts/test-frozen-node-runtime.py
+          python3 scripts/test-nonpublishing-runtime-security.py
+          python3 scripts/test-state006-compose-patch.py
+          python3 scripts/test-api-explorer-image-policy.py
+          python3 scripts/test-browser-asset-integrity.py
+          python3 pipeline/validate-portal-dependency-targets.py
 
       - name: Validate root Spec Kit integrity and branch-resolution behavior
         run: |
@@ -71,3 +87,22 @@ jobs:
           bash pipeline/generate-state.sh 009-order-management-matcher
           cmp templates/state-010-pricing-awareness-market-data-overlay/trade-processor/src/main/java/finos/traderx/tradeprocessor/service/TradeService.java generated/code/target-generated/trade-processor/src/main/java/finos/traderx/tradeprocessor/service/TradeService.java
           cmp templates/trade-processor-specfirst/src/main/java/finos/traderx/tradeprocessor/service/CommittedTradeEvents.java generated/code/target-generated/trade-processor/src/main/java/finos/traderx/tradeprocessor/service/CommittedTradeEvents.java
+
+  fdc3-generation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install generation dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq ripgrep
+      - name: Verify final FDC3 generation and frozen dependency overlay
+        env:
+          TRADERX_SKIP_LOCKFILE_REFRESH: '1'
+        run: bash pipeline/generate-state.sh 014-fdc3-intent-interoperability
+
+  deployment-backup-restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - name: Verify scoped PostgreSQL backup and independent restore
+        run: bash scripts/test-deployment-recovery-integration.sh

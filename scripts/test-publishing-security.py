@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Offline regression tests for scanner deadlines and deployment authorization."""
 import importlib.util
+import io
+import tarfile
 import json
 import os
 from pathlib import Path
@@ -26,6 +28,109 @@ verify = module('verify-deployment-snapshot')
 deploy = module('deploy-verified-snapshot')
 SHA = 'a' * 40
 DIGEST = 'sha256:' + 'b' * 64
+TEST_SETTINGS = {'security': {'runtimeImageScanner': {'image': 'scanner@' + DIGEST, 'version': 'test'}, 'supportedPlatforms': ['linux/amd64'], 'maxEvidenceAgeHours': 24, 'maxDatabaseAgeHours': 24, 'maxJavaDatabaseAgeHours': 96}}
+
+
+class SnapshotArchiveTests(unittest.TestCase):
+    def archive(self, member_name='repo/file.txt', member_type=tarfile.REGTYPE):
+        buffer = io.BytesIO()
+        with tarfile.open(fileobj=buffer, mode='w:gz') as archive:
+            member = tarfile.TarInfo(member_name)
+            member.type = member_type
+            if member_type == tarfile.REGTYPE:
+                member.size = 4
+                archive.addfile(member, io.BytesIO(b'safe'))
+            else:
+                member.linkname = 'file.txt'
+                archive.addfile(member)
+        return buffer.getvalue()
+
+    def download(self, destination, payload):
+        def download(*args, **kwargs):
+            kwargs['stdout'].write(payload)
+        with patch.object(verify.subprocess, 'run', side_effect=download):
+            return verify.download_snapshot('finos/traderX', SHA, destination)
+
+    def test_safe_archive_accepts_symlinked_temporary_directory_root(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            real = root / 'real';real.mkdir()
+            alias = root / 'alias';alias.symlink_to(real, target_is_directory=True)
+            extracted = self.download(alias, self.archive())
+            self.assertEqual(extracted, real.resolve() / 'snapshot/repo')
+            self.assertEqual((extracted / 'file.txt').read_text(), 'safe')
+
+    def test_archive_rejects_traversal_absolute_paths_and_all_links(self):
+        for name, kind in [('../escape', tarfile.REGTYPE), ('/absolute/escape', tarfile.REGTYPE),
+                           ('repo/link', tarfile.SYMTYPE), ('repo/link', tarfile.LNKTYPE),
+                           ('repo/device', tarfile.CHRTYPE)]:
+            with self.subTest(name=name, kind=kind), tempfile.TemporaryDirectory() as tmp:
+                with self.assertRaisesRegex(ValueError, 'unsafe path or link'):
+                    self.download(Path(tmp), self.archive(name, kind))
+                self.assertFalse((Path(tmp) / 'escape').exists())
+
+
+class RecoveryCacheTests(unittest.TestCase):
+    def test_refuses_other_hosts_states_and_existing_containers(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.object(deploy, 'run') as run:
+            for state, host in [('004-containerized-compose-runtime', 'demo-advanced.traderx.finos.org'), ('009-order-management-matcher', 'demo.traderx.finos.org')]:
+                with self.assertRaises(ValueError):
+                    deploy.reclaim_recovery_image_cache({'state': state, 'target': host}, Path(tmp))
+            run.assert_not_called()
+            run.return_value.stdout = 'existing-container'
+            with self.assertRaises(ValueError):
+                deploy.reclaim_recovery_image_cache({'state': '009-order-management-matcher', 'target': 'demo-advanced.traderx.finos.org'}, Path(tmp))
+            self.assertEqual(run.call_count, 1)
+
+    def test_removes_only_old_unused_images_and_records_result(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.object(deploy, 'run') as run:
+            run.return_value.stdout = ''
+            deploy.reclaim_recovery_image_cache({'state': '009-order-management-matcher', 'target': 'demo-advanced.traderx.finos.org'}, Path(tmp))
+            self.assertEqual([call.args for call in run.call_args_list], [
+                ('docker', 'ps', '-aq'), ('df', '-h', '/'),
+                ('docker', 'image', 'prune', '-a', '-f', '--filter', 'until=24h'), ('df', '-h', '/')])
+            self.assertTrue((Path(tmp) / 'recovery-image-cache.json').is_file())
+
+
+class SnapshotRunnerTests(unittest.TestCase):
+    def test_state004_keeps_corrected_shared_test_fixtures(self):
+        patch_text = (ROOT / 'specs/004-containerized-compose-runtime/generation/patches/0001-state-overlay.patch').read_text()
+        for relative in ['test-utils/mocks.service.ts',
+                         'accounts/account.component.spec.ts',
+                         'trade/trade.component.spec.ts',
+                         'trade/trade-blotter/trade-blotter.component.spec.ts',
+                         'trade/position-blotter/position-blotter.component.spec.ts']:
+            path = 'web-front-end/angular/main/app/' + relative
+            block = patch_text.split('diff --git a/' + path + ' b/' + path + '\n', 1)[1].split('\ndiff --git ', 1)[0]
+            added = '\n'.join(line[1:] for line in block.splitlines()
+                              if line.startswith('+') and not line.startswith('+++')) + '\n'
+            self.assertEqual(added, (ROOT / 'templates' / path).read_text(), path)
+
+    def test_missing_metadata_cannot_silently_skip_tests(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            ci = Path(tmp) / 'ci'
+            ci.mkdir()
+            runner = ci / 'build-test-generated-snapshot.sh'
+            runner.write_text((ROOT / 'pipeline' / runner.name).read_text())
+            def run():
+                return subprocess.run(['bash', str(runner)], capture_output=True).returncode
+            self.assertNotEqual(run(), 0)
+            metadata = ci / 'state-metadata.json'
+            metadata.write_text('{}')
+            self.assertNotEqual(run(), 0)
+            metadata.write_text(json.dumps({'modules': {'node': [], 'gradle': [], 'dotnet': []}}))
+            self.assertEqual(run(), 0)
+
+
+class NodeAuditTests(unittest.TestCase):
+    def test_audit_results_fail_closed(self):
+        audit = module('scan-node-audit')
+        clean = {'auditReportVersion': 2, 'vulnerabilities': {}}
+        self.assertEqual(audit.classify(clean, 0), 0)
+        self.assertEqual(audit.classify(clean | {'vulnerabilities': {'qs': {}}}, 1), 1)
+        for report, code in [(clean, 1), ({'error': {'code': 'E503'}}, 1),
+                             ({}, 0), ([], 0), (clean, 2)]:
+            self.assertEqual(audit.classify(report, code), 2)
 
 
 class AuthorizationTests(unittest.TestCase):
@@ -84,7 +189,7 @@ class AuthorizationTests(unittest.TestCase):
         jobs = {
             '1': ['Build and test snapshot'],
             '2': ['svc-node-scan', 'ingress-docker-scan'],
-            '3': ['Build and push ingress'],
+            '3': ['Build and push ingress', 'Runtime Image Security'],
         }
         failed = False
         def api(*args):
@@ -106,20 +211,109 @@ class AuthorizationTests(unittest.TestCase):
         def download(args, **kwargs):
             dest = Path(args[-1])
             dest.mkdir(parents=True)
+            (dest / 'runtime-lock.json').write_text('{}')
             (dest / 'image.json').write_text(json.dumps(dict(snapshot=SHA, image=image, digest=DIGEST,
                                                             run_id='3', run_attempt='2')))
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp) / 'verified.json'
             argv = ['verify', '--snapshot', SHA, '--target', 'demo.traderx.finos.org', '--output', str(output)]
-            with patch.object(sys, 'argv', argv), patch.object(verify, 'gh_json', side_effect=api), \
-                 patch.object(verify.subprocess, 'run', side_effect=download):
+            with patch.object(sys, 'argv', argv), patch.object(verify, 'gh_json', side_effect=api) as api_mock, \
+                 patch.object(verify.subprocess, 'run', side_effect=download), \
+                 patch.object(verify, 'download_snapshot', return_value=Path(tmp)), \
+                 patch.object(verify, 'runtime_inventory', return_value=[]), \
+                 patch.object(verify, 'validate_lock', return_value={}):
                 verify.main()
                 self.assertEqual(json.loads(output.read_text())['images'], {image: image + '@' + DIGEST})
+                self.assertEqual(json.loads(output.read_text())['snapshot'], SHA)
+                self.assertFalse(any('/commits/' in str(call) for call in api_mock.call_args_list))
                 output.unlink()
+                with patch.object(sys, 'argv', ['verify', '--target', 'demo.traderx.finos.org', '--output', str(output)]):
+                    verify.main()
+                self.assertEqual(json.loads(output.read_text())['snapshot'], SHA)
+                self.assertTrue(any('/commits/' in str(call) for call in api_mock.call_args_list))
+                output.unlink()
+                with patch.dict(verify.os.environ, {'GITHUB_ACTOR': 'maintainer'}), \
+                     patch.object(sys, 'argv', argv + ['--break-glass-reason', 'Restore demo service']):
+                    verify.main()
+                self.assertEqual(json.loads(output.read_text())['break_glass'],
+                                 {'enabled': True, 'reason': 'Restore demo service', 'actor': 'maintainer'})
+                output.unlink()
+                with patch.object(sys, 'argv', argv + ['--break-glass-reason', '']):
+                    with self.assertRaises(SystemExit):
+                        verify.main()
                 failed = True
                 with self.assertRaises(ValueError):
                     verify.main()
                 self.assertFalse(output.exists())
+
+    def test_scanner_exception_requires_reason_and_never_waives_integrity(self):
+        record = {'images': {}, 'break_glass': {'enabled': True, 'reason': 'Restore the demo', 'actor': 'maintainer'}}
+        settings = {'runtimeImageScanner': {'image': 'scanner'}}
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch.object(deploy, 'policy_settings', return_value=settings), \
+             patch.object(deploy, 'refresh_scanner_databases', side_effect=ValueError('stale')), \
+             patch.object(deploy, 'scan_infrastructure', side_effect=deploy.InfrastructureScanBlocked('findings')):
+            result = deploy.review_runtime_scans({}, record, {}, {}, None, Path(tmp) / 'reports')
+            self.assertEqual(len(result['issues']), 2)
+            for bad in [{'enabled': True, 'reason': '', 'actor': 'maintainer'},
+                        {'enabled': True, 'reason': 'Restore the demo', 'actor': ''}]:
+                with self.assertRaises(ValueError):
+                    deploy.review_runtime_scans({}, record | {'break_glass': bad}, {}, {}, None, Path(tmp) / 'reports')
+            with self.assertRaises(ValueError):
+                deploy.review_runtime_scans({}, record | {'break_glass': {'enabled': False}}, {}, {}, None, Path(tmp) / 'reports')
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch.object(deploy, 'policy_settings', return_value=settings), \
+             patch.object(deploy, 'refresh_scanner_databases', return_value={}), \
+             patch.object(deploy, 'scan_infrastructure', side_effect=ValueError('host image differs')):
+            with self.assertRaisesRegex(ValueError, 'host image differs'):
+                deploy.review_runtime_scans({}, record, {}, {}, None, Path(tmp) / 'reports')
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch.object(deploy, 'policy_settings', return_value=settings), \
+             patch.object(deploy, 'refresh_scanner_databases', return_value={}), \
+             patch.object(deploy, 'scan_infrastructure', side_effect=deploy.InfrastructureScanBlocked('findings')) as scan:
+            with self.assertRaises(deploy.InfrastructureScanBlocked):
+                deploy.review_runtime_scans({}, record | {'break_glass': {'enabled': False}}, {}, {}, None, Path(tmp) / 'reports')
+            self.assertTrue(scan.call_args.kwargs['database_ready'])
+
+    def test_failed_refresh_retains_partial_evidence_without_raw_error(self):
+        evidence = {'updated_at': '2026-11-13T00:00:00+00:00', 'sha256': 'a' * 64}
+        def refresh(cache, settings, evidence):
+            evidence['vulnerability'] = dict(updated_at='2026-11-13T00:00:00+00:00', sha256='a' * 64)
+            raise ValueError('private-marker')
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch.object(deploy, 'refresh_scanner_databases', side_effect=refresh), \
+             patch.object(deploy, 'scan_infrastructure') as scan:
+            reports = Path(tmp) / 'reports'
+            with self.assertRaisesRegex(ValueError, 'private-marker'):
+                deploy.review_runtime_scans({}, {'images': {}}, {}, {}, None, reports)
+            scan.assert_not_called()
+            review = json.loads((reports / 'scan-review.json').read_text())
+            self.assertEqual(review['status'], 'blocked')
+            self.assertEqual(review['databases'], {'vulnerability': evidence})
+            self.assertEqual(json.loads((reports / 'public-summary.json').read_text()), [])
+            self.assertNotIn('private-marker', json.dumps(review))
+
+    def test_blocked_scan_retains_databases_and_sanitized_findings(self):
+        databases = {'vulnerability': {'sha256': 'a' * 64}}
+        def scan(config, images, reports, **kwargs):
+            reports.mkdir()
+            (reports / 'summary.json').write_text(json.dumps([
+                {'service': 'ingress', 'status': 'findings', 'high': 1, 'critical': 0,
+                 'stderr': 'private-marker'}]))
+            raise deploy.InfrastructureScanBlocked('private-marker')
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch.object(deploy, 'refresh_scanner_databases', return_value=databases), \
+             patch.object(deploy, 'policy_settings', return_value={'runtimeImageScanner': {'image': 'scanner'}}), \
+             patch.object(deploy, 'scan_infrastructure', side_effect=scan):
+            reports = Path(tmp) / 'reports'
+            with self.assertRaises(deploy.InfrastructureScanBlocked):
+                deploy.review_runtime_scans({}, {'images': {}}, {}, {}, None, reports)
+            review = json.loads((reports / 'scan-review.json').read_text())
+            self.assertEqual(review['status'], 'blocked')
+            self.assertEqual(review['databases'], databases)
+            self.assertEqual(review['results'][0]['high'], 1)
+            self.assertNotIn('private-marker', json.dumps(review))
+            self.assertNotIn('private-marker', (reports / 'public-summary.json').read_text())
 
     def test_compose_uses_verified_digest_and_removes_build(self):
         image = 'ghcr.io/finos/traderx-c1/ingress'
@@ -143,15 +337,224 @@ class AuthorizationTests(unittest.TestCase):
                 return subprocess.CompletedProcess(args, 0, stdout=json.dumps(config))
             with patch.object(sys, 'argv', ['deploy', str(manifest), '--workdir', str(work)]), \
                  patch.object(deploy, 'run', side_effect=fake_run) as commands, \
-                 patch.object(deploy.subprocess, 'check_output', return_value=SHA + '\n'):
+                 patch.object(deploy.subprocess, 'check_output', return_value=SHA + '\n'), \
+                 patch.object(deploy, 'authorize_runtime', side_effect=lambda config, *args: deploy.pin_services(config, {image: image + '@' + DIGEST})), \
+                 patch.object(deploy, 'policy_settings', return_value={'runtimeImageScanner': {'image': 'scanner'}}), \
+                 patch.object(deploy, 'refresh_scanner_databases', return_value={}), \
+                 patch.object(deploy, 'scan_infrastructure'):
                 deploy.main()
             audit = json.loads((work / '.traderx-deploy/deployed.json').read_text())
             self.assertEqual(audit['snapshot'], SHA)
             self.assertEqual(audit['services']['ingress'], image + '@' + DIGEST)
             self.assertTrue(any('--no-build' in call.args and '--wait' in call.args for call in commands.call_args_list))
 
+    def test_non009_startup_failure_preserves_original_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work = Path(tmp)
+            (work / '.git').mkdir()
+            manifest = work / 'manifest.json'
+            image = 'ghcr.io/finos/traderx-c1/ingress'
+            manifest.write_text(json.dumps(dict(snapshot=SHA, state='004-test', target='demo.test',
+                                                repository='finos/traderX', images={image: image + '@' + DIGEST})))
+            config = {'services': {'ingress': {'image': image + ':' + SHA, 'build': {'context': '.'}}}}
+            failure = subprocess.CalledProcessError(17, ['docker', 'compose', 'up'])
+            def fake_run(*args, **kwargs):
+                if 'up' in args:
+                    raise failure
+                return subprocess.CompletedProcess(args, 0, stdout=json.dumps(config))
+            with patch.object(sys, 'argv', ['deploy', str(manifest), '--workdir', str(work)]), \
+                 patch.object(deploy, 'run', side_effect=fake_run) as commands, \
+                 patch.object(deploy.subprocess, 'check_output', return_value=SHA + '\n'), \
+                 patch.object(deploy, 'authorize_runtime', side_effect=lambda config, *args: deploy.pin_services(config, {image: image + '@' + DIGEST})), \
+                 patch.object(deploy, 'policy_settings', return_value={'runtimeImageScanner': {'image': 'scanner'}}), \
+                 patch.object(deploy, 'refresh_scanner_databases', return_value={}), \
+                 patch.object(deploy, 'scan_infrastructure'):
+                with self.assertRaises(subprocess.CalledProcessError) as caught:
+                    deploy.main()
+                self.assertIs(caught.exception, failure)
+            self.assertFalse((work / '.traderx-deploy/deployed.json').exists())
+
+
+class FixedSourceDispositionTests(unittest.TestCase):
+    def setUp(self):
+        settings = patch.object(deploy, 'security_settings', return_value=TEST_SETTINGS)
+        settings.start()
+        self.addCleanup(settings.stop)
+        self.policy = json.loads((ROOT / 'catalog/security/state-009-grafana-fixed-findings.json').read_text())
+        self.finding = {'VulnerabilityID': 'CVE-2026-21728', 'PkgName': self.policy['package'],
+                        'InstalledVersion': self.policy['installed_version'], 'Severity': 'HIGH'}
+        self.now = deploy.datetime.datetime(2026, 11, 11, tzinfo=deploy.datetime.timezone.utc)
+
+    def test_disposition_is_exact_and_expires(self):
+        self.assertTrue(deploy.already_fixed(self.finding, self.policy['image'], self.policy, self.now))
+        self.assertFalse(deploy.already_fixed(self.finding, 'other@' + DIGEST, self.policy, self.now))
+        for change in [{'VulnerabilityID': 'CVE-9999-9999'}, {'PkgName': 'other'}, {'InstalledVersion': 'other'}]:
+            self.assertFalse(deploy.already_fixed(self.finding | change, self.policy['image'], self.policy, self.now))
+        with self.assertRaisesRegex(ValueError, 'expired'):
+            deploy.already_fixed(self.finding, self.policy['image'], self.policy,
+                                 deploy.datetime.datetime(2026, 12, 11, tzinfo=deploy.datetime.timezone.utc))
+        with self.assertRaisesRegex(ValueError, 'not approved'):
+            deploy.already_fixed(self.finding, self.policy['image'], self.policy | {'approved': False}, self.now)
+
+    def test_disposition_retains_raw_findings_and_never_exempts_secrets(self):
+        self.policy['expires'] = (deploy.datetime.datetime.now(deploy.datetime.timezone.utc)
+                                  + deploy.datetime.timedelta(days=1)).isoformat()
+        for secrets, expected in [([], 'success'), ([{'Severity': 'HIGH'}], 'findings')]:
+            with self.subTest(secrets=secrets), tempfile.TemporaryDirectory() as tmp:
+                report = json.dumps({'Results': [{'Vulnerabilities': [self.finding], 'Secrets': secrets}]})
+                config = {'services': {'grafana': {'image': 'grafana:12.4.15'}}}
+                with patch.object(deploy, 'run', return_value=subprocess.CompletedProcess(
+                        [], 0, json.dumps([self.policy['image']]))), \
+                     patch.object(deploy.subprocess, 'run', return_value=subprocess.CompletedProcess([], 1, report, '')):
+                    if secrets:
+                        with self.assertRaises(ValueError):
+                            deploy.scan_infrastructure(config, {}, Path(tmp) / 'reports', self.policy)
+                    else:
+                        deploy.scan_infrastructure(config, {}, Path(tmp) / 'reports', self.policy)
+                row, = json.loads((Path(tmp) / 'reports/summary.json').read_text())
+                self.assertEqual(row['status'], expected)
+                self.assertEqual(row['fixed_findings'], [self.finding])
+                self.assertEqual((Path(tmp) / 'reports/grafana.trivy.json').read_text(), report)
+
+
+class DatabaseRecoveryTests(unittest.TestCase):
+    config = {'services': {'database': {'volumes': [{'type': 'volume', 'source': 'data', 'target': '/var/lib/postgresql/data'}]}}, 'volumes': {'data': {'name': 'demo_postgres_state_009_data'}}}
+
+    def test_recovery_rejects_wrong_major_or_active_database(self):
+        for version, writers in [('17', ''), ('16', 'running-container')]:
+            with self.subTest(version=version, writers=writers), tempfile.TemporaryDirectory() as tmp:
+                record = {'state': '009-order-management-matcher', 'snapshot': SHA}
+                volume = 'demo_postgres_state_009_data'
+                replies = ['', json.dumps([{'Name': volume, 'Mountpoint': '/volume'}]), version, writers]
+                def fake(*args, **kwargs):
+                    return subprocess.CompletedProcess(args, 0, replies.pop(0), '')
+                with patch.object(deploy, 'run', side_effect=fake) as commands:
+                    with self.assertRaises(ValueError):
+                        deploy.backup_state009_database(record, 'demo', Path(tmp), self.config)
+                self.assertFalse(any('tar' in c.args for c in commands.call_args_list))
+                self.assertNotIn('database_backup', record)
+
+    def test_missing_recovery_volume_blocks_instead_of_creating_one(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.object(deploy, 'run',
+                side_effect=subprocess.CalledProcessError(1, ['docker', 'volume', 'inspect'])):
+            with self.assertRaises(subprocess.CalledProcessError):
+                deploy.backup_state009_database({'state': '009-order-management-matcher', 'snapshot': SHA},
+                                                'demo', Path(tmp), self.config)
+
 
 class ScannerTests(unittest.TestCase):
+    def test_scanner_database_refresh_requires_fresh_metadata(self):
+        import datetime
+        stamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        settings = {'security': {'runtimeImageScanner': {'image': 'scanner@' + DIGEST, 'version': '1'},
+                                 'supportedPlatforms': ['linux/amd64'], 'maxEvidenceAgeHours': 24,
+                                 'maxDatabaseAgeHours': 24, 'maxJavaDatabaseAgeHours': 96}}
+        with tempfile.TemporaryDirectory() as tmp:
+            cache = Path(tmp)
+            for name in ('db', 'java-db'):
+                (cache / name).mkdir()
+                (cache / name / 'metadata.json').write_text(json.dumps({'UpdatedAt': stamp}))
+            with patch.object(deploy, 'run', return_value=subprocess.CompletedProcess([], 0)):
+                self.assertEqual(set(deploy.refresh_scanner_databases(cache, settings)), {'vulnerability', 'java'})
+                (cache / 'db/metadata.json').write_text(json.dumps({'UpdatedAt': '2000-01-01T00:00:00Z'}))
+                with self.assertRaises(ValueError):
+                    deploy.refresh_scanner_databases(cache, settings)
+
+    def setUp(self):
+        settings = patch.object(deploy, 'security_settings', return_value=TEST_SETTINGS)
+        settings.start()
+        self.addCleanup(settings.stop)
+
+    def test_infrastructure_timeout_continues_and_cleans_only_owned_scanners(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            config = {'services': {'timeout': {'image': 'repo:1'}, 'clean': {'image': 'repo:2'}}}
+            with patch.object(deploy, 'run', return_value=subprocess.CompletedProcess(
+                    [], 0, json.dumps(['repo@' + DIGEST]))) as commands, \
+                 patch.object(deploy.subprocess, 'run', side_effect=[
+                     subprocess.TimeoutExpired('private-marker', 600),
+                     subprocess.CompletedProcess([], 0, '{"Results": []}', '')]) as scans:
+                with self.assertRaisesRegex(ValueError, 'blocked: timeout'):
+                    deploy.scan_infrastructure(config, {}, Path(tmp) / 'reports')
+            summary = json.loads((Path(tmp) / 'reports/summary.json').read_text())
+            self.assertEqual([e['status'] for e in summary], ['error', 'success'])
+            self.assertIn('private-marker', json.dumps(summary))
+            self.assertNotIn('private-marker', (Path(tmp) / 'reports/public-summary.json').read_text())
+            self.assertEqual(scans.call_count, 2)
+            cleanups = [c for c in commands.call_args_list if c.args[:3] == ('docker', 'rm', '-f')]
+            self.assertEqual(len(cleanups), 2)
+            self.assertNotEqual(cleanups[0].args[3], cleanups[1].args[3])
+            self.assertTrue(all(c.args[3].startswith('traderx-security-') for c in cleanups))
+
+    def test_infrastructure_findings_block_even_when_scanner_returns_zero(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            report = json.dumps({'Results': [{'Vulnerabilities': [{'Severity': 'HIGH'}]}]})
+            with patch.object(deploy, 'run', return_value=subprocess.CompletedProcess(
+                    [], 0, json.dumps(['repo@' + DIGEST]))), \
+                 patch.object(deploy.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, report, '')):
+                with self.assertRaisesRegex(ValueError, 'blocked: infra'):
+                    deploy.scan_infrastructure({'services': {'infra': {'image': 'repo:1'}}}, {}, Path(tmp) / 'reports')
+
+    def test_infrastructure_inventory_continues_after_findings_and_pull_failure(self):
+        images = {'app': 'app@' + DIGEST}
+        config = {'services': {
+            'app': {'image': images['app']},
+            'vulnerable': {'image': 'old:1'},
+            'unavailable': {'image': 'missing:1'},
+            'clean': {'image': 'new:1'},
+        }}
+        def fake_run(*args, **kwargs):
+            if args[:3] == ('docker', 'pull', 'missing:1'):
+                raise subprocess.CalledProcessError(1, args)
+            return subprocess.CompletedProcess(args, 0, stdout=json.dumps(['repo@' + DIGEST]))
+        vulnerable = json.dumps({'Results': [{'Vulnerabilities': [{'Severity': 'CRITICAL'}]}]})
+        clean = json.dumps({'Results': []})
+        with tempfile.TemporaryDirectory() as tmp:
+            reports = Path(tmp) / 'reports'
+            with patch.object(deploy, 'run', side_effect=fake_run), \
+                 patch.object(deploy.subprocess, 'run', side_effect=[
+                     subprocess.CompletedProcess([], 1, vulnerable, ''),
+                     subprocess.CompletedProcess([], 0, clean, '')]) as scans:
+                with self.assertRaisesRegex(ValueError, 'vulnerable, unavailable'):
+                    deploy.scan_infrastructure(config, images, reports)
+            summary = json.loads((reports / 'summary.json').read_text())
+            self.assertEqual([r['status'] for r in summary], ['findings', 'error', 'success'])
+            self.assertEqual(summary[0]['critical'], 1)
+            self.assertEqual(scans.call_count, 2)
+            self.assertEqual(config['services']['clean']['image'], 'repo@' + DIGEST)
+            self.assertEqual(json.loads((reports / 'vulnerable.trivy.json').read_text()), json.loads(vulnerable))
+
+    def test_infrastructure_invalid_report_and_scanner_error_fail_closed(self):
+        for rc, report in [(0, '{}'), (0, 'invalid'), (0, '{"Results": [null]}'),
+                           (2, '{"Results": []}'), (1, '{"Results": []}')]:
+            with self.subTest(rc=rc, report=report), tempfile.TemporaryDirectory() as tmp:
+                config = {'services': {'infra': {'image': 'repo:1'}}}
+                with patch.object(deploy, 'run', return_value=subprocess.CompletedProcess(
+                        [], 0, json.dumps(['repo@' + DIGEST]))), \
+                     patch.object(deploy.subprocess, 'run', return_value=subprocess.CompletedProcess(
+                        [], rc, report, 'scanner diagnostic')):
+                    with self.assertRaisesRegex(ValueError, 'infrastructure preflight blocked'):
+                        deploy.scan_infrastructure(config, {}, Path(tmp) / 'reports')
+
+    def test_preflight_does_not_start_compose_or_write_deployed_record(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work = Path(tmp)
+            (work / '.git').mkdir()
+            manifest = work / 'manifest.json'
+            manifest.write_text(json.dumps(dict(snapshot=SHA, state='009-test', target='demo.test',
+                                                repository='finos/traderX', images={})))
+            with patch.object(sys, 'argv', ['deploy', str(manifest), '--workdir', str(work), '--preflight-only']), \
+                 patch.object(deploy, 'run', return_value=subprocess.CompletedProcess(
+                     [], 0, json.dumps({'services': {}}))) as commands, \
+                 patch.object(deploy.subprocess, 'check_output', return_value=SHA + '\n'), \
+                 patch.object(deploy, 'authorize_runtime', return_value={}), \
+                 patch.object(deploy, 'policy_settings', return_value={'runtimeImageScanner': {'image': 'scanner'}}), \
+                 patch.object(deploy, 'refresh_scanner_databases', return_value={}), \
+                 patch.object(deploy, 'scan_infrastructure') as scan:
+                deploy.main()
+            scan.assert_called_once()
+            self.assertFalse(any('up' in c.args or 'pull' in c.args for c in commands.call_args_list))
+            self.assertFalse((work / '.traderx-deploy/deployed.json').exists())
+
     def command(self, tmp, phase, program):
         return [sys.executable, str(ROOT / 'pipeline/bounded-security-command.py'), '--timeout', '1',
                 '--phase', phase, '--result', str(Path(tmp) / 'result.json'), '--', sys.executable, '-c', program]

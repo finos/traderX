@@ -1,0 +1,24 @@
+data_dir = "/tmp/vector"
+[sources.docker]
+type = "docker_logs"
+docker_host = "unix:///var/run/docker.sock"
+
+[transforms.labels]
+type = "remap"
+inputs = ["docker"]
+source = '''
+.service = string(.label."com.docker.compose.service") ?? "unknown"
+.compose_project = string(.label."com.docker.compose.project") ?? "unknown"
+.container = .container_name
+'''
+
+[sinks.loki]
+type = "loki"
+inputs = ["labels"]
+endpoint = "http://loki:3100"
+encoding.codec = "text"
+[sinks.loki.labels]
+job = "traderx-docker"
+service = "{{ service }}"
+compose_project = "{{ compose_project }}"
+container = "{{ container }}"

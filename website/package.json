@@ -8,22 +8,19 @@
     "swizzle": "docusaurus swizzle",
     "build": "docusaurus build && node ./scripts/generate-markdown-docs.cjs && node ./scripts/publish-learning-contracts.mjs && node ./scripts/validate-learning-journeys.mjs",
     "publish-gh-pages": "docusaurus deploy",
-    "gen:api-docs": "mkdir -p ../generated/api-docs && rm -rf ../generated/api-docs/account-service ../generated/api-docs/people-service ../generated/api-docs/position-service ../generated/api-docs/reference-data ../generated/api-docs/trade-processor ../generated/api-docs/trade-service && docusaurus gen-api-docs account-service && docusaurus gen-api-docs people-service && docusaurus gen-api-docs position-service && docusaurus gen-api-docs reference-data && docusaurus gen-api-docs trade-processor && docusaurus gen-api-docs trade-service && npm run gen:api-overviews && npm run gen:api-index && npm run gen:api-sidebar",
     "gen:api-overviews": "node ./scripts/enrich-api-service-overviews.mjs",
     "gen:api-index": "node ./scripts/generate-api-index.mjs",
     "gen:api-sidebar": "node ./scripts/generate-api-sidebar.mjs",
     "test:markdown": "node --test scripts/generate-markdown-docs.test.cjs"
   },
   "dependencies": {
-    "@docusaurus/core": "^3.2.0",
-    "@docusaurus/preset-classic": "^3.2.0",
-    "@docusaurus/theme-mermaid": "^3.2.0",
+    "@docusaurus/core": "3.10.2",
+    "@docusaurus/preset-classic": "3.10.2",
+    "@docusaurus/theme-mermaid": "3.10.2",
     "ajv": "^8.12.0",
     "classnames": "^2.5.1",
     "clsx": "^2.0.0",
     "docusaurus-lunr-search": "^3.6.0",
-    "docusaurus-plugin-openapi-docs": "^4.7.1",
-    "docusaurus-theme-openapi-docs": "^4.7.1",
     "lunr": "^2.3.9",
     "path-browserify": "^1.0.1",
     "prism-react-renderer": "^2.3.0",
@@ -37,13 +34,6 @@
     "eslint-plugin-react": "^7.23.2",
     "turndown": "7.2.1",
     "turndown-plugin-gfm": "1.0.2"
-  },
-  "overrides": {
-    "lodash": "^4.18.1",
-    "postcss": "^8.5.13",
-    "serialize-javascript": "^7.0.5",
-    "uuid": "^14.0.0",
-    "yaml": "^2.8.3"
   },
   "browserslist": {
     "production": [
@@ -59,5 +49,10 @@
   },
   "engines": {
     "node": ">=18.0"
+  },
+  "overrides": {
+    "serialize-javascript": "7.1.4",
+    "tinypool": "2.2.0",
+    "uuid": "14.0.0"
   }
 }

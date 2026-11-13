@@ -12,6 +12,24 @@ import tools.jackson.databind.json.JsonMapper;
 
 class SocketIOJsonContractTest {
   @Test
+  void bothJacksonFamiliesPreserveTradeOrderApiFields() throws Exception {
+    String request = "{\"accountID\":22214,\"security\":\"IBM\",\"side\":\"Buy\",\"quantity\":10}";
+    var jackson2 = com.fasterxml.jackson.databind.json.JsonMapper.builder().build();
+    var jackson3 = JsonMapper.builder().build();
+    TradeOrder order2 = jackson2.readValue(request, TradeOrder.class);
+    TradeOrder order3 = jackson3.readValue(request, TradeOrder.class);
+    for (String response : new String[] {
+        jackson2.writeValueAsString(order2), jackson3.writeValueAsString(order3)}) {
+      JSONObject payload = new JSONObject(response);
+      assertEquals(22214, payload.getInt("accountId"));
+      assertEquals("IBM", payload.getString("security"));
+      assertEquals("Buy", payload.getString("side"));
+      assertEquals(10, payload.getInt("quantity"));
+      assertFalse(payload.has("accountID"));
+    }
+  }
+
+  @Test
   void legacyOrderAliasAndPublishedEnvelopeRemainCompatible() throws Exception {
     TradeOrder order = JsonMapper.builder().build().readValue(
         "{\"accountID\":22214,\"security\":\"IBM\",\"side\":\"Buy\",\"quantity\":10}", TradeOrder.class);

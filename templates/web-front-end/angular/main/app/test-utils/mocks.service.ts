@@ -65,6 +65,7 @@ export class MockSymbolService {
 }
 
 export class MockTradeFeedService {
+  readonly connectionState$ = of('connecting');
 
   subscribe(topic: string, callback: Function) {
   }
