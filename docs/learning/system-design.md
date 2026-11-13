@@ -1,36 +1,37 @@
 # System Design
 
-State: `012-platform-convergence-c3`
+State: `013-radius-kubernetes-platform`
 
 ## Design Intent
 
-State 012 is the C3 convergence checkpoint: Kubernetes + Tilt platform profile on top of C2 functional behavior.
+State 013 preserves state 012 C3 runtime while adding Radius application/resource abstractions.
 
 ## Runtime Topology / Flow (Spec Extract)
 
-# Runtime Topology: 012-platform-convergence-c3
+# Runtime Topology: 013-radius-kubernetes-platform
 
-Parent state: `011-tilt-kubernetes-dev-loop`  
-Dotted-line convergence parent: `009-order-management-matcher`
+Parent state: `012-platform-convergence-c3`
 
-State `012` keeps runtime topology from `011` and serves as the C3 convergence checkpoint.
+State `013` reuses Kubernetes runtime topology from state `012` and introduces Radius as platform control/model layer.
 
 ## Entrypoints
 
-- Browser/UI/API entrypoint remains `http://localhost:8080`.
-- Developer loop entrypoint remains Tilt (`tilt up`).
+- Browser/UI/API entrypoint remains `http://localhost:8080` (inherited).
+- Platform operations entrypoints are Radius control artifacts (app/environment definitions).
 
 ## Components
 
-- Kubernetes runtime + Tilt tooling from state `011`.
-- Functional capability level equivalent to C2 (`009`) via lineage through `011`.
+- Core TraderX services remain the same as state `012`.
+- Added platform layer:
+  - Radius application definition
+  - Radius environment/resource declarations
 
 ## Networking
 
-- Service routes and path prefixes remain unchanged from `011`.
-- Dotted-line lineage does not change deploy/runtime wiring.
+- Service-to-service network paths remain Kubernetes service DNS based.
+- Route semantics and path prefixes remain unchanged from state `012`.
 
 ## Startup / Health Order
 
-- Startup and health checks remain as in `011`.
-- This state adds governance/lineage convergence semantics, not runtime topology changes.
+- Baseline service startup/health remains as in state `012`.
+- Radius-driven deployment orchestration defines resource/application ordering declaratively.

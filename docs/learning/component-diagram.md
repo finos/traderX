@@ -1,17 +1,19 @@
 # Component Diagram
 
-State: `012-platform-convergence-c3`
+State: `013-radius-kubernetes-platform`
 
 ```mermaid
 flowchart LR
   developer["Developer"]
-  tilt["Tilt Dev Loop"]
+  radius["Radius Control Plane"]
+  appModel["Radius App Model"]
   cluster["Kubernetes Cluster"]
   edge["NGINX Edge Proxy"]
   workloads["TraderX Workloads"]
 
-  developer -->|Runs tilt up| tilt
-  tilt -->|Applies k8s resources| cluster
+  developer -->|Manages app model| radius
+  radius -->|Resolves resources| appModel
+  appModel -->|Deploys workloads| cluster
   cluster -->|Runs ingress| edge
   edge -->|Routes UI/API/WebSocket traffic| workloads
 ```

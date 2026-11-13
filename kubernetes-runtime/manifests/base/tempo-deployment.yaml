@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: tempo
-          image: traderx-remediation/tempo:012
+          image: traderx-remediation/tempo:013
           imagePullPolicy: IfNotPresent
           args: ["-config.file=/etc/tempo/config.yaml"]
           ports:

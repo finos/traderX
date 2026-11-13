@@ -1,8 +1,8 @@
 {
-  "stateId": "012-platform-convergence-c3",
-  "isConvergence": true,
-  "convergenceLevel": "C3",
-  "convergenceNamespace": "traderx-c3",
+  "stateId": "013-radius-kubernetes-platform",
+  "isConvergence": false,
+  "convergenceLevel": "none",
+  "convergenceNamespace": "",
   "modules": {
     "node": [
       "price-publisher",

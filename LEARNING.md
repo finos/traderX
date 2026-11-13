@@ -1,11 +1,12 @@
-# Learning Guide For 012-platform-convergence-c3
+# Learning Guide For 013-radius-kubernetes-platform
 
 This snapshot is code-first output. Canonical intent remains in SpecKit artifacts.
 
 ## Learning Focus
 
-- Review state metadata and runtime instructions.
-- Trace state intent back to canonical SpecKit artifacts.
+- Understand Radius artifacts as a platform-model overlay on Kubernetes.
+- Understand what remains baseline runtime vs what is platform abstraction.
+- Evaluate portability goals and platform-level NFR impact.
 
 ## Read In This Snapshot
 
@@ -17,9 +18,9 @@ This snapshot is code-first output. Canonical intent remains in SpecKit artifact
 
 ## Canonical Spec Sources
 
-- Feature pack: `specs/012-platform-convergence-c3`
+- Feature pack: `specs/013-radius-kubernetes-platform`
 - State docs map route: `/docs/spec-kit/state-docs`
-- Learning guide route: `/docs/learning/state-012-platform-convergence-c3`
-- Learning guide markdown path in source branch: `docs/learning/state-012-platform-convergence-c3.md`
-- Source branch feature pack (exact commit): https://github.com/finos/traderX/tree/ca0f66429bdf95552da0655eed56e34c4af67185/specs/012-platform-convergence-c3
-- Source branch learning guide (exact commit): https://github.com/finos/traderX/blob/ca0f66429bdf95552da0655eed56e34c4af67185/docs/learning/state-012-platform-convergence-c3.md
+- Learning guide route: `/docs/learning/state-013-radius-kubernetes-platform`
+- Learning guide markdown path in source branch: `docs/learning/state-013-radius-kubernetes-platform.md`
+- Source branch feature pack (exact commit): https://github.com/finos/traderX/tree/ca0f66429bdf95552da0655eed56e34c4af67185/specs/013-radius-kubernetes-platform
+- Source branch learning guide (exact commit): https://github.com/finos/traderX/blob/ca0f66429bdf95552da0655eed56e34c4af67185/docs/learning/state-013-radius-kubernetes-platform.md

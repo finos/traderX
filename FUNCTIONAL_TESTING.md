@@ -1,12 +1,14 @@
 # Functional Testing Guide
 
-State: `012-platform-convergence-c3`
+State: `013-radius-kubernetes-platform`
 
 This guide captures intended functional behavior for this generated snapshot branch.
 
 ## What Should Work
 
-- Generated code snapshot for TraderX state transition.
+- Builds on state `010` and preserves Kubernetes runtime behavior.
+- Adds Radius application/resource model artifacts as platform abstraction overlays.
+- Preserves baseline functional behavior and API contracts.
 
 ## Suggested Functional Validation
 
@@ -18,12 +20,12 @@ This guide captures intended functional behavior for this generated snapshot bra
 ## Smoke Test Commands
 
 ```bash
-./scripts/test-state-012-platform-convergence-c3.sh
+./scripts/test-state-013-radius-kubernetes-platform.sh
 ```
 
 ## Canonical References
 
-- Spec pack: `specs/012-platform-convergence-c3`
+- Spec pack: `specs/013-radius-kubernetes-platform`
 - Runtime guide: [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
 - Snapshot learning guide: [LEARNING.md](./LEARNING.md)
 - Snapshot metadata: [STATE.md](./STATE.md)

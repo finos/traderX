@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: prometheus
-          image: traderx-remediation/prometheus:012
+          image: traderx-remediation/prometheus:013
           imagePullPolicy: IfNotPresent
           args:
             - --config.file=/etc/prometheus/prometheus.yml
