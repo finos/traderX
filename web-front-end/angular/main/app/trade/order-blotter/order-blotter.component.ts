@@ -1,3 +1,5 @@
+import { Fdc3InteropService } from 'main/app/service/fdc3-interop.service';
+import { Subscription } from 'rxjs';
 import { CellClickedEvent, ColDef, GetRowIdParams, GridApi, GridReadyEvent, RowClickedEvent } from 'ag-grid-community';
 import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
 import { Account } from 'main/app/model/account.model';
@@ -23,10 +25,36 @@ export class OrderBlotterComponent implements OnChanges, OnDestroy {
   @Input() allAccountsMode = false;
   @Input() accountNameById: { [accountId: number]: string } = {};
   @Input() securityFilter = '';
+  filterOnSelectedTicker = false;
+  private readonly interopSubscription: Subscription;
+
+  get effectiveTicker(): string {
+    return this.filterOnSelectedTicker ? this.securityFilter.trim().toUpperCase() : '';
+  }
+
+  get tickerFilterDescription(): string {
+    return this.effectiveTicker ? `Ticker: ${this.effectiveTicker}`
+      : this.filterOnSelectedTicker ? 'All tickers — no ticker selected' : 'All tickers';
+  }
+
+  setTickerFilter(enabled: boolean): void {
+    this.filterOnSelectedTicker = enabled;
+    this.applySecurityFilter();
+  }
+
+  isExternalFilterPresent = (): boolean => !!this.effectiveTicker;
+  doesExternalFilterPass = (node: { data?: { security?: string } }): boolean =>
+    !this.effectiveTicker || String(node.data?.security || '').trim().toUpperCase() === this.effectiveTicker;
+
   @Output() securitySelected = new EventEmitter<string>();
 
   rows: OrderRow[] = [];
   gridApi?: GridApi<OrderRow>;
+  private snapshotSubscription?: Subscription;
+  private priceSnapshotSubscriptions = new Subscription();
+  private readonly connectionSubscription: Subscription;
+  private snapshotPending = false;
+  private pendingOrders = new Map<string, OrderRecord>();
   private orderUnsubscribeFn?: () => void;
   private priceUnsubscribeFn?: () => void;
   private readonly marketPriceByTicker = new Map<string, number>();
@@ -86,9 +114,17 @@ export class OrderBlotterComponent implements OnChanges, OnDestroy {
   constructor(
     private orderAdminService: OrderAdminService,
     private tradeFeed: TradeFeedService,
-    private priceSnapshots: PriceSnapshotService
+    private priceSnapshots: PriceSnapshotService,
+    interop: Fdc3InteropService
   ) {
+    this.connectionSubscription = this.tradeFeed.connectionState$.subscribe(state => {
+      if (state === 'connected') this.reloadOpenOrders();
+    });
     this.getRowId = this.getRowId.bind(this);
+    this.interopSubscription = interop.selectedTicker$.subscribe(ticker => {
+      this.securityFilter = ticker;
+      this.applySecurityFilter();
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -102,6 +138,11 @@ export class OrderBlotterComponent implements OnChanges, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.interopSubscription.unsubscribe();
+    this.connectionSubscription.unsubscribe();
+    this.snapshotSubscription?.unsubscribe();
+    this.priceSnapshotSubscriptions.unsubscribe();
+    this.priceSnapshotSubscriptions = new Subscription();
     this.orderUnsubscribeFn?.();
     this.priceUnsubscribeFn?.();
   }
@@ -137,6 +178,12 @@ export class OrderBlotterComponent implements OnChanges, OnDestroy {
   }
 
   private startScope(): void {
+    this.snapshotSubscription?.unsubscribe();
+    this.priceSnapshotSubscriptions.unsubscribe();
+    this.priceSnapshotSubscriptions = new Subscription();
+    this.pendingOrders.clear();
+    this.rows = [];
+    this.setGridRowData([]);
     this.orderUnsubscribeFn?.();
     this.priceUnsubscribeFn?.();
     this.marketPriceByTicker.clear();
@@ -148,12 +195,12 @@ export class OrderBlotterComponent implements OnChanges, OnDestroy {
       this.setGridRowData([]);
       return;
     }
-    this.reloadOpenOrders();
     const topic = this.allAccountsMode ? '/orders' : `/accounts/${accountId}/orders`;
     this.orderUnsubscribeFn = this.orderAdminService.subscribe(topic, (order: OrderRecord) => {
       this.applyOrderUpdate(order);
     });
     this.priceUnsubscribeFn = this.tradeFeed.subscribe('pricing.*', (tick: PriceTick) => this.applyPriceTick(tick));
+    this.reloadOpenOrders();
   }
 
   private reloadOpenOrders(): void {
@@ -163,11 +210,18 @@ export class OrderBlotterComponent implements OnChanges, OnDestroy {
       this.setGridRowData([]);
       return;
     }
-    this.orderAdminService.getOpenOrders(accountId).subscribe((orders: OrderRecord[]) => {
+    this.snapshotSubscription?.unsubscribe();
+    this.snapshotPending = true;
+    this.pendingOrders.clear();
+    this.snapshotSubscription = this.orderAdminService.getOpenOrders(accountId).subscribe({ next: (orders: OrderRecord[]) => {
       this.rows = (orders ?? []).map((order) => this.withLivePricing(order));
+      // Replay events received after this request, including terminal tombstones.
+      this.snapshotPending = false;
+      for (const order of this.pendingOrders.values()) this.applyOrderUpdate(order);
+      this.pendingOrders.clear();
       this.setGridRowData(this.rows);
       this.bootstrapSnapshotPrices(this.rows.map((row) => row.security));
-    });
+    }, error: () => { this.snapshotPending = false; this.pendingOrders.clear(); } });
   }
 
   private applyOrderUpdate(order: OrderRecord): void {
@@ -178,6 +232,7 @@ export class OrderBlotterComponent implements OnChanges, OnDestroy {
     if (!this.allAccountsMode && selectedAccountId && order.accountId !== selectedAccountId) {
       return;
     }
+    if (this.snapshotPending) this.pendingOrders.set(order.orderId, order);
     if (this.isTerminalStatus(order.status)) {
       const filtered = this.rows.filter((row) => row.orderId !== order.orderId);
       if (filtered.length === this.rows.length) {
@@ -212,7 +267,7 @@ export class OrderBlotterComponent implements OnChanges, OnDestroy {
   }
 
   private bootstrapSnapshotPrices(tickers: string[]): void {
-    this.priceSnapshots.getPrices(tickers).subscribe((snapshots) => {
+    this.priceSnapshotSubscriptions.add(this.priceSnapshots.getPrices(tickers).subscribe((snapshots) => {
       const changedTickers = new Set<string>();
       for (const snapshot of snapshots || []) {
         if (!snapshot || !snapshot.ticker || snapshot.price == null) {
@@ -228,7 +283,7 @@ export class OrderBlotterComponent implements OnChanges, OnDestroy {
       for (const ticker of changedTickers) {
         this.refreshRowsForTicker(ticker);
       }
-    });
+    }));
   }
 
   private applyMarketPriceUpdate(ticker: string, price: number, asOf: string | null): boolean {
@@ -340,14 +395,7 @@ export class OrderBlotterComponent implements OnChanges, OnDestroy {
     if (!this.gridApi) {
       return;
     }
-    const filterValue = String(this.securityFilter || '').trim().toUpperCase();
-    if (typeof (this.gridApi as any).setGridOption === 'function') {
-      (this.gridApi as any).setGridOption('quickFilterText', filterValue);
-      return;
-    }
-    if (typeof (this.gridApi as any).setQuickFilter === 'function') {
-      (this.gridApi as any).setQuickFilter(filterValue);
-    }
+    this.gridApi.onFilterChanged();
   }
 
   private marketStyle(data?: OrderRow): any {

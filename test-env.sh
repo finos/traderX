@@ -5,7 +5,9 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Wrapper purpose: stable, state-local test entrypoint.
 # This may delegate across multiple numbered state scripts to maximize reuse.
 # Execution flow:
+#  - scripts/test-state-014-fdc3-intent-interoperability.sh
 #  - scripts/test-state-012-platform-convergence-c3.sh
+#  - scripts/test-state-014-fdc3-playwright-smoke.sh
 #  - scripts/test-state-011-tilt-kubernetes-dev-loop.sh
 #  - scripts/test-state-010-kubernetes-runtime.sh
 #  - scripts/test-account-service-overlay.sh
@@ -16,4 +18,4 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 #  - scripts/test-web-angular-baseline-ux-contract.sh
 #  - scripts/test-web-angular-overlay.sh
 
-exec "${ROOT}/scripts/test-state-012-platform-convergence-c3.sh" "$@"
+exec "${ROOT}/scripts/test-state-014-fdc3-intent-interoperability.sh" "$@"

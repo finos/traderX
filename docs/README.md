@@ -1,6 +1,6 @@
 # Generated Docs
 
-This folder provides generated learning-oriented documentation for state `012-platform-convergence-c3`.
+This folder provides generated learning-oriented documentation for state `014-fdc3-intent-interoperability`.
 
 - [Learning Index](./learning/README.md)
 - [Component List](./learning/component-list.md)

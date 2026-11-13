@@ -1,8 +1,8 @@
 {
-  "stateId": "012-platform-convergence-c3",
-  "isConvergence": true,
-  "convergenceLevel": "C3",
-  "convergenceNamespace": "traderx-c3",
+  "stateId": "014-fdc3-intent-interoperability",
+  "isConvergence": false,
+  "convergenceLevel": "none",
+  "convergenceNamespace": "",
   "modules": {
     "node": [
       "price-publisher",
@@ -35,6 +35,11 @@
         "directory": "database",
         "dockerfile": "Dockerfile.compose",
         "imageName": "database"
+      },
+      {
+        "directory": "fdc3-intent-interoperability/sail/runtime-images/sail",
+        "dockerfile": "Dockerfile.compose",
+        "imageName": "sail"
       },
       {
         "directory": "ingress",
@@ -112,6 +117,13 @@
   "runtime": {
     "kind": "kubernetes",
     "path": "kubernetes-runtime/manifests/base",
-    "buildPlan": "kubernetes-runtime/build-plan.json"
+    "buildPlan": "kubernetes-runtime/build-plan.json",
+    "companions": [
+      {
+        "kind": "compose",
+        "path": "fdc3-intent-interoperability/sail/docker-compose.yml",
+        "buildPlan": "fdc3-intent-interoperability/sail/build-plan.json"
+      }
+    ]
   }
 }
