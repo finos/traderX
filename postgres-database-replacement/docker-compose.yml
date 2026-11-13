@@ -2,10 +2,7 @@ name: traderx-state-009
 
 services:
   database:
-    image: traderx-remediation/postgres:005
-    build:
-      context: ../database
-      dockerfile: Dockerfile.compose
+    image: postgres:16-alpine
     environment:
       POSTGRES_DB: "traderx"
       POSTGRES_USER: "traderx"

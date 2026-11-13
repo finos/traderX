@@ -1,17 +1,17 @@
 # Component List
 
-State: `005-postgres-database-replacement`
+State: `006-messaging-nats-replacement`
 
 | ID | Label | Kind | Description |
 | --- | --- | --- | --- |
-| `trader` | Trader Browser | actor | Uses Angular UI via ingress. |
-| `ingress` | NGINX Ingress | gateway | Single browser entrypoint for UI + API + websocket. |
-| `web` | Web Front End Angular | frontend | TraderX UI. |
+| `trader` | Trader Browser | actor | Uses Angular UI and receives live updates. |
+| `ingress` | NGINX Ingress | gateway | Routes REST and websocket traffic. |
+| `web` | Web Front End Angular | frontend | Uses nats.ws for account-scoped streams. |
+| `nats` | NATS Broker | messaging | Core pub/sub broker for backend and browser streaming. |
+| `tradeService` | Trade Service | service | Publishes new trade events. |
+| `tradeProcessor` | Trade Processor | service | Consumes and publishes processed/account updates. |
+| `account` | Account Service | service | Account and account-user operations. |
+| `position` | Position Service | service | Trades/positions query endpoints. |
 | `referenceData` | Reference Data | service | Ticker lookup/list. |
-| `tradeFeed` | Trade Feed | messaging | Socket.IO pub/sub layer (unchanged from state 004). |
 | `people` | People Service | service | Identity lookup and validation. |
-| `account` | Account Service | service | Account and account-user operations using PostgreSQL. |
-| `position` | Position Service | service | Trades/positions query operations using PostgreSQL. |
-| `tradeProcessor` | Trade Processor | service | Trade processing and persistence using PostgreSQL. |
-| `tradeService` | Trade Service | service | Trade submission and validation. |
-| `database` | PostgreSQL Database | database | Persistent account/trade/position state. |
+| `database` | Database | database | Persistent account/trade/position state. |

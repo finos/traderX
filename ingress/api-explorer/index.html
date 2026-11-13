@@ -46,7 +46,7 @@
       </div>
       <div class="topbar-links">
         <a href="/">Back to App</a>
-        
+        <a id="pubsub-inspector-link" href="#">Open Pub/Sub Inspector</a>
       </div>
     </div>
     <div id="swagger-ui"></div>
@@ -135,6 +135,14 @@
         if (stateLabel && catalog.stateId) {
           stateLabel.textContent = ` - state ${catalog.stateId}`;
         }
+        const inspectorLink = document.getElementById('pubsub-inspector-link');
+        if (inspectorLink && catalog.pubSubInspectorEnabled) {
+          const base = window.location.href.replace(/\/[^/]*$/, '/');
+          inspectorLink.href = `${base}pubsub-inspector.html`;
+        } else if (inspectorLink) {
+          inspectorLink.style.display = 'none';
+        }
+
         window.ui = SwaggerUIBundle({
           dom_id: '#swagger-ui',
           urls,

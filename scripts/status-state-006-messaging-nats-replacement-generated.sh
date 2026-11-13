@@ -10,8 +10,8 @@ if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
     exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
   fi
 fi
-COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-005}"
-COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/postgres-database-replacement/docker-compose.yml"
+COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-traderx-state-006}"
+COMPOSE_FILE="${GENERATED_ROOT}/code/target-generated/messaging-nats-replacement/docker-compose.yml"
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "[error] docker command not found"
@@ -20,7 +20,7 @@ fi
 
 if [[ ! -f "${COMPOSE_FILE}" ]]; then
   echo "[info] compose file not found: ${COMPOSE_FILE}"
-  echo "[hint] run: bash pipeline/generate-state.sh 005-postgres-database-replacement"
+  echo "[hint] run: bash pipeline/generate-state.sh 006-messaging-nats-replacement"
   exit 0
 fi
 
@@ -42,16 +42,10 @@ for target in \
   "reference-data|http://localhost:18085/stocks" \
   "account-service|http://localhost:18088/account/22214" \
   "position-service|http://localhost:18090/health/alive" \
-  "trade-service|http://localhost:18092/v3/api-docs"; do
+  "trade-service|http://localhost:18092/v3/api-docs" \
+  "nats-monitor|http://localhost:8222/varz"; do
   name="${target%%|*}"
   url="${target#*|}"
   code="$(http_code_for "${url}")"
   printf "%-24s %-8s %s\n" "${name}" "${code:-000}" "${url}"
 done
-
-postgres_ready="no"
-if docker compose -f "${COMPOSE_FILE}" --project-name "${COMPOSE_PROJECT_NAME}" exec -T database \
-  pg_isready -U traderx -d traderx >/dev/null 2>&1; then
-  postgres_ready="yes"
-fi
-printf "%-24s %-8s %s\n" "postgres-ready" "${postgres_ready}" "localhost:18083 -> database:5432"

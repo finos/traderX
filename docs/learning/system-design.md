@@ -1,47 +1,44 @@
 # System Design
 
-State: `005-postgres-database-replacement`
+State: `006-messaging-nats-replacement`
 
 ## Design Intent
 
-State 005 replaces H2 database runtime with PostgreSQL while preserving state 004 containerized ingress topology and baseline flows.
+State 006 replaces Socket.IO trade-feed messaging with NATS while preserving state 005 containerized runtime and ingress entry model.
 
 ## Runtime Topology / Flow (Spec Extract)
 
-# Runtime Topology: 005-postgres-database-replacement
+# Runtime Topology: 006 Messaging NATS Replacement
 
-Parent state: `004-containerized-compose-runtime`
-
-State `005` preserves the compose + ingress topology from state `004` and replaces only the database runtime implementation.
+Parent state: `005-postgres-database-replacement`
 
 ## Entrypoints
 
-- Browser/UI via NGINX ingress: `http://localhost:8080`
-- Reference-data direct (diagnostic): `http://localhost:18085`
-- PostgreSQL TCP (diagnostic/local tooling): `localhost:18083 -> container:5432`
+- Browser/UI ingress: `http://localhost:8080`
+- NATS client port (internal compose network): `4222`
+- NATS monitoring (optional local): `8222`
+- NATS websocket ingress path (proxied): `/nats-ws`
 
 ## Components
 
-- `database` -> PostgreSQL container (`postgres:16-alpine`)
-- `reference-data` -> unchanged from state `004`
-- `trade-feed` -> unchanged from state `004`
-- `people-service` -> unchanged from state `004`
-- `account-service` -> datasource updated for PostgreSQL
-- `position-service` -> datasource updated for PostgreSQL
-- `trade-processor` -> datasource + JPA dialect updated for PostgreSQL
-- `trade-service` -> unchanged from state `004`
-- `web-front-end-angular` -> unchanged from state `004`
-- `ingress` -> unchanged from state `004` (database route retained for topology compatibility but no H2 console)
+- `nats-broker` replaces messaging role previously handled by `trade-feed`.
+- `trade-service` publishes `trades.new`.
+- `trade-processor` consumes `trades.new` and publishes account-scoped trade/position updates.
+- `web-front-end-angular` subscribes to account-scoped update subjects through `nats.ws`.
 
 ## Networking
 
-- Container-to-container DB connectivity uses `database:5432`.
-- Host-to-container DB diagnostics use `localhost:18083`.
-- Service cross-calls and ingress path routing are unchanged from state `004`.
+- Service-to-service messaging uses NATS TCP over compose network.
+- Browser real-time stream uses WebSocket upgrade through ingress path `/nats-ws`.
+- Existing REST routing through ingress remains unchanged.
 
 ## Startup / Health Order
 
-1. `database` starts and passes `pg_isready` health check.
-2. DB-dependent services (`account-service`, `position-service`, `trade-processor`) start.
-3. Remaining services and `ingress` start.
-4. Smoke checks verify baseline API/UI and realtime behaviors remain intact.
+- `nats-broker` must be healthy before trade-service/trade-processor startup.
+- Frontend may start before broker, but stream subscriptions must retry until broker and websocket path are available.
+
+## Source-of-Truth Files
+
+- `system/messaging-subject-map.md`
+- `system/docker-compose.nats.snippet.yaml`
+- `system/ingress-nginx.nats-ws.snippet.conf`

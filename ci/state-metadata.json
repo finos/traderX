@@ -1,12 +1,11 @@
 {
-  "stateId": "005-postgres-database-replacement",
+  "stateId": "006-messaging-nats-replacement",
   "isConvergence": false,
   "convergenceLevel": "none",
   "convergenceNamespace": "",
   "modules": {
     "node": [
       "reference-data",
-      "trade-feed",
       "web-front-end/angular"
     ],
     "gradle": [
@@ -51,11 +50,6 @@
         "imageName": "reference-data"
       },
       {
-        "directory": "trade-feed",
-        "dockerfile": "Dockerfile.compose",
-        "imageName": "trade-feed"
-      },
-      {
         "directory": "trade-processor",
         "dockerfile": "Dockerfile.compose",
         "imageName": "trade-processor"
@@ -80,6 +74,6 @@
   },
   "runtime": {
     "kind": "compose",
-    "path": "postgres-database-replacement/docker-compose.yml"
+    "path": "messaging-nats-replacement/docker-compose.yml"
   }
 }
