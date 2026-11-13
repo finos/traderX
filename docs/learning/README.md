@@ -1,6 +1,6 @@
 # Learning Docs
 
-These docs are generated for the published code snapshot for state `003-agentic-harness-foundation`.
+These docs are generated for the published code snapshot for state `004-containerized-compose-runtime`.
 
 - [Component List](./component-list.md)
 - [System Design](./system-design.md)
@@ -11,6 +11,6 @@ These docs are generated for the published code snapshot for state `003-agentic-
 
 Canonical source remains SpecKit artifacts in the main authoring branch:
 
-- Feature pack: `specs/003-agentic-harness-foundation`
-- Source feature pack at commit: https://github.com/finos/traderX/tree/44573889eb1410e1cc9898d52977c6dc14d1046e/specs/003-agentic-harness-foundation
-- Source architecture model at commit: https://github.com/finos/traderX/blob/44573889eb1410e1cc9898d52977c6dc14d1046e/specs/003-agentic-harness-foundation/system/architecture.model.json
+- Feature pack: `specs/004-containerized-compose-runtime`
+- Source feature pack at commit: https://github.com/finos/traderX/tree/ca0f66429bdf95552da0655eed56e34c4af67185/specs/004-containerized-compose-runtime
+- Source architecture model at commit: https://github.com/finos/traderX/blob/ca0f66429bdf95552da0655eed56e34c4af67185/specs/004-containerized-compose-runtime/system/architecture.model.json

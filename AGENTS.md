@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This generated codebase is a reproducible runtime snapshot for state `003-agentic-harness-foundation`.
+This generated codebase is a reproducible runtime snapshot for state `004-containerized-compose-runtime`.
 
 - Treat this snapshot as generated output; expect regeneration to replace it.
 - Use this branch for local experimentation and runtime validation.

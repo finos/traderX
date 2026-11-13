@@ -1,20 +1,20 @@
 # TraderX Generated State Snapshot
 
-- State ID: `003-agentic-harness-foundation`
-- Title: `Agentic Harness Foundation`
+- State ID: `004-containerized-compose-runtime`
+- Title: `Containerized Compose Runtime (NGINX Ingress)`
 - Status: `implemented`
-- Feature Pack: `specs/003-agentic-harness-foundation`
-- Previous States: `["002-edge-proxy-uncontainerized"]`
-- Next States: `["004-containerized-compose-runtime"]`
-- Convergence State: `false`
-- Convergence Level: `none`
-- Lineage Role: `prelude`
+- Feature Pack: `specs/004-containerized-compose-runtime`
+- Previous States: `["003-agentic-harness-foundation"]`
+- Next States: `["005-postgres-database-replacement"]`
+- Convergence State: `true`
+- Convergence Level: `C0`
+- Lineage Role: `canonical`
 - Dotted Parents: `none`
 - Previous Convergence State: `none`
-- Next Convergence State: `004-containerized-compose-runtime`
-- Source Branch: `codex/security-refresh`
-- Source Commit: `44573889eb1410e1cc9898d52977c6dc14d1046e`
-- Generated At (UTC): `2026-11-11T11:47:23Z`
-- Suggested Tag: `generated/003-agentic-harness-foundation/v1`
+- Next Convergence State: `007-observability-lgtm-compose`
+- Source Branch: ``
+- Source Commit: `ca0f66429bdf95552da0655eed56e34c4af67185`
+- Generated At (UTC): `2026-11-13T10:33:55Z`
+- Suggested Tag: `generated/004-containerized-compose-runtime/v1`
 
 Machine-readable metadata: `.traderx-state/state.json`

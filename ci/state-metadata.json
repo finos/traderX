@@ -1,11 +1,10 @@
 {
-  "stateId": "003-agentic-harness-foundation",
-  "isConvergence": false,
-  "convergenceLevel": "none",
-  "convergenceNamespace": "",
+  "stateId": "004-containerized-compose-runtime",
+  "isConvergence": true,
+  "convergenceLevel": "C0",
+  "convergenceNamespace": "traderx-c0",
   "modules": {
     "node": [
-      "edge-proxy",
       "reference-data",
       "trade-feed",
       "web-front-end/angular"
@@ -20,12 +19,67 @@
     "dotnet": [
       "people-service/PeopleService.WebApi"
     ],
-    "docker": []
+    "docker": [
+      {
+        "directory": "account-service",
+        "dockerfile": "Dockerfile.compose",
+        "imageName": "account-service"
+      },
+      {
+        "directory": "database",
+        "dockerfile": "Dockerfile.compose",
+        "imageName": "database"
+      },
+      {
+        "directory": "ingress",
+        "dockerfile": "Dockerfile.compose",
+        "imageName": "ingress"
+      },
+      {
+        "directory": "people-service",
+        "dockerfile": "Dockerfile.compose",
+        "imageName": "people-service"
+      },
+      {
+        "directory": "position-service",
+        "dockerfile": "Dockerfile.compose",
+        "imageName": "position-service"
+      },
+      {
+        "directory": "reference-data",
+        "dockerfile": "Dockerfile.compose",
+        "imageName": "reference-data"
+      },
+      {
+        "directory": "trade-feed",
+        "dockerfile": "Dockerfile.compose",
+        "imageName": "trade-feed"
+      },
+      {
+        "directory": "trade-processor",
+        "dockerfile": "Dockerfile.compose",
+        "imageName": "trade-processor"
+      },
+      {
+        "directory": "trade-service",
+        "dockerfile": "Dockerfile.compose",
+        "imageName": "trade-service"
+      },
+      {
+        "directory": "web-front-end/angular",
+        "dockerfile": "Dockerfile.compose",
+        "imageName": "web-front-end-angular"
+      }
+    ]
   },
   "deploy": {
-    "enabled": false,
-    "profile": "",
-    "environment": "",
-    "domainHint": ""
+    "enabled": true,
+    "profile": "aws-ec2-compose",
+    "environment": "demo",
+    "domainHint": "demo.traderx.finos.org"
+  },
+  "runtime": {
+    "kind": "compose",
+    "path": "runtime/ghcr/004-containerized-compose-runtime/docker-compose.ghcr.yml"
   }
 }

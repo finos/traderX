@@ -1,6 +1,6 @@
 # ARCHITECTURE.md
 
-This snapshot was generated from TraderX state `003-agentic-harness-foundation`.
+This snapshot was generated from TraderX state `004-containerized-compose-runtime`.
 
 - Architecture source-of-truth remains in the upstream feature pack and SpecKit docs.
 - This branch contains runnable generated artifacts for the selected state.

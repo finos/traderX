@@ -111,7 +111,7 @@
                     "options": {
                         "tsConfig": ["tsconfig.app.json", "tsconfig.spec.json"],
                         "exclude": ["**/node_modules/**"]
-                    }              
+                    }
                 }
             }
         }

@@ -1,0 +1,14 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0-noble@sha256:eeaa543fc683baaae7389e83786f749add545f68cd2fecff19212f23a3bec58f AS build
+# Canonical base OS security refresh
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
+WORKDIR /src
+COPY . .
+WORKDIR /src/PeopleService.WebApi
+RUN dotnet publish -c Release -o /app/publish
+
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-noble-chiseled-extra@sha256:a14213a1dcdee4dd4873f4f38f6a4e7c7d49857b02245c83b295192c7584a91f
+WORKDIR /app
+COPY --from=build /app/publish .
+EXPOSE 18089
+ENV PEOPLE_SERVICE_PORT=18089
+ENTRYPOINT ["dotnet", "PeopleService.WebApi.dll"]
