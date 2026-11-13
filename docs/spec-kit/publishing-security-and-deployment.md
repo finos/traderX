@@ -124,3 +124,11 @@ a deployment gate fails. The legacy daily reboot is also disabled. Preserve
 certificate-renewal jobs. Validation and scan failures in the verified workflow
 occur before container replacement; startup failures still require inspection
 and are not a guarantee of automatic rollback.
+
+Failed normal scans retain `scan-review.json` with a blocked outcome, completed
+database evidence and allowlisted results before propagating the failure.
+Database-refresh failures also retain these sanitized artifacts, including any
+already completed database refresh. Diagnostic project matching covers the
+explicit state-004/state-009 canonical, GHCR and start-script aliases. Kernel
+history queries include retained prior boots; systemd-manager startup failures
+are counted through their allowlisted `UNIT` metadata.

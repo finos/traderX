@@ -10,6 +10,10 @@ from pathlib import Path
 PROJECTS = {
     'traderx-004-containerized-compose-runtime',
     'traderx-009-order-management-matcher',
+    'traderx-004-containerized-compose-runtime-ghcr',
+    'traderx-009-order-management-matcher-ghcr',
+    'traderx-state-004',
+    'traderx-state-009',
 }
 SERVICES = {
     'ingress', 'web-front-end-angular', 'trade-service', 'reference-data',
@@ -90,7 +94,7 @@ def docker_events():
 
 
 def kernel_oom():
-    raw, error = command('journalctl', '-k', '--since', '7 days ago', '-n', '5000', '-o', 'json', '--no-pager')
+    raw, error = command('journalctl', '_TRANSPORT=kernel', '--since', '7 days ago', '-n', '5000', '-o', 'json', '--no-pager')
     if error:
         return {'error': error}
     count = 0
@@ -135,6 +139,8 @@ def service_journal():
         for line in raw.splitlines():
             item = json.loads(line)
             unit = item.get('_SYSTEMD_UNIT')
+            if unit not in units:
+                unit = item.get('UNIT')
             if unit not in units:
                 continue
             result[unit]['entries'] += 1

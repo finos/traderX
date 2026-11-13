@@ -40,6 +40,35 @@ class DiagnosticTests(unittest.TestCase):
         self.assertEqual(report['events']['events'][0]['event'], 'oom')
         self.assertEqual(report['oom']['matching_entries'], 1)
 
+    def test_supported_project_aliases_are_explicitly_allowlisted(self):
+        projects = ['traderx-004-containerized-compose-runtime-ghcr',
+                    'traderx-009-order-management-matcher-ghcr',
+                    'traderx-state-004', 'traderx-state-009']
+        for project in projects:
+            labels = {'com.docker.compose.project': project,
+                      'com.docker.compose.service': 'ingress'}
+            self.assertEqual(diagnostics.identity(labels), (project, 'ingress'))
+        self.assertIsNone(diagnostics.identity({'com.docker.compose.project': 'private-project',
+                                               'com.docker.compose.service': 'ingress'}))
+
+    def test_kernel_history_does_not_implicitly_select_current_boot(self):
+        with patch.object(diagnostics, 'command', return_value=('', None)) as command:
+            diagnostics.kernel_oom()
+        self.assertIn('_TRANSPORT=kernel', command.call_args.args)
+        self.assertNotIn('-k', command.call_args.args)
+        self.assertNotIn('-b', command.call_args.args)
+
+    def test_manager_startup_failure_uses_allowlisted_unit(self):
+        entries = [dict(_SYSTEMD_UNIT='init.scope', UNIT='docker.service', PRIORITY='3',
+                        __REALTIME_TIMESTAMP='1000000000000000', MESSAGE='private-marker'),
+                   dict(_SYSTEMD_UNIT='init.scope', UNIT='private.service', PRIORITY='3',
+                        __REALTIME_TIMESTAMP='1000000000000000', MESSAGE='private-marker')]
+        with patch.object(diagnostics, 'command', return_value=('\n'.join(map(json.dumps, entries)), None)):
+            report = diagnostics.service_journal()
+        self.assertEqual(report['units']['docker.service']['entries'], 1)
+        self.assertEqual(len(report['units']['docker.service']['warning_or_error_timestamps']), 1)
+        self.assertNotIn('private', json.dumps(report))
+
     def test_command_failures_do_not_export_error_output(self):
         with patch.object(diagnostics, 'command', return_value=(None, 'command_failed')):
             self.assertEqual(diagnostics.kernel_oom(), {'error': 'command_failed'})

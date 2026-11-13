@@ -149,11 +149,12 @@ def scan_infrastructure(config, images, reports, policy=None, authorized=None, s
     return summary
 
 
-def refresh_scanner_databases(cache, settings):
+def refresh_scanner_databases(cache, settings, evidence=None):
     policy = policy_settings(settings)
     cache.mkdir(mode=0o700, parents=True, exist_ok=True)
     scanner = policy['runtimeImageScanner']['image']
-    evidence = {}
+    if evidence is None:
+        evidence = {}
     for name, flag, relative in [('vulnerability', '--download-db-only', 'db/metadata.json'),
                                  ('java', '--download-java-db-only', 'java-db/metadata.json')]:
         container = 'traderx-security-' + uuid.uuid4().hex
@@ -389,28 +390,43 @@ def review_runtime_scans(config, record, authorized, settings, policy, reports):
                 or not isinstance(exception.get('actor'), str) or not exception['actor']):
             raise ValueError('break-glass deployment requires an actor and a reason')
     issues = []
-    databases = None
+    databases = {}
+    database_ready = False
+    completed = False
     try:
-        databases = refresh_scanner_databases(reports.parent / '.trivy-cache', settings)
-    except (OSError, subprocess.SubprocessError, ValueError, KeyError, TypeError) as exc:
-        if not emergency:
-            raise
-        issues.append('scanner database unavailable or stale')
-        print(f'[warn] break-glass: scanner database refresh failed: {type(exc).__name__}')
-    try:
-        scan_infrastructure(config, record['images'], reports, policy=policy,
-                            authorized=authorized, scanner_image=policy_settings(settings)['runtimeImageScanner']['image'],
-                            database_ready=databases is not None)
-    except InfrastructureScanBlocked:
-        if not emergency:
-            raise
-        issues.append('runtime image scans reported findings or errors')
-        print('[warn] break-glass: continuing despite runtime image scan findings or errors')
-    summary = json.loads((reports / 'summary.json').read_text()) if (reports / 'summary.json').exists() else []
-    results = [{key: entry.get(key) for key in ('service', 'status', 'high', 'critical')}
-               for entry in summary]
-    return {'issues': issues, 'break_glass': record.get('break_glass', {'enabled': False}),
-            'databases': databases, 'results': results}
+        try:
+            refreshed = refresh_scanner_databases(reports.parent / '.trivy-cache', settings,
+                                                  evidence=databases)
+            databases = refreshed
+            database_ready = True
+        except (OSError, subprocess.SubprocessError, ValueError, KeyError, TypeError) as exc:
+            issues.append('scanner database unavailable or stale')
+            if not emergency:
+                raise
+            print(f'[warn] break-glass: scanner database refresh failed: {type(exc).__name__}')
+        try:
+            scan_infrastructure(config, record['images'], reports, policy=policy,
+                                authorized=authorized, scanner_image=policy_settings(settings)['runtimeImageScanner']['image'],
+                                database_ready=database_ready)
+        except InfrastructureScanBlocked:
+            issues.append('runtime image scans reported findings or errors')
+            if not emergency:
+                raise
+            print('[warn] break-glass: continuing despite runtime image scan findings or errors')
+        completed = True
+    finally:
+        # Retain only allowlisted evidence even when normal-mode validation raises.
+        reports.mkdir(mode=0o700, parents=True, exist_ok=True)
+        summary = json.loads((reports / 'summary.json').read_text()) if (reports / 'summary.json').exists() else []
+        results = [{key: entry.get(key) for key in ('service', 'status', 'high', 'critical')}
+                   for entry in summary]
+        review = {'status': 'completed' if completed else 'blocked',
+                  'issues': issues if completed or issues else ['runtime scan did not complete'],
+                  'break_glass': record.get('break_glass', {'enabled': False}),
+                  'databases': databases, 'results': results}
+        (reports / 'public-summary.json').write_text(json.dumps(results, indent=2) + '\n')
+        (reports / 'scan-review.json').write_text(json.dumps(review, indent=2) + '\n')
+    return review
 
 
 
@@ -453,8 +469,6 @@ def main():
     authorized = authorize_runtime(config, record, settings, policy)
     reports = a.report_dir or audit / f'{sha}.scans-{uuid.uuid4().hex}'
     record['scan_review'] = review_runtime_scans(config, record, authorized, settings, policy, reports)
-    if reports.exists():
-        (reports / 'scan-review.json').write_text(json.dumps(record['scan_review'], indent=2) + '\n')
     if a.preflight_only:
         if record['scan_review']['issues']:
             print(f'[warn] preflight completed with break-glass exceptions for {sha}; no containers replaced')
