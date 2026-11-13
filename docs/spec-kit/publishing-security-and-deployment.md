@@ -105,3 +105,22 @@ publisher's root allowlist. The API-explorer mismatch originated in `224e2429`
 (PR #457, 2026-09-16), which retained that build context without updating the
 lineage validator. These are canonical pipeline fixes; do not patch generated
 branches by hand.
+
+## Daily demo redeployment
+
+`Daily Demo Deployment` dispatches `Redeploy Live Demo` from `main` for both
+public demo hosts daily at 05:15 UTC (GitHub scheduled jobs may start late).
+It can also be dispatched manually. Each deployment resolves its generated
+branch tip and uses the same provenance checks, fresh scans, immutable images,
+database backup and health checks as a manual deployment. Scheduled runs never
+request break-glass or image-cache reclamation. Per-host deployment concurrency
+serializes scheduled and manual deployments. The dispatcher succeeding confirms
+submission only; inspect the separate `Redeploy Live Demo` runs for deployment
+results and retained evidence.
+
+Do not reinstall the old host `redeploy.sh` cron job: it removes the checkout
+and runs cleanup before validating its replacement, leaving the demo down when
+a deployment gate fails. The legacy daily reboot is also disabled. Preserve
+certificate-renewal jobs. Validation and scan failures in the verified workflow
+occur before container replacement; startup failures still require inspection
+and are not a guarantee of automatic rollback.

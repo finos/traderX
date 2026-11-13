@@ -1,0 +1,39 @@
+name: Daily Demo Deployment
+
+on:
+  schedule:
+    - cron: '15 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+concurrency:
+  group: daily-demo-deployment
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - demo.traderx.finos.org
+          - demo-advanced.traderx.finos.org
+    steps:
+      - name: Dispatch verified deployment from main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TARGET: ${{ matrix.target }}
+        run: |
+          set -euo pipefail
+          gh workflow run redeploy-live-demo.yml --ref main \
+            -f target="$TARGET" \
+            -f diagnose_only=false \
+            -f preflight_only=false \
+            -f reclaim_unused_images=false \
+            -f break_glass=false
+          echo "Dispatched verified deployment for $TARGET. Track its result in Redeploy Live Demo." >> "$GITHUB_STEP_SUMMARY"
