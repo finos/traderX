@@ -7,6 +7,7 @@ on:
       - 'pipeline/*portfolio*'
       - 'pipeline/generate-state-018-falkordb-lookthrough.sh'
       - 'scripts/*exposure*'
+      - 'scripts/*counterparty*'
       - '.github/workflows/portfolio-exposure.yml'
   workflow_dispatch:
 permissions:
@@ -48,6 +49,7 @@ jobs:
       - run: python scripts/test-exposure-impact.py
       - run: python scripts/benchmark-exposure-impact.py --accounts 1000 --layers 3 --samples 5 --output impact-benchmark.json
       - run: python scripts/benchmark-exposure-aggregation.py --accounts 1000 --layers 3 --samples 2 --rounds 1 --output aggregation-benchmark.json
+      - run: python scripts/benchmark-counterparty-dependencies.py --accounts 1000 --samples 2 --rounds 2 --output dependency-benchmark.json
       - uses: actions/upload-artifact@v4
         with:
           name: exposure-benchmark
@@ -55,3 +57,4 @@ jobs:
             exposure-benchmark.json
             impact-benchmark.json
             aggregation-benchmark.json
+            dependency-benchmark.json

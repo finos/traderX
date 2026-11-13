@@ -13,3 +13,10 @@ The confirmed primary task is corporate-group impact across the book. Add a reve
 Use analytical direct/shared/mixed/unexposed portfolios, varying fund depth and account count separately. Test response-limit invariance, >10,000 paths, ranking updates and graph unavailability. Retain raw samples, alternating-order rounds, query plans and update cost. Publish negative findings. Keep PR #499 in draft; database-side aggregation with selective explanations and concurrency remain follow-up comparisons.
 
 The aggregation follow-up stores portfolio values in the projection, performs database-side totals/ranking, then fetches bounded paths for selected accounts in one batch. Retain the full-path implementation for a paired four-condition benchmark. Invalidate the read model if graph loss interrupts either phase; a partial result must not be successful.
+
+## Counterparty investigation probe
+
+Before expanding the product API, evaluate a standalone typed-path prototype in
+`generation/exposure-service/dependency_probe.py` using the protocol in
+`docs/benchmarks/counterparty-dependency-investigation.md`. Keep the existing
+allocation model unchanged: dependency types do not imply additive exposure.

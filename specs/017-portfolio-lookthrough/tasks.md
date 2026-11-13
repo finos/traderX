@@ -24,3 +24,10 @@
 - [x] Compare analytical totals and exact explanation paths with the retained full-path strategy.
 - [x] Record paired database × strategy timings, payload proxies and execution plans.
 - [ ] Evaluate concurrency, update freshness and a business latency target separately.
+
+## Counterparty dependency investigation (standalone prototype)
+
+- [x] Define typed-path business question, equivalent semantics and screening criterion before measurement.
+- [x] Run PostgreSQL/Falkor comparison against independent path oracle and update/cycle fixtures.
+- [x] Publish raw sparse/dense results and decide whether product integration is warranted.
+- [ ] Obtain domain review and an agreed business SLA before adoption claims.
