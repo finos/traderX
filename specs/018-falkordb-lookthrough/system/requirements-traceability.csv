@@ -1,2 +1,10 @@
 requirement,implementation,validation
-FR-01803,generation/exposure-service/engine.py,scripts/test-exposure-integration.py
+FR-01801,specs/017-portfolio-lookthrough/generation/exposure-service/dataset.py,scripts/test-exposure-integration.py
+FR-01802,specs/017-portfolio-lookthrough/generation/exposure-service/dataset.py,scripts/test-exposure-integration.py
+FR-01803,specs/017-portfolio-lookthrough/generation/exposure-service/engine.py,scripts/test-exposure-integration.py
+FR-01804,specs/017-portfolio-lookthrough/generation/exposure-service/app.py,scripts/test-exposure-browser.py
+FR-01805,specs/017-portfolio-lookthrough/generation/exposure-service/engine.py,scripts/test-exposure-integration.py
+FR-01806,specs/017-portfolio-lookthrough/generation/exposure-service/engine.py,scripts/test-exposure-integration.py
+NFR-01801,specs/017-portfolio-lookthrough/generation/exposure-service/app.py,scripts/test-exposure-integration.py
+NFR-01802,specs/017-portfolio-lookthrough/generation/exposure-service/engine.py,scripts/test-exposure-integration.py
+NFR-01803,pipeline/render-portfolio-lookthrough.py,pipeline/validate-generated-state-lineage-invariants.sh

@@ -3,6 +3,7 @@ import hashlib
 import json
 import threading
 import time
+import uuid
 from datetime import datetime, timezone
 import psycopg
 from redis import Redis
@@ -55,7 +56,7 @@ def source_snapshot(dsn):
     edges = list(links)
     for a,s,q,mark in holdings: edges.append((f'A{a}',s,q*mark/totals[a]))
     validate(nodes,edges)
-    encoded=json.dumps([nodes,edges,as_of],separators=(',',':')).encode()
+    encoded=json.dumps([nodes,edges,as_of,totals],separators=(',',':')).encode()
     return nodes,edges,hashlib.sha256(encoded).hexdigest(),as_of,totals
 
 
@@ -93,7 +94,7 @@ class Engine:
             # Detect data loss after a FalkorDB restart even if source is unchanged.
             graph_alive = self.redis.exists(self.graph) if self.redis and self.graph else True
             if revision != self.revision or not graph_alive:
-                graph='exposure_'+revision[:24]
+                graph='exposure_'+revision[:24]+'_'+uuid.uuid4().hex[:12]
                 if self.redis:
                     if self.redis.exists(graph): self.redis.execute_command('GRAPH.DELETE',graph)
                     self.query_graph(graph,'CREATE INDEX FOR (n:Entity) ON (n.id)')
@@ -143,6 +144,9 @@ class Engine:
             if source not in self.nodes or target not in self.nodes: raise KeyError('Unknown account or target')
             if self.nodes[target]['kind']!='company': raise ValueError('Target must be a corporate entity')
             if self.redis:
+                # A missing graph must not become a successful empty exposure query.
+                if not self.redis.exists(self.graph):
+                    raise RuntimeError('Projection graph is missing; wait for reconciliation')
                 # IDs are JSON-escaped literals, never interpolated raw Cypher input.
                 rows=self.query_graph(self.graph,
                     f'MATCH p=(a:Entity {{id:{json.dumps(source)}}})-[:EXPOSURE*1..{MAX_DEPTH}]->'

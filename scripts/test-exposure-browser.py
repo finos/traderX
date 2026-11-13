@@ -14,6 +14,8 @@ with sync_playwright() as p:
     expect(page.locator('#direct')).to_have_text('2.00%')
     expect(page.locator('#indirect')).to_have_text('12.00%')
     expect(page.locator('#paths tr')).to_have_count(2)
+    expect(page.locator('#valuation')).to_have_text('Exposure $14,000.00 of $100,000.00')
+    expect(page.locator('.brand')).to_have_text('TraderX')
     page.screenshot(path=str(output),full_page=True)
     page.select_option('#target','Z1G');page.click('#refresh')
     expect(page.locator('#total')).to_have_text('0.00%')
@@ -21,6 +23,8 @@ with sync_playwright() as p:
     page.route('**/api/exposure?**',lambda route:route.fulfill(status=503,content_type='application/json',body='{"error":"Projection unavailable"}'))
     page.click('#refresh');expect(page.locator('#error')).to_have_text('Projection unavailable')
     expect(page.locator('#total')).to_have_text('—')
+    for selector in ('#valuation','#status','#count'):
+        expect(page.locator(selector)).to_be_empty()
     assert not errors,errors
     page.set_viewport_size({'width':390,'height':844})
     page.screenshot(path=str(output.with_name(output.stem+'-mobile.png')),full_page=True)

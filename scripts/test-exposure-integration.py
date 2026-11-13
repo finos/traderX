@@ -74,6 +74,23 @@ class ExposureIntegration(unittest.TestCase):
             db.execute("UPDATE Positions SET quantity=20 WHERE accountid=70000 AND security='Z0S'")
         for engine in (self.pg,self.graph): engine.refresh()
 
+    def test_03b_proportional_position_change(self):
+        old = self.pg.revision
+        try:
+            with psycopg.connect(DSN) as db:
+                db.execute("UPDATE Positions SET quantity=quantity*2 WHERE accountid=70000")
+            for engine in (self.pg,self.graph):
+                engine.refresh()
+                result = engine.exposure(70000,'Z0G')
+                self.assertNotEqual(old,result['revision'])
+                self.assertAlmostEqual(result['totalFraction'],.14)
+                self.assertAlmostEqual(result['portfolioValue'],200000)
+                self.assertAlmostEqual(result['exposureValue'],28000)
+        finally:
+            with psycopg.connect(DSN) as db:
+                db.execute("UPDATE Positions SET quantity=quantity/2 WHERE accountid=70000")
+            for engine in (self.pg,self.graph): engine.refresh()
+
     def test_04_allocation_change(self):
         with psycopg.connect(DSN) as db:
             db.execute("UPDATE exposure.links SET weight=.25 WHERE source='Z0N' AND target='Z0S'")
@@ -87,6 +104,7 @@ class ExposureIntegration(unittest.TestCase):
 
     def test_05_graph_loss_and_recovery(self):
         self.graph.redis.execute_command('GRAPH.DELETE',self.graph.graph)
+        with self.assertRaises(RuntimeError): self.graph.exposure(70000,'Z0G')
         self.graph.refresh()
         self.assertAlmostEqual(self.graph.exposure(70000,'Z0G')['totalFraction'],.14)
         healthy=self.graph.redis
@@ -126,6 +144,11 @@ class ExposureIntegration(unittest.TestCase):
                 for query,code in [('account=nope',400),('target=%22%7D%29%20DETACH%20DELETE%20n',404),('account=0',404)]:
                     with self.assertRaises(HTTPError) as caught: urlopen(base+'/api/exposure?'+query)
                     self.assertEqual(caught.exception.code,code)
+                engine.nodes['A100000']={'id':'A100000','name':'Large-profile account','kind':'account'}
+                with urlopen(base+'/api/catalog') as response:
+                    accounts=json.load(response)['accounts']
+                    self.assertEqual(accounts[0]['id'],'A70000')
+                engine.nodes.pop('A100000')
                 with urlopen(base+'/') as response: self.assertIn(b'What do I really own?',response.read())
                 self.assertAlmostEqual(engine.exposure(70000,'Z0G')['totalFraction'],.14)
             finally: server.shutdown();server.server_close()

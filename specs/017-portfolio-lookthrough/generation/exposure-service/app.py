@@ -26,7 +26,8 @@ def make_handler(engine):
                     result=engine.status(); code=200 if result['healthy'] else 503
                 elif url.path=='/api/catalog':
                     with engine.lock:
-                        result={'accounts':[n for n in engine.nodes.values() if n['kind']=='account'][:1000],
+                        result={'accounts':sorted((n for n in engine.nodes.values() if n['kind']=='account'),
+                                                  key=lambda n:int(n['id'][1:]))[:1000],
                                 'targets':[n for n in engine.nodes.values() if n['kind']=='company'],
                                 'status':engine.status()}
                     code=200

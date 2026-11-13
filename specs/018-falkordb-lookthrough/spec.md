@@ -19,6 +19,8 @@ A presenter compares PostgreSQL and FalkorDB using identical data, APIs, and ind
 - NFR-01802: Support current-snapshot, single-currency long-only portfolios with fixed $100 synthetic marks. Fail closed on unknown marks, shorts, cycles, invalid fund weights or depth exceeding 12. Historical as-of queries and market-risk loss estimates are outside scope.
 - NFR-01803: Preserve older states; keep durable sources in this feature pack and generate runtime artifacts. Observe projection health and source-check age via Prometheus.
 
+The exposure view is an independent addition with TraderX branding, a link from the trading header, and a return-to-trading link. It displays monetary exposure alongside fractions; errors clear previous results and valuation metadata.
+
 ## Acceptance scenarios
 1. Given account 70000 and target Z0G, show 2% direct + 12% indirect = 14% total and two contributing paths.
 2. Change its direct security quantity in Positions; observe a new revision and correctly changed denominator and exposure in both backends.
