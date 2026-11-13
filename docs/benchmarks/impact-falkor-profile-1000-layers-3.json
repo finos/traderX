@@ -1,0 +1,17 @@
+{
+  "fixture": {
+    "accounts": 1000,
+    "fundLayers": 3,
+    "economicPaths": 14000
+  },
+  "method": "Separate GRAPH.PROFILE diagnostic after the first pilot; not a decomposition of the timing-table samples. Do not subtract these operator times from end-to-end medians.",
+  "plan": [
+    "Results | Records produced: 1, Execution time: 0.000374 ms",
+    "    Aggregate | Records produced: 1, Execution time: 21.917996 ms",
+    "        Conditional Traverse | (a)->(a) | Records produced: 14000, Execution time: 7.999877 ms",
+    "            Filter | Records produced: 14000, Execution time: 1.153434 ms",
+    "                Conditional Variable Length Traverse | (t)-[@anon_0:EXPOSURE*1..12]->(a) | Records produced: 14082, Execution time: 2.004319 ms",
+    "                    Project | Records produced: 1, Execution time: 0.000708 ms",
+    "                        Node By Index Scan | (t:Entity) | Records produced: 1, Execution time: 0.005750 ms"
+  ]
+}

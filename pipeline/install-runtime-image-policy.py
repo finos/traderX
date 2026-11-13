@@ -9,7 +9,8 @@ import re
 ROOT = Path(__file__).resolve().parents[1]
 COMPOSE_DIRS = {5: 'postgres-database-replacement', 6: 'messaging-nats-replacement',
                 7: 'observability-lgtm-compose', 8: 'pricing-awareness-market-data',
-                9: 'order-management-matcher'}
+                9: 'order-management-matcher', 17: 'portfolio-lookthrough',
+                18: 'falkordb-lookthrough'}
 
 
 def load_policy():
@@ -298,7 +299,7 @@ def install_application_tracing(target, number):
             text = text.replace("implementation 'org.springframework.boot:spring-boot-starter-actuator'",
                                 "implementation 'org.springframework.boot:spring-boot-starter-actuator'\n  implementation 'org.springframework.boot:spring-boot-starter-opentelemetry'")
             path.write_text(text)
-    if number <= 9:
+    if number in COMPOSE_DIRS:
         path = target / COMPOSE_DIRS[number] / 'docker-compose.yml'
         text = path.read_text()
         for module in modules:
@@ -373,7 +374,7 @@ def install(state_id, target, policy=None):
     else:
         install_kubernetes(target, number, policy)
     normalize_base_images(target, policy)
-    if number >= 14:
+    if number == 14:
         install_sail_companion(target, policy)
     if number >= 7:
         install_application_tracing(target, number)

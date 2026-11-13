@@ -49,6 +49,12 @@
         "name": "Order Matcher",
         "detectPath": "order-matcher",
         "runtimeSpecPath": "/order-matcher/v3/api-docs"
+      },
+      {
+        "id": "exposure-service",
+        "name": "Portfolio Exposure",
+        "detectPath": "exposure-service",
+        "contractPath": "specs/017-portfolio-lookthrough/contracts/exposure-service/openapi.yaml"
       }
     ]
   },
@@ -394,6 +400,52 @@
       "publish": {
         "branch": "code/generated-state-014-fdc3-intent-interoperability",
         "tag": "generated/014-fdc3-intent-interoperability/v1"
+      }
+    },
+    {
+      "id": "017-portfolio-lookthrough",
+      "title": "Portfolio Look-Through",
+      "status": "implemented",
+      "track": "functional",
+      "convergenceLevel": "none",
+      "isConvergence": false,
+      "dottedParents": [],
+      "primaryLineageRole": "optional",
+      "featurePack": "specs/017-portfolio-lookthrough",
+      "previous": [
+        "009-order-management-matcher"
+      ],
+      "generation": {
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-state.sh 017-portfolio-lookthrough",
+        "runtime": "./scripts/start-state-017-portfolio-lookthrough-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-017-portfolio-lookthrough",
+        "tag": "generated/017-portfolio-lookthrough/v1"
+      }
+    },
+    {
+      "id": "018-falkordb-lookthrough",
+      "title": "FalkorDB Portfolio Look-Through",
+      "status": "implemented",
+      "track": "architecture",
+      "convergenceLevel": "none",
+      "isConvergence": false,
+      "dottedParents": [],
+      "primaryLineageRole": "optional",
+      "featurePack": "specs/018-falkordb-lookthrough",
+      "previous": [
+        "017-portfolio-lookthrough"
+      ],
+      "generation": {
+        "mode": "implemented",
+        "entrypoint": "bash pipeline/generate-state.sh 018-falkordb-lookthrough",
+        "runtime": "./scripts/start-state-018-falkordb-lookthrough-generated.sh"
+      },
+      "publish": {
+        "branch": "code/generated-state-018-falkordb-lookthrough",
+        "tag": "generated/018-falkordb-lookthrough/v1"
       }
     }
   ]

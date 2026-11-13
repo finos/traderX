@@ -27,12 +27,14 @@ tracks:
     states:
       - 005-postgres-database-replacement
       - 006-messaging-nats-replacement
+      - 018-falkordb-lookthrough
   functional:
     description: "Functional capability expansion states."
     states:
       - 008-pricing-awareness-market-data
       - 009-order-management-matcher
       - 014-fdc3-intent-interoperability
+      - 017-portfolio-lookthrough
   nonfunctional:
     description: "Non-functional overlays (observability, resilience, operations)."
     states:
@@ -41,6 +43,8 @@ tracks:
     description: "Optional side branches not in primary publish lineage."
     states:
       - 013-radius-kubernetes-platform
+      - 017-portfolio-lookthrough
+      - 018-falkordb-lookthrough
   convergence:
     description: "Named convergence milestones (C0/C1/C2/C3)."
     states:
@@ -147,3 +151,17 @@ stateCatalog:
     isConvergence: false
     lineageRole: canonical
     spec: specs/014-fdc3-intent-interoperability/spec.md
+  - id: 017-portfolio-lookthrough
+    previous:
+      - 009-order-management-matcher
+    convergenceLevel: none
+    isConvergence: false
+    lineageRole: optional
+    spec: specs/017-portfolio-lookthrough/spec.md
+  - id: 018-falkordb-lookthrough
+    previous:
+      - 017-portfolio-lookthrough
+    convergenceLevel: none
+    isConvergence: false
+    lineageRole: optional
+    spec: specs/018-falkordb-lookthrough/spec.md
