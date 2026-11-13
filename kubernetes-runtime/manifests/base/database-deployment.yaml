@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: database
-          image: traderx-remediation/postgres:010
+          image: traderx-remediation/postgres:011
           imagePullPolicy: IfNotPresent
           ports:
             - name: pg

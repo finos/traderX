@@ -1,14 +1,14 @@
 # Functional Testing Guide
 
-State: `010-kubernetes-runtime`
+State: `011-tilt-kubernetes-dev-loop`
 
 This guide captures intended functional behavior for this generated snapshot branch.
 
 ## What Should Work
 
-- Builds on state `009` by moving runtime from Docker Compose to Kubernetes (Kind baseline).
-- Uses in-cluster NGINX edge-proxy as browser/API/WebSocket entrypoint at `http://localhost:8080`.
-- Preserves C2 functional behavior while changing runtime orchestration and deployment model.
+- Builds on state `010` and preserves Kubernetes runtime behavior.
+- Adds Tilt local developer-loop artifacts (`Tiltfile`, Tilt settings, workflow docs).
+- Preserves baseline functional behavior and API contracts.
 
 ## Suggested Functional Validation
 
@@ -20,14 +20,12 @@ This guide captures intended functional behavior for this generated snapshot bra
 ## Smoke Test Commands
 
 ```bash
-ls ./scripts/test-state-*.sh
+./scripts/test-state-011-tilt-kubernetes-dev-loop.sh
 ```
-
-Use the script matching this state id when available.
 
 ## Canonical References
 
-- Spec pack: `specs/010-kubernetes-runtime`
+- Spec pack: `specs/011-tilt-kubernetes-dev-loop`
 - Runtime guide: [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
 - Snapshot learning guide: [LEARNING.md](./LEARNING.md)
 - Snapshot metadata: [STATE.md](./STATE.md)

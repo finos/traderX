@@ -1,0 +1,57 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: traderx
+resources:
+  - namespace.yaml
+  - edge-proxy-configmap.yaml
+  - database-init-configmap.yaml
+  - nats-configmap.yaml
+  - observability-blackbox-configmap.yaml
+  - observability-loki-configmap.yaml
+  - observability-promtail-configmap.yaml
+  - observability-tempo-configmap.yaml
+  - observability-otel-configmap.yaml
+  - observability-prometheus-configmap.yaml
+  - observability-grafana-datasources-configmap.yaml
+  - observability-grafana-dashboard-providers-configmap.yaml
+  - observability-grafana-dashboards-configmap.yaml
+  - edge-proxy-deployment.yaml
+  - edge-proxy-service.yaml
+  - blackbox-exporter-deployment.yaml
+  - blackbox-exporter-service.yaml
+  - loki-deployment.yaml
+  - loki-service.yaml
+  - promtail-serviceaccount.yaml
+  - promtail-clusterrole.yaml
+  - promtail-clusterrolebinding.yaml
+  - promtail-daemonset.yaml
+  - tempo-deployment.yaml
+  - tempo-service.yaml
+  - otel-collector-deployment.yaml
+  - otel-collector-service.yaml
+  - prometheus-deployment.yaml
+  - prometheus-service.yaml
+  - grafana-deployment.yaml
+  - grafana-service.yaml
+  - database-deployment.yaml
+  - database-service.yaml
+  - nats-broker-deployment.yaml
+  - nats-broker-service.yaml
+  - reference-data-deployment.yaml
+  - reference-data-service.yaml
+  - people-service-deployment.yaml
+  - people-service-service.yaml
+  - account-service-deployment.yaml
+  - account-service-service.yaml
+  - position-service-deployment.yaml
+  - position-service-service.yaml
+  - trade-processor-deployment.yaml
+  - trade-processor-service.yaml
+  - trade-service-deployment.yaml
+  - trade-service-service.yaml
+  - price-publisher-deployment.yaml
+  - price-publisher-service.yaml
+  - order-matcher-deployment.yaml
+  - order-matcher-service.yaml
+  - web-front-end-angular-deployment.yaml
+  - web-front-end-angular-service.yaml

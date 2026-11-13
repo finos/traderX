@@ -68,31 +68,31 @@
     },
     {
       "name": "loki",
-      "image": "traderx-remediation/loki:010",
+      "image": "traderx-remediation/loki:011",
       "context": "kubernetes-runtime/runtime-images/loki",
       "dockerfile": "Dockerfile.compose"
     },
     {
       "name": "tempo",
-      "image": "traderx-remediation/tempo:010",
+      "image": "traderx-remediation/tempo:011",
       "context": "kubernetes-runtime/runtime-images/tempo",
       "dockerfile": "Dockerfile.compose"
     },
     {
       "name": "blackbox-exporter",
-      "image": "traderx-remediation/blackbox-exporter:010",
+      "image": "traderx-remediation/blackbox-exporter:011",
       "context": "kubernetes-runtime/runtime-images/blackbox-exporter",
       "dockerfile": "Dockerfile.compose"
     },
     {
       "name": "prometheus",
-      "image": "traderx-remediation/prometheus:010",
+      "image": "traderx-remediation/prometheus:011",
       "context": "kubernetes-runtime/runtime-images/prometheus",
       "dockerfile": "Dockerfile.compose"
     },
     {
       "name": "database",
-      "image": "traderx-remediation/postgres:010",
+      "image": "traderx-remediation/postgres:011",
       "context": "database",
       "dockerfile": "Dockerfile.compose"
     }
