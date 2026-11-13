@@ -2,6 +2,7 @@
 """Consume verifier output transported by the deployment workflow over SSH."""
 import argparse
 import datetime
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -12,7 +13,11 @@ import uuid
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from runtime_image_security import compose_inventory, validate_lock, policy_settings, timestamp
+from runtime_image_security import compose_inventory, validate_lock, policy_settings, timestamp, fresh, database_age_limit
+
+
+class InfrastructureScanBlocked(ValueError):
+    pass
 
 
 def run(*args, **kwargs):
@@ -48,7 +53,7 @@ def already_fixed(finding, image, policy, now=None):
             and finding.get('VulnerabilityID') in policy['fixed_findings'])
 
 
-def scan_infrastructure(config, images, reports, policy=None, authorized=None, scanner_image=None):
+def scan_infrastructure(config, images, reports, policy=None, authorized=None, scanner_image=None, database_ready=False):
     """Inventory every infrastructure blocker; diagnostic output is not authorization."""
     reports.mkdir(mode=0o700, parents=True, exist_ok=False)
     summary = []
@@ -66,11 +71,12 @@ def scan_infrastructure(config, images, reports, policy=None, authorized=None, s
             raise ValueError('invalid service name')
         entry = dict(service=name, source=image, status='error', high=0, critical=0, fixed_findings=[])
         scanner = 'traderx-security-' + uuid.uuid4().hex
+        if authorized is not None:
+            lock = authorized['compose/' + name]
+            if image != lock['image']:
+                raise ValueError('host image differs from verified platform digest')
         try:
             if authorized is not None:
-                lock = authorized['compose/' + name]
-                if image != lock['image']:
-                    raise ValueError('host image differs from verified platform digest')
                 entry['digest'] = image
                 disposition_image = lock['index_image']
                 run('docker', 'pull', '--platform', lock['platform'], image, capture_output=True, text=True)
@@ -82,11 +88,14 @@ def scan_infrastructure(config, images, reports, policy=None, authorized=None, s
                     raise ValueError('cannot resolve immutable infrastructure image')
                 entry['digest'] = service['image'] = digests[0]
                 disposition_image = service['image']
+            scanner_args = ['docker', 'run', '--rm', '--name', scanner, '--user', f'{os.getuid()}:{os.getgid()}',
+                            '-v', str(cache.resolve()) + ':/cache', scanner_image or policy_settings(security_settings())['runtimeImageScanner']['image'],
+                            'image', '--cache-dir', '/cache']
+            if database_ready:
+                scanner_args += ['--skip-db-update', '--skip-java-db-update']
             result = subprocess.run(
-                ['docker', 'run', '--rm', '--name', scanner, '--user', f'{os.getuid()}:{os.getgid()}',
-                 '-v', str(cache.resolve()) + ':/cache', scanner_image or policy_settings(security_settings())['runtimeImageScanner']['image'],
-                 'image', '--cache-dir', '/cache', '--scanners', 'vuln,secret', '--exit-code', '1', '--severity', 'HIGH,CRITICAL',
-                 '--format', 'json', '--no-progress', service['image']],
+                scanner_args + ['--scanners', 'vuln,secret', '--exit-code', '1', '--severity', 'HIGH,CRITICAL',
+                                '--format', 'json', '--no-progress', service['image']],
                 capture_output=True, text=True, timeout=600)
             (reports / f'{name}.trivy.json').write_text(result.stdout)
             (reports / f'{name}.stderr.txt').write_text(result.stderr)
@@ -131,9 +140,38 @@ def scan_infrastructure(config, images, reports, policy=None, authorized=None, s
         print(f"[scan] {name}: {entry['status']} HIGH={entry['high']} CRITICAL={entry['critical']} already-fixed={len(entry['fixed_findings'])}")
     # Also retain a complete empty inventory for application-only runtimes.
     (reports / 'summary.json').write_text(json.dumps(summary, indent=2) + '\n')
+    public = [{key: entry.get(key) for key in ('service', 'status', 'high', 'critical')}
+              for entry in summary]
+    (reports / 'public-summary.json').write_text(json.dumps(public, indent=2) + '\n')
     blocked = [e['service'] for e in summary if e['status'] != 'success']
     if blocked:
-        raise ValueError('infrastructure preflight blocked: ' + ', '.join(blocked))
+        raise InfrastructureScanBlocked('infrastructure preflight blocked: ' + ', '.join(blocked))
+    return summary
+
+
+def refresh_scanner_databases(cache, settings):
+    policy = policy_settings(settings)
+    cache.mkdir(mode=0o700, parents=True, exist_ok=True)
+    scanner = policy['runtimeImageScanner']['image']
+    evidence = {}
+    for name, flag, relative in [('vulnerability', '--download-db-only', 'db/metadata.json'),
+                                 ('java', '--download-java-db-only', 'java-db/metadata.json')]:
+        container = 'traderx-security-' + uuid.uuid4().hex
+        try:
+            run('docker', 'run', '--rm', '--name', container, '--user', f'{os.getuid()}:{os.getgid()}',
+                '-v', str(cache.resolve()) + ':/cache', scanner, 'image', '--cache-dir', '/cache',
+                '--no-progress', flag, capture_output=True, text=True)
+            raw = (cache / relative).read_bytes()
+            metadata = json.loads(raw)
+            fresh(metadata.get('UpdatedAt'), database_age_limit(policy, name))
+            evidence[name] = {'updated_at': metadata['UpdatedAt'],
+                              'sha256': hashlib.sha256(raw).hexdigest()}
+        finally:
+            try:
+                run('docker', 'rm', '-f', container, timeout=5, capture_output=True)
+            except (OSError, subprocess.SubprocessError):
+                print(f'[warn] inspect scanner container {container}')
+    return evidence
 
 
 def state009_database_volume(config):
@@ -237,7 +275,6 @@ def backup_state009_database(record, project, audit, config):
         listing = run('tar', '-tzf', str(dest), capture_output=True, text=True).stdout.splitlines()
         if './PG_VERSION' not in listing:
             raise ValueError('database backup verification failed')
-        import hashlib
         hasher = hashlib.sha256()
         with dest.open('rb') as source:
             for block in iter(lambda: source.read(1024 * 1024), b''):
@@ -333,13 +370,47 @@ def authorize_runtime(config, record, settings, policy):
     evidence = record['checks']['build-and-publish.yml']
     locks = validate_lock(record['runtime_lock'], metadata, compose_inventory(config),
                           record['repository'], record['snapshot'], evidence['id'], evidence['attempt'],
-                          settings, disposition=policy)
+                          settings, disposition=policy, allow_stale=True)
     if record.get('runtime_images') != locks:
         raise ValueError('deployment runtime image map differs from verified evidence')
     for name, service in config['services'].items():
         service['image'] = locks['compose/' + name]['image']
         service.pop('build', None)
     return locks
+
+
+def review_runtime_scans(config, record, authorized, settings, policy, reports):
+    emergency = record.get('break_glass', {}).get('enabled') is True
+    if emergency:
+        exception = record['break_glass']
+        if (not isinstance(exception.get('reason'), str)
+                or not 10 <= len(exception['reason'].strip()) <= 500
+                or '\n' in exception['reason'] or '\r' in exception['reason']
+                or not isinstance(exception.get('actor'), str) or not exception['actor']):
+            raise ValueError('break-glass deployment requires an actor and a reason')
+    issues = []
+    databases = None
+    try:
+        databases = refresh_scanner_databases(reports.parent / '.trivy-cache', settings)
+    except (OSError, subprocess.SubprocessError, ValueError, KeyError, TypeError) as exc:
+        if not emergency:
+            raise
+        issues.append('scanner database unavailable or stale')
+        print(f'[warn] break-glass: scanner database refresh failed: {type(exc).__name__}')
+    try:
+        scan_infrastructure(config, record['images'], reports, policy=policy,
+                            authorized=authorized, scanner_image=policy_settings(settings)['runtimeImageScanner']['image'],
+                            database_ready=databases is not None)
+    except InfrastructureScanBlocked:
+        if not emergency:
+            raise
+        issues.append('runtime image scans reported findings or errors')
+        print('[warn] break-glass: continuing despite runtime image scan findings or errors')
+    summary = json.loads((reports / 'summary.json').read_text()) if (reports / 'summary.json').exists() else []
+    results = [{key: entry.get(key) for key in ('service', 'status', 'high', 'critical')}
+               for entry in summary]
+    return {'issues': issues, 'break_glass': record.get('break_glass', {'enabled': False}),
+            'databases': databases, 'results': results}
 
 
 
@@ -380,11 +451,15 @@ def main():
     policy = json.loads(policy_file.read_text()) if policy_file.exists() else None
     settings = security_settings()
     authorized = authorize_runtime(config, record, settings, policy)
-    scan_infrastructure(config, record['images'],
-                        a.report_dir or audit / f'{sha}.scans-{uuid.uuid4().hex}', policy=policy,
-                        authorized=authorized, scanner_image=policy_settings(settings)['runtimeImageScanner']['image'])
+    reports = a.report_dir or audit / f'{sha}.scans-{uuid.uuid4().hex}'
+    record['scan_review'] = review_runtime_scans(config, record, authorized, settings, policy, reports)
+    if reports.exists():
+        (reports / 'scan-review.json').write_text(json.dumps(record['scan_review'], indent=2) + '\n')
     if a.preflight_only:
-        print(f'[ok] preflight passed for {sha}; no containers replaced')
+        if record['scan_review']['issues']:
+            print(f'[warn] preflight completed with break-glass exceptions for {sha}; no containers replaced')
+        else:
+            print(f'[ok] preflight passed for {sha}; no containers replaced')
         return
     resolved = audit / f'{sha}.compose.json'
     resolved.write_text(json.dumps(config, indent=2) + '\n')

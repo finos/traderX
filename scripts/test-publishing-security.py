@@ -217,18 +217,63 @@ class AuthorizationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp) / 'verified.json'
             argv = ['verify', '--snapshot', SHA, '--target', 'demo.traderx.finos.org', '--output', str(output)]
-            with patch.object(sys, 'argv', argv), patch.object(verify, 'gh_json', side_effect=api), \
+            with patch.object(sys, 'argv', argv), patch.object(verify, 'gh_json', side_effect=api) as api_mock, \
                  patch.object(verify.subprocess, 'run', side_effect=download), \
                  patch.object(verify, 'download_snapshot', return_value=Path(tmp)), \
                  patch.object(verify, 'runtime_inventory', return_value=[]), \
                  patch.object(verify, 'validate_lock', return_value={}):
                 verify.main()
                 self.assertEqual(json.loads(output.read_text())['images'], {image: image + '@' + DIGEST})
+                self.assertEqual(json.loads(output.read_text())['snapshot'], SHA)
+                self.assertFalse(any('/commits/' in str(call) for call in api_mock.call_args_list))
                 output.unlink()
+                with patch.object(sys, 'argv', ['verify', '--target', 'demo.traderx.finos.org', '--output', str(output)]):
+                    verify.main()
+                self.assertEqual(json.loads(output.read_text())['snapshot'], SHA)
+                self.assertTrue(any('/commits/' in str(call) for call in api_mock.call_args_list))
+                output.unlink()
+                with patch.dict(verify.os.environ, {'GITHUB_ACTOR': 'maintainer'}), \
+                     patch.object(sys, 'argv', argv + ['--break-glass-reason', 'Restore demo service']):
+                    verify.main()
+                self.assertEqual(json.loads(output.read_text())['break_glass'],
+                                 {'enabled': True, 'reason': 'Restore demo service', 'actor': 'maintainer'})
+                output.unlink()
+                with patch.object(sys, 'argv', argv + ['--break-glass-reason', '']):
+                    with self.assertRaises(SystemExit):
+                        verify.main()
                 failed = True
                 with self.assertRaises(ValueError):
                     verify.main()
                 self.assertFalse(output.exists())
+
+    def test_scanner_exception_requires_reason_and_never_waives_integrity(self):
+        record = {'images': {}, 'break_glass': {'enabled': True, 'reason': 'Restore the demo', 'actor': 'maintainer'}}
+        settings = {'runtimeImageScanner': {'image': 'scanner'}}
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch.object(deploy, 'policy_settings', return_value=settings), \
+             patch.object(deploy, 'refresh_scanner_databases', side_effect=ValueError('stale')), \
+             patch.object(deploy, 'scan_infrastructure', side_effect=deploy.InfrastructureScanBlocked('findings')):
+            result = deploy.review_runtime_scans({}, record, {}, {}, None, Path(tmp) / 'reports')
+            self.assertEqual(len(result['issues']), 2)
+            for bad in [{'enabled': True, 'reason': '', 'actor': 'maintainer'},
+                        {'enabled': True, 'reason': 'Restore the demo', 'actor': ''}]:
+                with self.assertRaises(ValueError):
+                    deploy.review_runtime_scans({}, record | {'break_glass': bad}, {}, {}, None, Path(tmp) / 'reports')
+            with self.assertRaises(ValueError):
+                deploy.review_runtime_scans({}, record | {'break_glass': {'enabled': False}}, {}, {}, None, Path(tmp) / 'reports')
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch.object(deploy, 'policy_settings', return_value=settings), \
+             patch.object(deploy, 'refresh_scanner_databases', return_value={}), \
+             patch.object(deploy, 'scan_infrastructure', side_effect=ValueError('host image differs')):
+            with self.assertRaisesRegex(ValueError, 'host image differs'):
+                deploy.review_runtime_scans({}, record, {}, {}, None, Path(tmp) / 'reports')
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch.object(deploy, 'policy_settings', return_value=settings), \
+             patch.object(deploy, 'refresh_scanner_databases', return_value={}), \
+             patch.object(deploy, 'scan_infrastructure', side_effect=deploy.InfrastructureScanBlocked('findings')) as scan:
+            with self.assertRaises(deploy.InfrastructureScanBlocked):
+                deploy.review_runtime_scans({}, record | {'break_glass': {'enabled': False}}, {}, {}, None, Path(tmp) / 'reports')
+            self.assertTrue(scan.call_args.kwargs['database_ready'])
 
     def test_compose_uses_verified_digest_and_removes_build(self):
         image = 'ghcr.io/finos/traderx-c1/ingress'
@@ -255,6 +300,7 @@ class AuthorizationTests(unittest.TestCase):
                  patch.object(deploy.subprocess, 'check_output', return_value=SHA + '\n'), \
                  patch.object(deploy, 'authorize_runtime', side_effect=lambda config, *args: deploy.pin_services(config, {image: image + '@' + DIGEST})), \
                  patch.object(deploy, 'policy_settings', return_value={'runtimeImageScanner': {'image': 'scanner'}}), \
+                 patch.object(deploy, 'refresh_scanner_databases', return_value={}), \
                  patch.object(deploy, 'scan_infrastructure'):
                 deploy.main()
             audit = json.loads((work / '.traderx-deploy/deployed.json').read_text())
@@ -281,6 +327,7 @@ class AuthorizationTests(unittest.TestCase):
                  patch.object(deploy.subprocess, 'check_output', return_value=SHA + '\n'), \
                  patch.object(deploy, 'authorize_runtime', side_effect=lambda config, *args: deploy.pin_services(config, {image: image + '@' + DIGEST})), \
                  patch.object(deploy, 'policy_settings', return_value={'runtimeImageScanner': {'image': 'scanner'}}), \
+                 patch.object(deploy, 'refresh_scanner_databases', return_value={}), \
                  patch.object(deploy, 'scan_infrastructure'):
                 with self.assertRaises(subprocess.CalledProcessError) as caught:
                     deploy.main()
@@ -356,6 +403,23 @@ class DatabaseRecoveryTests(unittest.TestCase):
 
 
 class ScannerTests(unittest.TestCase):
+    def test_scanner_database_refresh_requires_fresh_metadata(self):
+        import datetime
+        stamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        settings = {'security': {'runtimeImageScanner': {'image': 'scanner@' + DIGEST, 'version': '1'},
+                                 'supportedPlatforms': ['linux/amd64'], 'maxEvidenceAgeHours': 24,
+                                 'maxDatabaseAgeHours': 24, 'maxJavaDatabaseAgeHours': 96}}
+        with tempfile.TemporaryDirectory() as tmp:
+            cache = Path(tmp)
+            for name in ('db', 'java-db'):
+                (cache / name).mkdir()
+                (cache / name / 'metadata.json').write_text(json.dumps({'UpdatedAt': stamp}))
+            with patch.object(deploy, 'run', return_value=subprocess.CompletedProcess([], 0)):
+                self.assertEqual(set(deploy.refresh_scanner_databases(cache, settings)), {'vulnerability', 'java'})
+                (cache / 'db/metadata.json').write_text(json.dumps({'UpdatedAt': '2000-01-01T00:00:00Z'}))
+                with self.assertRaises(ValueError):
+                    deploy.refresh_scanner_databases(cache, settings)
+
     def setUp(self):
         settings = patch.object(deploy, 'security_settings', return_value=TEST_SETTINGS)
         settings.start()
@@ -367,12 +431,14 @@ class ScannerTests(unittest.TestCase):
             with patch.object(deploy, 'run', return_value=subprocess.CompletedProcess(
                     [], 0, json.dumps(['repo@' + DIGEST]))) as commands, \
                  patch.object(deploy.subprocess, 'run', side_effect=[
-                     subprocess.TimeoutExpired('scanner', 600),
+                     subprocess.TimeoutExpired('private-marker', 600),
                      subprocess.CompletedProcess([], 0, '{"Results": []}', '')]) as scans:
                 with self.assertRaisesRegex(ValueError, 'blocked: timeout'):
                     deploy.scan_infrastructure(config, {}, Path(tmp) / 'reports')
             summary = json.loads((Path(tmp) / 'reports/summary.json').read_text())
             self.assertEqual([e['status'] for e in summary], ['error', 'success'])
+            self.assertIn('private-marker', json.dumps(summary))
+            self.assertNotIn('private-marker', (Path(tmp) / 'reports/public-summary.json').read_text())
             self.assertEqual(scans.call_count, 2)
             cleanups = [c for c in commands.call_args_list if c.args[:3] == ('docker', 'rm', '-f')]
             self.assertEqual(len(cleanups), 2)
@@ -442,6 +508,7 @@ class ScannerTests(unittest.TestCase):
                  patch.object(deploy.subprocess, 'check_output', return_value=SHA + '\n'), \
                  patch.object(deploy, 'authorize_runtime', return_value={}), \
                  patch.object(deploy, 'policy_settings', return_value={'runtimeImageScanner': {'image': 'scanner'}}), \
+                 patch.object(deploy, 'refresh_scanner_databases'), \
                  patch.object(deploy, 'scan_infrastructure') as scan:
                 deploy.main()
             scan.assert_called_once()

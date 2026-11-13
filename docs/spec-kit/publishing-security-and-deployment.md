@@ -6,9 +6,9 @@ Generated snapshots retain the one-snapshot ancestry contract: regenerate from t
 
 1. Generate the state and run `pipeline/publish-generated-state-branch.sh <state-id> --push`. Local dependency scans have independent acquisition and execution deadlines. Configure `TRADERX_SECURITY_PULL_TIMEOUT_SECONDS` (default 120) and `TRADERX_SECURITY_SCAN_TIMEOUT_SECONDS` (default 1800) as positive integers. Python 3 is required. The deadline kills the operation's process group; Docker cleanup has an additional maximum five-second allowance and targets only its unique scanner container. No Docker daemon, unrelated container, or shared scanner cache is removed.
 2. Wait for **Build and Test Snapshot**, **Security Scanning**, and **Build and Publish Application Images** on the exact generated commit. Every job must succeed; missing, skipped, pending, failed, cancelled, timed-out and neutral results are ineligible. A successful image build cannot substitute for dependency security. The newest push run and its current attempt are used, never a previous successful run. Rerun the push workflow after fixing infrastructure; manually dispatched substitute workflows are not accepted.
-3. Dispatch **Redeploy Live Demo** from the canonical branch, providing the target host and full generated commit SHA. The SHA must match the catalog's generated branch tip for that host. The workflow verifies expected jobs, including **Runtime Image Security**, and downloads image digests and the complete runtime lock from that snapshot's successful publishing run and attempt. It derives the expected inventory from the exact snapshot. Expired, missing, duplicated or substituted image evidence blocks deployment.
-4. The host checks out that SHA, verifies the complete authorized service inventory and OCI platform-digest proofs, substitutes all scanned digests, and rescans the authorized images for HIGH/CRITICAL findings. It does not resolve new infrastructure tags at deployment time. It starts Compose with `--no-build --wait`. Any image lacking required evidence or any runtime scan failure stops deployment. Neither `latest` nor a subsequently changed tag can change any authorized runtime image.
-5. The workflow retains `deployment-authorization-*` as its audit artifact. The host records the deployed snapshot, run URLs, attempts, timestamp and complete resolved service image set in `~/traderx/.traderx-deploy/deployed.json` and a SHA-named history file only after Compose reports success. The directory is private because resolved Compose configuration may contain environment values.
+3. Dispatch **Redeploy Live Demo** from the canonical branch with the target host. Leave `snapshot` empty to resolve the generated branch tip once, or supply a full SHA to roll back to an older snapshot. Overrides still require successful push runs from that state's generated branch and retained exact-run artifacts. The workflow verifies expected jobs, including **Runtime Image Security**, and checks the image digest, complete runtime lock, snapshot identity, inventory and OCI proofs. Original evidence may be older than 24 hours; missing, future-dated, duplicated or substituted evidence still blocks deployment.
+4. The host checks out that SHA, verifies the complete authorized service inventory and OCI platform-digest proofs, substitutes all scanned digests, and refreshes the pinned scanner's vulnerability and Java database metadata. It checks their freshness and rescans all authorized images for HIGH/CRITICAL findings before replacement. It does not rebuild images or resolve new infrastructure tags at deployment time. The normal path blocks on scanner/database failure or findings and starts Compose with `--no-build --wait` only after successful scans. Neither `latest` nor a subsequently changed tag can change any authorized runtime image.
+5. The workflow retains `deployment-authorization-*` as its audit artifact, and `infrastructure-scans-*` includes `scan-review.json` with the database timestamps, results and any emergency exceptions. The host records the deployed snapshot, run URLs, attempts, timestamp and complete resolved service image set in `~/traderx/.traderx-deploy/deployed.json` and a SHA-named history file only after Compose reports success. The directory is private because resolved Compose configuration may contain environment values.
 
 For direct generated-bundle use, authenticate `gh` with read access to repository Actions, set `TRADERX_SNAPSHOT` to the full SHA, and run `runtime/deploy/aws-ec2-compose/deploy.sh --use-ghcr`. This performs the same remote authorization. `--dry-run` validates the SHA format and describes the operation without contacting or modifying the host. Python 3, Git, Docker Compose with `--wait` support, outbound GitHub/GHCR/Trivy access and the existing demo runtime prerequisites must be available. The live workflow no longer invokes an unverified `~/redeploy.sh`; migrate host-specific settings into its environment/runtime configuration before the first deployment.
 
@@ -27,14 +27,16 @@ the host checkout and image cache; it is not a read-only host diagnosis.
 The host inventories all runtime image blockers instead of stopping at the first
 finding. Each scan has a ten-minute deadline and scoped scanner cleanup. The
 workflow retrieves `infrastructure-scans-<run>-<attempt>` diagnostics even when
-scans fail: per-service Trivy JSON, stderr and `summary.json`. Missing reports,
-malformed results, scanner failures and HIGH/CRITICAL findings block replacement.
-These reports are diagnostic artifacts, not successful runtime-image authorization.
+scans fail: an allowlisted per-service status and finding count, without raw
+Trivy reports or stderr. Missing reports, malformed results, scanner failures
+and HIGH/CRITICAL findings block normal replacement. These summaries are
+diagnostic artifacts, not successful runtime-image authorization. Detailed
+scanner output must be kept in a suitably restricted location when needed.
 
 Issue [#487](https://github.com/finos/traderX/issues/487) tracks runtime-image coverage
 and state 009 recovery. Generated convergence publishing now requires complete
 runtime-image scan evidence; preflight alone cannot make vulnerable images eligible.
-Scan evidence and the vulnerability database must be no older than 24 hours.
+The deployment-time vulnerability database must be no older than 24 hours.
 The Java artifact-mapping database has a separate 96-hour limit because its
 refresh metadata permits a 72-hour cycle; this does not extend vulnerability-data freshness. Before replacement, diagnose any existing 502 independently,
 identify the live Compose project and database volume, and back up PostgreSQL.
@@ -48,9 +50,30 @@ For acquisition failures, restore registry/Docker access and rerun; increase the
 
 After all pulls and scans succeed, state 009 briefly stops only its verified Compose project to take a physical PostgreSQL 16 backup. The helper rejects unexpected writers, nested mounts, data symlinks and insufficient backup space before stopping containers. It records a private backup checksum before startup. A failed backup attempts to resume the prior project without starting a competing database writer. If Compose fails partway through startup, it resumes only retained, unchanged containers where safe; it never replaces newer containers or restores the database automatically. No successful deployment record is written on failure. Inspect service health and use the last recorded digest set for incident diagnosis. Rollback through the normal workflow requires republishing the intended source as the current generated snapshot and completing its checks; the gate deliberately rejects old branch tips. Do not rerun with `latest` as a workaround.
 
-## Exceptions
+## Emergency deployment
 
-There is no built-in force-deploy or security-check bypass. Any exceptional policy change must be reviewed as a canonical pull request with the incident/approval link, precise scope, owner, expiry and recovery plan. Retain that review and deployment authorization artifact for audit. An ad hoc local skip or manually edited manifest is not an approved exception.
+Repository writers may select `break_glass=true` and provide a non-sensitive,
+single-line incident reason of 10–500 characters. The workflow attempts the
+normal fresh database downloads and all image scans, but can continue when the
+scanner or database is unavailable or stale, or scans report HIGH/CRITICAL
+findings. The actor, reason and scan exceptions are recorded in the deployment
+authorization and host audit; scan details remain in the scan artifact. This is
+an explicit security risk and does not waive snapshot provenance, successful
+original checks, inventory, immutable digests, platform checks or database
+backup safeguards. It applies to that deployment only. Run a normal
+`preflight_only` scan as soon as possible and remediate any findings. Protecting
+this path with reviewer approval requires repository environment configuration;
+currently any repository writer can use it.
+
+The `diagnose_only` mode produces structured current container status, restart
+counts, recent Docker lifecycle events, boot and OOM metadata, system service
+warning timestamps, resource usage, and HTTP status codes. It does not export raw journal, container or cron logs,
+environment variables, mount paths or proxy configuration. Docker events and
+the system journal have limited retention and may be incomplete across reboots;
+collection errors are represented explicitly in the report. HTTP probes include
+paths for later states and can return 404 on state 004. Diagnosis does not
+establish that a trading flow works. Reports are Actions artifacts in this
+public repository; do not add unfiltered logs or secrets to them.
 
 Regression coverage: `python3 scripts/test-publishing-security.py` and `bash scripts/test-generated-ci-assets.sh`. Dependency version remediation is tracked separately in issue #465; issue #466 defines these publishing/deployment guarantees.
 
