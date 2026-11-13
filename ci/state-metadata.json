@@ -1,8 +1,8 @@
 {
-  "stateId": "009-order-management-matcher",
-  "isConvergence": true,
-  "convergenceLevel": "C2",
-  "convergenceNamespace": "traderx-c2",
+  "stateId": "010-kubernetes-runtime",
+  "isConvergence": false,
+  "convergenceLevel": "none",
+  "convergenceNamespace": "",
   "modules": {
     "node": [
       "price-publisher",
@@ -27,6 +27,11 @@
         "imageName": "account-service"
       },
       {
+        "directory": "api-explorer",
+        "dockerfile": "Dockerfile",
+        "imageName": "api-explorer"
+      },
+      {
         "directory": "database",
         "dockerfile": "Dockerfile.compose",
         "imageName": "database"
@@ -37,22 +42,22 @@
         "imageName": "ingress"
       },
       {
-        "directory": "order-management-matcher/runtime-images/blackbox-exporter",
+        "directory": "kubernetes-runtime/runtime-images/blackbox-exporter",
         "dockerfile": "Dockerfile.compose",
         "imageName": "blackbox-exporter"
       },
       {
-        "directory": "order-management-matcher/runtime-images/loki",
+        "directory": "kubernetes-runtime/runtime-images/loki",
         "dockerfile": "Dockerfile.compose",
         "imageName": "loki"
       },
       {
-        "directory": "order-management-matcher/runtime-images/prometheus",
+        "directory": "kubernetes-runtime/runtime-images/prometheus",
         "dockerfile": "Dockerfile.compose",
         "imageName": "prometheus"
       },
       {
-        "directory": "order-management-matcher/runtime-images/tempo",
+        "directory": "kubernetes-runtime/runtime-images/tempo",
         "dockerfile": "Dockerfile.compose",
         "imageName": "tempo"
       },
@@ -99,13 +104,14 @@
     ]
   },
   "deploy": {
-    "enabled": true,
-    "profile": "aws-ec2-compose",
-    "environment": "demo-advanced",
-    "domainHint": "demo-advanced.traderx.finos.org"
+    "enabled": false,
+    "profile": "",
+    "environment": "",
+    "domainHint": ""
   },
   "runtime": {
-    "kind": "compose",
-    "path": "runtime/ghcr/009-order-management-matcher/docker-compose.ghcr.yml"
+    "kind": "kubernetes",
+    "path": "kubernetes-runtime/manifests/base",
+    "buildPlan": "kubernetes-runtime/build-plan.json"
   }
 }

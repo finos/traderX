@@ -1,0 +1,115 @@
+{
+  "generatedAtUtc": "2026-11-13T10:44:37.225Z",
+  "stateId": "010-kubernetes-runtime",
+  "mountPath": "/api/docs",
+  "pubSubInspectorEnabled": true,
+  "services": [
+    {
+      "id": "account-service",
+      "name": "Account Service",
+      "specUrl": "/account-service/v3/api-docs",
+      "runtimeSpecPath": "/account-service/v3/api-docs",
+      "runtimeBasePath": "/account-service",
+      "contractUrl": "/api/docs/contracts/account-service-openapi.yaml",
+      "interactive": true
+    },
+    {
+      "id": "people-service",
+      "name": "People Service",
+      "specUrl": "/people-service/swagger/v1/swagger.json",
+      "runtimeSpecPath": "/people-service/swagger/v1/swagger.json",
+      "runtimeBasePath": "/people-service",
+      "contractUrl": "/api/docs/contracts/people-service-openapi.yaml",
+      "interactive": true
+    },
+    {
+      "id": "position-service",
+      "name": "Position Service",
+      "specUrl": "/position-service/v3/api-docs",
+      "runtimeSpecPath": "/position-service/v3/api-docs",
+      "runtimeBasePath": "/position-service",
+      "contractUrl": "/api/docs/contracts/position-service-openapi.yaml",
+      "interactive": true
+    },
+    {
+      "id": "reference-data",
+      "name": "Reference Data",
+      "specUrl": "/api/docs/contracts/reference-data-openapi.yaml",
+      "runtimeSpecPath": null,
+      "runtimeBasePath": "/reference-data",
+      "contractUrl": "/api/docs/contracts/reference-data-openapi.yaml",
+      "interactive": false
+    },
+    {
+      "id": "trade-processor",
+      "name": "Trade Processor",
+      "specUrl": "/trade-processor/v3/api-docs",
+      "runtimeSpecPath": "/trade-processor/v3/api-docs",
+      "runtimeBasePath": "/trade-processor",
+      "contractUrl": "/api/docs/contracts/trade-processor-openapi.yaml",
+      "interactive": true
+    },
+    {
+      "id": "trade-service",
+      "name": "Trade Service",
+      "specUrl": "/trade-service/v3/api-docs",
+      "runtimeSpecPath": "/trade-service/v3/api-docs",
+      "runtimeBasePath": "/trade-service",
+      "contractUrl": "/api/docs/contracts/trade-service-openapi.yaml",
+      "interactive": true
+    },
+    {
+      "id": "order-matcher",
+      "name": "Order Matcher",
+      "specUrl": "/order-matcher/v3/api-docs",
+      "runtimeSpecPath": "/order-matcher/v3/api-docs",
+      "runtimeBasePath": "/order-matcher",
+      "contractUrl": null,
+      "interactive": true
+    }
+  ],
+  "messagingSubjects": [
+    {
+      "subject": "/trades",
+      "pattern": "/trades",
+      "wildcard": false,
+      "parameterized": false,
+      "prefillPattern": "/trades"
+    },
+    {
+      "subject": "/accounts/<accountId>/trades",
+      "pattern": "/accounts/<accountId>/trades",
+      "wildcard": false,
+      "parameterized": true,
+      "prefillPattern": "/accounts/{accountId}/trades"
+    },
+    {
+      "subject": "/accounts/<accountId>/positions",
+      "pattern": "/accounts/<accountId>/positions",
+      "wildcard": false,
+      "parameterized": true,
+      "prefillPattern": "/accounts/{accountId}/positions"
+    },
+    {
+      "subject": "pricing.<TICKER>",
+      "pattern": "pricing.*",
+      "wildcard": true,
+      "parameterized": true,
+      "prefillPattern": "pricing.{TICKER}"
+    },
+    {
+      "subject": "/accounts/<accountId>/orders",
+      "pattern": "/accounts/<accountId>/orders",
+      "wildcard": false,
+      "parameterized": true,
+      "prefillPattern": "/accounts/{accountId}/orders"
+    },
+    {
+      "subject": "/orders",
+      "pattern": "/orders",
+      "wildcard": false,
+      "parameterized": false,
+      "prefillPattern": "/orders"
+    }
+  ]
+}

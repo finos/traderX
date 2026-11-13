@@ -1,12 +1,14 @@
 # Functional Testing Guide
 
-State: `009-order-management-matcher`
+State: `010-kubernetes-runtime`
 
 This guide captures intended functional behavior for this generated snapshot branch.
 
 ## What Should Work
 
-- Generated code snapshot for TraderX state transition.
+- Builds on state `009` by moving runtime from Docker Compose to Kubernetes (Kind baseline).
+- Uses in-cluster NGINX edge-proxy as browser/API/WebSocket entrypoint at `http://localhost:8080`.
+- Preserves C2 functional behavior while changing runtime orchestration and deployment model.
 
 ## Suggested Functional Validation
 
@@ -18,16 +20,14 @@ This guide captures intended functional behavior for this generated snapshot bra
 ## Smoke Test Commands
 
 ```bash
-./scripts/test-state-009-order-management-matcher.sh
+ls ./scripts/test-state-*.sh
 ```
-```bash
-./scripts/test-state-009-order-management-matcher.sh --skip-messaging
-./scripts/test-messaging-009-order-management-matcher.sh
-```
+
+Use the script matching this state id when available.
 
 ## Canonical References
 
-- Spec pack: `specs/009-order-management-matcher`
+- Spec pack: `specs/010-kubernetes-runtime`
 - Runtime guide: [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
 - Snapshot learning guide: [LEARNING.md](./LEARNING.md)
 - Snapshot metadata: [STATE.md](./STATE.md)

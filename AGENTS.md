@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This generated codebase is a reproducible runtime snapshot for state `009-order-management-matcher`.
+This generated codebase is a reproducible runtime snapshot for state `010-kubernetes-runtime`.
 
 - Treat this snapshot as generated output; expect regeneration to replace it.
 - Use this branch for local experimentation and runtime validation.

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: database
+  namespace: traderx
+  labels:
+    app: database
+spec:
+  type: ClusterIP
+  selector:
+    app: database
+  ports:
+    - name: pg
+      protocol: TCP
+      port: 5432
+      targetPort: 5432

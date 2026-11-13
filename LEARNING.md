@@ -1,11 +1,12 @@
-# Learning Guide For 009-order-management-matcher
+# Learning Guide For 010-kubernetes-runtime
 
 This snapshot is code-first output. Canonical intent remains in SpecKit artifacts.
 
 ## Learning Focus
 
-- Review state metadata and runtime instructions.
-- Trace state intent back to canonical SpecKit artifacts.
+- Understand Kubernetes deployment/service decomposition.
+- Understand image build plan and runtime orchestration scripts.
+- Compare local Kind/Minikube execution model to state 004.
 
 ## Read In This Snapshot
 
@@ -17,9 +18,9 @@ This snapshot is code-first output. Canonical intent remains in SpecKit artifact
 
 ## Canonical Spec Sources
 
-- Feature pack: `specs/009-order-management-matcher`
+- Feature pack: `specs/010-kubernetes-runtime`
 - State docs map route: `/docs/spec-kit/state-docs`
-- Learning guide route: `/docs/learning/state-009-order-management-matcher`
-- Learning guide markdown path in source branch: `docs/learning/state-009-order-management-matcher.md`
-- Source branch feature pack (exact commit): https://github.com/finos/traderX/tree/ca0f66429bdf95552da0655eed56e34c4af67185/specs/009-order-management-matcher
-- Source branch learning guide (exact commit): https://github.com/finos/traderX/blob/ca0f66429bdf95552da0655eed56e34c4af67185/docs/learning/state-009-order-management-matcher.md
+- Learning guide route: `/docs/learning/state-010-kubernetes-runtime`
+- Learning guide markdown path in source branch: `docs/learning/state-010-kubernetes-runtime.md`
+- Source branch feature pack (exact commit): https://github.com/finos/traderX/tree/ca0f66429bdf95552da0655eed56e34c4af67185/specs/010-kubernetes-runtime
+- Source branch learning guide (exact commit): https://github.com/finos/traderX/blob/ca0f66429bdf95552da0655eed56e34c4af67185/docs/learning/state-010-kubernetes-runtime.md
