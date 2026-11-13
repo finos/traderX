@@ -6,20 +6,21 @@ Prerequisites:
 Start:
 
 ```bash
-./scripts/start-state-004-containerized-generated.sh
-./scripts/start-state-004-containerized-generated.sh --skip-build
+./scripts/start-state-005-postgres-database-replacement-generated.sh
+./scripts/start-state-005-postgres-database-replacement-generated.sh --skip-build
 ```
 
 Endpoints:
 - UI / ingress: `http://localhost:8080`
 - API explorer (ingress): `http://localhost:8080/api/docs`
 - Ingress health: `http://localhost:8080/health`
+- PostgreSQL: `localhost:18083`
 
 Status / stop:
 
 ```bash
-./scripts/status-state-004-containerized-generated.sh
-./scripts/stop-state-004-containerized-generated.sh
+./scripts/status-state-005-postgres-database-replacement-generated.sh
+./scripts/stop-state-005-postgres-database-replacement-generated.sh
 ```
 
 ## Stable Entrypoints

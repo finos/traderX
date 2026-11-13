@@ -1,8 +1,8 @@
 {
-  "stateId": "004-containerized-compose-runtime",
-  "isConvergence": true,
-  "convergenceLevel": "C0",
-  "convergenceNamespace": "traderx-c0",
+  "stateId": "005-postgres-database-replacement",
+  "isConvergence": false,
+  "convergenceLevel": "none",
+  "convergenceNamespace": "",
   "modules": {
     "node": [
       "reference-data",
@@ -73,13 +73,13 @@
     ]
   },
   "deploy": {
-    "enabled": true,
-    "profile": "aws-ec2-compose",
-    "environment": "demo",
-    "domainHint": "demo.traderx.finos.org"
+    "enabled": false,
+    "profile": "",
+    "environment": "",
+    "domainHint": ""
   },
   "runtime": {
     "kind": "compose",
-    "path": "runtime/ghcr/004-containerized-compose-runtime/docker-compose.ghcr.yml"
+    "path": "postgres-database-replacement/docker-compose.yml"
   }
 }
