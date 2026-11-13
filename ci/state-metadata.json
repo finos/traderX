@@ -1,10 +1,11 @@
 {
-  "stateId": "007-observability-lgtm-compose",
-  "isConvergence": true,
-  "convergenceLevel": "C1",
-  "convergenceNamespace": "traderx-c1",
+  "stateId": "008-pricing-awareness-market-data",
+  "isConvergence": false,
+  "convergenceLevel": "none",
+  "convergenceNamespace": "",
   "modules": {
     "node": [
+      "price-publisher",
       "reference-data",
       "web-front-end/angular"
     ],
@@ -35,26 +36,6 @@
         "imageName": "ingress"
       },
       {
-        "directory": "observability-lgtm-compose/runtime-images/blackbox-exporter",
-        "dockerfile": "Dockerfile.compose",
-        "imageName": "blackbox-exporter"
-      },
-      {
-        "directory": "observability-lgtm-compose/runtime-images/loki",
-        "dockerfile": "Dockerfile.compose",
-        "imageName": "loki"
-      },
-      {
-        "directory": "observability-lgtm-compose/runtime-images/prometheus",
-        "dockerfile": "Dockerfile.compose",
-        "imageName": "prometheus"
-      },
-      {
-        "directory": "observability-lgtm-compose/runtime-images/tempo",
-        "dockerfile": "Dockerfile.compose",
-        "imageName": "tempo"
-      },
-      {
         "directory": "people-service",
         "dockerfile": "Dockerfile.compose",
         "imageName": "people-service"
@@ -63,6 +44,31 @@
         "directory": "position-service",
         "dockerfile": "Dockerfile.compose",
         "imageName": "position-service"
+      },
+      {
+        "directory": "price-publisher",
+        "dockerfile": "Dockerfile.compose",
+        "imageName": "price-publisher"
+      },
+      {
+        "directory": "pricing-awareness-market-data/runtime-images/blackbox-exporter",
+        "dockerfile": "Dockerfile.compose",
+        "imageName": "blackbox-exporter"
+      },
+      {
+        "directory": "pricing-awareness-market-data/runtime-images/loki",
+        "dockerfile": "Dockerfile.compose",
+        "imageName": "loki"
+      },
+      {
+        "directory": "pricing-awareness-market-data/runtime-images/prometheus",
+        "dockerfile": "Dockerfile.compose",
+        "imageName": "prometheus"
+      },
+      {
+        "directory": "pricing-awareness-market-data/runtime-images/tempo",
+        "dockerfile": "Dockerfile.compose",
+        "imageName": "tempo"
       },
       {
         "directory": "reference-data",
@@ -94,6 +100,6 @@
   },
   "runtime": {
     "kind": "compose",
-    "path": "runtime/ghcr/007-observability-lgtm-compose/docker-compose.ghcr.yml"
+    "path": "pricing-awareness-market-data/docker-compose.yml"
   }
 }

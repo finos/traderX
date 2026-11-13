@@ -21,6 +21,7 @@ CREATE TABLE positions (
   security VARCHAR(15),
   updated TIMESTAMP,
   quantity INTEGER,
+  averagecostbasis DECIMAL(18,3),
   PRIMARY KEY (accountid, security),
   FOREIGN KEY (accountid) REFERENCES accounts(id)
 );
@@ -33,6 +34,7 @@ CREATE TABLE trades (
   security VARCHAR(15),
   side VARCHAR(10) CHECK (side in ('Buy', 'Sell')),
   quantity INTEGER CHECK (quantity > 0),
+  price DECIMAL(18,3),
   state VARCHAR(20) CHECK (state in ('New', 'Processing', 'Settled', 'Cancelled'))
 );
 
@@ -65,13 +67,13 @@ INSERT INTO accountusers (accountid, username) VALUES (44044, 'user04');
 INSERT INTO accountusers (accountid, username) VALUES (44044, 'user01');
 INSERT INTO accountusers (accountid, username) VALUES (44044, 'user06');
 
-INSERT INTO trades (id, created, updated, security, side, quantity, state, accountid) VALUES ('TRADE-22214-AABBCC', NOW(), NOW(), 'IBM', 'Sell', 100, 'Settled', 22214);
-INSERT INTO trades (id, created, updated, security, side, quantity, state, accountid) VALUES ('TRADE-22214-DDEEFF', NOW(), NOW(), 'MS', 'Buy', 1000, 'Settled', 22214);
-INSERT INTO trades (id, created, updated, security, side, quantity, state, accountid) VALUES ('TRADE-22214-GGHHII', NOW(), NOW(), 'C', 'Sell', 2000, 'Settled', 22214);
+INSERT INTO trades (id, created, updated, security, side, quantity, price, state, accountid) VALUES ('TRADE-22214-AABBCC', NOW(), NOW(), 'IBM', 'Sell', 100, 136.250, 'Settled', 22214);
+INSERT INTO trades (id, created, updated, security, side, quantity, price, state, accountid) VALUES ('TRADE-22214-DDEEFF', NOW(), NOW(), 'MS', 'Buy', 1000, 95.125, 'Settled', 22214);
+INSERT INTO trades (id, created, updated, security, side, quantity, price, state, accountid) VALUES ('TRADE-22214-GGHHII', NOW(), NOW(), 'C', 'Sell', 2000, 57.500, 'Settled', 22214);
 
-INSERT INTO positions (accountid, security, updated, quantity) VALUES (22214, 'MS', NOW(), 1000);
-INSERT INTO positions (accountid, security, updated, quantity) VALUES (22214, 'IBM', NOW(), -100);
-INSERT INTO positions (accountid, security, updated, quantity) VALUES (22214, 'C', NOW(), -2000);
+INSERT INTO positions (accountid, security, updated, quantity, averagecostbasis) VALUES (22214, 'MS', NOW(), 1000, 95.125);
+INSERT INTO positions (accountid, security, updated, quantity, averagecostbasis) VALUES (22214, 'IBM', NOW(), -100, 136.250);
+INSERT INTO positions (accountid, security, updated, quantity, averagecostbasis) VALUES (22214, 'C', NOW(), -2000, 57.500);
 
-INSERT INTO trades (id, created, updated, security, side, quantity, state, accountid) VALUES ('TRADE-52355-AABBCC', NOW(), NOW(), 'BAC', 'Sell', 2400, 'Settled', 52355);
-INSERT INTO positions (accountid, security, updated, quantity) VALUES (52355, 'BAC', NOW(), -2400);
+INSERT INTO trades (id, created, updated, security, side, quantity, price, state, accountid) VALUES ('TRADE-52355-AABBCC', NOW(), NOW(), 'BAC', 'Sell', 2400, 41.125, 'Settled', 52355);
+INSERT INTO positions (accountid, security, updated, quantity, averagecostbasis) VALUES (52355, 'BAC', NOW(), -2400, 41.125);

@@ -1,18 +1,18 @@
 # Component List
 
-State: `007-observability-lgtm-compose`
+State: `008-pricing-awareness-market-data`
 
 | ID | Label | Kind | Description |
 | --- | --- | --- | --- |
-| `developer` | Developer | actor | Local developer using this state. |
-| `app_runtime` | TraderX App Runtime (State 006) | boundary | Baseline containerized TraderX services. |
-| `obs_runtime` | Observability Runtime | boundary | LGTM + OTel stack for metrics/logs/traces. |
-| `ingress` | NGINX Ingress | service | Edge entrypoint for UI and service proxy. |
-| `core_services` | Core Services | service | Account, position, trade, processor, people, reference-data, nats-broker, database, UI. |
-| `prometheus` | Prometheus | service | Scrapes probe and collector metrics. |
-| `blackbox` | Blackbox Exporter | service | HTTP probe exporter for service availability/latency. |
-| `loki` | Loki | service | Log aggregation backend. |
-| `promtail` | Promtail | service | Docker log collector to Loki. |
-| `tempo` | Tempo | service | Trace backend. |
-| `otel` | OpenTelemetry Collector | service | OTLP ingest and telemetry routing. |
-| `grafana` | Grafana | service | Unified dashboards for metrics, logs, traces. |
+| `trader` | Trader Browser | actor | Uses Angular UI and receives realtime trade, position, and pricing updates. |
+| `ingress` | NGINX Ingress | gateway | Routes REST and websocket traffic. |
+| `web` | Web Front End Angular | frontend | Subscribes to account and pricing streams via nats.ws. |
+| `nats` | NATS Broker | messaging | Pub/sub broker for backend and browser streaming. |
+| `pricePublisher` | Price Publisher | service | Publishes `pricing.<TICKER>` and exposes REST quote endpoint. |
+| `tradeService` | Trade Service | service | Validates account/ticker and stamps execution price before publishing orders. |
+| `tradeProcessor` | Trade Processor | service | Processes trades, persists price/cost basis, emits account updates. |
+| `account` | Account Service | service | Account and account-user operations. |
+| `position` | Position Service | service | Trades/positions query endpoints. |
+| `referenceData` | Reference Data | service | Ticker lookup/list. |
+| `people` | People Service | service | Identity lookup and validation. |
+| `database` | Database | database | Persistent account/trade/position state. |

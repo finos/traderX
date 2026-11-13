@@ -1,6 +1,6 @@
 # Generated Docs
 
-This folder provides generated learning-oriented documentation for state `007-observability-lgtm-compose`.
+This folder provides generated learning-oriented documentation for state `008-pricing-awareness-market-data`.
 
 - [Learning Index](./learning/README.md)
 - [Component List](./learning/component-list.md)
