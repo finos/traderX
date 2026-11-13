@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: blackbox-exporter
-          image: traderx-remediation/blackbox-exporter:011
+          image: traderx-remediation/blackbox-exporter:012
           imagePullPolicy: IfNotPresent
           args: ["--config.file=/etc/blackbox_exporter/config.yml"]
           ports:

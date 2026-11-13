@@ -1,8 +1,8 @@
 {
-  "stateId": "011-tilt-kubernetes-dev-loop",
-  "isConvergence": false,
-  "convergenceLevel": "none",
-  "convergenceNamespace": "",
+  "stateId": "012-platform-convergence-c3",
+  "isConvergence": true,
+  "convergenceLevel": "C3",
+  "convergenceNamespace": "traderx-c3",
   "modules": {
     "node": [
       "price-publisher",

@@ -1,36 +1,36 @@
 # System Design
 
-State: `011-tilt-kubernetes-dev-loop`
+State: `012-platform-convergence-c3`
 
 ## Design Intent
 
-State 011 preserves state 010 Kubernetes runtime while introducing Tilt for local developer automation.
+State 012 is the C3 convergence checkpoint: Kubernetes + Tilt platform profile on top of C2 functional behavior.
 
 ## Runtime Topology / Flow (Spec Extract)
 
-# Runtime Topology: 011-tilt-kubernetes-dev-loop
+# Runtime Topology: 012-platform-convergence-c3
 
-Parent state: `010-kubernetes-runtime`
+Parent state: `011-tilt-kubernetes-dev-loop`  
+Dotted-line convergence parent: `009-order-management-matcher`
 
-State `011` reuses runtime topology from state `010` and adds Tilt as local orchestration/dev loop.
+State `012` keeps runtime topology from `011` and serves as the C3 convergence checkpoint.
 
 ## Entrypoints
 
-- Browser/UI/API entrypoint remains `http://localhost:8080` (inherited).
-- Developer control entrypoint is Tilt (`tilt up`) for local iteration.
+- Browser/UI/API entrypoint remains `http://localhost:8080`.
+- Developer loop entrypoint remains Tilt (`tilt up`).
 
 ## Components
 
-- Core TraderX services remain the same as state `010`.
-- Added dev tooling layer:
-  - Tiltfile and related local Kubernetes orchestration metadata.
+- Kubernetes runtime + Tilt tooling from state `011`.
+- Functional capability level equivalent to C2 (`009`) via lineage through `011`.
 
 ## Networking
 
-- Service routes and path prefixes remain unchanged from state `010`.
-- Local developer workflow can use Tilt-managed forwards/log streaming without changing service contracts.
+- Service routes and path prefixes remain unchanged from `011`.
+- Dotted-line lineage does not change deploy/runtime wiring.
 
 ## Startup / Health Order
 
-- Baseline deployment readiness model remains Kubernetes-native.
-- Tilt automates build/deploy/reload sequencing for iterative local development.
+- Startup and health checks remain as in `011`.
+- This state adds governance/lineage convergence semantics, not runtime topology changes.

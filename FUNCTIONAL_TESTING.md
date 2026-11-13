@@ -1,14 +1,12 @@
 # Functional Testing Guide
 
-State: `011-tilt-kubernetes-dev-loop`
+State: `012-platform-convergence-c3`
 
 This guide captures intended functional behavior for this generated snapshot branch.
 
 ## What Should Work
 
-- Builds on state `010` and preserves Kubernetes runtime behavior.
-- Adds Tilt local developer-loop artifacts (`Tiltfile`, Tilt settings, workflow docs).
-- Preserves baseline functional behavior and API contracts.
+- Generated code snapshot for TraderX state transition.
 
 ## Suggested Functional Validation
 
@@ -20,12 +18,12 @@ This guide captures intended functional behavior for this generated snapshot bra
 ## Smoke Test Commands
 
 ```bash
-./scripts/test-state-011-tilt-kubernetes-dev-loop.sh
+./scripts/test-state-012-platform-convergence-c3.sh
 ```
 
 ## Canonical References
 
-- Spec pack: `specs/011-tilt-kubernetes-dev-loop`
+- Spec pack: `specs/012-platform-convergence-c3`
 - Runtime guide: [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
 - Snapshot learning guide: [LEARNING.md](./LEARNING.md)
 - Snapshot metadata: [STATE.md](./STATE.md)
