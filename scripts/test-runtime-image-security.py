@@ -149,6 +149,18 @@ class EvidenceTests(unittest.TestCase):
     def test_valid_lock(self):
         self.assertEqual(set(validate(lock_fixture())), {'compose/ingress'})
 
+    def test_stale_lock_may_be_rechecked_but_future_or_substituted_evidence_never_passes(self):
+        lock = lock_fixture(NOW - dt.timedelta(days=7))
+        with self.assertRaises(ValueError):
+            validate(lock)
+        security.validate_lock(lock, METADATA, ENTRIES, 'finos/traderX', SHA, 12, 2, SETTINGS,
+                               now=NOW, allow_stale=True)
+        for change in [dict(created_at=(NOW + dt.timedelta(minutes=6)).isoformat()),
+                       dict(snapshot='f' * 40)]:
+            with self.assertRaises(ValueError):
+                security.validate_lock(lock | change, METADATA, ENTRIES, 'finos/traderX', SHA, 12, 2,
+                                       SETTINGS, now=NOW, allow_stale=True)
+
     def test_wrong_identity_run_attempt_platform_scanner_and_inventory_fail(self):
         changes = {'schema_version': 2, 'repository': 'other/repo', 'state': '004-other', 'snapshot': 'd' * 40,
                    'event': 'workflow_dispatch', 'run_id': '13', 'run_attempt': '1', 'platforms': ['linux/arm64'],

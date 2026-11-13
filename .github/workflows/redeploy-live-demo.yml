@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       snapshot:
-        description: Full generated snapshot commit SHA (required checks must have succeeded)
-        required: true
+        description: Optional full generated snapshot SHA (defaults to the target branch tip)
+        required: false
         type: string
       target:
         description: Demo host to redeploy
@@ -29,6 +29,15 @@ on:
         required: false
         default: false
         type: boolean
+      break_glass:
+        description: Emergency deployment despite scanner failures or findings
+        required: false
+        default: false
+        type: boolean
+      break_glass_reason:
+        description: Required non-sensitive incident reason for emergency deployment
+        required: false
+        type: string
 
 # Requires repository secret DEMO_EC2_SSH_PRIVATE_KEY (PEM private key for ec2-user).
 permissions:
@@ -51,7 +60,19 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           SNAPSHOT: ${{ inputs.snapshot }}
           TARGET: ${{ inputs.target }}
-        run: python3 pipeline/verify-deployment-snapshot.py --snapshot "$SNAPSHOT" --target "$TARGET"
+          BREAK_GLASS: ${{ inputs.break_glass }}
+          BREAK_GLASS_REASON: ${{ inputs.break_glass_reason }}
+        run: |
+          set -euo pipefail
+          args=(--snapshot "$SNAPSHOT" --target "$TARGET")
+          if [[ "$BREAK_GLASS" == true ]]; then
+            args+=(--break-glass-reason "$BREAK_GLASS_REASON")
+            echo "::warning::Break-glass deployment requested; vulnerability checks may be bypassed."
+          elif [[ -n "$BREAK_GLASS_REASON" ]]; then
+            echo "::error::A break-glass reason requires break-glass mode."
+            exit 1
+          fi
+          python3 pipeline/verify-deployment-snapshot.py "${args[@]}"
       - name: Retain deployment authorization
         uses: actions/upload-artifact@v4
         with:
@@ -105,7 +126,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: infrastructure-scans-${{ github.run_id }}-${{ github.run_attempt }}
-          path: infrastructure-scans/
+          path: |
+            infrastructure-scans/public-summary.json
+            infrastructure-scans/scan-review.json
           if-no-files-found: warn
           retention-days: 14
 
@@ -132,7 +155,7 @@ jobs:
           chmod 600 ~/.ssh/demo_ec2.pem
           ssh-keyscan -H "$TARGET" >> ~/.ssh/known_hosts
           ssh -i ~/.ssh/demo_ec2.pem -o BatchMode=yes -o StrictHostKeyChecking=yes \
-            "ec2-user@$TARGET" 'python3 -' < pipeline/diagnose-demo-host.py > host-diagnosis.json
+            "ec2-user@$TARGET" 'python3 -' < pipeline/diagnose-demo-history.py > host-diagnosis.json
       - uses: actions/upload-artifact@v4
         with:
           name: host-diagnosis-${{ github.run_id }}-${{ github.run_attempt }}

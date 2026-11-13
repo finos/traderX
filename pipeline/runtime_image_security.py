@@ -39,13 +39,13 @@ def timestamp(value, round_up=False):
     return parsed
 
 
-def fresh(value, hours, now=None):
+def fresh(value, hours, now=None, allow_stale=False):
     now = now or dt.datetime.now(UTC)
     # Floor for maximum age/expiry, ceil for the future boundary: precision loss
     # can reject evidence by <1us, but cannot extend either authorization window.
     age = now - timestamp(value)
     future_age = now - timestamp(value, round_up=True)
-    if future_age < -dt.timedelta(minutes=5) or age > dt.timedelta(hours=hours):
+    if future_age < -dt.timedelta(minutes=5) or (not allow_stale and age > dt.timedelta(hours=hours)):
         raise ValueError('security evidence/database is stale or future-dated')
 
 
@@ -320,7 +320,8 @@ def resolve_image(reference, platform):
     return {'image': pinned, 'index_image': index_image, 'index_manifest': raw, 'platform': platform}
 
 
-def validate_lock(lock, metadata, entries, repository, snapshot, run_id, attempt, settings, now=None, disposition=None):
+def validate_lock(lock, metadata, entries, repository, snapshot, run_id, attempt, settings, now=None, disposition=None,
+                  allow_stale=False):
     policy = policy_settings(settings)
     if (lock.get('schema_version') != 1 or lock.get('repository') != repository
             or lock.get('state') != metadata['stateId'] or lock.get('snapshot') != snapshot
@@ -332,12 +333,12 @@ def validate_lock(lock, metadata, entries, repository, snapshot, run_id, attempt
             or lock.get('runtime') != metadata['runtime']
             or lock.get('inventory_sha256') != inventory_hash(entries)):
         raise ValueError('runtime authorization does not match exact snapshot/run/platform/inventory')
-    fresh(lock.get('created_at'), policy['maxEvidenceAgeHours'], now)
+    fresh(lock.get('created_at'), policy['maxEvidenceAgeHours'], now, allow_stale=allow_stale)
     databases = lock.get('databases')
     if not isinstance(databases, dict) or set(databases) != {'vulnerability', 'java'}:
         raise ValueError('missing scanner database evidence')
     for name, database in databases.items():
-        fresh(database.get('UpdatedAt'), database_age_limit(policy, name), now)
+        fresh(database.get('UpdatedAt'), database_age_limit(policy, name), now, allow_stale=allow_stale)
         if not DIGEST.fullmatch(database.get('metadata_sha256', '')):
             raise ValueError('missing database identity')
     records = lock.get('images')
@@ -358,7 +359,7 @@ def validate_lock(lock, metadata, entries, repository, snapshot, run_id, attempt
         if '@' in record['source'] and (image_repository(record['source']) + '@' + record['source'].rsplit('@', 1)[1]) != record['index_image']:
             raise ValueError('authorized digest differs from the pinned runtime source')
         verify_image_binding(record)
-        fresh(record.get('scanned_at'), policy['maxEvidenceAgeHours'], now)
+        fresh(record.get('scanned_at'), policy['maxEvidenceAgeHours'], now, allow_stale=allow_stale)
         if not isinstance(record.get('fixed_findings'), list):
             raise ValueError('missing disposition audit')
         for finding in record['fixed_findings']:

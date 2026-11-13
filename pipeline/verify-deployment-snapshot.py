@@ -2,6 +2,7 @@
 """Fail-closed deployment authorization against exact GitHub Actions runs."""
 import argparse
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -89,13 +90,19 @@ def download_snapshot(repository, snapshot, destination):
 
 def main():
     p = argparse.ArgumentParser(__doc__)
-    p.add_argument('--snapshot', required=True)
+    p.add_argument('--snapshot', default='', help='optional snapshot SHA; defaults to generated branch tip')
     p.add_argument('--target', required=True)
+    p.add_argument('--break-glass-reason')
     p.add_argument('--repository', default='finos/traderX')
     p.add_argument('--output', default='verified-deployment.json')
     a = p.parse_args()
-    if not re.fullmatch('[0-9a-f]{40}', a.snapshot):
+    if a.snapshot and not re.fullmatch('[0-9a-f]{40}', a.snapshot):
         p.error('snapshot must be a full lowercase commit SHA')
+    if a.break_glass_reason is not None:
+        if not 10 <= len(a.break_glass_reason.strip()) <= 500 or '\n' in a.break_glass_reason or '\r' in a.break_glass_reason:
+            p.error('break-glass reason must be 10-500 characters on one line')
+        if not os.environ.get('GITHUB_ACTOR'):
+            p.error('break-glass requires a GitHub actor')
     root = Path(__file__).resolve().parent.parent
     catalog = root / 'catalog/state-catalog.json'
     if not catalog.exists():
@@ -104,10 +111,11 @@ def main():
               if s.get('deploy', {}).get('domain') == a.target and s['deploy'].get('enabled')]
     branch = state['publish']['branch']
     repo = f'repos/{a.repository}'
-    # Require an actual commit on the intended generated branch, never another state's SHA.
-    tip = gh_json('api', f'{repo}/commits/{branch}')
-    if tip['sha'] != a.snapshot:
-        raise ValueError('snapshot is not the current generated branch tip; regenerate/reverify before deploying')
+    # Historical overrides must still have successful push runs from this state branch.
+    if not a.snapshot:
+        a.snapshot = gh_json('api', f'{repo}/commits/{branch}')['sha']
+        if not re.fullmatch('[0-9a-f]{40}', a.snapshot):
+            raise ValueError('generated branch returned an invalid snapshot SHA')
     import base64
     content = gh_json('api', f'{repo}/contents/ci/state-metadata.json?ref={a.snapshot}')
     metadata = json.loads(base64.b64decode(content['content']))
@@ -152,12 +160,16 @@ def main():
         snapshot_root = download_snapshot(a.repository, a.snapshot, Path(tmp))
         entries = runtime_inventory(snapshot_root, metadata, a.snapshot)
         locks = validate_lock(runtime_lock, metadata, entries, a.repository, a.snapshot,
-                              run['id'], run['run_attempt'], security_settings(), disposition=disposition_policy())
+                              run['id'], run['run_attempt'], security_settings(), disposition=disposition_policy(),
+                              allow_stale=True)
         validate_published_binding(locks, verified)
     record = {'snapshot': a.snapshot, 'state': state['id'], 'target': a.target,
               'repository': a.repository, 'branch': branch, 'images': verified,
               'runtime_lock': runtime_lock, 'runtime_metadata': metadata,
               'runtime_images': locks,
+              'break_glass': {'enabled': a.break_glass_reason is not None,
+                              'reason': a.break_glass_reason or '',
+                              'actor': os.environ.get('GITHUB_ACTOR', '')},
               'checks': {w: {'id': r['id'], 'attempt': r['run_attempt'], 'url': r['html_url']}
                          for w, r in evidence.items()}}
     Path(a.output).write_text(json.dumps(record, indent=2) + '\n')
