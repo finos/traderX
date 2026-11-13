@@ -42,6 +42,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install -r specs/017-portfolio-lookthrough/generation/exposure-service/requirements.txt
+      - run: python scripts/test-exposure-controlled-dataset.py
       - run: python scripts/test-exposure-integration.py
       - run: python scripts/benchmark-exposure.py > exposure-benchmark.json
       - uses: actions/upload-artifact@v4

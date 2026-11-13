@@ -2,6 +2,8 @@
 
 Measured 12 November 2026 on the managed Linux x86_64 development host (5 visible CPUs), Python 3.12.14, PostgreSQL 16.4 and FalkorDB 4.16.0. This is a local demonstration microbenchmark, not a production capacity claim.
 
+The PR remains in draft while the [revised hypothesis and controlled test design](portfolio-lookthrough-experiment-design.md) is developed.
+
 ## Dataset and method
 
 - 1,000 accounts, 5,000 core securities (including 500 funds), 2,000 corporate entities, plus 100 scenario entities: 8,100 entities total.

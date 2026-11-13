@@ -2,6 +2,8 @@
 
 Status: Implemented. Parent: `009-order-management-matcher`.
 
+Experiment evaluation: **Draft**. The baseline implementation is validated locally, but a product-level database advantage has not been established. See [revised hypothesis and test design](../../docs/benchmarks/portfolio-lookthrough-experiment-design.md).
+
 ## User stories
 A portfolio manager discovers shared corporate exposure across direct securities, nested funds and corporate parents, then follows the contributing paths.
 A presenter compares PostgreSQL and FalkorDB using identical data, APIs, and independently specified outcomes.
