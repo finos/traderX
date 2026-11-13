@@ -10,11 +10,19 @@ import { AlertModule } from 'ngx-bootstrap/alert';
 import { PositionBlotterComponent } from './position-blotter/position-blotter.component';
 import { DropdownModule } from '../dropdown/dropdown.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-
 import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
+import { OrderTicketComponent } from './order-ticket/order-ticket.component';
+import { OrderBlotterComponent } from './order-blotter/order-blotter.component';
 
 @NgModule({
-  declarations: [TradeComponent, TradeTicketComponent, TradeBlotterComponent, PositionBlotterComponent],
+  declarations: [
+    TradeComponent,
+    TradeTicketComponent,
+    TradeBlotterComponent,
+    PositionBlotterComponent,
+    OrderTicketComponent,
+    OrderBlotterComponent
+  ],
   imports: [
     CommonModule,
     AgGridModule,

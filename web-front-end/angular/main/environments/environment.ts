@@ -11,6 +11,7 @@ export const environment: Environment = {
     tradesUrl:          `//${window.location.host}/trade-service/trade/`,
     positionsUrl:       `//${window.location.host}/position-service`,
     peopleUrl:          `//${window.location.host}/people-service`,
+    orderMatcherUrl:    `//${window.location.host}/order-matcher`,
     tradeFeedUrl:       `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/nats-ws`
 };
 

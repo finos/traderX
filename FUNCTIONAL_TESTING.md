@@ -1,14 +1,12 @@
 # Functional Testing Guide
 
-State: `008-pricing-awareness-market-data`
+State: `009-order-management-matcher`
 
 This guide captures intended functional behavior for this generated snapshot branch.
 
 ## What Should Work
 
-- Builds on state `007` and preserves NATS-based messaging + compose ingress runtime behavior.
-- Adds market pricing stream, trade execution price stamping, and position average cost basis aggregation.
-- Extends UI blotters with pricing/value/P&L visualization while preserving baseline trade/account workflows.
+- Generated code snapshot for TraderX state transition.
 
 ## Suggested Functional Validation
 
@@ -20,16 +18,16 @@ This guide captures intended functional behavior for this generated snapshot bra
 ## Smoke Test Commands
 
 ```bash
-./scripts/test-state-008-pricing-awareness-market-data.sh
+./scripts/test-state-009-order-management-matcher.sh
 ```
 ```bash
-./scripts/test-state-008-pricing-awareness-market-data.sh --skip-messaging
-./scripts/test-messaging-008-pricing-awareness-market-data.sh
+./scripts/test-state-009-order-management-matcher.sh --skip-messaging
+./scripts/test-messaging-009-order-management-matcher.sh
 ```
 
 ## Canonical References
 
-- Spec pack: `specs/008-pricing-awareness-market-data`
+- Spec pack: `specs/009-order-management-matcher`
 - Runtime guide: [RUN_FROM_CLONE.md](./RUN_FROM_CLONE.md)
 - Snapshot learning guide: [LEARNING.md](./LEARNING.md)
 - Snapshot metadata: [STATE.md](./STATE.md)
