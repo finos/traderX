@@ -1,6 +1,6 @@
 # Firm-wide corporate impact: first controlled pilot
 
-Status: **draft**, issue #498 / PR #499. Primary task confirmed: **which portfolios are exposed to a corporate group, and through which funds?**
+Status: **draft**, issue #498 / PR #499. This is the historical full-path pilot; the [paired aggregation follow-up](portfolio-impact-aggregation.md) now tests the next design and the public API uses that aggregate strategy. Primary task confirmed: **which portfolios are exposed to a corporate group, and through which funds?**
 
 ## Hypothesis and finding
 

@@ -32,3 +32,5 @@ curl --fail 'http://localhost:8080/exposure/api/impact?target=IGROUP&limit=10&pa
 ```
 
 Expected: 750 exposed portfolios, $393,750,000 total exposure, 5,000 contributing paths; only 10 ranked portfolios are returned.
+
+The public impact endpoint now uses database-side aggregation and selected explanations. Reproduce the paired old/new strategy comparison with `python scripts/benchmark-exposure-aggregation.py --accounts 1000 --layers 3 --output aggregation.json` against that fixture's isolated initialized database. Both strategies must return the same totals, ranking and paths. See [results and methodology](../../docs/benchmarks/portfolio-impact-aggregation.md).

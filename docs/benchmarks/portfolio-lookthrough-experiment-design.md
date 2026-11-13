@@ -95,3 +95,9 @@ The analytical fixture varies portfolio count and fund layers independently. One
 A first rejected run revealed FalkorDB's default `RESULTSET_SIZE=10000`: returning one row per path silently lost data at 14,000 paths. The analytical oracle caught it. Both path queries now return a collected result rather than allowing the row cap to truncate exposure. The regression fixture explicitly exceeds 10,000 paths. This retains correctness but still materializes all paths, so memory and transfer cost must be measured. The server limit itself was not changed.
 
 See [firm-wide results and screenshots](portfolio-impact.md). The PR stays in draft: the next design comparison should aggregate inside each database and retrieve explanations only for the ranked portfolios, with equivalent semantics for SQL and Cypher. Concurrency and realistic update cadence remain open.
+
+## Implemented follow-up: database-side aggregation
+
+The next design is now implemented for both databases. `/api/impact` computes complete totals and ranking in the database, then obtains selected explanations in one batch under the same projection lock. Full-path enumeration remains available to the benchmark as `impact_paths`. The paired experiment rotates four database × strategy conditions on the same fixtures and checks analytical answers and exact explanation paths. See [the aggregation report](portfolio-impact-aggregation.md).
+
+This is a query-design hypothesis, distinct from a FalkorDB product-advantage hypothesis. Client-parser overhead, connectivity-only discovery and concurrent reads/updates remain separate next leads. The PR stays in draft.

@@ -75,7 +75,7 @@ def main():
         if len({e.revision for e in engines.values()})!=1: raise AssertionError('Source revisions differ')
         report['revision']=engines['postgres'].revision
         # Same reverse edge index and fresh statistics for SQL before timing.
-        pg=engines['postgres'];pg.refresh();pg.impact('IGROUP')
+        pg=engines['postgres'];pg.refresh();pg.impact_paths('IGROUP')
         pg.sql.execute('ANALYZE exposure.projected_edges');pg.sql.execute('ANALYZE exposure.projected_nodes')
         report['postgresPlan']=pg.sql.execute('EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) '+IMPACT_SQL,
                                              ('IGROUP','IGROUP',12)).fetchone()[0]
@@ -88,12 +88,12 @@ def main():
                 engine=engines[backend]
                 started=time.perf_counter();engine.refresh()
                 report['unchangedRefreshSeconds'].setdefault(backend,[]).append(round(time.perf_counter()-started,3))
-                for _ in range(3): check(engine.impact('IGROUP',20,3),data['impactExpected'],20)
+                for _ in range(3): check(engine.impact_paths('IGROUP',20,3),data['impactExpected'],20)
                 values=[]
                 for _ in range(args.samples):
                     # Avoid classifying the deliberate freshness deadline as a query failure.
                     if time.time()-engine.last_checked>5: engine.refresh()
-                    result=engine.impact('IGROUP',20,3)
+                    result=engine.impact_paths('IGROUP',20,3)
                     check(result,data['impactExpected'],20)
                     values.append(result['elapsedMs'])
                 report['rawMs'][backend].extend(values)
@@ -131,7 +131,7 @@ def main():
                     previous=now;worker.join(.01)
                 if errors: raise errors[0]
                 elapsed=time.perf_counter()-started
-                check(engine.impact('IGROUP',20,3),updated,20)
+                check(engine.impact_paths('IGROUP',20,3),updated,20)
                 report['sharedFundUpdate'][backend]={'refreshSeconds':round(elapsed,3),
                     'observedUnhealthySeconds':round(unhealthy,3),'maxSourceCheckAgeSeconds':round(max_age,3)}
         finally:

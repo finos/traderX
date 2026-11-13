@@ -10,3 +10,4 @@ NFR-01702,specs/017-portfolio-lookthrough/generation/exposure-service/engine.py,
 NFR-01703,pipeline/render-portfolio-lookthrough.py,pipeline/validate-generated-state-lineage-invariants.sh
 FR-01707,specs/017-portfolio-lookthrough/generation/exposure-service/engine.py,scripts/test-exposure-impact.py
 FR-01708,specs/017-portfolio-lookthrough/generation/exposure-service/impact_dataset.py,scripts/test-exposure-impact.py
+FR-01709,specs/017-portfolio-lookthrough/generation/exposure-service/engine.py,scripts/test-exposure-impact.py

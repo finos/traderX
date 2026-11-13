@@ -81,6 +81,46 @@ class ImpactIntegration(unittest.TestCase):
             self.assertEqual(len(result['portfolios']),1)
             self.assertEqual(engine.impact('IZERO')['portfolios'],[])
 
+    def test_02b_database_aggregation_matches_full_path_baseline(self):
+        for engine in self.engines:
+            for limit,path_limit in ((1,1),(20,3),(1000,100)):
+                baseline=engine.impact_paths('IGROUP',limit,path_limit)
+                actual=engine.impact('IGROUP',limit,path_limit)
+                for field in ('exposedPortfolioCount','pathCount','portfoliosTruncated'):
+                    self.assertEqual(actual[field],baseline[field])
+                self.assertAlmostEqual(actual['totalExposureValue'],baseline['totalExposureValue'],delta=.01)
+                for row,reference in zip(actual['portfolios'],baseline['portfolios']):
+                    self.assertEqual(row['accountId'],reference['accountId'])
+                    self.assertEqual(row['pathCount'],reference['pathCount'])
+                    self.assertEqual(row['pathsTruncated'],reference['pathsTruncated'])
+                    for field in ('totalFraction','directFraction','indirectFraction'):
+                        self.assertAlmostEqual(row[field],reference[field],delta=1e-9)
+                    self.assertAlmostEqual(row['exposureValue'],reference['exposureValue'],delta=.01)
+                    self.assertEqual(len(row['paths']),len(reference['paths']))
+                    for path,want in zip(row['paths'],reference['paths']):
+                        self.assertEqual(path['nodes'],want['nodes'])
+                        self.assertAlmostEqual(path['fraction'],want['fraction'],delta=1e-9)
+
+    def test_02c_graph_loss_during_either_phase_fails_closed_and_recovers(self):
+        graph=self.engines[1]
+        for phase in ('before_aggregate','before_explanations'):
+            original=graph.query_graph
+            calls=0
+            def lose_graph(*args):
+                nonlocal calls
+                calls+=1
+                if calls==(1 if phase=='before_aggregate' else 2):
+                    graph.redis.execute_command('GRAPH.DELETE',graph.graph)
+                return original(*args)
+            graph.query_graph=lose_graph
+            try:
+                with self.assertRaises(RuntimeError): graph.impact('IGROUP')
+                self.assertFalse(graph.status()['healthy'])
+            finally:
+                graph.query_graph=original
+                graph.refresh()
+            self.assertEqual(graph.impact('IGROUP')['exposedPortfolioCount'],750)
+
     def test_03_source_change_updates_ranking_and_total(self):
         original=sum(r['exposureValue'] for r in self.expected)
         with psycopg.connect(DSN) as db:

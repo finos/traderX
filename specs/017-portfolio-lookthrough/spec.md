@@ -43,4 +43,12 @@ The primary experiment is now corporate-group impact: which portfolios are expos
 9. A shared-fund allocation change affects every dependent portfolio; a direct position change updates monetary ranking.
 10. Show no exposed portfolios for an unheld group; clear old rankings on errors. Exposure is not an event-loss prediction.
 
-Both implementations enumerate paths and use shared application aggregation. Response bounds do not bound traversal memory; measure complexity, update cost and concurrency before making capacity claims.
+The retained full-path baseline enumerates paths and uses shared application aggregation; the public endpoint now uses the database-side strategy described below. Response bounds do not bound traversal memory; measure complexity, update cost and concurrency before making capacity claims.
+
+## Database-side aggregation experiment
+
+- FR-01709: Compute complete portfolio totals and monetary ranking inside the selected database, then retrieve bounded explanation paths for only the selected portfolios in one additional batch query. Hold one projection revision across both phases.
+- Keep the full-path strategy as `impact_paths` for paired benchmarks; the public impact endpoint uses the aggregate strategy with the same response contract.
+- Project portfolio values atomically with edge weights/node kinds so both database phases use the same source valuation.
+- Validate analytical answers and exact selected explanation paths against the full-path strategy, including shared-fund and position updates. Rank nonnegative monetary exposure to cents (half up), then numeric account ID.
+- Measure database and strategy as separate factors with rotated condition order; do not attribute client-transfer savings solely to a database choice.

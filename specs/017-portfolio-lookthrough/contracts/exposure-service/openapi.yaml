@@ -56,7 +56,7 @@ paths:
   /api/impact:
     get:
       summary: Rank all portfolios exposed to a corporate group and explain fund paths
-      description: One reverse traversal computes all totals before applying response limits. Monetary exposure is not a loss estimate. Ranking uses exposure rounded to cents with account ID as the tie-breaker.
+      description: Database aggregation computes all totals and ranks portfolios before a second batch query retrieves selected explanations. Both phases use the same projection revision. Monetary exposure is not a loss estimate. Ranking uses nonnegative exposure rounded to cents (half up) with numeric account ID as the tie-breaker.
       parameters:
         - {name: target, in: query, schema: {type: string, default: Z0G}}
         - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 1000, default: 20}}

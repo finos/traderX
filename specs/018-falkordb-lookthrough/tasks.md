@@ -17,3 +17,10 @@
 - [ ] Measure read/update freshness and decide against agreed business requirements.
 - [ ] Review the representative example before marking the PR ready.
 - [ ] Run the separate full C2 trading end-to-end regression.
+
+## Database-side aggregation follow-up
+
+- [x] Implement database aggregation/ranking and batched selected explanations for both backends.
+- [x] Compare analytical totals and exact explanation paths with the retained full-path strategy.
+- [x] Record paired database × strategy timings, payload proxies and execution plans.
+- [ ] Evaluate concurrency, update freshness and a business latency target separately.
