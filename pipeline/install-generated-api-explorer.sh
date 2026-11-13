@@ -858,6 +858,7 @@ const defaults = {
       id: 'reference-data',
       name: 'Reference Data',
       detectPath: 'reference-data',
+      runtimeBasePath: '/reference-data',
       contractPath: 'specs/001-baseline-uncontainerized-parity/contracts/reference-data/openapi.yaml',
     },
     {
@@ -962,8 +963,9 @@ for (const def of serviceDefs) {
     const staticBasePath = !def.runtimeSpecPath ? deriveRuntimeBasePath(def) : null;
     const contractText = fs.readFileSync(contractFile, 'utf8');
     if (staticBasePath && !/^servers:/m.test(contractText) && /^paths:/m.test(contractText)) {
-      // Static contracts have no ingress prefix; declare it so "Try it out" reaches the service.
-      const serversBlock = `servers:\n- url: ${staticBasePath}\n  description: Via the TraderX ingress\n`;
+      // Static contracts have no edge route prefix; declare it so "Try it out" reaches the service.
+      // Validated after generation by pipeline/validate-generated-api-explorer-contracts.sh.
+      const serversBlock = `servers:\n- url: ${staticBasePath}\n  description: Routed through the TraderX edge\n`;
       fs.writeFileSync(outFile, contractText.replace(/^paths:/m, `${serversBlock}paths:`));
     } else {
       fs.copyFileSync(contractFile, outFile);
