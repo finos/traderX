@@ -186,4 +186,11 @@ bash "${ROOT}/pipeline/validate-generated-ui-status-checks.sh" "${STATE_ID}" "${
 bash "${ROOT}/pipeline/install-generated-runtime-harness.sh" "${STATE_ID}" "${TARGET_ROOT}"
 bash "${ROOT}/pipeline/install-generated-ci-assets.sh" "${STATE_ID}" "${TARGET_ROOT}"
 
+# Final check on served explorer assets (edge proxy, Compose ingress, Kubernetes):
+# runs after every generation step so later overlays cannot drop static
+# contract route prefixes unnoticed.
+if (( GEN_DEPTH == 1 )) || [[ "${TRADERX_INSTALL_API_EXPLORER_IN_NESTED_GENERATION:-0}" == "1" ]]; then
+  bash "${ROOT}/pipeline/validate-generated-api-explorer-contracts.sh" "${STATE_ID}" "${TARGET_ROOT}" "${COMPONENTS_ROOT}"
+fi
+
 bash "${ROOT}/pipeline/refresh-state-docs.sh"
