@@ -31,7 +31,7 @@
   "devDependencies": {
     "@cucumber/cucumber": "10.3.1",
     "@cucumber/pretty-formatter": "1.0.1",
-    "@eslint/js": "^9.19.0",
+    "@eslint/js": "^10.0.0",
     "@types/expect": "24.3.0",
     "@types/lodash": "4.14.167",
     "@types/node": "^20.16.11",
@@ -39,7 +39,7 @@
     "@typescript-eslint/eslint-plugin": "^8.18.2",
     "@typescript-eslint/parser": "^8.18.2",
     "cucumber-console-formatter": "1.0.0",
-    "eslint": "^9.32.0",
+    "eslint": "^10.0.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "3.3.1",
