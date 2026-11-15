@@ -20,3 +20,6 @@
 - [ ] T01318 Deploy the cleared snapshot and verify trading, persistence and observability; retain PR evidence.
 - [x] T01319 Implement Market Order support with STP immediate execution and UI toggle (#481).
 - [x] T01320 Hardened review updates: PostgreSQL schema parity, admin grid partial-fill actions and safety guards, and fail-fast patch automation (#495).
+
+- [x] T01321 Preserve existing PostgreSQL orders through an atomic, repeatable pre-Hibernate MARKET schema upgrade.
+- [x] T01322 Add executable Java matcher and PostgreSQL fresh/upgrade regression tests, document their runner, and run them in booking-durability CI.

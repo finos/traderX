@@ -40,3 +40,7 @@ Prometheus metric names required for order observability:
 - Existing trade/position/pricing APIs remain backward-compatible from `008`.
 - Order-management APIs are additive.
 - UI market-trade flow remains available; order-ticket + account-orders tab is introduced as an additional path.
+
+## Retained database upgrade
+
+Before Hibernate schema update, atomically backfill missing order types to LIMIT, set the LIMIT default and NOT NULL/allowed-value constraints, and drop LimitPrice NOT NULL. Preserve order IDs, quantities, statuses, prices, and timestamps. Apply safely on subsequent starts and fail startup on migration errors.
