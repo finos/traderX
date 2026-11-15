@@ -122,7 +122,7 @@ export class OrderAdminComponent implements OnInit, OnDestroy {
         const orderId = event.data?.orderId;
         const status = event.data?.status;
         const orderType = event.data?.orderType;
-        if (!orderId) {
+        if (!orderId || !status) {
             return;
         }
         if (event.colDef.colId === 'cancel') {

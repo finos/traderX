@@ -16,6 +16,9 @@ bash pipeline/generate-state.sh 009-order-management-matcher
 ## 3) Run Smoke Tests
 
 ```bash
+# Seam Regression Suite (19 tests covering schema, LF endings, admin UI, and matcher behaviors)
+python tests/seam-tests/run_all.py
+
 ./scripts/test-state-009-order-management-matcher.sh
 ./scripts/test-state-009-order-management-matcher.sh --skip-messaging
 ./scripts/test-messaging-009-order-management-matcher.sh

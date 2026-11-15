@@ -205,6 +205,9 @@ public class OrderMatcherService {
         orderMutationLock.lock();
         try {
             OrderRecord order = findOrder(orderId);
+            if (order.getOrderType() == OrderType.MARKET) {
+                throw new ResponseStatusException(BAD_REQUEST, "cannot force-fill market order");
+            }
             if (!isOpen(order) || order.getRemainingQuantity() == null || order.getRemainingQuantity() <= 0) {
                 return OrderResponse.from(order, lastPrices.get(order.getSecurity()));
             }

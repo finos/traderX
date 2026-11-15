@@ -3489,6 +3489,9 @@ index 0000000..230c66e
 +        orderMutationLock.lock();
 +        try {
 +            OrderRecord order = findOrder(orderId);
++            if (order.getOrderType() == OrderType.MARKET) {
++                throw new ResponseStatusException(BAD_REQUEST, "cannot force-fill market order");
++            }
 +            if (!isOpen(order) || order.getRemainingQuantity() == null || order.getRemainingQuantity() <= 0) {
 +                return OrderResponse.from(order, lastPrices.get(order.getSecurity()));
 +            }
@@ -4227,7 +4230,7 @@ index 0000000..8888888
 +        const orderId = event.data?.orderId;
 +        const status = event.data?.status;
 +        const orderType = event.data?.orderType;
-+        if (!orderId) {
++        if (!orderId || !status) {
 +            return;
 +        }
 +        if (event.colDef.colId === 'cancel') {

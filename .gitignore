@@ -488,4 +488,4 @@ website/yarn-debug.log*
 website/yarn-error.log*
 
 # Local Seam Tests
-tests/seam-tests/
+tests/seam-tests/__pycache__/
