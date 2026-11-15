@@ -23,3 +23,6 @@
 
 - [x] T01321 Preserve existing PostgreSQL orders through an atomic, repeatable pre-Hibernate MARKET schema upgrade.
 - [x] T01322 Add executable Java matcher and PostgreSQL fresh/upgrade regression tests, document their runner, and run them in booking-durability CI.
+
+- [x] T01323 Define NFR-01323 and state-local, implementation-independent durable-order conformance for descendants and corporate adapters.
+- [x] T01324 Implement and export the shared HTTP conformance runner and reference adapter; execute it through the state-009 regression CI command.

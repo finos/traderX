@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TARGET_ROOT="${1:-${TRADERX_GENERATED_ROOT:-${ROOT}/generated}/code/target-generated}"
+if [[ -f "${ROOT}/order-matcher/gradlew" ]]; then
+  DEFAULT_TARGET_ROOT="${ROOT}" # Standalone generated snapshot.
+else
+  DEFAULT_TARGET_ROOT="${TRADERX_GENERATED_ROOT:-${ROOT}/generated}/code/target-generated"
+fi
+TARGET_ROOT="${1:-${DEFAULT_TARGET_ROOT}}"
 MATCHER_ROOT="${TARGET_ROOT}/order-matcher"
 [[ -f "${MATCHER_ROOT}/gradlew" ]] || {
   echo "[fail] generate state 009 (or a descendant) before running matcher regressions"
@@ -35,3 +40,9 @@ else
 fi
 # Force execution even if the last Gradle run skipped the optional PostgreSQL tests.
 (cd "${MATCHER_ROOT}" && bash ./gradlew test --rerun-tasks --console=plain)
+
+# Assertions belong to state 009; the reference adapter drives the real generated JAR.
+(cd "${MATCHER_ROOT}" && bash ./gradlew bootJar --console=plain)
+python3 "${TARGET_ROOT}/conformance/state-009/run.py" \
+  --adapter python3 "${TARGET_ROOT}/conformance/state-009/reference_adapter.py" \
+  --target-root "${TARGET_ROOT}"

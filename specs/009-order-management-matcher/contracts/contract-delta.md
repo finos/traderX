@@ -43,4 +43,8 @@ Prometheus metric names required for order observability:
 
 ## Retained database upgrade
 
-Before Hibernate schema update, atomically backfill missing order types to LIMIT, set the LIMIT default and NOT NULL/allowed-value constraints, and drop LimitPrice NOT NULL. Preserve order IDs, quantities, statuses, prices, and timestamps. Apply safely on subsequent starts and fail startup on migration errors.
+Before exposing order operations, atomically backfill missing order types to LIMIT, set the LIMIT default and NOT NULL/allowed-value constraints, and drop LimitPrice NOT NULL. Preserve order IDs, quantities, statuses, prices, and timestamps. Apply safely on subsequent starts and fail startup on migration errors.
+
+## State-owned conformance for adapted implementations
+
+The durable-order/force-fill contract is inherited independently of implementation provenance (NFR-01322/01323). `tests/conformance/run.py` drives the order HTTP API and observes real trade submissions through an adapter-owned probe. See `tests/conformance/README.md` for the versioned protocol. Corporate adapters may change storage, migration tooling, language, and deployment topology while retaining this behavior. Do not duplicate the reference implementation merely to satisfy a structural check.
