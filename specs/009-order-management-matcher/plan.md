@@ -37,3 +37,7 @@ Track broader generator/CI work in `docs/operations/state-009-recovery.md`.
 ## PR #495 upgrade and regression follow-up
 
 Apply a state-local PostgreSQL upgrade through Spring SQL initialization before Hibernate. Generate the migration and JUnit tests from runtime overrides. Run real matcher unit tests and PostgreSQL upgrade/fresh-install tests in the existing booking-durability CI job after state-009 generation; retain Python checks only as static contracts.
+
+## Portable conformance ownership
+
+Own regression assertions in state 009, with a JSON-lines lifecycle/observation adapter boundary. The PostgreSQL/Java adapter is the reference harness only. Export the pack into generated snapshots so overlay consumers can validate their final adapted runtime without copying source or writing a new interpretation of the assertions. Run the pack in the existing state-009 regression command/CI step.

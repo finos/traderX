@@ -388,6 +388,12 @@ if [[ -d "${RUNTIME_OVERRIDES_DIR}" ]]; then
   rsync -a "${RUNTIME_OVERRIDES_DIR}/" "${TARGET_ROOT}/"
 fi
 
+# Export the state-owned behavioral contract for downstream/overlay implementations.
+CONFORMANCE_TARGET="${TARGET_ROOT}/conformance/state-009"
+mkdir -p "${CONFORMANCE_TARGET}"
+rsync -a --exclude=__pycache__ "${ROOT}/specs/009-order-management-matcher/tests/conformance/" "${CONFORMANCE_TARGET}/"
+cp "${ROOT}/specs/009-order-management-matcher/requirements/nonfunctional-delta.md" "${CONFORMANCE_TARGET}/nonfunctional-requirements.md"
+
 perl -0pi -e 's/^name:\s*traderx-state-\d+/name: traderx-state-009/m' "${COMPOSE_FILE}"
 
 bash "${ROOT}/pipeline/normalize-observability-runtime.sh" "009" "${COMPOSE_FILE}"

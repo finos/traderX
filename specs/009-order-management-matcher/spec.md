@@ -58,7 +58,9 @@
 - NFR-01320: Inherited observability ingress routes SHALL keep Grafana dashboards anonymously readable as Viewer-only demo surfaces while retaining non-default state-scoped admin credentials for local administration.
 - NFR-01321: Generated runtime startup SHALL configure Promtail with the local Docker daemon API version by default so Loki log ingestion is not blocked by Docker client/server API mismatch.
 
-- NFR-01322: The MARKET schema upgrade MUST run atomically before Hibernate initialization, preserve existing orders as LIMIT, and be safe to repeat against retained PostgreSQL volumes. Migration failure MUST stop startup.
+- NFR-01322: The MARKET persistence upgrade MUST complete atomically before order operations are exposed, preserve existing orders as LIMIT, and be safe to repeat against retained data. Upgrade failure MUST stop startup. The reference implementation uses PostgreSQL initialization before Hibernate; equivalent persistence adapters MUST preserve the same observable guarantees.
+
+- NFR-01323: Implementations inheriting or adapting state 009 MUST retain its executable regression contract for durable upgrades, restart safety, and MARKET force-fill rejection. Before publishing an adaptation, run the state-owned conformance pack against the final implementation through a lifecycle/observation adapter. Code copying, source-text matches, or a simulation of the business logic MUST NOT substitute for observed implementation behavior.
 
 ## Success Criteria
 
@@ -80,3 +82,5 @@
 - SC-01316: State `009` Promtail logs do not contain Docker API mismatch errors when launched through the generated runtime harness on a supported Docker host.
 
 - SC-01317: Committed regression tests MUST execute the Java matcher and verify populated PostgreSQL upgrades, repeat startup, fresh initialization, and MARKET force-fill rejection without trade submission.
+
+- SC-01318: `tests/conformance/run.py` passes against the generated reference runtime and is reusable through the documented adapter protocol for descendant and corporate implementations without requiring the reference language, schema, migration tool, or generator layout.

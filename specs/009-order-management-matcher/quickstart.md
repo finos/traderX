@@ -72,3 +72,15 @@ For a dedicated existing **test** PostgreSQL server, set
 `TRADERX_TEST_POSTGRES_PASSWORD`. The runner creates/removes uniquely named schemas
 and needs permission to do so. Pass a generated target root as the first argument,
 or set `TRADERX_GENERATED_ROOT`, when using isolated generation.
+
+## Reuse the state-owned regression contract
+
+`bash scripts/test-order-matcher-regression.sh` also executes the portable HTTP
+conformance pack against the real generated matcher JAR. Its assertions are owned
+by state 009 (NFR-01322/01323), not by any particular descendant state.
+
+Corporate or overlay implementations can reuse those assertions with their own
+lifecycle/observation adapter, even when the implementation was not copied from
+TraderX. See [the adapter protocol](tests/conformance/README.md). Generated
+snapshots carry the pack and NFRs under `conformance/state-009/`; run it against
+the final adapted runtime before publishing that adaptation.
