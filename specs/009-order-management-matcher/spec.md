@@ -1,8 +1,8 @@
 # Feature Specification: Order Management and Matcher
 
-**Feature Branch**: `009-order-management-matcher`  
-**Created**: 2026-04-05  
-**Status**: Implemented  
+**Feature Branch**: `009-order-management-matcher`
+**Created**: 2026-04-05
+**Status**: Implemented
 **Input**: Transition delta from `008-pricing-awareness-market-data`
 
 ## User Stories
@@ -58,6 +58,8 @@
 - NFR-01320: Inherited observability ingress routes SHALL keep Grafana dashboards anonymously readable as Viewer-only demo surfaces while retaining non-default state-scoped admin credentials for local administration.
 - NFR-01321: Generated runtime startup SHALL configure Promtail with the local Docker daemon API version by default so Loki log ingestion is not blocked by Docker client/server API mismatch.
 
+- NFR-01322: The MARKET schema upgrade MUST run atomically before Hibernate initialization, preserve existing orders as LIMIT, and be safe to repeat against retained PostgreSQL volumes. Migration failure MUST stop startup.
+
 ## Success Criteria
 
 - SC-01301: Generation hook exists and is runnable (`pipeline/generate-state-009-order-management-matcher.sh`).
@@ -76,3 +78,5 @@
 - SC-01314: Generated snapshot contains deployment-bundle assets for demo rollout and those assets pass local dry-run validation.
 - SC-01315: State `009` Grafana dashboard URLs under `/grafana/` load through ingress without login and datasource API requests remain same-origin.
 - SC-01316: State `009` Promtail logs do not contain Docker API mismatch errors when launched through the generated runtime harness on a supported Docker host.
+
+- SC-01317: Committed regression tests MUST execute the Java matcher and verify populated PostgreSQL upgrades, repeat startup, fresh initialization, and MARKET force-fill rejection without trade submission.

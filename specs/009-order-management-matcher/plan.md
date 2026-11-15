@@ -33,3 +33,7 @@ and replace legacy Promtail while preserving Docker log labels. Publish through
 the one-snapshot branch pipeline, require exact-snapshot CI and host scans, then
 verify public ingress, order lifecycle, retained trades/positions and observability.
 Track broader generator/CI work in `docs/operations/state-009-recovery.md`.
+
+## PR #495 upgrade and regression follow-up
+
+Apply a state-local PostgreSQL upgrade through Spring SQL initialization before Hibernate. Generate the migration and JUnit tests from runtime overrides. Run real matcher unit tests and PostgreSQL upgrade/fresh-install tests in the existing booking-durability CI job after state-009 generation; retain Python checks only as static contracts.
