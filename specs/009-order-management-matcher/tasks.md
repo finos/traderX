@@ -18,3 +18,5 @@
 - [ ] T01316 Validate rebuilt infrastructure and maintained log collection with preserved dashboard labels.
 - [ ] T01317 Preserve/backup PostgreSQL data, publish one replacement snapshot and complete exact-snapshot checks.
 - [ ] T01318 Deploy the cleared snapshot and verify trading, persistence and observability; retain PR evidence.
+- [x] T01319 Implement Market Order support with STP immediate execution and UI toggle (#481).
+- [x] T01320 Hardened review updates: PostgreSQL schema parity, admin grid partial-fill actions and safety guards, and fail-fast patch automation (#495).

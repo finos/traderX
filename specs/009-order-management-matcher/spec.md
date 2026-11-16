@@ -17,7 +17,7 @@
 
 - FR-01301: State introduces order lifecycle management with statuses: `NEW`, `PARTIALLY_FILLED`, `FILLED`, `CANCELED`, `REJECTED`.
 - FR-01302: State adds an order matcher component (Spring Boot) that evaluates open orders and emits fill outcomes.
-- FR-01303: State adds a dedicated order ticket in the trader UI for creating limit orders (`security`, `side`, `quantity`, `limitPrice`, `accountId`).
+- FR-01303: State adds a dedicated order ticket in the trader UI for creating orders with supported types (`LIMIT`, `MARKET`). Limit orders require `limitPrice` (> 0). Market orders omit limit price or allow nullable `limitPrice`, executing immediately via Straight-Through Processing (STP) against prevailing market price on ingestion, or queueing with status `NEW` if market price is unavailable until the next market tick. Unspecified order type defaults to `LIMIT`. Trade submission failures mark the order transition as rejected/retryable.
 - FR-01303A: In states that support order management (`009` and descendants), the trade page SHALL render a visible order-create launcher button whenever the trade ticket launcher is rendered.
 - FR-01303B: Trade and order launcher buttons SHALL both remain visible but disabled in `All Accounts` mode, and neither launcher SHALL open its ticket modal while that guard is active.
 - FR-01304: State adds an account-scoped orders blotter in the trader UI (tabbed with the trade blotter context) for viewing and canceling open orders.

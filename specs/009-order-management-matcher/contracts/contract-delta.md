@@ -7,11 +7,11 @@ Document any API/event/schema changes for this state.
 ## OpenAPI Changes
 
 - Add order-management endpoints (exact path naming finalized in implementation):
-  - `POST /orders` (create order)
+  - `POST /orders` (create order; accepts `accountId`, `security`, `side`, `quantity`, optional `orderType` [`LIMIT`, `MARKET`] defaulting to `LIMIT`, and `limitPrice` which is required for `LIMIT` and nullable/optional for `MARKET`)
   - `GET /orders` (query/filter orders)
   - `GET /orders/{orderId}` (order details)
-  - `POST /orders/{orderId}/cancel` (cancel order)
-  - `POST /orders/{orderId}/force-fill` (admin action)
+  - `POST /orders/{orderId}/cancel` (cancel order; valid for `NEW` and `PARTIALLY_FILLED` statuses)
+  - `POST /orders/{orderId}/force-fill` (admin action; valid for `NEW` and `PARTIALLY_FILLED` non-MARKET orders)
 - Add matcher/admin health endpoint:
   - `GET /order-matcher/health`
 - Add matcher metrics endpoint:
