@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "state": "017-portfolio-lookthrough",
+  "title": "Explain hidden portfolio concentration",
+  "purpose": "For developers extending a trading application, trace indirect economic exposure and verify identical business answers before comparing storage implementations.",
+  "entryAssumptions": "Understand C2 accounts, positions, pricing and asynchronous trade booking.",
+  "concepts": [
+    "A fund holding is a weighted economic allocation. Corporate-parent links group issuers. Separate allocation paths contribute separately to exposure."
+  ],
+  "runtimePrerequisites": "Docker Compose and the state quickstart prerequisites. Use one runtime at a time and disposable test databases.",
+  "entryMode": "combined",
+  "transitions": [
+    {
+      "from": "009-order-management-matcher",
+      "carriesForward": "Keep transactional positions and the C2 trading workflow.",
+      "motivation": "Direct holdings hide concentration through funds and related issuers.",
+      "increment": "Add weighted look-through traversal with visible evidence and source freshness.",
+      "objectiveIds": [
+        "calculate",
+        "verify"
+      ],
+      "evidence": "Known synthetic portfolio shows 2% direct and 12% indirect exposure; both engines must agree after source edits."
+    }
+  ],
+  "before": "Positions show direct security holdings.",
+  "after": "Corporate exposure includes nested funds and issuer groups, with contributing paths.",
+  "objectives": [
+    {
+      "id": "calculate",
+      "outcome": "Reconcile the 14% portfolio exposure with its direct and indirect allocations."
+    },
+    {
+      "id": "verify",
+      "outcome": "Compare source revisions and verify changed positions before interpreting latency results."
+    }
+  ],
+  "walkthrough": [
+    {
+      "id": "observe",
+      "objectiveIds": [
+        "calculate"
+      ],
+      "availability": "available",
+      "action": "Start this state and open /exposure/. Select account 70000 and target Z0G; expand and reconcile both paths.",
+      "expected": "2% direct plus 12% through funds equals 14%, at fixed USD snapshot marks.",
+      "references": [
+        "/specs/portfolio-lookthrough/quickstart",
+        "/specs/portfolio-lookthrough/data-model"
+      ]
+    },
+    {
+      "id": "challenge",
+      "objectiveIds": [
+        "verify"
+      ],
+      "availability": "available",
+      "action": "Change the Z0S quantity from 20 to 40 using the quickstart SQL workflow, wait for a new revision, and calculate again. Restore the quantity after recording the result.",
+      "expected": "Exposure changes to 16000/102000; both implementations agree. A changed valuation timestamp must not be inferred from a position-only edit.",
+      "references": [
+        "/specs/portfolio-lookthrough/spec",
+        "/specs/portfolio-lookthrough/contracts/contract-delta"
+      ]
+    }
+  ],
+  "assessments": [
+    {
+      "objectiveIds": [
+        "calculate",
+        "verify"
+      ],
+      "question": "Why does doubling the direct position change the portfolio denominator as well as its target exposure?",
+      "guidance": "Compute the changed portfolio value and contributions separately, and compare identical source revisions before comparing database latency."
+    }
+  ],
+  "limitations": [
+    "Current-snapshot long-only USD demo with fixed marks; no historical as-of queries or derivative valuation.",
+    "Full snapshot rebuild is a demonstrable reconciliation strategy, not a production CDC or multi-replica design."
+  ],
+  "coaching": [
+    {
+      "objectiveIds": [
+        "calculate",
+        "verify"
+      ],
+      "diagnosticQuestion": "Which allocation weights multiply along a fund path?",
+      "predictionPrompt": "Predict total exposure after increasing Z0S quantity from 20 to 40.",
+      "hints": [
+        "Start with the $100,000 portfolio and $14,000 exposure.",
+        "The extra 20 units add $2,000 to both values."
+      ],
+      "misconception": "Doubling one holding doubles the entire exposure percentage.",
+      "evidenceToRequest": "Show the source position, projection revision, total portfolio value and contributing paths."
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "method": "Warm sequential, single client; 10 warmups + 100 timed requests/query/backend. Includes client round trip, traversal and path formatting. Both clients reuse established database connections. Reconciliation is measured separately from query latency.",
+  "machine": {
+    "cpuCount": 5,
+    "python": "3.12.14",
+    "architecture": "x86_64"
+  },
+  "queries": [
+    {
+      "name": "known-concentration",
+      "account": 70000,
+      "target": "Z0G"
+    },
+    {
+      "name": "overlapping-funds",
+      "account": 70020,
+      "target": "E0"
+    }
+  ],
+  "results": {
+    "postgres": {
+      "known-concentration": {
+        "samples": 100,
+        "medianMs": 0.324,
+        "p95Ms": 1.431,
+        "p99Ms": 3.832,
+        "pathCount": 2,
+        "fraction": 0.13999999999999999
+      },
+      "overlapping-funds": {
+        "samples": 100,
+        "medianMs": 8.718,
+        "p95Ms": 15.627,
+        "p99Ms": 17.494,
+        "pathCount": 25,
+        "fraction": 0.0025297699214365883
+      }
+    },
+    "falkor": {
+      "known-concentration": {
+        "samples": 100,
+        "medianMs": 0.526,
+        "p95Ms": 1.3,
+        "p99Ms": 1.65,
+        "pathCount": 2,
+        "fraction": 0.13999999999999999
+      },
+      "overlapping-funds": {
+        "samples": 100,
+        "medianMs": 1.761,
+        "p95Ms": 3.42,
+        "p99Ms": 6.594,
+        "pathCount": 25,
+        "fraction": 0.0025297699214365875
+      }
+    }
+  },
+  "initialProjectionSeconds": {
+    "postgres": 0.781,
+    "falkor": 3.024
+  },
+  "revision": "30671326a7826b39dbb25eea80d9a45a4de2bdb62cf162e1ac74001ac3b3d458"
+}

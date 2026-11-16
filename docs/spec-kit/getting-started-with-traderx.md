@@ -32,6 +32,8 @@ If you want to run demos quickly, use the generated state branches listed below.
 - [code/generated-state-012-platform-convergence-c3](https://github.com/finos/traderX/tree/code/generated-state-012-platform-convergence-c3)
 - [code/generated-state-013-radius-kubernetes-platform](https://github.com/finos/traderX/tree/code/generated-state-013-radius-kubernetes-platform)
 - [code/generated-state-014-fdc3-intent-interoperability](https://github.com/finos/traderX/tree/code/generated-state-014-fdc3-intent-interoperability)
+- [code/generated-state-017-portfolio-lookthrough](https://github.com/finos/traderX/tree/code/generated-state-017-portfolio-lookthrough)
+- [code/generated-state-018-falkordb-lookthrough](https://github.com/finos/traderX/tree/code/generated-state-018-falkordb-lookthrough)
 
 ## Why This Works
 

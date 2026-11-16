@@ -180,6 +180,9 @@ case "${STATE_ID}" in
   013-radius-kubernetes-platform)
     state_allowed_roots=("${C2_COMPONENT_DIRS[@]}" "api-explorer" "kubernetes-runtime" "radius-kubernetes-platform")
     ;;
+  017-portfolio-lookthrough|018-falkordb-lookthrough)
+    state_allowed_roots=("${ORDER_COMPONENT_DIRS[@]}" "ingress" "order-management-matcher" "postgres-database-replacement" "portfolio-lookthrough" "falkordb-lookthrough" "exposure-service")
+    ;;
   014-fdc3-intent-interoperability)
     state_allowed_roots=("${C2_COMPONENT_DIRS[@]}" "api-explorer" "kubernetes-runtime" "tilt-kubernetes-dev-loop" "fdc3-intent-interoperability")
     ;;
@@ -1744,6 +1747,8 @@ if ((${#docker_entries[@]} > 0)) && [[ "${is_convergence}" != "true" ]]; then
     005) local_runtime_path="postgres-database-replacement/docker-compose.yml" ;;
     006) local_runtime_path="messaging-nats-replacement/docker-compose.yml" ;;
     008) local_runtime_path="pricing-awareness-market-data/docker-compose.yml" ;;
+    017) local_runtime_path="portfolio-lookthrough/docker-compose.yml" ;;
+    018) local_runtime_path="falkordb-lookthrough/docker-compose.yml" ;;
     *) local_runtime_path="" ;;
   esac
   if [[ -n "${local_runtime_path}" ]]; then

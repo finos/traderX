@@ -163,6 +163,12 @@ allowed_roots_for_state() {
     013-radius-kubernetes-platform)
       printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "api-explorer" "kubernetes-runtime" "radius-kubernetes-platform"
       ;;
+    017-portfolio-lookthrough)
+      printf '%s\n' "${ORDER_COMPONENT_DIRS[@]}" api-explorer ingress order-management-matcher postgres-database-replacement portfolio-lookthrough exposure-service
+      ;;
+    018-falkordb-lookthrough)
+      printf '%s\n' "${ORDER_COMPONENT_DIRS[@]}" api-explorer ingress order-management-matcher postgres-database-replacement portfolio-lookthrough falkordb-lookthrough exposure-service
+      ;;
     014-fdc3-intent-interoperability)
       printf '%s\n' "${C2_COMPONENT_DIRS[@]}" "api-explorer" "kubernetes-runtime" "tilt-kubernetes-dev-loop" "fdc3-intent-interoperability"
       ;;
