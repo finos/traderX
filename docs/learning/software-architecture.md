@@ -1,22 +1,20 @@
 # Software Architecture
 
-State: `012-platform-convergence-c3`
-Title: `Architecture (State 012 Platform Convergence C3)`
+State: `013-radius-kubernetes-platform`
+Title: `Architecture (State 013 Radius Platform on Kubernetes)`
 
 ## Architecture Summary
 
-State 012 is the C3 convergence checkpoint: Kubernetes + Tilt platform profile on top of C2 functional behavior.
+State 013 preserves state 012 C3 runtime while adding Radius application/resource abstractions.
 
 ## Entrypoints
 
 - `edge-proxy` -> `http://localhost:8080`
-- `tilt-ui` -> `http://localhost:10350`
 
 ## Notes
 
-- Publish lineage parent is state 011.
-- Dotted-line convergence parent is state 009 (C2 functional convergence).
-- State 012 marks C3 and is the recommended platform-ready baseline for subsequent work.
+- State 013 is an optional child branch of state 012.
+- Primary delta is platform/deployment abstraction, not functional API behavior.
 
 ## Diagram
 
@@ -24,30 +22,31 @@ See [Component Diagram](./component-diagram.md).
 
 ## Detailed Architecture (Spec Extract)
 
-# Architecture (State 012 Platform Convergence C3)
+# Architecture (State 013 Radius Platform on Kubernetes)
 
-State 012 is the C3 convergence checkpoint: Kubernetes + Tilt platform profile on top of C2 functional behavior.
+State 013 preserves state 012 C3 runtime while adding Radius application/resource abstractions.
 
-- Inherits architectural baseline from: `011-tilt-kubernetes-dev-loop`
+- Inherits architectural baseline from: `012-platform-convergence-c3`
 - Generated from: `system/architecture.model.json`
 - Canonical flows: `../001-baseline-uncontainerized-parity/system/end-to-end-flows.md`
 
 ## Entry Points
 
 - `edge-proxy`: `http://localhost:8080`
-- `tilt-ui`: `http://localhost:10350`
 
 ## Architecture Diagram
 
 ```mermaid
 flowchart LR
   developer["Developer"]
-  tilt["Tilt Dev Loop"]
+  radius["Radius Control Plane"]
+  appModel["Radius App Model"]
   cluster["Kubernetes Cluster"]
   edge["NGINX Edge Proxy"]
   workloads["TraderX Workloads"]
-  developer -->|"Runs tilt up"| tilt
-  tilt -->|"Applies k8s resources"| cluster
+  developer -->|"Manages app model"| radius
+  radius -->|"Resolves resources"| appModel
+  appModel -->|"Deploys workloads"| cluster
   cluster -->|"Runs ingress"| edge
   edge -->|"Routes UI/API/WebSocket traffic"| workloads
 ```
@@ -56,15 +55,15 @@ flowchart LR
 
 | Node | Kind | Label | Notes |
 | --- | --- | --- | --- |
-| `developer` | actor | Developer | Iterates locally with fast feedback loops. |
-| `tilt` | tooling | Tilt Dev Loop | Build/deploy/log orchestration for local k8s. |
-| `cluster` | boundary | Kubernetes Cluster | Underlying runtime substrate inherited from state 011. |
+| `developer` | actor | Developer | Operates platform/application definitions through Radius. |
+| `radius` | platform | Radius Control Plane | Application-centric platform abstraction layer. |
+| `appModel` | component | Radius App Model | Declarative app/resource definitions for TraderX. |
+| `cluster` | boundary | Kubernetes Cluster | Underlying runtime substrate inherited from state 012. |
 | `edge` | gateway | NGINX Edge Proxy | Single browser/API entrypoint. |
-| `workloads` | service | TraderX Workloads | Core services remain functionally equivalent to state 009 (C2), carried through state 012 lineage. |
+| `workloads` | service | TraderX Workloads | Core services remain functionally equivalent to state 012. |
 
 ## State Notes
 
-- Publish lineage parent is state 011.
-- Dotted-line convergence parent is state 009 (C2 functional convergence).
-- State 012 marks C3 and is the recommended platform-ready baseline for subsequent work.
+- State 013 is an optional child branch of state 012.
+- Primary delta is platform/deployment abstraction, not functional API behavior.
 
