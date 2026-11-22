@@ -25,6 +25,7 @@ export class OrderTicketComponent implements OnInit, OnChanges, OnDestroy {
     accountId: 0,
     security: '',
     side: 'Buy',
+    orderType: 'LIMIT',
     quantity: 0,
     limitPrice: 0
   };
@@ -89,14 +90,22 @@ export class OrderTicketComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   onCreate() {
-    if (!this.ticket.security || this.ticket.quantity <= 0 || this.ticket.limitPrice <= 0) {
+    if (!this.ticket.security || this.ticket.quantity <= 0) {
       console.warn('Order ticket is incomplete');
       return;
     }
-    this.create.emit({
+    if (this.ticket.orderType === 'LIMIT' && (!this.ticket.limitPrice || this.ticket.limitPrice <= 0)) {
+      console.warn('Order ticket is incomplete: limit price required for LIMIT order');
+      return;
+    }
+    const payload: OrderCreateRequest = {
       ...this.ticket,
       security: this.ticket.security.toUpperCase()
-    });
+    };
+    if (this.ticket.orderType === 'MARKET') {
+      delete payload.limitPrice;
+    }
+    this.create.emit(payload);
   }
 
   onCancel() {
@@ -178,7 +187,7 @@ export class OrderTicketComponent implements OnInit, OnChanges, OnDestroy {
     this.selectedPrice = numericPrice;
     this.selectedPriceAsOf = asOf || null;
 
-    if (seedLimitPrice && (!this.ticket.limitPrice || this.ticket.limitPrice <= 0)) {
+    if (seedLimitPrice && this.ticket.orderType === 'LIMIT' && (!this.ticket.limitPrice || this.ticket.limitPrice <= 0)) {
       this.ticket.limitPrice = numericPrice;
     }
   }

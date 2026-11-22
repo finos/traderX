@@ -30,3 +30,9 @@ Planned smoke checks:
 - Lifecycle checks:
   - create/cancel/force-fill path updates order counters and open-order gauges.
 - Grafana has provisioned order-management dashboards.
+
+State-owned durable-order conformance (NFR-01322/01323):
+
+- `../conformance/run.py` owns the fresh/legacy upgrade, retained-order, restart, and MARKET force-fill assertions.
+- `../conformance/README.md` defines how reference and corporate/overlay implementations provide lifecycle and trade-observation adapters.
+- `scripts/test-order-matcher-regression.sh` runs it after the Java/PostgreSQL regression tests.

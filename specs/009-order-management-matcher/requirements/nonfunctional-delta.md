@@ -46,3 +46,13 @@ Document NFR changes introduced by this state.
   - order-management error logs,
   - JVM/service SLI panels (request rate, latency percentiles, and scrape target health) for compatible services.
 - Smoke tests assert metrics endpoint availability and non-empty response for required metric families.
+
+## Inherited behavioral regression contract (NFR-01322, NFR-01323)
+
+- **Durable upgrade:** converting an existing order store to MARKET/LIMIT support must preserve order IDs, account/security/side, requested and remaining quantities, limit price, lifecycle status, timestamps, and last execution fields. Orders predating `orderType` become LIMIT. Upgrade is atomic, precedes access to order operations, is safe to repeat, and fails startup on error.
+- **Restart compatibility:** a queued MARKET order with no price survives restart unchanged; omitted `orderType` continues to mean LIMIT.
+- **Force-fill safety:** attempting to force-fill a queued MARKET order returns HTTP 400, submits no trade, and does not mutate the order.
+- **Implementation-independent inheritance:** these obligations belong to state 009's capability, not to its Java classes, PostgreSQL DDL, or generated files. They apply to descendants, copied/transformed code, and corporate adapters that implement the capability independently. Explicitly declared incompatible replacements must identify the divergence; they must not silently claim this contract passes.
+- **Regression evidence:** before publishing an adapted implementation, execute `tests/conformance/run.py` against that implementation using the adapter protocol in `tests/conformance/README.md`. The adapter supplies only isolated lifecycle/fixture setup, endpoints, and an observation point for actual outgoing trades. The shared runner owns the assertions and drives the real order API. Keep the upstream contract/version and test result with adaptation validation evidence.
+
+The reference Java/PostgreSQL tests add detailed implementation coverage. Static seam checks and byte-for-byte generated-file comparisons are supplemental evidence, not substitutes for this behavioral contract. The portable pack covers the valid fresh/legacy upgrade and force-fill paths; implementations also need failure-path tests for their own migration mechanism to satisfy NFR-01322.

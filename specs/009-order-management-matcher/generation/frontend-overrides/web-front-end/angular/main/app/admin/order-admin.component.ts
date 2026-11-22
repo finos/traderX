@@ -32,6 +32,7 @@ export class OrderAdminComponent implements OnInit, OnDestroy {
     columnDefs: ColDef<OrderRow>[] = [
         { headerName: 'ORDER ID', field: 'orderId' },
         { headerName: 'ACCOUNT', field: 'accountId' },
+        { headerName: 'ORDER TYPE', field: 'orderType', width: 120 },
         { headerName: 'SECURITY', field: 'security' },
         { headerName: 'SIDE', field: 'side' },
         {
@@ -76,12 +77,16 @@ export class OrderAdminComponent implements OnInit, OnDestroy {
         {
             headerName: 'CANCEL',
             colId: 'cancel',
-            cellRenderer: () => '<button class="btn btn-outline-danger btn-sm">Cancel</button>'
+            cellRenderer: (params: any) => ['NEW', 'PARTIALLY_FILLED'].includes(params?.data?.status)
+                ? '<button class="btn btn-outline-danger btn-sm">Cancel</button>'
+                : '-'
         },
         {
             headerName: 'FORCE FILL',
             colId: 'forceFill',
-            cellRenderer: () => '<button class="btn btn-outline-success btn-sm">Force Fill</button>'
+            cellRenderer: (params: any) => (['NEW', 'PARTIALLY_FILLED'].includes(params?.data?.status) && params?.data?.orderType !== 'MARKET')
+                ? '<button class="btn btn-outline-success btn-sm">Force Fill</button>'
+                : '-'
         }
     ];
 
@@ -115,10 +120,15 @@ export class OrderAdminComponent implements OnInit, OnDestroy {
 
     onCellClicked(event: CellClickedEvent<OrderRow>): void {
         const orderId = event.data?.orderId;
-        if (!orderId) {
+        const status = event.data?.status;
+        const orderType = event.data?.orderType;
+        if (!orderId || !status) {
             return;
         }
         if (event.colDef.colId === 'cancel') {
+            if (!['NEW', 'PARTIALLY_FILLED'].includes(status)) {
+                return;
+            }
             this.orderAdminService.cancelOrder(orderId).subscribe({
                 next: (res) => {
                     this.actionMessage = { type: 'success', text: `Canceled ${res.orderId}` };
@@ -130,6 +140,9 @@ export class OrderAdminComponent implements OnInit, OnDestroy {
             return;
         }
         if (event.colDef.colId === 'forceFill') {
+            if (!['NEW', 'PARTIALLY_FILLED'].includes(status) || orderType === 'MARKET') {
+                return;
+            }
             this.orderAdminService.forceFillOrder(orderId).subscribe({
                 next: (res) => {
                     this.actionMessage = { type: 'success', text: `Force-filled ${res.orderId}` };

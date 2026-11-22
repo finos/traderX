@@ -89,6 +89,9 @@ jobs:
           cmp templates/state-010-pricing-awareness-market-data-overlay/trade-processor/src/main/java/finos/traderx/tradeprocessor/service/TradeService.java generated/code/target-generated/trade-processor/src/main/java/finos/traderx/tradeprocessor/service/TradeService.java
           cmp templates/trade-processor-specfirst/src/main/java/finos/traderx/tradeprocessor/service/CommittedTradeEvents.java generated/code/target-generated/trade-processor/src/main/java/finos/traderx/tradeprocessor/service/CommittedTradeEvents.java
 
+      - name: Verify matcher behavior and PostgreSQL upgrades
+        run: bash scripts/test-order-matcher-regression.sh
+
   fdc3-generation:
     runs-on: ubuntu-latest
     steps:

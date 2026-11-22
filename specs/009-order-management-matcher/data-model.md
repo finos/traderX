@@ -13,7 +13,8 @@ This state defines data model impact relative to `008-pricing-awareness-market-d
   - `side` (`Buy`/`Sell`)
   - `quantity` (int)
   - `remainingQuantity` (int)
-  - `limitPrice` (decimal(18,3))
+  - `limitPrice` (decimal(18,3), nullable; required for LIMIT, optional/null for MARKET)
+  - `orderType` (varchar(20), `LIMIT|MARKET`, default `LIMIT`, not null)
   - `status` (`NEW|PARTIALLY_FILLED|FILLED|CANCELED|REJECTED`)
   - `createdAt` (timestamp)
   - `updatedAt` (timestamp)
@@ -34,8 +35,9 @@ This state defines data model impact relative to `008-pricing-awareness-market-d
   - `unfilled` means order has `remainingQuantity > 0`.
   - These semantics drive required metrics and dashboard interpretation.
 - Auto-fill policy semantics:
-  - `Buy` order is in-the-money when `marketPrice <= limitPrice`.
-  - `Sell` order is in-the-money when `marketPrice >= limitPrice`.
+  - `Buy` limit order is in-the-money when `marketPrice <= limitPrice`.
+  - `Sell` limit order is in-the-money when `marketPrice >= limitPrice`.
+  - `Market` orders execute immediately via STP against prevailing market price upon ingestion, or auto-fill on tick if queued with status `NEW` waiting for price discovery.
   - remaining `< 1000`: full fill, otherwise half fill (rounded up), on each matcher tick.
 
 ## Traceability
