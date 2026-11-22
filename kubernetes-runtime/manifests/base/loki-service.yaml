@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: loki
+  namespace: traderx
+  labels:
+    app: loki
+spec:
+  type: ClusterIP
+  selector:
+    app: loki
+  ports:
+    - name: http
+      protocol: TCP
+      port: 3100
+      targetPort: 3100

@@ -1,36 +1,42 @@
 # Component Diagram
 
-State: `009-order-management-matcher`
+State: `010-kubernetes-runtime`
 
 ```mermaid
 flowchart LR
   developer["Developer"]
-  app_runtime["TraderX App Runtime"]
-  obs_runtime["Observability Runtime"]
-  ingress["NGINX Ingress"]
-  trade_ui["Angular Trade UI"]
-  order_api["Order Management API"]
-  order_matcher["Order Matcher"]
+  cluster["Kind Kubernetes Cluster"]
+  edge["NGINX Edge Proxy"]
+  web["Web Front End Angular"]
+  account["Account Service"]
+  position["Position Service"]
+  tradeService["Trade Service"]
+  referenceData["Reference Data"]
+  people["People Service"]
   nats["NATS Broker"]
-  trade_processor["Trade Processor"]
-  prometheus["Prometheus"]
-  blackbox["Blackbox Exporter"]
-  loki["Loki"]
+  tradeProcessor["Trade Processor"]
+  database["Database"]
   grafana["Grafana"]
+  prometheus["Prometheus"]
 
-  developer -->|Uses app and admin UI| ingress
-  ingress -->|Serves UI| trade_ui
-  trade_ui -->|Calls order APIs| order_api
-  order_api -->|Submits and updates orders| order_matcher
-  order_api -->|Publishes lifecycle events| nats
-  order_matcher -->|Publishes fills and status| nats
-  nats -->|Delivers matcher-generated fills| trade_processor
-  prometheus -->|Scrapes /metrics| order_matcher
-  prometheus -->|Scrapes probe metrics| blackbox
-  blackbox -->|HTTP probes| order_api
-  blackbox -->|HTTP probes| order_matcher
-  order_matcher -->|Structured logs via promtail| loki
-  developer -->|Views order observability| grafana
-  grafana -->|Queries metrics| prometheus
-  grafana -->|Queries logs| loki
+  developer -->|Starts runtime| cluster
+  developer -->|Browser access :8080| edge
+  edge -->|/| web
+  edge -->|/account-service| account
+  edge -->|/position-service| position
+  edge -->|/trade-service| tradeService
+  edge -->|/reference-data| referenceData
+  edge -->|/people-service| people
+  edge -->|/nats-ws| nats
+  edge -->|/trade-processor| tradeProcessor
+  edge -->|/grafana| grafana
+  edge -->|/prometheus| prometheus
+  tradeService -->|Validate account| account
+  tradeService -->|Validate ticker| referenceData
+  tradeService -->|Publish trades/new| nats
+  tradeProcessor -->|Consume and publish updates| nats
+  tradeProcessor -->|Persist trade/position state| database
+  account -->|Account persistence| database
+  position -->|Query trades/positions| database
+  account -->|Validate person for account-user mapping| people
 ```
