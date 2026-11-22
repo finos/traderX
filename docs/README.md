@@ -1,6 +1,6 @@
 # Generated Docs
 
-This folder provides generated learning-oriented documentation for state `010-kubernetes-runtime`.
+This folder provides generated learning-oriented documentation for state `011-tilt-kubernetes-dev-loop`.
 
 - [Learning Index](./learning/README.md)
 - [Component List](./learning/component-list.md)

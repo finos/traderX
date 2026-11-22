@@ -1,10 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-echo "[info] no state-specific test entrypoint was detected for this snapshot."
-if [[ -d "${ROOT}/scripts" ]]; then
-  echo "[hint] available test scripts:"
-  ls "${ROOT}/scripts"/test-state-*.sh 2>/dev/null || true
-fi
-exit 2
+
+# Wrapper purpose: stable, state-local test entrypoint.
+# This may delegate across multiple numbered state scripts to maximize reuse.
+# Execution flow:
+#  - scripts/test-state-011-tilt-kubernetes-dev-loop.sh
+#  - scripts/test-state-010-kubernetes-runtime.sh
+#  - scripts/test-account-service-overlay.sh
+#  - scripts/test-people-service-overlay.sh
+#  - scripts/test-position-service-overlay.sh
+#  - scripts/test-reference-data-overlay.sh
+#  - scripts/test-trade-service-overlay.sh
+#  - scripts/test-web-angular-baseline-ux-contract.sh
+#  - scripts/test-web-angular-overlay.sh
+
+exec "${ROOT}/scripts/test-state-011-tilt-kubernetes-dev-loop.sh" "$@"

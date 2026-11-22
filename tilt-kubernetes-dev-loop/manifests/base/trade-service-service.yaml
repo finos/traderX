@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: trade-service
+  namespace: traderx
+  labels:
+    app: trade-service
+spec:
+  type: ClusterIP
+  selector:
+    app: trade-service
+  ports:
+    - name: http
+      protocol: TCP
+      port: 18092
+      targetPort: 18092

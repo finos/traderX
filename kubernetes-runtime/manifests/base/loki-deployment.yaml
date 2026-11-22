@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: loki
-          image: traderx-remediation/loki:010
+          image: traderx-remediation/loki:011
           imagePullPolicy: IfNotPresent
           args: ["-config.file=/etc/loki/config.yaml"]
           ports:

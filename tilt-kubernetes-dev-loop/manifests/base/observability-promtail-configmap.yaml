@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: observability-promtail-config
+  namespace: traderx
+data:
+  vector.toml: |
+    # Kubernetes node logs; no Docker socket dependency.
+    data_dir = "/run/vector"
+    [sources.pods]
+    type = "kubernetes_logs"
+    self_node_name = "${VECTOR_SELF_NODE_NAME}"
+    extra_field_selector = "metadata.namespace=traderx"
+    
+    [transforms.labels]
+    type = "remap"
+    inputs = ["pods"]
+    source = '''
+    .service = string(.kubernetes.container_name) ?? "unknown"
+    .namespace = string(.kubernetes.pod_namespace) ?? "unknown"
+    .pod = string(.kubernetes.pod_name) ?? "unknown"
+    .compose_project = "traderx-state-009"
+    '''
+    
+    [sinks.loki]
+    type = "loki"
+    inputs = ["labels"]
+    endpoint = "http://loki:3100"
+    encoding.codec = "text"
+    [sinks.loki.labels]
+    job = "traderx-docker"
+    service = "{{ service }}"
+    namespace = "{{ namespace }}"
+    pod = "{{ pod }}"
+    compose_project = "{{ compose_project }}"
