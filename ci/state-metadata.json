@@ -1,8 +1,8 @@
 {
-  "stateId": "008-pricing-awareness-market-data",
-  "isConvergence": false,
-  "convergenceLevel": "none",
-  "convergenceNamespace": "",
+  "stateId": "009-order-management-matcher",
+  "isConvergence": true,
+  "convergenceLevel": "C2",
+  "convergenceNamespace": "traderx-c2",
   "modules": {
     "node": [
       "price-publisher",
@@ -12,6 +12,7 @@
     "gradle": [
       "account-service",
       "database",
+      "order-matcher",
       "position-service",
       "trade-processor",
       "trade-service"
@@ -36,6 +37,31 @@
         "imageName": "ingress"
       },
       {
+        "directory": "order-management-matcher/runtime-images/blackbox-exporter",
+        "dockerfile": "Dockerfile.compose",
+        "imageName": "blackbox-exporter"
+      },
+      {
+        "directory": "order-management-matcher/runtime-images/loki",
+        "dockerfile": "Dockerfile.compose",
+        "imageName": "loki"
+      },
+      {
+        "directory": "order-management-matcher/runtime-images/prometheus",
+        "dockerfile": "Dockerfile.compose",
+        "imageName": "prometheus"
+      },
+      {
+        "directory": "order-management-matcher/runtime-images/tempo",
+        "dockerfile": "Dockerfile.compose",
+        "imageName": "tempo"
+      },
+      {
+        "directory": "order-matcher",
+        "dockerfile": "Dockerfile.compose",
+        "imageName": "order-matcher"
+      },
+      {
         "directory": "people-service",
         "dockerfile": "Dockerfile.compose",
         "imageName": "people-service"
@@ -49,26 +75,6 @@
         "directory": "price-publisher",
         "dockerfile": "Dockerfile.compose",
         "imageName": "price-publisher"
-      },
-      {
-        "directory": "pricing-awareness-market-data/runtime-images/blackbox-exporter",
-        "dockerfile": "Dockerfile.compose",
-        "imageName": "blackbox-exporter"
-      },
-      {
-        "directory": "pricing-awareness-market-data/runtime-images/loki",
-        "dockerfile": "Dockerfile.compose",
-        "imageName": "loki"
-      },
-      {
-        "directory": "pricing-awareness-market-data/runtime-images/prometheus",
-        "dockerfile": "Dockerfile.compose",
-        "imageName": "prometheus"
-      },
-      {
-        "directory": "pricing-awareness-market-data/runtime-images/tempo",
-        "dockerfile": "Dockerfile.compose",
-        "imageName": "tempo"
       },
       {
         "directory": "reference-data",
@@ -93,13 +99,13 @@
     ]
   },
   "deploy": {
-    "enabled": false,
-    "profile": "",
-    "environment": "",
-    "domainHint": ""
+    "enabled": true,
+    "profile": "aws-ec2-compose",
+    "environment": "demo-advanced",
+    "domainHint": "demo-advanced.traderx.finos.org"
   },
   "runtime": {
     "kind": "compose",
-    "path": "pricing-awareness-market-data/docker-compose.yml"
+    "path": "runtime/ghcr/009-order-management-matcher/docker-compose.ghcr.yml"
   }
 }

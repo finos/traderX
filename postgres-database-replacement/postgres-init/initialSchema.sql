@@ -1,4 +1,5 @@
 DROP TABLE IF EXISTS trades;
+DROP TABLE IF EXISTS orderbook;
 DROP TABLE IF EXISTS accountusers;
 DROP TABLE IF EXISTS positions;
 DROP TABLE IF EXISTS accounts;
@@ -37,6 +38,24 @@ CREATE TABLE trades (
   price DECIMAL(18,3),
   state VARCHAR(20) CHECK (state in ('New', 'Processing', 'Settled', 'Cancelled'))
 );
+
+CREATE TABLE orderbook (
+  orderid VARCHAR(32) PRIMARY KEY,
+  accountid INTEGER NOT NULL,
+  security VARCHAR(16) NOT NULL,
+  side VARCHAR(16) CHECK (side in ('Buy', 'Sell')),
+  quantity INTEGER NOT NULL CHECK (quantity > 0),
+  remainingquantity INTEGER NOT NULL CHECK (remainingquantity >= 0),
+  limitprice DECIMAL(18,3),
+  status VARCHAR(24) CHECK (status in ('NEW', 'PARTIALLY_FILLED', 'FILLED', 'CANCELED', 'REJECTED')),
+  createdat TIMESTAMP NOT NULL,
+  updatedat TIMESTAMP NOT NULL,
+  lastexecutionprice DECIMAL(18,3),
+  lastfillquantity INTEGER,
+  ordertype VARCHAR(20) NOT NULL DEFAULT 'LIMIT' CHECK (ordertype in ('LIMIT', 'MARKET'))
+);
+CREATE INDEX idx_orderbook_status ON orderbook(status);
+CREATE INDEX idx_orderbook_updatedat ON orderbook(updatedat);
 
 CREATE SEQUENCE accounts_seq START WITH 65000 INCREMENT BY 1;
 

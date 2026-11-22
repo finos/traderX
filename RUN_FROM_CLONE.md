@@ -6,37 +6,37 @@ Prerequisites:
 Start:
 
 ```bash
-./scripts/start-state-008-pricing-awareness-market-data-generated.sh
-./scripts/start-state-008-pricing-awareness-market-data-generated.sh --skip-build
+./scripts/start-state-009-order-management-matcher-generated.sh
+./scripts/start-state-009-order-management-matcher-generated.sh --skip-build
 ```
 
 Endpoints:
 - UI / ingress: `http://localhost:8080`
 - API explorer (ingress): `http://localhost:8080/api/docs`
 - Ingress health: `http://localhost:8080/health`
+- Order matcher health: `http://localhost:18110/health`
 - Grafana dashboards: `http://localhost:8080/grafana/`
 - Grafana local admin: `http://localhost:3001`
-- NATS monitor: `http://localhost:8222/varz`
-- Price publisher: `http://localhost:18100/prices`
+- Prometheus: `http://localhost:9090`
 
 Grafana access:
 - Dashboards are anonymous Viewer surfaces through ingress.
 - The start script prints the active local admin credential.
-- Default convention: user from `TRADERX_GRAFANA_ADMIN_USER` or `traderx-admin`; password from `TRADERX_GRAFANA_ADMIN_PASSWORD` or `traderx-state-008`.
+- Default convention: user from `TRADERX_GRAFANA_ADMIN_USER` or `traderx-admin`; password from `TRADERX_GRAFANA_ADMIN_PASSWORD` or `traderx-state-009`.
 
 Smoke test:
 
 ```bash
-./scripts/test-state-008-pricing-awareness-market-data.sh
-./scripts/test-state-008-pricing-awareness-market-data.sh --skip-messaging
-./scripts/test-messaging-008-pricing-awareness-market-data.sh
+./scripts/test-state-009-order-management-matcher.sh
+./scripts/test-state-009-order-management-matcher.sh --skip-messaging
+./scripts/test-messaging-009-order-management-matcher.sh
 ```
 
 Status / stop:
 
 ```bash
-./scripts/status-state-008-pricing-awareness-market-data-generated.sh
-./scripts/stop-state-008-pricing-awareness-market-data-generated.sh
+./scripts/status-state-009-order-management-matcher-generated.sh
+./scripts/stop-state-009-order-management-matcher-generated.sh
 ```
 
 ## Stable Entrypoints

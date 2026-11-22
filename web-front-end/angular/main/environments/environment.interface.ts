@@ -16,5 +16,6 @@ export interface Environment {
     tradesUrl:       string;
     positionsUrl:    string;
     peopleUrl:       string;
+    orderMatcherUrl: string;
     tradeFeedUrl:    string;
 }

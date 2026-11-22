@@ -89,6 +89,10 @@ server {
         try_files $uri $uri/ /api/docs/index.html;
     }
 
+    location /order-matcher/ {
+        proxy_pass ${ORDER_MATCHER_URL};
+    }
+
     location = /grafana {
         return 301 /grafana/;
     }

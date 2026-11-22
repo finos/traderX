@@ -11,8 +11,8 @@ import { MessageBusConnectionState, TradeFeedService } from '../service/trade-fe
   styleUrls: ['./header.component.scss']
 })
 export class HeaderComponent implements OnInit, OnDestroy {
-
   @Output() switchTheme = new EventEmitter();
+
   metadata$: Observable<StateUiMetadata>;
   isSystemMenuOpen = false;
   messageBusState: MessageBusConnectionState = 'connecting';
