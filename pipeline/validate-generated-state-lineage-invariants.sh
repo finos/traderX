@@ -175,7 +175,7 @@ allowed_roots_for_state() {
 is_ignored_entry() {
   local entry="$1"
   case "${entry}" in
-    .github|.traderx-state|catalog|ci|docs|generated|runtime|scripts)
+    .github|.traderx-state|catalog|ci|conformance|docs|generated|runtime|scripts)
       return 0
       ;;
     AGENTS.md|ARCHITECTURE.md|CONTRIBUTING.md|FUNCTIONAL_TESTING.md|LEARNING.md|README.md|RUN_FROM_CLONE.md|RUN_FROM_GENERATED.md|STATE.md|.gitignore)

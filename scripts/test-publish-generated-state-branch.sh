@@ -32,6 +32,9 @@ make_state_012_fixture() {
     "${fixture_root}/web-front-end" \
     "${fixture_root}/will-be-pruned"
 
+  mkdir -p "${fixture_root}/conformance/state-009"
+  cp "${ROOT}/specs/009-order-management-matcher/tests/conformance/"*.py "${fixture_root}/conformance/state-009/"
+  cp "${ROOT}/specs/009-order-management-matcher/requirements/nonfunctional-delta.md" "${fixture_root}/conformance/state-009/nonfunctional-requirements.md"
   mkdir -p "${fixture_root}/ci"
   printf '{}\n' > "${fixture_root}/ci/state-metadata.json"
   cp "${ROOT}/pipeline/build-test-generated-snapshot.sh" "${fixture_root}/ci/build-test-generated-snapshot.sh"
@@ -84,6 +87,12 @@ echo "[check] publisher keeps api-explorer build context through state pruning"
 valid_fixture="${TMP_DIR}/valid"
 make_state_012_fixture "${valid_fixture}"
 run_publish_fixture "${valid_fixture}" >/dev/null
+
+echo "[check] publisher preserves and requires state-owned conformance inputs"
+missing_conformance_fixture="${TMP_DIR}/missing-conformance"
+make_state_012_fixture "${missing_conformance_fixture}"
+rm "${missing_conformance_fixture}/conformance/state-009/run.py"
+expect_publish_fixture_failure "${missing_conformance_fixture}" "missing published state-009 conformance input"
 
 echo "[check] publisher rejects missing build-plan context"
 missing_context_fixture="${TMP_DIR}/missing-context"
@@ -140,7 +149,7 @@ done
 
 for state in 010-kubernetes-runtime 011-tilt-kubernetes-dev-loop 012-platform-convergence-c3 013-radius-kubernetes-platform 014-fdc3-intent-interoperability; do
   lineage_fixture="${TMP_DIR}/lineage-${state}"
-  mkdir -p "${lineage_fixture}/api-explorer" "${lineage_fixture}/ci" "${lineage_fixture}/scripts"
+  mkdir -p "${lineage_fixture}/api-explorer" "${lineage_fixture}/ci" "${lineage_fixture}/scripts" "${lineage_fixture}/conformance"
   touch "${lineage_fixture}/RUN_FROM_CLONE.md" "${lineage_fixture}/start-env.sh" "${lineage_fixture}/stop-env.sh" "${lineage_fixture}/status-env.sh" "${lineage_fixture}/test-env.sh"
   bash "${ROOT}/pipeline/validate-generated-state-lineage-invariants.sh" --state-id "${state}" --snapshot-dir "${lineage_fixture}"
 done

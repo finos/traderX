@@ -323,7 +323,7 @@ ensure_generated_root_branch() {
   git -C "${root_worktree}" checkout --orphan "${root_branch}" >/dev/null
   git -C "${root_worktree}" rm -rf . >/dev/null 2>&1 || true
   git -C "${root_worktree}" clean -fdx >/dev/null 2>&1 || true
-  git -C "${root_worktree}" commit --allow-empty -m "root: generated-state ancestry anchor" >/dev/null
+  git -C "${root_worktree}" commit --signoff --allow-empty -m "root: generated-state ancestry anchor" >/dev/null
   git -C "${ROOT}" worktree remove --force "${root_worktree}" >/dev/null 2>&1 || true
   echo "[ok] created generated root branch ${root_branch}"
 }
@@ -411,6 +411,9 @@ C2_COMPONENT_DIRS=(
 )
 
 snapshot_keep_paths_for_state() {
+  if (( 10#${state_num} >= 9 )); then
+    printf '%s\n' "conformance"
+  fi
   # Workflows and deployment verification consume these generated helpers.
   if (( 10#${state_num} >= 2 )); then
     printf '%s\n' "ci"
@@ -521,6 +524,17 @@ prune_snapshot_for_state() {
 }
 
 prune_snapshot_for_state
+
+if (( 10#${state_num} >= 9 )); then
+  for required_conformance in run.py reference_adapter.py nonfunctional-requirements.md; do
+    [[ -f "${SNAPSHOT_DIR}/conformance/state-009/${required_conformance}" ]] || {
+      echo "[fail] missing published state-009 conformance input: ${required_conformance}"
+      exit 1
+    }
+  done
+  mkdir -p "${SNAPSHOT_DIR}/scripts"
+  cp "${ROOT}/scripts/test-order-matcher-regression.sh" "${SNAPSHOT_DIR}/scripts/"
+fi
 
 # Local scanner reports are diagnostic artifacts, not snapshot runtime inputs.
 rm -rf "${SNAPSHOT_DIR}/ci/local-security-reports"
@@ -3888,7 +3902,7 @@ if git -C "${WORKTREE_DIR}" diff --cached --quiet; then
     echo "[info] no snapshot changes to commit on ${BRANCH_NAME}"
   fi
 else
-  git -C "${WORKTREE_DIR}" commit \
+  git -C "${WORKTREE_DIR}" commit --signoff \
     -m "snapshot: ${STATE_ID} generated from ${SOURCE_COMMIT}" \
     -m "lineage-base: ${BASE_BRANCH}" >/dev/null
   echo "[ok] committed generated snapshot on branch ${BRANCH_NAME}"
