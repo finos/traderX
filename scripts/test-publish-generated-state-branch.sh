@@ -35,6 +35,7 @@ make_state_012_fixture() {
   mkdir -p "${fixture_root}/conformance/state-009"
   cp "${ROOT}/specs/009-order-management-matcher/tests/conformance/"*.py "${fixture_root}/conformance/state-009/"
   cp "${ROOT}/specs/009-order-management-matcher/requirements/nonfunctional-delta.md" "${fixture_root}/conformance/state-009/nonfunctional-requirements.md"
+  touch "${fixture_root}/conformance/state-009/fresh-init.sql" "${fixture_root}/conformance/state-009/legacy-orderbook.sql"
   mkdir -p "${fixture_root}/ci"
   printf '{}\n' > "${fixture_root}/ci/state-metadata.json"
   cp "${ROOT}/pipeline/build-test-generated-snapshot.sh" "${fixture_root}/ci/build-test-generated-snapshot.sh"

@@ -22,3 +22,9 @@ version 16; maintained log collection retains the existing Compose/dashboard lab
 Any fixed-source scanner disposition requires review, exact image/package scope and
 expiry. Recovery evidence and the subsequent shared-generator work are tracked in
 `docs/operations/state-009-recovery.md`.
+
+PR #495 publication retains the state-owned conformance pack and its regression
+runner in generated snapshots. The pack carries the exact generated production
+initialization SQL so the reference tests remain runnable in Kubernetes descendants
+that remove Compose-only directories. This preserves the inherited NFR-01323
+regression obligation without retaining obsolete runtime components.

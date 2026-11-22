@@ -67,7 +67,7 @@ class OrderBookPostgresUpgradeTest {
             try (Connection connection = connect(url)) {
                 // Consume the generated production schema, not a copied SQLite surrogate.
                 ScriptUtils.executeSqlScript(connection, new FileSystemResource(
-                    Path.of("..", "postgres-database-replacement", "postgres-init", "initialSchema.sql")));
+                    Path.of("..", "conformance", "state-009", "fresh-init.sql")));
             }
             try (ConfigurableApplicationContext context = start(url)) {
                 assertMarketPersists(context.getBean(OrderMatcherService.class));

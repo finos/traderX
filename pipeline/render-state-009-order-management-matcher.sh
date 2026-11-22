@@ -393,6 +393,8 @@ CONFORMANCE_TARGET="${TARGET_ROOT}/conformance/state-009"
 mkdir -p "${CONFORMANCE_TARGET}"
 rsync -a --exclude=__pycache__ "${ROOT}/specs/009-order-management-matcher/tests/conformance/" "${CONFORMANCE_TARGET}/"
 cp "${ROOT}/specs/009-order-management-matcher/requirements/nonfunctional-delta.md" "${CONFORMANCE_TARGET}/nonfunctional-requirements.md"
+# Keep the exact generated production schema available after descendants remove Compose assets.
+cp "${TARGET_ROOT}/postgres-database-replacement/postgres-init/initialSchema.sql" "${CONFORMANCE_TARGET}/fresh-init.sql"
 
 perl -0pi -e 's/^name:\s*traderx-state-\d+/name: traderx-state-009/m' "${COMPOSE_FILE}"
 

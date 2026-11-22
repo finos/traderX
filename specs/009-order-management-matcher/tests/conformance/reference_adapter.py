@@ -76,7 +76,7 @@ class ReferenceAdapter:
             raise RuntimeError("Disposable PostgreSQL did not become ready")
         self.port = command("docker", "port", self.container, "5432/tcp").rsplit(":", 1)[1]
         if baseline == "fresh":
-            self.sql((self.target / "postgres-database-replacement/postgres-init/initialSchema.sql").read_text())
+            self.sql((Path(__file__).parent / "fresh-init.sql").read_text())
         elif baseline == "legacy":
             self.sql((Path(__file__).parent / "legacy-orderbook.sql").read_text())
             o = legacy_order

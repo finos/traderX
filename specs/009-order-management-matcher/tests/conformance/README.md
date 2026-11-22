@@ -34,7 +34,8 @@ bash scripts/test-order-matcher-regression.sh
 
 This runs the Java/PostgreSQL tests, builds the actual executable matcher JAR,
 and invokes this pack with `reference_adapter.py`. The adapter uses disposable
-PostgreSQL containers, the generated fresh initialization SQL, the pre-MARKET
+PostgreSQL containers, the generated production initialization SQL exported as
+`fresh-init.sql` (retained when Kubernetes descendants remove Compose assets), the pre-MARKET
 fixture in `legacy-orderbook.sql`, and an HTTP observation stub for the real
 outgoing trade-service boundary. No application volume is mounted or removed.
 

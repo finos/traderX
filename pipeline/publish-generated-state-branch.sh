@@ -526,7 +526,7 @@ prune_snapshot_for_state() {
 prune_snapshot_for_state
 
 if (( 10#${state_num} >= 9 )); then
-  for required_conformance in run.py reference_adapter.py nonfunctional-requirements.md; do
+  for required_conformance in run.py reference_adapter.py nonfunctional-requirements.md fresh-init.sql legacy-orderbook.sql; do
     [[ -f "${SNAPSHOT_DIR}/conformance/state-009/${required_conformance}" ]] || {
       echo "[fail] missing published state-009 conformance input: ${required_conformance}"
       exit 1
@@ -1768,6 +1768,7 @@ prune_snapshot_scripts_for_targets() {
   }
 
   add_script_keep "README.runtime-harness.md"
+  add_script_keep "test-order-matcher-regression.sh"
   add_script_keep "lib/generated-state-detection.sh"
   add_script_keep "lib/generated-state-detection.ps1"
   add_script_keep "lib/resolve-socketio-client-path.sh"
