@@ -1,11 +1,16 @@
 # Component List
 
-State: `012-platform-convergence-c3`
+State: `014-fdc3-intent-interoperability`
 
 | ID | Label | Kind | Description |
 | --- | --- | --- | --- |
-| `developer` | Developer | actor | Iterates locally with fast feedback loops. |
-| `tilt` | Tilt Dev Loop | tooling | Build/deploy/log orchestration for local k8s. |
-| `cluster` | Kubernetes Cluster | boundary | Underlying runtime substrate inherited from state 011. |
-| `edge` | NGINX Edge Proxy | gateway | Single browser/API entrypoint. |
-| `workloads` | TraderX Workloads | service | Core services remain functionally equivalent to state 009 (C2), carried through state 012 lineage. |
+| `trader` | Trader | actor | User interacting with TraderX blotters and tickets. |
+| `traderxUi` | TraderX Angular UI | service | Trade/order/position views plus FDC3 integration adapter. |
+| `traderxIngress` | TraderX Ingress | gateway | NGINX ingress for TraderX UI/API traffic. |
+| `sailSidecar` | Sail Sidecar | service | Local Sail desktop-agent runtime hosted outside TraderX ingress. |
+| `sailDirectory` | Sail App Directory Profile | component | Seeded app-directory records for TraderX and demo apps. |
+| `demoApps` | Demo FDC3 Apps | service | Chart/quote/workbench apps participating in ticker workflows. |
+| `orderApi` | Order Matcher API | service | Order listing and lifecycle endpoints used by order flows. |
+| `tradeApi` | Trade Service API | service | Trade creation/query endpoints used by trade ticket flows. |
+| `positionApi` | Position Service API | service | Position/blotter data source for symbol-selected rows. |
+| `nats` | NATS Broker | service | Realtime ticker and lifecycle updates via websocket gateway. |

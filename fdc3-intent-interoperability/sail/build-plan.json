@@ -1,0 +1,10 @@
+{
+  "images": [
+    {
+      "name": "sail",
+      "image": "traderx-remediation/sail:014",
+      "context": "fdc3-intent-interoperability/sail/runtime-images/sail",
+      "dockerfile": "Dockerfile.compose"
+    }
+  ]
+}

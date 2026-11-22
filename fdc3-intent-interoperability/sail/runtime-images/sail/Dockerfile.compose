@@ -1,0 +1,5 @@
+FROM node:24-alpine@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8
+RUN apk upgrade --no-cache && apk add --no-cache bash git python3 make g++ \
+ && node -e 'const fs=require("fs"),p="/usr/local/lib/node_modules/npm/package.json",d=JSON.parse(fs.readFileSync(p)); delete d.devDependencies; fs.writeFileSync(p,JSON.stringify(d))' \
+ && npm install --prefix /usr/local/lib/node_modules/npm --omit=dev --ignore-scripts --package-lock=false --no-audit --no-fund brace-expansion@5.0.12 undici@6.29.1 \
+ && npm cache clean --force

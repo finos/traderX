@@ -5,30 +5,36 @@ Prerequisites:
 - kubectl
 - jq
 - Kind (default) or Minikube
-- Tilt (optional, for interactive dev loop)
+- Docker Compose plugin (required for optional Sail sidecar mode)
 
-Start convergence runtime:
+Start TraderX runtime (state 014 wrapper):
 
 ```bash
-./scripts/start-state-012-platform-convergence-c3-generated.sh
-./scripts/start-state-012-platform-convergence-c3-generated.sh --skip-build
+./start-env.sh --provider kind
 ```
 
-Inherited runtime endpoints:
+Start TraderX + Sail sidecar demo mode:
+
+```bash
+./start-env.sh --provider kind --with-sail
+```
+
+Endpoints:
 - UI / edge: `http://localhost:8080`
 - API explorer (edge): `http://localhost:8080/api/docs`
-- Grafana: `http://localhost:8080/grafana`
-- Prometheus: `http://localhost:8080/prometheus`
-
-State 012 artifact pack:
-- `tilt-kubernetes-dev-loop/tilt/Tiltfile`
-- `tilt-kubernetes-dev-loop/tilt/tilt-settings.json`
+- Sail UI (when `--with-sail`): `http://localhost:8090`
 
 Status / stop:
 
 ```bash
-./scripts/status-state-012-platform-convergence-c3-generated.sh
-./scripts/stop-state-012-platform-convergence-c3-generated.sh
+./status-env.sh --provider kind
+./stop-env.sh --provider kind
+```
+
+Functional smoke test:
+
+```bash
+./test-env.sh
 ```
 
 ## Stable Entrypoints
