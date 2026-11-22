@@ -1,20 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
-
-if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
-  LOCAL_RUNTIME_SCRIPT="${GENERATED_ROOT}/code/target-generated/scripts/$(basename "${BASH_SOURCE[0]}")"
-  if [[ -x "${LOCAL_RUNTIME_SCRIPT}" ]]; then
-    exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
-  fi
-fi
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 DELETE_CLUSTER=0
 STOP_TILT=0
 K8S_PROVIDER="${K8S_PROVIDER:-kind}"
-KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-traderx-state-011}"
+KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-traderx-state-012}"
 MINIKUBE_PROFILE=""
 
 while (( "$#" )); do
@@ -65,5 +57,5 @@ if [[ -n "${MINIKUBE_PROFILE}" ]]; then
   stop_args+=(--minikube-profile "${MINIKUBE_PROFILE}")
 fi
 
-"${REPO_ROOT}/scripts/stop-state-010-kubernetes-runtime-generated.sh" "${stop_args[@]}"
-echo "[done] state 011 stop sequence complete"
+"${ROOT}/scripts/stop-state-010-kubernetes-runtime-generated.sh" "${stop_args[@]}"
+echo "[done] state 012 stop sequence complete"

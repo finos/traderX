@@ -15,7 +15,7 @@
   "components": [
     {
       "name": "database",
-      "image": "traderx-remediation/postgres:011",
+      "image": "traderx-remediation/postgres:012",
       "replicas": 1,
       "ports": [
         {

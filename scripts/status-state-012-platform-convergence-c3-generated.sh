@@ -1,20 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-GENERATED_ROOT="${TRADERX_GENERATED_ROOT:-${REPO_ROOT}/generated}"
-
-if [[ "${TRADERX_LOCAL_RUNTIME_SCRIPT:-0}" != "1" ]]; then
-  LOCAL_RUNTIME_SCRIPT="${GENERATED_ROOT}/code/target-generated/scripts/$(basename "${BASH_SOURCE[0]}")"
-  if [[ -x "${LOCAL_RUNTIME_SCRIPT}" ]]; then
-    exec "${LOCAL_RUNTIME_SCRIPT}" "$@"
-  fi
-fi
-STATE_DIR="${GENERATED_ROOT}/code/target-generated/tilt-kubernetes-dev-loop"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+STATE_DIR="${ROOT}/tilt-kubernetes-dev-loop"
 TILT_DIR="${STATE_DIR}/tilt"
 
 K8S_PROVIDER="${K8S_PROVIDER:-kind}"
-KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-traderx-state-011}"
+KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-traderx-state-012}"
 MINIKUBE_PROFILE=""
 
 while (( "$#" )); do
@@ -46,7 +38,7 @@ if [[ -n "${MINIKUBE_PROFILE}" ]]; then
   status_args+=(--minikube-profile "${MINIKUBE_PROFILE}")
 fi
 
-"${REPO_ROOT}/scripts/status-state-010-kubernetes-runtime-generated.sh" "${status_args[@]}"
+"${ROOT}/scripts/status-state-010-kubernetes-runtime-generated.sh" "${status_args[@]}"
 
 echo
 echo "[status] tilt artifacts"

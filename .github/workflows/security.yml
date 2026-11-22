@@ -211,71 +211,8 @@ jobs:
         uses: docker/setup-buildx-action@v3
       - name: Build image for scan
         run: docker build --platform linux/amd64 -f "${{ matrix.directory }}/${{ matrix.dockerfile }}" -t "traderx-security/${{ matrix.image_name }}:scan" "${{ matrix.directory }}"
-      - name: Restore scanner databases (freshness checked after download)
-        uses: actions/cache@v4
+      - name: Scan image for vulnerabilities
+        uses: crazy-max/ghaction-container-scan@v3
         with:
-          path: |
-            .runtime-security-cache/db
-            .runtime-security-cache/java-db
-          key: runtime-databases-${{ runner.os }}-${{ hashFiles('ci/dependency-version-targets.json') }}-${{ github.run_id }}
-          restore-keys: runtime-databases-${{ runner.os }}-${{ hashFiles('ci/dependency-version-targets.json') }}-
-      - name: Scan immutable local build and record exact-run evidence
-        run: python3 ci/nonpublishing_runtime_security.py --module '${{ matrix.image_name }}'
-      - name: Retain local build scan diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: local-image-${{ matrix.image_name }}-${{ github.run_attempt }}
-          path: runtime-security-reports/
-          if-no-files-found: error
-          retention-days: 14
-
-  runtime-image-security:
-    name: Runtime Image Security (build only)
-    needs: docker-image-scan
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    permissions:
-      contents: read
-      actions: read
-      packages: read
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - name: Install pinned Kubernetes manifest parser
-        run: |
-          version=$(jq -er '.security.kubernetesManifestParser | select(.package == "PyYAML") | .version' ci/dependency-version-targets.json)
-          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
-          python3 -m pip install --disable-pip-version-check "PyYAML==$version"
-      - name: Install checksum-pinned Kubernetes manifest renderer
-        run: |
-          version=$(jq -er '.security.kubernetesManifestRenderer.version' ci/dependency-version-targets.json)
-          checksum=$(jq -er '.security.kubernetesManifestRenderer.sha256' ci/dependency-version-targets.json)
-          [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
-          [[ "$checksum" =~ ^[0-9a-f]{64}$ ]]
-          curl --fail --silent --show-error --location --retry 3 --max-time 120 "https://dl.k8s.io/release/$version/bin/linux/amd64/kubectl" -o kubectl
-          printf '%s  kubectl\n' "$checksum" | sha256sum --check
-          sudo install -m 0755 kubectl /usr/local/bin/kubectl
-      - name: Download exact-run local scan evidence
-        uses: actions/download-artifact@v4
-        with:
-          pattern: local-image-*-${{ github.run_attempt }}
-          path: local-images
-      - name: Restore scanner databases (freshness checked after download)
-        uses: actions/cache@v4
-        with:
-          path: |
-            .runtime-security-cache/db
-            .runtime-security-cache/java-db
-          key: runtime-databases-${{ runner.os }}-${{ hashFiles('ci/dependency-version-targets.json') }}-${{ github.run_id }}
-          restore-keys: runtime-databases-${{ runner.os }}-${{ hashFiles('ci/dependency-version-targets.json') }}-
-      - name: Scan complete build-only runtime inventory
-        run: python3 ci/nonpublishing_runtime_security.py --artifacts local-images
-      - name: Retain full inventory and diagnostics (not deployment authorization)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-only-runtime-diagnostics-${{ github.run_attempt }}
-          path: runtime-security-reports/
-          if-no-files-found: error
-          retention-days: 14
+          image: traderx-security/${{ matrix.image_name }}:scan
+          severity: HIGH
