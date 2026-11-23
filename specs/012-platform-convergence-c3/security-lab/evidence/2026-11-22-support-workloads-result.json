@@ -1,0 +1,187 @@
+{
+  "scenario": "support-workloads",
+  "status": "passed",
+  "recorded_at": "2026-11-22T14:03:00.869985+00:00",
+  "workloads": [
+    {
+      "name": "nats-broker",
+      "pod_uid": "cbd4b025-ef03-44fb-88f0-fdb39bc7cd85",
+      "image": "docker.io/library/nats@sha256:5e09808726b0d7500a68b07998e14a5f6d4109956d17ac221d180bc995eef314",
+      "uid": 10001,
+      "no_new_privileges": true,
+      "effective_capabilities": "0",
+      "seccomp_mode": 2,
+      "root_readonly": true,
+      "token_absent": true,
+      "secret_read_denied": true,
+      "deployment_create_denied": true
+    },
+    {
+      "name": "blackbox-exporter",
+      "pod_uid": "9d5894c8-d0a9-414a-a448-b59d9d211096",
+      "image": "ghcr.io/finos/traderx-c3/blackbox-exporter@sha256:c18b3c435c3b43e12411d5ffbe57b600cf97935c87e64cf9ce1f3fb52a4059b5",
+      "uid": 10001,
+      "no_new_privileges": true,
+      "effective_capabilities": "0",
+      "seccomp_mode": 2,
+      "root_readonly": true,
+      "token_absent": true,
+      "secret_read_denied": true,
+      "deployment_create_denied": true
+    },
+    {
+      "name": "otel-collector",
+      "pod_uid": "187fa942-6184-40dd-95bd-64276ce301ca",
+      "image": "docker.io/otel/opentelemetry-collector-contrib@sha256:19b524dc61144cb50e9dccc9469605706db48e3302ddccda404a0aaf0a99a73f",
+      "uid": 10001,
+      "no_new_privileges": true,
+      "effective_capabilities": "0",
+      "seccomp_mode": 2,
+      "root_readonly": true,
+      "token_absent": true,
+      "secret_read_denied": true,
+      "deployment_create_denied": true
+    },
+    {
+      "name": "web-front-end-angular",
+      "pod_uid": "38bfb4da-1737-46e7-b46d-afac2e085b34",
+      "image": "ghcr.io/finos/traderx-c3/web-front-end-angular@sha256:81bfc2e81eb7ee3561c99a0381e6b2672dee4c6d26d56a8142e0045e6060ba8a",
+      "uid": 10001,
+      "no_new_privileges": true,
+      "effective_capabilities": "0",
+      "seccomp_mode": 2,
+      "root_readonly": true,
+      "token_absent": true,
+      "secret_read_denied": true,
+      "deployment_create_denied": true
+    },
+    {
+      "name": "api-explorer",
+      "pod_uid": "651a6b20-a748-4750-99b5-a3fc0033e7c9",
+      "image": "ghcr.io/finos/traderx-c3/api-explorer@sha256:d3970067d2e4323751d1840950453234b7f3c4c2bdcff06da7d92ae37b32bed6",
+      "uid": 10001,
+      "no_new_privileges": true,
+      "effective_capabilities": "0",
+      "seccomp_mode": 2,
+      "root_readonly": true,
+      "token_absent": true,
+      "secret_read_denied": true,
+      "deployment_create_denied": true
+    },
+    {
+      "name": "edge-proxy",
+      "pod_uid": "ab04e424-bf5e-4a83-9211-543a0fb4e513",
+      "image": "docker.io/library/nginx@sha256:809d5e3288a0d7c1a1652eea79dcdce74e64db2979d83b53021e12525f49bd93",
+      "uid": 10001,
+      "no_new_privileges": true,
+      "effective_capabilities": "0",
+      "seccomp_mode": 2,
+      "root_readonly": true,
+      "token_absent": true,
+      "secret_read_denied": true,
+      "deployment_create_denied": true
+    }
+  ],
+  "admission_checks": [
+    {
+      "case": "root",
+      "denied_by": "traderx-lab-support-workloads"
+    },
+    {
+      "case": "writable-root",
+      "denied_by": "traderx-lab-support-workloads"
+    },
+    {
+      "case": "api-token",
+      "denied_by": "traderx-lab-support-workloads"
+    },
+    {
+      "case": "capability",
+      "denied_by": "traderx-lab-support-workloads"
+    },
+    {
+      "case": "privileged",
+      "denied_by": "traderx-lab-support-workloads"
+    },
+    {
+      "case": "unconfined",
+      "denied_by": "traderx-lab-support-workloads"
+    },
+    {
+      "case": "host-network",
+      "denied_by": "traderx-lab-support-workloads"
+    },
+    {
+      "case": "missing-resources",
+      "denied_by": "traderx-lab-support-workloads"
+    },
+    {
+      "case": "host-mount",
+      "denied_by": "traderx-lab-support-workloads"
+    },
+    {
+      "case": "sidecar",
+      "denied_by": "traderx-lab-support-workloads"
+    },
+    {
+      "case": "identity",
+      "denied_by": "traderx-lab-support-workloads"
+    }
+  ],
+  "pod_admission_checks": [
+    {
+      "workload": "account-service",
+      "case": "root",
+      "denied_by": "traderx-lab-business-workloads-pods"
+    },
+    {
+      "workload": "account-service",
+      "case": "missing-label",
+      "denied_by": "traderx-lab-business-workloads-pods"
+    },
+    {
+      "workload": "account-service",
+      "case": "default-identity",
+      "denied_by": "traderx-lab-business-workloads-pods"
+    },
+    {
+      "workload": "account-service",
+      "case": "ephemeral-container",
+      "denied_by": "traderx-lab-business-workloads-pods"
+    },
+    {
+      "workload": "edge-proxy",
+      "case": "root",
+      "denied_by": "traderx-lab-support-workloads-pods"
+    },
+    {
+      "workload": "edge-proxy",
+      "case": "missing-label",
+      "denied_by": "traderx-lab-support-workloads-pods"
+    },
+    {
+      "workload": "edge-proxy",
+      "case": "default-identity",
+      "denied_by": "traderx-lab-support-workloads-pods"
+    },
+    {
+      "workload": "edge-proxy",
+      "case": "ephemeral-container",
+      "denied_by": "traderx-lab-support-workloads-pods"
+    }
+  ],
+  "root_write_denied": true,
+  "tmp_write_passed": true,
+  "source_hashes": {
+    "workloads.py": "ba157f74a5d7a063f32d717a446cb9ae12f911d74cd084bfe04b767272c8242b",
+    "support_workloads.py": "e2875eb5e54ca9bdaf29cca7e976ecc4abbe98325a93bb9980f3ca259627b8b1",
+    "verify_workloads.py": "99de18646a277ff2a9d2dea43150f37aed86837f9e45727aac9f036a8ecefb9a",
+    "apply-workloads.py": "27c369f908310e46ebd08b0923d05611965f750320bf922da34c85581bbf9454"
+  },
+  "manifest_sha256": "44910f733c10aa1c05c3f4ed3d04c7d46da3d2a440ec5f684ff366e47afb8de5",
+  "limitations": [
+    "Named workloads only; no namespace-wide admission claim.",
+    "Trading smoke is a separate positive control.",
+    "No DB/NATS authorization or runtime detection claim."
+  ]
+}

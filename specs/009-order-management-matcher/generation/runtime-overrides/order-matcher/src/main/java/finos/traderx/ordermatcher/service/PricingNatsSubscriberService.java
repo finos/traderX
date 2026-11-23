@@ -44,11 +44,7 @@ public class PricingNatsSubscriberService implements InitializingBean, Disposabl
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        Options options = new Options.Builder()
-            .server(natsAddress)
-            .maxReconnects(-1)
-            .connectionTimeout(Duration.ofSeconds(5))
-            .build();
+        Options options = finos.traderx.messaging.nats.NatsSecurity.options(natsAddress);
         connection = Nats.connect(options);
         dispatcher = connection.createDispatcher(this::onMessage);
         dispatcher.subscribe("pricing.*");

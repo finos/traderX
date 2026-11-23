@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "scope": "existing macOS arm64 workspace onboarding",
+  "checks": [
+    "doctor ready",
+    "setup preserves existing trusted certificate and candidate",
+    "stop releases browser/provider/account workloads",
+    "start returns only after ready",
+    "reset removes inserted synthetic canary and restores two seed accounts"
+  ],
+  "limitations": [
+    "Fresh-clone setup and mkcert CA-install branch not executed; no new CA trust installed.",
+    "Current platform lock is macOS arm64 CPython 3.14; other platforms and full-C3 onboarding pending."
+  ],
+  "source_sha256": {
+    "scripts/security-lab/traderx-lab": "96990d2dd706d0038a8049d1ecf47deaeb34aafbea1804571a395a1f61a59406",
+    "scripts/security-lab/labctl.py": "e899f145f75e008e420df1a936071c40aded1202a08e65b0c73b62ca5e097d58",
+    "scripts/security-lab/browser_lab.py": "eb6b54d9cb0658077184714bb4f92fe422409dfad2ad9bbe774d331c1d336685",
+    "scripts/security-lab/account_dev.py": "18bcb82f0c49d87a08d761f723d41abc7929f19a920a5a987ce12d970fbe4b53"
+  }
+}

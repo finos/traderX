@@ -1,0 +1,256 @@
+{
+  "status": "passed",
+  "scope": "C3 reference smoke suite, not hardened profile",
+  "generated_commit": "cfa6992e47ee16ba78c27cad8539b03bf03afeec",
+  "canonical_source_commit": "ca0f66429bdf95552da0655eed56e34c4af67185",
+  "profile_base_commit": "83cc57b65c7d316976f85977734c90eb3fbde4c6",
+  "profile_working_changes": "uncommitted; preserve tracked code and diff for reproduction",
+  "manifest_sha256": "51fcc559b42e5de86d87e1c351bb5812548545ea8c2bee5b748f7dac13ace12c",
+  "smoke_log_sha256": "8fba4375703206a9ba5ad72044092686161ff3096b0e45f43478ea7980211e57",
+  "smoke_log_local_path": "/private/tmp/traderx-security-runtime/evidence/c3-smoke.log",
+  "command": "KUBECONFIG=/private/tmp/traderx-security-runtime/kubeconfig TRADERX_GENERATED_ROOT=/private/tmp/traderx-security-runtime/generated TRADERX_LOCAL_RUNTIME_SCRIPT=1 TRADERX_USE_PUBLISHED_IMAGES=1 bash scripts/test-state-012-platform-convergence-c3.sh http://127.0.0.1:18080 traderx-security-lab kind traderx-security-lab",
+  "runtime_images": [
+    {
+      "pod": "account-service-7bb64db886-tdvtp",
+      "containers": [
+        {
+          "name": "account-service",
+          "image": "sha256:e94f8d7b27868326c98895aaa036618d458e034c71466ba05b99799573fc1f95",
+          "image_id": "ghcr.io/finos/traderx-c3/account-service@sha256:1649d7e0cdc92c77634646a4fc3c6371c5b90d16b79ad67e701093519499462b",
+          "ready": true,
+          "restart_count": 0
+        }
+      ]
+    },
+    {
+      "pod": "api-explorer-6bf7bd9bf6-s66zj",
+      "containers": [
+        {
+          "name": "api-explorer",
+          "image": "sha256:134aed3e8a754b4225b112b73f0608e3d0248d7c0e101e4aead6096569dd5155",
+          "image_id": "ghcr.io/finos/traderx-c3/api-explorer@sha256:d3970067d2e4323751d1840950453234b7f3c4c2bdcff06da7d92ae37b32bed6",
+          "ready": true,
+          "restart_count": 0
+        }
+      ]
+    },
+    {
+      "pod": "blackbox-exporter-85865ffc4b-rgl4p",
+      "containers": [
+        {
+          "name": "blackbox-exporter",
+          "image": "sha256:ee292986a91058ad0b7dfc3c3b5e338cc0604a023dec7500bbbdb8b3335154e2",
+          "image_id": "ghcr.io/finos/traderx-c3/blackbox-exporter@sha256:c18b3c435c3b43e12411d5ffbe57b600cf97935c87e64cf9ce1f3fb52a4059b5",
+          "ready": true,
+          "restart_count": 0
+        }
+      ]
+    },
+    {
+      "pod": "database-667458db6-82t2s",
+      "containers": [
+        {
+          "name": "database",
+          "image": "sha256:ca0e572b75fbae654bbd5451bae0ede525cb9c3a8d0d4ee532471be3713eb8ec",
+          "image_id": "ghcr.io/finos/traderx-c3/database@sha256:1aa68521a486e2c217e6d1b1328ae3d01816302eeddbeb664f34445d6844f022",
+          "ready": true,
+          "restart_count": 0
+        }
+      ]
+    },
+    {
+      "pod": "edge-proxy-757d789f77-pqbzt",
+      "containers": [
+        {
+          "name": "edge-proxy",
+          "image": "sha256:3758098ba7332d4399461d95814dcc9b5722dc135b761ca4823381b9670aade4",
+          "image_id": "docker.io/library/nginx@sha256:809d5e3288a0d7c1a1652eea79dcdce74e64db2979d83b53021e12525f49bd93",
+          "ready": true,
+          "restart_count": 0
+        }
+      ]
+    },
+    {
+      "pod": "grafana-7d6866fdd9-mrfgd",
+      "containers": [
+        {
+          "name": "grafana",
+          "image": "sha256:89e47b82cb0e0cc3b6f8abf08f10dc78cee5b0918bf84e4eff63b8585566d79e",
+          "image_id": "docker.io/grafana/grafana@sha256:02a7f6d32969f9462a870ec06167526d1e220fa97c4f068356d326c96336ca0d",
+          "ready": true,
+          "restart_count": 0
+        }
+      ]
+    },
+    {
+      "pod": "loki-55894fb8db-rlb7t",
+      "containers": [
+        {
+          "name": "loki",
+          "image": "sha256:4b500cc2999e1d1a3ae2d298bfbf865238efade5484fed7f96f73eb2b85c50a1",
+          "image_id": "ghcr.io/finos/traderx-c3/loki@sha256:83a87a7dbf3ad6d9f2723ed3b667eaf10851c5898fd7bdec3c772602007149f8",
+          "ready": true,
+          "restart_count": 0
+        }
+      ]
+    },
+    {
+      "pod": "nats-broker-57d578df9d-pkqv6",
+      "containers": [
+        {
+          "name": "nats-broker",
+          "image": "sha256:da19f6fde71d29dab4c31de22562bb4eed2d638b78252733555ae7f0d227597f",
+          "image_id": "docker.io/library/nats@sha256:5e09808726b0d7500a68b07998e14a5f6d4109956d17ac221d180bc995eef314",
+          "ready": true,
+          "restart_count": 0
+        }
+      ]
+    },
+    {
+      "pod": "order-matcher-68f4f7f8f6-mxqg5",
+      "containers": [
+        {
+          "name": "order-matcher",
+          "image": "sha256:ac2e725bc44c403ed8e253fa88f53f61046c55e3d9c20099c72c233f6a9e21f4",
+          "image_id": "ghcr.io/finos/traderx-c3/order-matcher@sha256:087bbe0b1db70953c2eddf4b67c5defeba4d57bfa8409a6ba4a161c09303a646",
+          "ready": true,
+          "restart_count": 0
+        }
+      ]
+    },
+    {
+      "pod": "otel-collector-75c9766878-hdsjm",
+      "containers": [
+        {
+          "name": "otel-collector",
+          "image": "sha256:aa4d14f5e191ba226d50675d629c803eea1f3147a1c001ee68fc4ebfb735912f",
+          "image_id": "docker.io/otel/opentelemetry-collector-contrib@sha256:19b524dc61144cb50e9dccc9469605706db48e3302ddccda404a0aaf0a99a73f",
+          "ready": true,
+          "restart_count": 0
+        }
+      ]
+    },
+    {
+      "pod": "people-service-79dfd58674-kwfgn",
+      "containers": [
+        {
+          "name": "people-service",
+          "image": "sha256:776fdab1fdac6ff2beeb3ab3f14cbae1e8fc52a4fcf719b4494fa6b702c5f0fd",
+          "image_id": "ghcr.io/finos/traderx-c3/people-service@sha256:816cd6e4013bb07cb663369d1f290c14efaf575f9dd6363d82f4a61916eacd64",
+          "ready": true,
+          "restart_count": 0
+        }
+      ]
+    },
+    {
+      "pod": "position-service-654855fc47-9tq8z",
+      "containers": [
+        {
+          "name": "position-service",
+          "image": "sha256:1835631aae3ec22d8f199921191462d1bee262b0d607413c0bac962cf5f9ee76",
+          "image_id": "ghcr.io/finos/traderx-c3/position-service@sha256:05ed632ced6d7af906416eccf468cd8e2def061f77a4c73ea00e81d699846904",
+          "ready": true,
+          "restart_count": 0
+        }
+      ]
+    },
+    {
+      "pod": "price-publisher-78d4d4c554-mf78f",
+      "containers": [
+        {
+          "name": "price-publisher",
+          "image": "sha256:3f3140d25659dfe55aeb1ed29b8598e0aeecf0426653722ee0fccfe0b166198b",
+          "image_id": "ghcr.io/finos/traderx-c3/price-publisher@sha256:266ec64e24c0de519bbf05ac931fe1fd8a0dc36f1b7d5c02d6b89c75a4160016",
+          "ready": true,
+          "restart_count": 0
+        }
+      ]
+    },
+    {
+      "pod": "prometheus-d6b6489bc-qktzk",
+      "containers": [
+        {
+          "name": "prometheus",
+          "image": "sha256:30a923b36d21d85080b9d419863ef7ac4735b120f4a0e309fb1265ef683ee416",
+          "image_id": "ghcr.io/finos/traderx-c3/prometheus@sha256:68a8bd921a7c0d59ac6537b0d149db2e923236c4a33a77dfce6353720eadd6fa",
+          "ready": true,
+          "restart_count": 0
+        }
+      ]
+    },
+    {
+      "pod": "promtail-22dt6",
+      "containers": [
+        {
+          "name": "promtail",
+          "image": "sha256:4017baa96196f463829e03aa8e3507f27803ffbe78eecbf0fa8c2a325f64695f",
+          "image_id": "docker.io/timberio/vector@sha256:d11443983ccc190d87965e01b49149b1aeed0af34b7d8753a98996c194ff684d",
+          "ready": true,
+          "restart_count": 0
+        }
+      ]
+    },
+    {
+      "pod": "reference-data-7f6c4974b6-d42mz",
+      "containers": [
+        {
+          "name": "reference-data",
+          "image": "sha256:4486c3c778671b62d38830ae68f97350616fb43fbd0668d520135f593592d098",
+          "image_id": "ghcr.io/finos/traderx-c3/reference-data@sha256:3174c3dd68fdf7ee20669d668801bd41455f06967eb9c0b779666128669517e7",
+          "ready": true,
+          "restart_count": 0
+        }
+      ]
+    },
+    {
+      "pod": "tempo-58df9cf648-b22dx",
+      "containers": [
+        {
+          "name": "tempo",
+          "image": "sha256:86ac79ba3b8a397e312d661b4aceed7e7baac16595e257151b732e0570f3461f",
+          "image_id": "ghcr.io/finos/traderx-c3/tempo@sha256:6fa461120fd043d588bde88f773dbd855a09b1d059348a96fffa4ad6fcaf3d9d",
+          "ready": true,
+          "restart_count": 0
+        }
+      ]
+    },
+    {
+      "pod": "trade-processor-568464fb-j684l",
+      "containers": [
+        {
+          "name": "trade-processor",
+          "image": "sha256:db4b5f87c530679983a1df93127e26453462ebbe508144887830881977894d6a",
+          "image_id": "ghcr.io/finos/traderx-c3/trade-processor@sha256:0542e8da8bb22fff281a11f25f229dfdaa6acd982fe76a592a3eb0629fc8bab7",
+          "ready": true,
+          "restart_count": 0
+        }
+      ]
+    },
+    {
+      "pod": "trade-service-789859fc5b-8pn2r",
+      "containers": [
+        {
+          "name": "trade-service",
+          "image": "sha256:5161415fb4e345b53ceee59d43243463156d59d48c95873ea2d104cd1e730673",
+          "image_id": "ghcr.io/finos/traderx-c3/trade-service@sha256:51e7af4b8d022f86d5ad6e21dc1433b4504b51b9cf9ecf62aa95c13622fbdc2c",
+          "ready": true,
+          "restart_count": 0
+        }
+      ]
+    },
+    {
+      "pod": "web-front-end-angular-5b96d674b7-l7ls7",
+      "containers": [
+        {
+          "name": "web-front-end-angular",
+          "image": "sha256:4cb1028bbfe9ebb974f6d2ed08631ca3714c7289ffc2e2cb8551416d47f27ede",
+          "image_id": "ghcr.io/finos/traderx-c3/web-front-end-angular@sha256:81bfc2e81eb7ee3561c99a0381e6b2672dee4c6d26d56a8142e0045e6060ba8a",
+          "ready": true,
+          "restart_count": 0
+        }
+      ]
+    }
+  ],
+  "recorded_at": "2026-11-22T13:21:07.705782+00:00",
+  "repeatable_start_and_test_wrappers": "passed"
+}

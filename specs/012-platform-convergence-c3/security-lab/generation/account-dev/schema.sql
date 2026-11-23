@@ -1,0 +1,12 @@
+CREATE TABLE Accounts (ID INTEGER PRIMARY KEY, DisplayName VARCHAR(50));
+CREATE SEQUENCE accounts_seq START WITH 70000;
+CREATE TABLE AccountUsers (AccountID INTEGER NOT NULL REFERENCES Accounts(ID), Username VARCHAR(15) NOT NULL, PRIMARY KEY(AccountID, Username));
+INSERT INTO Accounts VALUES (22214, 'Synthetic reader account'), (62654, 'Synthetic trader account');
+INSERT INTO AccountUsers VALUES (22214, 'reader'), (62654, 'trader');
+REVOKE CREATE ON SCHEMA public FROM PUBLIC;
+CREATE ROLE lab_account LOGIN PASSWORD '__RUNTIME_PASSWORD__' NOSUPERUSER NOCREATEDB NOCREATEROLE;
+GRANT CONNECT ON DATABASE accountdev TO lab_account;
+GRANT USAGE ON SCHEMA public TO lab_account;
+GRANT SELECT, INSERT, UPDATE ON Accounts TO lab_account;
+GRANT SELECT, INSERT ON AccountUsers TO lab_account;
+GRANT USAGE ON SEQUENCE accounts_seq TO lab_account;

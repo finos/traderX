@@ -1,0 +1,200 @@
+{
+  "status": "candidate-not-runtime-verified",
+  "namespace": "traderx-security-lab",
+  "sources": [
+    "specs/010-kubernetes-runtime/system/kubernetes-runtime.spec.json",
+    "specs/010-kubernetes-runtime/system/nginx-edge.conf"
+  ],
+  "limitations": [
+    "No external gateway ingress or telemetry allowances yet",
+    "DNS assumes kube-system/k8s-app=kube-dns; verify actual CNI and DNS",
+    "Environment-derived dependencies require runtime confirmation",
+    "No operator routes or trade-processor edge exposure permitted"
+  ],
+  "workloads": {
+    "database": [
+      5432
+    ],
+    "nats-broker": [
+      4222,
+      8222,
+      8081
+    ],
+    "reference-data": [
+      18085
+    ],
+    "people-service": [
+      18089
+    ],
+    "account-service": [
+      18088
+    ],
+    "position-service": [
+      18090
+    ],
+    "trade-processor": [
+      18091
+    ],
+    "trade-service": [
+      18092
+    ],
+    "price-publisher": [
+      18100
+    ],
+    "order-matcher": [
+      18110
+    ],
+    "web-front-end-angular": [
+      18093
+    ],
+    "edge-proxy": [
+      8080
+    ]
+  },
+  "flows": [
+    {
+      "from": "edge-proxy",
+      "to": "reference-data",
+      "port": 18085,
+      "reason": "Candidate application route; verify auth and business scope"
+    },
+    {
+      "from": "edge-proxy",
+      "to": "people-service",
+      "port": 18089,
+      "reason": "Candidate application route; verify auth and business scope"
+    },
+    {
+      "from": "edge-proxy",
+      "to": "account-service",
+      "port": 18088,
+      "reason": "Candidate application route; verify auth and business scope"
+    },
+    {
+      "from": "edge-proxy",
+      "to": "position-service",
+      "port": 18090,
+      "reason": "Candidate application route; verify auth and business scope"
+    },
+    {
+      "from": "edge-proxy",
+      "to": "trade-service",
+      "port": 18092,
+      "reason": "Candidate application route; verify auth and business scope"
+    },
+    {
+      "from": "edge-proxy",
+      "to": "order-matcher",
+      "port": 18110,
+      "reason": "Candidate application route; verify auth and business scope"
+    },
+    {
+      "from": "edge-proxy",
+      "to": "price-publisher",
+      "port": 18100,
+      "reason": "Candidate application route; verify auth and business scope"
+    },
+    {
+      "from": "edge-proxy",
+      "to": "web-front-end-angular",
+      "port": 18093,
+      "reason": "Candidate application route; verify auth and business scope"
+    },
+    {
+      "from": "edge-proxy",
+      "to": "nats-broker",
+      "port": 8081,
+      "reason": "Browser WebSocket; broker authorization still required"
+    },
+    {
+      "from": "account-service",
+      "to": "database",
+      "port": 5432,
+      "reason": "Runtime database dependency; grants remain a separate boundary"
+    },
+    {
+      "from": "account-service",
+      "to": "people-service",
+      "port": 18089,
+      "reason": "Source environment PEOPLE_SERVICE_HOST"
+    },
+    {
+      "from": "position-service",
+      "to": "database",
+      "port": 5432,
+      "reason": "Runtime database dependency; grants remain a separate boundary"
+    },
+    {
+      "from": "trade-processor",
+      "to": "database",
+      "port": 5432,
+      "reason": "Runtime database dependency; grants remain a separate boundary"
+    },
+    {
+      "from": "trade-processor",
+      "to": "nats-broker",
+      "port": 4222,
+      "reason": "Service messaging dependency; subject permissions required"
+    },
+    {
+      "from": "trade-service",
+      "to": "account-service",
+      "port": 18088,
+      "reason": "Source environment ACCOUNT_SERVICE_HOST"
+    },
+    {
+      "from": "trade-service",
+      "to": "reference-data",
+      "port": 18085,
+      "reason": "Source environment REFERENCE_DATA_HOST"
+    },
+    {
+      "from": "trade-service",
+      "to": "people-service",
+      "port": 18089,
+      "reason": "Source environment PEOPLE_SERVICE_HOST"
+    },
+    {
+      "from": "trade-service",
+      "to": "nats-broker",
+      "port": 4222,
+      "reason": "Service messaging dependency; subject permissions required"
+    },
+    {
+      "from": "trade-service",
+      "to": "price-publisher",
+      "port": 18100,
+      "reason": "Source environment PRICE_SERVICE_HOST"
+    },
+    {
+      "from": "price-publisher",
+      "to": "nats-broker",
+      "port": 4222,
+      "reason": "Service messaging dependency; subject permissions required"
+    },
+    {
+      "from": "order-matcher",
+      "to": "database",
+      "port": 5432,
+      "reason": "Runtime database dependency; grants remain a separate boundary"
+    },
+    {
+      "from": "order-matcher",
+      "to": "nats-broker",
+      "port": 4222,
+      "reason": "Service messaging dependency; subject permissions required"
+    },
+    {
+      "from": "order-matcher",
+      "to": "price-publisher",
+      "port": 18100,
+      "reason": "Source environment PRICE_SERVICE_URL"
+    },
+    {
+      "from": "order-matcher",
+      "to": "trade-service",
+      "port": 18092,
+      "reason": "Source environment TRADE_SERVICE_URL"
+    }
+  ]
+}

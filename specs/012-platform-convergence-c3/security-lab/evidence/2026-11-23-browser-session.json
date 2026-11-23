@@ -1,0 +1,418 @@
+{
+  "run_id": "ad24431c4f6547578a4cc7be7ef772d2",
+  "started_at": "2026-11-23T07:37:12.288404+00:00",
+  "status": "passed",
+  "scope": "real-provider-and-local-browser-session-to-Spring-account-API",
+  "image": "quay.io/keycloak/keycloak@sha256:7e66a96e4739239070aeaf72e4c5decf0f7f682cfc725b9f7ea2b336eaba38b3",
+  "cases": [
+    {
+      "id": "verified-tls-discovery-and-loopback-boundary",
+      "status": "passed"
+    },
+    {
+      "id": "reader-real-provider-filtered-account-api",
+      "status": "passed"
+    },
+    {
+      "id": "reader-real-provider-filtered-membership-api",
+      "status": "passed"
+    },
+    {
+      "id": "reader-real-provider-own-account",
+      "status": "passed"
+    },
+    {
+      "id": "reader-real-provider-cross-account-denied",
+      "status": "passed"
+    },
+    {
+      "id": "reader-real-provider-POST-account-denied",
+      "status": "passed"
+    },
+    {
+      "id": "reader-real-provider-PUT-account-denied",
+      "status": "passed"
+    },
+    {
+      "id": "reader-real-provider-cross-accountuser-denied",
+      "status": "passed"
+    },
+    {
+      "id": "reader-real-provider-POST-accountuser-denied",
+      "status": "passed"
+    },
+    {
+      "id": "reader-real-provider-PUT-accountuser-denied",
+      "status": "passed"
+    },
+    {
+      "id": "reader-real-provider-id-token-api-denied",
+      "status": "passed"
+    },
+    {
+      "id": "reader-code-pkce-signed-token-and-entitlements",
+      "status": "passed"
+    },
+    {
+      "id": "reader-id-token-not-api-token",
+      "status": "passed"
+    },
+    {
+      "id": "reader-code-reuse-denied",
+      "status": "passed"
+    },
+    {
+      "id": "reader-tampered-token-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-real-provider-filtered-account-api",
+      "status": "passed"
+    },
+    {
+      "id": "trader-real-provider-filtered-membership-api",
+      "status": "passed"
+    },
+    {
+      "id": "trader-real-provider-own-account",
+      "status": "passed"
+    },
+    {
+      "id": "trader-real-provider-cross-account-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-real-provider-POST-account-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-real-provider-PUT-account-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-real-provider-cross-accountuser-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-real-provider-POST-accountuser-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-real-provider-PUT-accountuser-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-real-provider-id-token-api-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-code-pkce-signed-token-and-entitlements",
+      "status": "passed"
+    },
+    {
+      "id": "trader-id-token-not-api-token",
+      "status": "passed"
+    },
+    {
+      "id": "trader-code-reuse-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-tampered-token-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-real-provider-filtered-account-api",
+      "status": "passed"
+    },
+    {
+      "id": "operator-real-provider-filtered-membership-api",
+      "status": "passed"
+    },
+    {
+      "id": "operator-real-provider-cross-account-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-real-provider-POST-account-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-real-provider-PUT-account-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-real-provider-cross-accountuser-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-real-provider-POST-accountuser-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-real-provider-PUT-accountuser-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-real-provider-id-token-api-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-code-pkce-signed-token-and-entitlements",
+      "status": "passed"
+    },
+    {
+      "id": "operator-id-token-not-api-token",
+      "status": "passed"
+    },
+    {
+      "id": "operator-code-reuse-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-tampered-token-denied",
+      "status": "passed"
+    },
+    {
+      "id": "wrong-password-denied",
+      "status": "passed"
+    },
+    {
+      "id": "wrong-pkce-verifier-denied",
+      "status": "passed"
+    },
+    {
+      "id": "missing-pkce-denied",
+      "status": "passed"
+    },
+    {
+      "id": "alternate-redirect-denied",
+      "status": "passed"
+    },
+    {
+      "id": "password-grant-disabled",
+      "status": "passed"
+    },
+    {
+      "id": "browser-anonymous-api-denied",
+      "status": "passed"
+    },
+    {
+      "id": "browser-unsolicited-callback-denied",
+      "status": "passed"
+    },
+    {
+      "id": "browser-wrong-state-denied",
+      "status": "passed"
+    },
+    {
+      "id": "reader-browser-code-callback",
+      "status": "passed"
+    },
+    {
+      "id": "reader-browser-secure-cookie",
+      "status": "passed"
+    },
+    {
+      "id": "reader-browser-callback-replay-denied",
+      "status": "passed"
+    },
+    {
+      "id": "reader-browser-identity-without-token",
+      "status": "passed"
+    },
+    {
+      "id": "reader-browser-filtered-accounts",
+      "status": "passed"
+    },
+    {
+      "id": "reader-browser-cross-account-denied",
+      "status": "passed"
+    },
+    {
+      "id": "reader-browser-get-logout-denied",
+      "status": "passed"
+    },
+    {
+      "id": "reader-browser-missing-csrf-denied",
+      "status": "passed"
+    },
+    {
+      "id": "reader-browser-cross-origin-logout-denied",
+      "status": "passed"
+    },
+    {
+      "id": "reader-browser-logout",
+      "status": "passed"
+    },
+    {
+      "id": "reader-browser-logged-out-api-denied",
+      "status": "passed"
+    },
+    {
+      "id": "reader-browser-retired-session-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-browser-code-callback",
+      "status": "passed"
+    },
+    {
+      "id": "trader-browser-secure-cookie",
+      "status": "passed"
+    },
+    {
+      "id": "trader-browser-callback-replay-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-browser-identity-without-token",
+      "status": "passed"
+    },
+    {
+      "id": "trader-browser-filtered-accounts",
+      "status": "passed"
+    },
+    {
+      "id": "trader-browser-cross-account-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-browser-get-logout-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-browser-missing-csrf-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-browser-cross-origin-logout-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-browser-logout",
+      "status": "passed"
+    },
+    {
+      "id": "trader-browser-logged-out-api-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-browser-retired-session-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-browser-code-callback",
+      "status": "passed"
+    },
+    {
+      "id": "operator-browser-secure-cookie",
+      "status": "passed"
+    },
+    {
+      "id": "operator-browser-callback-replay-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-browser-identity-without-token",
+      "status": "passed"
+    },
+    {
+      "id": "operator-browser-filtered-accounts",
+      "status": "passed"
+    },
+    {
+      "id": "operator-browser-cross-account-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-browser-get-logout-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-browser-missing-csrf-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-browser-cross-origin-logout-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-browser-logout",
+      "status": "passed"
+    },
+    {
+      "id": "operator-browser-logged-out-api-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-browser-retired-session-denied",
+      "status": "passed"
+    },
+    {
+      "id": "real-provider-api-database-unchanged",
+      "status": "passed"
+    },
+    {
+      "id": "provider-outage-unexpired-token-within-trust-window",
+      "status": "passed"
+    }
+  ],
+  "limitations": [
+    "Protocol-level HTTPS browser-cookie tests; no manual Chrome/Angular/C3 acceptance.",
+    "Disposable development-mode provider; explicit process replacement, not automatic JWKS rotation.",
+    "Unexpired tokens remain usable offline until token or trust expiry; no immediate revocation.",
+    "Rotation-only access-token lifetime is 900 seconds; normal fixture lifetime remains 120 seconds.",
+    "Local logout only; provider SSO and copied tokens are not revoked. No refresh-token flow.",
+    "Each role used a fresh browser profile; same-browser SSO account switching remains unaccepted."
+  ],
+  "resource_preflight": {
+    "status": "ready",
+    "mode": "fixture",
+    "reasons": [],
+    "required_headroom_bytes": 1610612736,
+    "observation": {
+      "host_pressure": "normal",
+      "docker_memory_bytes": 6213808128,
+      "containers": [
+        {
+          "name": "traderx-account-dev-account-1",
+          "memory_bytes": 375285350
+        },
+        {
+          "name": "traderx-account-dev-people-1",
+          "memory_bytes": 18161336
+        },
+        {
+          "name": "traderx-account-dev-database-1",
+          "memory_bytes": 127611699
+        },
+        {
+          "name": "buildx_buildkit_traderx-009-recovery0",
+          "memory_bytes": 67350036
+        }
+      ]
+    },
+    "limitations": [
+      "Snapshot only; not a reservation or a guarantee against subsequent pressure.",
+      "Docker container working sets omit some VM/kernel overhead; margins are provisional.",
+      "Readiness does not establish application health or security acceptance."
+    ]
+  },
+  "image_config_id": "sha256:61a6cd8c36da8fc92bb79f092ef9f49f69c3313f61e01a03f3eff72b41f946a5",
+  "architecture": "arm64",
+  "public_key_sha256": "d3c9ec42e7a4d2376a1b97554b368f01ab1d21a9f14848bae47ce858b31405da",
+  "database_before_sha256": "02e0697ac4800c57c6e80e667ff478eba71c94001d9b31acbcd212eb9755720c",
+  "database_after_sha256": "02e0697ac4800c57c6e80e667ff478eba71c94001d9b31acbcd212eb9755720c",
+  "cleanup": "complete",
+  "finished_at": "2026-11-23T07:38:39.656852+00:00",
+  "source_sha256": {
+    "identity_fixture.py": "af78aa40c8fcb389eaf50c527d3da4c891b63939675f8ff75e6ea2ca9cdbbe52",
+    "verify_identity.py": "7b7819e1a9de85861c4ec601a37bbf72e473c871fb87c2be5fe6ada73c0fd7e6",
+    "requirements-identity.txt": "fdecabe5fe314d1daac0548970117334f1b827db9a10a5e21731ddccdcde6b05",
+    "resource_preflight.py": "bbdca6afb3232e2a86b40736c334cdc906dd50e80d67b8d819b32662e983bd5c",
+    "account_oidc.py": "b42567bbbec3aa6e52cc669dcd44ac047c44523c6c8006b1b130215a16e28627",
+    "browser_session.py": "4b19c787e9a65bdf425b74386edca99e4cf6c76631910df49aa00b64b9bc37f9",
+    "verify_browser_session.py": "6a35e0a7ee069527cf594409183c87e5881574608f39704da073553d0420033d"
+  }
+}

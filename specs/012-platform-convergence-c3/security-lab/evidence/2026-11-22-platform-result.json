@@ -1,0 +1,60 @@
+{
+  "status": "passed",
+  "scope": "platform probes only; not hardened C3",
+  "recorded_at": "2026-11-22T13:08:37.606687+00:00",
+  "node_uid": "47495a16-e5c7-4806-886b-f684c9bf21e1",
+  "context": "kind-traderx-security-lab",
+  "image": {
+    "source": "busybox:1.37.0",
+    "index_digest": "sha256:a7dbc319b1438115a207e11930dc4bb3e643dcb3ec0bdd694bb36cd8fad289ec",
+    "digest": "sha256:d82c2ab94640ded77cf76514ce6a84870761105058a4a9e51b05a8a79be97a6c",
+    "platform": "linux/arm64",
+    "image": "docker.io/library/busybox@sha256:d82c2ab94640ded77cf76514ce6a84870761105058a4a9e51b05a8a79be97a6c"
+  },
+  "node_kernel": "6.10.14-linuxkit",
+  "network_allowed_and_denied_verified": true,
+  "restricted_admission_verified": true,
+  "policy_sha256": "27c64ffcf8f18c3d2c0fe34fdc3a9775baf5dccd1e5a81d739b31dad015f8197",
+  "observations": [
+    {
+      "phase": "before-policy",
+      "client": "allowed",
+      "exit_code": 0,
+      "stdout": "security-lab-ok",
+      "stderr": ""
+    },
+    {
+      "phase": "before-policy",
+      "client": "denied",
+      "exit_code": 0,
+      "stdout": "security-lab-ok",
+      "stderr": ""
+    },
+    {
+      "phase": "after-policy",
+      "client": "allowed",
+      "exit_code": 0,
+      "stdout": "security-lab-ok",
+      "stderr": ""
+    },
+    {
+      "phase": "after-policy",
+      "client": "denied",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "wget: download timed out\ncommand terminated with exit code 1"
+    },
+    {
+      "phase": "after-denial-positive-control",
+      "client": "allowed",
+      "exit_code": 0,
+      "stdout": "security-lab-ok",
+      "stderr": ""
+    },
+    {
+      "phase": "admission-negative-server-dry-run",
+      "exit_code": 1,
+      "stderr": "Error from server (Forbidden): error when creating \"STDIN\": pods \"unsafe-admission-probe\" is forbidden: violates PodSecurity \"restricted:v1.35\": privileged (container \"unsafe-admission-probe\" must not set securityContext.privileged=true), allowPrivilegeEscalation != false (container \"unsafe-admission-probe\" must set securityContext.allowPrivilegeEscalation=false), runAsUser=0 (pod must not set runAsUser=0)"
+    }
+  ]
+}

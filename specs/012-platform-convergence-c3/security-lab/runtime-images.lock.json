@@ -1,0 +1,145 @@
+{
+  "generated_commit": "cfa6992e47ee16ba78c27cad8539b03bf03afeec",
+  "images": {
+    "nginx:alpine-slim@sha256:4c734d33ee731135dc9f2349914a34551c920f4451fca8bb05bf5880eb9079e8": {
+      "source": "nginx:alpine-slim@sha256:4c734d33ee731135dc9f2349914a34551c920f4451fca8bb05bf5880eb9079e8",
+      "index_digest": "sha256:4c734d33ee731135dc9f2349914a34551c920f4451fca8bb05bf5880eb9079e8",
+      "digest": "sha256:809d5e3288a0d7c1a1652eea79dcdce74e64db2979d83b53021e12525f49bd93",
+      "platform": "linux/arm64",
+      "image": "docker.io/library/nginx@sha256:809d5e3288a0d7c1a1652eea79dcdce74e64db2979d83b53021e12525f49bd93"
+    },
+    "traderx-remediation/blackbox-exporter:012": {
+      "source": "ghcr.io/finos/traderx-c3/blackbox-exporter:cfa6992e47ee16ba78c27cad8539b03bf03afeec",
+      "index_digest": "sha256:f74a4d89dc3f5dcf7fe39288743a9a296f5c97ff1a730d2fde65604abd0bd01a",
+      "digest": "sha256:c18b3c435c3b43e12411d5ffbe57b600cf97935c87e64cf9ce1f3fb52a4059b5",
+      "platform": "linux/amd64",
+      "image": "ghcr.io/finos/traderx-c3/blackbox-exporter@sha256:c18b3c435c3b43e12411d5ffbe57b600cf97935c87e64cf9ce1f3fb52a4059b5"
+    },
+    "traderx-remediation/loki:012": {
+      "source": "ghcr.io/finos/traderx-c3/loki:cfa6992e47ee16ba78c27cad8539b03bf03afeec",
+      "index_digest": "sha256:54312c301188f215bc89e621b5ce53974aabaed12cf493509f34cf0a4b83b687",
+      "digest": "sha256:83a87a7dbf3ad6d9f2723ed3b667eaf10851c5898fd7bdec3c772602007149f8",
+      "platform": "linux/amd64",
+      "image": "ghcr.io/finos/traderx-c3/loki@sha256:83a87a7dbf3ad6d9f2723ed3b667eaf10851c5898fd7bdec3c772602007149f8"
+    },
+    "timberio/vector:0.61.0-alpine@sha256:3bb7ed5152910ed51729e256937b1d8a4bf67ff624e9d565e8e5877bffd015c7": {
+      "source": "timberio/vector:0.61.0-alpine@sha256:3bb7ed5152910ed51729e256937b1d8a4bf67ff624e9d565e8e5877bffd015c7",
+      "index_digest": "sha256:3bb7ed5152910ed51729e256937b1d8a4bf67ff624e9d565e8e5877bffd015c7",
+      "digest": "sha256:d11443983ccc190d87965e01b49149b1aeed0af34b7d8753a98996c194ff684d",
+      "platform": "linux/arm64",
+      "image": "docker.io/timberio/vector@sha256:d11443983ccc190d87965e01b49149b1aeed0af34b7d8753a98996c194ff684d"
+    },
+    "traderx-remediation/tempo:012": {
+      "source": "ghcr.io/finos/traderx-c3/tempo:cfa6992e47ee16ba78c27cad8539b03bf03afeec",
+      "index_digest": "sha256:41691538c294ad74a9da968b1c22b51c8d9d01621c3bdacb74a08bd119d03964",
+      "digest": "sha256:6fa461120fd043d588bde88f773dbd855a09b1d059348a96fffa4ad6fcaf3d9d",
+      "platform": "linux/amd64",
+      "image": "ghcr.io/finos/traderx-c3/tempo@sha256:6fa461120fd043d588bde88f773dbd855a09b1d059348a96fffa4ad6fcaf3d9d"
+    },
+    "otel/opentelemetry-collector-contrib:0.165.0@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea": {
+      "source": "otel/opentelemetry-collector-contrib:0.165.0@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+      "index_digest": "sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+      "digest": "sha256:19b524dc61144cb50e9dccc9469605706db48e3302ddccda404a0aaf0a99a73f",
+      "platform": "linux/arm64",
+      "image": "docker.io/otel/opentelemetry-collector-contrib@sha256:19b524dc61144cb50e9dccc9469605706db48e3302ddccda404a0aaf0a99a73f"
+    },
+    "traderx-remediation/prometheus:012": {
+      "source": "ghcr.io/finos/traderx-c3/prometheus:cfa6992e47ee16ba78c27cad8539b03bf03afeec",
+      "index_digest": "sha256:4b3ad4e1302589603145a30829758771da15f0fad3371dc0629dec2502e6ce37",
+      "digest": "sha256:68a8bd921a7c0d59ac6537b0d149db2e923236c4a33a77dfce6353720eadd6fa",
+      "platform": "linux/amd64",
+      "image": "ghcr.io/finos/traderx-c3/prometheus@sha256:68a8bd921a7c0d59ac6537b0d149db2e923236c4a33a77dfce6353720eadd6fa"
+    },
+    "grafana/grafana:12.4.15@sha256:2894082f6cf7081aefdc1389265c04000812309208c190d75e8c65f7a30e4b7e": {
+      "source": "grafana/grafana:12.4.15@sha256:2894082f6cf7081aefdc1389265c04000812309208c190d75e8c65f7a30e4b7e",
+      "index_digest": "sha256:2894082f6cf7081aefdc1389265c04000812309208c190d75e8c65f7a30e4b7e",
+      "digest": "sha256:02a7f6d32969f9462a870ec06167526d1e220fa97c4f068356d326c96336ca0d",
+      "platform": "linux/arm64",
+      "image": "docker.io/grafana/grafana@sha256:02a7f6d32969f9462a870ec06167526d1e220fa97c4f068356d326c96336ca0d"
+    },
+    "traderx-remediation/postgres:012": {
+      "source": "ghcr.io/finos/traderx-c3/database:cfa6992e47ee16ba78c27cad8539b03bf03afeec",
+      "index_digest": "sha256:b064539b23f4ace7259b027c1de747e8a6e23856dea5df8a6d01e0bc292d4382",
+      "digest": "sha256:1aa68521a486e2c217e6d1b1328ae3d01816302eeddbeb664f34445d6844f022",
+      "platform": "linux/amd64",
+      "image": "ghcr.io/finos/traderx-c3/database@sha256:1aa68521a486e2c217e6d1b1328ae3d01816302eeddbeb664f34445d6844f022"
+    },
+    "nats:2.14-alpine@sha256:c9706755679d8bcf05b4ce275fdd2ac8890058b1535881208a65b3cd613f00bd": {
+      "source": "nats:2.14-alpine@sha256:c9706755679d8bcf05b4ce275fdd2ac8890058b1535881208a65b3cd613f00bd",
+      "index_digest": "sha256:c9706755679d8bcf05b4ce275fdd2ac8890058b1535881208a65b3cd613f00bd",
+      "digest": "sha256:5e09808726b0d7500a68b07998e14a5f6d4109956d17ac221d180bc995eef314",
+      "platform": "linux/arm64",
+      "image": "docker.io/library/nats@sha256:5e09808726b0d7500a68b07998e14a5f6d4109956d17ac221d180bc995eef314"
+    },
+    "traderx/reference-data:state009": {
+      "source": "ghcr.io/finos/traderx-c3/reference-data:cfa6992e47ee16ba78c27cad8539b03bf03afeec",
+      "index_digest": "sha256:99f8ecd7675870e6260201b40919e74de08d1f4b0c0ed0447dfb35c000bdd7b5",
+      "digest": "sha256:3174c3dd68fdf7ee20669d668801bd41455f06967eb9c0b779666128669517e7",
+      "platform": "linux/amd64",
+      "image": "ghcr.io/finos/traderx-c3/reference-data@sha256:3174c3dd68fdf7ee20669d668801bd41455f06967eb9c0b779666128669517e7"
+    },
+    "traderx/people-service:state009": {
+      "source": "ghcr.io/finos/traderx-c3/people-service:cfa6992e47ee16ba78c27cad8539b03bf03afeec",
+      "index_digest": "sha256:2df86715c2752f34dc2f4f9470b3e3dda8b23b8a5434138503fc01ca42c07f1f",
+      "digest": "sha256:816cd6e4013bb07cb663369d1f290c14efaf575f9dd6363d82f4a61916eacd64",
+      "platform": "linux/amd64",
+      "image": "ghcr.io/finos/traderx-c3/people-service@sha256:816cd6e4013bb07cb663369d1f290c14efaf575f9dd6363d82f4a61916eacd64"
+    },
+    "traderx/account-service:state009": {
+      "source": "ghcr.io/finos/traderx-c3/account-service:cfa6992e47ee16ba78c27cad8539b03bf03afeec",
+      "index_digest": "sha256:7dc7e76020e3909af0933df03ee689319384a38817e3bf68bd6778cb25622724",
+      "digest": "sha256:1649d7e0cdc92c77634646a4fc3c6371c5b90d16b79ad67e701093519499462b",
+      "platform": "linux/amd64",
+      "image": "ghcr.io/finos/traderx-c3/account-service@sha256:1649d7e0cdc92c77634646a4fc3c6371c5b90d16b79ad67e701093519499462b"
+    },
+    "traderx/position-service:state009": {
+      "source": "ghcr.io/finos/traderx-c3/position-service:cfa6992e47ee16ba78c27cad8539b03bf03afeec",
+      "index_digest": "sha256:038fd60b5486468ccf40b4eb3c900f23bd2cdd3a5785b03c39de603d65e91c9e",
+      "digest": "sha256:05ed632ced6d7af906416eccf468cd8e2def061f77a4c73ea00e81d699846904",
+      "platform": "linux/amd64",
+      "image": "ghcr.io/finos/traderx-c3/position-service@sha256:05ed632ced6d7af906416eccf468cd8e2def061f77a4c73ea00e81d699846904"
+    },
+    "traderx/trade-processor:state009": {
+      "source": "ghcr.io/finos/traderx-c3/trade-processor:cfa6992e47ee16ba78c27cad8539b03bf03afeec",
+      "index_digest": "sha256:272baab568af88c9b8f7b41c0a55c5cd69aff3c43b943dd5eebc27b7fbe59964",
+      "digest": "sha256:0542e8da8bb22fff281a11f25f229dfdaa6acd982fe76a592a3eb0629fc8bab7",
+      "platform": "linux/amd64",
+      "image": "ghcr.io/finos/traderx-c3/trade-processor@sha256:0542e8da8bb22fff281a11f25f229dfdaa6acd982fe76a592a3eb0629fc8bab7"
+    },
+    "traderx/trade-service:state009": {
+      "source": "ghcr.io/finos/traderx-c3/trade-service:cfa6992e47ee16ba78c27cad8539b03bf03afeec",
+      "index_digest": "sha256:5a7ddc134f8a492711ac3b9b4c288d93853b08d2ebcc7a08959b597028377533",
+      "digest": "sha256:51e7af4b8d022f86d5ad6e21dc1433b4504b51b9cf9ecf62aa95c13622fbdc2c",
+      "platform": "linux/amd64",
+      "image": "ghcr.io/finos/traderx-c3/trade-service@sha256:51e7af4b8d022f86d5ad6e21dc1433b4504b51b9cf9ecf62aa95c13622fbdc2c"
+    },
+    "traderx/price-publisher:state009": {
+      "source": "ghcr.io/finos/traderx-c3/price-publisher:cfa6992e47ee16ba78c27cad8539b03bf03afeec",
+      "index_digest": "sha256:0d7d5d7d7ea6167235cd42edfb3e2e2fa43f4dfb57041d3966b9e907d9b427be",
+      "digest": "sha256:266ec64e24c0de519bbf05ac931fe1fd8a0dc36f1b7d5c02d6b89c75a4160016",
+      "platform": "linux/amd64",
+      "image": "ghcr.io/finos/traderx-c3/price-publisher@sha256:266ec64e24c0de519bbf05ac931fe1fd8a0dc36f1b7d5c02d6b89c75a4160016"
+    },
+    "traderx/order-matcher:state009": {
+      "source": "ghcr.io/finos/traderx-c3/order-matcher:cfa6992e47ee16ba78c27cad8539b03bf03afeec",
+      "index_digest": "sha256:b9c7abca84cd8748c3262f62a4cf3e2802f9717fa35aa0fdc55a2771bfa68dc6",
+      "digest": "sha256:087bbe0b1db70953c2eddf4b67c5defeba4d57bfa8409a6ba4a161c09303a646",
+      "platform": "linux/amd64",
+      "image": "ghcr.io/finos/traderx-c3/order-matcher@sha256:087bbe0b1db70953c2eddf4b67c5defeba4d57bfa8409a6ba4a161c09303a646"
+    },
+    "traderx/web-front-end-angular:state009": {
+      "source": "ghcr.io/finos/traderx-c3/web-front-end-angular:cfa6992e47ee16ba78c27cad8539b03bf03afeec",
+      "index_digest": "sha256:87750dd42cd4943c356d1ee4c9bd9741e594b9baee951129491119403e329026",
+      "digest": "sha256:81bfc2e81eb7ee3561c99a0381e6b2672dee4c6d26d56a8142e0045e6060ba8a",
+      "platform": "linux/amd64",
+      "image": "ghcr.io/finos/traderx-c3/web-front-end-angular@sha256:81bfc2e81eb7ee3561c99a0381e6b2672dee4c6d26d56a8142e0045e6060ba8a"
+    },
+    "traderx-api-explorer:local": {
+      "source": "ghcr.io/finos/traderx-c3/api-explorer:cfa6992e47ee16ba78c27cad8539b03bf03afeec",
+      "index_digest": "sha256:224f540eb8f0ed7504265c8f214b74dd4dd768cc06d095b8ba793d61426f0184",
+      "digest": "sha256:d3970067d2e4323751d1840950453234b7f3c4c2bdcff06da7d92ae37b32bed6",
+      "platform": "linux/amd64",
+      "image": "ghcr.io/finos/traderx-c3/api-explorer@sha256:d3970067d2e4323751d1840950453234b7f3c4c2bdcff06da7d92ae37b32bed6"
+    }
+  }
+}

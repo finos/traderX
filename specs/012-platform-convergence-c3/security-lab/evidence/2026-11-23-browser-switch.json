@@ -1,0 +1,40 @@
+{
+  "status": "passed",
+  "scope": "same-cookie-jar-provider-confirmed-account-switch",
+  "cases": [
+    "reader-shared-profile-login",
+    "reader-shared-profile-identity",
+    "reader-shared-profile-account-scope",
+    "reader-switch-missing-csrf-denied",
+    "reader-switch-cross-origin-denied",
+    "reader-switch-local-session-ended",
+    "reader-switch-old-cookie-denied",
+    "reader-provider-logout-confirmed",
+    "trader-shared-profile-login",
+    "trader-shared-profile-identity",
+    "trader-shared-profile-account-scope",
+    "trader-switch-missing-csrf-denied",
+    "trader-switch-cross-origin-denied",
+    "trader-switch-local-session-ended",
+    "trader-switch-old-cookie-denied",
+    "trader-provider-logout-confirmed",
+    "operator-shared-profile-login",
+    "operator-shared-profile-identity",
+    "operator-shared-profile-account-scope",
+    "operator-switch-missing-csrf-denied",
+    "operator-switch-cross-origin-denied",
+    "operator-switch-local-session-ended",
+    "operator-switch-old-cookie-denied",
+    "operator-provider-logout-confirmed"
+  ],
+  "before_sha256": "02e0697ac4800c57c6e80e667ff478eba71c94001d9b31acbcd212eb9755720c",
+  "after_sha256": "02e0697ac4800c57c6e80e667ff478eba71c94001d9b31acbcd212eb9755720c",
+  "source_sha256": {
+    "scripts/security-lab/browser_session.py": "c88a1b7a1bc7ffc0d5c3895e0c4dfd26985fe33f0d918f49cd73124115e1a6e2",
+    "scripts/security-lab/verify_browser_switch.py": "8899c6b7adc75179f6c6025210e736c3853b7bdb2563aadf6dbeab889a24cb86"
+  },
+  "limitations": [
+    "HTTPS protocol client, not completed Chrome usability acceptance.",
+    "Provider-confirmed switch ends this browser SSO/local session; copied access tokens remain subject to their expiry."
+  ]
+}

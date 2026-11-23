@@ -1,0 +1,12 @@
+allprojects {
+    afterEvaluate {
+        if (plugins.hasPlugin('java')) {
+            tasks.register('labLifecycleClasspath') {
+                dependsOn tasks.named('classes')
+                doLast {
+                    project.file('build/lab-lifecycle-classpath.txt').text = sourceSets.test.runtimeClasspath.asPath
+                }
+            }
+        }
+    }
+}

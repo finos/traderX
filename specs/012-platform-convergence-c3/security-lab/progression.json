@@ -1,0 +1,268 @@
+{
+  "version": 1,
+  "checkpoints": [
+    {
+      "id": "baseline",
+      "title": "Pinned reference and normal trading",
+      "status": "verified",
+      "label": "verified",
+      "question": "What constitutes a working baseline?",
+      "evidence": [
+        "baseline.lock.json",
+        "evidence/2026-11-22-c3-baseline-result.json"
+      ]
+    },
+    {
+      "id": "workloads",
+      "title": "Workload and namespace restrictions",
+      "status": "verified",
+      "label": "verified",
+      "question": "What can a process do without root, capabilities or API tokens?",
+      "evidence": [
+        "contracts/workloads.md",
+        "evidence/2026-11-22-candidate-c3-rollout.json"
+      ]
+    },
+    {
+      "id": "database",
+      "title": "Scoped SQL and credential rotation",
+      "status": "verified",
+      "label": "verified",
+      "question": "Which database operations remain legitimate for each service?",
+      "evidence": [
+        "evidence/2026-11-22-rotated-database-permissions-result.json"
+      ]
+    },
+    {
+      "id": "fixtures",
+      "title": "WAF, network and NATS demonstrations",
+      "status": "fixture",
+      "label": "isolated checks verified",
+      "question": "Which layer intervenes, and what does the fixture not prove?",
+      "evidence": [
+        "evidence/2026-11-22-waf-result.json",
+        "evidence/2026-11-22-platform-result.json",
+        "evidence/2026-11-22-nats-console.md"
+      ]
+    },
+    {
+      "id": "clients",
+      "title": "Application compatibility and recovery",
+      "status": "verified",
+      "label": "verified",
+      "question": "Does trading still work after client and image changes?",
+      "evidence": [
+        "evidence/2026-11-22-java-adapter-lifecycle.json",
+        "evidence/2026-11-22-candidate-c3-rollout.json"
+      ]
+    },
+    {
+      "id": "identity_fixture",
+      "title": "OIDC login and token compatibility",
+      "status": "fixture",
+      "label": "isolated; 18 checks passed",
+      "question": "Can a valid login be distinguished from an invalid or replayed token exchange?",
+      "evidence": [
+        "contracts/identity-fixture.md",
+        "evidence/2026-11-23-identity-provider.json"
+      ]
+    },
+    {
+      "id": "account_candidate",
+      "title": "Protected account API in lightweight development",
+      "status": "fixture",
+      "label": "59 checks twice; local candidate",
+      "question": "Do valid identities stay within assigned accounts, with denied writes leaving data unchanged?",
+      "evidence": [
+        "contracts/account-enforcement.md",
+        "evidence/2026-11-23-account-authorization.json"
+      ]
+    },
+    {
+      "id": "account_provider",
+      "title": "Real OIDC tokens and explicit key replacement",
+      "status": "fixture",
+      "label": "49 + 50 checks; local integration",
+      "question": "Does account scope survive real login and key replacement, and what still works during an issuer outage?",
+      "evidence": [
+        "evidence/2026-11-23-account-oidc-first.json",
+        "evidence/2026-11-23-account-oidc-rotation.json"
+      ]
+    },
+    {
+      "id": "browser_session",
+      "title": "Local HTTPS browser-session boundary",
+      "status": "fixture",
+      "label": "88 campaign checks; protocol-level",
+      "question": "What does local browser logout invalidate, and which credentials remain usable?",
+      "evidence": [
+        "contracts/browser-session.md",
+        "evidence/2026-11-23-browser-session.json"
+      ]
+    },
+    {
+      "id": "browser_runner",
+      "title": "Persistent local runner and account switching",
+      "status": "fixture",
+      "label": "63 protocol checks + Chrome verified",
+      "question": "Can one browser session change users without retaining the previous account scope?",
+      "evidence": [
+        "evidence/2026-11-23-browser-persistent.json",
+        "evidence/2026-11-23-browser-switch.json",
+        "evidence/2026-11-23-chrome-browser.json"
+      ]
+    },
+    {
+      "id": "identity",
+      "title": "User roles and account authorization",
+      "status": "next",
+      "label": "next; full C3 integration pending",
+      "question": "Can an ordinary valid request access another account?",
+      "evidence": []
+    },
+    {
+      "id": "broker",
+      "title": "Live authenticated messaging",
+      "status": "planned",
+      "label": "planned",
+      "question": "Can browser and service identities exceed their subject permissions?",
+      "evidence": []
+    },
+    {
+      "id": "integration",
+      "title": "Integrated gateway, network and image trust",
+      "status": "planned",
+      "label": "planned",
+      "question": "Can a caller bypass the intended entry point or deployment policy?",
+      "evidence": []
+    },
+    {
+      "id": "hardened",
+      "title": "Hardened baseline acceptance",
+      "status": "planned",
+      "label": "not accepted yet",
+      "question": "Do positive trading and every selected negative check pass together?",
+      "evidence": []
+    },
+    {
+      "id": "residual",
+      "title": "Assumed compromise and residual authority",
+      "status": "planned",
+      "label": "hypotheses to test",
+      "question": "What harmful effects remain possible within legitimate service permissions?",
+      "evidence": []
+    },
+    {
+      "id": "cve",
+      "title": "Known CVE, upstream fix and OSERA backpatch",
+      "status": "planned",
+      "label": "optional; planned",
+      "question": "Does the same reproducible behavior disappear after a verified fix?",
+      "evidence": []
+    },
+    {
+      "id": "runtime",
+      "title": "Observation versus enforcement",
+      "status": "planned",
+      "label": "planned",
+      "question": "Which additional control prevents impact, and at what cost?",
+      "evidence": []
+    },
+    {
+      "id": "learning",
+      "title": "Reproducible guided learning release",
+      "status": "planned",
+      "label": "planned",
+      "question": "Can another contributor reproduce, reset and explain the boundaries?",
+      "evidence": []
+    }
+  ],
+  "edges": [
+    {
+      "from": "baseline",
+      "to": "workloads"
+    },
+    {
+      "from": "baseline",
+      "to": "database"
+    },
+    {
+      "from": "baseline",
+      "to": "fixtures"
+    },
+    {
+      "from": "workloads",
+      "to": "clients"
+    },
+    {
+      "from": "database",
+      "to": "clients"
+    },
+    {
+      "from": "fixtures",
+      "to": "clients"
+    },
+    {
+      "from": "clients",
+      "to": "identity_fixture"
+    },
+    {
+      "from": "identity",
+      "to": "broker"
+    },
+    {
+      "from": "fixtures",
+      "to": "integration"
+    },
+    {
+      "from": "broker",
+      "to": "hardened"
+    },
+    {
+      "from": "integration",
+      "to": "hardened"
+    },
+    {
+      "from": "hardened",
+      "to": "residual"
+    },
+    {
+      "from": "residual",
+      "to": "runtime"
+    },
+    {
+      "from": "runtime",
+      "to": "learning"
+    },
+    {
+      "from": "hardened",
+      "to": "cve",
+      "optional": true
+    },
+    {
+      "from": "cve",
+      "to": "runtime",
+      "optional": true
+    },
+    {
+      "from": "identity_fixture",
+      "to": "account_candidate"
+    },
+    {
+      "from": "account_candidate",
+      "to": "account_provider"
+    },
+    {
+      "from": "account_provider",
+      "to": "browser_session"
+    },
+    {
+      "from": "browser_session",
+      "to": "browser_runner"
+    },
+    {
+      "from": "browser_runner",
+      "to": "identity"
+    }
+  ]
+}

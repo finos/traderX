@@ -1,0 +1,91 @@
+{
+  "status": "passed",
+  "run_id": "2f2b3b2d4a2546b09cd516efc179284b",
+  "recorded_at": "2026-11-22T17:44:26.109532+00:00",
+  "broker_image": "docker.io/library/nats@sha256:5e09808726b0d7500a68b07998e14a5f6d4109956d17ac221d180bc995eef314",
+  "java_clients": {
+    "status": "passed",
+    "cases": [
+      {
+        "identity": "pricer",
+        "mode": "publish",
+        "subject": "pricing.TEST",
+        "result": "delivered"
+      },
+      {
+        "identity": "trade-api",
+        "mode": "publish",
+        "subject": "/trades",
+        "result": "delivered"
+      },
+      {
+        "identity": "processor",
+        "mode": "publish",
+        "subject": "/accounts/22214/trades",
+        "result": "delivered"
+      },
+      {
+        "identity": "matcher",
+        "mode": "publish",
+        "subject": "/orders",
+        "result": "delivered"
+      },
+      {
+        "identity": "processor",
+        "mode": "subscribe",
+        "subject": "/trades",
+        "result": "delivered"
+      },
+      {
+        "identity": "matcher",
+        "mode": "subscribe",
+        "subject": "pricing.TEST",
+        "result": "delivered"
+      },
+      {
+        "case": "wrong-password",
+        "result": "rejected"
+      },
+      {
+        "case": "untrusted-ca",
+        "result": "rejected"
+      },
+      {
+        "case": "wrong-hostname",
+        "result": "rejected"
+      }
+    ],
+    "legacy_configuration": "passed",
+    "source_sha256": "d2aa17231af775c0e01014af09769a55b7eb350b75c30b6e39656c10b6adede3",
+    "probe_sha256": "8d6daa1761b4e710e7eccea68d4fc1160e9e31a6372d5f6649758ab05194e905",
+    "jnats_jar_sha256": "7bc2a8017bd917098428f2621fd01ff78c5886fb5cf39f5f50939737eaa879f5",
+    "limitation": "Real JNATS helper probes; complete Spring application builds, lifecycle/reconnect and rotated credentials remain separate gates."
+  },
+  "builds": {
+    "trade-service": {
+      "compile_java": "passed",
+      "log_sha256": "5a43db8189e049cdb271587d0589c45f253c3acb57aa121ca527c8f34a9721bc"
+    },
+    "trade-processor": {
+      "compile_java": "passed",
+      "log_sha256": "1fbf8579f2bad4f33eb61b2290ed0ee3ab1a1123a4244946b5bc41e42365a06a"
+    },
+    "order-matcher": {
+      "compile_java": "passed",
+      "log_sha256": "e8a39e6e77f21cc679092b38cdac1eb29003fa797b1317cd5966552749fbca39"
+    }
+  },
+  "protocol_cases": 28,
+  "cleanup_verified": true,
+  "source_hashes": {
+    "nats_fixture.py": "74946130ab9c69019147f10af41d540c7a47de9a3f4203c1bd16d82af8ffe93e",
+    "verify_nats.py": "e7422a4a870728d8bb6ce1a2cb3da13d6d1ce9834af49ef551b94cc27b39877e",
+    "requirements-nats.txt": "e06ec34921620d5241c601baf8bc92df15f26ec3298d7de8992bb9a2f971f437",
+    "verify_java_nats.py": "5f0986d805a75a97645b2e43afea4bfe6a87adc8b5a8805df03484575ff5377a",
+    "JavaNatsProbe.java": "8d6daa1761b4e710e7eccea68d4fc1160e9e31a6372d5f6649758ab05194e905"
+  },
+  "limitations": [
+    "Three Spring service source trees compile against pinned C3 source; no image rebuild or live rollout.",
+    "Helper probes test actual JNATS connections, not application settlement/reconnect/rotation."
+  ]
+}

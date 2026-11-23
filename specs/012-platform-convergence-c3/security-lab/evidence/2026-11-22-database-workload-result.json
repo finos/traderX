@@ -1,0 +1,127 @@
+{
+  "scenario": "database-workloads",
+  "status": "passed",
+  "recorded_at": "2026-11-22T14:20:51.526001+00:00",
+  "workloads": [
+    {
+      "name": "database",
+      "pod_uid": "756897da-25f6-4866-8ded-d514ce1ab9cd",
+      "image": "ghcr.io/finos/traderx-c3/database@sha256:1aa68521a486e2c217e6d1b1328ae3d01816302eeddbeb664f34445d6844f022",
+      "uid": 70,
+      "no_new_privileges": true,
+      "effective_capabilities": "0",
+      "seccomp_mode": 2,
+      "root_readonly": true,
+      "token_absent": true,
+      "secret_read_denied": true,
+      "deployment_create_denied": true
+    }
+  ],
+  "admission_checks": [
+    {
+      "case": "root",
+      "denied_by": "traderx-lab-database-workload"
+    },
+    {
+      "case": "writable-root",
+      "denied_by": "traderx-lab-database-workload"
+    },
+    {
+      "case": "api-token",
+      "denied_by": "traderx-lab-database-workload"
+    },
+    {
+      "case": "capability",
+      "denied_by": "traderx-lab-database-workload"
+    },
+    {
+      "case": "privileged",
+      "denied_by": "traderx-lab-database-workload"
+    },
+    {
+      "case": "unconfined",
+      "denied_by": "traderx-lab-database-workload"
+    },
+    {
+      "case": "host-network",
+      "denied_by": "traderx-lab-database-workload"
+    },
+    {
+      "case": "missing-resources",
+      "denied_by": "traderx-lab-database-workload"
+    },
+    {
+      "case": "host-mount",
+      "denied_by": "traderx-lab-database-workload"
+    },
+    {
+      "case": "sidecar",
+      "denied_by": "traderx-lab-database-workload"
+    },
+    {
+      "case": "identity",
+      "denied_by": "traderx-lab-database-workload"
+    },
+    {
+      "case": "wrong-pvc",
+      "denied_by": "traderx-lab-database-workload"
+    },
+    {
+      "case": "wrong-pgdata",
+      "denied_by": "traderx-lab-database-workload"
+    },
+    {
+      "case": "parallel-database",
+      "denied_by": "traderx-lab-database-workload"
+    }
+  ],
+  "pod_admission_checks": [
+    {
+      "workload": "database",
+      "case": "root",
+      "denied_by": "traderx-lab-database-workload-pods"
+    },
+    {
+      "workload": "database",
+      "case": "missing-label",
+      "denied_by": "traderx-lab-database-workload-pods"
+    },
+    {
+      "workload": "database",
+      "case": "default-identity",
+      "denied_by": "traderx-lab-database-workload-pods"
+    },
+    {
+      "workload": "database",
+      "case": "ephemeral-container",
+      "denied_by": "traderx-lab-database-workload-pods"
+    }
+  ],
+  "root_write_denied": true,
+  "tmp_write_passed": true,
+  "source_hashes": {
+    "workloads.py": "ba157f74a5d7a063f32d717a446cb9ae12f911d74cd084bfe04b767272c8242b",
+    "support_workloads.py": "e2875eb5e54ca9bdaf29cca7e976ecc4abbe98325a93bb9980f3ca259627b8b1",
+    "database_workload.py": "cd2c52facd101897c3ebc72f574b8d11895968c28692661099850ac4477dd396",
+    "migrate-database.py": "89ac6f6d8b750cb1b5b1fd78c52dcdc014af8e6f27d7c5fb714c37bfc0ab9feb",
+    "verify_workloads.py": "38f4e73bbc3561a030e360e5b12aeac273c2de2d332d2a50cc4203cb4c930140",
+    "apply-workloads.py": "27c369f908310e46ebd08b0923d05611965f750320bf922da34c85581bbf9454"
+  },
+  "manifest_sha256": "a05d5eb2c04852605a8f6fce9ec71c8be4472a60afa46a366aed5c82c7a3ce6b",
+  "limitations": [
+    "Named workloads only; no namespace-wide admission claim.",
+    "Trading smoke is a separate positive control.",
+    "No DB/NATS authorization or runtime detection claim."
+  ],
+  "storage": {
+    "pvc": "lab-postgresql-data",
+    "pvc_uid": "d4a3dc4f-af56-45d9-93bd-79dacf59cacc",
+    "bound": true,
+    "pgdata": "/var/lib/postgresql/data/pgdata",
+    "historical_restart_recovery_verified": true,
+    "migration_completed_at": "2026-11-22T14:19:49.139861+00:00",
+    "migration_state_sha256": "6b5ace94f62719933225e1ec88a6c5bb0e4be7c7051ebd696ace9c035338d34e",
+    "backup_sha256": "098c5a10ede4b6fdd53f1ad5f113969b313913b897d75b1c76b5591bb595303a",
+    "note": "Historical recovery proof; current data may legitimately change through trading. Local PVC does not survive cluster loss."
+  }
+}

@@ -5,7 +5,8 @@ const { connect } = require('nats');
 let yahooFinance;
 
 const PORT = Number(process.env.PRICE_PUBLISHER_PORT || '18100');
-const NATS_URL = process.env.NATS_ADDRESS || `nats://${process.env.NATS_BROKER_HOST || 'localhost'}:4222`;
+const { natsOptions } = require('./nats-options');
+const NATS_OPTIONS = natsOptions();
 const BOOTSTRAP_MODE = (process.env.PRICE_BOOTSTRAP_MODE || 'snapshot').toLowerCase();
 const PUBLISH_INTERVAL_MIN_MS = Number(process.env.PRICE_PUBLISH_INTERVAL_MIN_MS || '750');
 const PUBLISH_INTERVAL_MAX_MS = Number(process.env.PRICE_PUBLISH_INTERVAL_MAX_MS || '1500');
@@ -301,7 +302,7 @@ async function main() {
   ({ default: yahooFinance } = await import('yahoo-finance2'));
   await bootstrapPrices();
   assignStartupVolatilityBands();
-  state.nats = await connect({ servers: NATS_URL, maxReconnectAttempts: -1 });
+  state.nats = await connect(NATS_OPTIONS);
   schedulePublishLoop();
   app.listen(PORT, () => {
     console.log(`price-publisher listening on :${PORT}`);
@@ -309,6 +310,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error(err);
+  console.error(process.env.NATS_SECURITY_REQUIRED === 'true' ? 'Secure price publisher startup failed' : err);
   process.exit(1);
 });

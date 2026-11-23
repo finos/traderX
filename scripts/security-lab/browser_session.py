@@ -1,0 +1,111 @@
+"""Bounded loopback HTTPS account browser session; no tokens in page JavaScript."""
+import base64
+import hashlib
+from http.cookies import SimpleCookie
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import json
+from pathlib import Path
+import re
+import secrets
+import ssl
+import threading
+import time
+import urllib.parse
+import urllib.request
+import urllib.error
+from identity_fixture import ISSUER, CLIENT, TokenVerifier
+from verify_account_authorization import request as api_request
+
+ORIGIN='https://localhost:18447'
+CALLBACK=ORIGIN+'/callback'
+SESSION='__Host-traderx-session'
+TRANSACTION='__Host-traderx-login'
+
+PAGE='''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>TraderX account security lab</title><link rel="stylesheet" href="/style.css"><main><img class="logo" src="/traderx-logo.svg" alt="TraderX"><h1>TraderX account security lab</h1><p>Local identity checkpoint · synthetic accounts only</p><p id="status">Checking session…</p><a href="/login">Sign in with Keycloak</a><button id="accounts">My accounts</button><button id="memberships">My memberships</button><p><label>Test account ID <input id="account" inputmode="numeric" value="62654"></label><button id="check">Check access</button></p><button id="switch">Switch account</button><button id="logout">Sign out of this lab</button><pre id="result" aria-live="polite"></pre><p>Account permissions are enforced by the API. Local sign-out ends this browser session; it does not revoke provider SSO or other issued tokens.</p></main><script src="/app.js"></script></html>'''
+JS='''let csrf; const result=document.querySelector('#result'); async function show(path){const r=await fetch(path);result.textContent=`HTTP ${r.status}\\n`+await r.text();} fetch('/session').then(async r=>{if(!r.ok){document.querySelector('#status').textContent='Signed out';return;}const s=await r.json();csrf=s.csrf;document.querySelector('#status').textContent='Signed in as '+s.subject;});document.querySelector('#accounts').onclick=()=>show('/api/account/');document.querySelector('#memberships').onclick=()=>show('/api/accountuser/');document.querySelector('#check').onclick=()=>show('/api/account/'+encodeURIComponent(document.querySelector('#account').value));document.querySelector('#logout').onclick=async()=>{const r=await fetch('/logout',{method:'POST',headers:{'X-CSRF-Token':csrf||''}});if(r.ok)location.href='/';else result.textContent='Sign-out rejected: '+r.status;};'''
+JS += "document.querySelector('#switch').onclick=async()=>{const r=await fetch('/switch',{method:'POST',headers:{'X-CSRF-Token':csrf||''}});if(r.ok){const data=await r.json();location.href=data.redirect;}else result.textContent='Switch rejected: '+r.status;};"
+CSS='.logo{width:230px;max-width:80%}body{font:17px system-ui;background:#f3f6fa;color:#17263b}main{max-width:850px;margin:4rem auto;padding:2rem;background:white;border-radius:12px}button,a,input{font:inherit;margin:.4rem;padding:.6rem}pre{padding:1rem;background:#eef2f7;white-space:pre-wrap}'
+
+class Store:
+    def __init__(self,clock=time.time):self.clock=clock;self.sessions={};self.pending={};self.lock=threading.RLock()
+    def prune(self):
+        now=self.clock()
+        for values in (self.sessions,self.pending):
+            for key in list(values):
+                if values[key]['until']<=now:del values[key]
+    def session(self,key):
+        self.prune();return self.sessions.get(key)
+
+class BrowserServer:
+    def __init__(self,cert,key,context,jwks):
+        self.store=Store();self.access=TokenVerifier(jwks);self.identity=TokenVerifier(jwks,audience=CLIENT);self.context=context
+        owner=self
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self,*args):pass
+            def reply(self,status,value='',cookie=None,location=None,kind='application/json'):
+                data=(json.dumps(value) if kind=='application/json' else value).encode()
+                self.send_response(status)
+                for k,v in {'Content-Type':kind,'Content-Length':str(len(data)),'Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"}.items():self.send_header(k,v)
+                if cookie:self.send_header('Set-Cookie',cookie)
+                if location:self.send_header('Location',location)
+                self.end_headers();self.wfile.write(data)
+            def cookie(self,name):
+                try:c=SimpleCookie(self.headers.get('Cookie',''));return c[name].value if name in c else ''
+                except Exception:return ''
+            def do_GET(self):self.dispatch()
+            def do_POST(self):self.dispatch()
+            def dispatch(self):
+                if self.headers.get('Host')!='localhost:18447':return self.reply(400,'Invalid host')
+                with owner.store.lock:
+                    owner.store.prune()
+                    path=urllib.parse.urlsplit(self.path).path
+                    session=owner.store.session(self.cookie(SESSION))
+                    if self.command=='POST':
+                        if path not in ('/logout','/switch'):return self.reply(405,'Unsupported method')
+                        if not session:return self.reply(401,'Sign in required')
+                        if self.headers.get('Origin')!=ORIGIN or not secrets.compare_digest(self.headers.get('X-CSRF-Token',''),session['csrf']):return self.reply(403,'CSRF check failed')
+                        del owner.store.sessions[self.cookie(SESSION)]
+                        return self.reply(200,{'redirect':owner.switch_url()} if path=='/switch' else 'Signed out',cookie=owner.cookie(SESSION,'',0))
+                    if path=='/':return self.reply(200,PAGE,kind='text/html; charset=utf-8')
+                    if path=='/app.js':return self.reply(200,JS,kind='text/javascript')
+                    if path=='/traderx-logo.svg':return self.reply(200,(Path(__file__).resolve().parents[2]/'website/static/img/traderX/TraderX_Horizontal.svg').read_text(),kind='image/svg+xml')
+                    if path=='/style.css':return self.reply(200,CSS,kind='text/css')
+                    if path=='/login':
+                        if len(owner.store.pending)>=100:return self.reply(429,'Too many pending logins')
+                        transaction=secrets.token_urlsafe(32);state=secrets.token_urlsafe(32);nonce=secrets.token_urlsafe(32);verifier=secrets.token_urlsafe(48)
+                        owner.store.pending[transaction]=dict(state=state,nonce=nonce,verifier=verifier,until=time.time()+120)
+                        challenge=base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).decode().rstrip('=')
+                        query=urllib.parse.urlencode(dict(client_id=CLIENT,redirect_uri=CALLBACK,response_type='code',scope='openid',prompt='login',state=state,nonce=nonce,code_challenge=challenge,code_challenge_method='S256'))
+                        return self.reply(302,'',cookie=owner.cookie(TRANSACTION,transaction,120),location=ISSUER+'/protocol/openid-connect/auth?'+query)
+                    if path=='/callback':
+                        pending=owner.store.pending.pop(self.cookie(TRANSACTION),None);query=urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query)
+                        if not pending or len(query.get('state',[]))!=1 or not secrets.compare_digest(query['state'][0],pending['state']) or len(query.get('code',[]))!=1:return self.reply(400,'Invalid login transaction')
+                        try:
+                            body=urllib.parse.urlencode(dict(grant_type='authorization_code',client_id=CLIENT,redirect_uri=CALLBACK,code=query['code'][0],code_verifier=pending['verifier'])).encode()
+                            opener=urllib.request.build_opener(urllib.request.ProxyHandler({}),urllib.request.HTTPSHandler(context=owner.context))
+                            with opener.open(ISSUER+'/protocol/openid-connect/token',data=body,timeout=10) as response:tokens=json.load(response)
+                            access=owner.access.verify(tokens['access_token']);identity=owner.identity.verify(tokens['id_token'])
+                            if identity.get('nonce')!=pending['nonce'] or identity['sub']!=access['sub']:raise ValueError('Invalid identity')
+                            if len(owner.store.sessions)>=100:raise ValueError('Session capacity')
+                            owner.store.sessions.pop(self.cookie(SESSION),None)
+                            sid=secrets.token_urlsafe(32)
+                            until=min(access['exp'],identity['exp'],time.time()+300)
+                            owner.store.sessions[sid]=dict(token=tokens['access_token'],subject=access['sub'],csrf=secrets.token_urlsafe(32),until=until)
+                            return self.reply(302,'',cookie=owner.cookie(SESSION,sid,max(0,int(until-time.time()))),location='/')
+                        except Exception:return self.reply(401,'Login could not be verified')
+                    if not session:return self.reply(401,'Sign in required')
+                    if path=='/session':return self.reply(200,dict(subject=session['subject'],csrf=session['csrf']))
+                    if re.fullmatch(r'/api/(account|accountuser)/(\d+)?',path):
+                        try:status,data=api_request('GET',path[4:],session['token']);return self.reply(status,data)
+                        except OSError:return self.reply(503,'Account API unavailable')
+                    return self.reply(404,'Not found')
+        self.server=ThreadingHTTPServer(('127.0.0.1',18447),Handler)
+        tls=ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER);tls.minimum_version=ssl.TLSVersion.TLSv1_2;tls.load_cert_chain(cert,key)
+        self.server.socket=tls.wrap_socket(self.server.socket,server_side=True)
+    @staticmethod
+    def switch_url():
+        return ISSUER+'/protocol/openid-connect/logout?'+urllib.parse.urlencode(dict(client_id=CLIENT,post_logout_redirect_uri=ORIGIN+'/'))
+    @staticmethod
+    def cookie(name,value,age):return f'{name}={value}; Path=/; Max-Age={age}; Secure; HttpOnly; SameSite=Lax'
+    def start(self):self.thread=threading.Thread(target=self.server.serve_forever,daemon=True);self.thread.start();return self
+    def close(self):self.server.shutdown();self.server.server_close();self.thread.join()

@@ -1,5 +1,7 @@
 # Feature Pack 012: Platform Convergence C3
 
+Experimental opt-in work: [TraderX Security Lab](security-lab/README.md). Reference C3 and initial network/admission/WAF checks verified locally; hardened runtime acceptance is pending.
+
 ![linux/mac support](https://badgen.net/badge/linux%2Fmac/supported/green?icon=linux) ![windows support](https://badgen.net/badge/windows/not%20supported/red?icon=windows)
 
 Status: Implemented  

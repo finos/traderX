@@ -1,0 +1,45 @@
+{
+  "status": "candidate-container-verified-not-deployed",
+  "run_id": "15034384a84949fdaa2c856017e4bacb",
+  "recorded_at": "2026-11-22T19:40:33.593792+00:00",
+  "build": {
+    "status": "built-source-verified-not-deployed",
+    "tag": "traderx-security-price-publisher:nats-1ea8b2d839e5",
+    "local_image_config_id": "sha256:45a7c0b2f162e2dde9a38b9f06cd94f7a04f0fff087049886b72fa81edb66096",
+    "base_manifest_image": "node:24-alpine@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8",
+    "dockerfile_sha256": "fcc7ce13c692fe14b5ae23e3fb3fdede9afde5c7908a08704f3c78e41dca952f",
+    "platform": "linux/amd64",
+    "source_hashes": {
+      "src/main.js": "1ea8b2d839e5fd2746de823e4c7b8219a44faf5151ab766803a2eee8706adb84",
+      "src/nats-options.js": "0a153db0354502bff5efb49b7201170bd0e26cc334528e4b30fa34440618ffc9",
+      "package.json": "6f830c6bef6a7afa8b32a243bf5229e024654cf0736145cf45113db2f63991b4",
+      "package-lock.json": "90854c216537d4b34c3d4eead25cf6eb9c1b3757b6084c8bd5488e74904fbf5d"
+    },
+    "limitations": [
+      "Local config ID is not a registry manifest digest; no image signature or publication.",
+      "Full dependency rebuild from current lock; pinned OS base without unpinned package upgrades. No fresh vulnerability assessment."
+    ]
+  },
+  "runtime": {
+    "status": "passed",
+    "image_config_id": "sha256:45a7c0b2f162e2dde9a38b9f06cd94f7a04f0fff087049886b72fa81edb66096",
+    "authenticated_tls_delivery": "pricing.AAPL",
+    "health": "ok",
+    "user": "node",
+    "root_filesystem": "read-only",
+    "live_deployment_changed": false,
+    "limitations": [
+      "Candidate runs under AMD64 emulation on this ARM64 host.",
+      "Container delivery test does not establish full live C3 trading, image signing or admission."
+    ]
+  },
+  "broker_image": "docker.io/library/nats@sha256:5e09808726b0d7500a68b07998e14a5f6d4109956d17ac221d180bc995eef314",
+  "protocol_cases": 28,
+  "cleanup_verified": true,
+  "source_hashes": {
+    "nats_fixture.py": "74946130ab9c69019147f10af41d540c7a47de9a3f4203c1bd16d82af8ffe93e",
+    "verify_nats.py": "d4a87b7700b6e40cbaa8b2ac005f06ca9860236c15c7f6ac8cdde811b5d7bc75",
+    "requirements-nats.txt": "e06ec34921620d5241c601baf8bc92df15f26ec3298d7de8992bb9a2f971f437",
+    "verify_node_image.py": "eed96290cd46c853a4cf992259b0872b935aecf50885b83bb227c9645e5ce27f"
+  }
+}

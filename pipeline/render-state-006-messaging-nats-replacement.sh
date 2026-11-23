@@ -25,6 +25,11 @@ ensure_micrometer_core "${TARGET_ROOT}/trade-processor/build.gradle"
 if [[ -d "${RUNTIME_OVERRIDES_DIR}" ]]; then
   rsync -a "${RUNTIME_OVERRIDES_DIR}/" "${TARGET_ROOT}/"
 fi
+# Shared opt-in credentials/TLS helper; defaults retain anonymous reference behavior.
+for service in trade-service trade-processor; do
+  install -m 644 "${ROOT}/specs/006-messaging-nats-replacement/generation/nats/NatsSecurity.java" "${TARGET_ROOT}/${service}/src/main/java/finos/traderx/messaging/nats/NatsSecurity.java"
+done
+
 
 # State 006 replaces the legacy trade-feed service with NATS. Remove the
 # superseded component directory so downstream states do not carry stale

@@ -1,0 +1,18 @@
+{
+  "status": "static-inventory-not-enforcement",
+  "generated_commit": "cfa6992e47ee16ba78c27cad8539b03bf03afeec",
+  "files": {
+    "trade-service/src/main/java/finos/traderx/tradeservice/PubSubConfig.java": "c7e02b5a1a3c9a95694c2767136d75253ae2a8f12498293aff1045ce5e005e14",
+    "trade-service/src/main/java/finos/traderx/messaging/nats/NatsJSONPublisher.java": "dfd9239680e4a32aa30bc63c0a2f40b5ff3c88f6af8b2d464e71f20fba78ebfd",
+    "trade-processor/src/main/java/finos/traderx/tradeprocessor/TradeFeedHandler.java": "d27f453a861c1385074af47e1e7805d2dda647fc54b8790bdb906f781e0f5c5b",
+    "trade-processor/src/main/java/finos/traderx/tradeprocessor/service/CommittedTradeEvents.java": "6ede40dbd87e8e08b39af3ef09d917762c9fc67357afd52645664fa29f35d258",
+    "order-matcher/src/main/java/finos/traderx/ordermatcher/service/OrderMatcherService.java": "f9d388457ab679d3ecb49825bee2aae5507dfec89d02c02de7e12ecd837b413b",
+    "order-matcher/src/main/java/finos/traderx/ordermatcher/service/PricingNatsSubscriberService.java": "908729f527a65939452d6491143ee3021ba8db8a4d51f4912ea350db06cd2d0c",
+    "price-publisher/src/main.js": "309b34f48444cbcf69ed9befadae8302d0bc60451cfc804ff6a6893f8e636950",
+    "web-front-end/angular/main/app/service/trade-feed.service.ts": "e6f5180382deed517cad280470a5eba567f7a69ef675d06831664d52d4e7a4d3",
+    "web-front-end/angular/main/app/trade/trade-blotter/trade-blotter.component.ts": "05bee1a40810e23a6ff0651d583966f56992dbf33a56c2238b4c08821aea8d62",
+    "web-front-end/angular/main/app/trade/position-blotter/position-blotter.component.ts": "ffc95d83a165702afda7208341e58bab6f3031507a61d98a69134646a9b20711",
+    "web-front-end/angular/main/app/trade/order-blotter/order-blotter.component.ts": "2cccd406bf10dbb2f97e121d380def9345f7938044c7a6e81a204706c3dd57e1"
+  },
+  "contract": "contracts/nats-authorization.md"
+}

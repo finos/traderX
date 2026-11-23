@@ -72,13 +72,13 @@ public abstract class NatsJSONSubscriber<T> implements Subscriber<T>, Initializi
         return connected ? "connected" : "disconnected";
       }
       String status = connection.getStatus().name().toLowerCase(Locale.ROOT);
-      if (status.contains("reconnect")) {
+      if (status.equals("reconnecting")) {
         return "reconnecting";
       }
-      if (status.contains("connect")) {
+      if (status.equals("connected")) {
         return "connected";
       }
-      if (status.contains("disconnect")) {
+      if (status.equals("disconnected")) {
         return "disconnected";
       }
       return status;
@@ -126,11 +126,7 @@ public abstract class NatsJSONSubscriber<T> implements Subscriber<T>, Initializi
   @Override
   public void connect() throws PubSubException {
     try {
-      Options options = new Options.Builder()
-          .server(serverAddress)
-          .maxReconnects(-1)
-          .connectionTimeout(Duration.ofSeconds(5))
-          .build();
+      Options options = finos.traderx.messaging.nats.NatsSecurity.options(serverAddress);
       connection = Nats.connect(options);
       dispatcher = connection.createDispatcher(msg -> {
         try {
@@ -154,7 +150,7 @@ public abstract class NatsJSONSubscriber<T> implements Subscriber<T>, Initializi
     } catch (Exception x) {
       connected = false;
       connectedSinceEpochMillis = 0;
-      throw new PubSubException("Cannot connect to NATS at " + serverAddress, x);
+      throw new PubSubException("Cannot connect to NATS", x);
     }
   }
 

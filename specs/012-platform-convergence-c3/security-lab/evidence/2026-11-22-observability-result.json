@@ -1,0 +1,191 @@
+{
+  "scenario": "observability-workloads",
+  "status": "passed",
+  "recorded_at": "2026-11-22T14:54:13.612569+00:00",
+  "workloads": [
+    {
+      "name": "grafana",
+      "pod_uid": "b8dd2c9b-e7f6-4a6d-a23c-af629a8571c2",
+      "image": "docker.io/grafana/grafana@sha256:02a7f6d32969f9462a870ec06167526d1e220fa97c4f068356d326c96336ca0d",
+      "uid": 10001,
+      "no_new_privileges": true,
+      "effective_capabilities": "0",
+      "seccomp_mode": 2,
+      "root_readonly": true,
+      "token_absent": true,
+      "secret_read_denied": true,
+      "deployment_create_denied": true
+    },
+    {
+      "name": "prometheus",
+      "pod_uid": "2e3b740d-019d-4968-be8a-bc7194b420f8",
+      "image": "ghcr.io/finos/traderx-c3/prometheus@sha256:68a8bd921a7c0d59ac6537b0d149db2e923236c4a33a77dfce6353720eadd6fa",
+      "uid": 10001,
+      "no_new_privileges": true,
+      "effective_capabilities": "0",
+      "seccomp_mode": 2,
+      "root_readonly": true,
+      "token_absent": true,
+      "secret_read_denied": true,
+      "deployment_create_denied": true
+    },
+    {
+      "name": "loki",
+      "pod_uid": "9955aba4-6e62-4f10-9d8c-572677493025",
+      "image": "ghcr.io/finos/traderx-c3/loki@sha256:83a87a7dbf3ad6d9f2723ed3b667eaf10851c5898fd7bdec3c772602007149f8",
+      "uid": 10001,
+      "no_new_privileges": true,
+      "effective_capabilities": "0",
+      "seccomp_mode": 2,
+      "root_readonly": true,
+      "token_absent": true,
+      "secret_read_denied": true,
+      "deployment_create_denied": true
+    },
+    {
+      "name": "tempo",
+      "pod_uid": "6d5dedcf-98dc-441d-8d2d-20b7e636d5bc",
+      "image": "ghcr.io/finos/traderx-c3/tempo@sha256:6fa461120fd043d588bde88f773dbd855a09b1d059348a96fffa4ad6fcaf3d9d",
+      "uid": 10001,
+      "no_new_privileges": true,
+      "effective_capabilities": "0",
+      "seccomp_mode": 2,
+      "root_readonly": true,
+      "token_absent": true,
+      "secret_read_denied": true,
+      "deployment_create_denied": true
+    }
+  ],
+  "admission_checks": [
+    {
+      "case": "root",
+      "denied_by": "traderx-lab-observability"
+    },
+    {
+      "case": "writable-root",
+      "denied_by": "traderx-lab-observability"
+    },
+    {
+      "case": "api-token",
+      "denied_by": "traderx-lab-observability"
+    },
+    {
+      "case": "capability",
+      "denied_by": "traderx-lab-observability"
+    },
+    {
+      "case": "privileged",
+      "denied_by": "traderx-lab-observability"
+    },
+    {
+      "case": "unconfined",
+      "denied_by": "traderx-lab-observability"
+    },
+    {
+      "case": "host-network",
+      "denied_by": "traderx-lab-observability"
+    },
+    {
+      "case": "missing-resources",
+      "denied_by": "traderx-lab-observability"
+    },
+    {
+      "case": "host-mount",
+      "denied_by": "traderx-lab-observability"
+    },
+    {
+      "case": "sidecar",
+      "denied_by": "traderx-lab-observability"
+    },
+    {
+      "case": "identity",
+      "denied_by": "traderx-lab-observability"
+    },
+    {
+      "case": "wrong-store",
+      "denied_by": "traderx-lab-observability"
+    },
+    {
+      "case": "parallel-store",
+      "denied_by": "traderx-lab-observability"
+    }
+  ],
+  "pod_admission_checks": [
+    {
+      "workload": "grafana",
+      "case": "root",
+      "denied_by": "Pod Security Admission restricted:v1.35"
+    },
+    {
+      "workload": "grafana",
+      "case": "missing-label",
+      "denied_by": "traderx-lab-observability-pods"
+    },
+    {
+      "workload": "grafana",
+      "case": "default-identity",
+      "denied_by": "traderx-lab-observability-pods"
+    },
+    {
+      "workload": "grafana",
+      "case": "ephemeral-container",
+      "denied_by": "Pod Security Admission restricted:v1.35"
+    }
+  ],
+  "root_write_denied": true,
+  "tmp_write_passed": true,
+  "source_hashes": {
+    "workloads.py": "ba157f74a5d7a063f32d717a446cb9ae12f911d74cd084bfe04b767272c8242b",
+    "support_workloads.py": "e2875eb5e54ca9bdaf29cca7e976ecc4abbe98325a93bb9980f3ca259627b8b1",
+    "database_workload.py": "cd2c52facd101897c3ebc72f574b8d11895968c28692661099850ac4477dd396",
+    "migrate-database.py": "89ac6f6d8b750cb1b5b1fd78c52dcdc014af8e6f27d7c5fb714c37bfc0ab9feb",
+    "verify_workloads.py": "a115113531f7711148a490a76523c18020b9377e9c9fc701568f059bd02a29ba",
+    "apply-workloads.py": "27c369f908310e46ebd08b0923d05611965f750320bf922da34c85581bbf9454",
+    "observability_workloads.py": "ab33131acb0a50e462179a8670a0affb081a850f62d3c70a3f507291f9ce5ffc",
+    "observability_migration.py": "e0b5f6b9cd1eb69ba684d6bed70c7fe668cc393db563b4e401198efa2fe8a9dd",
+    "migrate-observability.py": "ab60951d79085ff4d4bf10b7ba2e09a986bba84262709e0e811628f578433fd2",
+    "enforce-restricted.py": "4b90f26b73b909314d6c39b24ed9e8d6c384ce994c13478d89c0d3b822ee17bb"
+  },
+  "manifest_sha256": "5b73d70f095b4003806c3f56fbab10ee6c2003ea9859af24e11891280eb1204d",
+  "limitations": [
+    "Named workloads only; no namespace-wide admission claim.",
+    "Trading smoke is a separate positive control.",
+    "No DB/NATS authorization or runtime detection claim.",
+    "Historical cutover proof; local PVCs and private checkpoints do not survive cluster/host loss together. Ingestion gaps or replay can occur."
+  ],
+  "stores": [
+    {
+      "name": "grafana",
+      "pvc": "lab-grafana-data",
+      "bound": true,
+      "verified_files": 550,
+      "historical_check": "dashboard UIDs",
+      "migration_completed_at": "2026-11-22T14:49:12.110553+00:00"
+    },
+    {
+      "name": "prometheus",
+      "pvc": "lab-prometheus-data",
+      "bound": true,
+      "verified_files": 4,
+      "historical_check": "fixed-time up vector",
+      "migration_completed_at": "2026-11-22T14:49:32.675381+00:00"
+    },
+    {
+      "name": "loki",
+      "pvc": "lab-loki-data",
+      "bound": true,
+      "verified_files": 54,
+      "historical_check": "existing log marker",
+      "migration_completed_at": "2026-11-22T14:50:22.241440+00:00"
+    },
+    {
+      "name": "tempo",
+      "pvc": "lab-tempo-data",
+      "bound": true,
+      "verified_files": 1306,
+      "historical_check": "existing trace span IDs",
+      "migration_completed_at": "2026-11-22T14:51:16.263227+00:00"
+    }
+  ],
+  "migration_state_sha256": "acfc9eec17ea69c047b3bd9c2bf0e34ec6915e47f477e6275eca7286537e1bfb"
+}

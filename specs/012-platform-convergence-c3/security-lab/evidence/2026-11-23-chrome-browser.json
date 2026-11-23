@@ -1,0 +1,44 @@
+{
+  "status": "passed",
+  "scope": "actual-Chrome-local-account-session-and-console-logo",
+  "cases": [
+    "trusted-HTTPS-opens-without-browser-warning",
+    "reader-real-Chrome-login",
+    "reader-list-only-account-22214",
+    "reader-account-62654-denied-403",
+    "provider-confirmed-switch-ends-reader-session",
+    "trader-real-Chrome-login-in-same-profile",
+    "trader-list-only-account-62654",
+    "local-logout-followed-by-account-API-401"
+  ],
+  "certificate_trust": {
+    "user_authorized": true,
+    "store": "macOS login keychain; user domain",
+    "policy": "SSL trust of the exact lab certificate; no hostname policy constraint",
+    "sha256": "08a6167e4e0a9e80039e6c14356603040e9f0339ae5872441f35b0a63a47b8c3",
+    "warning_bypassed": false
+  },
+  "logo_computed_style": {
+    "margin": [
+      "5px",
+      "5px",
+      "5px",
+      "5px"
+    ],
+    "padding": [
+      "5px",
+      "5px",
+      "5px",
+      "5px"
+    ]
+  },
+  "limitations": [
+    "Chrome flow verified reader and trader; operator is covered by prior protocol tests.",
+    "Local-only account page; not Angular/C3 trading acceptance.",
+    "Development certificate trust is not hosted production TLS."
+  ],
+  "source_sha256": {
+    "scripts/security-lab/browser_session.py": "c88a1b7a1bc7ffc0d5c3895e0c4dfd26985fe33f0d918f49cd73124115e1a6e2",
+    "scripts/security-lab/ui/style.css": "59730d7b216c6e8e69ca01b7dda524000487e232ce2aa1931f928b0ab894409a"
+  }
+}

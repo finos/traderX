@@ -1,0 +1,24 @@
+{
+  "retrieved_on": "2026-11-22",
+  "url": "https://feed.finos.org/openvex.json",
+  "sha256": "bfc4f77ade4ba427863b65190adf62c7a9f6a43b1749c2da25e890a404646354",
+  "version": 325,
+  "last_updated": "2026-11-20T16:11:42Z",
+  "statement_count": 6333,
+  "example_only_not_selected_fixture": {
+    "vulnerability": {
+      "name": "CVE-2025-66566",
+      "aliases": [
+        "GHSA-cmp6-m4wj-q63q"
+      ]
+    },
+    "timestamp": "2026-10-21T14:15:06Z",
+    "products": [
+      {
+        "@id": "pkg:maven/at.yawk.lz4/lz4-java@1.8.1.1-osera-00001"
+      }
+    ],
+    "status": "fixed",
+    "supplier": "moderne"
+  }
+}

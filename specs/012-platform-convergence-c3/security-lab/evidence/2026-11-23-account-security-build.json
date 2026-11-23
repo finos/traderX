@@ -1,0 +1,47 @@
+{
+  "status": "built-and-unit-tested",
+  "jar_sha256": "2995eb200cd4407dcd647a2a89d31aed6ec6f0447278ffac9ebd91cadd736133",
+  "generation": {
+    "generated_commit": "cfa6992e47ee16ba78c27cad8539b03bf03afeec",
+    "source_commit": "ca0f66429bdf95552da0655eed56e34c4af67185",
+    "inputs": {
+      "scripts/security-lab/render_account_security.py": "a1de9b55a06b289c14ffd7e956cd2ce0f53e9bc35250d7eabf74536ad1b554a5",
+      "specs/012-platform-convergence-c3/security-lab/generation/account-security/AccountAccess.java": "fd4772efd4f69f7d80467e821487e831df7e7148e1ab4d4ce30b7ff5ede8eca5",
+      "specs/012-platform-convergence-c3/security-lab/generation/account-security/AccountSecurity.java": "4d29e4779f219728dae2fec35020fa1413309ad1b4bb330c45edcd5d3e83ba23",
+      "specs/012-platform-convergence-c3/security-lab/generation/account-security/AccountAccessTest.java": "878914d2f01faed710a734f30d04b16f3f49da6f341cf1843cfb280628996350"
+    },
+    "files": {
+      "SPEC.manifest.json": "3b6419c9179286f16730fe7ba38a8c8961cd62b006d7cff6240d736a1f189500",
+      "Dockerfile.compose": "0f347cdf02623a8b0fbdcc86325125cd5895dd7d331229164447a53bf121dcef",
+      "Dockerfile": "205c79ef84b29090f2411f290228b3a7882dd793e49ad0466491311dcea77c83",
+      "README.md": "cad2bbdb7403f7a0b4f29b4b8885515ddc1fafbd18408efb194589c9203d13cb",
+      "gradlew": "734b3879d3501dce471cf0522d3bcbafe76873d9fc5129345b67fb43bd15e933",
+      "build.gradle": "0c04eb12d895deac3b6bb99a5dc8ea10da75d8c155efdf3d14689313681da2ff",
+      "openapi.yaml": "5399ab216026640b4b26d90c81bdbfb524aee1090f61043c66b3fa0c90d3c2a7",
+      "gradlew.bat": "57931b17dd228e5c24dac90e815d0bf82477e831a4618dfab4136f5446b42a9f",
+      "settings.gradle": "9aade22c81a004a7bf9d692378513fd826910ce9bfdd73e0791e78de8cf5e4e7",
+      "src/main/resources/test-application.properties": "856bc59617d3ba131930423e4ed2d90b2bed1b3cc8f7a00739cb36025f05dead",
+      "src/main/resources/application.properties": "f76c27bd03b7b43845abea1dab20bbf8ed9e1d6c0f74a0805e3a93c13d86f1fb",
+      "src/main/java/finos/traderx/accountservice/AccountServiceApplication.java": "30e43f656f370af73805aa00609354fc02f18ecc6c76988aa60d01f1dbd8deb9",
+      "src/main/java/finos/traderx/accountservice/OpenApiConfig.java": "3d2d803fce988dcae2f92d2ae7e049ccac07b3914783273d04d2fe93f5dafb3a",
+      "src/main/java/finos/traderx/accountservice/repository/AccountRepository.java": "2ebbc1d77eb87ae119ffd6ec6ed47045711c4248b11e38a9c44ec2da9c4ddc3d",
+      "src/main/java/finos/traderx/accountservice/repository/AccountUserRepository.java": "9295eed9639ab8fe402118dfa4e92cb8d222a0bb4b1d5e6e5e8a60e41be26a37",
+      "src/main/java/finos/traderx/accountservice/security/AccountAccess.java": "fd4772efd4f69f7d80467e821487e831df7e7148e1ab4d4ce30b7ff5ede8eca5",
+      "src/main/java/finos/traderx/accountservice/security/AccountSecurity.java": "4d29e4779f219728dae2fec35020fa1413309ad1b4bb330c45edcd5d3e83ba23",
+      "src/main/java/finos/traderx/accountservice/exceptions/ResourceNotFoundException.java": "13c029b9005767e47431e54af72161a6fc5a54ba7c186a650679b22bf613ea34",
+      "src/main/java/finos/traderx/accountservice/controller/AccountController.java": "661d572786551164fde27c883f8c9a2e1b64e2305b97c73bbaea1a692988b13d",
+      "src/main/java/finos/traderx/accountservice/controller/DocsController.java": "add7fe9f49e7f9e12b32dd35eab9564006485d5a06a9f0d17d36e732daf430d5",
+      "src/main/java/finos/traderx/accountservice/controller/AccountUserController.java": "65fec1916826654aae787e97633ce4211a5fbb4c930563ff473767079a5732c1",
+      "src/main/java/finos/traderx/accountservice/model/Account.java": "955cd33d5ad5ee4631d6b8f8744e8c161e3d90e22134d8bc6511baf12ff9bb2a",
+      "src/main/java/finos/traderx/accountservice/model/Person.java": "c65d68b6be7ebaa88757c15581ca3b7072763e55d978d79fe71f542224866b99",
+      "src/main/java/finos/traderx/accountservice/model/AccountUser.java": "27619429c1c92cf6fe2b6eac42ed5baf1896dc815a4e6ee11b2288928bdf5040",
+      "src/main/java/finos/traderx/accountservice/service/AccountService.java": "04d28f90fc380e5de749ee19df7df938aebd0344526a6c50193221db3fd753fd",
+      "src/main/java/finos/traderx/accountservice/service/PeopleValidationService.java": "bb171d28ca2115117120ece051e874f5b752d6a56dca0ca6ed07c35c2022191c",
+      "src/main/java/finos/traderx/accountservice/service/AccountUserService.java": "172fb5323333bdea31eb431c49e542841dac88cb78af36f1e11b9df296ae85e8",
+      "src/main/test/java/finos/traderx/accountservice/AccountServiceApplicationTests.java": "32bf638cd4d05c35b4ea729328accf13082c7ab072384dc5d904cf4454693204",
+      "src/test/java/finos/traderx/accountservice/security/AccountAccessTest.java": "878914d2f01faed710a734f30d04b16f3f49da6f341cf1843cfb280628996350",
+      "gradle/wrapper/gradle-wrapper.jar": "81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f",
+      "gradle/wrapper/gradle-wrapper.properties": "0d8f5425a63f59516412696fae5787bf2e5a6aa52bb004e65cf121cc34efaa86"
+    }
+  }
+}

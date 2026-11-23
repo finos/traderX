@@ -1,0 +1,164 @@
+{
+  "status": "passed",
+  "recorded_at": "2026-11-22T13:16:42.072921+00:00",
+  "image_id": "sha256:1336f412f696c8437854defce78c684141b03683fd8cc9657f74b9ce5b0ec8c4",
+  "pins": {
+    "coraza_release": "0.6.0",
+    "coraza_zip_sha256": "cca4e3c75cf6b2e615907f936a1b6dcd0955250e0fb7d3b1c2ecef807d84603c",
+    "publisher_digest_verified": true,
+    "wasm_sha256": "f36e710529167482df820b790981230092da098d26d21aebb16f1d9c8c4e26d5",
+    "envoy": {
+      "source": "envoyproxy/envoy:v1.40.2",
+      "index_digest": "sha256:8de97e654644827d62afdbf7e1d3dc9fee01a8690d410dd1c63a30dc6b6cecbb",
+      "digest": "sha256:401cf6645d36f5e599dd26eec125a0a9d21c92267bc37b702d24c327b1ed889a",
+      "platform": "linux/arm64",
+      "image": "docker.io/envoyproxy/envoy@sha256:401cf6645d36f5e599dd26eec125a0a9d21c92267bc37b702d24c327b1ed889a"
+    },
+    "backend": {
+      "source": "python:3.13-alpine",
+      "index_digest": "sha256:9ef1a599f863231c3d91e941389bfdc4a2d6070557243d54df1a4e57015b960e",
+      "digest": "sha256:9cf2fdca7b3dd6082fd160ff5b8664f108c7441e200018a36554b2e8028f45df",
+      "platform": "linux/arm64",
+      "image": "docker.io/library/python@sha256:9cf2fdca7b3dd6082fd160ff5b8664f108c7441e200018a36554b2e8028f45df"
+    }
+  },
+  "tls_verified": true,
+  "results": [
+    {
+      "mode": "Off",
+      "cases": [
+        {
+          "case": "benign",
+          "run_id": "2aae9a34-eb26-4ab0-845f-b903abf3b456",
+          "http_status": 200,
+          "backend_received": true,
+          "expected_status": 200,
+          "passed": true
+        },
+        {
+          "case": "sql-query",
+          "run_id": "5f7c7e0b-e71f-4897-9a74-cbef254ae448",
+          "http_status": 200,
+          "backend_received": true,
+          "expected_status": 200,
+          "passed": true
+        },
+        {
+          "case": "sql-json",
+          "run_id": "d45ece54-b509-44cf-8388-2909595324d3",
+          "http_status": 200,
+          "backend_received": true,
+          "expected_status": 200,
+          "passed": true
+        },
+        {
+          "case": "benign-after",
+          "run_id": "37d077f4-6eb8-4897-a3d3-ecc0cb80195e",
+          "http_status": 200,
+          "backend_received": true,
+          "expected_status": 200,
+          "passed": true
+        }
+      ],
+      "sql_rule_detected": false,
+      "rule_ids": [],
+      "config_sha256": "72a0f9a900fbe5d10b3ccd433bdc87f1ed9818b1ca9b05946afcec30b5bad66f",
+      "passed": true
+    },
+    {
+      "mode": "DetectionOnly",
+      "cases": [
+        {
+          "case": "benign",
+          "run_id": "4f146463-d097-4928-bc18-9dc2a8f48f5e",
+          "http_status": 200,
+          "backend_received": true,
+          "expected_status": 200,
+          "passed": true
+        },
+        {
+          "case": "sql-query",
+          "run_id": "16155529-2c39-44a2-a2ba-6841592bcee7",
+          "http_status": 200,
+          "backend_received": true,
+          "expected_status": 200,
+          "passed": true
+        },
+        {
+          "case": "sql-json",
+          "run_id": "d5556f99-69a1-4128-b955-f77cd7826413",
+          "http_status": 200,
+          "backend_received": true,
+          "expected_status": 200,
+          "passed": true
+        },
+        {
+          "case": "benign-after",
+          "run_id": "539d8fbf-3a1d-4c9c-b248-5bb899a50d76",
+          "http_status": 200,
+          "backend_received": true,
+          "expected_status": 200,
+          "passed": true
+        }
+      ],
+      "sql_rule_detected": true,
+      "rule_ids": [
+        "942100",
+        "949110",
+        "949111"
+      ],
+      "config_sha256": "af25dffdca9b7836208338fb31a0f4e402d2b754769652438d2a6ebd392f0aab",
+      "passed": true
+    },
+    {
+      "mode": "On",
+      "cases": [
+        {
+          "case": "benign",
+          "run_id": "01e18a3f-8d56-450e-8abd-61acf964b057",
+          "http_status": 200,
+          "backend_received": true,
+          "expected_status": 200,
+          "passed": true
+        },
+        {
+          "case": "sql-query",
+          "run_id": "91a52d5c-9e1b-4e64-8c68-f5ca670553a9",
+          "http_status": 403,
+          "backend_received": false,
+          "expected_status": 403,
+          "passed": true
+        },
+        {
+          "case": "sql-json",
+          "run_id": "ba9964b5-9acc-41d7-a15a-39bf8dfab120",
+          "http_status": 403,
+          "backend_received": false,
+          "expected_status": 403,
+          "passed": true
+        },
+        {
+          "case": "benign-after",
+          "run_id": "2439887c-0df1-43e4-a5ec-cb4b8d91cfc8",
+          "http_status": 200,
+          "backend_received": true,
+          "expected_status": 200,
+          "passed": true
+        }
+      ],
+      "sql_rule_detected": true,
+      "rule_ids": [
+        "942100",
+        "949110",
+        "949111"
+      ],
+      "config_sha256": "518641e9628d9eb1aea2493e5f95fef879b0ea4f7f474c0d81dc0272fe48a76d",
+      "passed": true
+    }
+  ],
+  "limitations": [
+    "Harmless recording backend; no verified exploit or TraderX RCE claim",
+    "Standalone Envoy proxy-Wasm compatibility, not Envoy Gateway integration",
+    "Reference C3 is not routed through this fixture; full hardening remains pending"
+  ]
+}

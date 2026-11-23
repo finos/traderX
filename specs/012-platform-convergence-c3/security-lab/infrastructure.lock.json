@@ -1,0 +1,20 @@
+{
+  "kind_node": "kindest/node:v1.35.0@sha256:452d707d4862f52530247495d180205e029056831160e22870e37e3f6c1ac31f",
+  "cilium_chart": "1.20.5",
+  "cilium_values": {
+    "ipam": {
+      "mode": "kubernetes"
+    },
+    "kubeProxyReplacement": false,
+    "operator": {
+      "replicas": 1
+    }
+  },
+  "cilium_running_images": [
+    {
+      "name": "cilium-agent",
+      "image": "sha256:61795697889aa3e46d7908d09e9369480ea93e121d48c653043cd04cc8c6d94f",
+      "image_id": "quay.io/cilium/cilium@sha256:aa72499f075ad729947ea91b026218aceba24f1a8e4534bf36b8368c7c561526"
+    }
+  ]
+}

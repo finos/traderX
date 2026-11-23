@@ -7,7 +7,7 @@
   "main": "src/main.js",
   "scripts": {
     "start": "node src/main.js",
-    "test": "node --test src/main.test.js"
+    "test": "node --test src/*.test.js"
   },
   "dependencies": {
     "express": "5.2.1",

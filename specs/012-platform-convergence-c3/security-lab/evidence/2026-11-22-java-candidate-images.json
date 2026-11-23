@@ -1,0 +1,56 @@
+{
+  "status": "candidate-images-built-not-deployed",
+  "base_image": "eclipse-temurin:21-jre@sha256:0b99b3376fbb50dbf9c0af8535fdd5b8eb0d3fdfc8b1e4967f383b6919f6901a",
+  "dockerfile_sha256": "48a3abadac1ff36fb904b7c993661a2eb390bd43779d9749320269b7edff90bc",
+  "lifecycle_run_id": "6244b7ac811b4277a0e1f6bbfff3f436",
+  "images": [
+    {
+      "service": "trade-service",
+      "tag": "traderx-security-trade-service:nats-ffed9de2f96e",
+      "local_image_config_id": "sha256:0119f43d630759a387688ea1279101debad63d41938620368cb56ac5a3b64295",
+      "jar_sha256": "ffed9de2f96e90f31b2d50cc67fa6f4df9a0ff47a4471eb42ca0969bb7a76473",
+      "platform": "linux/amd64",
+      "user": "10001:10001",
+      "canonical_source_hashes": {
+        "src/main/java/finos/traderx/messaging/nats/NatsJSONPublisher.java": "01cddb568c97d8477f8be17d93e7151e09ce0325705180231990ebc073d26a3f",
+        "src/main/java/finos/traderx/tradeservice/controller/SystemController.java": "2ea066b6200afffd70604fae1573dd44e084ff2d1987e7686aeb08bb55f15575",
+        "src/main/java/finos/traderx/messaging/nats/NatsSecurity.java": "d2aa17231af775c0e01014af09769a55b7eb350b75c30b6e39656c10b6adede3"
+      }
+    },
+    {
+      "service": "trade-processor",
+      "tag": "traderx-security-trade-processor:nats-9bf7ec973bee",
+      "local_image_config_id": "sha256:dc61fc6721a8f812dd2ae9a46fd31758dad886284d5cefaeba3bd47a6204956f",
+      "jar_sha256": "9bf7ec973beedf7100481ff06eb65b6102e3fab3fd84917e64516e8d6ef2fa11",
+      "platform": "linux/amd64",
+      "user": "10001:10001",
+      "canonical_source_hashes": {
+        "src/main/java/finos/traderx/tradeprocessor/PubSubConfig.java": "89512af91c910121bc66141b60caa2df038936a72658623eda86d477f37101de",
+        "src/main/java/finos/traderx/messaging/nats/NatsJSONSubscriber.java": "b412b4abf5e4da2a9a1468e7d59db4803b6d9fbbad90fad261ff448192b65afb",
+        "src/main/java/finos/traderx/messaging/nats/NatsJSONPublisher.java": "01cddb568c97d8477f8be17d93e7151e09ce0325705180231990ebc073d26a3f",
+        "src/main/java/finos/traderx/tradeprocessor/controller/SystemController.java": "bef18a78af040d224b4d6481b2f28879f85c4d311bd7573959629c4f7638b64f",
+        "src/main/java/finos/traderx/messaging/nats/NatsSecurity.java": "d2aa17231af775c0e01014af09769a55b7eb350b75c30b6e39656c10b6adede3"
+      }
+    },
+    {
+      "service": "order-matcher",
+      "tag": "traderx-security-order-matcher:nats-09556072c39a",
+      "local_image_config_id": "sha256:8f362c335ee7ce8f1ac6fb870cb4e107be22d619ffda53d3664929eafd5f04b0",
+      "jar_sha256": "09556072c39a508eb9f404c7452098276a265c41df2ecab56895c6f2a605311e",
+      "platform": "linux/amd64",
+      "user": "10001:10001",
+      "canonical_source_hashes": {
+        "src/main/java/finos/traderx/messaging/nats/NatsJSONPublisher.java": "ec333afc656ad6557e04b0e76b46ae80b46f145a309fda55e2644b474e27ae6f",
+        "src/main/java/finos/traderx/ordermatcher/controller/SystemController.java": "524b182a1e25f9c4815fce029242add49b841a37dc924c0885465e8e57462976",
+        "src/main/java/finos/traderx/ordermatcher/service/PricingNatsSubscriberService.java": "283df6e24e922953e6613024219d5e7ceefe4d61375e831da68d1970bd4bfe86",
+        "src/main/java/finos/traderx/ordermatcher/service/OrderMatcherService.java": "f9d388457ab679d3ecb49825bee2aae5507dfec89d02c02de7e12ecd837b413b",
+        "src/main/java/finos/traderx/messaging/nats/NatsSecurity.java": "d2aa17231af775c0e01014af09769a55b7eb350b75c30b6e39656c10b6adede3"
+      }
+    }
+  ],
+  "limitations": [
+    "Local config IDs are not registry manifest digests; no push, signatures or admission changes.",
+    "Container JAR hashes and Java startup checked; full Spring startup/trading in these images remains pending.",
+    "Pinned JRE base without unpinned OS upgrades; vulnerability scanning remains a separate gate."
+  ]
+}

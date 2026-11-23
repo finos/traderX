@@ -285,11 +285,7 @@ public class NatsJSONPublisher<T> implements Publisher<T>, InitializingBean {
   @Override
   public void connect() throws PubSubException {
     try {
-      Options options = new Options.Builder()
-          .server(serverAddress)
-          .maxReconnects(-1)
-          .connectionTimeout(Duration.ofSeconds(5))
-          .build();
+      Options options = finos.traderx.messaging.nats.NatsSecurity.options(serverAddress);
       connection = Nats.connect(options);
       connected = true;
       log.info("Connected to NATS at {}", serverAddress);
@@ -387,6 +383,11 @@ install_order_matcher_nats_publisher
 if [[ -d "${RUNTIME_OVERRIDES_DIR}" ]]; then
   rsync -a "${RUNTIME_OVERRIDES_DIR}/" "${TARGET_ROOT}/"
 fi
+# Shared opt-in credentials/TLS helper; defaults retain anonymous reference behavior.
+for service in order-matcher; do
+  install -m 644 "${ROOT}/specs/006-messaging-nats-replacement/generation/nats/NatsSecurity.java" "${TARGET_ROOT}/${service}/src/main/java/finos/traderx/messaging/nats/NatsSecurity.java"
+done
+
 
 # Export the state-owned behavioral contract for downstream/overlay implementations.
 CONFORMANCE_TARGET="${TARGET_ROOT}/conformance/state-009"

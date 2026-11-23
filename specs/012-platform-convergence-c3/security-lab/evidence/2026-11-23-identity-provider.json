@@ -1,0 +1,98 @@
+{
+  "run_id": "e7b4d8043f7343faa1c66b58272c37a3",
+  "started_at": "2026-11-23T04:58:53.602445+00:00",
+  "status": "passed",
+  "scope": "isolated-provider-and-representative-verifier",
+  "image": "quay.io/keycloak/keycloak@sha256:7e66a96e4739239070aeaf72e4c5decf0f7f682cfc725b9f7ea2b336eaba38b3",
+  "cases": [
+    {
+      "id": "verified-tls-discovery-and-loopback-boundary",
+      "status": "passed"
+    },
+    {
+      "id": "reader-code-pkce-signed-token-and-entitlements",
+      "status": "passed"
+    },
+    {
+      "id": "reader-id-token-not-api-token",
+      "status": "passed"
+    },
+    {
+      "id": "reader-code-reuse-denied",
+      "status": "passed"
+    },
+    {
+      "id": "reader-tampered-token-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-code-pkce-signed-token-and-entitlements",
+      "status": "passed"
+    },
+    {
+      "id": "trader-id-token-not-api-token",
+      "status": "passed"
+    },
+    {
+      "id": "trader-code-reuse-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-tampered-token-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-code-pkce-signed-token-and-entitlements",
+      "status": "passed"
+    },
+    {
+      "id": "operator-id-token-not-api-token",
+      "status": "passed"
+    },
+    {
+      "id": "operator-code-reuse-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-tampered-token-denied",
+      "status": "passed"
+    },
+    {
+      "id": "wrong-password-denied",
+      "status": "passed"
+    },
+    {
+      "id": "wrong-pkce-verifier-denied",
+      "status": "passed"
+    },
+    {
+      "id": "missing-pkce-denied",
+      "status": "passed"
+    },
+    {
+      "id": "alternate-redirect-denied",
+      "status": "passed"
+    },
+    {
+      "id": "password-grant-disabled",
+      "status": "passed"
+    }
+  ],
+  "limitations": [
+    "No live C3 account-service enforcement or browser session integration.",
+    "Development-mode disposable provider, not a production issuer deployment.",
+    "Provider signing-key rotation and refresh/logout integration remain pending.",
+    "A local PyJWT verifier is tested; Spring resource-server validation remains separate."
+  ],
+  "lab_temporarily_stopped": true,
+  "image_config_id": "sha256:61a6cd8c36da8fc92bb79f092ef9f49f69c3313f61e01a03f3eff72b41f946a5",
+  "architecture": "arm64",
+  "cleanup": "complete",
+  "lab_restart": "started-readiness-requires-verification",
+  "finished_at": "2026-11-23T05:00:05.082082+00:00",
+  "source_sha256": {
+    "identity_fixture.py": "af78aa40c8fcb389eaf50c527d3da4c891b63939675f8ff75e6ea2ca9cdbbe52",
+    "verify_identity.py": "0b5c311c6aed500527296918e9529d5816259a699ae4d3774ad88efd95e7510b",
+    "requirements-identity.txt": "fdecabe5fe314d1daac0548970117334f1b827db9a10a5e21731ddccdcde6b05"
+  }
+}

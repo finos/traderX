@@ -1,0 +1,80 @@
+{
+  "status": "passed",
+  "started_at": "2026-11-23T05:44:54.437695+00:00",
+  "scope": "minimal-account-development-not-security-acceptance",
+  "cycles": [
+    {
+      "cycle": 1,
+      "checks": [
+        "seeded-account-read",
+        "membership-account-id-semantics",
+        "account-create",
+        "account-update",
+        "people-stub-positive",
+        "unknown-person-denied",
+        "no-invalid-membership",
+        "missing-account"
+      ],
+      "memory_samples": [
+        {
+          "name": "traderx-account-dev-account-1",
+          "memory": "353.5MiB / 512MiB"
+        },
+        {
+          "name": "traderx-account-dev-people-1",
+          "memory": "15.74MiB / 96MiB"
+        },
+        {
+          "name": "traderx-account-dev-database-1",
+          "memory": "119.9MiB / 256MiB"
+        }
+      ]
+    },
+    {
+      "cycle": 2,
+      "checks": [
+        "seeded-account-read",
+        "membership-account-id-semantics",
+        "account-create",
+        "account-update",
+        "people-stub-positive",
+        "unknown-person-denied",
+        "no-invalid-membership",
+        "missing-account"
+      ],
+      "memory_samples": [
+        {
+          "name": "traderx-account-dev-account-1",
+          "memory": "339.9MiB / 512MiB"
+        },
+        {
+          "name": "traderx-account-dev-people-1",
+          "memory": "15.73MiB / 96MiB"
+        },
+        {
+          "name": "traderx-account-dev-database-1",
+          "memory": "120.1MiB / 256MiB"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "People service is a fixed stub; no user authorization is implemented.",
+    "Memory readings are samples, not continuous startup peaks.",
+    "Container recreation previously failed with a missing Node image after image deletions. Reset now retains containers/image references and clears tmpfs through stop/start."
+  ],
+  "clean_seed_restored": true,
+  "container_restrictions_verified": true,
+  "application_sql_identity": "lab_account",
+  "images": {
+    "/traderx-account-dev-account-1": "ghcr.io/finos/traderx-c3/account-service@sha256:1649d7e0cdc92c77634646a4fc3c6371c5b90d16b79ad67e701093519499462b",
+    "/traderx-account-dev-people-1": "docker.io/library/node@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8",
+    "/traderx-account-dev-database-1": "ghcr.io/finos/traderx-c3/database@sha256:1aa68521a486e2c217e6d1b1328ae3d01816302eeddbeb664f34445d6844f022"
+  },
+  "finished_at": "2026-11-23T05:48:12.527632+00:00",
+  "source_sha256": {
+    "scripts/security-lab/account_dev.py": "aa01c938e880b1879cc6e1c931fbe086d65b060e823b1fa936b96d272a3508b1",
+    "specs/012-platform-convergence-c3/security-lab/generation/account-dev/schema.sql": "95428aeb906988fd4a30d006d08b7c437a87166f1493c646816ee155e9380c21",
+    "specs/012-platform-convergence-c3/security-lab/generation/account-dev/people-stub.js": "ae43f64b5ffac801bcfd28eb70604c4ca3af56b0dc2de3b5aaccd78ba77f4332"
+  }
+}
