@@ -16,3 +16,5 @@ At C3, the learning contract requires functional and platform evidence from one 
 ## Security Lab child — #510
 
 State 019 is a planned optional C3 child. Its prototype currently resides under this pack to preserve pinned experiments while generation is promoted. C3 remains the trading/platform checkpoint; fixture security results are not claims about every live C3 boundary. The child adds staged control evidence, residual-authority learning and a later runtime comparison; CALM is a separate successor.
+
+The State 019 offline checkpoint now verifies the existing pinned C3 snapshot independently of a maintainer checkout. This does not rebase that tested snapshot onto current C3 or claim new runtime enforcement.

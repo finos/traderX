@@ -1,0 +1,30 @@
+name: Security Lab Offline Checkpoint
+on:
+  pull_request:
+    paths:
+      - 'scripts/security-lab/**'
+      - 'scripts/test-state-019-checkpoint.sh'
+      - 'specs/012-platform-convergence-c3/security-lab/**'
+      - 'specs/019-traderx-security-lab/**'
+      - '.github/workflows/security-lab-checkpoint.yml'
+permissions:
+  contents: read
+jobs:
+  offline-checkpoint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+      - name: Install compiler dependency
+        run: python -m pip install -r scripts/security-lab/requirements.txt
+      - name: Test offline failure and integrity boundaries
+        run: python -m unittest discover -s scripts/security-lab -p 'test_checkpoint.py'
+      - name: Fetch immutable reference snapshot
+        run: python scripts/security-lab/checkpoint.py fetch-baseline
+      - name: Reproduce and verify checkpoint without a cluster
+        run: TRADERX_SECURITY_PYTHON=python bash scripts/test-state-019-checkpoint.sh

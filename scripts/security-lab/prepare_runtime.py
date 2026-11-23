@@ -85,13 +85,20 @@ def resolve_image(image, architecture):
             'platform': f'linux/{architecture}', 'image': f'{public_registry}/{repo}@{digest}'}
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--output-dir', type=Path, required=True)
-    args = parser.parse_args()
-    out = args.output_dir.resolve()
-    out.mkdir(parents=True, exist_ok=True)
-    lock = lab.read_json(lab.PROFILE / 'baseline.lock.json')
+def validate_pin(original, entry, baseline):
+    """Reject inconsistent digest/platform metadata before emitting any manifest."""
+    digest = entry.get('digest', '')
+    if not re.fullmatch(r'sha256:[0-9a-f]{64}', digest):
+        raise ValueError('Invalid image digest: ' + original)
+    if not entry.get('image', '').endswith('@' + digest):
+        raise ValueError('Image reference/digest mismatch: ' + original)
+    pinned = baseline.get('image_digests', {}).get(original)
+    if pinned and pinned != entry['image']:
+        raise ValueError('Image differs from baseline pin: ' + original)
+
+
+def render_reference(lock, image_lock, *, offline=False):
+    """Compile the pinned snapshot. Offline mode never resolves registry tags."""
     sha = lock['generated_commit']
     if f"Source Commit: `{lock['canonical_source_commit']}`" not in lab.object_text(sha, 'README.md'):
         raise ValueError('Snapshot source mismatch')
@@ -101,11 +108,6 @@ def main():
     plan = json.loads(lab.object_text(sha, 'kubernetes-runtime/build-plan.json'))
     published = {item['image']: ('ingress' if item['name'] == 'edge-proxy' else item['name'])
                  for item in plan['images']}
-    # Reuse a complete prior lock rather than silently resolving moving tags again.
-    lock_path = out / 'images.lock.json'
-    committed_lock = lab.PROFILE / 'runtime-images.lock.json'
-    seed = lock_path if lock_path.exists() else committed_lock
-    image_lock = json.loads(seed.read_text()) if seed.exists() else {'generated_commit': sha, 'images': {}}
     if image_lock['generated_commit'] != sha:
         raise ValueError('Existing image lock belongs to another snapshot')
     for doc in docs:
@@ -134,18 +136,35 @@ def main():
             source = f'ghcr.io/finos/traderx-c3/{component}:{sha}' if component else original
             arch = 'amd64' if component else 'arm64'
             if original not in image_lock['images']:
+                if offline:
+                    raise ValueError('Missing pinned image: ' + original)
                 print(f'Resolving {meta["name"]}: {source} (linux/{arch})', flush=True)
                 image_lock['images'][original] = resolve_image(source, arch)
-                lock_path.write_text(json.dumps(image_lock, indent=2) + '\n')
             entry = image_lock['images'][original]
             if entry['source'] != source or entry['platform'] != f'linux/{arch}':
                 raise ValueError('Existing image lock does not match expected source/platform')
+            validate_pin(original, entry, lock)
             container['image'] = entry['image']
             container['imagePullPolicy'] = 'IfNotPresent'
-    manifest = {'apiVersion': 'v1', 'kind': 'List', 'items': docs}
+    return {'apiVersion': 'v1', 'kind': 'List', 'items': docs}
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--output-dir', type=Path, required=True)
+    parser.add_argument('--offline', action='store_true', help='Require every image pin; never contact a registry')
+    args = parser.parse_args()
+    out = args.output_dir.resolve()
+    out.mkdir(parents=True, exist_ok=True)
+    lock = lab.read_json(lab.PROFILE / 'baseline.lock.json')
+    lock_path = out / 'images.lock.json'
+    committed_lock = lab.PROFILE / 'runtime-images.lock.json'
+    seed = lock_path if lock_path.exists() else committed_lock
+    image_lock = json.loads(seed.read_text()) if seed.exists() else {'generated_commit': lock['generated_commit'], 'images': {}}
+    manifest = render_reference(lock, image_lock, offline=args.offline)
     lock_path.write_text(json.dumps(image_lock, indent=2) + '\n')
     (out / 'reference.json').write_text(json.dumps(manifest, indent=2) + '\n')
-    print(f'Rendered {len(docs)} resources. No cluster was modified.')
+    print(f"Rendered {len(manifest['items'])} resources. No cluster was modified.")
 
 
 if __name__ == '__main__':
