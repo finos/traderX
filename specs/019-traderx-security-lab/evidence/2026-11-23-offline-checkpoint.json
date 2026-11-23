@@ -1,0 +1,25 @@
+{
+  "status": "passed",
+  "scope": "offline artifact reproduction from a depth-one local clone with explicit FINOS snapshot fetch",
+  "implementation_commit": "d6ecefad8aec52b1369bd0b06ad825c5a2e47abc",
+  "baseline_commit": "cfa6992e47ee16ba78c27cad8539b03bf03afeec",
+  "checks": [
+    "immutable baseline fetched from FINOS into shallow clone",
+    "two sequential generations byte-identical",
+    "fresh-clone output identical to original checkout output",
+    "all artifacts verified by recompilation",
+    "96 local Python unit tests passed",
+    "four required repository quality gates passed"
+  ],
+  "artifact_sha256": {
+    "business-workloads.json": "329c8c60a2234442968c4c20a8d9cb97fe8f394d41aa722c9399cded4d1068c4",
+    "checkpoint.json": "f439ab6a8e61b1fe18563b684f153945959845ac1a943724ba3bd1f8043eafd8",
+    "images.lock.json": "9393bd851fc2ed5e62ab3161d6acf455b4adeaf594e1cd7496d5e17534af949c",
+    "reference.json": "a3b787c0486e186eda03a770ab076b3065af4d134c2c525e490c3ed8420870a4"
+  },
+  "limitations": [
+    "Clean checkout on existing macOS host using existing Python environment, not clean-machine runtime reproduction.",
+    "No Docker/cluster started, no image pulls, no runtime enforcement or full state integration tested.",
+    "Linux CI result tracked separately on PR #511."
+  ]
+}
