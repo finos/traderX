@@ -1,0 +1,60 @@
+name: Portfolio exposure parity
+on:
+  pull_request:
+    paths:
+      - 'specs/017-portfolio-lookthrough/**'
+      - 'specs/018-falkordb-lookthrough/**'
+      - 'pipeline/*portfolio*'
+      - 'pipeline/generate-state-018-falkordb-lookthrough.sh'
+      - 'scripts/*exposure*'
+      - 'scripts/*counterparty*'
+      - '.github/workflows/portfolio-exposure.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  databases:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16.4
+        env:
+          POSTGRES_USER: traderx
+          POSTGRES_PASSWORD: traderx
+          POSTGRES_DB: traderx
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U traderx" --health-interval 5s
+          --health-timeout 3s --health-retries 20
+      falkor:
+        image: falkordb/falkordb:v4.16.0@sha256:f8a0e805259cf6887445d8c2cb55da722219cc3cd3202cbb4c49115fc71e144b
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s
+          --health-timeout 3s --health-retries 20
+    env:
+      EXPOSURE_TEST_DSN: postgresql://traderx:traderx@localhost:5432/traderx
+      EXPOSURE_TEST_REDIS_URL: redis://localhost:6379
+      EXPOSURE_TEST_PROFILE: demo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r specs/017-portfolio-lookthrough/generation/exposure-service/requirements.txt
+      - run: python scripts/test-exposure-controlled-dataset.py
+      - run: python scripts/test-exposure-integration.py
+      - run: python scripts/benchmark-exposure.py > exposure-benchmark.json
+      - run: python scripts/test-exposure-impact.py
+      - run: python scripts/benchmark-exposure-impact.py --accounts 1000 --layers 3 --samples 5 --output impact-benchmark.json
+      - run: python scripts/benchmark-exposure-aggregation.py --accounts 1000 --layers 3 --samples 2 --rounds 1 --output aggregation-benchmark.json
+      - run: python scripts/benchmark-counterparty-dependencies.py --accounts 1000 --samples 2 --rounds 2 --output dependency-benchmark.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: exposure-benchmark
+          path: |
+            exposure-benchmark.json
+            impact-benchmark.json
+            aggregation-benchmark.json
+            dependency-benchmark.json

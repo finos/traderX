@@ -104,7 +104,7 @@ Use the [learning-partner protocol](/docs/learning/how-to-learn#learn-with-an-ag
 
 - Previous state(s): [008-pricing-awareness-market-data](/docs/learning/state-008-pricing-awareness-market-data)
 - Dotted-line parent(s): none
-- Next state(s): [010-kubernetes-runtime](/docs/learning/state-010-kubernetes-runtime)
+- Next state(s): [010-kubernetes-runtime](/docs/learning/state-010-kubernetes-runtime), [017-portfolio-lookthrough](/docs/learning/state-017-portfolio-lookthrough)
 
 ## Convergence Metadata
 

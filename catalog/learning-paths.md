@@ -25,12 +25,14 @@ This file is generated from `catalog/state-catalog.json`.
 
 - `005-postgres-database-replacement`
 - `006-messaging-nats-replacement`
+- `018-falkordb-lookthrough`
 
 ### Functional
 
 - `008-pricing-awareness-market-data`
 - `009-order-management-matcher`
 - `014-fdc3-intent-interoperability`
+- `017-portfolio-lookthrough`
 
 ### Non-Functional
 
@@ -39,6 +41,8 @@ This file is generated from `catalog/state-catalog.json`.
 ### Optional
 
 - `013-radius-kubernetes-platform`
+- `017-portfolio-lookthrough`
+- `018-falkordb-lookthrough`
 
 ### Convergence
 
@@ -65,3 +69,5 @@ This file is generated from `catalog/state-catalog.json`.
 | `012-platform-convergence-c3` | 011-tilt-kubernetes-dev-loop | `C3` | `true` | `canonical` | `specs/012-platform-convergence-c3/spec.md` |
 | `013-radius-kubernetes-platform` | 012-platform-convergence-c3 | `none` | `false` | `optional` | `specs/013-radius-kubernetes-platform/spec.md` |
 | `014-fdc3-intent-interoperability` | 012-platform-convergence-c3 | `none` | `false` | `canonical` | `specs/014-fdc3-intent-interoperability/spec.md` |
+| `017-portfolio-lookthrough` | 009-order-management-matcher | `none` | `false` | `optional` | `specs/017-portfolio-lookthrough/spec.md` |
+| `018-falkordb-lookthrough` | 017-portfolio-lookthrough | `none` | `false` | `optional` | `specs/018-falkordb-lookthrough/spec.md` |

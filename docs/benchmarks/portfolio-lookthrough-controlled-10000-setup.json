@@ -1,0 +1,18 @@
+{
+  "profile": "controlled-10000",
+  "accounts": 10000,
+  "nodes": 17201,
+  "referenceLinks": 56200,
+  "positions": 299460,
+  "generateAndSeedSeconds": 5.838,
+  "fixedQueries": [
+    {
+      "account": 70000,
+      "target": "Z0G"
+    },
+    {
+      "account": 70020,
+      "target": "E0"
+    }
+  ]
+}

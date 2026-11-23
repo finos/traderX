@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TraderX · Corporate impact</title>
+<style>
+body{font:16px system-ui;color:#172b45;background:#f4f7fb;max-width:1120px;margin:40px auto;padding:0 24px}header,section{background:#fff;padding:28px;border-radius:16px;margin:20px 0}header{background:#212529;color:#fff;border-top:4px solid #31c3b3}.brand{font-size:24px;font-weight:700}.brand span{color:#31c3b3}header a,header small{color:#bfeee8}h1{font-size:36px;margin:12px 0}h2{margin-top:0}small,.muted{color:#52687f}nav{display:flex;gap:24px;flex-wrap:wrap}label{display:inline-block;margin:12px 20px 12px 0}select,button{font:inherit;padding:10px;border:1px solid #b7c7d8;border-radius:6px;max-width:100%}button{background:#175cd3;color:#fff;cursor:pointer}.cards{display:flex;gap:40px;flex-wrap:wrap}.number{font-size:30px;font-weight:650}#error{color:#a21b28}#ranking{list-style:none;padding:0}#ranking>li{border-top:1px solid #dce5ee;padding:18px 0}.row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}.money{font-size:20px;font-weight:650}.paths{padding:0 0 0 20px}.paths li{padding:10px 0;overflow-wrap:anywhere;line-height:1.6}summary{cursor:pointer;color:#175cd3;margin-top:12px}#status{overflow-wrap:anywhere;font-size:14px}@media(max-width:600px){body{margin:12px auto;padding:0 12px}header,section{padding:20px}h1{font-size:28px}label{display:block;margin-right:0}.cards{gap:20px}.number{font-size:25px}}
+</style>
+<header><div class="brand">Trader<span>X</span></div><small>PORTFOLIO INTELLIGENCE / CORPORATE IMPACT</small><h1>Which portfolios are exposed?</h1><p>Trace a corporate group through subsidiaries and shared funds. Rank the portfolios that need attention.</p><nav><a href="/trade">Back to trading</a><a id="single" href="./">Single portfolio look-through</a></nav></header>
+<section><label>Corporate group<br><select id="target" aria-label="Corporate group"></select></label><label>Show portfolios<br><select id="limit" aria-label="Portfolio limit"><option>10</option><option selected>20</option><option>50</option></select></label><button id="refresh">Assess impact</button><p id="error" role="alert"></p><small>Current synthetic holdings · USD fixed marks. Exposure measures holdings connected to the group; it is not an estimate of losses from an event.</small></section>
+<section><div class="cards"><div>Exposed portfolios<div id="portfolio-count" class="number">—</div></div><div>Total monetary exposure<div id="exposure-value" class="number">—</div></div><div>Contributing paths<div id="path-count" class="number">—</div></div></div><p id="status"></p></section>
+<section><h2>Portfolios to review</h2><p id="coverage" class="muted"></p><ol id="ranking"></ol></section>
+<script>
+const base=location.pathname.startsWith('/exposure')?'/exposure':'';
+const el=id=>document.getElementById(id), money=x=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(x), pct=x=>(100*x).toFixed(2)+'%';
+el('single').href=base+'/';
+async function json(path){const r=await fetch(base+path);const d=await r.json();if(!r.ok)throw Error(d.error||'Service unavailable');return d;}
+function clear(){for(const id of ['portfolio-count','exposure-value','path-count'])el(id).textContent='—';for(const id of ['status','coverage'])el(id).textContent='';el('ranking').replaceChildren();}
+function add(parent,tag,text,cls){const e=document.createElement(tag);e.textContent=text;if(cls)e.className=cls;parent.append(e);return e;}
+async function refresh(){el('error').textContent='';el('refresh').disabled=true;try{
+ const d=await json('/api/impact?target='+encodeURIComponent(el('target').value)+'&limit='+el('limit').value+'&pathLimit=3');
+ el('portfolio-count').textContent=d.exposedPortfolioCount.toLocaleString();el('exposure-value').textContent=money(d.totalExposureValue);el('path-count').textContent=d.pathCount.toLocaleString();
+ el('status').textContent='Valuation '+d.valuationAsOf+' · '+d.backend+' · '+d.elapsedMs+' ms · Revision '+d.revision.slice(0,12);
+ el('coverage').textContent=d.exposedPortfolioCount?'Showing '+d.portfolios.length+' of '+d.exposedPortfolioCount+' exposed portfolios, ranked by monetary exposure. Totals include every exposed portfolio.':'No portfolios are exposed to this group.';
+ el('ranking').replaceChildren();for(const [index,p] of d.portfolios.entries()){
+  const li=add(el('ranking'),'li',''),row=add(li,'div','','row'),left=add(row,'div','');
+  add(left,'strong',(index+1)+'. '+p.name+' ['+p.accountId+']');add(left,'p',pct(p.totalFraction)+' of '+money(p.portfolioValue)+' · Direct '+pct(p.directFraction)+' · Through funds '+pct(p.indirectFraction),'muted');
+  add(row,'div',money(p.exposureValue),'money');const details=add(li,'details','');details.open=index<3;
+  add(details,'summary',p.pathCount+' contributing paths'+(p.pathsTruncated?' · showing top '+p.paths.length:''));const paths=add(details,'ol','','paths');
+  for(const path of p.paths){const item=add(paths,'li','');add(item,'strong',money(path.exposureValue)+' · '+pct(path.fraction)+' of portfolio');add(item,'div',path.nodes.map(n=>n.name+' ['+n.id+']').join(' → '));}
+ }
+}catch(e){clear();el('error').textContent=e.message;}finally{el('refresh').disabled=false;}}
+el('refresh').onclick=refresh;
+json('/api/catalog').then(d=>{for(const n of d.targets){const option=add(el('target'),'option',n.name+' ['+n.id+']');option.value=n.id;}el('target').value=d.targets.some(n=>n.id==='IGROUP')?'IGROUP':d.targets.some(n=>n.id==='E0')?'E0':d.targets[0]?.id;refresh();}).catch(e=>{clear();el('error').textContent=e.message;});
+</script></html>
