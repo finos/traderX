@@ -1,0 +1,93 @@
+{
+  "version": 1,
+  "state": "019-traderx-security-lab",
+  "title": "Measure security boundaries and residual authority",
+  "purpose": "Help developers and security practitioners explain what controls prevent, detect and still permit in a trading application. Learn in phases before comparing runtime products.",
+  "entryAssumptions": "C3 normal trading and its Kubernetes runtime are understood; no production data is used.",
+  "concepts": [
+    "A reachable destination is not unlimited database authority; scoped service authority is not end-user business authorization.",
+    "An alert or killed process does not prove that impact was prevented."
+  ],
+  "runtimePrerequisites": "The integrated state is planned. Prototype onboarding is explicitly limited to its verified host and fixture scope; run only one full cluster at a time.",
+  "entryMode": "combined",
+  "transitions": [
+    {
+      "from": "012-platform-convergence-c3",
+      "carriesForward": "Trading, Kubernetes and observability.",
+      "motivation": "A working application does not yet explain its security boundaries.",
+      "increment": "Add staged controls, bounded experiments and independent outcome evidence.",
+      "objectiveIds": [
+        "attribute-control",
+        "measure-residual",
+        "reproduce-recover"
+      ],
+      "evidence": "Positive trading plus attributable negative checks and residual-authority outcomes in the same pinned deployment."
+    }
+  ],
+  "before": "C3 demonstrates normal trading.",
+  "after": "Target: learners can reproduce and explain layered security and residual risk; integrated acceptance is pending.",
+  "objectives": [
+    {
+      "id": "attribute-control",
+      "outcome": "Explain which security layer intervened using correlated decisions and independent state evidence."
+    },
+    {
+      "id": "measure-residual",
+      "outcome": "Distinguish denied out-of-grant operations from residual misuse of legitimate service authority, then compare detection with prevention."
+    },
+    {
+      "id": "reproduce-recover",
+      "outcome": "Reproduce a bounded experiment, restore synthetic data and verify that legitimate trading continues within a measured resource budget."
+    }
+  ],
+  "walkthrough": [
+    {
+      "id": "control-boundaries",
+      "objectiveIds": [
+        "attribute-control",
+        "measure-residual",
+        "reproduce-recover"
+      ],
+      "availability": "unavailable",
+      "action": "Planned integrated walkthrough: predict a decision, run positive and negative controls, inspect effects, compare runtime modes and reset. Prototype checkpoint evidence is available separately.",
+      "expected": "Attribute each decision and resulting state; do not infer prevention from an alert or claim a fixture is integrated.",
+      "references": [
+        "/specs/traderx-security-lab/quickstart",
+        "/specs/traderx-security-lab/tasks",
+        "/specs/traderx-security-lab/spec"
+      ]
+    }
+  ],
+  "assessments": [
+    {
+      "objectiveIds": [
+        "attribute-control",
+        "measure-residual",
+        "reproduce-recover"
+      ],
+      "question": "A service talks to its allowed database and a runtime alert fires. What proves prevention and successful recovery?",
+      "guidance": "Inspect independent canary and downstream effects after settling, compare the same inputs across profiles, reset and rerun positive trading; record resource costs and limitations."
+    }
+  ],
+  "limitations": [
+    "Planned generated state; current evidence covers individual checkpoints and candidate integrations only.",
+    "CVE/OSERA is optional and planned; CALM is a separate successor. Local checks are not compliance certification."
+  ],
+  "coaching": [
+    {
+      "objectiveIds": [
+        "attribute-control",
+        "measure-residual",
+        "reproduce-recover"
+      ],
+      "diagnosticQuestion": "Which identity and authority does each boundary actually enforce?",
+      "predictionPrompt": "Predict whether a within-grant write by a compromised service will be distinguishable from normal work.",
+      "hints": [
+        "Follow the identity from the user through the process and database role.",
+        "Inspect final state independently; an alert is a separate observation."
+      ],
+      "misconception": "Strong networking or a runtime alert guarantees that all business-unauthorized writes are prevented.",
+      "evidenceToRequest": "Pinned configuration, correlated decisions, independent before/after outcomes, reset evidence and continued trading."
+    }
+  ]
+}

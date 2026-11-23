@@ -396,6 +396,25 @@
         "branch": "code/generated-state-014-fdc3-intent-interoperability",
         "tag": "generated/014-fdc3-intent-interoperability/v1"
       }
+    },
+    {
+      "id": "019-traderx-security-lab",
+      "title": "TraderX Security Lab (Planned)",
+      "status": "planned",
+      "track": "devex",
+      "convergenceLevel": "none",
+      "isConvergence": false,
+      "dottedParents": [],
+      "primaryLineageRole": "optional",
+      "featurePack": "specs/019-traderx-security-lab",
+      "previous": [
+        "012-platform-convergence-c3"
+      ],
+      "generation": {
+        "mode": "planned",
+        "entrypoint": "",
+        "runtime": ""
+      }
     }
   ]
 }

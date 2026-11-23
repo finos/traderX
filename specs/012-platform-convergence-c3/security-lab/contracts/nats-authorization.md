@@ -6,9 +6,9 @@ client compatibility, transport and subject migration gates pass.
 ## Pinned-source findings
 
 - trade-service publishes /trades; trade-processor subscribes to /trades and emits
-  /accounts/{accountId}/trades and /accounts/{accountId}/positions after SQL commit.
+  `/accounts/{accountId}/trades` and `/accounts/{accountId}/positions` after SQL commit.
 - order-matcher subscribes to pricing.* and publishes /orders plus
-  /accounts/{accountId}/orders. price-publisher emits pricing.{ticker}.
+  `/accounts/{accountId}/orders.` price-publisher emits `pricing.{ticker}.`
 - Angular connects through /nats-ws and subscribes to account-specific subjects,
   pricing.* and (in all-account/admin views) /orders. Its currently selected account
   is a UI choice, not trustworthy authorization context.
@@ -44,10 +44,10 @@ client compatibility, transport and subject migration gates pass.
 | --- | --- |
 | /trades | traderx.commands.trades |
 | /orders | traderx.operator.orders |
-| /accounts/{id}/trades | traderx.accounts.{id}.trades |
-| /accounts/{id}/positions | traderx.accounts.{id}.positions |
-| /accounts/{id}/orders | traderx.accounts.{id}.orders |
-| pricing.{ticker} | pricing.{ticker} (unchanged) |
+| `/accounts/{id}/trades` | `traderx.accounts.{id}.trades` |
+| `/accounts/{id}/positions` | `traderx.accounts.{id}.positions` |
+| `/accounts/{id}/orders` | `traderx.accounts.{id}.orders` |
+| `pricing.{ticker}` | `pricing.{ticker}` (unchanged) |
 
 Account identifiers and tickers must be validated as single tokens. Reject dots,
 wildcards and unexpected characters; do not allow topic injection. Proposed subject

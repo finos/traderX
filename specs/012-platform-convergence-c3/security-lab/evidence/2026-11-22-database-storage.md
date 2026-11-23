@@ -13,7 +13,7 @@ restricted PostgreSQL Pod initialized with seed scripts suppressed, and pg_resto
 restored the backup in one transaction. Every table matched. The migrated Pod was
 then replaced; all fingerprints matched again before business replicas returned.
 
-Preserved rows by table: {"accounts": 7, "accountusers": 18, "orderbook": 7, "positions": 9, "trades": 18}.
+Preserved rows by table: `{"accounts": 7, "accountusers": 18, "orderbook": 7, "positions": 9, "trades": 18}`.
 
 Backup SHA-256: `098c5a10ede4b6fdd53f1ad5f113969b313913b897d75b1c76b5591bb595303a`.
 Pre-restart Pod UID: `57c8fe27-ac3e-4f64-85d1-fe34a846b71b`.

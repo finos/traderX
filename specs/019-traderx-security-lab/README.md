@@ -1,0 +1,11 @@
+# Feature Pack 019: TraderX Security Lab
+
+![linux/mac support](https://badgen.net/badge/linux%2Fmac/validation%20pending/yellow) ![windows support](https://badgen.net/badge/windows/not%20supported/red)
+
+**Status: planned state; working experimental checkpoints, not an accepted integrated release.**
+
+Parent: **012 / C3**. This is a first-class optional TraderX learning branch. It teaches which layer blocks an action, which layer detects it, and which effects remain possible after an application process is compromised.
+
+The implementation currently lives in the [C3 experimental profile](../012-platform-convergence-c3/security-lab/README.md) and `scripts/security-lab`. Keep that single source during promotion; do not duplicate or silently relocate hash-pinned fixtures. The [release audit](../012-platform-convergence-c3/security-lab/state-readiness.md) distinguishes local proof from remaining integration.
+
+Start with the [specification](spec.md), [learning contract](learning-contract.json), [plan](plan.md), [tasks](tasks.md), and [prototype quickstart](quickstart.md). CALM will be a separate successor, comparing manually implemented boundaries with model-derived controls against the same evidence contract.

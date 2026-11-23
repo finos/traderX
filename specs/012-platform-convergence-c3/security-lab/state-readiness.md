@@ -7,10 +7,7 @@ Keep reference C3 unchanged when promoting it. CALM is a separate successor stat
 that reproduces the same verified controls and compares manual versus model-derived
 configuration. Radius and FDC3 are not prerequisites for the security state.
 
-No state number is allocated here. The root catalog and specification namespace
-must be checked when registering the feature; `specs/015-docs-portal-homepage` already
-exists even though it is a portal pack rather than a runtime state. Do not assume
-that the next runtime catalog number is automatically free.
+The planned root state is now `019-traderx-security-lab`, derived from C3. Registration is not release acceptance; the experimental profile remains the current implementation source during promotion.
 
 ## Readiness audit — 23 November 2026
 
@@ -63,7 +60,7 @@ CALM follows security acceptance and receives a separate state ID.
    and deterministic recovery; complete CCC mapping and resource/performance measurements.
 6. Finish guided learning, independent clean-machine reproduction and CI/docs gates.
 7. Prepare the generated snapshot/artifact release. Only then request approval for the
-   concrete publication; no push, issue, PR or deployment is authorized by this audit.
+   concrete publication; the user has authorized a tracking issue, draft PR and docs preview. Merge and generated-state publication remain separate release steps.
 
 Publication should follow TraderX's existing catalog/pipeline and single-snapshot
 branch invariant. FINOS commits require DCO sign-off. This document is the release

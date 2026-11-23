@@ -26,7 +26,7 @@ def render(model):
         for target in outgoing[key]:visit(target)
         visiting.remove(key);done.add(key)
     for key in ids:visit(key)
-    lines=['# Security Lab learning progression','','This is a learning roadmap inside the experimental C3 security profile, not a new set of numbered TraderX states. Connections show learning dependencies, not generation parents. The main TraderX state graph remains unchanged. Status reflects recorded checkpoint evidence, not a live health monitor.','','Generated from `progression.json` with `scripts/security-lab/render_progression.py`; update those inputs, not this page.','','```mermaid','flowchart TB','  C3["012 / C3 platform checkpoint"]','  subgraph LAB["Security Lab — staged learning profile"]']
+    lines=['# Security Lab learning progression','','This is the checkpoint roadmap for planned State 019, currently implemented as an experimental C3 profile. Checkpoints are not separate numbered states. Connections show learning dependencies, not generation parents; State 019 has C3 as its parent. Status reflects recorded checkpoint evidence, not a live health monitor.','','Generated from `progression.json` with `scripts/security-lab/render_progression.py`; update those inputs, not this page.','','```mermaid','flowchart TB','  C3["012 / C3 platform checkpoint"]','  subgraph LAB["Security Lab — staged learning profile"]']
     for node in nodes:
         lines.append('    '+node['id']+'['+json.dumps(node['title']+' — '+node['label'],ensure_ascii=False)+']')
     lines+=['  end','  C3 --> baseline']
