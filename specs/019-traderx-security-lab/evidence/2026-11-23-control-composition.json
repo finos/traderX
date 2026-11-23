@@ -1,0 +1,60 @@
+{
+  "status": "passed",
+  "scope": "static composition and clean-checkout reproduction; deployment remains blocked",
+  "implementation_commit": "2e8a6d1b5e769ac9b08ec9eb4e73eb92de8d526d",
+  "checks": [
+    "102 local Python tests pass",
+    "six pinned-snapshot control-composition tests pass in a depth-one clone",
+    "two generated bundles are byte-identical and independently recompiled for verification",
+    "four required repository gates pass"
+  ],
+  "resource_counts": {
+    "ClusterRole": 1,
+    "ClusterRoleBinding": 1,
+    "ConfigMap": 13,
+    "DaemonSet": 1,
+    "Deployment": 19,
+    "Namespace": 2,
+    "PersistentVolumeClaim": 5,
+    "Service": 19,
+    "ServiceAccount": 20,
+    "ValidatingAdmissionPolicy": 12,
+    "ValidatingAdmissionPolicyBinding": 12
+  },
+  "required_secrets": {
+    "lab-sql-account-service": [
+      "password",
+      "username"
+    ],
+    "lab-sql-bootstrap": [
+      "password"
+    ],
+    "lab-sql-order-matcher": [
+      "password",
+      "username"
+    ],
+    "lab-sql-position-service": [
+      "password",
+      "username"
+    ],
+    "lab-sql-trade-processor": [
+      "password",
+      "username"
+    ]
+  },
+  "deployment_status": "blocked-for-deployment",
+  "artifact_sha256": {
+    "business-workloads.json": "329c8c60a2234442968c4c20a8d9cb97fe8f394d41aa722c9399cded4d1068c4",
+    "checkpoint.json": "518180145a0577ba80374087096d82c90d7f530ca375584d8408598592f8aee6",
+    "controls-candidate.json": "377e53a8a8390b6b4567e5c6baeab11b45bbc878b652a2aaa2b7f29aa11e6e86",
+    "deployment-plan.json": "c4279f171ae48d0f51d9f90f7d26ea7ac4527e972fa281c02189d42d857a8d80",
+    "images.lock.json": "9393bd851fc2ed5e62ab3161d6acf455b4adeaf594e1cd7496d5e17534af949c",
+    "reference.json": "a3b787c0486e186eda03a770ab076b3065af4d134c2c525e490c3ed8420870a4",
+    "sql-grants.json": "a09ee1c55655678a8229c4eedf17e468dc9f37501ff28f8b23df9dc4957fdaaa"
+  },
+  "limitations": [
+    "No cluster started or changed; not server-side admission or runtime proof.",
+    "Database/telemetry overlays are migration-oriented and require bootstrap/restore and SQL grants.",
+    "Clean checkout used an existing host and isolated Python environment; fresh-machine runtime acceptance remains pending."
+  ]
+}

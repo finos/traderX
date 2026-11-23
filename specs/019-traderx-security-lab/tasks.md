@@ -5,7 +5,7 @@ Completed prototype evidence and granular implementation history are in the [C3 
 - [x] S019-01 Register a planned C3 child, root specification and learning contract.
 - [x] S019-02 Publish and verify draft PR docs/spec preview with a real portal image and native Mermaid progression.
 - [x] S019-03a Verify offline pinned-snapshot preparation and byte-identical reference/workload checkpoints from a shallow clone; add CI.
-- [ ] S019-03b Compose all nineteen workload restrictions, collector isolation and SQL Secret references; validate dependencies and migration prerequisites offline.
+- [x] S019-03b Compose all nineteen workload restrictions, collector isolation and SQL Secret references; validate dependencies and migration prerequisites offline.
 - [ ] S019-03c Implement and validate fresh synthetic-data bootstrap plus guarded start/stop/test lifecycle; no direct application of migration overlays.
 - [ ] S019-03 Add cumulative generator/start/stop/test entrypoints; verify repeat generation from a fresh clone.
 - [ ] S019-04 Integrate account/order/cancel/operator authorization and deny bypass routes while normal trading passes.
