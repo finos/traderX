@@ -26,5 +26,7 @@ jobs:
         run: python -m unittest discover -s scripts/security-lab -p 'test_checkpoint.py'
       - name: Fetch immutable reference snapshot
         run: python scripts/security-lab/checkpoint.py fetch-baseline
+      - name: Validate composed controls against the pinned snapshot
+        run: python -m unittest discover -s scripts/security-lab -p 'test_control_bundle.py'
       - name: Reproduce and verify checkpoint without a cluster
         run: TRADERX_SECURITY_PYTHON=python bash scripts/test-state-019-checkpoint.sh

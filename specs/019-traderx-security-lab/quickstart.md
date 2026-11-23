@@ -24,6 +24,7 @@ python3 -m venv .venv-security-checkpoint
 .venv-security-checkpoint/bin/python scripts/security-lab/checkpoint.py fetch-baseline
 .venv-security-checkpoint/bin/python scripts/security-lab/checkpoint.py generate --output /tmp/traderx-019-checkpoint-review
 .venv-security-checkpoint/bin/python scripts/security-lab/checkpoint.py verify --output /tmp/traderx-019-checkpoint-review
+.venv-security-checkpoint/bin/python scripts/security-lab/checkpoint.py plan --output /tmp/traderx-019-checkpoint-review
 TRADERX_SECURITY_PYTHON="$PWD/.venv-security-checkpoint/bin/python" bash scripts/test-state-019-checkpoint.sh
 ```
 

@@ -10,6 +10,8 @@ import tempfile
 import lab
 import prepare_runtime
 import workloads
+import control_bundle
+import database_permissions
 
 STATE = '019-traderx-security-lab'
 SOURCES = [
@@ -17,6 +19,12 @@ SOURCES = [
     'scripts/security-lab/prepare_runtime.py',
     'scripts/security-lab/lab.py',
     'scripts/security-lab/workloads.py',
+    'scripts/security-lab/control_bundle.py',
+    'scripts/security-lab/support_workloads.py',
+    'scripts/security-lab/database_workload.py',
+    'scripts/security-lab/observability_workloads.py',
+    'scripts/security-lab/collector_boundary.py',
+    'scripts/security-lab/database_permissions.py',
     'specs/012-platform-convergence-c3/security-lab/baseline.lock.json',
     'specs/012-platform-convergence-c3/security-lab/runtime-images.lock.json',
 ]
@@ -59,8 +67,12 @@ def compile_checkpoint():
     files = {'reference.json': encoded(reference),
              'business-workloads.json': encoded(workloads.render(reference)),
              'images.lock.json': encoded(image_lock)}
+    candidate, plan = control_bundle.render(reference)
+    files['controls-candidate.json'] = encoded(candidate)
+    files['deployment-plan.json'] = encoded(plan)
+    files['sql-grants.json'] = encoded(database_permissions.GRANTS)
     manifest = {
-        'schema_version': 1, 'state': STATE, 'checkpoint': 'reference-and-business-workloads',
+        'schema_version': 1, 'state': STATE, 'checkpoint': 'composed-control-candidate',
         'status': 'offline-artifacts-only',
         'generated_commit': baseline['generated_commit'],
         'canonical_source_commit': baseline['canonical_source_commit'],
@@ -69,7 +81,7 @@ def compile_checkpoint():
         'limitations': [
             'Not the integrated State 019 runtime; no cluster or enforcement was tested.',
             'Reference includes public demonstration credentials and an unauthenticated broker.',
-            'Business-workload restrictions are a separate candidate, not full hardening.',
+            'Composed controls require ordered data restoration, SQL grants and lifecycle validation; not deployable yet.',
             'Image pins mix linux/amd64 application images and linux/arm64 infrastructure; other host profiles are unvalidated.',
             'Local hashes establish consistency, not signed provenance or compliance.'
         ]}
@@ -112,7 +124,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='command', required=True)
     sub.add_parser('fetch-baseline', help='Explicitly fetch the immutable C3 commit if absent')
-    for name in ('generate', 'verify'):
+    for name in ('generate', 'verify', 'plan'):
         sub.add_parser(name).add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
     if args.command == 'fetch-baseline':
@@ -121,6 +133,8 @@ def main():
         generate(args.output)
     else:
         verify(args.output)
+        if args.command == 'plan':
+            print((args.output / 'deployment-plan.json').read_text())
 
 
 if __name__ == '__main__':
