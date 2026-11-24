@@ -41,3 +41,5 @@ The [telemetry and cumulative lifecycle contract](system/telemetry-lifecycle.md)
 ## Unified contributor commands
 
 Use the [verified contributor entrypoint](system/contributor-entrypoint.md) for fresh-checkout artifact generation and guarded candidate start/test/stop. Runtime arguments are explicit; the wrapper does not provision a cluster or imply full security acceptance. Recovery stop remains available when artifacts have drifted.
+
+Before a full candidate run, invoke `state_candidate.py doctor` with the checkpoint and explicit runtime arguments. A blocked result while the lightweight lab is running is expected; it does not stop that lab or resume Kubernetes. See the contributor contract for readiness checks and provisioning limitations.

@@ -6,6 +6,8 @@ import subprocess
 import sys
 
 import checkpoint
+import json
+import platform_readiness
 
 SCRIPT=Path(__file__).resolve().with_name('state_lifecycle.py')
 RUNTIME_ARGS=('runtime-dir','store','kubeconfig','context','cluster-uid','namespace')
@@ -17,7 +19,7 @@ def parser():
     commands.add_parser('fetch-baseline',help='Explicitly fetch the pinned C3 snapshot')
     for action in ('generate','verify','plan'):
         commands.add_parser(action).add_argument('--checkpoint',type=Path,required=True)
-    for action in ('start','test','stop'):
+    for action in ('start','test','stop','doctor'):
         command=commands.add_parser(action)
         # Stop must remain possible after a source update or artifact corruption.
         if action!='stop':command.add_argument('--checkpoint',type=Path,required=True)
@@ -31,6 +33,10 @@ def execute(args):
     if args.action=='generate':return checkpoint.generate(args.checkpoint)
     if args.action!='stop':checkpoint.verify(args.checkpoint)
     if args.action=='verify':return
+    if args.action=='doctor':
+        result=platform_readiness.inspect(args)
+        print(json.dumps(result,indent=2))
+        return 0 if result['status']=='ready' else 2
     if args.action=='plan':
         print('Candidate lifecycle only; full hardened-state and fresh-machine acceptance remain pending.')
         print('Prerequisites: reviewed existing cluster/CNI, pinned images, private SQL identity store, explicit cluster UID.')
@@ -47,7 +53,7 @@ def execute(args):
 
 
 def main():
-    execute(parser().parse_args())
+    return execute(parser().parse_args())
 
 
-if __name__=='__main__':main()
+if __name__=='__main__':raise SystemExit(main())

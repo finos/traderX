@@ -38,3 +38,5 @@ Detailed threat assumptions, control contracts and existing evidence remain cano
 ### Contributor packaging requirement
 
 FR-019-10: Provide a checkout-relative entrypoint for deterministic artifact generation and verified candidate start/test. Record transitive local runtime source hashes, require explicit runtime/cluster identity, and refuse artifact drift before runtime dispatch. Recovery stop must remain available after artifact drift while preserving ownership and cluster checks. Offline commands must start no containers or change local trust.
+
+FR-019-11: Provide a read-only platform doctor that verifies artifact integrity, supported host, explicit context, private SQL identities, available resources, recorded cluster UID, pinned single-node image/version/architecture/readiness and observed Cilium agent readiness/digest. Unknown or unavailable observations must block readiness. A stopped cluster must not be started implicitly. Readiness must not be presented as proof of network enforcement or complete infrastructure provenance.

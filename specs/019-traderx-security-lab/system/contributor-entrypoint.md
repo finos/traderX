@@ -52,3 +52,15 @@ An existing self-signed certificate is preserved by setup; it is not automatical
 This increment covers checkout-relative commands and repeatable artifact generation. Automatic supported-cluster provisioning, standalone generated-state packaging, independent clean-machine runtime acceptance and the remaining integrated security controls are still pending. The current runtime is verified on the existing macOS ARM64/Docker environment only.
 
 The [24 November entrypoint evidence](../evidence/2026-11-24-contributor-entrypoint.json) records fresh shallow-checkout reproduction and the scope of validation.
+
+## Platform doctor before a full run
+
+Use `doctor` with the same `--checkpoint` and six explicit runtime arguments as `start`. It returns JSON and exit code 0 for the checked prerequisites or 2 when blocked. It never starts/resumes a cluster, pulls images, changes workloads, installs certificates or updates kubeconfig. It verifies the bundle first, so regenerate a new bundle after source changes.
+
+The doctor checks the supported macOS ARM64 host, reviewed context, private SQL identities and resource margin first. If the lightweight account lab is running or Kubernetes is stopped, it returns blocked without attempting cluster API calls. Once capacity is available, it checks the recorded kube-system namespace UID before querying the node and Cilium. It then checks the single kind node name/ownership, exact configured node image, Kubernetes version, ARM64 architecture, Ready condition, Cilium DaemonSet rollout and the recorded running agent digest.
+
+These are prerequisite observations. Cilium readiness does not prove allowed/denied traffic behavior; the separate bounded network probes remain required. The current infrastructure lock records the node digest, chart version/values and an observed Cilium agent digest. It does **not** yet pin the entire chart archive and operator/init-container image inventory. Therefore automatic fresh-cluster provisioning is still pending, and the older prototype `start-reference.sh` is not a substitute for a reviewed contributor installer. Earlier successful network evidence is not silently reused as a fresh-run result.
+
+Both `infrastructure.lock.json` and the canonical kind configuration now participate in checkpoint source integrity. Doctor is an explicit diagnostic; the candidate lifecycle retains its independent ownership and capacity checks.
+
+The [platform readiness evidence](../evidence/2026-11-24-platform-readiness.json) records the expected blocked result on the stopped cluster and the offline checks. A ready-cluster campaign remains a separate validation.

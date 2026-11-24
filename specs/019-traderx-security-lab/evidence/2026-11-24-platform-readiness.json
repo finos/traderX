@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-24",
+  "task": "S019-03e",
+  "status": "passed-with-limited-scope",
+  "observed_doctor_result": "blocked as expected",
+  "observed_checks": {
+    "supported_host": true,
+    "explicit_context": true,
+    "private_sql_identities": true,
+    "resource_capacity": false
+  },
+  "observed_reasons": [
+    "Full acceptance requires the security-lab control plane running.",
+    "Stop the account development environment before full acceptance."
+  ],
+  "host_pressure": "normal",
+  "cluster_action": "none",
+  "browser_lab": "preserved",
+  "citrix": "untouched",
+  "focused_tests": 8,
+  "checks": [
+    "mismatched cluster UID stops further cluster reads",
+    "wrong node image/ownership fails",
+    "wrong node architecture/version/readiness fails",
+    "Cilium readiness does not substitute for digest match",
+    "stopped cluster prevents API queries",
+    "invalid SQL store blocks without exposing its contents"
+  ],
+  "limitations": [
+    "Ready-cluster branch validated with test fixtures only in this increment.",
+    "No live enforcement, provisioning or independent clean-machine acceptance claimed.",
+    "Complete chart/operator/init-container provenance remains pending."
+  ],
+  "source_sha256": {
+    "scripts/security-lab/platform_readiness.py": "21cdb772c17eeb0e9c9550763de74a4b0839014c5f0e83f7ad3a7de8dbb667fc",
+    "scripts/security-lab/state_candidate.py": "514ab8774bca0e4365b4fc8c79e952686037c9247dd7c77ebb8fbfff1cc13459",
+    "scripts/security-lab/checkpoint.py": "a902253ff96ad90054dd7d03267b5708e58fd36f9f53f03066201e9c1f026fdf"
+  }
+}
