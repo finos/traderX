@@ -23,6 +23,9 @@ Completed prototype evidence and granular implementation history are in the [C3 
 - [x] S019-03g3 Archive/retire the approved old State 014 cluster, restore disk headroom without resizing, and pass cumulative telemetry persistence plus trading acceptance on the retained validation cluster; see `evidence/2026-11-24-consolidated-runtime.json`.
 - [ ] S019-03g Complete unattended fresh creation, image loading and full runtime lifecycle. First live campaign blocked by Docker disk exhaustion; startup/error/disk guards corrected, clean-machine acceptance pending.
 - [ ] S019-03 Add cumulative generator/start/stop/test entrypoints; verify repeat generation from a fresh clone.
+- [x] S019-04a Inventory and implement direct trade/order API authorization, stored-order cancellation checks, operator route restrictions and effect-based HTTP tests.
+- [ ] S019-04b Implement durable authorized background matching and authenticated execution; verify after initiating token expiry.
+- [ ] S019-04c Integrate remaining read APIs and Angular session/CSRF flow; validate direct-backend and full trading outcomes together.
 - [ ] S019-04 Integrate account/order/cancel/operator authorization and deny bypass routes while normal trading passes.
 - [ ] S019-05 Cut over live authenticated NATS, scoped subjects, browser issuance and reconnect/revocation checks.
 - [ ] S019-06 Integrate gateway/WAF/TLS, network policies, workload/SQL restrictions and approved-image admission.

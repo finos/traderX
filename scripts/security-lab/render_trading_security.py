@@ -1,0 +1,119 @@
+"""Deterministic opt-in direct-API authorization candidates; no runtime cutover."""
+import argparse
+import hashlib
+import io
+import json
+from pathlib import Path
+import subprocess
+import tarfile
+from render_account_security import ROOT, PROFILE, replace_once
+
+OVERLAY=PROFILE/'generation/trading-security'
+SERVICES={'trade-service':'finos.traderx.tradeservice','order-matcher':'finos.traderx.ordermatcher'}
+
+
+def controller(source,service):
+    package=SERVICES[service]
+    source=source.replace('import org.springframework.web.bind.annotation.RestController;',
+        'import org.springframework.web.bind.annotation.RestController;\nimport '+package+'.security.TradingAccess;')
+    if service=='trade-service':
+        source=replace_once(source,'  private final Publisher<TradeOrder> tradePublisher;',
+            '  private final TradingAccess access;\n  private final Publisher<TradeOrder> tradePublisher;')
+        source=replace_once(source,'TradeOrderController(Publisher<TradeOrder> tradePublisher)',
+            'TradeOrderController(Publisher<TradeOrder> tradePublisher, TradingAccess access)')
+        source=replace_once(source,'    this.tradePublisher = tradePublisher;',
+            '    this.access = access;\n    this.tradePublisher = tradePublisher;')
+        source=replace_once(source,'    log.info("Called createTradeOrder");',
+            '    access.requireTrade(tradeOrder.getAccountId());\n    log.info("Called createTradeOrder");')
+        source=replace_once(source,'this.restTemplate.getForEntity(url, Account.class)',
+            'this.restTemplate.exchange(url, org.springframework.http.HttpMethod.GET,\n          new org.springframework.http.HttpEntity<Void>(accountHeaders()), Account.class)')
+        source=replace_once(source,'  private boolean validateAccount(Integer id) {',
+            '''  private org.springframework.http.HttpHeaders accountHeaders() {
+    var headers = new org.springframework.http.HttpHeaders();
+    headers.setBearerAuth(access.bearerToken());
+    return headers;
+  }
+
+  private boolean validateAccount(Integer id) {''')
+    else:
+        source=replace_once(source,'    private final OrderMatcherService orderMatcherService;',
+            '    private final TradingAccess access;\n    private final OrderMatcherService orderMatcherService;')
+        source=replace_once(source,'OrderController(OrderMatcherService orderMatcherService)',
+            'OrderController(OrderMatcherService orderMatcherService, TradingAccess access)')
+        source=replace_once(source,'        this.orderMatcherService = orderMatcherService;',
+            '        this.access = access;\n        this.orderMatcherService = orderMatcherService;')
+        source=replace_once(source,'        return orderMatcherService.listOrders(status, accountId);',
+            '''        var allowed = access.accounts();
+        if (accountId != null) access.requireAccount(accountId);
+        return orderMatcherService.listOrders(status, accountId).stream()
+            .filter(order -> allowed.contains(order.getAccountId())).toList();''')
+        source=replace_once(source,'        return orderMatcherService.getOrder(orderId);',
+            '''        access.accounts();
+        OrderResponse order = orderMatcherService.getOrder(orderId);
+        access.requireAccount(order.getAccountId());
+        return order;''')
+        source=replace_once(source,'        OrderResponse response = orderMatcherService.createOrder(request);',
+            '        access.requireTrade(request.getAccountId());\n        OrderResponse response = orderMatcherService.createOrder(request);')
+        source=replace_once(source,'        OrderResponse response = orderMatcherService.cancelOrder(orderId);',
+            '''        access.requireTrader();
+        access.requireAccount(orderMatcherService.getOrder(orderId).getAccountId());
+        OrderResponse response = orderMatcherService.cancelOrder(orderId);''')
+        source=replace_once(source,'        OrderResponse response = orderMatcherService.forceFillOrder(orderId);\n        orderMatcherService.publishOrderUpdate(response);\n        return response;',
+            '        throw new org.springframework.security.access.AccessDeniedException("Forbidden");')
+    return source
+
+
+def security(service):
+    source=(PROFILE/'generation/account-security/AccountSecurity.java').read_text()
+    source=source.replace('finos.traderx.accountservice',SERVICES[service]).replace('AccountSecurity','TradingSecurity').replace('accountChain(HttpSecurity http)','tradingChain(HttpSecurity http, TradingAccess access)')
+    old='''            .requestMatchers(HttpMethod.GET, "/account/", "/account/*", "/accountuser/", "/accountuser/*").authenticated()'''
+    operator='"/system/health", "/metrics", "/actuator/prometheus"'
+    if service=='order-matcher':operator+=', "/health", "/healthz", "/orders/open-count"'
+    routes=f'''            .requestMatchers(HttpMethod.GET, {operator})
+                .access((authentication, context) -> new org.springframework.security.authorization.AuthorizationDecision(access.isOperator()))'''
+    if service=='trade-service':routes+='\n            .requestMatchers(HttpMethod.POST, "/trade/").authenticated()'
+    else:routes+='''
+            .requestMatchers(HttpMethod.GET, "/orders", "/orders/*").authenticated()
+            .requestMatchers(HttpMethod.POST, "/orders", "/orders/*/cancel").authenticated()'''
+    return replace_once(source,old,routes)
+
+
+def render(target,service):
+    if service not in SERVICES:raise ValueError('Unsupported security candidate')
+    baseline=json.loads((PROFILE/'baseline.lock.json').read_text());commit=baseline['generated_commit']
+    data=subprocess.run(['git','archive',commit,service],cwd=ROOT,check=True,capture_output=True,timeout=30).stdout
+    target.mkdir(parents=True,exist_ok=False)
+    with tarfile.open(fileobj=io.BytesIO(data)) as archive:
+        for member in archive.getmembers():
+            if member.isfile():
+                relative=Path(member.name).relative_to(service)
+                if '..' in relative.parts:raise ValueError('Invalid archive member')
+                destination=target/relative;destination.parent.mkdir(parents=True,exist_ok=True)
+                destination.write_bytes(archive.extractfile(member).read());destination.chmod(member.mode & 0o777)
+    package=target/'src/main/java'/SERVICES[service].replace('.','/')
+    name='TradeOrderController' if service=='trade-service' else 'OrderController'
+    path=package/'controller'/f'{name}.java';path.write_text(controller(path.read_text(),service))
+    # Authenticated clients use the same-origin session boundary; no inherited wildcard CORS.
+    for path in (package/'config').glob('*Cors*.java'):path.unlink()
+    dest=package/'security';dest.mkdir()
+    (dest/'TradingAccess.java').write_text((OVERLAY/'TradingAccess.java').read_text().replace('__PACKAGE__',SERVICES[service]))
+    (dest/'TradingSecurity.java').write_text(security(service))
+    tests=target/'src/test/java'/SERVICES[service].replace('.','/')/'security';tests.mkdir(parents=True,exist_ok=True)
+    for source in (OVERLAY/'tests').glob('*.java'):
+        if source.name.startswith('TradeApi') and service!='trade-service':continue
+        if source.name.startswith('Order') and service!='order-matcher':continue
+        (tests/source.name).write_text(source.read_text().replace('__PACKAGE__',SERVICES[service]))
+    if service=='order-matcher':
+        inherited=target/'src/test/java/finos/traderx/ordermatcher/OrderMatcherApplicationTests.java'
+        inherited.write_text(replace_once(inherited.read_text(),'@SpringBootTest(properties = {',
+            '@org.springframework.test.context.ContextConfiguration(initializers=finos.traderx.ordermatcher.security.SecurityTestSupport.Trust.class)\n@SpringBootTest(properties = {'))
+    build=target/'build.gradle';build.write_text(replace_once(build.read_text(),'dependencies {',"dependencies {\n  implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'\n  testImplementation 'org.springframework.security:spring-security-test'"))
+    inputs=[Path(__file__).resolve(),PROFILE/'baseline.lock.json',ROOT/'scripts/security-lab/render_account_security.py',PROFILE/'generation/account-security/AccountSecurity.java',*sorted(OVERLAY.rglob('*.java'))]
+    manifest={'scope':'Direct API candidate only; background execution and deployed UI cutover not accepted','service':service,'generated_commit':commit,'source_commit':baseline['canonical_source_commit'],
+        'inputs':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in inputs},
+        'files':{str(p.relative_to(target)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(target.rglob('*')) if p.is_file()}}
+    (target/'security-generation.json').write_text(json.dumps(manifest,indent=2)+'\n')
+
+
+if __name__=='__main__':
+    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--service',choices=SERVICES,required=True);parser.add_argument('--output-dir',type=Path,required=True);args=parser.parse_args();render(args.output_dir.resolve(),args.service)

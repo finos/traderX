@@ -38,8 +38,8 @@ class OperationTests(unittest.TestCase):
 class BuildEntryPointTests(unittest.TestCase):
     def test_all_builders_stop_before_subprocess_when_capacity_blocked(self):
         import sys
-        import build_java_candidates, build_nats_publisher, prepare_waf, build_account_security
-        for module in (build_java_candidates, build_nats_publisher, prepare_waf, build_account_security):
+        import build_java_candidates, build_nats_publisher, prepare_waf, build_account_security, build_trading_security
+        for module in (build_java_candidates, build_nats_publisher, prepare_waf, build_account_security, build_trading_security):
             with self.subTest(builder=module.__name__), tempfile.TemporaryDirectory() as root, patch.dict(os.environ,{},clear=True):
                 with patch.object(sys,'argv',[module.__name__,'--runtime-dir',root]), patch('resource_operation.require',side_effect=RuntimeError('capacity blocked')), patch.object(module.subprocess,'run') as run:
                     with self.assertRaisesRegex(RuntimeError,'capacity blocked'): module.main()

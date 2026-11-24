@@ -49,3 +49,31 @@ jobs:
           python -m unittest discover -s scripts/security-lab -p 'test_labctl.py'
       - name: Reproduce and verify checkpoint without a cluster
         run: TRADERX_SECURITY_PYTHON=python bash scripts/test-state-019-checkpoint.sh
+  trading-authorization:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Prepare pinned reference and verify deterministic overlays
+        run: |
+          python -m pip install -r scripts/security-lab/requirements.txt
+          python scripts/security-lab/checkpoint.py fetch-baseline
+          python -m unittest discover -s scripts/security-lab -p 'test_trading_security.py'
+      - name: Build and test direct API candidates sequentially
+        shell: bash
+        run: |
+          set -euo pipefail
+          for service in trade-service order-matcher; do
+            candidate="$RUNNER_TEMP/trading-authorization/$service"
+            python scripts/security-lab/render_trading_security.py --service "$service" --output-dir "$candidate"
+            (cd "$candidate" && bash gradlew --no-daemon --max-workers=1 '-Dorg.gradle.jvmargs=-Xmx384m -XX:MaxMetaspaceSize=256m' test bootJar)
+          done
