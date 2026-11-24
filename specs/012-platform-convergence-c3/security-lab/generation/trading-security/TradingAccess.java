@@ -72,4 +72,13 @@ public final class TradingAccess {
     catch (AccessDeniedException denied) { return false; }
   }
   public String bearerToken() { grant(); return identity().getToken().getTokenValue(); }
+  public String subject() { grant(); return identity().getToken().getSubject(); }
+  public String issuer() { grant(); return identity().getToken().getIssuer().toString(); }
+
+  // Background execution uses the stored accepting principal, never a fabricated HTTP context.
+  public void requireAcceptedTrader(String subject, Integer account) {
+    Grant grant = subject == null ? null : grants.get(subject);
+    if (grant == null || !grant.role().equals("trader") || account == null || !grant.accounts().contains(account))
+      throw new AccessDeniedException("Forbidden");
+  }
 }

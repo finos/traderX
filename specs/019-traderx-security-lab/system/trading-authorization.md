@@ -50,3 +50,44 @@ python scripts/security-lab/build_trading_security.py --runtime-dir /absolute/pr
 The runtime directory is private and excluded from version control. A changed input requires rendering into a fresh build directory; existing build output is never silently patched. The CI job performs the same render and Java tests sequentially on its isolated runner.
 
 Tests use actual RSA-signed JWTs and the Spring Security HTTP filter chain. Controller collaborator checks prove that denials cannot call publication/mutation operations. A separate full Spring Boot/H2 matcher test observes stored rows before/after denied create/cancel attempts and an allowed cancellation. This is database-backed component verification, not independent PostgreSQL or live NATS settlement evidence. Real Keycloak/browser integration and background execution remain separate gates; the deployed candidate images are unchanged.
+
+## Durable acceptance checkpoint (S019-04b1)
+
+The matcher candidate stores `AcceptedSubject`, `AcceptedIssuer` and a normalized
+`AcceptedTerms` snapshot in the same OrderBook row/save as the accepted order. It
+captures these fields from the verified principal after checking trader/account
+permissions inside the mutation lock. No access or refresh token is retained.
+The snapshot binds order ID, account, security, side, original quantity and limit
+price. Existing/seed rows without acceptance metadata are ineligible for fills;
+they must never be silently grandfathered into authorized execution.
+
+Eligibility rechecks the stored issuer and current configured subject grants,
+unchanged terms, open status and bounded remaining quantity. Session expiry does
+not cancel an already accepted business instruction; cancellation does, and a
+removed or restricted subject loses execution authority when the policy snapshot
+is reloaded on restart. There is no claim of live entitlement revocation yet.
+The test models token expiry using a validator clock, then checks stored authority
+without an HTTP principal; it does not claim a live Keycloak expiry campaign.
+
+The acceptance snapshot is not a signature or an independent security boundary
+against a compromised matcher/database writer. Such an actor can alter both the
+order and its acceptance metadata. That residual authority is part of the lab's
+threat model, not evidence of tamper-proof delegation.
+
+Cancellation repeats authorization under the mutation lock. Fill quantity and
+price eligibility are recalculated from the live order under that lock, avoiding
+stale pre-lock quantities. Refused execution changes counters only, leaving the
+stored order unchanged. The candidate explicitly refuses all outgoing execution
+until S019-04b2 supplies an authenticated, durable, idempotent handoff; it no longer
+attempts an anonymous POST to the trade API. This is a non-deployed foundation,
+not working authorized background settlement.
+
+Before cutover, add an explicit migration for the three nullable acceptance
+columns (runtime roles must not acquire DDL permission), authenticated matcher
+identity with a dedicated execution audience, immutable execution IDs, durable
+retry/outbox and downstream deduplication, quantity/account/price binding,
+cancellation versus execution serialization, and recovery after ambiguous
+network failures. A success response or an in-memory deduplication map is not
+sufficient proof of once-only settlement. Test restart, duplicate delivery,
+cross-account substitution, revoked authority and actual initiating-token expiry
+against independently observed database outcomes before marking S019-04b done.

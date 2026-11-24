@@ -45,3 +45,7 @@ S019-03g3 now passes after approved archival/retirement of the stopped State 014
 Identity integration follows the [trading authorization contract](system/trading-authorization.md): first direct API enforcement, then durable background execution, then remaining read APIs and Angular/session cutover. Anonymous scheduler execution must not be silently exempted to preserve a passing positive test.
 
 S019-04a passes as a direct-API component candidate: deterministic trade/matcher overlays, signed-token HTTP checks and H2-backed stored-order denial/cancellation outcomes. See [component evidence](evidence/2026-11-24-trading-authorization-components.json). S019-04 remains open; no runtime image cutover or full Keycloak/Angular/background-settlement acceptance is implied.
+
+S019-04b is split into persisted acceptance/eligibility (04b1) and authenticated durable execution (04b2). The candidate must refuse anonymous execution while the second part is incomplete. Both are prerequisites to runtime cutover; metadata is not a security boundary against a compromised database writer.
+
+S019-04b1 passes 29 Java component tests (including five new durable-acceptance checks) and deterministic rendering. See [accepted-order evidence](evidence/2026-11-24-accepted-order-authority.json). The candidate deliberately refuses execution until S019-04b2, so neither background settlement nor runtime cutover is claimed.

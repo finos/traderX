@@ -1,0 +1,60 @@
+{
+  "status": "passed-component-checkpoint-not-deployed",
+  "scope": "S019-04b1 durable acceptance only; authenticated execution S019-04b2 remains open",
+  "date": "2026-11-24",
+  "services": [
+    {
+      "service": "trade-service",
+      "tests": 10,
+      "jar_sha256": "062e59bb3f8a35eabea3240145c83552731a7c3ef96ca328bfddcd4b7977d550",
+      "inputs": {
+        "scripts/security-lab/render_trading_security.py": "0b64656243fc13a5bea33910e0b784020f9b619f4d4f68ca9446e84d23028e1a",
+        "specs/012-platform-convergence-c3/security-lab/baseline.lock.json": "3b7042fce1317a0055ef5cdf24647c60c3800a5d7dc24a033819a9b90264765b",
+        "scripts/security-lab/render_account_security.py": "a1de9b55a06b289c14ffd7e956cd2ce0f53e9bc35250d7eabf74536ad1b554a5",
+        "specs/012-platform-convergence-c3/security-lab/generation/account-security/AccountSecurity.java": "4d29e4779f219728dae2fec35020fa1413309ad1b4bb330c45edcd5d3e83ba23",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/AcceptedOrderAuthority.java": "54f95118f29847aefba260bbcb19580ad69b8576468aa03e4fe6cb8d04995364",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/TradingAccess.java": "c2e6bbfee366a959cca96c60a7bddace619fbc0d2b74e9278ef4090e34044464",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/tests/OrderAcceptedAuthorityTest.java": "78c36e52812ae844ec33f42141455bbdcbadd02d1ceda725220012691d890767",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/tests/OrderApiSecurityTest.java": "63fdefab9b1d63abf2963997170ea3695408b43556fec8f78a419b6667c6ec1b",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/tests/OrderDatabaseAuthorizationTest.java": "ce3766e2f93b39867e12914fab48387319a4d126d25ca6a24e53479145edd2d8",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/tests/SecurityTestSupport.java": "2e04dd3f76ed31c91329cd63cb900994d08133f7646bd974ad5846a3ecd77a44",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/tests/TradeApiSecurityTest.java": "d56304e639665950cbe37786e3d93f1808280e58b47cfd87b2f337213930f9ec",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/tests/TradingAccessTest.java": "e2f5fa0a156702f55ba27bf841244b2e1a41d46a3b8a9a06a7d3a6c1b7e6595c"
+      }
+    },
+    {
+      "service": "order-matcher",
+      "tests": 19,
+      "jar_sha256": "72910b8a350a24e75fee6d06ba527e9fbdfc99a2b81856f281c761d9242c1d18",
+      "inputs": {
+        "scripts/security-lab/render_trading_security.py": "0b64656243fc13a5bea33910e0b784020f9b619f4d4f68ca9446e84d23028e1a",
+        "specs/012-platform-convergence-c3/security-lab/baseline.lock.json": "3b7042fce1317a0055ef5cdf24647c60c3800a5d7dc24a033819a9b90264765b",
+        "scripts/security-lab/render_account_security.py": "a1de9b55a06b289c14ffd7e956cd2ce0f53e9bc35250d7eabf74536ad1b554a5",
+        "specs/012-platform-convergence-c3/security-lab/generation/account-security/AccountSecurity.java": "4d29e4779f219728dae2fec35020fa1413309ad1b4bb330c45edcd5d3e83ba23",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/AcceptedOrderAuthority.java": "54f95118f29847aefba260bbcb19580ad69b8576468aa03e4fe6cb8d04995364",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/TradingAccess.java": "c2e6bbfee366a959cca96c60a7bddace619fbc0d2b74e9278ef4090e34044464",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/tests/OrderAcceptedAuthorityTest.java": "78c36e52812ae844ec33f42141455bbdcbadd02d1ceda725220012691d890767",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/tests/OrderApiSecurityTest.java": "63fdefab9b1d63abf2963997170ea3695408b43556fec8f78a419b6667c6ec1b",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/tests/OrderDatabaseAuthorizationTest.java": "ce3766e2f93b39867e12914fab48387319a4d126d25ca6a24e53479145edd2d8",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/tests/SecurityTestSupport.java": "2e04dd3f76ed31c91329cd63cb900994d08133f7646bd974ad5846a3ecd77a44",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/tests/TradeApiSecurityTest.java": "d56304e639665950cbe37786e3d93f1808280e58b47cfd87b2f337213930f9ec",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/tests/TradingAccessTest.java": "e2f5fa0a156702f55ba27bf841244b2e1a41d46a3b8a9a06a7d3a6c1b7e6595c"
+      }
+    }
+  ],
+  "verified": [
+    "Accepted principal and normalized order terms persist in H2 without a bearer token",
+    "Stored eligibility works without an HTTP principal; initiating token expiry modeled with validator clock",
+    "Changed terms, missing authority, canceled/filled orders and revoked policy rejected",
+    "Internal service creation cannot bypass acceptance",
+    "Scheduler sends zero HTTP trade requests and preserves stored order while execution handoff is unavailable",
+    "Two deterministic overlay reproduction tests and four repository quality gates passed"
+  ],
+  "limitations": [
+    "No live Keycloak expiry or authenticated background settlement campaign",
+    "No PostgreSQL migration or runtime image cutover",
+    "No durable outbox/downstream deduplication yet; all candidate execution fails closed",
+    "Policy revocation requires restart; metadata is mutable by a compromised writer",
+    "Existing running browser and reference C3 deployments are unchanged"
+  ]
+}

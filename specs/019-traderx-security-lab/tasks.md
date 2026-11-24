@@ -24,6 +24,8 @@ Completed prototype evidence and granular implementation history are in the [C3 
 - [ ] S019-03g Complete unattended fresh creation, image loading and full runtime lifecycle. First live campaign blocked by Docker disk exhaustion; startup/error/disk guards corrected, clean-machine acceptance pending.
 - [ ] S019-03 Add cumulative generator/start/stop/test entrypoints; verify repeat generation from a fresh clone.
 - [x] S019-04a Inventory and implement direct trade/order API authorization, stored-order cancellation checks, operator route restrictions and effect-based HTTP tests.
+- [x] S019-04b1 Persist accepted-order authority without reusable tokens; verify eligibility, revocation and fail-closed anonymous-handoff refusal in the component candidate.
+- [ ] S019-04b2 Add migrated authority storage, authenticated durable execution/outbox and downstream deduplication; verify restart, expiry, cancellation and retry outcomes.
 - [ ] S019-04b Implement durable authorized background matching and authenticated execution; verify after initiating token expiry.
 - [ ] S019-04c Integrate remaining read APIs and Angular session/CSRF flow; validate direct-backend and full trading outcomes together.
 - [ ] S019-04 Integrate account/order/cancel/operator authorization and deny bypass routes while normal trading passes.

@@ -12,6 +12,52 @@ OVERLAY=PROFILE/'generation/trading-security'
 SERVICES={'trade-service':'finos.traderx.tradeservice','order-matcher':'finos.traderx.ordermatcher'}
 
 
+def matcher(source):
+    source=replace_once(source,'    private final OrderRepository orderRepository;',
+        '''    private final finos.traderx.ordermatcher.security.AcceptedOrderAuthority acceptedAuthority;
+    private final finos.traderx.ordermatcher.security.TradingAccess tradingAccess;
+    private final OrderRepository orderRepository;''')
+    source=replace_once(source,'        RestTemplate restTemplate,',
+        '''        RestTemplate restTemplate,
+        finos.traderx.ordermatcher.security.AcceptedOrderAuthority acceptedAuthority,
+        finos.traderx.ordermatcher.security.TradingAccess tradingAccess,''')
+    source=replace_once(source,'        this.orderRepository = orderRepository;',
+        '''        this.acceptedAuthority = acceptedAuthority;
+        this.tradingAccess = tradingAccess;
+        this.orderRepository = orderRepository;''')
+    source=replace_once(source,'            OrderRecord saved = orderRepository.save(order);',
+        '            acceptedAuthority.accept(order);\n            OrderRecord saved = orderRepository.save(order);')
+    source=replace_once(source,'            OrderRecord order = findOrder(orderId);\n            if (isOpen(order)) {',
+        '            OrderRecord order = findOrder(orderId);\n            tradingAccess.requireTrade(order.getAccountId());\n            if (isOpen(order)) {')
+    source=replace_once(source,'''        int remaining = order.getRemainingQuantity();
+        int fillQty = remaining < fillFullThreshold ? remaining : Math.max(1, (remaining + 1) / 2);
+''','')
+    source=replace_once(source,'            if (!submitTrade(liveOrder, fillQty)) {',
+        '''            if (!isInTheMoney(liveOrder, marketPrice)) return;
+            int remaining = liveOrder.getRemainingQuantity();
+            int fillQty = remaining < fillFullThreshold ? remaining : Math.max(1, remaining / 2 + remaining % 2);
+            if (!submitTrade(liveOrder, fillQty)) {''')
+    source=replace_once(source,'''                liveOrder.setUpdatedAt(Instant.now());
+                orderRepository.save(liveOrder);
+''','')
+    start=source.index('    private boolean submitTrade(OrderRecord order, int quantity) {')
+    end=source.index('    private boolean filterByStatus(',start)
+    source=source[:start]+'''    private boolean submitTrade(OrderRecord order, int quantity) {
+        try {
+            acceptedAuthority.requireEligible(order);
+            if (quantity <= 0 || quantity > order.getRemainingQuantity()) return false;
+            // Fail closed until the authenticated, idempotent execution handoff is implemented.
+            // Never send an accepted order through the inherited anonymous POST /trade/ path.
+            return false;
+        } catch (org.springframework.security.access.AccessDeniedException denied) {
+            return false;
+        }
+    }
+
+'''+source[end:]
+    return source
+
+
 def controller(source,service):
     package=SERVICES[service]
     source=source.replace('import org.springframework.web.bind.annotation.RestController;',
@@ -98,6 +144,25 @@ def render(target,service):
     dest=package/'security';dest.mkdir()
     (dest/'TradingAccess.java').write_text((OVERLAY/'TradingAccess.java').read_text().replace('__PACKAGE__',SERVICES[service]))
     (dest/'TradingSecurity.java').write_text(security(service))
+    if service=='order-matcher':
+        (dest/'AcceptedOrderAuthority.java').write_text((OVERLAY/'AcceptedOrderAuthority.java').read_text().replace('__PACKAGE__',SERVICES[service]))
+        model=package/'model/OrderRecord.java'
+        model.write_text(replace_once(model.read_text(),'    @PrePersist', '''    @Column(name = "AcceptedSubject", length = 255)
+    private String acceptedSubject;
+    @Column(name = "AcceptedIssuer", length = 512)
+    private String acceptedIssuer;
+    @Column(name = "AcceptedTerms", length = 512)
+    private String acceptedTerms;
+    public String getAcceptedSubject() { return acceptedSubject; }
+    public void setAcceptedSubject(String value) { acceptedSubject = value; }
+    public String getAcceptedIssuer() { return acceptedIssuer; }
+    public void setAcceptedIssuer(String value) { acceptedIssuer = value; }
+    public String getAcceptedTerms() { return acceptedTerms; }
+    public void setAcceptedTerms(String value) { acceptedTerms = value; }
+
+    @PrePersist'''))
+        service_path=package/'service/OrderMatcherService.java'
+        service_path.write_text(matcher(service_path.read_text()))
     tests=target/'src/test/java'/SERVICES[service].replace('.','/')/'security';tests.mkdir(parents=True,exist_ok=True)
     for source in (OVERLAY/'tests').glob('*.java'):
         if source.name.startswith('TradeApi') and service!='trade-service':continue
