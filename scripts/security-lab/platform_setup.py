@@ -11,6 +11,8 @@ import yaml
 
 import checkpoint
 import credential_store
+import cluster_identity
+import storage_preflight
 import lab
 from resource_operation import operation_lock
 from resource_preflight import require
@@ -85,35 +87,46 @@ def create(args):
     checkpoint.verify(args.checkpoint);verify(args.bundle,args.helm)
     if platform.system()!='Darwin' or platform.machine()!='arm64':raise ValueError('Reviewed host is macOS ARM64')
     runtime=Path(args.runtime_dir).resolve()
+    cluster=getattr(args,'cluster',CLUSTER)
+    if cluster not in cluster_identity.CHOICES:raise ValueError('Unreviewed cluster')
+    node=cluster+'-control-plane';context='kind-'+cluster
     with operation_lock(runtime):
         require(runtime,'build')
         env=dict(os.environ,DOCKER_HOST='unix://'+str(Path.home()/'.docker/run/docker.sock'),DOCKER_CONFIG=str(runtime/'docker-client'),KIND_EXPERIMENTAL_PROVIDER='docker')
         def run(command,**kwargs):
-            return subprocess.run(command,env=env,check=True,capture_output=True,text=True,timeout=kwargs.pop('timeout',240),**kwargs).stdout
+            try:
+                return subprocess.run(command,env=env,check=True,capture_output=True,text=True,timeout=kwargs.pop('timeout',240),**kwargs).stdout
+            except subprocess.CalledProcessError as error:
+                failure=runtime/'provisioning-error.log'
+                failure.write_text(error.stderr or 'Command failed without stderr');failure.chmod(0o600)
+                raise
         existing=run(['kind','get','clusters']).splitlines()
         containers=run(['docker','ps','-a','--format','{{.Names}}']).splitlines()
         location=runtime/'state019-kubernetes'
-        if CLUSTER in existing or NODE in containers or location.exists() or location.is_symlink():raise ValueError('Existing cluster/container/setup state; no adoption or overwrite allowed')
+        if cluster in existing or node in containers or location.exists() or location.is_symlink() or (runtime/'cluster-selection.json').exists() or (runtime/'cluster-selection.json').is_symlink():raise ValueError('Existing cluster/container/setup state; no adoption or overwrite allowed')
         location.mkdir(mode=0o700)
+        cluster_identity.record(runtime,cluster)
         journal=location/'provisioning.json'
-        def record(stage):journal.write_text(json.dumps({'stage':stage,'cluster':CLUSTER,'status':'candidate-not-live-accepted'},indent=2)+'\n');journal.chmod(0o600)
+        def record(stage):journal.write_text(json.dumps({'stage':stage,'cluster':cluster,'status':'candidate-not-live-accepted'},indent=2)+'\n');journal.chmod(0o600)
         kubeconfig=location/'kubeconfig'
         record('starting')
         try:
-            run(['kind','create','cluster','--name',CLUSTER,'--config',str(Path(args.bundle).resolve()/'kind.yaml'),'--kubeconfig',str(kubeconfig),'--wait','180s'],timeout=360)
+            run(['kind','create','cluster','--name',cluster,'--config',str(Path(args.bundle).resolve()/'kind.yaml'),'--kubeconfig',str(kubeconfig),'--retain','--wait','0s'],timeout=360)
             kubeconfig.chmod(0o600)
-            kubectl=['kubectl','--kubeconfig',str(kubeconfig),'--context',CONTEXT,'--request-timeout=30s']
+            kubectl=['kubectl','--kubeconfig',str(kubeconfig),'--context',context,'--request-timeout=30s']
             uid=json.loads(run(kubectl+['get','namespace','kube-system','-o','json']))['metadata']['uid']
             (location/'cluster-uid').write_text(uid+'\n');(location/'cluster-uid').chmod(0o600)
             record('cluster-created')
             run(kubectl+['apply','-f',str(Path(args.bundle).resolve()/'cilium.yaml')])
             for resource in ('daemonset/cilium','daemonset/cilium-envoy','deployment/cilium-operator'):
                 run(kubectl+['rollout','status','-n','kube-system',resource,'--timeout=180s'])
+            run(kubectl+['wait','--for=condition=Ready','node/'+node,'--timeout=120s'])
             record('cilium-ready')
             images=lab.read_json(lab.PROFILE/'runtime-images.lock.json')['images']
             for item in images.values():
                 require(runtime,'acceptance')
-                run(['docker','exec',NODE,'ctr','-n','k8s.io','images','pull','--platform',item['platform'],item['image']])
+                storage_preflight.require(run(['docker','exec',node,'df','-Pk','/var/lib/containerd']))
+                run(['docker','exec',node,'ctr','-n','k8s.io','images','pull','--platform',item['platform'],item['image']])
             credential_store.create(location/'identities')
             record('prepared-needs-enforcement-and-runtime-tests')
         except BaseException:
@@ -127,7 +140,7 @@ def main():
     sub.add_parser('plan')
     prep=sub.add_parser('prepare');prep.add_argument('--chart',type=Path,required=True);prep.add_argument('--output',type=Path,required=True);prep.add_argument('--helm',required=True)
     check=sub.add_parser('verify');check.add_argument('--bundle',type=Path,required=True);check.add_argument('--helm',required=True)
-    start=sub.add_parser('create');start.add_argument('--checkpoint',type=Path,required=True);start.add_argument('--bundle',type=Path,required=True);start.add_argument('--helm',required=True);start.add_argument('--runtime-dir',type=Path,required=True)
+    start=sub.add_parser('create');start.add_argument('--checkpoint',type=Path,required=True);start.add_argument('--bundle',type=Path,required=True);start.add_argument('--helm',required=True);start.add_argument('--runtime-dir',type=Path,required=True);start.add_argument('--cluster',choices=cluster_identity.CHOICES,default=CLUSTER)
     args=parser.parse_args()
     if args.action=='plan':print(json.dumps(plan(),indent=2))
     elif args.action=='prepare':prepare(args.chart,args.helm,args.output)

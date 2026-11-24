@@ -43,5 +43,7 @@ jobs:
           python -m unittest discover -s scripts/security-lab -p 'test_state_candidate.py'
           python -m unittest discover -s scripts/security-lab -p 'test_platform_readiness.py'
           python -m unittest discover -s scripts/security-lab -p 'test_platform_setup.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_cluster_identity.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_storage_preflight.py'
       - name: Reproduce and verify checkpoint without a cluster
         run: TRADERX_SECURITY_PYTHON=python bash scripts/test-state-019-checkpoint.sh

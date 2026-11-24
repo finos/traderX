@@ -17,7 +17,8 @@ Completed prototype evidence and granular implementation history are in the [C3 
 - [x] S019-03d Verify the unified contributor entrypoint and transitive runtime-source integrity from a fresh shallow checkout; keep recovery stop available after artifact drift.
 - [x] S019-03e Add read-only contributor platform readiness checks; verify stopped-cluster refusal without interrupting the browser lab.
 - [x] S019-03f Pin Cilium chart/render/container inventory; verify repeatable secret-free infrastructure bundles and guarded create failure boundaries offline.
-- [ ] S019-03g Live-validate fresh cluster creation, image loading, enforcement and runtime lifecycle on a supported clean environment.
+- [x] S019-03g1 Fresh separately named cluster boots; pinned Cilium/DNS and bounded allowed/denied network plus Restricted admission probes pass. Original cluster preserved.
+- [ ] S019-03g Complete unattended fresh creation, image loading and full runtime lifecycle. First live campaign blocked by Docker disk exhaustion; startup/error/disk guards corrected, clean-machine acceptance pending.
 - [ ] S019-03 Add cumulative generator/start/stop/test entrypoints; verify repeat generation from a fresh clone.
 - [ ] S019-04 Integrate account/order/cancel/operator authorization and deny bypass routes while normal trading passes.
 - [ ] S019-05 Cut over live authenticated NATS, scoped subjects, browser issuance and reconnect/revocation checks.

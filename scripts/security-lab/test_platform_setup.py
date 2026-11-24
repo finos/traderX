@@ -74,7 +74,10 @@ class SetupTests(unittest.TestCase):
                 calls.append(command)
                 self.assertIn('DOCKER_HOST',kwargs['env'])
                 if command[:3]==['kind','create','cluster']:
+                    self.assertIn('--retain',command)
+                    self.assertEqual(command[command.index('--wait')+1],'0s')
                     Path(command[command.index('--kubeconfig')+1]).write_text('private kubeconfig')
+                if 'df' in command:return SimpleNamespace(stdout='Filesystem 1024-blocks Used Available Capacity Mounted on\n/dev/vda1 20000000 1000000 19000000 5% /var\n')
                 if 'kube-system' in command and 'namespace' in command:return SimpleNamespace(stdout='{"metadata":{"uid":"new-uid"}}')
                 return SimpleNamespace(stdout='')
             with patch.object(setup.checkpoint,'verify'),patch.object(setup,'verify'),patch.object(setup.platform,'system',return_value='Darwin'),patch.object(setup.platform,'machine',return_value='arm64'),patch.object(setup,'operation_lock',return_value=nullcontext()),patch.object(setup,'require'),patch.object(setup.subprocess,'run',side_effect=run),patch.object(setup.lab,'read_json',return_value={'images':{'one':{'platform':'linux/arm64','image':'example@sha256:abc'}}}),patch.object(setup.credential_store,'create') as credentials:

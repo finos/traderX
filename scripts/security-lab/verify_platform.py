@@ -8,6 +8,7 @@ import subprocess
 import time
 from datetime import datetime, timezone
 
+import cluster_identity
 from prepare_runtime import resolve_image
 
 NAMESPACE = 'security-platform-check'
@@ -18,9 +19,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--kubeconfig', type=Path, required=True)
     parser.add_argument('--output-dir', type=Path, required=True)
+    parser.add_argument('--cluster',choices=cluster_identity.CHOICES,default=cluster_identity.DEFAULT)
+    parser.add_argument('--cluster-uid')
     args = parser.parse_args()
+    if args.cluster!=cluster_identity.DEFAULT and not args.cluster_uid:parser.error('Validation cluster requires recorded --cluster-uid')
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    base = ['kubectl', '--kubeconfig', str(args.kubeconfig), '--context', CONTEXT,
+    base = ['kubectl', '--kubeconfig', str(args.kubeconfig), '--context', 'kind-'+args.cluster,
             '--request-timeout=20s']
     observations = []
 
@@ -35,8 +39,10 @@ def main():
 
     # This context is hard-coded, not the current user context. Check actual node name too.
     nodes = json.loads(run('get', 'nodes', '-o', 'json').stdout)['items']
-    if len(nodes) != 1 or nodes[0]['metadata']['name'] != 'traderx-security-lab-control-plane':
+    if len(nodes) != 1 or nodes[0]['metadata']['name'] != args.cluster+'-control-plane':
         raise ValueError('Refusing to test an unexpected cluster')
+    if args.cluster_uid and json.loads(run('get','namespace','kube-system','-o','json').stdout)['metadata']['uid']!=args.cluster_uid:
+        raise ValueError('Cluster identity mismatch')
     pin_path = args.output_dir / 'platform-image.lock.json'
     pin = json.loads(pin_path.read_text()) if pin_path.exists() else resolve_image('busybox:1.37.0', 'arm64')
     pin_path.write_text(json.dumps(pin, indent=2) + '\n')
@@ -118,7 +124,7 @@ def main():
         result = {'status': 'passed', 'scope': 'platform probes only; not hardened C3',
             'recorded_at': datetime.now(timezone.utc).isoformat(),
             'node_uid': nodes[0]['metadata']['uid'],
-            'context': CONTEXT, 'image': pin, 'node_kernel': nodes[0]['status']['nodeInfo']['kernelVersion'],
+            'context': 'kind-'+args.cluster, 'cluster_uid': args.cluster_uid, 'image': pin, 'node_kernel': nodes[0]['status']['nodeInfo']['kernelVersion'],
             'network_allowed_and_denied_verified': True, 'restricted_admission_verified': True,
             'policy_sha256': hashlib.sha256(json.dumps(policies, sort_keys=True).encode()).hexdigest(),
             'observations': observations}

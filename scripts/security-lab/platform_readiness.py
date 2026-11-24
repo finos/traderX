@@ -5,6 +5,8 @@ import platform
 import subprocess
 
 import credential_store
+import cluster_identity
+import storage_preflight
 import lab
 import resource_preflight
 
@@ -12,18 +14,18 @@ NODE='traderx-security-lab-control-plane'
 CONTEXT='kind-traderx-security-lab'
 
 
-def assess_cluster(observed, expected_uid, pins):
+def assess_cluster(observed, expected_uid, pins, cluster=cluster_identity.DEFAULT):
     checks={}
     checks['cluster_identity']=observed['uid']==expected_uid
     nodes=observed['nodes']['items']
-    checks['single_reviewed_node']=len(nodes)==1 and nodes[0]['metadata']['name']==NODE
+    checks['single_reviewed_node']=len(nodes)==1 and nodes[0]['metadata']['name']==cluster+'-control-plane'
     expected_version=pins['kind_node'].split(':v',1)[1].split('@',1)[0]
     checks['node_version_architecture_ready']=bool(nodes) and all(
         n.get('status',{}).get('nodeInfo',{}).get('kubeletVersion')=='v'+expected_version and
         n['status']['nodeInfo'].get('architecture')=='arm64' and
         any(c.get('type')=='Ready' and c.get('status')=='True' for c in n['status'].get('conditions',[])) for n in nodes)
     container=observed['container']
-    checks['owned_kind_node']=container.get('Config',{}).get('Labels',{}).get('io.x-k8s.kind.cluster')=='traderx-security-lab'
+    checks['owned_kind_node']=container.get('Config',{}).get('Labels',{}).get('io.x-k8s.kind.cluster')==cluster
     checks['pinned_node_image']=container.get('Config',{}).get('Image')==pins['kind_node']
     ds=observed['cilium'].get('status',{})
     checks['cilium_ready']=ds.get('desiredNumberScheduled')==1 and ds.get('numberReady')==1 and ds.get('updatedNumberScheduled')==1
@@ -35,8 +37,9 @@ def assess_cluster(observed, expected_uid, pins):
 
 
 def inspect(args):
+    cluster=cluster_identity.selected(Path(args.runtime_dir))
     checks={'supported_host':platform.system()=='Darwin' and platform.machine()=='arm64',
-            'explicit_context':args.context==CONTEXT}
+            'explicit_context':args.context=='kind-'+cluster}
     result={'status':'blocked','checks':checks,'limitations':[
         'Readiness does not prove NetworkPolicy enforcement; run bounded positive/negative probes separately.',
         'Doctor checks the observed Cilium agent only; the separate setup bundle verifies chart and rendered image pins. Signatures remain pending.',
@@ -58,11 +61,14 @@ def inspect(args):
             checks['cluster_identity']=False;return result
         docker=['docker','--config',str(Path(args.runtime_dir)/'docker-client'),'--host','unix://'+str(Path.home()/'.docker/run/docker.sock')]
         observed={'uid':uid,'nodes':read(kube+['get','nodes','-o','json']),
-                  'container':read(docker+['inspect',NODE])[0],
+                  'container':read(docker+['inspect',cluster+'-control-plane'])[0],
                   'cilium':read(kube+['get','daemonset','cilium','-n','kube-system','-o','json']),
                   'cilium_pods':read(kube+['get','pods','-n','kube-system','-l','k8s-app=cilium','-o','json'])}
         pins=lab.read_json(lab.PROFILE/'infrastructure.lock.json')
-        checks.update(assess_cluster(observed,args.cluster_uid,pins))
+        checks.update(assess_cluster(observed,args.cluster_uid,pins,cluster))
+        disk=subprocess.run(docker+['exec',cluster+'-control-plane','df','-Pk','/var/lib/containerd'],check=True,capture_output=True,text=True,timeout=15).stdout
+        result['node_disk_available_bytes']=storage_preflight.available_bytes(disk)
+        checks['node_disk_reserve']=result['node_disk_available_bytes']>=storage_preflight.RESERVE_BYTES
     except (OSError,subprocess.SubprocessError,ValueError,KeyError,TypeError,IndexError):
         checks['cluster_observation_available']=False
     result['status']='ready' if all(checks.values()) else 'blocked'

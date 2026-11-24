@@ -33,6 +33,7 @@ SOURCES = [
     'scripts/security-lab/trading_lifecycle.py',
     'scripts/security-lab/telemetry_lifecycle.py',
     'scripts/security-lab/state_lifecycle.py',
+    'scripts/security-lab/verify_platform.py',
     'specs/012-platform-convergence-c3/security-lab/infrastructure.lock.json',
     'specs/012-platform-convergence-c3/security-lab/system/kind.yaml',
     'specs/012-platform-convergence-c3/security-lab/baseline.lock.json',

@@ -1,0 +1,91 @@
+{
+  "date": "2026-11-24",
+  "status": "partial-live-validation",
+  "cluster": "traderx-security-lab-validation",
+  "environment": "Fresh cluster/storage on existing macOS ARM64 Docker Desktop; not an independent clean machine.",
+  "platform": {
+    "status": "passed",
+    "scope": "platform probes only; not hardened C3",
+    "recorded_at": "2026-11-24T15:22:23.161293+00:00",
+    "node_uid": "52a5f6dd-9769-4871-96a6-74a29c6e3d26",
+    "context": "kind-traderx-security-lab-validation",
+    "cluster_uid": "45a18b8a-e70f-439f-925b-4ea76ff016b7",
+    "image": {
+      "source": "busybox:1.37.0",
+      "index_digest": "sha256:a7dbc319b1438115a207e11930dc4bb3e643dcb3ec0bdd694bb36cd8fad289ec",
+      "digest": "sha256:d82c2ab94640ded77cf76514ce6a84870761105058a4a9e51b05a8a79be97a6c",
+      "platform": "linux/arm64",
+      "image": "docker.io/library/busybox@sha256:d82c2ab94640ded77cf76514ce6a84870761105058a4a9e51b05a8a79be97a6c"
+    },
+    "node_kernel": "6.10.14-linuxkit",
+    "network_allowed_and_denied_verified": true,
+    "restricted_admission_verified": true,
+    "policy_sha256": "27c64ffcf8f18c3d2c0fe34fdc3a9775baf5dccd1e5a81d739b31dad015f8197",
+    "observations": [
+      {
+        "phase": "before-policy",
+        "client": "allowed",
+        "exit_code": 0,
+        "stdout": "security-lab-ok",
+        "stderr": ""
+      },
+      {
+        "phase": "before-policy",
+        "client": "denied",
+        "exit_code": 0,
+        "stdout": "security-lab-ok",
+        "stderr": ""
+      },
+      {
+        "phase": "after-policy",
+        "client": "allowed",
+        "exit_code": 0,
+        "stdout": "security-lab-ok",
+        "stderr": ""
+      },
+      {
+        "phase": "after-policy",
+        "client": "denied",
+        "exit_code": 1,
+        "stdout": "",
+        "stderr": "wget: download timed out\ncommand terminated with exit code 1"
+      },
+      {
+        "phase": "after-denial-positive-control",
+        "client": "allowed",
+        "exit_code": 0,
+        "stdout": "security-lab-ok",
+        "stderr": ""
+      },
+      {
+        "phase": "admission-negative-server-dry-run",
+        "exit_code": 1,
+        "stderr": "Error from server (Forbidden): error when creating \"STDIN\": pods \"unsafe-admission-probe\" is forbidden: violates PodSecurity \"restricted:v1.35\": privileged (container \"unsafe-admission-probe\" must not set securityContext.privileged=true), allowPrivilegeEscalation != false (container \"unsafe-admission-probe\" must set securityContext.allowPrivilegeEscalation=false), runAsUser=0 (pod must not set runAsUser=0)"
+      }
+    ]
+  },
+  "provisioning": "CNI and DNS ready; application image preload failed before SQL credential creation",
+  "failure": "containerd write failed: no space left on device",
+  "disk_observation": {
+    "docker_filesystem": "59 GB total, 59 GB used, zero available at failure",
+    "unused_build_cache": "about 5 GB; cleanup requested, not performed",
+    "host_free": "about 32 GiB at inspection"
+  },
+  "recovery": [
+    "Reclaimed only unused application images downloaded into new validation node.",
+    "About 1.1 GB became available; bounded network/admission probes passed.",
+    "Validation cluster stopped; original cluster container ID unchanged and still stopped."
+  ],
+  "implementation_corrections": [
+    "Explicit supported validation cluster selection and one-running-cluster guard.",
+    "Kind --retain and no premature node-ready wait before CNI installation.",
+    "Private subprocess error capture and 2 GiB provisional node-disk reserve before image pulls.",
+    "Platform doctor now checks disk reserve."
+  ],
+  "limitations": [
+    "Unattended full setup and fresh full trading acceptance did not pass.",
+    "Corrected kind startup flags and disk guard are tested offline; initial live creation used the premature wait.",
+    "No existing user containers/images/volumes or build cache were pruned.",
+    "S019-03g remains open; disk capacity must be resolved before another full run."
+  ]
+}

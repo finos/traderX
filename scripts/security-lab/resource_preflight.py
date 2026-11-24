@@ -7,6 +7,7 @@ from pathlib import Path
 import platform
 import re
 import subprocess
+import cluster_identity
 
 GIB = 1024 ** 3
 LAB = 'traderx-security-lab-control-plane'
@@ -23,7 +24,9 @@ def memory_bytes(text):
     return int(float(match[1]) * units[match[2]])
 
 
-def assess(snapshot, mode):
+def assess(snapshot, mode, cluster=cluster_identity.DEFAULT):
+    if cluster not in cluster_identity.CHOICES:raise ValueError("Unreviewed cluster")
+    expected_node=cluster+"-control-plane"
     if mode not in RESERVE:
         raise ValueError('Unknown operating mode')
     reasons = []
@@ -39,11 +42,11 @@ def assess(snapshot, mode):
         reasons.append('Insufficient Docker headroom for the provisional operating margin.')
     if mode in ('development', 'fixture', 'build') and any(c['name'].endswith('-control-plane') for c in containers):
         reasons.append(mode.capitalize()+' mode requires Kubernetes labs stopped; use an explicit sequential workflow.')
-    if mode == 'acceptance' and LAB not in {c['name'] for c in containers}:
+    if mode == 'acceptance' and expected_node not in {c['name'] for c in containers}:
         reasons.append('Full acceptance requires the security-lab control plane running.')
-    if any(c['name'].endswith('-control-plane') and c['name'] != LAB for c in containers):
+    if any(c['name'].endswith('-control-plane') and c['name'] != expected_node for c in containers):
         reasons.append('Another Kubernetes lab is running.')
-    if mode == 'acceptance' and any(c['name'].startswith('traderx-account-dev-') for c in containers):
+    if mode in ('acceptance','build') and any(c['name'].startswith('traderx-account-dev-') for c in containers):
         reasons.append('Stop the account development environment before full acceptance.')
     return {'status': 'blocked' if reasons else 'ready', 'mode': mode, 'reasons': reasons,
             'required_headroom_bytes': int(RESERVE[mode]), 'observation': snapshot,
@@ -72,7 +75,7 @@ def observe(runtime):
 
 def check(runtime, mode):
     try:
-        return assess(observe(runtime), mode)
+        return assess(observe(runtime), mode, cluster_identity.selected(runtime))
     except (OSError, subprocess.SubprocessError, ValueError, KeyError, TypeError) as error:
         return {'status': 'blocked', 'mode': mode,
                 'reasons': ['Capacity observation unavailable: '+type(error).__name__]}
