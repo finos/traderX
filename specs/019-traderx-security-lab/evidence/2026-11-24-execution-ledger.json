@@ -1,0 +1,43 @@
+{
+  "status": "passed",
+  "scope": "PostgreSQL reservation and atomic settlement candidate; no authenticated HTTP or broker integration",
+  "image": "ghcr.io/finos/traderx-c3/database@sha256:1aa68521a486e2c217e6d1b1328ae3d01816302eeddbeb664f34445d6844f022",
+  "migration_sha256": "f11d808436862d0db1350a517b61ff04ee608a01da9975c474652678c3129057",
+  "settlement_sha256": "2ff3c247e6de32b7d15f7a83c00708ad44c883ddb48c279316ee4aa98055cb65",
+  "checks": [
+    "identical retry has one persistent reservation",
+    "changed payload conflicts",
+    "cross-order substitution conflicts",
+    "aggregate quantity overrun denied",
+    "limit-price violation denied",
+    "non-finite price denied",
+    "legacy order without authority denied",
+    "runtime ledger mutation denied",
+    "runtime ledger deletion denied",
+    "runtime DDL denied",
+    "unrelated identity denied",
+    "concurrent over-reservation serialized",
+    "restart preserves reservation and retry identity",
+    "new reservation after cancellation denied",
+    "cancellation preserves historical retry record",
+    "repeat migration refused atomically",
+    "matcher cannot settle its own reservation",
+    "canceled reservation cannot settle",
+    "unreserved execution cannot settle",
+    "concurrent duplicate settlement changes trade position and order exactly once",
+    "settled retry after restart has no duplicate effect",
+    "rollback removes receipt trade position and order effects together",
+    "remaining authorized quantity settles to FILLED"
+  ],
+  "limits": {
+    "memory_mib": 256,
+    "cpu": 1,
+    "host_ports": 0
+  },
+  "limitations": [
+    "Not integrated with matcher, trade service, NATS or processor",
+    "Stored authority is trusted application metadata, not independently verified by this ledger",
+    "SQL receipts deduplicate candidate settlement only; deployed Java processor remains unchanged",
+    "No broker event outbox or HTTP authentication integration; no end-to-end delivery guarantee"
+  ]
+}

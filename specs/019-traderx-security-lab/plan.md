@@ -49,3 +49,5 @@ S019-04a passes as a direct-API component candidate: deterministic trade/matcher
 S019-04b is split into persisted acceptance/eligibility (04b1) and authenticated durable execution (04b2). The candidate must refuse anonymous execution while the second part is incomplete. Both are prerequisites to runtime cutover; metadata is not a security boundary against a compromised database writer.
 
 S019-04b1 passes 29 Java component tests (including five new durable-acceptance checks) and deterministic rendering. See [accepted-order evidence](evidence/2026-11-24-accepted-order-authority.json). The candidate deliberately refuses execution until S019-04b2, so neither background settlement nor runtime cutover is claimed.
+
+S019-04b2a passes the real PostgreSQL [execution-ledger campaign](evidence/2026-11-24-execution-ledger.json), including concurrent duplicate settlement and rollback of trade/position/order/receipt together. The [delivery contract](system/execution-delivery.md) identifies remaining authenticated HTTP, Java processor, broker/event-outbox and cancellation integration. Candidate SQL is not deployed or included in fresh bootstrap yet.
