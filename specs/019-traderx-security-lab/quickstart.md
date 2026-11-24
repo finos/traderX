@@ -37,3 +37,7 @@ The [database bootstrap contract](system/fresh-database-bootstrap.md) documents 
 ## Cumulative runtime candidate
 
 The [telemetry and cumulative lifecycle contract](system/telemetry-lifecycle.md) describes the explicit contributor start/stop/test commands. These operate on an owned cluster and private identities, preserve PVCs, and check host pressure; they are not the published generated-state launcher or completed hardened-state acceptance.
+
+## Unified contributor commands
+
+Use the [verified contributor entrypoint](system/contributor-entrypoint.md) for fresh-checkout artifact generation and guarded candidate start/test/stop. Runtime arguments are explicit; the wrapper does not provision a cluster or imply full security acceptance. Recovery stop remains available when artifacts have drifted.

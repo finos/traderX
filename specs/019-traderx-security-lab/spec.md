@@ -34,3 +34,7 @@ Carry forward C3 trading and observability; add staged, attributable security le
 5. Given a supported clean machine, a contributor follows onboarding and explains the boundary using exported evidence without maintainer intervention.
 
 Detailed threat assumptions, control contracts and existing evidence remain canonical in the [experimental specification](../012-platform-convergence-c3/security-lab/spec.md). State acceptance is pending; local checkpoint counts are not integrated acceptance.
+
+### Contributor packaging requirement
+
+FR-019-10: Provide a checkout-relative entrypoint for deterministic artifact generation and verified candidate start/test. Record transitive local runtime source hashes, require explicit runtime/cluster identity, and refuse artifact drift before runtime dispatch. Recovery stop must remain available after artifact drift while preserving ownership and cluster checks. Offline commands must start no containers or change local trust.

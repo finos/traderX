@@ -14,6 +14,7 @@ Completed prototype evidence and granular implementation history are in the [C3 
 - [x] S019-03c6 Initialize four fresh telemetry PVCs with tokenless non-root Jobs; verify logs/metrics/traces/dashboard persistence and isolated collector RBAC/admission.
 - [x] S019-03c7 Validate cumulative start/stop/test with all nineteen Deployments, isolated collector and twelve policy families; trading passes after telemetry recreation.
 - [x] S019-03c Implement and validate fresh synthetic-data bootstrap plus guarded candidate start/stop/test lifecycle; no direct application of migration overlays.
+- [ ] S019-03d Verify the unified contributor entrypoint and transitive runtime-source integrity from a fresh shallow checkout; keep recovery stop available after artifact drift.
 - [ ] S019-03 Add cumulative generator/start/stop/test entrypoints; verify repeat generation from a fresh clone.
 - [ ] S019-04 Integrate account/order/cancel/operator authorization and deny bypass routes while normal trading passes.
 - [ ] S019-05 Cut over live authenticated NATS, scoped subjects, browser issuance and reconnect/revocation checks.

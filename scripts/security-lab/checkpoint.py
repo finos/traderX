@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Generate/verify the offline State 019 reference-and-workload checkpoint (not deployment)."""
 import argparse
+import ast
 import hashlib
 import json
 from pathlib import Path
@@ -35,6 +36,25 @@ SOURCES = [
     'specs/012-platform-convergence-c3/security-lab/baseline.lock.json',
     'specs/012-platform-convergence-c3/security-lab/runtime-images.lock.json',
 ]
+
+
+def source_paths():
+    """Include local Python imports used by the contributor entrypoint and lifecycle."""
+    paths=set(SOURCES)
+    pending=['scripts/security-lab/state_candidate.py', 'scripts/security-lab/state_lifecycle.py']
+    visited=set()
+    while pending:
+        name=pending.pop()
+        if name in visited:continue
+        visited.add(name);paths.add(name)
+        tree=ast.parse((lab.ROOT/name).read_text())
+        for node in ast.walk(tree):
+            modules=([a.name for a in node.names] if isinstance(node,ast.Import) else
+                     [node.module] if isinstance(node,ast.ImportFrom) and node.module else [])
+            for module in modules:
+                local='scripts/security-lab/'+module.split('.')[0]+'.py'
+                if (lab.ROOT/local).is_file() and local not in visited:pending.append(local)
+    return sorted(paths)
 
 
 def encoded(value):
@@ -92,7 +112,7 @@ def compile_checkpoint():
         'status': 'offline-artifacts-only',
         'generated_commit': baseline['generated_commit'],
         'canonical_source_commit': baseline['canonical_source_commit'],
-        'source_sha256': {p: sha((lab.ROOT / p).read_bytes()) for p in SOURCES},
+        'source_sha256': {p: sha((lab.ROOT / p).read_bytes()) for p in source_paths()},
         'artifact_sha256': {p: sha(data) for p, data in files.items()},
         'limitations': [
             'Not the integrated State 019 runtime; no cluster or enforcement was tested.',

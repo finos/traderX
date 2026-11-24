@@ -40,5 +40,6 @@ jobs:
         run: |
           python -m unittest discover -s scripts/security-lab -p 'test_telemetry_lifecycle.py'
           python -m unittest discover -s scripts/security-lab -p 'test_state_lifecycle.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_state_candidate.py'
       - name: Reproduce and verify checkpoint without a cluster
         run: TRADERX_SECURITY_PYTHON=python bash scripts/test-state-019-checkpoint.sh

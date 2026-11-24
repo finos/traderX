@@ -39,3 +39,5 @@ The [fresh database bootstrap component](fresh-database-bootstrap.md) provides a
 The [live lifecycle increment](live-kubernetes-lifecycle.md) now validates database restart and bounded trading separately. The offline bundle remains blocked for direct deployment: its four stateful telemetry services and collector still require fresh-storage lifecycle integration.
 
 The [telemetry lifecycle increment](telemetry-lifecycle.md) now validates all nineteen candidate Deployments and the isolated collector together. Use the ordered contributor lifecycle commands; the offline artifact bundle still must not be applied wholesale. Cumulative generated-state packaging, clean-machine reproduction and remaining hardened-state security acceptance are separate gates.
+
+The [unified contributor entrypoint](contributor-entrypoint.md) connects verified artifact generation to the ordered runtime candidate. Its manifest includes transitive local Python dependencies. Recovery stop deliberately does not require an intact checkpoint.
