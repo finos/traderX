@@ -20,7 +20,7 @@ Completed prototype evidence and granular implementation history are in the [C3 
 - [x] S019-03g1 Fresh separately named cluster boots; pinned Cilium/DNS and bounded allowed/denied network plus Restricted admission probes pass. Original cluster preserved.
 - [x] S019-03g2 Recover pinned image loading after approved unused-build-cache cleanup; verify doctor and nineteen-deployment startup on the retained validation cluster.
 - [x] S019-03g3a Diagnose missing logs as Loki WAL disk throttling at 90.48% usage; add percentage/absolute-capacity guards and verify live refusal before mutation.
-- [ ] S019-03g3 Restore adequate Docker disk headroom and rerun telemetry persistence plus trading acceptance; see `evidence/2026-11-24-log-delivery-diagnosis.json`.
+- [x] S019-03g3 Archive/retire the approved old State 014 cluster, restore disk headroom without resizing, and pass cumulative telemetry persistence plus trading acceptance on the retained validation cluster; see `evidence/2026-11-24-consolidated-runtime.json`.
 - [ ] S019-03g Complete unattended fresh creation, image loading and full runtime lifecycle. First live campaign blocked by Docker disk exhaustion; startup/error/disk guards corrected, clean-machine acceptance pending.
 - [ ] S019-03 Add cumulative generator/start/stop/test entrypoints; verify repeat generation from a fresh clone.
 - [ ] S019-04 Integrate account/order/cancel/operator authorization and deny bypass routes while normal trading passes.
