@@ -16,6 +16,8 @@ Carry forward C3 trading and observability; add staged, attributable security le
 
 - **FR-019-08:** Startup must verify cluster and resource ownership, reuse private SQL identities, and initialize only an empty database. Restart must preserve committed data without reseeding; stop must retain owned storage and credentials. Missing storage or a mismatched lifecycle binding requires explicit recovery.
 
+- **FR-019-09:** Initialize telemetry volumes under a dedicated non-root tokenless identity, retain evidence across graceful pod recreation, and isolate the log collector exception with scoped admission and read-only discovery permissions. Verify actual stored logs, metrics, traces and dashboard state; service readiness alone is insufficient.
+
 ## Nonfunctional requirements
 
 - **NFR-019-01:** Run one full cluster at a time; serialize heavy experiments, expose resource preflight and lightweight checkpoints, and measure memory/startup/latency/throughput.

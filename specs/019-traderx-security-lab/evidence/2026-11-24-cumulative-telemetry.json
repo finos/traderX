@@ -1,0 +1,210 @@
+{
+  "date": "2026-11-24",
+  "tasks": [
+    "S019-03c6",
+    "S019-03c7",
+    "S019-03c"
+  ],
+  "standalone_telemetry": {
+    "status": "passed",
+    "scope": "Live telemetry-only lifecycle; trading services stopped",
+    "namespace": "traderx-security-lab-019",
+    "dashboard_uid": "labf16049f699bd",
+    "log_marker": "STATE019_LOG_fb40ac530abbc9ac6dc1d809",
+    "trace_id": "e80b1f1aa4dbfa571bf452d716e57dc6",
+    "span_ids": [
+      "J43ncr8V2Q8="
+    ],
+    "historical_metric": [
+      {
+        "metric": {
+          "__name__": "up",
+          "instance": "prometheus:9090",
+          "job": "prometheus"
+        },
+        "value": [
+          1795524527.511,
+          "1"
+        ]
+      }
+    ],
+    "pvcs": {
+      "loki": "cb7dd783-25a2-46aa-908c-9182c885ae1d",
+      "tempo": "49319d56-0c07-4086-b6d9-53e5bfbbfccf",
+      "prometheus": "8911c795-fd6c-458c-b3c5-a04f7e660330",
+      "grafana": "f0aa6f83-2eaf-4d41-a015-94f7d2f764e0"
+    },
+    "old_pods": {
+      "grafana": "aa2ba125-b100-48aa-9d81-bc30e08081ba",
+      "loki": "de382eab-b093-4bb1-87b5-4f2f5f4a586b",
+      "prometheus": "b7725991-af70-455d-a339-aa3c9756b73d",
+      "tempo": "3e7d3050-f79b-4a8c-82f1-870468985b14"
+    },
+    "new_pods": {
+      "grafana": "e62d03bc-9b3b-40ea-a989-2401a0ba8c92",
+      "loki": "04584865-79d8-4d14-86c3-57c065e5fca7",
+      "prometheus": "a7f3b45d-306b-419f-8196-69c4f9fe95af",
+      "tempo": "4407ba38-3b18-4a4a-8afc-6c0bad436920"
+    },
+    "collector_boundary": {
+      "admission_denials": [
+        "writable-host",
+        "host-root",
+        "long-token"
+      ],
+      "rbac_checks": 6
+    },
+    "limitations": [
+      "Collector checkpoints use emptyDir; log replay/duplication after restart is possible.",
+      "Grafana retains the reference demo login; operator authentication remains pending.",
+      "No simultaneous full-trading load or production durability claim."
+    ]
+  },
+  "cumulative_runtime": {
+    "status": "passed",
+    "scope": "Cumulative runtime candidate; remaining security gates are not implied",
+    "telemetry": {
+      "status": "passed",
+      "scope": "Live telemetry lifecycle",
+      "business_services_running": [
+        "account-service",
+        "order-matcher",
+        "people-service",
+        "position-service",
+        "price-publisher",
+        "reference-data",
+        "trade-processor",
+        "trade-service"
+      ],
+      "namespace": "traderx-security-lab-019",
+      "dashboard_uid": "lab1ff1379aaa7f",
+      "log_marker": "STATE019_LOG_6a0e9b0a9c8b4841227b3d99",
+      "trace_id": "3c9dcf5ee753c77c419b099fbe36c79c",
+      "span_ids": [
+        "2jPFPmM66ps="
+      ],
+      "historical_metric": [
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "prometheus:9090",
+            "job": "prometheus"
+          },
+          "value": [
+            1795524984.32,
+            "1"
+          ]
+        }
+      ],
+      "pvcs": {
+        "loki": "cb7dd783-25a2-46aa-908c-9182c885ae1d",
+        "tempo": "49319d56-0c07-4086-b6d9-53e5bfbbfccf",
+        "prometheus": "8911c795-fd6c-458c-b3c5-a04f7e660330",
+        "grafana": "f0aa6f83-2eaf-4d41-a015-94f7d2f764e0"
+      },
+      "old_pods": {
+        "grafana": "e62d03bc-9b3b-40ea-a989-2401a0ba8c92",
+        "loki": "04584865-79d8-4d14-86c3-57c065e5fca7",
+        "prometheus": "a7f3b45d-306b-419f-8196-69c4f9fe95af",
+        "tempo": "4407ba38-3b18-4a4a-8afc-6c0bad436920"
+      },
+      "new_pods": {
+        "grafana": "19184c34-9095-4b2e-b99c-46b9efe8ceff",
+        "loki": "2cc92ce3-6580-4f11-8c57-923e4fbaf648",
+        "prometheus": "814809d9-0833-4046-8187-f4e95f5e32bc",
+        "tempo": "3be6df30-9966-4fb0-99d8-48859787f317"
+      },
+      "collector_boundary": {
+        "admission_denials": [
+          "writable-host",
+          "host-root",
+          "long-token"
+        ],
+        "rbac_checks": 6
+      },
+      "limitations": [
+        "Collector checkpoints use emptyDir; log replay/duplication after restart is possible.",
+        "Grafana retains the reference demo login; operator authentication remains pending.",
+        "No continuous-load, zero-loss telemetry or production durability claim."
+      ]
+    },
+    "trading": {
+      "status": "passed",
+      "scope": "Bounded live trading candidate, not full hardened state",
+      "namespace": "traderx-security-lab-019",
+      "trade_id": "ad4adaed-9539-4a3d-87fc-de946a648798",
+      "order_id": "ord-013-0010",
+      "checks": [
+        "account read",
+        "trade submission",
+        "asynchronous settlement",
+        "independent SQL settlement",
+        "unknown ticker rejected",
+        "unknown account rejected",
+        "order creation",
+        "account order listing",
+        "cancellation with SQL outcome",
+        "unsafe workload denied by scoped admission"
+      ],
+      "limitations": [
+        "Anonymous reference NATS and existing business APIs; identity/broker cutover remains pending.",
+        "Telemetry persistence, collector migration, WAF/network integration and full-state CI not covered."
+      ]
+    }
+  },
+  "resource_observation": {
+    "status": "ready",
+    "mode": "acceptance",
+    "reasons": [],
+    "required_headroom_bytes": 805306368,
+    "observation": {
+      "host_pressure": "normal",
+      "docker_memory_bytes": 6213808128,
+      "containers": [
+        {
+          "name": "traderx-security-lab-control-plane",
+          "memory_bytes": 5000415674
+        },
+        {
+          "name": "buildx_buildkit_traderx-009-recovery0",
+          "memory_bytes": 15592325
+        }
+      ]
+    },
+    "limitations": [
+      "Snapshot only; not a reservation or a guarantee against subsequent pressure.",
+      "Docker container working sets omit some VM/kernel overhead; margins are provisional.",
+      "Readiness does not establish application health or security acceptance."
+    ]
+  },
+  "local_tests": 149,
+  "policy_families": 12,
+  "citrix": "Left running; no Citrix processes or settings modified",
+  "implementation_notes": [
+    "Initial Job was correctly rejected when using protected workload identity; dedicated tokenless initializer identity added without weakening admission.",
+    "Stopped collector uses a verified nonmatching node selector; completed initializer Jobs are retained.",
+    "Generated-state release, clean-machine reproduction and remaining security gates are not implied."
+  ],
+  "source_sha256": {
+    "scripts/security-lab/state_lifecycle.py": "46f3a1800631e52d7267d7998052efcd0c62088eb9192039f8b155bd80d69f98",
+    "scripts/security-lab/telemetry_lifecycle.py": "8d186fc967d1882c1abb594b117fe1d9aa130883a4c6850cfc2df9dbc6e6125c",
+    "scripts/security-lab/verify_telemetry_lifecycle.py": "0e686df712e4a77fa967fe409671ffbe9c6d0d6fe89682f0bac7c50d4ab9e53c",
+    "scripts/security-lab/trading_lifecycle.py": "3e0e43a5c1b13363f04aebc8255679467cad3976d7990d2f2b1fb188cdd16f36"
+  },
+  "validation": {
+    "frontmatter": "passed",
+    "root_spec_kit": "passed",
+    "readiness": "passed",
+    "spec_coverage": "passed",
+    "offline_checkpoint": "byte-identical repeats passed",
+    "website_build": "passed; 392 Markdown pages and 15 learning journeys"
+  },
+  "final_runtime": {
+    "candidate_deployments": "stopped; PVCs and identities retained",
+    "kubernetes_cluster": "stopped",
+    "lightweight_portal_https": 200,
+    "account_health": 200,
+    "unauthenticated_account": 401,
+    "citrix": "untouched"
+  }
+}

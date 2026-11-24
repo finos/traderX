@@ -11,7 +11,9 @@ Completed prototype evidence and granular implementation history are in the [C3 
 - [x] S019-03c3 Add the owned database-only Kubernetes adapter with offline boundary tests; validate persistent SQL initialization and two restarts in a bounded Docker fixture.
 - [x] S019-03c4 Validate the adapter on live Kubernetes, including Secret/PVC provisioning, failure recovery and database pod recreation.
 - [x] S019-03c5 Roll out the bounded fifteen-deployment trading candidate; verify settlement, order cancellation, independent SQL outcomes and scoped workload admission on Kubernetes.
-- [ ] S019-03c Implement and validate fresh synthetic-data bootstrap plus guarded start/stop/test lifecycle; no direct application of migration overlays.
+- [x] S019-03c6 Initialize four fresh telemetry PVCs with tokenless non-root Jobs; verify logs/metrics/traces/dashboard persistence and isolated collector RBAC/admission.
+- [x] S019-03c7 Validate cumulative start/stop/test with all nineteen Deployments, isolated collector and twelve policy families; trading passes after telemetry recreation.
+- [x] S019-03c Implement and validate fresh synthetic-data bootstrap plus guarded candidate start/stop/test lifecycle; no direct application of migration overlays.
 - [ ] S019-03 Add cumulative generator/start/stop/test entrypoints; verify repeat generation from a fresh clone.
 - [ ] S019-04 Integrate account/order/cancel/operator authorization and deny bypass routes while normal trading passes.
 - [ ] S019-05 Cut over live authenticated NATS, scoped subjects, browser issuance and reconnect/revocation checks.

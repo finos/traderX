@@ -73,7 +73,7 @@ def stop(api,credentials):
         current=api.get('deployment',name,api.namespace)
         if current is not None:db.scale(api,credentials,0,name)
     db.stop(api,credentials)
-    selector=db.OWNER+'='+db.identity(credentials)
+    selector=db.OWNER+'='+db.identity(credentials)+',app in ('+','.join(ORDER+['database'])+')'
     pods=json.loads(api.run(['get','pods','-n',api.namespace,'-l',selector,'-o','json']))
     if pods['items']:
         api.run(['wait','--for=delete','pod','-n',api.namespace,'-l',selector,'--timeout=120s'])

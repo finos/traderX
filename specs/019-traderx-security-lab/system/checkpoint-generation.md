@@ -37,3 +37,5 @@ This verifies the complete bundle first, then displays prerequisites and phases 
 The [fresh database bootstrap component](fresh-database-bootstrap.md) provides a guarded transaction for synthetic schema/data and scoped role creation. Its contract is included in the bundle. Its bounded database verifier does not implement Kubernetes startup; the deployment plan remains blocked until cluster lifecycle integration is accepted.
 
 The [live lifecycle increment](live-kubernetes-lifecycle.md) now validates database restart and bounded trading separately. The offline bundle remains blocked for direct deployment: its four stateful telemetry services and collector still require fresh-storage lifecycle integration.
+
+The [telemetry lifecycle increment](telemetry-lifecycle.md) now validates all nineteen candidate Deployments and the isolated collector together. Use the ordered contributor lifecycle commands; the offline artifact bundle still must not be applied wholesale. Cumulative generated-state packaging, clean-machine reproduction and remaining hardened-state security acceptance are separate gates.

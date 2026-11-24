@@ -30,6 +30,8 @@ SOURCES = [
     'scripts/security-lab/credential_store.py',
     'scripts/security-lab/database_lifecycle.py',
     'scripts/security-lab/trading_lifecycle.py',
+    'scripts/security-lab/telemetry_lifecycle.py',
+    'scripts/security-lab/state_lifecycle.py',
     'specs/012-platform-convergence-c3/security-lab/baseline.lock.json',
     'specs/012-platform-convergence-c3/security-lab/runtime-images.lock.json',
 ]
@@ -84,7 +86,7 @@ def compile_checkpoint():
         'credential_policy': 'Create once in a private credential store; verify and reuse explicitly; never stored in this bundle',
         'transaction': 'Empty-object/role guard, schema, deterministic seed and scoped grants commit together',
         'retry': 'Existing objects or runtime roles cause refusal; never reset or rotate implicitly',
-        'cluster_lifecycle': 'Live database and bounded trading candidate verified; telemetry and full-state lifecycle remain pending'})
+        'cluster_lifecycle': 'Nineteen-deployment contributor lifecycle verified; generated-state packaging and remaining security acceptance are pending'})
     manifest = {
         'schema_version': 1, 'state': STATE, 'checkpoint': 'composed-control-candidate',
         'status': 'offline-artifacts-only',

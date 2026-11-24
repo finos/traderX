@@ -33,3 +33,7 @@ Choose a new output directory for another run; existing output is never overwrit
 ## Verify fresh database initialization
 
 The [database bootstrap contract](system/fresh-database-bootstrap.md) documents a separate bounded live exercise: two fresh 256 MiB PostgreSQL fixtures, sequentially, with no host ports. It checks scoped SQL operations, transaction rollback and refusal to overwrite initialized data. Resource and operation-lock preflight apply; this is not a generated full-state start command.
+
+## Cumulative runtime candidate
+
+The [telemetry and cumulative lifecycle contract](system/telemetry-lifecycle.md) describes the explicit contributor start/stop/test commands. These operate on an owned cluster and private identities, preserve PVCs, and check host pressure; they are not the published generated-state launcher or completed hardened-state acceptance.

@@ -1,6 +1,6 @@
 # Live Kubernetes lifecycle and bounded trading candidate
 
-This increment validates the database lifecycle on a real Kubernetes cluster, followed by a bounded trading-function deployment. It does not enable the full State 019 generated runtime. The four stateful telemetry deployments and collector migration remain separate; identity, authenticated NATS, WAF/network integration and image trust are still release gates.
+This increment validates the database lifecycle on a real Kubernetes cluster, followed by a bounded trading-function deployment. It does not enable the full State 019 generated runtime. The later [cumulative lifecycle increment](telemetry-lifecycle.md) adds the four stateful telemetry deployments and isolated collector; identity, authenticated NATS, WAF/network integration and image trust are still release gates.
 
 ## Resource and ownership model
 
@@ -45,8 +45,8 @@ python scripts/security-lab/verify_trading_lifecycle.py --help
 
 Run the database campaign first, then `trading_lifecycle.py start`, then the trading verifier, then `trading_lifecycle.py stop`. The database verifier and trading verifier each require a new `--output` evidence filename. All use the same namespace and credential store. The adapters are contributor entrypoints; guided learner onboarding is not yet wired to this candidate.
 
-Remaining acceptance includes fresh telemetry data directories and collector isolation, the complete cumulative start/stop/test command, a clean-machine run, staged portal integration and all security controls still marked pending in the task ledger.
+The later cumulative lifecycle increment covers telemetry data directories, collector isolation and combined start/stop/test commands. Remaining acceptance includes generated-state packaging, a clean-machine run, staged portal integration and all security controls still marked pending in the task ledger.
 
 The pinned trade submission API returns a null request ID; the processor assigns the committed trade UUID. The verifier therefore selects a previously absent synthetic account/security/side/quantity combination, requires exactly one settled API result and verifies its committed ID and unique SQL row. It does not claim end-to-end request-ID propagation. A server-side dry run also verifies that the candidate workload policy rejects a writable root filesystem without changing the running deployment.
 
-The [24 November live evidence](../evidence/2026-11-24-live-kubernetes-trading.json) records both passing campaigns and a resource observation. After validation, all fifteen candidate Deployments and both Kubernetes clusters were stopped. Restoring the lightweight account lab exposed expired identity trust and an expired localhost certificate. The certificate was renewed, but the macOS keychain trust update timed out; the browser/account lab was therefore left stopped rather than bypassing trust checks. Candidate PVCs, Secrets and manifests remain available for the next acceptance session.
+The [24 November live evidence](../evidence/2026-11-24-live-kubernetes-trading.json) records both passing campaigns and a resource observation. At the end of this earlier campaign, all fifteen candidate Deployments and both Kubernetes clusters were stopped. Restoring the lightweight account lab exposed expired identity trust and an expired localhost certificate. The certificate was renewed, but the macOS keychain trust update timed out; the browser/account lab was therefore left stopped rather than bypassing trust checks. Candidate PVCs, Secrets and manifests remain available for the next acceptance session.
