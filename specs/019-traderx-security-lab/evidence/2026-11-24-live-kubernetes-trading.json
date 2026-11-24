@@ -98,5 +98,6 @@
   "local_tests": 139,
   "required_spec_gates": "passed",
   "checkpoint_reproduction": "byte-identical",
-  "final_host_state": "Both clusters stopped; lightweight account development restored; candidate data retained"
+  "final_host_state": "Both clusters and lightweight account lab stopped; candidate PVCs and Secrets retained",
+  "local_browser_restore": "Blocked by expired identity/certificate trust; renewed localhost certificate awaits successful keychain trust update"
 }
