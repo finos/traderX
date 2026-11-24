@@ -1,3 +1,6 @@
+from contextlib import nullcontext
+from types import SimpleNamespace
+from pathlib import Path
 import json
 import unittest
 from unittest.mock import Mock,patch
@@ -35,3 +38,10 @@ class StateLifecycleTests(unittest.TestCase):
         with patch.object(state.telemetry_lifecycle,'stop',side_effect=ValueError('refused')),patch.object(state.trading_lifecycle,'stop') as trading_stop:
             with self.assertRaises(RuntimeError):state.stop(Mock(),{})
             trading_stop.assert_called_once()
+
+    def test_disk_guard_blocks_start_and_test_before_workload_changes(self):
+        for action in ('start','test'):
+            args=SimpleNamespace(action=action,output=Path('/unused/evidence.json'),store=Path('/private/store'),runtime_dir=Path('/runtime'),kubeconfig=Path('/private/kube'),context='reviewed',cluster_uid='uid',namespace='traderx-security-lab-019')
+            with self.subTest(action=action),patch.object(state.argparse.ArgumentParser,'parse_args',return_value=args),patch.object(state.credential_store,'load',return_value={}),patch.object(state.db,'Kubernetes'),patch.object(state,'operation',return_value=nullcontext()),patch.object(state.storage_preflight,'require_node',side_effect=RuntimeError('disk blocked')),patch.object(state.bootstrap_database,'pinned_reference') as reference,patch.object(state,'start') as start,patch.object(state,'ready') as ready,patch.object(state,'stop') as stop:
+                with self.assertRaisesRegex(RuntimeError,'disk blocked'):state.main()
+                reference.assert_not_called();start.assert_not_called();ready.assert_not_called();stop.assert_not_called()

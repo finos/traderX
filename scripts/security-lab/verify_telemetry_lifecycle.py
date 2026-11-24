@@ -14,6 +14,7 @@ import urllib.request
 
 import bootstrap_database
 import collector_boundary
+import storage_preflight
 import credential_store
 import database_lifecycle as db
 import observability_migration
@@ -144,6 +145,7 @@ def main():
     if args.output.exists():raise ValueError('Evidence output exists')
     credentials=credential_store.load(args.store);api=db.Kubernetes(args.kubeconfig,args.context,args.cluster_uid,args.namespace)
     with operation(args.runtime_dir,'acceptance'):
+        storage_preflight.require_node(args.runtime_dir)
         result=campaign(api,bootstrap_database.pinned_reference(),credentials,args.runtime_dir)
         with args.output.open('x') as target:json.dump(result,target,indent=2);target.write('\n')
     print('Log, trace, metric and dashboard persisted across telemetry pod recreation; collector boundaries passed.')

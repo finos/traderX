@@ -7,6 +7,7 @@ from pathlib import Path
 
 import bootstrap_database
 import collector_boundary as collector
+import storage_preflight
 import credential_store
 import database_lifecycle as db
 import observability_workloads as obs
@@ -170,6 +171,7 @@ def main():
     with (operation(args.runtime_dir,'acceptance') if args.action=='start' else operation_lock(args.runtime_dir)):
         if args.action=='stop':stop(api,credentials)
         else:
+            storage_preflight.require_node(args.runtime_dir)
             try:start(api,bootstrap_database.pinned_reference(),credentials,args.runtime_dir)
             except BaseException:
                 stop(api,credentials)

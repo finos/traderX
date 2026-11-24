@@ -9,6 +9,7 @@ import database_lifecycle as db
 import database_workload
 from resource_operation import operation, operation_lock
 import telemetry_lifecycle
+import storage_preflight
 import trading_lifecycle
 import verify_telemetry_lifecycle
 import verify_trading_lifecycle
@@ -79,6 +80,7 @@ def main():
     with (operation_lock(args.runtime_dir) if args.action=='stop' else operation(args.runtime_dir,'acceptance')):
         if args.action=='stop':stop(api,credentials)
         else:
+            storage_preflight.require_node(args.runtime_dir)
             reference=bootstrap_database.pinned_reference()
             try:
                 if args.action=='start':start(api,reference,credentials,args.runtime_dir)

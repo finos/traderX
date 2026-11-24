@@ -67,8 +67,9 @@ def inspect(args):
         pins=lab.read_json(lab.PROFILE/'infrastructure.lock.json')
         checks.update(assess_cluster(observed,args.cluster_uid,pins,cluster))
         disk=subprocess.run(docker+['exec',cluster+'-control-plane','df','-Pk','/var/lib/containerd'],check=True,capture_output=True,text=True,timeout=15).stdout
-        result['node_disk_available_bytes']=storage_preflight.available_bytes(disk)
-        checks['node_disk_reserve']=result['node_disk_available_bytes']>=storage_preflight.RESERVE_BYTES
+        result['node_disk']=storage_preflight.observe(disk)
+        result['node_disk_available_bytes']=result['node_disk']['available_bytes']
+        checks.update(storage_preflight.checks(result['node_disk']))
     except (OSError,subprocess.SubprocessError,ValueError,KeyError,TypeError,IndexError):
         checks['cluster_observation_available']=False
     result['status']='ready' if all(checks.values()) else 'blocked'
