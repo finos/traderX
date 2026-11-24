@@ -50,3 +50,5 @@ An existing self-signed certificate is preserved by setup; it is not automatical
 ## Remaining acceptance
 
 This increment covers checkout-relative commands and repeatable artifact generation. Automatic supported-cluster provisioning, standalone generated-state packaging, independent clean-machine runtime acceptance and the remaining integrated security controls are still pending. The current runtime is verified on the existing macOS ARM64/Docker environment only.
+
+The [24 November entrypoint evidence](../evidence/2026-11-24-contributor-entrypoint.json) records fresh shallow-checkout reproduction and the scope of validation.
