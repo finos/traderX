@@ -15,3 +15,7 @@ Offline generation checkpoint S019-03a is verified from a shallow clone; see [re
 Composition preserves an explicit deployment blocker: the historical storage overlays require restore/initialization and SQL grants, so they cannot serve as fresh-cluster bootstrap. Finish S019-03c before exposing a generated start command; offline composition is S019-03b, not cumulative runtime acceptance.
 
 S019-03b composition evidence is recorded in [the control-bundle result](evidence/2026-11-23-control-composition.json). All nineteen application deployments and the infrastructure collector are represented; the generated plan explicitly blocks deployment pending S019-03c.
+
+Fresh database initialization is isolated as S019-03c1: a transactional schema/seed/grant compiler and bounded database campaign. The parent lifecycle task requires persistent credentials, Kubernetes bootstrap/restore and application rollout before deployment can be enabled.
+
+The [24 November database campaign](evidence/2026-11-24-fresh-database-bootstrap.json) records two successful fresh initializations, exact service-grant checks, transactional failure recovery and preserved data/credentials on refusal. This completes S019-03c1, not full cluster lifecycle acceptance.

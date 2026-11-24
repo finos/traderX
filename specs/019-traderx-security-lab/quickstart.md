@@ -29,3 +29,7 @@ TRADERX_SECURITY_PYTHON="$PWD/.venv-security-checkpoint/bin/python" bash scripts
 ```
 
 Choose a new output directory for another run; existing output is never overwritten. Only `fetch-baseline` needs network access after installing prerequisites. Read the [checkpoint contract](system/checkpoint-generation.md) before interpreting its artifacts. The baseline remains deliberately distinct from the fully hardened state.
+
+## Verify fresh database initialization
+
+The [database bootstrap contract](system/fresh-database-bootstrap.md) documents a separate bounded live exercise: two fresh 256 MiB PostgreSQL fixtures, sequentially, with no host ports. It checks scoped SQL operations, transaction rollback and refusal to overwrite initialized data. Resource and operation-lock preflight apply; this is not a generated full-state start command.

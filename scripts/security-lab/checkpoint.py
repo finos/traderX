@@ -12,6 +12,7 @@ import prepare_runtime
 import workloads
 import control_bundle
 import database_permissions
+import bootstrap_database
 
 STATE = '019-traderx-security-lab'
 SOURCES = [
@@ -25,6 +26,7 @@ SOURCES = [
     'scripts/security-lab/observability_workloads.py',
     'scripts/security-lab/collector_boundary.py',
     'scripts/security-lab/database_permissions.py',
+    'scripts/security-lab/bootstrap_database.py',
     'specs/012-platform-convergence-c3/security-lab/baseline.lock.json',
     'specs/012-platform-convergence-c3/security-lab/runtime-images.lock.json',
 ]
@@ -71,6 +73,15 @@ def compile_checkpoint():
     files['controls-candidate.json'] = encoded(candidate)
     files['deployment-plan.json'] = encoded(plan)
     files['sql-grants.json'] = encoded(database_permissions.GRANTS)
+    files['bootstrap-contract.json'] = encoded({
+        'mode': 'fresh-empty-database-only', 'database': 'traderx',
+        'seed_sha256': sha(bootstrap_database.seed_sql(reference).encode()),
+        'synthetic_timestamp': bootstrap_database.SEED_TIME,
+        'runtime_roles': sorted(g['role'] for g in database_permissions.GRANTS.values()),
+        'credential_policy': 'Fresh private values at execution; never stored in this bundle',
+        'transaction': 'Empty-object/role guard, schema, deterministic seed and scoped grants commit together',
+        'retry': 'Existing objects or runtime roles cause refusal; never reset or rotate implicitly',
+        'cluster_lifecycle': 'Not integrated; deployment plan remains blocked'})
     manifest = {
         'schema_version': 1, 'state': STATE, 'checkpoint': 'composed-control-candidate',
         'status': 'offline-artifacts-only',

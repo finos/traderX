@@ -24,6 +24,8 @@ jobs:
         run: python -m pip install -r scripts/security-lab/requirements.txt
       - name: Test offline failure and integrity boundaries
         run: python -m unittest discover -s scripts/security-lab -p 'test_checkpoint.py'
+      - name: Test fresh database bootstrap compiler
+        run: python -m unittest discover -s scripts/security-lab -p 'test_bootstrap_database.py'
       - name: Fetch immutable reference snapshot
         run: python scripts/security-lab/checkpoint.py fetch-baseline
       - name: Validate composed controls against the pinned snapshot

@@ -6,7 +6,7 @@ This is the artifact-reproduction and control-composition increment of S019-03, 
 
 Inputs: immutable generated C3 commit and recorded canonical source relationship; complete committed runtime image inventory; canonical reference and business-workload renderers. Generation requires Python with the pinned PyYAML dependency and Git, but no Docker daemon, cluster, Java build or registry access.
 
-Outputs: `reference.json`, `business-workloads.json`, `controls-candidate.json`, `deployment-plan.json`, `sql-grants.json`, `images.lock.json` and `checkpoint.json`. The latter records source hashes, artifact hashes, baseline commits and limitations. No absolute checkout paths or current timestamps enter the output. Reference and candidate artifacts remain separate: the reference retains public demonstration credentials and anonymous messaging. Applying the business restrictions alone does not establish an integrated hardened baseline.
+Outputs: `reference.json`, `business-workloads.json`, `controls-candidate.json`, `deployment-plan.json`, `sql-grants.json`, `bootstrap-contract.json`, `images.lock.json` and `checkpoint.json`. The latter records source hashes, artifact hashes, baseline commits and limitations. No absolute checkout paths or current timestamps enter the output. Reference and candidate artifacts remain separate: the reference retains public demonstration credentials and anonymous messaging. Applying the business restrictions alone does not establish an integrated hardened baseline.
 
 ## Lifecycle and invariants
 
@@ -33,3 +33,5 @@ python scripts/security-lab/checkpoint.py plan --output /tmp/traderx-019-checkpo
 ```
 
 This verifies the complete bundle first, then displays prerequisites and phases without contacting a cluster. A changed bundle must be regenerated into a new directory. Start/stop orchestration remains S019-03c: own-cluster identity checks, an exclusive operation lock, resource preflight, private credentials, resumable bootstrap/restore, bounded rollout, effect checks and nondestructive stop. Keep business authorization, authenticated NATS, WAF/network integration, image trust and runtime enforcement visibly pending.
+
+The [fresh database bootstrap component](fresh-database-bootstrap.md) provides a guarded transaction for synthetic schema/data and scoped role creation. Its contract is included in the bundle. Its bounded database verifier does not implement Kubernetes startup; the deployment plan remains blocked until cluster lifecycle integration is accepted.
