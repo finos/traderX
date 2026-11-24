@@ -15,6 +15,7 @@ class LifecycleTests(unittest.TestCase):
 
     def api(self):
         api=Mock()
+        api.namespace=lifecycle.NS
         api.run.return_value='{"items":[]}'
         docs={('namespace',lifecycle.NS):{'metadata':{'uid':'ns1','labels':{lifecycle.OWNER:lifecycle.identity(self.credentials)}}}}
         for doc in lifecycle.resources(self.reference,self.credentials):
@@ -97,6 +98,12 @@ class LifecycleTests(unittest.TestCase):
             with self.assertRaises(ValueError):lifecycle.start(api,self.reference,self.credentials)
         patches=[call.args[0][-1] for call in api.run.call_args_list if call.args[0][0]=='patch']
         self.assertIn('"value": 0',patches[-1])
+
+    def test_namespace_remap_keeps_old_namespace_untouched(self):
+        docs=lifecycle.resources(self.reference,self.credentials,'traderx-security-lab-019')
+        self.assertTrue(all(d['metadata']['namespace']=='traderx-security-lab-019' for d in docs))
+        self.assertEqual('traderx-security-lab',lifecycle.NS)
+        with self.assertRaises(ValueError):lifecycle.Kubernetes('/unused','explicit','uid','kube-system')
 
     def test_cluster_mismatch(self):
         api=lifecycle.Kubernetes('/unused','explicit','expected')

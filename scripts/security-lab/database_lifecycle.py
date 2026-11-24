@@ -4,6 +4,7 @@ import base64
 import copy
 import hashlib
 import json
+import re
 from pathlib import Path
 import subprocess
 
@@ -52,7 +53,7 @@ def initialize(sql, reference, credentials):
     return result
 
 
-def resources(reference, credentials):
+def resources(reference, credentials, target_namespace=NS):
     owner = identity(credentials)
     rendered = database_workload.render(reference)['items']
     items = [copy.deepcopy(d) for d in rendered if d['kind'] in ('PersistentVolumeClaim', 'ServiceAccount', 'ConfigMap')]
@@ -67,6 +68,7 @@ def resources(reference, credentials):
             'type':'Opaque','immutable':True,
             'data':{k:base64.b64encode(v.encode()).decode() for k,v in values.items()}})
     for d in items:
+        d['metadata']['namespace'] = target_namespace
         d['metadata'].setdefault('labels', {})[OWNER] = owner
     return items
 
@@ -81,12 +83,15 @@ def contains(actual, desired):
 
 
 class Kubernetes:
-    def __init__(self, kubeconfig, context, cluster_uid):
+    def __init__(self, kubeconfig, context, cluster_uid, target_namespace=NS):
         self.command = ['kubectl','--kubeconfig',str(kubeconfig),'--context',context,'--request-timeout=30s']
         self.cluster_uid = cluster_uid
+        if not re.fullmatch(r"traderx-security-lab(?:-[a-z0-9]+)*", target_namespace) or len(target_namespace)>63:
+            raise ValueError("Unreviewed lifecycle namespace")
+        self.namespace = target_namespace
 
     def run(self, args, input=None):
-        result = subprocess.run(self.command+args, input=input, text=True, capture_output=True, timeout=180)
+        result = subprocess.run(self.command+args, input=input, text=True, capture_output=True, timeout=240)
         if result.returncode:
             raise RuntimeError('Kubernetes database operation failed; private output withheld')
         return result.stdout
@@ -106,17 +111,17 @@ class Kubernetes:
 
     def sql(self, role, password, text):
         shell = 'IFS= read -r PGPASSWORD; export PGPASSWORD; exec psql -X -w -h 127.0.0.1 -U "$1" -d traderx -At -v ON_ERROR_STOP=1 -v VERBOSITY=sqlstate'
-        return self.run(['exec','-i','-n',NS,'deployment/database','--','sh','-c',shell,'lab-sql',role], password+'\n'+text+'\n')
+        return self.run(['exec','-i','-n',self.namespace,'deployment/database','--','sh','-c',shell,'lab-sql',role], password+'\n'+text+'\n')
 
 
 def namespace(api, owner, create=False):
     api.check_cluster()
-    current = api.get('namespace', NS)
+    current = api.get('namespace', api.namespace)
     if current is None and create:
-        api.create({'apiVersion':'v1','kind':'Namespace','metadata':{'name':NS,'labels':{
+        api.create({'apiVersion':'v1','kind':'Namespace','metadata':{'name':api.namespace,'labels':{
             OWNER:owner,'pod-security.kubernetes.io/enforce':'restricted',
             'pod-security.kubernetes.io/enforce-version':'v1.35'}}})
-        current = api.get('namespace',NS)
+        current = api.get('namespace',api.namespace)
     if current is None or current['metadata'].get('labels',{}).get(OWNER) != owner:
         raise ValueError('Refusing unowned or missing namespace')
     if current['metadata'].get('deletionTimestamp'):
@@ -124,27 +129,27 @@ def namespace(api, owner, create=False):
     return current['metadata']['uid']
 
 
-def scale(api, credentials, replicas):
+def scale(api, credentials, replicas, name="database"):
     namespace(api,identity(credentials))
-    current = api.get('deployment','database',NS)
+    current = api.get('deployment',name,api.namespace)
     if current is None or current['metadata'].get('labels',{}).get(OWNER) != identity(credentials):
         raise ValueError('Refusing unowned or missing database deployment')
     # UID/resourceVersion preconditions prevent replacing an object observed earlier.
     patch = [{'op':'test','path':'/metadata/uid','value':current['metadata']['uid']},
              {'op':'test','path':'/metadata/resourceVersion','value':current['metadata']['resourceVersion']},
              {'op':'replace','path':'/spec/replicas','value':replicas}]
-    api.run(['patch','deployment','database','-n',NS,'--type=json','-p',json.dumps(patch)])
+    api.run(['patch','deployment',name,'-n',api.namespace,'--type=json','-p',json.dumps(patch)])
 
 
 def start(api, reference, credentials):
     owner = identity(credentials)
     uid = namespace(api,owner,create=True)
-    desired = resources(reference,credentials)
+    desired = resources(reference,credentials,api.namespace)
     # Validate every existing object before creating any missing object or scaling up.
     missing = []
     deployment_exists = False
     for doc in desired:
-        current = api.get(doc['kind'],doc['metadata']['name'],NS)
+        current = api.get(doc['kind'],doc['metadata']['name'],api.namespace)
         if current is None:
             missing.append(doc)
             continue
@@ -162,7 +167,7 @@ def start(api, reference, credentials):
             raise ValueError('Namespace replaced during startup')
         api.create(doc)
     scale(api,credentials,1)
-    api.run(['rollout','status','deployment/database','-n',NS,'--timeout=120s'])
+    api.run(['rollout','status','deployment/database','-n',api.namespace,'--timeout=120s'])
     try:
         return initialize(api.sql,reference,credentials)
     except Exception:
@@ -174,9 +179,9 @@ def stop(api, credentials):
     scale(api,credentials,0)
     # Wait for pods to disappear; keep PVCs, Secrets, namespace and data intact.
     selector='app=database,'+OWNER+'='+identity(credentials)
-    pods=json.loads(api.run(['get','pods','-n',NS,'-l',selector,'-o','json']))
+    pods=json.loads(api.run(['get','pods','-n',api.namespace,'-l',selector,'-o','json']))
     if pods['items']:
-        api.run(['wait','--for=delete','pod','-n',NS,'-l',selector,'--timeout=120s'])
+        api.run(['wait','--for=delete','pod','-n',api.namespace,'-l',selector,'--timeout=120s'])
     return 'stopped-data-retained'
 
 
@@ -188,10 +193,11 @@ def main():
     parser.add_argument('--kubeconfig',type=Path,required=True)
     parser.add_argument('--context',required=True)
     parser.add_argument('--cluster-uid',required=True)
+    parser.add_argument('--namespace',default=NS)
     args=parser.parse_args()
     try:
         credentials=credential_store.load(args.store)
-        api=Kubernetes(args.kubeconfig,args.context,args.cluster_uid)
+        api=Kubernetes(args.kubeconfig,args.context,args.cluster_uid,args.namespace)
         # Stop needs the lock and identity checks, but must remain usable under pressure.
         guard=operation(args.runtime_dir,'acceptance') if args.action=='start' else operation_lock(args.runtime_dir)
         with guard:

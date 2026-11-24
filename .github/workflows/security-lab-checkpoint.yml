@@ -34,5 +34,7 @@ jobs:
         run: python -m unittest discover -s scripts/security-lab -p 'test_control_bundle.py'
       - name: Test database lifecycle ownership and failure boundaries
         run: python -m unittest discover -s scripts/security-lab -p 'test_database_lifecycle.py'
+      - name: Test bounded trading candidate composition
+        run: python -m unittest discover -s scripts/security-lab -p 'test_trading_lifecycle.py'
       - name: Reproduce and verify checkpoint without a cluster
         run: TRADERX_SECURITY_PYTHON=python bash scripts/test-state-019-checkpoint.sh

@@ -26,7 +26,7 @@ For durable deployments, choose persistent private storage rather than `/private
 
 Creation reserves a new directory atomically and flushes the file and directories to disk. A duplicate or interrupted creation is refused; preserve incomplete material for explicit recovery rather than retrying with new passwords against an existing database. Loading verifies completeness, checksum, identity shape and a versioned binding to the pinned baseline and reviewed grants. A changed binding requires reviewed migration, not automatic replacement. The checksum detects accidental corruption, not modification by a malicious owner who can rewrite both data and checksum.
 
-`credential_store.bootstrap_sql(path)` verifies and reuses the stored service identities to produce the existing transactional bootstrap SQL in memory. The stored bootstrap administrator identity is separately available to the future database startup adapter. Neither interface executes SQL, creates Kubernetes Secrets, rotates credentials or resets data. File-store tests cover reuse/refusal, damage, contract mismatch, incomplete state, permissions, links and redacted CLI output. Database restart and Kubernetes integration remain unverified.
+`credential_store.bootstrap_sql(path)` verifies and reuses the stored service identities to produce the existing transactional bootstrap SQL in memory. The stored bootstrap administrator identity is separately available to the future database startup adapter. Neither interface executes SQL, creates Kubernetes Secrets, rotates credentials or resets data. File-store tests cover reuse/refusal, damage, contract mismatch, incomplete state, permissions, links and redacted CLI output. Database restart and Kubernetes integration are covered by the later [live lifecycle campaign](live-kubernetes-lifecycle.md); full-state acceptance remains pending.
 
 ## Bounded live verification
 
@@ -53,7 +53,7 @@ The campaign checks:
 
 ## Database lifecycle candidate and restart evidence
 
-S019-03c3 adds `database_lifecycle.py`, a database-only Kubernetes adapter, and a bounded persistent-database restart campaign. The adapter is **offline-tested, not yet accepted on a live Kubernetes cluster**. It is not the generated State 019 start command and does not roll out trading services.
+S019-03c3 adds `database_lifecycle.py`, a database-only Kubernetes adapter, and a bounded persistent-database restart campaign. The adapter now has a separate [live Kubernetes acceptance campaign](live-kubernetes-lifecycle.md). It is not the generated State 019 start command and does not roll out trading services.
 
 Startup requires an explicit kubeconfig, context and expected `kube-system` namespace UID, the shared operation lock and the full-lab resource preflight. It will not start a cluster itself. It creates a Restricted namespace only if absent and refuses to adopt an existing namespace or resource without the credential-derived ownership label. Five immutable Secrets are sent through stdin; passwords never enter command arguments or public artifacts. The database PVC, service account and seed-suppressing ConfigMap precede the database deployment. Existing resources must retain reviewed fields; API-defaulted dictionary fields are tolerated. This is not a complete admission-policy or drift-detection boundary.
 
@@ -73,4 +73,4 @@ It creates private identities, initializes once, commits a synthetic canary, the
 
 ## Remaining lifecycle work
 
-The database verifier owns disposable fixtures only. It is not a persistent database manager. Live validation of the Kubernetes Secret/PVC/startup adapter, fresh PVC initialization, existing-data restore, telemetry initialization, application rollout, runtime start/stop ownership and full trading checks remain S019-03c. Preserve the blocked deployment status until those are integrated. Current grants constrain service authority; they do not implement end-user account authorization.
+The database verifier owns disposable fixtures only. It is not a persistent database manager. Existing-data restore, fresh telemetry initialization, complete application/collector rollout and cumulative runtime entrypoints remain S019-03c. The separate live lifecycle campaign covers database provisioning/restart and a bounded trading candidate, not full-state acceptance. Preserve the blocked deployment status until those are integrated. Current grants constrain service authority; they do not implement end-user account authorization.

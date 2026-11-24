@@ -9,7 +9,8 @@ Completed prototype evidence and granular implementation history are in the [C3 
 - [x] S019-03c1 Validate transactional fresh SQL bootstrap, private runtime credentials, exact grants, failure rollback and refusal to overwrite existing data in two bounded database instances.
 - [x] S019-03c2 Implement create-once private SQL credential persistence, contract/integrity checks and explicit reuse without rotation.
 - [x] S019-03c3 Add the owned database-only Kubernetes adapter with offline boundary tests; validate persistent SQL initialization and two restarts in a bounded Docker fixture.
-- [ ] S019-03c4 Validate the adapter on live Kubernetes, including Secret/PVC provisioning, failure recovery and database pod recreation.
+- [x] S019-03c4 Validate the adapter on live Kubernetes, including Secret/PVC provisioning, failure recovery and database pod recreation.
+- [x] S019-03c5 Roll out the bounded fifteen-deployment trading candidate; verify settlement, order cancellation, independent SQL outcomes and scoped workload admission on Kubernetes.
 - [ ] S019-03c Implement and validate fresh synthetic-data bootstrap plus guarded start/stop/test lifecycle; no direct application of migration overlays.
 - [ ] S019-03 Add cumulative generator/start/stop/test entrypoints; verify repeat generation from a fresh clone.
 - [ ] S019-04 Integrate account/order/cancel/operator authorization and deny bypass routes while normal trading passes.

@@ -23,3 +23,5 @@ The [24 November database campaign](evidence/2026-11-24-fresh-database-bootstrap
 S019-03c2 provides create-once private identity persistence and verified reuse through the bootstrap SQL adapter. Next integrate it with owned Kubernetes Secret/PVC initialization and guarded start/stop; full deployment remains blocked.
 
 S019-03c3 adds the database-only Kubernetes ownership/start/stop adapter and verifies the shared SQL initialization/resume path through two live PostgreSQL restarts. Live Kubernetes adapter acceptance is S019-03c4; telemetry and application rollout plus normal trading remain part of S019-03c.
+
+S019-03c4 and S019-03c5 are live-validated: immutable SQL Secrets/PVC provisioning, transactional failure recovery, two database Pod recreations, and a fifteen-Deployment trading candidate with independent settlement/cancellation outcomes and a workload-admission denial. Next integrate fresh telemetry storage and collector migration, then the cumulative state entrypoints and full acceptance suite.
