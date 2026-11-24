@@ -111,7 +111,7 @@ def stop(runtime):
             time.sleep(.5)
     from resource_operation import operation_lock
     from account_dev import check_ownership,run_compose
-    with operation_lock(runtime):
+    with operation_lock(runtime,wait_seconds=10):
         check_ownership(runtime)
         if (runtime/'account-dev/manifest.json').exists():run_compose(runtime,runtime/'account-dev','stop')
     print('Local lab stopped; certificate, evidence and owned containers preserved. Synthetic tmpfs data resets on restart.')

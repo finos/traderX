@@ -1,0 +1,47 @@
+{
+  "date": "2026-11-24",
+  "status": "partial-recovery-validation",
+  "environment": "Existing macOS ARM64 Docker Desktop; retained fresh validation cluster resumed after explicit cache-cleanup approval. Not an uninterrupted create or independent clean machine.",
+  "cache_cleanup": {
+    "scope": "Unused Docker build cache only",
+    "reclaimed": "5.08 GB",
+    "containers_images_volumes_preserved": true
+  },
+  "image_preload": "All twenty pinned images available after guarded sequential recovery",
+  "platform_doctor": "passed",
+  "cumulative_start": {
+    "status": "passed",
+    "ready_deployments": 19,
+    "isolated_collector_ready": true
+  },
+  "cumulative_test": {
+    "status": "failed",
+    "stage": "Initial synthetic log-marker lookup in Loki",
+    "failure": "Telemetry outcome not observed within 90-second bound",
+    "telemetry_persistence": "not established on this cluster",
+    "trading_settlement_cancellation": "not reached"
+  },
+  "resource_sample": {
+    "host_memory_pressure": "normal",
+    "docker_memory_bytes": 6213808128,
+    "validation_container_working_set_bytes": 3328599654,
+    "disk_available_after_start": "about 2.6 GiB"
+  },
+  "implementation": "Bounded ten-second operation-lock wait during local browser shutdown; active operations are never forcibly unlocked.",
+  "limitations": [
+    "Collector readiness does not prove log delivery; diagnose collection/discovery/ingestion before rerunning.",
+    "Historical existing-cluster passes do not substitute for this failed fresh-cluster check.",
+    "S019-03g and independent clean-machine acceptance remain open.",
+    "No integrated hardened-state or publication acceptance is claimed."
+  ],
+  "shutdown": {
+    "original_id_unchanged": true,
+    "original_still_stopped": true,
+    "validation_stopped": true
+  },
+  "validation": {
+    "python_tests": 181,
+    "repository_gates": "four passed",
+    "documentation_build": "passed"
+  }
+}

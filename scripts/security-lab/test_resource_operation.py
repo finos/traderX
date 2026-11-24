@@ -24,6 +24,16 @@ class OperationTests(unittest.TestCase):
                     with operation_lock(Path(root)): pass
             with operation_lock(Path(root)): pass
 
+    def test_bounded_wait_allows_exiting_owner_to_release(self):
+        with tempfile.TemporaryDirectory() as root, patch.dict(os.environ,{},clear=True), patch('resource_operation.fcntl.flock',side_effect=[BlockingIOError(),None]) as lock, patch('resource_operation.time.sleep') as sleep:
+            with operation_lock(Path(root),wait_seconds=10):pass
+            self.assertEqual(lock.call_count,2);sleep.assert_called_once()
+
+    def test_wait_remains_bounded(self):
+        with tempfile.TemporaryDirectory() as root, patch.dict(os.environ,{},clear=True), patch('resource_operation.fcntl.flock',side_effect=BlockingIOError()), patch('resource_operation.time.monotonic',side_effect=[0,11]):
+            with self.assertRaises(BlockingIOError):
+                with operation_lock(Path(root),wait_seconds=10):pass
+
 
 class BuildEntryPointTests(unittest.TestCase):
     def test_all_builders_stop_before_subprocess_when_capacity_blocked(self):

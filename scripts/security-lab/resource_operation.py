@@ -2,12 +2,14 @@
 from contextlib import contextmanager
 import fcntl
 import os
+import time
 from pathlib import Path
 from resource_preflight import require
 
 
 @contextmanager
-def operation_lock(runtime):
+def operation_lock(runtime, wait_seconds=0):
+    if not 0<=wait_seconds<=40:raise ValueError("Lock wait must be between zero and forty seconds")
     runtime = Path(runtime).resolve()
     runtime.mkdir(parents=True, exist_ok=True)
     path = runtime/'console-run.lock'
@@ -21,7 +23,13 @@ def operation_lock(runtime):
     else:
         owned = path.open('a'); fd = owned.fileno()
     try:
-        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        deadline=time.monotonic()+wait_seconds
+        while True:
+            try:
+                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB);break
+            except BlockingIOError:
+                if time.monotonic()>=deadline:raise
+                time.sleep(min(.1,max(0,deadline-time.monotonic())))
         yield fd
     finally:
         if owned: owned.close()

@@ -18,6 +18,8 @@ Completed prototype evidence and granular implementation history are in the [C3 
 - [x] S019-03e Add read-only contributor platform readiness checks; verify stopped-cluster refusal without interrupting the browser lab.
 - [x] S019-03f Pin Cilium chart/render/container inventory; verify repeatable secret-free infrastructure bundles and guarded create failure boundaries offline.
 - [x] S019-03g1 Fresh separately named cluster boots; pinned Cilium/DNS and bounded allowed/denied network plus Restricted admission probes pass. Original cluster preserved.
+- [x] S019-03g2 Recover pinned image loading after approved unused-build-cache cleanup; verify doctor and nineteen-deployment startup on the retained validation cluster.
+- [ ] S019-03g3 Diagnose fresh-cluster Loki log-marker timeout and rerun telemetry persistence plus trading acceptance; see `evidence/2026-11-24-cache-recovery.json`.
 - [ ] S019-03g Complete unattended fresh creation, image loading and full runtime lifecycle. First live campaign blocked by Docker disk exhaustion; startup/error/disk guards corrected, clean-machine acceptance pending.
 - [ ] S019-03 Add cumulative generator/start/stop/test entrypoints; verify repeat generation from a fresh clone.
 - [ ] S019-04 Integrate account/order/cancel/operator authorization and deny bypass routes while normal trading passes.
