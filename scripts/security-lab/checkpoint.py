@@ -28,6 +28,7 @@ SOURCES = [
     'scripts/security-lab/database_permissions.py',
     'scripts/security-lab/bootstrap_database.py',
     'scripts/security-lab/credential_store.py',
+    'scripts/security-lab/database_lifecycle.py',
     'specs/012-platform-convergence-c3/security-lab/baseline.lock.json',
     'specs/012-platform-convergence-c3/security-lab/runtime-images.lock.json',
 ]
@@ -82,7 +83,7 @@ def compile_checkpoint():
         'credential_policy': 'Create once in a private credential store; verify and reuse explicitly; never stored in this bundle',
         'transaction': 'Empty-object/role guard, schema, deterministic seed and scoped grants commit together',
         'retry': 'Existing objects or runtime roles cause refusal; never reset or rotate implicitly',
-        'cluster_lifecycle': 'Not integrated; deployment plan remains blocked'})
+        'cluster_lifecycle': 'Database-only adapter tested offline; live Kubernetes and full deployment remain blocked'})
     manifest = {
         'schema_version': 1, 'state': STATE, 'checkpoint': 'composed-control-candidate',
         'status': 'offline-artifacts-only',

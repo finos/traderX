@@ -21,3 +21,5 @@ Fresh database initialization is isolated as S019-03c1: a transactional schema/s
 The [24 November database campaign](evidence/2026-11-24-fresh-database-bootstrap.json) records two successful fresh initializations, exact service-grant checks, transactional failure recovery and preserved data/credentials on refusal. This completes S019-03c1, not full cluster lifecycle acceptance.
 
 S019-03c2 provides create-once private identity persistence and verified reuse through the bootstrap SQL adapter. Next integrate it with owned Kubernetes Secret/PVC initialization and guarded start/stop; full deployment remains blocked.
+
+S019-03c3 adds the database-only Kubernetes ownership/start/stop adapter and verifies the shared SQL initialization/resume path through two live PostgreSQL restarts. Live Kubernetes adapter acceptance is S019-03c4; telemetry and application rollout plus normal trading remain part of S019-03c.

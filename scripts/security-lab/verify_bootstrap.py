@@ -28,27 +28,32 @@ def command(args, **kwargs):
 
 
 @contextmanager
-def database(runtime, image):
+def database(runtime, image, credentials=None, persistent=False):
     docker = account_dev.docker(runtime)
     run_id = uuid.uuid4().hex
     name = 'traderx-bootstrap-' + run_id[:12]
     label = 'traderx.security-lab.bootstrap'
     with tempfile.TemporaryDirectory(prefix='bootstrap-private-', dir=runtime) as temp:
-        password = secrets.token_hex(32)
+        password = credentials['bootstrap']['password'] if credentials else secrets.token_hex(32)
         secret = Path(temp)/'bootstrap'
         # The 0700 parent protects host access; only this file is mounted into UID 70.
         secret.write_text(password); secret.chmod(0o644)
         container = None
+        volume = None
         try:
             if subprocess.run(docker+['image','inspect',image],capture_output=True).returncode:
                 command(docker+['pull','--platform','linux/amd64',image],timeout=240)
+            data_mount = ['--tmpfs','/var/lib/postgresql/data:uid=70,gid=70,mode=0700,size=134217728']
+            if persistent:
+                volume = command(docker+['volume','create','--label',label+'='+run_id,name+'-data'])
+                data_mount = ['--mount',f'type=volume,src={volume},dst=/var/lib/postgresql/data']
             container = command(docker+['create','--name',name,'--label',label+'='+run_id,
                 '--network','none','--restart','no','--user','70:70','--read-only','--cap-drop','ALL',
                 '--security-opt','no-new-privileges:true','--memory','256m','--memory-swap','256m',
                 '--cpus','1','--pids-limit','128','--platform','linux/amd64',
                 '--log-driver','local','--log-opt','max-size=5m','--log-opt','max-file=2',
                 '--mount',f'type=bind,src={secret},dst=/run/bootstrap,readonly',
-                '--tmpfs','/var/lib/postgresql/data:uid=70,gid=70,mode=0700,size=134217728',
+                *data_mount,
                 '--tmpfs','/var/run/postgresql:uid=70,gid=70,mode=0770,size=1048576',
                 '--tmpfs','/tmp:uid=70,gid=70,size=16777216',
                 # Suppress image-baked reference seed scripts; our guarded SQL owns initialization.
@@ -62,18 +67,28 @@ def database(runtime, image):
             def sql(role, credential, text):
                 return subprocess.run(docker+['exec','-i',container,'sh','-c',shell,'lab-sql',role],
                     input=credential+'\n'+text+'\n',capture_output=True,text=True,timeout=45)
-            deadline=time.monotonic()+90
-            while True:
-                ready=sql('traderx',password,'SELECT 1;')
-                if ready.returncode==0 and ready.stdout.strip()=='1':break
-                if time.monotonic()>deadline:raise RuntimeError('Database fixture readiness timed out')
-                time.sleep(.5)
-            yield sql, password
+            def wait_ready():
+                deadline=time.monotonic()+90
+                while True:
+                    ready=sql('traderx',password,'SELECT 1;')
+                    if ready.returncode==0 and ready.stdout.strip()=='1':break
+                    if time.monotonic()>deadline:raise RuntimeError('Database fixture readiness timed out')
+                    time.sleep(.5)
+            def restart():
+                command(docker+['stop','--time','20',container])
+                command(docker+['start',container])
+                wait_ready()
+            wait_ready()
+            yield (sql, password, restart) if persistent else (sql, password)
         finally:
             if container:
                 owner=command(docker+['inspect','--format','{{index .Config.Labels "'+label+'"}}',container])
                 if owner!=run_id:raise RuntimeError('Refusing cleanup of a container not owned by this run')
                 command(docker+['rm','-f',container])
+            if volume:
+                owner=command(docker+['volume','inspect','--format','{{index .Labels \"'+label+'\"}}',volume])
+                if owner!=run_id:raise RuntimeError('Refusing cleanup of unowned fixture volume')
+                command(docker+['volume','rm',volume])
 
 
 def require(result, message):

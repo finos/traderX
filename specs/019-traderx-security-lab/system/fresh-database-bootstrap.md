@@ -51,6 +51,26 @@ The campaign checks:
 - Role administration, schema changes and prohibited deletes fail with PostgreSQL insufficient-privilege errors.
 - A second bootstrap using new credentials is refused; original credentials still authenticate and all seed fingerprints remain unchanged.
 
+## Database lifecycle candidate and restart evidence
+
+S019-03c3 adds `database_lifecycle.py`, a database-only Kubernetes adapter, and a bounded persistent-database restart campaign. The adapter is **offline-tested, not yet accepted on a live Kubernetes cluster**. It is not the generated State 019 start command and does not roll out trading services.
+
+Startup requires an explicit kubeconfig, context and expected `kube-system` namespace UID, the shared operation lock and the full-lab resource preflight. It will not start a cluster itself. It creates a Restricted namespace only if absent and refuses to adopt an existing namespace or resource without the credential-derived ownership label. Five immutable Secrets are sent through stdin; passwords never enter command arguments or public artifacts. The database PVC, service account and seed-suppressing ConfigMap precede the database deployment. Existing resources must retain reviewed fields; API-defaulted dictionary fields are tolerated. This is not a complete admission-policy or drift-detection boundary.
+
+The deployment starts with zero replicas. After resources pass verification, startup scales the owned database to one replica and waits for rollout before running the guarded transaction. A private lifecycle binding commits in the same transaction as the schema, seed and roles. Subsequent startup verifies that binding and authenticates all four runtime identities without reseeding. A lost PVC beneath an existing deployment requires explicit recovery; it is never silently replaced. An initialization failure scales the database back to zero and retains storage for inspection. A rollout timeout retains resources for inspection and explicit stop.
+
+Stop verifies cluster/namespace/deployment ownership, uses UID and resource-version preconditions to scale down, and waits for owned database pods to disappear. It retains Secrets, PVCs, data and namespace, and does not shut down unrelated applications or clusters. Stop takes the operation lock but remains available under resource pressure. Concurrent cluster-administrator mutation is outside this lab's threat model.
+
+The live restart campaign uses a single 256 MiB PostgreSQL container with a disposable, ownership-labelled Docker volume, no host ports and no external networking:
+
+```bash
+.venv-security-checkpoint/bin/python scripts/security-lab/verify_database_restart.py \
+  --runtime-dir /private/tmp/traderx-security-runtime \
+  --output /private/tmp/traderx-security-runtime/evidence/restart-new-run.json
+```
+
+It creates private identities, initializes once, commits a synthetic canary, then stops and starts PostgreSQL twice. Each restart reloads the same credential file, authenticates the four service identities, verifies identical seed fingerprints and confirms the committed canary remains. A mismatched binding fails. Cleanup checks ownership before deleting only this campaign's temporary container and volume. This proves database persistence and resume semantics; it does not prove Kubernetes PVC provisioning, admission, rollout or normal trading.
+
 ## Remaining lifecycle work
 
-The database verifier owns disposable fixtures only. It is not a persistent database manager. Kubernetes Secret creation, wiring the private credential store into startup, fresh PVC initialization, existing-data restore, telemetry initialization, application rollout, runtime start/stop ownership and full trading checks remain S019-03c. Preserve the blocked deployment status until those are integrated. Current grants constrain service authority; they do not implement end-user account authorization.
+The database verifier owns disposable fixtures only. It is not a persistent database manager. Live validation of the Kubernetes Secret/PVC/startup adapter, fresh PVC initialization, existing-data restore, telemetry initialization, application rollout, runtime start/stop ownership and full trading checks remain S019-03c. Preserve the blocked deployment status until those are integrated. Current grants constrain service authority; they do not implement end-user account authorization.

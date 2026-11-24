@@ -14,6 +14,8 @@ Carry forward C3 trading and observability; add staged, attributable security le
 - **FR-019-06:** Guide learners through prediction, execution, attribution, state inspection, reset and assessment; export sanitized, correlated evidence and versioned CCC mappings with limitations.
 - **FR-019-07:** Provide an optional isolated CVE/upstream-fix/OSERA backpatch branch with matched component/provenance/VEX and reachable reproducer. Do not downgrade the hardened baseline implicitly.
 
+- **FR-019-08:** Startup must verify cluster and resource ownership, reuse private SQL identities, and initialize only an empty database. Restart must preserve committed data without reseeding; stop must retain owned storage and credentials. Missing storage or a mismatched lifecycle binding requires explicit recovery.
+
 ## Nonfunctional requirements
 
 - **NFR-019-01:** Run one full cluster at a time; serialize heavy experiments, expose resource preflight and lightweight checkpoints, and measure memory/startup/latency/throughput.

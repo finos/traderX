@@ -32,5 +32,7 @@ jobs:
         run: python scripts/security-lab/checkpoint.py fetch-baseline
       - name: Validate composed controls against the pinned snapshot
         run: python -m unittest discover -s scripts/security-lab -p 'test_control_bundle.py'
+      - name: Test database lifecycle ownership and failure boundaries
+        run: python -m unittest discover -s scripts/security-lab -p 'test_database_lifecycle.py'
       - name: Reproduce and verify checkpoint without a cluster
         run: TRADERX_SECURITY_PYTHON=python bash scripts/test-state-019-checkpoint.sh
