@@ -39,7 +39,7 @@ def inspect(args):
             'explicit_context':args.context==CONTEXT}
     result={'status':'blocked','checks':checks,'limitations':[
         'Readiness does not prove NetworkPolicy enforcement; run bounded positive/negative probes separately.',
-        'Recorded Cilium agent digest is checked; complete chart/operator image provenance remains pending.',
+        'Doctor checks the observed Cilium agent only; the separate setup bundle verifies chart and rendered image pins. Signatures remain pending.',
         'No cluster creation, resume, image pulls, workload changes or certificate trust changes are performed.',
         'No independent clean-machine or complete hardened-state acceptance is implied.']}
     try:

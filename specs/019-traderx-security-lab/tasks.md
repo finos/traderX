@@ -16,6 +16,8 @@ Completed prototype evidence and granular implementation history are in the [C3 
 - [x] S019-03c Implement and validate fresh synthetic-data bootstrap plus guarded candidate start/stop/test lifecycle; no direct application of migration overlays.
 - [x] S019-03d Verify the unified contributor entrypoint and transitive runtime-source integrity from a fresh shallow checkout; keep recovery stop available after artifact drift.
 - [x] S019-03e Add read-only contributor platform readiness checks; verify stopped-cluster refusal without interrupting the browser lab.
+- [x] S019-03f Pin Cilium chart/render/container inventory; verify repeatable secret-free infrastructure bundles and guarded create failure boundaries offline.
+- [ ] S019-03g Live-validate fresh cluster creation, image loading, enforcement and runtime lifecycle on a supported clean environment.
 - [ ] S019-03 Add cumulative generator/start/stop/test entrypoints; verify repeat generation from a fresh clone.
 - [ ] S019-04 Integrate account/order/cancel/operator authorization and deny bypass routes while normal trading passes.
 - [ ] S019-05 Cut over live authenticated NATS, scoped subjects, browser issuance and reconnect/revocation checks.

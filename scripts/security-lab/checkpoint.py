@@ -43,7 +43,7 @@ SOURCES = [
 def source_paths():
     """Include local Python imports used by the contributor entrypoint and lifecycle."""
     paths=set(SOURCES)
-    pending=['scripts/security-lab/state_candidate.py', 'scripts/security-lab/state_lifecycle.py']
+    pending=['scripts/security-lab/state_candidate.py', 'scripts/security-lab/state_lifecycle.py', 'scripts/security-lab/platform_setup.py']
     visited=set()
     while pending:
         name=pending.pop()

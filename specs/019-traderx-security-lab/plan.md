@@ -31,3 +31,5 @@ S019-03c6/c7 complete the candidate runtime lifecycle: non-root telemetry initia
 S019-03d adds a checkout-relative contributor entrypoint, complete local runtime dependency hashes, verified dispatch and recovery stop independent of artifacts. Fresh shallow-checkout artifact reproduction passed with 156 Python tests; standalone generated-state packaging and clean-machine runtime acceptance remain open.
 
 S019-03e introduces a read-only platform doctor before provisioning automation. It separates existing-platform readiness from enforcement proof and full infrastructure provenance. The existing Cilium lock records an observed agent digest, not a complete chart/operator artifact lock; fresh provisioning remains pending until those inputs and clean-machine behavior are verified.
+
+S019-03f completes the selected Cilium artifact lock and reproducible infrastructure bundle. The fresh profile explicitly disables optional Hubble to avoid nondeterministic Helm-generated private TLS keys. Guarded cluster creation has offline failure-boundary tests; S019-03g remains the live fresh-platform acceptance gate. Existing cluster configuration is unchanged.

@@ -16,5 +16,90 @@
       "image": "sha256:61795697889aa3e46d7908d09e9369480ea93e121d48c653043cd04cc8c6d94f",
       "image_id": "quay.io/cilium/cilium@sha256:aa72499f075ad729947ea91b026218aceba24f1a8e4534bf36b8368c7c561526"
     }
-  ]
+  ],
+  "cilium_artifacts": {
+    "chart_url": "https://helm.cilium.io/cilium-1.20.5.tgz",
+    "chart_sha256": "0c7592eb75179ecf46dd3ec22145916f0164c4401214ea15afb5b230b1d11a21",
+    "helm_version": "v3.17.3",
+    "kube_version": "1.35.0",
+    "render_sha256": "996a802e2c1b3870c7a19a5b5fde8e89ccec1189aa9bcf334b3ba218c2e2bff1",
+    "images": [
+      {
+        "kind": "DaemonSet",
+        "workload": "cilium",
+        "container_type": "containers",
+        "container": "cilium-agent",
+        "image": "quay.io/cilium/cilium:v1.20.5@sha256:aa72499f075ad729947ea91b026218aceba24f1a8e4534bf36b8368c7c561526"
+      },
+      {
+        "kind": "DaemonSet",
+        "workload": "cilium",
+        "container_type": "initContainers",
+        "container": "config",
+        "image": "quay.io/cilium/cilium:v1.20.5@sha256:aa72499f075ad729947ea91b026218aceba24f1a8e4534bf36b8368c7c561526"
+      },
+      {
+        "kind": "DaemonSet",
+        "workload": "cilium",
+        "container_type": "initContainers",
+        "container": "mount-cgroup",
+        "image": "quay.io/cilium/cilium:v1.20.5@sha256:aa72499f075ad729947ea91b026218aceba24f1a8e4534bf36b8368c7c561526"
+      },
+      {
+        "kind": "DaemonSet",
+        "workload": "cilium",
+        "container_type": "initContainers",
+        "container": "apply-sysctl-overwrites",
+        "image": "quay.io/cilium/cilium:v1.20.5@sha256:aa72499f075ad729947ea91b026218aceba24f1a8e4534bf36b8368c7c561526"
+      },
+      {
+        "kind": "DaemonSet",
+        "workload": "cilium",
+        "container_type": "initContainers",
+        "container": "mount-bpf-fs",
+        "image": "quay.io/cilium/cilium:v1.20.5@sha256:aa72499f075ad729947ea91b026218aceba24f1a8e4534bf36b8368c7c561526"
+      },
+      {
+        "kind": "DaemonSet",
+        "workload": "cilium",
+        "container_type": "initContainers",
+        "container": "clean-cilium-state",
+        "image": "quay.io/cilium/cilium:v1.20.5@sha256:aa72499f075ad729947ea91b026218aceba24f1a8e4534bf36b8368c7c561526"
+      },
+      {
+        "kind": "DaemonSet",
+        "workload": "cilium",
+        "container_type": "initContainers",
+        "container": "install-cni-binaries",
+        "image": "quay.io/cilium/cilium:v1.20.5@sha256:aa72499f075ad729947ea91b026218aceba24f1a8e4534bf36b8368c7c561526"
+      },
+      {
+        "kind": "DaemonSet",
+        "workload": "cilium-envoy",
+        "container_type": "containers",
+        "container": "cilium-envoy",
+        "image": "quay.io/cilium/cilium-envoy:v1.39.6-1794557904-dee711ff0e84b106edd0abcdd71961af1b870359@sha256:bdef13043ebaa7b9dcd8e3a86be41080bb5369e017cd759a12daf89e2b8fafe7"
+      },
+      {
+        "kind": "Deployment",
+        "workload": "cilium-operator",
+        "container_type": "containers",
+        "container": "cilium-operator",
+        "image": "quay.io/cilium/operator-generic:v1.20.5@sha256:c6e7de6665aa9701db86c4fe46828a75a0d167afe084a9ffb5bce34b2c4fa8c4"
+      }
+    ],
+    "scope": "Fresh setup render only; Hubble disabled to avoid embedding Helm-generated private TLS keys. Existing cluster remains unchanged. Live enforcement and signatures are separate checks.",
+    "values": {
+      "ipam": {
+        "mode": "kubernetes"
+      },
+      "kubeProxyReplacement": false,
+      "operator": {
+        "replicas": 1
+      },
+      "hubble": {
+        "enabled": false
+      }
+    }
+  }
 }
