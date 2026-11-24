@@ -7,6 +7,7 @@ Completed prototype evidence and granular implementation history are in the [C3 
 - [x] S019-03a Verify offline pinned-snapshot preparation and byte-identical reference/workload checkpoints from a shallow clone; add CI.
 - [x] S019-03b Compose all nineteen workload restrictions, collector isolation and SQL Secret references; validate dependencies and migration prerequisites offline.
 - [x] S019-03c1 Validate transactional fresh SQL bootstrap, private runtime credentials, exact grants, failure rollback and refusal to overwrite existing data in two bounded database instances.
+- [x] S019-03c2 Implement create-once private SQL credential persistence, contract/integrity checks and explicit reuse without rotation.
 - [ ] S019-03c Implement and validate fresh synthetic-data bootstrap plus guarded start/stop/test lifecycle; no direct application of migration overlays.
 - [ ] S019-03 Add cumulative generator/start/stop/test entrypoints; verify repeat generation from a fresh clone.
 - [ ] S019-04 Integrate account/order/cancel/operator authorization and deny bypass routes while normal trading passes.

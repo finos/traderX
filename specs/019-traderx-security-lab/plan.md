@@ -19,3 +19,5 @@ S019-03b composition evidence is recorded in [the control-bundle result](evidenc
 Fresh database initialization is isolated as S019-03c1: a transactional schema/seed/grant compiler and bounded database campaign. The parent lifecycle task requires persistent credentials, Kubernetes bootstrap/restore and application rollout before deployment can be enabled.
 
 The [24 November database campaign](evidence/2026-11-24-fresh-database-bootstrap.json) records two successful fresh initializations, exact service-grant checks, transactional failure recovery and preserved data/credentials on refusal. This completes S019-03c1, not full cluster lifecycle acceptance.
+
+S019-03c2 provides create-once private identity persistence and verified reuse through the bootstrap SQL adapter. Next integrate it with owned Kubernetes Secret/PVC initialization and guarded start/stop; full deployment remains blocked.

@@ -10,6 +10,24 @@ Initialization runs as one transaction: acquire an advisory transaction lock, re
 
 Runtime credentials are newly generated at execution. Each role has a distinct random password, no administrative role flags and only its reviewed table/sequence permissions. The generated checkpoint contains a seed hash and role contract in `bootstrap-contract.json`, never generated credentials. The SQL renderer returns private execution material to its caller; do not log or publish it.
 
+## Persistent private identities
+
+S019-03c2 adds `credential_store.py` for the forthcoming lifecycle. Create an owner-only directory outside the checkout and generated bundle, then explicitly create the store once:
+
+```bash
+mkdir -m 700 /private/tmp/traderx-sql-private
+.venv-security-checkpoint/bin/python scripts/security-lab/credential_store.py create \
+  --store /private/tmp/traderx-sql-private/identities
+.venv-security-checkpoint/bin/python scripts/security-lab/credential_store.py verify \
+  --store /private/tmp/traderx-sql-private/identities
+```
+
+For durable deployments, choose persistent private storage rather than `/private/tmp`; back it up as sensitive material. This is a local POSIX file store, not encrypted storage or a cloud secret manager. Run under a trusted host account and trusted ancestor directories. The immediate parent and store require current-user ownership and mode 0700; the identity file requires 0600, regular-file type and a single hard link. Final directory/file symlinks are refused. Credentials never appear in command output or generated checkpoints.
+
+Creation reserves a new directory atomically and flushes the file and directories to disk. A duplicate or interrupted creation is refused; preserve incomplete material for explicit recovery rather than retrying with new passwords against an existing database. Loading verifies completeness, checksum, identity shape and a versioned binding to the pinned baseline and reviewed grants. A changed binding requires reviewed migration, not automatic replacement. The checksum detects accidental corruption, not modification by a malicious owner who can rewrite both data and checksum.
+
+`credential_store.bootstrap_sql(path)` verifies and reuses the stored service identities to produce the existing transactional bootstrap SQL in memory. The stored bootstrap administrator identity is separately available to the future database startup adapter. Neither interface executes SQL, creates Kubernetes Secrets, rotates credentials or resets data. File-store tests cover reuse/refusal, damage, contract mismatch, incomplete state, permissions, links and redacted CLI output. Database restart and Kubernetes integration remain unverified.
+
 ## Bounded live verification
 
 On the currently supported macOS Docker Desktop fixture environment, after preparing the pinned snapshot and Python dependencies:
@@ -35,4 +53,4 @@ The campaign checks:
 
 ## Remaining lifecycle work
 
-The database verifier owns disposable fixtures only. It is not a persistent database manager. Kubernetes Secret creation, protected credential persistence, fresh PVC initialization, existing-data restore, telemetry initialization, application rollout, runtime start/stop ownership and full trading checks remain S019-03c. Preserve the blocked deployment status until those are integrated. Current grants constrain service authority; they do not implement end-user account authorization.
+The database verifier owns disposable fixtures only. It is not a persistent database manager. Kubernetes Secret creation, wiring the private credential store into startup, fresh PVC initialization, existing-data restore, telemetry initialization, application rollout, runtime start/stop ownership and full trading checks remain S019-03c. Preserve the blocked deployment status until those are integrated. Current grants constrain service authority; they do not implement end-user account authorization.
