@@ -21,3 +21,21 @@ HTTP responses from an obsolete account scope, and cancel on destruction.
 Notifications carry no business-write authority. HTTP authorization, browser
 session/CSRF and authenticated broker credential issuance remain explicit
 deployment prerequisites; source integration alone does not close them.
+
+Generate the frontend candidate with
+`python scripts/security-lab/render_application_consumers.py --output-dir /absolute/new/frontend`.
+The immutable C3 baseline is the only source; overlay inputs and generated files
+are hashed and an existing output directory is refused. The regular C3 state is
+unchanged. Hosted CI installs its pinned frontend lockfile, runs the focused
+Chrome tests against actual blotter classes and builds Angular. No new frontend
+dependencies or browser downloads are required on the maintainer laptop.
+
+The snapshot refresher allows one HTTP request at a time, coalesces pending
+invalidations and caps each request at five seconds. Changing scope immediately
+clears the grid and cancels the old request. Denial clears stale records.
+Events never change the database or carry a durable browser acknowledgment.
+The UI still uses its existing JavaScript number/display model; exact financial
+decimal preservation is established only for the server-side delivery path.
+Full authenticated HTTP, WebSocket identity, revocation and browser acceptance
+must be tested together before deployment. The existing handwritten WebSocket
+protocol parser is not replaced or certified by this candidate.

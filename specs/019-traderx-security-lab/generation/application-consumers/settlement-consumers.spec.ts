@@ -92,8 +92,13 @@ describe('Actual application blotter consumers', () => {
         const bus = feed(); const old = new Subject<any[]>();
         const api = {getTrades: jasmine.createSpy().and.returnValues(old, of([{id:'new', accountId:62654}]))};
         const component = new TradeBlotterComponent(bus as any, api as any);
+        const grid = {setGridOption: jasmine.createSpy()};
+        component.gridApi = grid as any;
         component.account = {id:22214} as any; component.ngOnChanges({account:{} as any}); tick(100);
-        component.account = {id:62654} as any; component.ngOnChanges({account:{} as any}); tick(100);
+        component.account = {id:62654} as any; component.ngOnChanges({account:{} as any});
+        expect(component.trades).toEqual([]);
+        expect(grid.setGridOption).toHaveBeenCalledWith('rowData', []);
+        tick(100);
         old.next([{id:'private-old', accountId:22214}]);
         expect(component.trades.map(t => t.id)).toEqual(['new']);
         expect(bus.callbacks.has('/accounts/22214/trades')).toBeFalse();

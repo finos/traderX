@@ -24,7 +24,7 @@ export class SettlementSnapshot<T> {
         };
         try {
             this.request = this.fetch().pipe(take(1), timeout(5000)).subscribe({
-                next: rows => { if (this.active) this.apply(rows ?? []); },
+                next: rows => { if (this.active) this.apply(Array.isArray(rows) ? rows : []); },
                 error: () => { if (this.active) this.apply([]); finish(); },
                 complete: finish
             });

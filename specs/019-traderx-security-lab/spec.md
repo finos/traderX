@@ -35,6 +35,8 @@ Carry forward C3 trading and observability; add staged, attributable security le
 
 6. Given broker acceptance followed by a lost publisher acknowledgment, retry the same event and retain one business settlement; replay beyond broker deduplication must still apply a consumer effect once.
 7. Given consumer commit followed by a lost broker acknowledgment, redelivery must leave its projection unchanged; forged, cross-account and stale messages must not overwrite the authorized projection.
+8. Given an actual publisher or consumer process killed at a controlled transaction boundary, replacement CLI processes must recover durable pending work without rebooking trades; ordinary SIGTERM and idle restarts must preserve effects.
+9. Given a settlement notification, browser trade/position consumers must refresh scoped HTTP data, not install the notification payload as an authoritative record. Bursts must be coalesced; changing account scope or destroying a component must cancel obsolete requests; reconnect must refresh the current scope. Live authenticated HTTP and broker identity remain deployment prerequisites.
 
 
 Detailed threat assumptions, control contracts and existing evidence remain canonical in the [experimental specification](../012-platform-convergence-c3/security-lab/spec.md). State acceptance is pending; local checkpoint counts are not integrated acceptance.

@@ -106,3 +106,9 @@ trade/position consumers treat settlement messages as invalidations and reload
 scoped HTTP data, with coalescing, cancellation and reconnect refresh. Validate
 both in hosted CI without downloading frontend dependencies or images locally.
 This source candidate does not provision browser sessions or NATS credentials.
+
+S019-04b2b9 passes 14 actual worker process checks in hosted Linux run
+45617966137 at `3c72fc19`: broker acceptance before publisher kill, fenced replay
+by a replacement process, consumer transaction rollback on kill, durable
+redelivery, clean SIGTERM, idle restart and unchanged trading records. The SQL
+blocking gates are synthetic; the worker kills and database effects are real.

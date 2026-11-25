@@ -32,9 +32,11 @@ def blotter(source, position=False):
     pre = '''this.marketPriceByTicker.clear(); this.marketPriceAsOfByTicker.clear(); this.openPriceByTicker.clear();
     this.priceStreamUnsubscribeFn?.();
     this.priceStreamUnsubscribeFn = this.tradeFeed.subscribe('pricing.*', (tick: PriceTick) => this.updateMarketPrice(tick));''' if position else ''
+    clear_grid = 'this.setGridRowData([]); this.emitSummary();' if position else "if (this.gridApi) this.gridApi.setGridOption('rowData', []);"
     new = f'''  private loadScope() {{
     this.clearSubscriptions();
     this.{rows} = []; this.pending{kind if position else 'Trades'} = [];
+    {clear_grid}
     this.isPending = true;
     {pre}
     const all = this.allAccountsMode;
@@ -44,7 +46,7 @@ def blotter(source, position=False):
     const snapshot = new SettlementSnapshot<{kind}>(
       () => all ? this.tradeService.getAll{kind}s() : this.tradeService.get{kind}s(account),
       rows => {{
-        const scoped = rows.filter(row => ids.has(Number((row as any).accountId ?? (row as any).accountid)));
+        const scoped = rows.filter(row => row && ids.has(Number((row as any).accountId ?? (row as any).accountid)));
         {apply}
         this.isPending = false;
       }});
