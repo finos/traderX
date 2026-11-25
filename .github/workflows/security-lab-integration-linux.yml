@@ -43,6 +43,8 @@ jobs:
           python -m unittest discover -s scripts/security-lab -p 'test_delivery_worker.py'
           python -m unittest discover -s scripts/security-lab -p 'test_event_delivery_adversarial.py'
           python -m unittest discover -s scripts/security-lab -p 'test_application_consumers.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_browser_api.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_browser_session.py'
       - name: Build candidates and exercise HTTP to PostgreSQL
         shell: bash
         env:
@@ -56,6 +58,7 @@ jobs:
           python scripts/security-lab/build_trading_security.py --runtime-dir "$runtime" --java-home "$JAVA_HOME"
           python scripts/security-lab/render_read_security.py --output-dir "$runtime/position-service"
           (cd "$runtime/position-service" && bash gradlew --no-daemon --max-workers=1 '-Dorg.gradle.jvmargs=-Xmx384m -XX:MaxMetaspaceSize=256m' test bootJar)
+          python scripts/security-lab/verify_browser_api.py --runtime-dir "$runtime" --output "$runtime/evidence/browser-api.json"
           python scripts/security-lab/verify_execution_http.py --runtime-dir "$runtime" --output "$runtime/evidence/http.json"
           python scripts/security-lab/verify_execution_events.py --runtime-dir "$runtime" --output "$runtime/evidence/events.json"
           python scripts/security-lab/verify_execution_adversarial.py --runtime-dir "$runtime" --output "$runtime/evidence/adversarial.json"

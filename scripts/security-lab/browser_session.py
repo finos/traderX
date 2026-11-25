@@ -15,6 +15,7 @@ import urllib.request
 import urllib.error
 from identity_fixture import ISSUER, CLIENT, TokenVerifier
 from verify_account_authorization import request as api_request
+from browser_api import BoundaryError, MAX_BODY, json_body, route
 
 ORIGIN='https://localhost:18447'
 CALLBACK=ORIGIN+'/callback'
@@ -37,13 +38,14 @@ class Store:
         self.prune();return self.sessions.get(key)
 
 class BrowserServer:
-    def __init__(self,cert,key,context,jwks):
+    def __init__(self,cert,key,context,jwks,api_proxy=None):
         self.store=Store();self.access=TokenVerifier(jwks);self.identity=TokenVerifier(jwks,audience=CLIENT);self.context=context
+        self.api_proxy=api_proxy
         owner=self
         class Handler(BaseHTTPRequestHandler):
             def log_message(self,*args):pass
             def reply(self,status,value='',cookie=None,location=None,kind='application/json'):
-                data=(json.dumps(value) if kind=='application/json' else value).encode()
+                data=b'' if status==204 else (json.dumps(value) if kind=='application/json' else value).encode()
                 self.send_response(status)
                 for k,v in {'Content-Type':kind,'Content-Length':str(len(data)),'Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"}.items():self.send_header(k,v)
                 if cookie:self.send_header('Set-Cookie',cookie)
@@ -60,6 +62,32 @@ class BrowserServer:
                     owner.store.prune()
                     path=urllib.parse.urlsplit(self.path).path
                     session=owner.store.session(self.cookie(SESSION))
+                    if session:
+                        try:owner.access.verify(session['token'])
+                        except Exception:
+                            owner.store.sessions.pop(self.cookie(SESSION),None)
+                            session=None
+                    if owner.api_proxy and path.startswith('/api/') and not re.fullmatch(r'/api/(account|accountuser)/(\d+)?',path):
+                        if not session:return self.reply(401,'Sign in required')
+                        try:
+                            selected=route(self.command,self.path)
+                            body=None
+                            if self.command=='POST':
+                                if self.headers.get('Origin')!=ORIGIN or not secrets.compare_digest(self.headers.get('X-CSRF-Token',''),session['csrf']):return self.reply(403,'CSRF check failed')
+                                lengths=self.headers.get_all('Content-Length',[])
+                                if self.headers.get('Transfer-Encoding') or len(lengths)!=1 or not re.fullmatch(r'[0-9]+',lengths[0]):raise BoundaryError(400,'Invalid request framing')
+                                length=int(lengths[0])
+                                if length>MAX_BODY:raise BoundaryError(413,'Request too large')
+                                self.connection.settimeout(5)
+                                body=self.rfile.read(length)
+                                if len(body)!=length:raise BoundaryError(400,'Incomplete request')
+                                # Empty cancel commands carry no account override.
+                                if not body and selected.path.endswith('/cancel'):body=None
+                                else:body=json_body(body,self.headers.get('Content-Type',''))
+                            status,data=owner.api_proxy.call(self.command,self.path,session['token'],body)
+                            return self.reply(status,data)
+                        except BoundaryError as error:return self.reply(error.status,str(error))
+                        except (OSError,ValueError):return self.reply(400,'Invalid API request')
                     if self.command=='POST':
                         if path not in ('/logout','/switch'):return self.reply(405,'Unsupported method')
                         if not session:return self.reply(401,'Sign in required')

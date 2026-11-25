@@ -121,3 +121,11 @@ HTTP and feed doubles exercise browser component behavior; they do not establish
 live authenticated end-to-end delivery. Next integrate browser sessions/CSRF,
 scoped broker credential issuance/revocation, deployment TLS and cumulative
 trading before enabling candidate images. Nothing merges to Main.
+
+Next, S019-04c2 follows the [browser API session contract](system/browser-api-session.md):
+an opt-in explicit route adapter, per-request access-token/trust-window checks,
+CSRF-protected mutations and a hosted real Keycloak → cookie → Spring read API →
+PostgreSQL campaign. Record scoped rows and unchanged database effects separately
+from browser component tests. The existing account-only prototype remains
+available. Angular session wiring, scoped broker issuance and accepted trading
+writes remain later gates; no runtime cutover is implied by this campaign.
