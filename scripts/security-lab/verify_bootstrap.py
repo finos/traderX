@@ -6,7 +6,6 @@ import hashlib
 import json
 from pathlib import Path
 import secrets
-import socket
 import subprocess
 import tempfile
 import time
@@ -41,19 +40,19 @@ def database(runtime, image, credentials=None, persistent=False, loopback=False)
         secret.write_text(password); secret.chmod(0o644)
         container = None
         volume = None
+        container_attempted = False
+        volume_attempted = False
         try:
             if subprocess.run(docker+['image','inspect',image],capture_output=True).returncode:
                 command(docker+['pull','--platform','linux/amd64',image],timeout=240)
             data_mount = ['--tmpfs','/var/lib/postgresql/data:uid=70,gid=70,mode=0700,size=134217728']
             if persistent:
+                volume_attempted = True
                 volume = command(docker+['volume','create','--label',label+'='+run_id,name+'-data'])
                 data_mount = ['--mount',f'type=volume,src={volume},dst=/var/lib/postgresql/data']
-            loopback_port=None
-            if loopback:
-                with socket.socket() as probe:
-                    probe.bind(('127.0.0.1',0));loopback_port=probe.getsockname()[1]
+            container_attempted = True
             container = command(docker+['create','--name',name,'--label',label+'='+run_id,
-                '--network',('bridge' if loopback else 'none'),*(['--publish',f'127.0.0.1:{loopback_port}:5432'] if loopback else []),'--restart','no','--user','70:70','--read-only','--cap-drop','ALL',
+                '--network',('bridge' if loopback else 'none'),*(['--publish','127.0.0.1::5432'] if loopback else []),'--restart','no','--user','70:70','--read-only','--cap-drop','ALL',
                 '--security-opt','no-new-privileges:true','--memory','256m','--memory-swap','256m',
                 '--cpus','1','--pids-limit','128','--platform','linux/amd64',
                 '--log-driver','local','--log-opt','max-size=5m','--log-opt','max-file=2',
@@ -92,14 +91,18 @@ def database(runtime, image, credentials=None, persistent=False, loopback=False)
             else:
                 yield (sql, password, restart) if persistent else (sql, password)
         finally:
-            if container:
-                owner=command(docker+['inspect','--format','{{index .Config.Labels "'+label+'"}}',container])
-                if owner!=run_id:raise RuntimeError('Refusing cleanup of a container not owned by this run')
-                command(docker+['rm','-f',container])
-            if volume:
-                owner=command(docker+['volume','inspect','--format','{{index .Labels \"'+label+'\"}}',volume])
-                if owner!=run_id:raise RuntimeError('Refusing cleanup of unowned fixture volume')
-                command(docker+['volume','rm',volume])
+            try:
+                if container_attempted:
+                    found=subprocess.run(docker+['ps','-aq','--filter','name=^/'+name+'$',
+                        '--filter','label='+label+'='+run_id],capture_output=True,text=True,check=True,timeout=60).stdout.split()
+                    if len(found)>1:raise RuntimeError('Ambiguous fixture container ownership')
+                    if found:command(docker+['rm','-f',found[0]])
+            finally:
+                if volume_attempted:
+                    found=subprocess.run(docker+['volume','ls','-q','--filter','name=^'+name+'-data$',
+                        '--filter','label='+label+'='+run_id],capture_output=True,text=True,check=True,timeout=60).stdout.split()
+                    if len(found)>1:raise RuntimeError('Ambiguous fixture volume ownership')
+                    if found:command(docker+['volume','rm',found[0]])
 
 
 def require(result, message):

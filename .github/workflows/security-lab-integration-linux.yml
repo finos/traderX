@@ -1,0 +1,49 @@
+name: Security Lab Linux Integration
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/security-lab/**'
+      - 'specs/012-platform-convergence-c3/security-lab/**'
+      - 'specs/019-traderx-security-lab/system/linux-integration.md'
+      - '.github/workflows/security-lab-integration-linux.yml'
+permissions:
+  contents: read
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install existing fixture dependencies
+        run: |
+          python -m pip install -r scripts/security-lab/requirements.txt
+          python -m pip install 'cryptography==50.0.2' 'PyJWT==2.15.1'
+      - name: Fetch pinned baseline
+        run: python scripts/security-lab/checkpoint.py fetch-baseline
+      - name: Check portability boundaries
+        run: |
+          python -m unittest discover -s scripts/security-lab -p 'test_portability.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_resource_preflight.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_trading_security.py'
+      - name: Build candidates and exercise HTTP to PostgreSQL
+        shell: bash
+        env:
+          TRADERX_LAB_ISOLATED_LINUX: '1'
+        run: |
+          set -euo pipefail
+          umask 077
+          runtime="$(mktemp -d "$RUNNER_TEMP/traderx-security-integration.XXXXXXXX")"
+          trap 'rm -rf "$runtime"' EXIT
+          mkdir "$runtime/evidence"
+          python scripts/security-lab/build_trading_security.py --runtime-dir "$runtime" --java-home "$JAVA_HOME"
+          python scripts/security-lab/verify_execution_http.py --runtime-dir "$runtime" --output "$runtime/evidence/http.json"

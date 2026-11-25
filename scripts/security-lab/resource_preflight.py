@@ -8,6 +8,7 @@ import platform
 import re
 import subprocess
 import cluster_identity
+import portability
 
 GIB = 1024 ** 3
 LAB = 'traderx-security-lab-control-plane'
@@ -62,19 +63,37 @@ def observe(runtime):
     if platform.system() == 'Darwin':
         level = int(run(['sysctl', '-n', 'kern.memorystatus_vm_pressure_level']).strip())
         pressure = 'normal' if level == 1 else 'elevated'
-    docker = ['docker', '--config', str(runtime/'docker-client'), '--host',
-              'unix://'+str(Path.home()/'.docker/run/docker.sock')]
+    docker = portability.docker(runtime)
     total = int(run(docker+['info', '--format', '{{.MemTotal}}']).strip())
     rows = run(docker+['stats', '--no-stream', '--format', '{{json .}}']).splitlines()
     containers = []
     for row in rows:
         item = json.loads(row)
         containers.append({'name': item['Name'], 'memory_bytes': memory_bytes(item['MemUsage'].split('/')[0])})
+    if portability.isolated_linux():
+        values = {}
+        for line in Path('/proc/meminfo').read_text().splitlines():
+            key, _, value = line.partition(':')
+            if key in ('MemTotal', 'MemAvailable'):
+                values[key] = memory_bytes(value)
+        if set(values) != {'MemTotal', 'MemAvailable'} or not 0 < values['MemAvailable'] <= values['MemTotal']:
+            raise ValueError('Invalid Linux host memory observation')
+        pressure_line = Path('/proc/pressure/memory').read_text().splitlines()[0]
+        match = re.fullmatch(r'some avg10=([0-9]+(?:\.[0-9]+)?) avg60=[0-9.]+ avg300=[0-9.]+ total=[0-9]+', pressure_line)
+        if not match:
+            raise ValueError('Invalid Linux memory pressure observation')
+        # A dedicated runner has no unrelated running Docker workloads.
+        if containers:
+            raise ValueError('Isolated Linux runner has running containers')
+        total = min(total, values['MemAvailable'])
+        pressure = 'normal' if float(match[1]) < 1.0 else 'elevated'
     return {'host_pressure': pressure, 'docker_memory_bytes': total, 'containers': containers}
 
 
 def check(runtime, mode):
     try:
+        if portability.isolated_linux() and mode not in ('build', 'fixture'):
+            raise ValueError('Isolated Linux only supports build and fixture modes')
         return assess(observe(runtime), mode, cluster_identity.selected(runtime))
     except (OSError, subprocess.SubprocessError, ValueError, KeyError, TypeError) as error:
         return {'status': 'blocked', 'mode': mode,
