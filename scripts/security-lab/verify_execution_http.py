@@ -96,7 +96,7 @@ def campaign(runtime):
                 assert admin("SELECT quantity FROM positions WHERE accountid=22214 AND security='IBM';")=='-94'
                 assert admin("SELECT remainingquantity FROM orderbook WHERE orderid='http-order';")=='4'
                 checks.append('concurrent authenticated HTTP requests settle exactly once in PostgreSQL')
-                stop();restart();start()
+                stop();env['DATABASE_PG_PORT']=str(restart());start()
                 assert call(path,token())[0]==200
                 assert admin("SELECT quantity FROM positions WHERE accountid=22214 AND security='IBM';")=='-94'
                 checks.append('processor and database restart preserve duplicate protection')

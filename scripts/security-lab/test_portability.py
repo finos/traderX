@@ -84,6 +84,34 @@ class PortabilityTests(unittest.TestCase):
         for c in (next(c for c in calls if 'ps' in c), next(c for c in calls if 'volume' in c and 'ls' in c)):
             self.assertTrue(any('traderx.security-lab.bootstrap=' in arg for arg in c))
 
+    def test_restart_rechecks_changed_loopback_port(self):
+        ports = iter(('127.0.0.1:30001\n', '127.0.0.1:30002\n'))
+        def run(args, **kwargs):
+            output = ''
+            if '--name' in args: output = 'owned-container\n'
+            elif 'port' in args: output = next(ports)
+            elif 'exec' in args: output = '1\n'
+            elif 'ps' in args: output = 'owned-container\n'
+            return subprocess.CompletedProcess(args, 0, stdout=output)
+        with tempfile.TemporaryDirectory() as root, patch('verify_bootstrap.subprocess.run', side_effect=run):
+            with verify_bootstrap.database(Path(root), 'image', persistent=True, loopback=True) as (_, _, restart, port):
+                self.assertEqual(port, 30001)
+                self.assertEqual(restart(), 30002)
+
+    def test_restart_rejects_non_loopback_publication(self):
+        ports = iter(('127.0.0.1:30001\n', '0.0.0.0:30002\n'))
+        def run(args, **kwargs):
+            output = ''
+            if '--name' in args: output = 'owned-container\n'
+            elif 'port' in args: output = next(ports)
+            elif 'exec' in args: output = '1\n'
+            elif 'ps' in args: output = 'owned-container\n'
+            return subprocess.CompletedProcess(args, 0, stdout=output)
+        with tempfile.TemporaryDirectory() as root, patch('verify_bootstrap.subprocess.run', side_effect=run):
+            with verify_bootstrap.database(Path(root), 'image', loopback=True) as (_, _, restart, _):
+                with self.assertRaisesRegex(RuntimeError, 'Unexpected database publication'):
+                    restart()
+
 
 if __name__ == '__main__':
     unittest.main()
