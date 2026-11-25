@@ -44,7 +44,8 @@ def broker(runtime):
     label='traderx.security-lab.events';attempted=False
     with tempfile.TemporaryDirectory(prefix='events-private-',dir=runtime) as temp:
         private=Path(temp);config_dir=private/'config';data_dir=private/'data'
-        config_dir.mkdir(mode=0o755);data_dir.mkdir(mode=0o777);data_dir.chmod(0o777)
+        config_dir.mkdir(mode=0o755);config_dir.chmod(0o755)
+        data_dir.mkdir(mode=0o777);data_dir.chmod(0o777)
         passwords={name:secrets.token_hex(24) for name in permissions()}
         certificate=config_dir/'cert.pem';key=config_dir/'key.pem'
         subprocess.run(['openssl','req','-x509','-newkey','rsa:2048','-nodes','-keyout',str(key),'-out',str(certificate),
@@ -61,7 +62,10 @@ def broker(runtime):
         def ready():
             owned()
             state=json.loads(command(cli+['inspect','--format','{{json .State}}',name]))
-            if not state.get('Running'):raise RuntimeError('Broker stopped before readiness; exit code '+str(state.get('ExitCode')))
+            if not state.get('Running'):
+                logs=subprocess.run(cli+['logs','--tail','20',name],capture_output=True,text=True,timeout=10)
+                category='permission-denied' if 'permission denied' in (logs.stdout+logs.stderr).lower() else 'unclassified'
+                raise RuntimeError('Broker stopped before readiness; exit code '+str(state.get('ExitCode'))+'; category '+category)
             endpoint=command(cli+['port',name,'4222/tcp'])
             if not endpoint.startswith('127.0.0.1:') or not endpoint.split(':')[1].isdigit():raise ValueError('Broker publication mismatch')
             port=int(endpoint.split(':')[1]);context=ssl.create_default_context(cafile=str(certificate))
