@@ -1,0 +1,47 @@
+{
+  "status": "passed-with-findings",
+  "scope": "Independent PostgreSQL effects and locking; no HTTP/Keycloak/browser campaign",
+  "source_sql": {
+    "execution-reservations.sql": "f11d808436862d0db1350a517b61ff04ee608a01da9975c474652678c3129057",
+    "execution-settlement.sql": "2ff3c247e6de32b7d15f7a83c00708ad44c883ddb48c279316ee4aa98055cb65",
+    "execution-cancellation.sql": "054d37b931c993182aacd0dfd91fb3a6d8859dc2d31b50e23de85029d023595f"
+  },
+  "image": "ghcr.io/finos/traderx-c3/database@sha256:1aa68521a486e2c217e6d1b1328ae3d01816302eeddbeb664f34445d6844f022",
+  "checks": [
+    "reserved account substitution denied",
+    "reserved security substitution denied",
+    "reserved side substitution denied",
+    "accepting subject substitution denied",
+    "accepting issuer substitution denied",
+    "accepted terms substitution denied",
+    "null order status denied",
+    "rollback removes trade receipt and position effects",
+    "discarded response and database restart replay have no duplicate effects",
+    "execution ID replay across orders denied",
+    "execution ID replay with changed quantity denied",
+    "execution ID replay with changed price denied",
+    "cancel-first race prevents settlement",
+    "settle-first race preserves full fill and receipt",
+    "cross-account cancellation denied",
+    "partial fill survives cancellation of remainder"
+  ],
+  "findings": [
+    {
+      "id": "ADV-WRITER-01",
+      "classification": "documented-residual-authority",
+      "severity": "scenario-dependent",
+      "observation": "Matcher SQL identity can overwrite order metadata through its existing UPDATE grant. Shared-lock cancellation prevents the ordinary application race only; it does not prevent a compromised writer from bypassing that path."
+    }
+  ],
+  "limits": {
+    "memory_mib": 256,
+    "cpu": 1,
+    "host_ports": 0
+  },
+  "limitations": [
+    "Discarded successful response models ambiguous delivery; no real network fault was injected.",
+    "Credential expiry and forged service tokens are covered by existing Java/HTTP campaigns, not re-proven here.",
+    "Mutation tests use the scoped matcher login against synthetic records; they do not demonstrate a real RCE.",
+    "No full-cluster, broker, operator UI or live identity-provider acceptance is claimed."
+  ]
+}
