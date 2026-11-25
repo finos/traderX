@@ -137,3 +137,15 @@ The candidate disables anonymous NATS until the scoped broker checkpoint and
 shows that limitation in the application. Hosted Chrome tests and a production
 build must pass before marking this source integration complete. This is not yet
 an application served by the cumulative deployment gateway.
+
+S019-04c2/c3 now pass at `78e907c3`: hosted run 45624612985 records **51 live
+Keycloak/session/Spring/PostgreSQL checks**, **18 Chrome component checks** and
+the Angular production build, alongside the existing execution/outbox/delivery
+campaigns. Local regression passes 242 Python tests and all required spec gates;
+the learning sequence diagram parses. See [browser session evidence](evidence/2026-11-25-browser-api-sessions.json).
+Chrome uses HTTP doubles while the API campaign uses a real issuer and database;
+neither is complete deployed browser trading. Next integrate scoped broker
+sessions/revocation, people-service authorization and matcher identity/TLS, then
+serve and validate the combined frontend/API/worker candidate before rollout.
+No screen sharing, local dependency/image installation, Citrix change, Main merge
+or generated-state publication occurred.
