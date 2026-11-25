@@ -1,0 +1,47 @@
+{
+  "checkpoint": "S019-04b2b7 and S019-04b2b8",
+  "date": "2026-11-25",
+  "source_commit": "17638f593f4a3cf2bb951fb1f0c86fade444b0b6",
+  "status": "passed",
+  "scope": "Reviewed worker component candidate and hosted broker/reference-consumer fixtures; no deployed cutover",
+  "cloud_proposals": [
+    519,
+    520
+  ],
+  "review_correction": "Orderly stop during consumer binding no longer exits as a terminal error; unexpected session termination still fails closed.",
+  "validation": {
+    "local_python_tests": 235,
+    "worker_component_tests": 16,
+    "adversarial_component_tests": 5,
+    "hosted_delivery_checks": 41,
+    "hosted_independent_delivery_checks": 24,
+    "hosted_integration": "https://github.com/finos/traderX/actions/runs/45616153660",
+    "hosted_docs": "https://github.com/finos/traderX/actions/runs/45616153731",
+    "local_gates": [
+      "frontmatter",
+      "root SpecKit",
+      "readiness",
+      "spec coverage"
+    ]
+  },
+  "source_sha256": {
+    "scripts/security-lab/delivery_worker.py": "dd7ce23cea44e5b0c90d6858fd6e803a3f8aca59eb9b4fbb1a529e39a507c1be",
+    "scripts/security-lab/test_delivery_worker.py": "149750b532e8972cde69560d30c7179f3c784bde5b1503c81678fd9fbc085344",
+    "scripts/security-lab/verify_event_delivery_adversarial.py": "1198cd35a7fbdcc34106846d049117f990b4ebc1bd3b85553826e2490523bffc",
+    "scripts/security-lab/test_event_delivery_adversarial.py": "9d7ec836c76a04cfe76be8c5d4a803b243db64f4104f2a8b660f404999c0a8d4",
+    "scripts/security-lab/event_delivery.py": "c1866e75a1a34d3ee6c1660a2b32503cf50918909c20ad0e9f5714d657303d03",
+    ".github/workflows/security-lab-integration-linux.yml": "e4b174020dfbe5457c1429ace6e658eafc65a393b107f994f5eb955d4a8cbe28"
+  },
+  "limits": [
+    "Live containers and Java builds ran on a dedicated GitHub runner, not the laptop.",
+    "Local work used existing dependencies; no Docker resize, container pulls or Citrix changes."
+  ],
+  "limitations": [
+    "Supervisor component tests use injected adapters; real worker subprocess recovery remains pending.",
+    "The independent consumer trusts the same canonical outbox database; no cross-database signature claim.",
+    "Historical agent evidence is preserved separately; this checkpoint records its independent hosted rerun.",
+    "Application consumer adoption, credential lifecycle, live identity/TLS and cumulative security acceptance remain open.",
+    "Codex Cloud review launch timed out without a confirmed task identifier; no review results from it are claimed.",
+    "No Main merge or generated-state release."
+  ]
+}

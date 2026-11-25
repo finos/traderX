@@ -88,3 +88,13 @@ real database/broker campaign sequentially on hosted Linux. Preserve the
 agent-recorded evidence as historical evidence and report the independent run
 separately. This does not close application consumer adoption, credential
 provisioning/rotation, live worker subprocess recovery or deployed supervision.
+
+S019-04b2b7/b8 now pass: 235 local Python tests (including 16 worker and five
+adversarial component tests), all local spec gates, and independent hosted Linux
+run 45616153660 with 41 original plus 24 adversarial delivery checks. Hosted docs
+build and preview pass. Review corrected orderly shutdown during consumer binding.
+See [cloud integration evidence](evidence/2026-11-25-cloud-integration.json).
+Next prove actual worker subprocess stop/restart and resulting database state
+(S019-04b2b9), then provision credentials and adopt existing application consumers.
+The integration preserves cloud provenance without importing unsigned initial
+plan commits. No Main merge or generated-state publication occurred.
