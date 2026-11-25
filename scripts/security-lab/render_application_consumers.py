@@ -126,6 +126,7 @@ def render(target):
   <main *ngIf="state !== 'signed-in'" aria-live="polite">
     <h1>TraderX Security Lab</h1>
     <p *ngIf="state === 'checking'">Checking your session…</p>
+    <p *ngIf="session.logoutUnconfirmed" role="alert">Your local view is cleared, but server sign-out could not be confirmed. Reload and try signing out again.</p>
     <a *ngIf="state === 'signed-out'" href="/login">Sign in with Keycloak</a>
   </main>
   <ng-container *ngIf="state === 'signed-in'">

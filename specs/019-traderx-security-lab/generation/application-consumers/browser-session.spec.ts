@@ -71,6 +71,11 @@ describe('Application browser session', () => {
         session.refresh(); const pending=backend.expectOne('/session'); tick(5000);
         expect(pending.cancelled).toBeTrue(); expect(session.credentials()).toBeNull();
     }));
+    it('reports uncertain server logout while keeping the local view cleared', () => {
+        login(); session.logout();
+        backend.expectOne('/logout').flush({}, {status:503,statusText:'Unavailable'});
+        expect(session.logoutUnconfirmed).toBeTrue(); expect(session.credentials()).toBeNull();
+    });
     it('does not open the inherited anonymous NATS socket in the session candidate', () => {
         const socket=spyOn(window,'WebSocket');
         const bus=new TradeFeedService();

@@ -12,6 +12,7 @@ export class BrowserSession {
     readonly state$ = this.status.asObservable();
     readonly ended$ = this.ended.asObservable();
     subject = '';
+    logoutUnconfirmed = false;
     private csrf = '';
     private until = 0;
     private expiry?: ReturnType<typeof setTimeout>;
@@ -27,6 +28,7 @@ export class BrowserSession {
     }
 
     refresh(): void {
+        this.logoutUnconfirmed = false;
         this.clear(); this.status.next('checking');
         this.loading = this.client.get<any>('/session').pipe(timeout(5000)).subscribe({
             next: value => {
@@ -55,9 +57,10 @@ export class BrowserSession {
 
     logout(): void {
         const csrf = this.credentials();
+        this.logoutUnconfirmed = false;
         this.clear();
         if (csrf) this.client.post('/logout', null, {headers: {'X-CSRF-Token': csrf}})
-            .pipe(timeout(5000)).subscribe({error: () => { /* Local UI remains signed out. */ }});
+            .pipe(timeout(5000)).subscribe({error: () => { this.logoutUnconfirmed = true; }});
     }
 }
 
