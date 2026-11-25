@@ -60,3 +60,4 @@ jobs:
           python scripts/security-lab/verify_execution_adversarial.py --runtime-dir "$runtime" --output "$runtime/evidence/adversarial.json"
           python scripts/security-lab/verify_event_delivery.py --runtime-dir "$runtime" --output "$runtime/evidence/broker-delivery.json"
           python scripts/security-lab/verify_event_delivery_adversarial.py --runtime-dir "$runtime" --output "$runtime/evidence/broker-adversarial.json"
+          python scripts/security-lab/verify_worker_process.py --runtime-dir "$runtime" --output "$runtime/evidence/worker-process.json"
