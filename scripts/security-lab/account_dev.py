@@ -95,7 +95,8 @@ def verify_files(folder):
 
 
 def docker(runtime):
-    return ['docker','--config',str(runtime/'docker-client'),'--host','unix://'+str(Path.home()/'.docker/run/docker.sock')]
+    from portability import docker as docker_command
+    return docker_command(runtime)
 
 
 def run_compose(runtime, folder, *args):

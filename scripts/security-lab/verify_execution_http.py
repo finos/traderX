@@ -16,12 +16,15 @@ import jwt
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 import bootstrap_database
-from verify_bootstrap import database,require
+import portability
+from verify_bootstrap import database,require,fingerprint
 from verify_execution_reservations import MIGRATION,SETTLEMENT
 from resource_operation import operation
 
 
 def campaign(runtime):
+    if not __debug__:raise RuntimeError('HTTP campaign requires Python assertions enabled')
+    java=portability.java()
     target=runtime/'trading-security-build/trade-processor'
     report=json.loads((runtime/'evidence/trading-security-build.json').read_text())
     entry=next(x for x in report['services'] if x['service']=='trade-processor')
@@ -43,7 +46,6 @@ def campaign(runtime):
             url=f'http://127.0.0.1:{port}'
             env=dict(os.environ,SERVER_ADDRESS='127.0.0.1',SERVER_PORT=str(port),DATABASE_PG_HOST='127.0.0.1',DATABASE_PG_PORT=str(pgport),DATABASE_NAME='traderx',DATABASE_DBUSER=proc['username'],DATABASE_DBPASS=proc['password'],
               LAB_IDENTITY_ISSUER='https://identity.example.test',LAB_IDENTITY_AUDIENCE='traderx-execution',LAB_IDENTITY_PUBLIC_KEY_FILE=str(public),LAB_IDENTITY_KEY_NOT_AFTER=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime(time.time()+1800)),LAB_EXECUTION_MATCHER_SUBJECT='matcher-service',SPRING_JPA_SHOW_SQL='false',LOGGING_LEVEL_ORG_HIBERNATE_SQL='OFF')
-            java='/Library/Java/JavaVirtualMachines/zulu-21.jdk/Contents/Home/bin/java'
             log=runtime/'evidence/execution-http-private.log'
             child=None
             def call(path,token=None,method='POST',body=None):
@@ -75,14 +77,16 @@ def campaign(runtime):
                     except subprocess.TimeoutExpired:child.kill();child.wait(timeout=10)
             try:
                 start();path='/internal/executions/'+execution
+                before=fingerprint(sql,password)
                 for label,bearer,expected in [('anonymous',None,401),('user audience',token(audience='traderx-api'),401),('wrong service',token(subject='trader'),403),('expired',token(expires=-1),401)]:
                     assert call(path,bearer)[0]==expected,label
-                    assert admin(f"SELECT count(*) FROM trades WHERE id='{execution}';")=='0'
-                    checks.append(label+' rejected without trade effects')
+                    assert fingerprint(sql,password)==before,label
+                    checks.append(label+' rejected without database effects')
                 assert call(path,token(),body='{"accountId":44044}')[0]==400
                 assert call('/tradeservice/order',token(),body='{}')[0]==403
                 assert admin("SELECT quantity FROM positions WHERE accountid=22214 AND security='IBM';")=='-100'
                 assert call('/internal/executions/'+str(uuid.uuid4()),token())[0]==409
+                assert fingerprint(sql,password)==before
                 checks.append('unreserved execution rejected')
                 checks.append('payload override and legacy HTTP booking rejected without position effects')
                 with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:

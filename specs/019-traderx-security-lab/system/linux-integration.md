@@ -1,0 +1,54 @@
+# Isolated Linux HTTP integration runner
+
+The Linux workflow exercises the existing candidate campaign, not a deployment
+or security acceptance. It fetches the immutable baseline, renders, builds and
+tests the three trading candidates sequentially, then runs the verified
+processor jar against a disposable PostgreSQL fixture. Denied synthetic
+identities and invalid requests must leave all fixture tables unchanged;
+concurrent duplicate requests and processor/database restarts are checked.
+Loopback HTTP and synthetic signed tokens do not establish deployment TLS,
+live Keycloak, matcher dispatch, broker delivery or production readiness.
+
+Use only a dedicated, disposable Linux runner and local Docker daemon. Explicit
+`TRADERX_LAB_ISOLATED_LINUX=1` opts in to `unix:///var/run/docker.sock`; other
+Docker hosts are refused. The preflight requires observable Linux available memory
+and memory pressure, sufficient provisional headroom, and no running containers;
+it permits only build and fixture modes. This is a snapshot, not a reservation.
+The runner operator is responsible for exclusive ownership of the daemon and
+host, including stopped containers and other workloads. It is not safe for a
+shared workstation or a remote Docker daemon. The macOS default retains its
+original Docker socket and pressure checks without the opt-in.
+
+The database is resource-limited, non-privileged, and publishes only to
+127.0.0.1. The application runs as a bounded local process, with no Docker
+socket mount. Fixture containers and persistent volumes carry unique ownership
+labels and are removed after success or failure; Docker outages or forced runner
+termination can prevent cleanup. Inspect only resources bearing the fixture
+label if manual cleanup is necessary. A disposable CI host provides the final
+boundary for forced termination. Private logs, credentials and evidence stay in
+the temporary runtime and are not uploaded.
+
+For a dedicated Linux host with Python, Docker, Java 21 and Gradle network
+access, from the repository root:
+
+```bash
+python3 -m pip install -r scripts/security-lab/requirements.txt
+python3 -m pip install 'cryptography==50.0.2' 'PyJWT==2.15.1'
+python3 scripts/security-lab/checkpoint.py fetch-baseline
+export JAVA_HOME=/path/to/java-21
+export TRADERX_LAB_ISOLATED_LINUX=1
+umask 077
+runtime="$(mktemp -d)"
+mkdir "$runtime/evidence"
+python3 scripts/security-lab/build_trading_security.py --runtime-dir "$runtime" --java-home "$JAVA_HOME"
+python3 scripts/security-lab/verify_execution_http.py --runtime-dir "$runtime" --output "$runtime/evidence/http.json"
+rm -rf "$runtime"
+```
+
+Use a private runtime directory and remove it after inspecting any needed local
+evidence, including on failure. On a guarded Mac, omit the Linux opt-in, set
+`JAVA_HOME` to Java 21 and use the same commands with the existing Mac Docker
+socket and preflight; do not substitute the Linux isolation assumptions.
+The Linux GitHub Actions workflow runs on a fresh hosted runner without
+repository secrets and removes its temporary runtime on exit. A workflow run
+must actually succeed before claiming live integration validation.
