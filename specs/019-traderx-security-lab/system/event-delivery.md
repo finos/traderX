@@ -145,7 +145,7 @@ sequenceDiagram
     C->>I: Validate and commit inbox + effect atomically
     I-->>C: Applied, duplicate, or stale
     C->>N: Acknowledge after commit
-    Note over P,I: Restart and lost acknowledgments may cause replay; inspect resulting state
+    Note over P,I: Restart and lost acknowledgments may cause replay. Inspect resulting state.
 ```
 
 To reproduce, install `scripts/security-lab/requirements-delivery.txt` with
