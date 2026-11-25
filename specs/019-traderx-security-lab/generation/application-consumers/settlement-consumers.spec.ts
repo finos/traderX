@@ -92,7 +92,7 @@ describe('Actual application blotter consumers', () => {
         const bus = feed(); const old = new Subject<any[]>();
         const api = {getTrades: jasmine.createSpy().and.returnValues(old, of([{id:'new', accountId:62654}]))};
         const component = new TradeBlotterComponent(bus as any, api as any);
-        const grid = {setGridOption: jasmine.createSpy()};
+        const grid = {setGridOption: jasmine.createSpy(), sizeColumnsToFit: jasmine.createSpy()};
         component.gridApi = grid as any;
         component.account = {id:22214} as any; component.ngOnChanges({account:{} as any}); tick(100);
         component.account = {id:62654} as any; component.ngOnChanges({account:{} as any});
