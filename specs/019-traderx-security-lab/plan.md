@@ -112,3 +112,12 @@ S019-04b2b9 passes 14 actual worker process checks in hosted Linux run
 by a replacement process, consumer transaction rollback on kill, durable
 redelivery, clean SIGTERM, idle restart and unchanged trading records. The SQL
 blocking gates are synthetic; the worker kills and database effects are real.
+
+S019-04b2b10 now passes with S019-04b2b9 in hosted run 45619682672
+at `5041a837`: 14 process checks, eight Chrome component checks against the
+actual blotter classes, and a production Angular build. Existing 41/24 delivery
+campaigns also pass. See [process/application evidence](evidence/2026-11-25-process-application-consumers.json).
+HTTP and feed doubles exercise browser component behavior; they do not establish
+live authenticated end-to-end delivery. Next integrate browser sessions/CSRF,
+scoped broker credential issuance/revocation, deployment TLS and cumulative
+trading before enabling candidate images. Nothing merges to Main.

@@ -39,3 +39,15 @@ decimal preservation is established only for the server-side delivery path.
 Full authenticated HTTP, WebSocket identity, revocation and browser acceptance
 must be tested together before deployment. The existing handwritten WebSocket
 protocol parser is not replaced or certified by this candidate.
+
+Observed checkpoint: [25 November process and application evidence](../evidence/2026-11-25-process-application-consumers.json).
+The hosted campaign passes 14 actual process checks and eight Chrome component
+checks, followed by an Angular production build. The browser tests use HTTP/feed
+doubles; full authenticated browser acceptance remains separate. Reproduce the
+process campaign on an isolated supported fixture host with:
+
+```bash
+python scripts/security-lab/verify_worker_process.py \
+  --runtime-dir /absolute/private/runtime \
+  --output /absolute/private/new-process-evidence.json
+```

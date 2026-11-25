@@ -1,0 +1,45 @@
+{
+  "checkpoint": "S019-04b2b9 and S019-04b2b10",
+  "date": "2026-11-25",
+  "status": "passed",
+  "source_commit": "5041a8379b52a2607c11d797591d71fd0ea3a7c0",
+  "hosted_run": "https://github.com/finos/traderX/actions/runs/45619682672",
+  "scope": "Actual owned CLI process recovery and generated Angular consumer candidate; not deployed authenticated trading",
+  "validation": {
+    "worker_process_checks": 14,
+    "chrome_component_tests": 8,
+    "angular_production_build": "passed",
+    "existing_delivery_checks": 41,
+    "independent_delivery_checks": 24,
+    "local_python_tests": 236,
+    "latest_renderer_regression": "passed",
+    "local_spec_gates": "passed"
+  },
+  "source_sha256": {
+    "scripts/security-lab/verify_worker_process.py": "281f9633b100447818a523cd065d2c6924c752cf614592bc3f6e7f48664f4ce3",
+    "scripts/security-lab/delivery_worker.py": "dd7ce23cea44e5b0c90d6858fd6e803a3f8aca59eb9b4fbb1a529e39a507c1be",
+    "scripts/security-lab/render_application_consumers.py": "8fa491efde6646bc0011bc50d9eb7830215c63b9e756093ac742ac8a23ca5f2c",
+    "scripts/security-lab/test_application_consumers.py": "ac83d7c420e530d2d15d5955e182c9955c42a7415e6634f35e3d383deafb8e47",
+    ".github/workflows/security-lab-integration-linux.yml": "c6631aa23a4085d5d16c5b9f812fcc4e778f364f495a5d6b5125c291b2aa5b54",
+    "specs/019-traderx-security-lab/generation/application-consumers/settlement-consumers.spec.ts": "2cbed74b7c98337b023b17e27f93967320655a1ad48b835249ddd889a23f3c8f",
+    "specs/019-traderx-security-lab/generation/application-consumers/settlement-snapshot.ts": "d117aa579077e29d8447f17de47feebc14a2f37a0e8d9d2c8e0875cf1b7a9c06"
+  },
+  "process_outcomes": [
+    "Publisher killed after broker acceptance while SQL acknowledgment blocked; replacement reclaims lease and replays beyond broker duplicate window.",
+    "Consumer killed during gated projection transaction; inbox/effect roll back together and replacement drains durable redelivery.",
+    "Actual SIGTERM and idle restart preserve effects; trading records unchanged; logs omit configured credentials."
+  ],
+  "application_outcomes": [
+    "Trade and position consumers use validated settlement invalidations to reload scoped HTTP snapshots, never notification payloads as authoritative records.",
+    "Bursts coalesce, obsolete scope requests cancel, grids clear on scope change, denied reads clear stale rows, and reconnect refreshes current scope.",
+    "Focused Chrome tests instantiate actual blotter classes with HTTP/feed doubles; no live identity or WebSocket end-to-end claim."
+  ],
+  "limitations": [
+    "SQL gates are synthetic, process signals are real; no host power-loss or replicated availability proof.",
+    "Reference consumer trusts the canonical outbox database.",
+    "Live browser sessions/CSRF, NATS credential issuance/revocation, TLS provisioning and cumulative authenticated trading remain pending.",
+    "Existing handwritten WebSocket parser and UI numeric display model remain; no claim of protocol certification or exact browser decimal accounting.",
+    "Earlier C3 and running local services are unchanged; no Main merge or generated-state release."
+  ],
+  "resources": "Container/Java/frontend dependencies and Chrome tests ran on GitHub; no laptop container pulls, npm installation or Citrix changes."
+}
