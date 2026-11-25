@@ -78,16 +78,21 @@ def database(runtime, image, credentials=None, persistent=False, loopback=False)
                     if ready.returncode==0 and ready.stdout.strip()=='1':break
                     if time.monotonic()>deadline:raise RuntimeError('Database fixture readiness timed out')
                     time.sleep(.5)
+            def published_port():
+                endpoint=command(docker+['port',container,'5432/tcp'])
+                if not endpoint.startswith('127.0.0.1:') or not endpoint.removeprefix('127.0.0.1:').isdigit():
+                    raise RuntimeError('Unexpected database publication')
+                port=int(endpoint.split(':')[1])
+                if not 1<=port<=65535:raise RuntimeError('Unexpected database publication')
+                return port
             def restart():
                 command(docker+['stop','--time','20',container])
                 command(docker+['start',container])
                 wait_ready()
+                if loopback:return published_port()
             wait_ready()
             if loopback:
-                endpoint=command(docker+['port',container,'5432/tcp'])
-                if not endpoint.startswith('127.0.0.1:') or not endpoint.removeprefix('127.0.0.1:').isdigit():
-                    raise RuntimeError('Unexpected database publication')
-                yield sql,password,restart,int(endpoint.split(':')[1])
+                yield sql,password,restart,published_port()
             else:
                 yield (sql, password, restart) if persistent else (sql, password)
         finally:

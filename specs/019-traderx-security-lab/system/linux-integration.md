@@ -39,10 +39,10 @@ export JAVA_HOME=/path/to/java-21
 export TRADERX_LAB_ISOLATED_LINUX=1
 umask 077
 runtime="$(mktemp -d)"
+trap 'rm -rf "$runtime"' EXIT
 mkdir "$runtime/evidence"
 python3 scripts/security-lab/build_trading_security.py --runtime-dir "$runtime" --java-home "$JAVA_HOME"
 python3 scripts/security-lab/verify_execution_http.py --runtime-dir "$runtime" --output "$runtime/evidence/http.json"
-rm -rf "$runtime"
 ```
 
 Use a private runtime directory and remove it after inspecting any needed local
