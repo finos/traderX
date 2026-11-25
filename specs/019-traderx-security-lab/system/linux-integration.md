@@ -8,6 +8,13 @@ identities and invalid requests must leave all fixture tables unchanged;
 concurrent duplicate requests and processor/database restarts are checked.
 The same job runs the event outbox, cancellation/adversarial SQL campaigns, and authenticated JetStream/reference-consumer campaign sequentially. The offline job checks the CCC mapping. Component Java builds run once in the Linux job, avoiding a duplicate three-service build in the offline workflow.
 
+It also runs the supervised-worker component tests and independent delivery
+adversarial campaign. That second broker campaign checks canonical payload
+tampering, malformed wire messages, stale claims and acknowledgment boundaries
+against authoritative database state. It uses fresh fixtures after the first
+campaign has cleaned up; neither campaign launches the supervisor as a separate
+process. Actual worker process recovery remains unverified by these checks.
+
 Loopback HTTP and synthetic signed tokens do not establish deployment TLS,
 live Keycloak, matcher dispatch, broker delivery or production readiness.
 

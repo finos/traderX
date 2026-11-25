@@ -40,6 +40,8 @@ jobs:
           python -m unittest discover -s scripts/security-lab -p 'test_trading_security.py'
           python -m unittest discover -s scripts/security-lab -p 'test_read_security.py'
           python -m unittest discover -s scripts/security-lab -p 'test_event_delivery.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_delivery_worker.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_event_delivery_adversarial.py'
       - name: Build candidates and exercise HTTP to PostgreSQL
         shell: bash
         env:
@@ -57,3 +59,4 @@ jobs:
           python scripts/security-lab/verify_execution_events.py --runtime-dir "$runtime" --output "$runtime/evidence/events.json"
           python scripts/security-lab/verify_execution_adversarial.py --runtime-dir "$runtime" --output "$runtime/evidence/adversarial.json"
           python scripts/security-lab/verify_event_delivery.py --runtime-dir "$runtime" --output "$runtime/evidence/broker-delivery.json"
+          python scripts/security-lab/verify_event_delivery_adversarial.py --runtime-dir "$runtime" --output "$runtime/evidence/broker-adversarial.json"

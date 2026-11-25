@@ -79,3 +79,12 @@ atomicity, account restrictions and exact financial decimals. See
 [evidence](evidence/2026-11-25-event-delivery.json). The existing Java/Node/browser
 consumers still need envelope integration; fresh deployment credentials, TLS,
 operator recovery and runtime packaging remain open. No main merge is authorized.
+
+The next bounded checkpoint integrates reviewed cloud proposals #519 and #520:
+the [supervised worker](system/delivery-worker.md) and an
+[independent delivery campaign](system/event-delivery-adversarial.md).
+Run their component checks locally without container downloads, then repeat the
+real database/broker campaign sequentially on hosted Linux. Preserve the
+agent-recorded evidence as historical evidence and report the independent run
+separately. This does not close application consumer adoption, credential
+provisioning/rotation, live worker subprocess recovery or deployed supervision.

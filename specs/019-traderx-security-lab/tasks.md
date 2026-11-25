@@ -32,6 +32,8 @@ Completed prototype evidence and granular implementation history are in the [C3 
 - [x] S019-04b2b4 Validate transactional SQL event snapshots, fenced claims/acknowledgments and replay in 38 PostgreSQL checks; broker/consumer adapter remains pending.
 - [x] S019-04b2b5 Independently verify 16 PostgreSQL race/replay/mutation checks and record the residual matcher write privilege.
 - [x] S019-04b2b6 Validate authenticated durable broker delivery and a scoped reference consumer inbox/projection with actual restart, lost acknowledgments and replay beyond broker deduplication.
+- [x] S019-04b2b7 Validate the bounded publisher/reference-consumer worker candidate: private configuration, verified transport, scoped consumption, retry exhaustion and signal shutdown. Actual worker subprocess recovery and deployed supervision remain a later gate.
+- [ ] S019-04b2b8 Independently rerun canonical/wire tampering, stale claims and pre/post-commit acknowledgment boundaries on hosted Linux with unchanged authoritative outcomes.
 - [ ] S019-04b2b Wire matcher, authenticated trade handoff and processor to the durable ledger; implement reliable broker/event delivery and cancellation integration.
 - [ ] S019-04b2 Add migrated authority storage, authenticated durable execution/outbox and downstream deduplication; verify restart, expiry, cancellation and retry outcomes.
 - [ ] S019-04b Implement durable authorized background matching and authenticated execution; verify after initiating token expiry.
