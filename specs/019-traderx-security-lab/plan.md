@@ -63,7 +63,7 @@ authorization (04c1), matcher dispatch/cancellation (04b2b3), transactional even
 outbox (04b2b4), independent SQL race/replay review (04b2b5), and a release-pinned
 [CCC assessment map](system/ccc-assessment-map.md) (10a). The Linux workflow
 consolidates sequential builds and database campaigns on a dedicated hosted
-runner; an added workflow is not yet evidence of a successful hosted run.
+runner. Hosted Linux run 45559194453 passed the four builds and three SQL campaigns; full deployment and learner acceptance remain open.
 
 Next integrate the authenticated broker publisher and durable consumer inbox,
 then provision live matcher identity/TLS and run a single cumulative trading
@@ -71,3 +71,11 @@ campaign before enabling any candidate image. People authorization and Angular
 session/CSRF integration remain parallel source work. Keep full-cluster acceptance
 serialized and within the existing Docker resource limits. See
 [the pilot checkpoint](evidence/2026-11-25-parallel-pilot.json) for measured results.
+
+S019-04b2b6 now validates the authenticated TLS JetStream publisher and scoped
+reference consumer projection: 41 live checks cover real broker/database restart,
+acknowledgment-loss boundaries, replay outside broker deduplication, inbox/effect
+atomicity, account restrictions and exact financial decimals. See
+[evidence](evidence/2026-11-25-event-delivery.json). The existing Java/Node/browser
+consumers still need envelope integration; fresh deployment credentials, TLS,
+operator recovery and runtime packaging remain open. No main merge is authorized.

@@ -1,0 +1,5 @@
+# Tested CPython 3.14 macOS arm64 and hosted Linux amd64; hashes from PyPI release metadata.
+nats-py==2.17.0 --hash=sha256:fc7d01f68957462220d6bdce310cad1707eeb5fbd369903d84217b18ea341c0e
+psycopg==3.3.9 --hash=sha256:d2d7d04a1ce6dab4f5b27316bea3b52585cafa2f2d631e5b09dd69823f5c26f6
+psycopg-binary==3.3.9 --hash=sha256:e853041acf10de2dcb595167138dc9fc27de293d67caa1d80ed282ec27a28e87 --hash=sha256:4992acd5a7479013d52615b8c23fdce9bc22f3cacbfb1007fa474e6b5ebe94c7
+simplejson==4.3.0 --hash=sha256:8fe881edc5f7c2256af022d290c4a933ff52b1c163c49e0a976af37540ae2498 --hash=sha256:c0eb226f43b76c1056d90b7e6998d5be3ed3f29e4467ecc4ee50c30d73c27fec --hash=sha256:48d5d79d723300b49f18bbd88d786c0410cc58b869c121024a132e2e49f9cf35

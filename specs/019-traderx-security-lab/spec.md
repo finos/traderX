@@ -33,6 +33,10 @@ Carry forward C3 trading and observability; add staged, attributable security le
 4. Given a completed experiment, reset twice and repeat normal trading with stable evidence attribution.
 5. Given a supported clean machine, a contributor follows onboarding and explains the boundary using exported evidence without maintainer intervention.
 
+6. Given broker acceptance followed by a lost publisher acknowledgment, retry the same event and retain one business settlement; replay beyond broker deduplication must still apply a consumer effect once.
+7. Given consumer commit followed by a lost broker acknowledgment, redelivery must leave its projection unchanged; forged, cross-account and stale messages must not overwrite the authorized projection.
+
+
 Detailed threat assumptions, control contracts and existing evidence remain canonical in the [experimental specification](../012-platform-convergence-c3/security-lab/spec.md). State acceptance is pending; local checkpoint counts are not integrated acceptance.
 
 ### Contributor packaging requirement
@@ -44,3 +48,5 @@ FR-019-11: Provide a read-only platform doctor that verifies artifact integrity,
 FR-019-12: Fresh infrastructure setup must verify chart archive, deterministic rendered resources and full selected container/init-container inventory against committed pins. It must refuse existing clusters, containers and setup directories, use an explicit private kubeconfig, serialize against the browser lab, preserve partial resources on failure, and never create persistent secrets in review bundles. Fresh platform creation is not enforcement or hardened-state acceptance.
 
 FR-019-13: Fresh validation may use only the explicit supported alternate cluster name and a separate private runtime/kubeconfig. Record selection once, preserve existing stopped clusters, refuse other running control planes and concurrent account-development workloads, and require the recorded cluster UID for alternate-cluster network probes.
+
+FR-019-14: Settlement notifications must survive publisher and consumer restart without rebooking trades. Persist events atomically with settlement; acknowledge the outbox only after authenticated durable broker acceptance. Apply each consumer event ID and its projection effect in one database transaction, retain deduplication beyond the broker's duplicate window, and reject older position snapshots. Bind consumer account permissions to the database login and broker identity, not event fields supplied by a caller. Tests must inspect final database effects after lost acknowledgments and replay. A single-node fixture does not establish high availability or power-loss durability.

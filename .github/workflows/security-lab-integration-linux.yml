@@ -29,6 +29,7 @@ jobs:
         run: |
           python -m pip install -r scripts/security-lab/requirements.txt
           python -m pip install 'cryptography==50.0.2' 'PyJWT==2.15.1'
+          python -m pip install --require-hashes -r scripts/security-lab/requirements-delivery.txt
       - name: Fetch pinned baseline
         run: python scripts/security-lab/checkpoint.py fetch-baseline
       - name: Check portability boundaries
@@ -37,6 +38,7 @@ jobs:
           python -m unittest discover -s scripts/security-lab -p 'test_resource_preflight.py'
           python -m unittest discover -s scripts/security-lab -p 'test_trading_security.py'
           python -m unittest discover -s scripts/security-lab -p 'test_read_security.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_event_delivery.py'
       - name: Build candidates and exercise HTTP to PostgreSQL
         shell: bash
         env:
@@ -53,3 +55,4 @@ jobs:
           python scripts/security-lab/verify_execution_http.py --runtime-dir "$runtime" --output "$runtime/evidence/http.json"
           python scripts/security-lab/verify_execution_events.py --runtime-dir "$runtime" --output "$runtime/evidence/events.json"
           python scripts/security-lab/verify_execution_adversarial.py --runtime-dir "$runtime" --output "$runtime/evidence/adversarial.json"
+          python scripts/security-lab/verify_event_delivery.py --runtime-dir "$runtime" --output "$runtime/evidence/broker-delivery.json"

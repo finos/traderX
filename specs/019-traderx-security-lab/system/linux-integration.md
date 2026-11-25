@@ -6,7 +6,7 @@ tests the three trading candidates and position/history candidate sequentially, 
 processor jar against a disposable PostgreSQL fixture. Denied synthetic
 identities and invalid requests must leave all fixture tables unchanged;
 concurrent duplicate requests and processor/database restarts are checked.
-The same job runs the event outbox and cancellation/adversarial SQL campaigns sequentially. The offline job checks the CCC mapping. Component Java builds run once in the Linux job, avoiding a duplicate three-service build in the offline workflow.
+The same job runs the event outbox, cancellation/adversarial SQL campaigns, and authenticated JetStream/reference-consumer campaign sequentially. The offline job checks the CCC mapping. Component Java builds run once in the Linux job, avoiding a duplicate three-service build in the offline workflow.
 
 Loopback HTTP and synthetic signed tokens do not establish deployment TLS,
 live Keycloak, matcher dispatch, broker delivery or production readiness.
@@ -36,6 +36,7 @@ access, from the repository root:
 ```bash
 python3 -m pip install -r scripts/security-lab/requirements.txt
 python3 -m pip install 'cryptography==50.0.2' 'PyJWT==2.15.1'
+python3 -m pip install --require-hashes -r scripts/security-lab/requirements-delivery.txt
 python3 scripts/security-lab/checkpoint.py fetch-baseline
 export JAVA_HOME=/path/to/java-21
 export TRADERX_LAB_ISOLATED_LINUX=1
@@ -45,6 +46,7 @@ trap 'rm -rf "$runtime"' EXIT
 mkdir "$runtime/evidence"
 python3 scripts/security-lab/build_trading_security.py --runtime-dir "$runtime" --java-home "$JAVA_HOME"
 python3 scripts/security-lab/verify_execution_http.py --runtime-dir "$runtime" --output "$runtime/evidence/http.json"
+python3 scripts/security-lab/verify_event_delivery.py --runtime-dir "$runtime" --output "$runtime/evidence/broker-delivery.json"
 ```
 
 Use a private runtime directory and remove it after inspecting any needed local
