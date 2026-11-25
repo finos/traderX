@@ -1,0 +1,75 @@
+{
+  "status": "passed",
+  "scope": "local TLS broker and same-database reference consumer; not deployed acceptance",
+  "checks": [
+    "claim selects synthetic trade",
+    "expired claim reissued with fresh token",
+    "stale claimant cannot acknowledge replacement lease",
+    "stale acknowledgment leaves outbox pending",
+    "fresh lease publishes and acknowledges",
+    "fresh acknowledgment recorded in authoritative outbox",
+    "sequence denied by canonical SQL without projection effects",
+    "execution identity denied by canonical SQL without projection effects",
+    "unexpected payload key denied by canonical SQL without projection effects",
+    "decimal price denied by canonical SQL without projection effects",
+    "tampering leaves trading state unchanged",
+    "injected ack loss follows committed inbox and projection",
+    "exact financial decimal persisted",
+    "broker redelivers after injected acknowledgment loss",
+    "redelivery neither duplicates nor changes projection",
+    "duplicate payload key reaches scoped consumer",
+    "duplicate payload key rejected at wire decoder",
+    "duplicate payload key is unacknowledged and leaves projection unchanged",
+    "unexpected envelope key reaches scoped consumer",
+    "unexpected envelope key rejected at wire decoder",
+    "unexpected envelope key is unacknowledged and leaves projection unchanged",
+    "canonical mismatch reaches scoped consumer",
+    "pre-commit SQL denial leaves message pending and projection unchanged",
+    "delivery and retry leave trading state unchanged"
+  ],
+  "run_sha": "d729bf5d10c8d51fd4f36fd6b19a222ab00e65c8",
+  "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+  "python": "3.14.10",
+  "images": {
+    "postgresql": "ghcr.io/finos/traderx-c3/database@sha256:1aa68521a486e2c217e6d1b1328ae3d01816302eeddbeb664f34445d6844f022",
+    "nats": "docker.io/library/nats@sha256:c20b78366bab4531b2ae36e660f7cb7e533d956fc927aaf5c88e6ba6e5e054e4"
+  },
+  "broker_architecture": "amd64",
+  "client_versions": {
+    "nats-py": "2.17.0",
+    "psycopg": "3.3.9",
+    "psycopg-binary": "3.3.9",
+    "simplejson": "4.3.0"
+  },
+  "source_sha256": {
+    "scripts/security-lab/verify_event_delivery_adversarial.py": "1198cd35a7fbdcc34106846d049117f990b4ebc1bd3b85553826e2490523bffc",
+    "scripts/security-lab/event_delivery.py": "c1866e75a1a34d3ee6c1660a2b32503cf50918909c20ad0e9f5714d657303d03",
+    "scripts/security-lab/jetstream_fixture.py": "ea94c34cf6bb0950186b029e70f108e50b76031dadd40885de2366359073015b",
+    "scripts/security-lab/verify_bootstrap.py": "1ff6f8f838cee7ac5438b0777095b0b6936f6649f1253a8a1d2da5d23a27eab0",
+    "scripts/security-lab/resource_operation.py": "5e413d49e65b7ebc26eb87a991137d8e8f0147e94666466233ea4daa3ff50d94",
+    "scripts/security-lab/resource_preflight.py": "1647e3a2644d2e39e48aedd6d66a8197ff5bae321099ffcd49ea33e8c11b07e2",
+    "scripts/security-lab/portability.py": "2f9e6dd2c0ee4743a80d1e84180bf1e978a01a1320651bfb6845ca9f3d32299f",
+    "scripts/security-lab/bootstrap_database.py": "a3fa3a13a589d349be4f2e9b1ec65311573ad78ca64a0343858a2c5adbfdd6cd",
+    "scripts/security-lab/database_permissions.py": "3ed62241586bae869fea3d63f39826046032889b03eb795ca769759a72a22978",
+    "scripts/security-lab/prepare_runtime.py": "35462a2f2f91c152ad48137e9df1d752d2853f3ef01d77a37fc42f6293040c42",
+    "scripts/security-lab/lab.py": "0063611ecb3eecd0c4206ed93ab2484f8a809cc687623a977ca664f73a019db0",
+    "scripts/security-lab/test_event_delivery_adversarial.py": "9d7ec836c76a04cfe76be8c5d4a803b243db64f4104f2a8b660f404999c0a8d4",
+    "scripts/security-lab/requirements-delivery.txt": "d415c45c8d1487bab2d7fa8484bf4cd3ed4b73f1c39523d9a51dec757633c4f4",
+    "specs/019-traderx-security-lab/system/sql/execution-reservations.sql": "f11d808436862d0db1350a517b61ff04ee608a01da9975c474652678c3129057",
+    "specs/019-traderx-security-lab/system/sql/execution-settlement.sql": "2ff3c247e6de32b7d15f7a83c00708ad44c883ddb48c279316ee4aa98055cb65",
+    "specs/019-traderx-security-lab/system/sql/execution-events.sql": "c578a5702246c21bd8493512466a6a4f9eaba3822dac358d8f24f8bedf551106",
+    "specs/019-traderx-security-lab/system/sql/execution-consumer.sql": "f640fddc816a4877358c770169208366571bc3b96115320178016114da63b791",
+    "specs/019-traderx-security-lab/system/jetstream-images.lock.json": "1a63536280d5530bb86b67ec8a9af25c21f2239e0d2c628e4a05dd17adf3296d"
+  },
+  "limits": {
+    "postgresql_memory_mib": 256,
+    "broker_memory_mib": 128,
+    "loopback_ports": 2
+  },
+  "limitations": [
+    "Synthetic fault injection, not process or host failure.",
+    "Consumer validates against the same authoritative database, not independent signatures.",
+    "Publisher can withhold or falsely acknowledge claimed events; bootstrap remains trusted.",
+    "No application consumer, deployed environment or replicated availability tested."
+  ]
+}
