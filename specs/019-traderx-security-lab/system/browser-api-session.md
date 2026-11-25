@@ -25,6 +25,12 @@ cookie and a CSRF value; access and ID tokens remain on the session server.
 - BAPI-06: Keep existing account-only session behavior available. Candidate routes
   must be explicitly enabled; no wildcard proxy, operator/actuator routes, legacy
   booking endpoints or NATS credentials are exposed.
+- BAPI-07: The generated Angular candidate waits for `/session`, maps application
+  HTTP calls to the same-origin boundary and attaches the session CSRF value only
+  to same-origin mutations. Sign-out, API 401 and the server-provided expiry clear
+  the view and cancel outstanding application reads. No silent token refresh is
+  implied. Until scoped broker access is integrated, this candidate must not open
+  the inherited anonymous NATS WebSocket; display that limitation to the learner.
 
 ## Acceptance sequence
 

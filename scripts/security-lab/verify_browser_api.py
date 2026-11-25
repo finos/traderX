@@ -189,7 +189,7 @@ def campaign(runtime):
                             check(name+' real PKCE callback and secure cookie',True)
                             check(name+' callback replay denied',call(callback.removeprefix(ORIGIN))[0]==400)
                             status,_,raw=call('/session');session=json.loads(raw)
-                            check(name+' identity without bearer exposure',status==200 and set(session)=={'subject','csrf'} and session['subject']==SUBJECTS[name])
+                            check(name+' identity without bearer exposure',status==200 and set(session)=={'subject','csrf','expiresAt'} and session['subject']==SUBJECTS[name] and session['expiresAt']>time.time())
                             for kind in ('positions','trades'):
                                 status,_,raw=call('/api/position-service/'+kind+'/');rows=json.loads(raw)
                                 expected=int(require(sql('traderx',password,'SELECT count(*) FROM '+kind+(' WHERE accountid='+str(next(iter(allowed))) if allowed else ' WHERE false')+';'),'Count expected scoped rows'))

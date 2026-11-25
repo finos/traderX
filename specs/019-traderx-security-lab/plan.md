@@ -129,3 +129,11 @@ PostgreSQL campaign. Record scoped rows and unchanged database effects separatel
 from browser component tests. The existing account-only prototype remains
 available. Angular session wiring, scoped broker issuance and accepted trading
 writes remain later gates; no runtime cutover is implied by this campaign.
+
+S019-04c3 extends the same source candidate with an Angular session gate and
+same-origin API interceptor. The session server reports its expiry; client-side
+expiry, sign-out and API 401 destroy account views and cancel outstanding reads.
+The candidate disables anonymous NATS until the scoped broker checkpoint and
+shows that limitation in the application. Hosted Chrome tests and a production
+build must pass before marking this source integration complete. This is not yet
+an application served by the cumulative deployment gateway.

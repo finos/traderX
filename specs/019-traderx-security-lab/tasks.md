@@ -41,6 +41,7 @@ Completed prototype evidence and granular implementation history are in the [C3 
 - [ ] S019-04b Implement durable authorized background matching and authenticated execution; verify after initiating token expiry.
 - [x] S019-04c1 Implement position/history direct API authorization; verify 11 Java tests and deterministic generation. People/UI integration remains pending.
 - [ ] S019-04c2 Validate live Keycloak/PKCE cookie sessions through an explicit API boundary against the generated position/history service and scoped PostgreSQL; include CSRF, cross-account, expiry and logout checks. See `system/browser-api-session.md`.
+- [ ] S019-04c3 Connect the generated Angular root and HTTP client to server-held cookie sessions; verify CSRF, expiry/view teardown, canceled stale requests and refusal of anonymous broker fallback in hosted Chrome.
 - [ ] S019-04c Integrate remaining read APIs and Angular session/CSRF flow; validate direct-backend and full trading outcomes together.
 - [ ] S019-04 Integrate account/order/cancel/operator authorization and deny bypass routes while normal trading passes.
 - [ ] S019-05 Cut over live authenticated NATS, scoped subjects, browser issuance and reconnect/revocation checks.

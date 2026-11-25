@@ -122,7 +122,7 @@ class BrowserServer:
                             return self.reply(302,'',cookie=owner.cookie(SESSION,sid,max(0,int(until-time.time()))),location='/')
                         except Exception:return self.reply(401,'Login could not be verified')
                     if not session:return self.reply(401,'Sign in required')
-                    if path=='/session':return self.reply(200,dict(subject=session['subject'],csrf=session['csrf']))
+                    if path=='/session':return self.reply(200,dict(subject=session['subject'],csrf=session['csrf'],expiresAt=session['until']))
                     if re.fullmatch(r'/api/(account|accountuser)/(\d+)?',path):
                         try:status,data=api_request('GET',path[4:],session['token']);return self.reply(status,data)
                         except OSError:return self.reply(503,'Account API unavailable')

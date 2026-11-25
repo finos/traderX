@@ -66,6 +66,11 @@ def blotter(source, position=False):
 
 
 def feed(source):
+    source = section(source, '    private connect() {', '    private resolveWebSocketUrl(', '''    private connect() {
+        // Live authenticated broker mediation/issuance is a separate acceptance gate.
+        // Never fall back to the C3 anonymous WebSocket in this candidate.
+        this.connectionStateSubject.next('disconnected');
+    }''')
     source = "import { settlementMatches } from 'main/app/security/settlement-snapshot';\n" + source
     source = replace_once(source, 'type SubscriptionRecord = {', 'type SubscriptionRecord = {\n    settlement?: boolean;')
     source = replace_once(source, 'this.dispatchMessage(this.pendingMsg.sid, payload);', 'this.dispatchMessage(this.pendingMsg.sid, payload, this.pendingMsg.subject);')
@@ -106,10 +111,34 @@ def render(target):
         path=app/f'trade/{name}-blotter/{name}-blotter.component.ts'
         path.write_text(blotter(path.read_text(),name=='position'))
     path=app/'service/trade-feed.service.ts'; path.write_text(feed(path.read_text()))
+    path=app/'app.module.ts'
+    source="import { browserSessionInterceptor } from './security/browser-session';\n"+path.read_text()
+    source=replace_once(source,'provideHttpClient, withInterceptorsFromDi,','provideHttpClient, withInterceptors, withInterceptorsFromDi,')
+    path.write_text(replace_once(source,'provideHttpClient(withInterceptorsFromDi(), withJsonpSupport())','provideHttpClient(withInterceptors([browserSessionInterceptor]), withInterceptorsFromDi(), withJsonpSupport())'))
+    path=app/'app.component.ts'
+    source="import { BrowserSession } from './security/browser-session';\n"+path.read_text()
+    source=replace_once(source,'constructor(public themeService: ThemeService) { }','''constructor(public themeService: ThemeService, public session: BrowserSession) { session.refresh(); }
+
+    ngOnDestroy() { this.session.clear(); }''')
+    path.write_text(source)
+    path=app/'app.component.html'
+    path.write_text('''<ng-container *ngIf="session.state$ | async as state">
+  <main *ngIf="state !== 'signed-in'" aria-live="polite">
+    <h1>TraderX Security Lab</h1>
+    <p *ngIf="state === 'checking'">Checking your session…</p>
+    <a *ngIf="state === 'signed-out'" href="/login">Sign in with Keycloak</a>
+  </main>
+  <ng-container *ngIf="state === 'signed-in'">
+    <p>Signed in as {{ session.subject }} <button type="button" (click)="session.logout()">Sign out</button></p>
+    <p role="status">Authenticated API candidate. Live market and settlement notifications await the scoped broker checkpoint.</p>
+'''+path.read_text()+'''
+  </ng-container>
+</ng-container>
+''')
     dest=app/'security'; dest.mkdir(exist_ok=True)
     for path in OVERLAY.glob('*.ts'): (dest/path.name).write_bytes(path.read_bytes())
     inputs=[Path(__file__).resolve(),ROOT/'scripts/security-lab/render_account_security.py',PROFILE/'baseline.lock.json',*sorted(OVERLAY.glob('*.ts'))]
-    manifest={'scope':'Browser snapshot consumer source candidate; live sessions and broker issuance remain pending',
+    manifest={'scope':'Cookie-session and snapshot consumer source candidate; authenticated broker and cumulative trading remain pending',
         'generated_commit':baseline['generated_commit'],
         'inputs':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in inputs},
         'files':{str(p.relative_to(target)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(target.rglob('*')) if p.is_file()}}
