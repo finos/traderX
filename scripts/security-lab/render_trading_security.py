@@ -166,6 +166,7 @@ def render(target,service):
     if service=='trade-processor':
         (dest/'ExecutionController.java').write_text((OVERLAY/'ExecutionController.java').read_text().replace('__PACKAGE__',SERVICES[service]))
     if service=='order-matcher':
+        (dest/'ServiceTokenClient.java').write_text((OVERLAY/'ServiceTokenClient.java').read_text().replace('__PACKAGE__',SERVICES[service]))
         (dest/'AcceptedOrderAuthority.java').write_text((OVERLAY/'AcceptedOrderAuthority.java').read_text().replace('__PACKAGE__',SERVICES[service]))
         model=package/'model/OrderRecord.java'
         model.write_text(replace_once(model.read_text(),'    @PrePersist', '''    @Column(name = "AcceptedSubject", length = 255)

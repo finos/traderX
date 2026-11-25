@@ -27,6 +27,7 @@ Completed prototype evidence and granular implementation history are in the [C3 
 - [x] S019-04b1 Persist accepted-order authority without reusable tokens; verify eligibility, revocation and fail-closed anonymous-handoff refusal in the component candidate.
 - [x] S019-04b2a Verify candidate PostgreSQL reservation/settlement migrations, concurrent duplicate handling, rollback, restart and scoped SQL privileges in an isolated fixture.
 - [x] S019-04b2b1 Validate service-only processor HTTP execution with a dedicated audience/subject, disabled legacy booking paths and live PostgreSQL restart/deduplication evidence.
+- [x] S019-04b2b2 Implement and test bounded HTTPS service-token acquisition, in-memory refresh and fail-closed credential handling for the matcher candidate.
 - [ ] S019-04b2b Wire matcher, authenticated trade handoff and processor to the durable ledger; implement reliable broker/event delivery and cancellation integration.
 - [ ] S019-04b2 Add migrated authority storage, authenticated durable execution/outbox and downstream deduplication; verify restart, expiry, cancellation and retry outcomes.
 - [ ] S019-04b Implement durable authorized background matching and authenticated execution; verify after initiating token expiry.
@@ -41,3 +42,4 @@ Completed prototype evidence and granular implementation history are in the [C3 
 - [ ] S019-11 Run clean-machine reproduction, integrated CI and contributor walkthrough; review release artifacts.
 - [ ] S019-12 Implement optional isolated CVE/upstream fix/OSERA backpatch and VEX comparison before advertising it as runnable.
 - [ ] S019-13 Prepare generated snapshot release and community walkthrough after acceptance; CALM receives a separate successor state.
+- [ ] S019-14 After baseline acceptance, compare ingress/gateway and service-mesh profiles against the same security tests; measure code/configuration removed, operational effort, residual business controls and resource cost. Keep separate from the CALM successor; see `system/platform-control-comparison.md`.

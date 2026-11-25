@@ -109,3 +109,27 @@ live Keycloak or deployment TLS acceptance. The runner checks denied identities,
 payload overrides, the legacy route, concurrent execution and retries after
 processor/database restart against independently queried SQL outcomes. Process,
 container and volume cleanup run on failure as well as success.
+
+## Matcher service-token client checkpoint
+
+`ServiceTokenClient` implements the client-credentials acquisition boundary. It
+requires a configured HTTPS token endpoint without userinfo/query/fragment, uses
+platform TLS verification, refuses redirects, sets connect/read timeouts, and
+bounds secret/response reads. It never writes tokens to disk or surfaces response
+bodies/credential-bearing exceptions. It accepts only a Bearer compact-JWT token
+with an integral lifetime of 1–300 seconds; issuer, signature, audience and subject
+remain mandatory checks at the processor endpoint.
+
+Tokens are cached in memory until 30 seconds before the reported expiry, measured
+from request start. Refresh rereads the absolute-path secret file; refresh failure
+never returns the old cached token. A rotated secret takes effect on refresh, not
+instantaneously. Deployment must mount this file privately with the intended
+service identity; this class does not provision secrets or Keycloak clients.
+
+The client is compiled into the matcher candidate but not yet connected to the
+scheduler or enabled by a Spring bean. Tests use a controlled transport/clock and
+mock HTTPS connection to verify form encoding, refresh, failure redaction,
+redirect rejection and response bounds. They do not prove a live Keycloak grant
+or deployment certificate trust. The next integration still needs matcher
+reservation/retry, token acquisition configuration, dispatch and receipt
+reconciliation without a second local fill.

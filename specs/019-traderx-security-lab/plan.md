@@ -53,3 +53,7 @@ S019-04b1 passes 29 Java component tests (including five new durable-acceptance 
 S019-04b2a passes the real PostgreSQL [execution-ledger campaign](evidence/2026-11-24-execution-ledger.json), including concurrent duplicate settlement and rollback of trade/position/order/receipt together. The [delivery contract](system/execution-delivery.md) identifies remaining authenticated HTTP, Java processor, broker/event-outbox and cancellation integration. Candidate SQL is not deployed or included in fresh bootstrap yet.
 
 S019-04b2b1 validates the processor service-only HTTP endpoint against real PostgreSQL, including concurrent duplicate requests and a processor/database restart. See [HTTP execution evidence](evidence/2026-11-25-processor-execution-http.json). The opt-in processor candidate disables legacy NATS and HTTP booking; matcher dispatch, token acquisition, deployment TLS/Keycloak and reliable event delivery remain open.
+
+After baseline acceptance, run the [platform-control comparison](system/platform-control-comparison.md): ingress/gateway and service-mesh profiles measured against identical security outcomes and total implementation/operating effort. This is separate from the planned CALM successor; choose products, pinned compatibility and any successor state number during that exercise.
+
+S019-04b2b2 adds the bounded service-token client with eight component tests; all 51 Java tests pass. See [token-client evidence](evidence/2026-11-25-service-token-client.json). Live identity provisioning and scheduler wiring remain open.

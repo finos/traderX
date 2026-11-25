@@ -1,0 +1,34 @@
+{
+  "status": "passed-component-checkpoint-not-deployed",
+  "scope": "Matcher service-token acquisition client; scheduler and live identity integration pending",
+  "services": [
+    {
+      "service": "trade-service",
+      "tests": 10,
+      "jar_sha256": "1d73525801a3a59800423a61873f2b902d4950fdc53032a73c5fea4782fa3d2b"
+    },
+    {
+      "service": "order-matcher",
+      "tests": 27,
+      "jar_sha256": "d8103aa57f0bb0f6dafea7694a4470e005a75aaf555efb2481aa99180a88962b"
+    },
+    {
+      "service": "trade-processor",
+      "tests": 14,
+      "jar_sha256": "7e1c0e5c8def582a9434855f6054a3b574058fa95643193967b1eb1c73e3741c"
+    }
+  ],
+  "verified": [
+    "HTTPS-only configured endpoint; credential form encoding",
+    "In-memory early refresh and credential-file reread",
+    "Refresh failure discards cached token and redacts sensitive exceptions",
+    "Malformed/oversized responses and credentials rejected",
+    "Redirect refusal and connection cleanup with mocked HTTPS connection",
+    "Expiry during acquisition rejected using controlled clock"
+  ],
+  "limitations": [
+    "Controlled transport/clock and mocked HTTPS connection, not live Keycloak/TLS evidence",
+    "Client is not wired to scheduler or enabled as a runtime bean",
+    "Private secret mounting, client provisioning, dispatch and receipt reconciliation remain pending"
+  ]
+}
