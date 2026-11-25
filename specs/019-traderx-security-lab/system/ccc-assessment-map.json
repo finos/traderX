@@ -1,0 +1,447 @@
+{
+  "schema_version": 1,
+  "purpose": "Evidence-backed candidate mapping only; not a certification or compliance assertion.",
+  "controls": [
+    {
+      "id": "CCC.LB.CN11",
+      "title": "Attach a Web Application Firewall to Internet-Facing Listeners",
+      "catalog_version": "networking/loadbalancer/v2026.11",
+      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/56a388a18a6f2fdf13d933a0f9eddb16c8c9ccac/catalogs/networking/loadbalancer/controls.yaml",
+      "implementation_paths": [
+        "scripts/security-lab/prepare_waf.py",
+        "scripts/security-lab/verify_waf.py",
+        "specs/019-traderx-security-lab/spec.md"
+      ],
+      "test_command": "python scripts/security-lab/prepare_waf.py --runtime-dir <private-runtime-dir> && python scripts/security-lab/verify_waf.py --runtime-dir <private-runtime-dir>",
+      "evidence_paths": [
+        "specs/012-platform-convergence-c3/security-lab/evidence/2026-11-22-waf-result.json"
+      ],
+      "requirements": [
+        {
+          "id": "CCC.LB.CN11.AR01",
+          "requirement": "When a listener is internet-facing and serves HTTP or HTTPS traffic, a web application firewall policy MUST be associated with it.",
+          "result": "partial",
+          "status": "local-fixture",
+          "scope": "A standalone Envoy proxy-Wasm WAF fixture inspected harmless requests; no internet-facing TraderX listener or State 019 gateway is covered.",
+          "limitation": "A local WAF fixture is not a deployed listener association or a managed-cloud control."
+        },
+        {
+          "id": "CCC.LB.CN11.AR02",
+          "requirement": "When a web application firewall policy is associated with a listener, the policy MUST run in blocking (prevention) mode rather than detection-only mode.",
+          "result": "verified-within-scope",
+          "status": "local-fixture",
+          "scope": "The fixture compared Off, DetectionOnly and On; benign requests succeeded and suspicious requests were rejected before the recording backend in On mode.",
+          "limitation": "This proves behavior only in the standalone fixture. It does not prove deployed WAF coverage, a successful exploit in Off mode, or integration with Envoy Gateway."
+        }
+      ]
+    },
+    {
+      "id": "CCC.K8S.CN06",
+      "title": "Enforce Default-Deny Workload Network Policies",
+      "catalog_version": "orchestration/k8s/v2026.11",
+      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/56a388a18a6f2fdf13d933a0f9eddb16c8c9ccac/catalogs/orchestration/k8s/controls.yaml",
+      "implementation_paths": [
+        "scripts/security-lab/verify_platform.py",
+        "specs/019-traderx-security-lab/spec.md",
+        "specs/019-traderx-security-lab/system/platform-control-comparison.md"
+      ],
+      "test_command": "python scripts/security-lab/verify_platform.py --kubeconfig <private-runtime-dir>/kubeconfig --output-dir <private-runtime-dir>/evidence",
+      "evidence_paths": [
+        "specs/012-platform-convergence-c3/security-lab/evidence/2026-11-22-platform-result.json",
+        "specs/019-traderx-security-lab/evidence/2026-11-24-platform-readiness.json"
+      ],
+      "requirements": [
+        {
+          "id": "CCC.K8S.CN06.AR01",
+          "requirement": "When a user workload namespace is created, an enforced network policy MUST deny all ingress and egress traffic by default.",
+          "result": "verified-within-scope",
+          "status": "deployed-local-cluster",
+          "scope": "A dedicated local kind cluster applied default-deny ingress and egress in the isolated probe namespace; an unrelated client was denied while a positive-control client remained connected.",
+          "limitation": "This is a live local-cluster probe, not a managed-cloud cluster or full State 019 workload network-policy acceptance."
+        },
+        {
+          "id": "CCC.K8S.CN06.AR02",
+          "requirement": "When communication is required, each allow policy MUST identify the approved source, destination, protocol, and port using stable namespace, workload, or network selectors.",
+          "result": "verified-within-scope",
+          "status": "deployed-local-cluster",
+          "scope": "The probe's allow policies selected the approved client/server workloads and TCP port 8080; the positive and negative probes ran against the local Cilium data plane.",
+          "limitation": "The fixture tests one explicit flow, not every State 019 service edge. Ingress/mesh comparison remains future work."
+        }
+      ]
+    },
+    {
+      "id": "CCC.RDMS.CN07",
+      "title": "Enforce Least Privilege Within the Database",
+      "catalog_version": "database/relational/v2026.11",
+      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/56a388a18a6f2fdf13d933a0f9eddb16c8c9ccac/catalogs/database/relational/controls.yaml",
+      "implementation_paths": [
+        "scripts/security-lab/database_permissions.py",
+        "scripts/security-lab/verify_database_permissions.py",
+        "specs/012-platform-convergence-c3/security-lab/contracts/database-permissions.md",
+        "specs/019-traderx-security-lab/system/sql/execution-reservations.sql",
+        "specs/019-traderx-security-lab/system/sql/execution-settlement.sql"
+      ],
+      "test_command": "python scripts/security-lab/verify_database_permissions.py --runtime-dir <private-runtime-dir> --output-dir <private-runtime-dir>/evidence",
+      "evidence_paths": [
+        "specs/012-platform-convergence-c3/security-lab/evidence/2026-11-22-database-permissions-result.json",
+        "specs/019-traderx-security-lab/evidence/2026-11-25-processor-execution-http.json"
+      ],
+      "requirements": [
+        {
+          "id": "CCC.RDMS.CN07.AR01",
+          "requirement": "When a database login is used by an application, that login MUST NOT hold an administrative or superuser role.",
+          "result": "verified-within-scope",
+          "status": "deployed-local-cluster",
+          "scope": "Four PostgreSQL application logins in the dedicated local kind lab were checked for superuser/admin flags, memberships, ownership and effective grants.",
+          "limitation": "The committed SQL campaign is local-cluster evidence, not a managed database service assessment. The State 019 processor HTTP evidence is a separate component candidate, not deployment evidence."
+        },
+        {
+          "id": "CCC.RDMS.CN07.AR02",
+          "requirement": "When privileges are granted on a schema or table, the grant MUST NOT be made to the engine's public or every-login role.",
+          "result": "verified-within-scope",
+          "status": "deployed-local-cluster",
+          "scope": "The SQL permission compiler revokes database, schema, table and sequence privileges from PUBLIC; the local campaign verifies service-role grants and denied out-of-scope operations.",
+          "limitation": "This checks the tested PostgreSQL fixture only. It does not establish authorization within legitimate service grants, managed-cloud controls, or State 019's unfinished full execution cutover."
+        }
+      ]
+    },
+    {
+      "id": "CCC.K8S.CN23",
+      "title": "Detect Suspicious Workload Runtime Activity",
+      "catalog_version": "unreleased main snapshot at 00bb0a8ffb8c6894968d25e46e0bbe03f14c3919 (no versioned release verified)",
+      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/00bb0a8ffb8c6894968d25e46e0bbe03f14c3919/catalogs/orchestration/k8s/controls.yaml",
+      "implementation_paths": [
+        "specs/019-traderx-security-lab/spec.md",
+        "specs/019-traderx-security-lab/tasks.md"
+      ],
+      "test_command": "Not run: no runtime detection engine has been selected or integrated.",
+      "evidence_paths": [],
+      "requirements": [
+        {
+          "id": "CCC.K8S.CN23.AR01",
+          "requirement": "When a cluster is operational, runtime threat detection MUST be enabled for its nodes and workloads and MUST alert an authorized security function on suspicious container activity.",
+          "result": "planned",
+          "status": "planned",
+          "scope": "State 019 FR-019-05 and task S019-08 plan a bounded comparison of one runtime engine in observation and enforcement modes.",
+          "limitation": "The requirement is present in the pinned FINOS main snapshot but not in the checked v2026.11 Kubernetes release. No runtime sensor, alert delivery, detection or prevention result is evidenced."
+        }
+      ]
+    },
+    {
+      "id": "CCC.K8S.CN05",
+      "title": "Enforce Restricted Workload Security",
+      "catalog_version": "orchestration/k8s/v2026.11",
+      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/56a388a18a6f2fdf13d933a0f9eddb16c8c9ccac/catalogs/orchestration/k8s/controls.yaml",
+      "implementation_paths": [
+        "scripts/security-lab/verify_platform.py",
+        "scripts/security-lab/verify_workloads.py",
+        "specs/012-platform-convergence-c3/security-lab/contracts/workloads.md"
+      ],
+      "test_command": "python scripts/security-lab/verify_platform.py --kubeconfig <private-runtime-dir>/kubeconfig --output-dir <private-runtime-dir>/evidence; python scripts/security-lab/verify_workloads.py --output-dir <private-runtime-dir>/evidence",
+      "evidence_paths": [
+        "specs/012-platform-convergence-c3/security-lab/evidence/2026-11-22-platform-result.json",
+        "specs/012-platform-convergence-c3/security-lab/evidence/2026-11-22-workloads-result.json",
+        "specs/012-platform-convergence-c3/security-lab/evidence/2026-11-22-restricted-collector-result.json"
+      ],
+      "requirements": [
+        {
+          "id": "CCC.K8S.CN05.AR01",
+          "requirement": "When a workload is admitted to a user workload namespace, it MUST satisfy the Kubernetes Baseline Pod Security Standard.",
+          "result": "verified-within-scope",
+          "status": "deployed-local-cluster",
+          "scope": "Committed probes show admission denials for privileged and host-access workloads in the dedicated local cluster; selected C3 workloads were separately verified.",
+          "limitation": "Evidence covers the named local lab namespaces and workloads, not every namespace or a managed cluster."
+        },
+        {
+          "id": "CCC.K8S.CN05.AR02",
+          "requirement": "When a Linux workload is admitted to a user workload namespace, it MUST satisfy the Kubernetes Restricted Pod Security Standard.",
+          "result": "verified-within-scope",
+          "status": "deployed-local-cluster",
+          "scope": "Restricted admission rejected a non-conforming probe; selected business and collector workloads were checked for non-root, seccomp, dropped capabilities, token suppression and related settings.",
+          "limitation": "The probes do not establish universal policy coverage or runtime prevention of misuse of allowed database or broker access."
+        }
+      ]
+    },
+    {
+      "id": "CCC.K8S.CN04",
+      "title": "Admit Only Trusted Container Images",
+      "catalog_version": "orchestration/k8s/v2026.11",
+      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/56a388a18a6f2fdf13d933a0f9eddb16c8c9ccac/catalogs/orchestration/k8s/controls.yaml",
+      "implementation_paths": [
+        "specs/012-platform-convergence-c3/security-lab/evidence/2026-11-22-workloads.md",
+        "specs/019-traderx-security-lab/spec.md",
+        "specs/019-traderx-security-lab/tasks.md"
+      ],
+      "test_command": "No admission test for approved registry, signature/provenance verification, or critical-vulnerability rejection is recorded.",
+      "evidence_paths": [
+        "specs/012-platform-convergence-c3/security-lab/evidence/2026-11-22-workloads-result.json"
+      ],
+      "requirements": [
+        {
+          "id": "CCC.K8S.CN04.AR01",
+          "requirement": "When a workload is admitted, every container image MUST originate from an approved registry AND be referenced by an immutable digest.",
+          "result": "partial",
+          "status": "component-candidate",
+          "scope": "Committed workload evidence records digest-pinned images for tested services; admission enforcement of an approved registry is not established.",
+          "limitation": "Digest pinning alone does not establish approved-registry policy, signature verification, provenance, or that every admitted image is covered."
+        },
+        {
+          "id": "CCC.K8S.CN04.AR02",
+          "requirement": "When a container image is admitted, its signature and provenance attestation MUST be verified against an approved publisher and build process.",
+          "result": "planned",
+          "status": "planned",
+          "scope": "Approved-image admission remains a State 019 security integration gate.",
+          "limitation": "No committed signature/provenance admission test or evidence was found."
+        },
+        {
+          "id": "CCC.K8S.CN04.AR03",
+          "requirement": "When a container image contains a known critical vulnerability, admission of that image MUST be denied.",
+          "result": "planned",
+          "status": "planned",
+          "scope": "Image vulnerability admission remains a State 019 security integration gate.",
+          "limitation": "No committed critical-vulnerability policy or admission result was found."
+        }
+      ]
+    },
+    {
+      "id": "CCC.K8S.CN19",
+      "title": "Restrict External Exposure of Workload Services",
+      "catalog_version": "orchestration/k8s/v2026.11",
+      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/56a388a18a6f2fdf13d933a0f9eddb16c8c9ccac/catalogs/orchestration/k8s/controls.yaml",
+      "implementation_paths": [
+        "specs/019-traderx-security-lab/spec.md",
+        "specs/019-traderx-security-lab/system/platform-control-comparison.md"
+      ],
+      "test_command": "Not run: no approved ingress/gateway integration or external-exposure policy comparison is implemented.",
+      "evidence_paths": [],
+      "requirements": [
+        {
+          "id": "CCC.K8S.CN19.AR01",
+          "requirement": "When a LoadBalancer Service, Ingress, or Gateway is created, its load balancer MUST be provisioned with internal scope unless its namespace is approved for external exposure.",
+          "result": "planned",
+          "status": "planned",
+          "scope": "State 019 gateway/WAF integration and the later ingress comparison remain open.",
+          "limitation": "No Kubernetes LoadBalancer, Ingress or Gateway exposure policy result is committed."
+        },
+        {
+          "id": "CCC.K8S.CN19.AR02",
+          "requirement": "When an externally scoped load balancer is created for a workload, it MUST restrict inbound traffic to an approved source address allowlist.",
+          "result": "planned",
+          "status": "planned",
+          "scope": "No externally scoped workload load balancer is assessed.",
+          "limitation": "The WAF fixture is not deployed coverage and does not prove a managed load-balancer source allowlist."
+        },
+        {
+          "id": "CCC.K8S.CN19.AR03",
+          "requirement": "When a Service is created or updated, it MUST NOT set external IP addresses unless they are explicitly approved.",
+          "result": "planned",
+          "status": "planned",
+          "scope": "No service admission rule for external IPs is evidenced.",
+          "limitation": "No positive/negative Service admission test is committed."
+        },
+        {
+          "id": "CCC.K8S.CN19.AR04",
+          "requirement": "When a Service is created in a user workload namespace, it MUST NOT be of type NodePort.",
+          "result": "planned",
+          "status": "planned",
+          "scope": "No NodePort admission rule is evidenced.",
+          "limitation": "No positive/negative NodePort admission test is committed."
+        }
+      ]
+    },
+    {
+      "id": "CCC.K8S.CN02",
+      "title": "Enforce Least-Privilege Cluster Authorization",
+      "catalog_version": "orchestration/k8s/v2026.11",
+      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/56a388a18a6f2fdf13d933a0f9eddb16c8c9ccac/catalogs/orchestration/k8s/controls.yaml",
+      "implementation_paths": [
+        "scripts/security-lab/verify_workloads.py",
+        "scripts/security-lab/verify_collector.py",
+        "specs/012-platform-convergence-c3/security-lab/contracts/workloads.md"
+      ],
+      "test_command": "python scripts/security-lab/verify_workloads.py --output-dir <private-runtime-dir>/evidence; python scripts/security-lab/verify_collector.py --output-dir <private-runtime-dir>/evidence",
+      "evidence_paths": [
+        "specs/012-platform-convergence-c3/security-lab/evidence/2026-11-22-workloads-result.json",
+        "specs/012-platform-convergence-c3/security-lab/evidence/2026-11-22-restricted-collector-result.json"
+      ],
+      "requirements": [
+        {
+          "id": "CCC.K8S.CN02.AR01",
+          "requirement": "When a user or group is granted cluster access, each cloud access binding and Kubernetes role binding MUST grant only an approved role required by that identity's documented responsibilities.",
+          "result": "not-assessed",
+          "status": "not-assessed",
+          "scope": "The evidence checks selected service and collector identities, not a cluster-wide inventory of human/cloud bindings and their approved responsibilities.",
+          "limitation": "No complete role/binding inventory or documented responsibility-to-entitlement review is committed."
+        },
+        {
+          "id": "CCC.K8S.CN02.AR02",
+          "requirement": "When a non-system Kubernetes role is defined, it MUST NOT grant wildcard verbs, wildcard resources, or wildcard API groups.",
+          "result": "not-assessed",
+          "status": "not-assessed",
+          "scope": "No cluster-wide non-system role audit is recorded.",
+          "limitation": "Collector RBAC checks do not prove all roles are free of wildcard grants."
+        },
+        {
+          "id": "CCC.K8S.CN02.AR03",
+          "requirement": "When a non-system RoleBinding or ClusterRoleBinding is created or updated, its subjects MUST NOT include the system:anonymous, system:unauthenticated, or system:authenticated groups.",
+          "result": "not-assessed",
+          "status": "not-assessed",
+          "scope": "No binding admission or cluster-wide subject inventory is recorded.",
+          "limitation": "No positive/negative binding test is committed."
+        },
+        {
+          "id": "CCC.K8S.CN02.AR04",
+          "requirement": "When a non-system Kubernetes role grants the escalate, bind, or impersonate verbs, or grants approve on certificatesigningrequests/approval, that role MUST be bound only to a dedicated administrative group.",
+          "result": "not-assessed",
+          "status": "not-assessed",
+          "scope": "No cluster-wide privileged-verb or certificate-approval role assessment is recorded.",
+          "limitation": "No role-binding evidence covers these administrative permissions."
+        },
+        {
+          "id": "CCC.K8S.CN02.AR05",
+          "requirement": "When a workload does not call the Kubernetes API, its service account token MUST NOT be mounted into the workload.",
+          "result": "verified-within-scope",
+          "status": "deployed-local-cluster",
+          "scope": "The tested business workloads and collector configuration suppress service-account tokens; committed live workload evidence confirms token absence for selected pods.",
+          "limitation": "This is a selected local-lab workload check, not an inventory of every cluster workload or a managed-cloud assessment."
+        },
+        {
+          "id": "CCC.K8S.CN02.AR06",
+          "requirement": "When a non-system Kubernetes role grants create on pods or workload controllers in a system or privileged namespace, or create on pods/exec, pods/attach, pods/portforward, pods/proxy, services/proxy, nodes/proxy, or serviceaccounts/token, or update or patch on pods/ephemeralcontainers, in any namespace, that role MUST be bound only to a dedicated administrative group.",
+          "result": "not-assessed",
+          "status": "not-assessed",
+          "scope": "No cluster-wide privileged workload/API subresource permission review is recorded.",
+          "limitation": "Scoped application and collector checks do not establish this administrative-role requirement."
+        }
+      ]
+    },
+    {
+      "id": "CCC.K8S.CN07",
+      "title": "Protect Workload Secrets",
+      "catalog_version": "orchestration/k8s/v2026.11",
+      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/56a388a18a6f2fdf13d933a0f9eddb16c8c9ccac/catalogs/orchestration/k8s/controls.yaml",
+      "implementation_paths": [
+        "scripts/security-lab/verify_workloads.py",
+        "scripts/security-lab/verify_database_permissions.py",
+        "scripts/security-lab/verify_collector.py",
+        "specs/019-traderx-security-lab/evidence/2026-11-24-private-credentials.json"
+      ],
+      "test_command": "python scripts/security-lab/verify_workloads.py --output-dir <private-runtime-dir>/evidence; python scripts/security-lab/verify_database_permissions.py --runtime-dir <private-runtime-dir> --output-dir <private-runtime-dir>/evidence; python scripts/security-lab/verify_collector.py --output-dir <private-runtime-dir>/evidence",
+      "evidence_paths": [
+        "specs/012-platform-convergence-c3/security-lab/evidence/2026-11-22-workloads-result.json",
+        "specs/012-platform-convergence-c3/security-lab/evidence/2026-11-22-database-permissions-result.json",
+        "specs/012-platform-convergence-c3/security-lab/evidence/2026-11-22-restricted-collector-result.json",
+        "specs/019-traderx-security-lab/evidence/2026-11-24-private-credentials.json"
+      ],
+      "requirements": [
+        {
+          "id": "CCC.K8S.CN07.AR01",
+          "requirement": "When a secret is mounted or injected into a workload, it MUST be readable only by the intended workload's service account.",
+          "result": "partial",
+          "status": "deployed-local-cluster",
+          "scope": "Selected C3 workload tests deny cross-service secret reads and use dedicated SQL Secret references.",
+          "limitation": "Evidence is limited to tested workloads and secrets; no cluster-wide secret-access review or managed secret-store proof is available."
+        },
+        {
+          "id": "CCC.K8S.CN07.AR02",
+          "requirement": "When Kubernetes secret access is granted, workload roles MUST be limited to the required named secrets and MUST NOT grant unrestricted list or watch access.",
+          "result": "partial",
+          "status": "deployed-local-cluster",
+          "scope": "Workload service accounts have no RBAC grants in the tested slice; the isolated collector's scoped RBAC was checked separately.",
+          "limitation": "The committed checks do not inventory every cluster role or secret grant."
+        },
+        {
+          "id": "CCC.K8S.CN07.AR03",
+          "requirement": "When a Kubernetes Secret is persisted to the cluster datastore, it MUST be envelope-encrypted with a key held in a cloud key management service.",
+          "result": "not-assessed",
+          "status": "not-assessed",
+          "scope": "The local kind cluster has no assessed cloud KMS envelope-encryption configuration.",
+          "limitation": "No managed-cloud KMS evidence is committed; local private-file credential storage does not satisfy this Kubernetes datastore requirement."
+        },
+        {
+          "id": "CCC.K8S.CN07.AR04",
+          "requirement": "When a workload is deployed, secret values MUST NOT be present in its container images, ConfigMaps, or plain environment variables in the workload specification.",
+          "result": "partial",
+          "status": "deployed-local-cluster",
+          "scope": "Database identity checks reject tested literal/cross-service credentials and verify SQL password Secret references.",
+          "limitation": "The check is scoped to the tested SQL deployment inputs; it is not a scan of all images, ConfigMaps, manifests or workloads."
+        },
+        {
+          "id": "CCC.K8S.CN07.AR05",
+          "requirement": "When a cluster is operational, long-lived service-account-token Secrets MUST NOT exist outside an approved exception list.",
+          "result": "partial",
+          "status": "deployed-local-cluster",
+          "scope": "Selected workload pods have no mounted service-account token.",
+          "limitation": "No cluster-wide inventory of legacy service-account-token Secret objects or approved exceptions is committed."
+        }
+      ]
+    },
+    {
+      "id": "CCC.K8S.CN14",
+      "title": "Preserve Kubernetes Audit and Monitoring Records",
+      "catalog_version": "orchestration/k8s/v2026.11",
+      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/56a388a18a6f2fdf13d933a0f9eddb16c8c9ccac/catalogs/orchestration/k8s/controls.yaml",
+      "implementation_paths": [
+        "scripts/security-lab/verify_collector.py",
+        "scripts/security-lab/verify_workloads.py",
+        "specs/019-traderx-security-lab/system/telemetry-lifecycle.md",
+        "specs/019-traderx-security-lab/evidence/2026-11-24-consolidated-runtime.json"
+      ],
+      "test_command": "python scripts/security-lab/verify_workloads.py --profile observability --output-dir <private-runtime-dir>/evidence; python scripts/security-lab/verify_collector.py --output-dir <private-runtime-dir>/evidence",
+      "evidence_paths": [
+        "specs/012-platform-convergence-c3/security-lab/evidence/2026-11-22-observability-result.json",
+        "specs/012-platform-convergence-c3/security-lab/evidence/2026-11-22-restricted-collector-result.json",
+        "specs/019-traderx-security-lab/evidence/2026-11-24-consolidated-runtime.json"
+      ],
+      "requirements": [
+        {
+          "id": "CCC.K8S.CN14.AR01",
+          "requirement": "When a cluster is operational, Kubernetes API audit logs, control-plane logs, and security-relevant node, workload, and network activity records MUST be enabled and exported to an approved external logging destination.",
+          "result": "partial",
+          "status": "deployed-local-cluster",
+          "scope": "Committed local-cluster evidence confirms selected application logs, metrics and traces persist across telemetry pod recreation.",
+          "limitation": "It does not establish Kubernetes API audit/control-plane logging or export to an independently governed external destination."
+        },
+        {
+          "id": "CCC.K8S.CN14.AR02",
+          "requirement": "When Kubernetes audit or monitoring records are retained, write, delete, and configuration access MUST be separated from cluster workload and routine cluster administration identities.",
+          "result": "partial",
+          "status": "deployed-local-cluster",
+          "scope": "The collector has a separate constrained identity and selected RBAC/admission boundaries were verified.",
+          "limitation": "Evidence does not prove independent write/delete/configuration custody or tamper-resistant retention; local telemetry stores and private checkpoints remain in the lab boundary."
+        },
+        {
+          "id": "CCC.K8S.CN14.AR03",
+          "requirement": "When a cluster-admin binding, an admission webhook or policy object, or the audit log category configuration changes, the monitoring system MUST generate an alert for review by an authorized security function.",
+          "result": "not-assessed",
+          "status": "not-assessed",
+          "scope": "No committed detection and alert-delivery test covers these Kubernetes configuration changes.",
+          "limitation": "Telemetry availability is not evidence that these security change alerts exist."
+        },
+        {
+          "id": "CCC.K8S.CN14.AR04",
+          "requirement": "When cluster or workload metrics are exposed or exported, read access MUST be restricted to authorized monitoring identities.",
+          "result": "not-assessed",
+          "status": "not-assessed",
+          "scope": "The evidence verifies metric persistence but not access restrictions for every cluster/workload metric endpoint.",
+          "limitation": "No complete metrics authorization test is committed."
+        },
+        {
+          "id": "CCC.K8S.CN14.AR05",
+          "requirement": "When a cluster is operational, runtime threat detection MUST be enabled for its nodes and workloads and MUST alert an authorized security function on suspicious container activity.",
+          "result": "planned",
+          "status": "planned",
+          "scope": "The v2026.11 catalog includes this runtime-detection requirement; State 019 FR-019-05 plans later observation/enforcement comparison.",
+          "limitation": "No runtime sensor or alert-delivery evidence is committed. Detection after an effect is not prevention."
+        }
+      ]
+    }
+  ],
+  "interpretation_notes": [
+    "A local fixture, component candidate, or deployed local kind cluster is not a managed-cloud approximation unless explicitly described as such; no managed-cloud approximation is claimed in this assessment.",
+    "CCC.K8S.CN23 is present at the pinned FINOS main commit but absent from the checked orchestration/k8s/v2026.11 release. The released catalog has a related runtime-detection requirement at CCC.K8S.CN14.AR05.",
+    "State 019 HTTP authorization tests and synthetic-token checks are component evidence only. They are not NATS subject authorization, deployment TLS, or deployment-trust evidence.",
+    "Runtime detection and runtime prevention are separate outcomes. No runtime detection engine or prevention result is claimed.",
+    "Ingress and service-mesh profiles and the CALM comparison are future work as described by system/platform-control-comparison.md; they are not current implementation evidence."
+  ]
+}
