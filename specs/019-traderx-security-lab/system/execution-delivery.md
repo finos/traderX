@@ -1,7 +1,8 @@
 # Background execution delivery contract
 
-Status: PostgreSQL reservation and settlement components tested in an isolated fixture;
-Java/HTTP/broker integration is not implemented or deployed. This refines S019-04b2.
+Status: PostgreSQL reservation/settlement and the processor HTTP boundary are
+validated in isolated fixtures; matcher dispatch and broker integration remain
+unimplemented. No runtime cutover is claimed. This refines S019-04b2.
 
 ## Durable boundaries
 
@@ -79,3 +80,32 @@ This proves the candidate SQL transaction behavior for the recorded synthetic
 buy workflow, not authenticated end-to-end trading, broker delivery, live Keycloak
 expiry, or a defense against a compromised bootstrap administrator. The live lab
 continues to use its previously validated images.
+
+## Processor HTTP candidate (25 November)
+
+The processor candidate exposes `POST /internal/executions/{uuid}` under RS256
+issuer/key validation, the dedicated `traderx-execution` audience and an exact
+configured matcher subject. User roles and caller headers confer no execution
+rights. The request has no account/price/quantity body; the processor invokes
+`lab_execution.settle(?)` with a bound UUID and returns the authoritative receipt.
+SQL business conflicts return 409; other database failures return 503 without SQL
+details. The old `/tradeservice/order` HTTP route is denied and the legacy NATS
+trade subscriber is removed from the candidate configuration. Legacy booking,
+NATS publisher configuration and message-bus health beans are also unregistered;
+the original booking class remains available to its explicit regression tests.
+
+This deliberately tests the processor boundary directly before adding a gateway
+relay or broker hop. It does not turn the matcher into a general trader or
+impersonate an expired user. The matcher dispatch adapter and its service-token
+acquisition are still required. The old trade-service user route continues to be
+a separate direct-API candidate and is not rerouted automatically.
+
+`verify_execution_http.py` starts the verified processor jar and a disposable
+PostgreSQL instance on random **loopback-only** ports. Unlike the SQL-only fixture,
+this explicit integration fixture enables Docker bridge networking and a
+127.0.0.1 port mapping; the default SQL fixture remains network-isolated. It uses
+synthetic signed tokens and cleartext loopback HTTP, so it does not establish
+live Keycloak or deployment TLS acceptance. The runner checks denied identities,
+payload overrides, the legacy route, concurrent execution and retries after
+processor/database restart against independently queried SQL outcomes. Process,
+container and volume cleanup run on failure as well as success.

@@ -72,7 +72,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for service in trade-service order-matcher; do
+          for service in trade-service order-matcher trade-processor; do
             candidate="$RUNNER_TEMP/trading-authorization/$service"
             python scripts/security-lab/render_trading_security.py --service "$service" --output-dir "$candidate"
             (cd "$candidate" && bash gradlew --no-daemon --max-workers=1 '-Dorg.gradle.jvmargs=-Xmx384m -XX:MaxMetaspaceSize=256m' test bootJar)

@@ -6,6 +6,7 @@ import hashlib
 import json
 from pathlib import Path
 import secrets
+import socket
 import subprocess
 import tempfile
 import time
@@ -28,7 +29,7 @@ def command(args, **kwargs):
 
 
 @contextmanager
-def database(runtime, image, credentials=None, persistent=False):
+def database(runtime, image, credentials=None, persistent=False, loopback=False):
     docker = account_dev.docker(runtime)
     run_id = uuid.uuid4().hex
     name = 'traderx-bootstrap-' + run_id[:12]
@@ -47,8 +48,12 @@ def database(runtime, image, credentials=None, persistent=False):
             if persistent:
                 volume = command(docker+['volume','create','--label',label+'='+run_id,name+'-data'])
                 data_mount = ['--mount',f'type=volume,src={volume},dst=/var/lib/postgresql/data']
+            loopback_port=None
+            if loopback:
+                with socket.socket() as probe:
+                    probe.bind(('127.0.0.1',0));loopback_port=probe.getsockname()[1]
             container = command(docker+['create','--name',name,'--label',label+'='+run_id,
-                '--network','none','--restart','no','--user','70:70','--read-only','--cap-drop','ALL',
+                '--network',('bridge' if loopback else 'none'),*(['--publish',f'127.0.0.1:{loopback_port}:5432'] if loopback else []),'--restart','no','--user','70:70','--read-only','--cap-drop','ALL',
                 '--security-opt','no-new-privileges:true','--memory','256m','--memory-swap','256m',
                 '--cpus','1','--pids-limit','128','--platform','linux/amd64',
                 '--log-driver','local','--log-opt','max-size=5m','--log-opt','max-file=2',
@@ -79,7 +84,13 @@ def database(runtime, image, credentials=None, persistent=False):
                 command(docker+['start',container])
                 wait_ready()
             wait_ready()
-            yield (sql, password, restart) if persistent else (sql, password)
+            if loopback:
+                endpoint=command(docker+['port',container,'5432/tcp'])
+                if not endpoint.startswith('127.0.0.1:') or not endpoint.removeprefix('127.0.0.1:').isdigit():
+                    raise RuntimeError('Unexpected database publication')
+                yield sql,password,restart,int(endpoint.split(':')[1])
+            else:
+                yield (sql, password, restart) if persistent else (sql, password)
         finally:
             if container:
                 owner=command(docker+['inspect','--format','{{index .Config.Labels "'+label+'"}}',container])

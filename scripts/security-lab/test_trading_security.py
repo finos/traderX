@@ -14,6 +14,9 @@ class TradingGenerationTests(unittest.TestCase):
                 self.assertEqual((first/'security-generation.json').read_bytes(),(second/'security-generation.json').read_bytes())
                 manifest=json.loads((first/'security-generation.json').read_text())
                 for name,digest in manifest['files'].items():self.assertEqual(hashlib.sha256((first/name).read_bytes()).hexdigest(),digest)
+                if service=='trade-processor':
+                    self.assertNotIn('tradeFeedHandler()', (first/'src/main/java/finos/traderx/tradeprocessor/PubSubConfig.java').read_text())
+                    continue
                 source=next(first.glob('src/main/java/**/controller/'+('TradeOrderController' if service=='trade-service' else 'OrderController')+'.java')).read_text()
                 with self.assertRaises(ValueError):controller(source,service)
     def test_unknown_service_refused_before_directory_creation(self):

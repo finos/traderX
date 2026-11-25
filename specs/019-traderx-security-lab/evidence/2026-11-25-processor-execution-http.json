@@ -1,0 +1,33 @@
+{
+  "status": "passed",
+  "scope": "Processor HTTP and PostgreSQL integration candidate, not deployed",
+  "jar_sha256": "399217781ae5db1eed335666b01883ad16f3bf1b52abbb9a8c49f2a294126653",
+  "migration_sha256": "f11d808436862d0db1350a517b61ff04ee608a01da9975c474652678c3129057",
+  "settlement_sha256": "2ff3c247e6de32b7d15f7a83c00708ad44c883ddb48c279316ee4aa98055cb65",
+  "image": "ghcr.io/finos/traderx-c3/database@sha256:1aa68521a486e2c217e6d1b1328ae3d01816302eeddbeb664f34445d6844f022",
+  "checks": [
+    "anonymous rejected without trade effects",
+    "user audience rejected without trade effects",
+    "wrong service rejected without trade effects",
+    "expired rejected without trade effects",
+    "unreserved execution rejected",
+    "payload override and legacy HTTP booking rejected without position effects",
+    "concurrent authenticated HTTP requests settle exactly once in PostgreSQL",
+    "processor and database restart preserve duplicate protection"
+  ],
+  "limitations": [
+    "Synthetic signed tokens, not live Keycloak; HTTP loopback, not deployment TLS",
+    "Matcher dispatch, live policy revocation and broker/event delivery remain pending",
+    "Legacy NATS subscription disabled in candidate; no normal trading cutover"
+  ],
+  "java_tests": {
+    "trade-service": 10,
+    "order-matcher": 19,
+    "trade-processor": 14
+  },
+  "source_hashes": {
+    "scripts/security-lab/verify_execution_http.py": "312d3c62f5a39c60a26234050755b521efe813bf444dd2b53b0fa0080963543c",
+    "scripts/security-lab/verify_bootstrap.py": "3d9d6eea74909ea99b51c7e080149b6618be466ae11ab9d63ea38024fff11276",
+    "scripts/security-lab/render_trading_security.py": "2ca8a256ecaa84be47626b6d07c7065a7f731c359bebb4e48bc454c9035bc40a"
+  }
+}

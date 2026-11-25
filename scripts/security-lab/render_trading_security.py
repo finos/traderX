@@ -9,7 +9,7 @@ import tarfile
 from render_account_security import ROOT, PROFILE, replace_once
 
 OVERLAY=PROFILE/'generation/trading-security'
-SERVICES={'trade-service':'finos.traderx.tradeservice','order-matcher':'finos.traderx.ordermatcher'}
+SERVICES={'trade-service':'finos.traderx.tradeservice','order-matcher':'finos.traderx.ordermatcher','trade-processor':'finos.traderx.tradeprocessor'}
 
 
 def matcher(source):
@@ -113,6 +113,15 @@ def security(service):
     source=(PROFILE/'generation/account-security/AccountSecurity.java').read_text()
     source=source.replace('finos.traderx.accountservice',SERVICES[service]).replace('AccountSecurity','TradingSecurity').replace('accountChain(HttpSecurity http)','tradingChain(HttpSecurity http, TradingAccess access)')
     old='''            .requestMatchers(HttpMethod.GET, "/account/", "/account/*", "/accountuser/", "/accountuser/*").authenticated()'''
+    if service=='trade-processor':
+        source=source.replace('tradingChain(HttpSecurity http, TradingAccess access)', 'tradingChain(HttpSecurity http, @Value("${lab.execution.matcher-subject}") String matcherSubject)')
+        source=source.replace('    URI uri = URI.create(issuer);', '    if (!"traderx-execution".equals(audience)) throw new IllegalArgumentException("Dedicated execution audience required");\n    URI uri = URI.create(issuer);')
+        source=source.replace('    http.csrf', '    if (matcherSubject.isBlank()) throw new IllegalArgumentException("Matcher subject required");\n    http.csrf')
+        source=source.replace('.authorizeHttpRequests(auth -> auth', '.authorizeHttpRequests(auth -> auth\n            .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ERROR).permitAll()')
+        return replace_once(source,old,'''            .requestMatchers(HttpMethod.POST, "/internal/executions/*")
+                .access((authentication, context) -> new org.springframework.security.authorization.AuthorizationDecision(
+                    authentication.get() instanceof org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken jwt
+                    && jwt.isAuthenticated() && matcherSubject.equals(jwt.getToken().getSubject())))''')
     operator='"/system/health", "/metrics", "/actuator/prometheus"'
     if service=='order-matcher':operator+=', "/health", "/healthz", "/orders/open-count"'
     routes=f'''            .requestMatchers(HttpMethod.GET, {operator})
@@ -138,12 +147,24 @@ def render(target,service):
                 destination.write_bytes(archive.extractfile(member).read());destination.chmod(member.mode & 0o777)
     package=target/'src/main/java'/SERVICES[service].replace('.','/')
     name='TradeOrderController' if service=='trade-service' else 'OrderController'
-    path=package/'controller'/f'{name}.java';path.write_text(controller(path.read_text(),service))
+    if service!='trade-processor':
+        path=package/'controller'/f'{name}.java';path.write_text(controller(path.read_text(),service))
+    else:
+        config=package/'PubSubConfig.java'
+        source=config.read_text()
+        start=source.index('  @Bean\n  public Subscriber<TradeOrder> tradeFeedHandler()')
+        config.write_text(replace_once(source[:start]+'}\n','@Configuration\n',''))
+        for relative,annotation in [('controller/TradeServiceController.java','@RestController'),('controller/SystemController.java','@RestController'),('service/TradeService.java','@Service')]:
+            legacy=package/relative
+            legacy.write_text(replace_once(legacy.read_text(),annotation+'\n',''))
+
     # Authenticated clients use the same-origin session boundary; no inherited wildcard CORS.
     for path in (package/'config').glob('*Cors*.java'):path.unlink()
     dest=package/'security';dest.mkdir()
-    (dest/'TradingAccess.java').write_text((OVERLAY/'TradingAccess.java').read_text().replace('__PACKAGE__',SERVICES[service]))
+    if service!='trade-processor': (dest/'TradingAccess.java').write_text((OVERLAY/'TradingAccess.java').read_text().replace('__PACKAGE__',SERVICES[service]))
     (dest/'TradingSecurity.java').write_text(security(service))
+    if service=='trade-processor':
+        (dest/'ExecutionController.java').write_text((OVERLAY/'ExecutionController.java').read_text().replace('__PACKAGE__',SERVICES[service]))
     if service=='order-matcher':
         (dest/'AcceptedOrderAuthority.java').write_text((OVERLAY/'AcceptedOrderAuthority.java').read_text().replace('__PACKAGE__',SERVICES[service]))
         model=package/'model/OrderRecord.java'
@@ -165,6 +186,8 @@ def render(target,service):
         service_path.write_text(matcher(service_path.read_text()))
     tests=target/'src/test/java'/SERVICES[service].replace('.','/')/'security';tests.mkdir(parents=True,exist_ok=True)
     for source in (OVERLAY/'tests').glob('*.java'):
+        if service=='trade-processor' and source.name not in ('SecurityTestSupport.java','ProcessorApiSecurityTest.java'):continue
+        if source.name.startswith('Processor') and service!='trade-processor':continue
         if source.name.startswith('TradeApi') and service!='trade-service':continue
         if source.name.startswith('Order') and service!='order-matcher':continue
         (tests/source.name).write_text(source.read_text().replace('__PACKAGE__',SERVICES[service]))
