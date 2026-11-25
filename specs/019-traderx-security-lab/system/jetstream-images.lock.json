@@ -1,0 +1,8 @@
+{
+  "source_index": "docker.io/library/nats@sha256:c9706755679d8bcf05b4ce275fdd2ac8890058b1535881208a65b3cd613f00bd",
+  "version": "2.14.9",
+  "images": {
+    "amd64": "docker.io/library/nats@sha256:c20b78366bab4531b2ae36e660f7cb7e533d956fc927aaf5c88e6ba6e5e054e4",
+    "arm64": "docker.io/library/nats@sha256:5e09808726b0d7500a68b07998e14a5f6d4109956d17ac221d180bc995eef314"
+  }
+}

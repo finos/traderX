@@ -13,7 +13,7 @@ import uuid
 
 import bootstrap_database
 from event_delivery import Publisher, Store, STREAM, connect_broker, consume_message
-from jetstream_fixture import broker, IMAGE as NATS_IMAGE, SUBJECTS
+from jetstream_fixture import broker, SUBJECTS, LOCK as BROKER_LOCK
 from resource_operation import operation
 from verify_bootstrap import database, require, fingerprint
 from verify_execution_reservations import MIGRATION, SETTLEMENT
@@ -181,10 +181,10 @@ async def campaign(runtime):
                 check(business()==before,'all delivery replay and rejection leaves trading business tables unchanged')
                 final_info=await js.stream_info(STREAM)
                 return {'status':'passed','scope':'TLS JetStream + PostgreSQL reference projection; not deployed UI delivery',
-                  'checks':checks,'broker_version':str(bootstrap.connected_server_version),'broker_messages':final_info.state.messages,
-                  'images':{'nats':NATS_IMAGE,'postgresql':image},
+                  'checks':checks,'broker_version':str(bootstrap.connected_server_version),'broker_messages':final_info.state.messages,'broker_architecture':fixture['architecture'],
+                  'images':{'nats':fixture['image'],'postgresql':image},
                   'client_versions':{p:importlib.metadata.version(p) for p in ('nats-py','psycopg','psycopg-binary','simplejson')},
-                  'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in (MIGRATION,SETTLEMENT,EVENTS,CONSUMER,Path(__file__).resolve(),ROOT/'scripts/security-lab/event_delivery.py',ROOT/'scripts/security-lab/jetstream_fixture.py',ROOT/'scripts/security-lab/requirements-delivery.txt')},
+                  'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in (MIGRATION,SETTLEMENT,EVENTS,CONSUMER,BROKER_LOCK,Path(__file__).resolve(),ROOT/'scripts/security-lab/event_delivery.py',ROOT/'scripts/security-lab/jetstream_fixture.py',ROOT/'scripts/security-lab/requirements-delivery.txt')},
                   'limits':{'postgresql_memory_mib':256,'broker_memory_mib':128,'broker_store_bytes':16777216,'loopback_ports':2},
                   'limitations':['Single-node graceful restart, not host power loss or replicated high availability',
                     'Acknowledgment-loss fault injection after actual broker acceptance/consumer commit, not a demonstrated exploit',

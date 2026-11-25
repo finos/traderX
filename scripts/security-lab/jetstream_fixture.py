@@ -12,8 +12,17 @@ import uuid
 from portability import docker
 from verify_bootstrap import command
 
-# Immutable multi-platform NATS image already used by the security profile.
-IMAGE = 'docker.io/library/nats@sha256:5e09808726b0d7500a68b07998e14a5f6d4109956d17ac221d180bc995eef314'
+# Platform manifests are resolved from the immutable C3 parent index.
+LOCK = Path(__file__).resolve().parents[2]/'specs/019-traderx-security-lab/system/jetstream-images.lock.json'
+
+
+def image_for_arch(machine):
+    arch={'aarch64':'arm64','arm64':'arm64','x86_64':'amd64','amd64':'amd64'}.get(machine)
+    if not arch:raise ValueError('Unsupported broker daemon architecture')
+    lock=json.loads(LOCK.read_text())
+    return arch,lock['images'][arch]
+
+
 STREAM = 'SECURITY_EVENTS'
 ACCOUNTS = (22214,62654)
 SUBJECTS = [f'/accounts/{account}/{kind}' for account in ACCOUNTS for kind in ('trades','positions')]
@@ -31,6 +40,7 @@ def permissions():
 @contextmanager
 def broker(runtime):
     cli=docker(runtime);run_id=uuid.uuid4().hex;name='traderx-events-'+run_id[:12]
+    arch,image=image_for_arch(command(cli+['info','--format','{{.Architecture}}']))
     label='traderx.security-lab.events';attempted=False
     with tempfile.TemporaryDirectory(prefix='events-private-',dir=runtime) as temp:
         private=Path(temp);config_dir=private/'config';data_dir=private/'data'
@@ -49,7 +59,10 @@ def broker(runtime):
             value=command(cli+['inspect','--format','{{index .Config.Labels "'+label+'"}}',name])
             if value!=run_id:raise ValueError('Broker ownership mismatch')
         def ready():
-            owned();endpoint=command(cli+['port',name,'4222/tcp'])
+            owned()
+            state=json.loads(command(cli+['inspect','--format','{{json .State}}',name]))
+            if not state.get('Running'):raise RuntimeError('Broker stopped before readiness; exit code '+str(state.get('ExitCode')))
+            endpoint=command(cli+['port',name,'4222/tcp'])
             if not endpoint.startswith('127.0.0.1:') or not endpoint.split(':')[1].isdigit():raise ValueError('Broker publication mismatch')
             port=int(endpoint.split(':')[1]);context=ssl.create_default_context(cafile=str(certificate))
             deadline=time.monotonic()+30
@@ -65,21 +78,21 @@ def broker(runtime):
         def restart():
             owned();command(cli+['restart','--time','10',name]);return ready()
         try:
-            if subprocess.run(cli+['image','inspect',IMAGE],capture_output=True).returncode:
-                command(cli+['pull',IMAGE],timeout=180)
+            if subprocess.run(cli+['image','inspect',image],capture_output=True).returncode:
+                command(cli+['pull','--platform','linux/'+arch,image],timeout=180)
             attempted=True
             command(cli+['create','--name',name,'--label',label+'='+run_id,'--restart','no',
-              '--read-only','--user','10001:10001','--cap-drop','ALL','--security-opt','no-new-privileges:true',
+              '--platform','linux/'+arch,'--read-only','--user','10001:10001','--cap-drop','ALL','--security-opt','no-new-privileges:true',
               '--memory','128m','--memory-swap','128m','--cpus','0.5','--pids-limit','64',
               '--log-driver','local','--log-opt','max-size=2m','--log-opt','max-file=2',
               '--mount',f'type=bind,src={config_dir},dst=/lab,readonly',
-              '--mount',f'type=bind,src={data_dir},dst=/store','--publish','127.0.0.1::4222',IMAGE,'-c','/lab/nats.json'])
+              '--mount',f'type=bind,src={data_dir},dst=/store','--publish','127.0.0.1::4222',image,'-c','/lab/nats.json'])
             command(cli+['start',name]);endpoint=ready()
             info=json.loads(command(cli+['inspect',name]))[0]
             host=info['HostConfig']
             if not host['ReadonlyRootfs'] or host['CapDrop']!=['ALL'] or info['Config']['User']!='10001:10001':raise ValueError('Broker restrictions missing')
             if set(host['PortBindings'])!={'4222/tcp'} or any(p['HostIp']!='127.0.0.1' for p in host['PortBindings']['4222/tcp']):raise ValueError('Broker exposure mismatch')
-            yield {'endpoint':endpoint,'ca':certificate,'passwords':passwords,'restart':restart}
+            yield {'image':image,'architecture':arch,'endpoint':endpoint,'ca':certificate,'passwords':passwords,'restart':restart}
         finally:
             if attempted:
                 found=command(cli+['ps','-aq','--filter','name=^/'+name+'$','--filter','label='+label+'='+run_id]).split()

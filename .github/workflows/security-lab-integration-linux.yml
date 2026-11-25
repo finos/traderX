@@ -7,6 +7,7 @@ on:
       - 'specs/012-platform-convergence-c3/security-lab/**'
       - 'specs/019-traderx-security-lab/system/linux-integration.md'
       - 'specs/019-traderx-security-lab/system/sql/**'
+      - 'specs/019-traderx-security-lab/system/jetstream-images.lock.json'
       - '.github/workflows/security-lab-integration-linux.yml'
 permissions:
   contents: read

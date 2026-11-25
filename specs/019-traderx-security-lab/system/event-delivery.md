@@ -178,3 +178,10 @@ unchanged; the checkpoint is not an advertised integrated trading cutover.
 
 Client protocol references: [NATS Python JetStream API](https://nats-io.github.io/nats.py/modules.html)
 and [NATS JetStream guide](https://docs.nats.io/learn/jetstream/).
+
+Linux follow-up: the first hosted delivery attempt exposed an arm64-only image
+pin inherited from the Mac fixture. `jetstream-images.lock.json` now records
+both native platform manifests from the same immutable C3 NATS index. The
+fixture selects the daemon's supported architecture explicitly and reports a
+stopped broker before readiness. This preserves the tested Mac broker version
+and avoids relying on cross-architecture emulation on hosted Linux.

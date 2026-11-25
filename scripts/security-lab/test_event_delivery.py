@@ -68,6 +68,15 @@ class DeliveryTests(unittest.IsolatedAsyncioTestCase):
         topic,e,_=self.fixture();e["payload"]["price"]=Decimal("900719925474099.123")
         self.assertEqual(decode_event(topic,validate_event(topic,e)),e)
 
+    def test_broker_manifest_matches_daemon_architecture(self):
+        from jetstream_fixture import image_for_arch
+        arm=image_for_arch('aarch64');amd=image_for_arch('x86_64')
+        self.assertEqual(arm[0],'arm64');self.assertEqual(amd[0],'amd64')
+        self.assertNotEqual(arm[1],amd[1])
+        self.assertEqual(arm,image_for_arch('arm64'))
+        self.assertEqual(amd,image_for_arch('amd64'))
+        with self.assertRaises(ValueError):image_for_arch('unreviewed')
+
     def test_store_refuses_uncommitted_outer_connection(self):
         with self.assertRaises(ValueError):Store(SimpleNamespace(autocommit=False))
 
