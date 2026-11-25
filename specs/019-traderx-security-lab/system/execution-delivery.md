@@ -1,8 +1,8 @@
 # Background execution delivery contract
 
 Status: PostgreSQL reservation/settlement and the processor HTTP boundary are
-validated in isolated fixtures; matcher dispatch and broker integration remain
-unimplemented. No runtime cutover is claimed. This refines S019-04b2.
+validated in isolated fixtures; opt-in matcher dispatch/cancellation and the SQL
+event outbox are component-tested. Broker delivery and deployment integration remain open. No runtime cutover is claimed. This refines S019-04b2.
 
 ## Durable boundaries
 
@@ -34,6 +34,8 @@ These functions are separate, opt-in candidate artifacts:
 
 1. `sql/execution-reservations.sql` adds nullable acceptance columns and ledger.
 2. `sql/execution-settlement.sql` adds atomic settlement and receipt authorization.
+3. `sql/execution-cancellation.sql` adds cancellation under the same order-row lock.
+4. `sql/execution-events.sql` adds the transactional outbox before any settlement.
 
 Apply once under a bootstrap transaction to the pinned C3 schema. Reapplication
 refuses rather than silently accepting drift. They are not part of deployed
@@ -43,23 +45,19 @@ path for the same execution. That would double-book independently of receipts.
 
 ## Remaining integration
 
-- Persist the UUID and reservation from the matcher and send only through an
-  authenticated execution route with its own audience and exact service subject.
-- Verify current accepted authority before dispatch; define policy snapshot
-  reload/revocation behavior. A database receipt does not replace authentication.
-- Replace the candidate processor booking path with receipt-backed settlement;
-  propagate the same UUID through the broker. Legacy messages must not fall back
-  to ordinary booking when the execution contract is required.
-- Use durable broker delivery or a retrying outbox. Broker acknowledgments and
-  HTTP success do not prove a trade settled; poll the authoritative receipt.
-- Add a transactional event outbox for post-commit trade/position notifications.
-  The current after-commit publisher can lose notifications on process failure.
-- Integrate cancellation under database locking. If settlement commits first,
-  cancellation must preserve the fill; if cancellation commits first, unsettled
-  execution must be rejected. Existing Java cancellation is not yet adapted.
-- Test sell/flat/new-position pricing, service restart, expired initiating token,
-  revoked authority, forged service identity, broker replay and ambiguous HTTP
-  response against independent database observations in the integrated stack.
+- Provision and validate the matcher service identity, private credential mount,
+  TLS trust and live Keycloak client grant across matcher and processor.
+- Install the candidate migrations in fresh bootstrap before execution; keep
+  legacy booking disabled during any future cutover.
+- Connect the [transactional event outbox](event-delivery.md) to authenticated
+  durable broker publication and consumer deduplication. Database acknowledgment
+  alone cannot prove broker acceptance or a downstream effect.
+- Validate expiry, authority-policy reload/revocation, restart, cancellation,
+  ambiguous response and event replay against independent database and broker
+  observations in the integrated stack.
+- Remove or constrain legacy direct order-write privileges where appropriate;
+  the current application gates cannot contain a fully compromised matcher SQL
+  writer. Preserve this distinction in the residual-authority exercise.
 
 ## Reproduction and evidence
 
@@ -96,8 +94,8 @@ the original booking class remains available to its explicit regression tests.
 
 This deliberately tests the processor boundary directly before adding a gateway
 relay or broker hop. It does not turn the matcher into a general trader or
-impersonate an expired user. The matcher dispatch adapter and its service-token
-acquisition are still required. The old trade-service user route continues to be
+impersonate an expired user. The matcher dispatch adapter now exists as an opt-in component candidate; live
+identity and deployment wiring remain required. The old trade-service user route continues to be
 a separate direct-API candidate and is not rerouted automatically.
 
 `verify_execution_http.py` starts the verified processor jar and a disposable
@@ -126,10 +124,38 @@ never returns the old cached token. A rotated secret takes effect on refresh, no
 instantaneously. Deployment must mount this file privately with the intended
 service identity; this class does not provision secrets or Keycloak clients.
 
-The client is compiled into the matcher candidate but not yet connected to the
-scheduler or enabled by a Spring bean. Tests use a controlled transport/clock and
-mock HTTPS connection to verify form encoding, refresh, failure redaction,
-redirect rejection and response bounds. They do not prove a live Keycloak grant
-or deployment certificate trust. The next integration still needs matcher
-reservation/retry, token acquisition configuration, dispatch and receipt
-reconciliation without a second local fill.
+The client is connected through the opt-in `MatcherExecution` bean described
+below. Token-client tests use controlled transport/clock and mocked HTTPS; they
+do not prove a live Keycloak grant or deployment certificate trust.
+
+## Matcher dispatch and cancellation checkpoint
+
+`lab.execution.enabled=true` opts in to the candidate. It requires a fixed HTTPS
+processor URL ending in `/internal/executions/`, a token endpoint, client ID and
+private secret-file path. Default generation leaves execution disabled.
+
+Before dispatch, the matcher checks stored acceptance terms and the currently
+loaded server-side entitlement map. It reuses an unresolved execution UUID or
+persists a new reservation before acquiring credentials and sending. Ambiguous
+HTTP failures retain the UUID. Only a matching SQL receipt counts as settlement;
+HTTP 200 alone cannot cause a local fill. The matcher clears stale JPA state and
+reloads the SQL result instead of applying a second fill or saving stale fields.
+
+Pending reservations retry even when the latest market price no longer meets
+the limit, or a restarted scheduler has not received a price yet: execution uses
+the reservation's previously validated immutable price. New reservations remain
+price-gated. Connect/read timeouts bound inactivity, not a total wall-clock
+deadline against a continuously trickling peer; production deadline behavior is
+still an integration consideration.
+
+Cancellation checks the caller's stored account entitlement and invokes a bound
+SQL function that locks the order. It reloads the resulting row without a stale
+JPA save. Settlement-first preserves the fill; cancellation-first blocks later
+settlement. The independent PostgreSQL campaign observed both lock orders.
+This does not remove the matcher role's existing direct UPDATE grant.
+
+Seven dispatch unit tests and four Spring/H2 matcher tests cover UUID reuse,
+receipt evidence, token failure, authority revocation, endpoint configuration,
+pending retries and fresh-state reload. SQL lock/race evidence is separate from
+these mocked-dispatch tests. The combined candidate has 62 passing Java tests;
+no live matcher-to-Keycloak-to-processor or deployed trading claim is made.

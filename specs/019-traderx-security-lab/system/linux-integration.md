@@ -2,10 +2,12 @@
 
 The Linux workflow exercises the existing candidate campaign, not a deployment
 or security acceptance. It fetches the immutable baseline, renders, builds and
-tests the three trading candidates sequentially, then runs the verified
+tests the three trading candidates and position/history candidate sequentially, then runs the verified
 processor jar against a disposable PostgreSQL fixture. Denied synthetic
 identities and invalid requests must leave all fixture tables unchanged;
 concurrent duplicate requests and processor/database restarts are checked.
+The same job runs the event outbox and cancellation/adversarial SQL campaigns sequentially. The offline job checks the CCC mapping. Component Java builds run once in the Linux job, avoiding a duplicate three-service build in the offline workflow.
+
 Loopback HTTP and synthetic signed tokens do not establish deployment TLS,
 live Keycloak, matcher dispatch, broker delivery or production readiness.
 

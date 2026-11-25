@@ -28,9 +28,13 @@ Completed prototype evidence and granular implementation history are in the [C3 
 - [x] S019-04b2a Verify candidate PostgreSQL reservation/settlement migrations, concurrent duplicate handling, rollback, restart and scoped SQL privileges in an isolated fixture.
 - [x] S019-04b2b1 Validate service-only processor HTTP execution with a dedicated audience/subject, disabled legacy booking paths and live PostgreSQL restart/deduplication evidence.
 - [x] S019-04b2b2 Implement and test bounded HTTPS service-token acquisition, in-memory refresh and fail-closed credential handling for the matcher candidate.
+- [x] S019-04b2b3 Implement opt-in matcher reservation/retry/receipt reconciliation and cancellation reload; verify 11 added Java tests without runtime cutover.
+- [x] S019-04b2b4 Validate transactional SQL event snapshots, fenced claims/acknowledgments and replay in 38 PostgreSQL checks; broker/consumer adapter remains pending.
+- [x] S019-04b2b5 Independently verify 16 PostgreSQL race/replay/mutation checks and record the residual matcher write privilege.
 - [ ] S019-04b2b Wire matcher, authenticated trade handoff and processor to the durable ledger; implement reliable broker/event delivery and cancellation integration.
 - [ ] S019-04b2 Add migrated authority storage, authenticated durable execution/outbox and downstream deduplication; verify restart, expiry, cancellation and retry outcomes.
 - [ ] S019-04b Implement durable authorized background matching and authenticated execution; verify after initiating token expiry.
+- [x] S019-04c1 Implement position/history direct API authorization; verify 11 Java tests and deterministic generation. People/UI integration remains pending.
 - [ ] S019-04c Integrate remaining read APIs and Angular session/CSRF flow; validate direct-backend and full trading outcomes together.
 - [ ] S019-04 Integrate account/order/cancel/operator authorization and deny bypass routes while normal trading passes.
 - [ ] S019-05 Cut over live authenticated NATS, scoped subjects, browser issuance and reconnect/revocation checks.
@@ -38,7 +42,9 @@ Completed prototype evidence and granular implementation history are in the [C3 
 - [ ] S019-07 Implement same-process residual-authority canary, outside-grant counterpart, independent outcomes and two resets.
 - [ ] S019-08 Pin one runtime engine; compare observation, containment and prevention with effect-based checks.
 - [ ] S019-09 Complete guided phase selection, trustworthy control status, evidence, recovery and assessments.
+- [x] S019-10a Map ten CCC controls to 31 release-pinned requirements and scoped evidence; validate sources and offline references without claiming compliance.
 - [ ] S019-10 Verify versioned CCC requirements and per-control evidence/limitations; measure performance/resource budgets.
+- [x] S019-11a Add dedicated Linux CI for sequential component builds and bounded PostgreSQL campaigns; local portability regression passes, hosted execution acceptance remains pending.
 - [ ] S019-11 Run clean-machine reproduction, integrated CI and contributor walkthrough; review release artifacts.
 - [ ] S019-12 Implement optional isolated CVE/upstream fix/OSERA backpatch and VEX comparison before advertising it as runnable.
 - [ ] S019-13 Prepare generated snapshot release and community walkthrough after acceptance; CALM receives a separate successor state.

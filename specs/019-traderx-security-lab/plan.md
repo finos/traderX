@@ -57,3 +57,17 @@ S019-04b2b1 validates the processor service-only HTTP endpoint against real Post
 After baseline acceptance, run the [platform-control comparison](system/platform-control-comparison.md): ingress/gateway and service-mesh profiles measured against identical security outcomes and total implementation/operating effort. This is separate from the planned CALM successor; choose products, pinned compatibility and any successor state number during that exercise.
 
 S019-04b2b2 adds the bounded service-token client with eight component tests; all 51 Java tests pass. See [token-client evidence](evidence/2026-11-25-service-token-client.json). Live identity provisioning and scheduler wiring remain open.
+
+The parallel-agent pilot advances bounded components only: position/history API
+authorization (04c1), matcher dispatch/cancellation (04b2b3), transactional event
+outbox (04b2b4), independent SQL race/replay review (04b2b5), and a release-pinned
+[CCC assessment map](system/ccc-assessment-map.md) (10a). The Linux workflow
+consolidates sequential builds and database campaigns on a dedicated hosted
+runner; an added workflow is not yet evidence of a successful hosted run.
+
+Next integrate the authenticated broker publisher and durable consumer inbox,
+then provision live matcher identity/TLS and run a single cumulative trading
+campaign before enabling any candidate image. People authorization and Angular
+session/CSRF integration remain parallel source work. Keep full-cluster acceptance
+serialized and within the existing Docker resource limits. See
+[the pilot checkpoint](evidence/2026-11-25-parallel-pilot.json) for measured results.

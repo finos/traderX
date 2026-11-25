@@ -16,19 +16,25 @@ def matcher(source):
     source=replace_once(source,'    private final OrderRepository orderRepository;',
         '''    private final finos.traderx.ordermatcher.security.AcceptedOrderAuthority acceptedAuthority;
     private final finos.traderx.ordermatcher.security.TradingAccess tradingAccess;
+    private final finos.traderx.ordermatcher.security.MatcherExecution execution;
+    private final jakarta.persistence.EntityManager entityManager;
     private final OrderRepository orderRepository;''')
     source=replace_once(source,'        RestTemplate restTemplate,',
         '''        RestTemplate restTemplate,
         finos.traderx.ordermatcher.security.AcceptedOrderAuthority acceptedAuthority,
-        finos.traderx.ordermatcher.security.TradingAccess tradingAccess,''')
+        finos.traderx.ordermatcher.security.TradingAccess tradingAccess,
+        org.springframework.beans.factory.ObjectProvider<finos.traderx.ordermatcher.security.MatcherExecution> executions,
+        jakarta.persistence.EntityManager entityManager,''')
     source=replace_once(source,'        this.orderRepository = orderRepository;',
         '''        this.acceptedAuthority = acceptedAuthority;
         this.tradingAccess = tradingAccess;
+        this.execution = executions.getIfAvailable();
+        this.entityManager = entityManager;
         this.orderRepository = orderRepository;''')
     source=replace_once(source,'            OrderRecord saved = orderRepository.save(order);',
         '            acceptedAuthority.accept(order);\n            OrderRecord saved = orderRepository.save(order);')
     source=replace_once(source,'            OrderRecord order = findOrder(orderId);\n            if (isOpen(order)) {',
-        '            OrderRecord order = findOrder(orderId);\n            tradingAccess.requireTrade(order.getAccountId());\n            if (isOpen(order)) {')
+        '            OrderRecord order = findOrder(orderId);\n            tradingAccess.requireTrade(order.getAccountId());\n            if (execution != null) {\n                execution.cancel(orderId, order.getAccountId());\n                entityManager.clear();\n                OrderRecord fresh = findOrder(orderId);\n                return OrderResponse.from(fresh, lastPrices.get(fresh.getSecurity()));\n            }\n            if (isOpen(order)) {')
     source=replace_once(source,'''        int remaining = order.getRemainingQuantity();
         int fillQty = remaining < fillFullThreshold ? remaining : Math.max(1, (remaining + 1) / 2);
 ''','')
@@ -40,6 +46,28 @@ def matcher(source):
     source=replace_once(source,'''                liveOrder.setUpdatedAt(Instant.now());
                 orderRepository.save(liveOrder);
 ''','')
+    source=replace_once(source,'            if (marketPrice != null) {',
+        '''            if (marketPrice == null && execution != null && execution.hasPending(order.getOrderId())) marketPrice=order.getLimitPrice();
+            if (marketPrice != null) {''')
+    source=replace_once(source,'        if (!isInTheMoney(order, marketPrice)) {',
+        '        if (!isInTheMoney(order, marketPrice) && !(execution != null && execution.hasPending(orderId))) {')
+    source=replace_once(source,'            if (!isInTheMoney(liveOrder, marketPrice)) return;',
+        '            if (!isInTheMoney(liveOrder, marketPrice) && !(execution != null && execution.hasPending(orderId))) return;')
+    start_fill=source.index('            if (!submitTrade(liveOrder, fillQty)) {')
+    end_fill=source.index('            autoFillSuccess.incrementAndGet();',start_fill)+len('            autoFillSuccess.incrementAndGet();')
+    source=source[:start_fill]+'''            if (execution == null) return;
+            try {
+                if (!execution.dispatch(liveOrder, fillQty, marketPrice)) {
+                    tradeSubmitFailures.incrementAndGet();
+                    return;
+                }
+                entityManager.clear();
+                OrderRecord refreshed = findOrder(orderId);
+                publishOrderUpdate(refreshed);
+                autoFillSuccess.incrementAndGet();
+            } catch (org.springframework.security.access.AccessDeniedException | org.springframework.dao.DataAccessException unavailable) {
+                tradeSubmitFailures.incrementAndGet();
+            }'''+source[end_fill:]
     start=source.index('    private boolean submitTrade(OrderRecord order, int quantity) {')
     end=source.index('    private boolean filterByStatus(',start)
     source=source[:start]+'''    private boolean submitTrade(OrderRecord order, int quantity) {
@@ -166,6 +194,7 @@ def render(target,service):
     if service=='trade-processor':
         (dest/'ExecutionController.java').write_text((OVERLAY/'ExecutionController.java').read_text().replace('__PACKAGE__',SERVICES[service]))
     if service=='order-matcher':
+        (dest/'MatcherExecution.java').write_text((OVERLAY/'MatcherExecution.java').read_text().replace('__PACKAGE__',SERVICES[service]))
         (dest/'ServiceTokenClient.java').write_text((OVERLAY/'ServiceTokenClient.java').read_text().replace('__PACKAGE__',SERVICES[service]))
         (dest/'AcceptedOrderAuthority.java').write_text((OVERLAY/'AcceptedOrderAuthority.java').read_text().replace('__PACKAGE__',SERVICES[service]))
         model=package/'model/OrderRecord.java'

@@ -6,6 +6,7 @@ on:
       - 'scripts/security-lab/**'
       - 'specs/012-platform-convergence-c3/security-lab/**'
       - 'specs/019-traderx-security-lab/system/linux-integration.md'
+      - 'specs/019-traderx-security-lab/system/sql/**'
       - '.github/workflows/security-lab-integration-linux.yml'
 permissions:
   contents: read
@@ -35,6 +36,7 @@ jobs:
           python -m unittest discover -s scripts/security-lab -p 'test_portability.py'
           python -m unittest discover -s scripts/security-lab -p 'test_resource_preflight.py'
           python -m unittest discover -s scripts/security-lab -p 'test_trading_security.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_read_security.py'
       - name: Build candidates and exercise HTTP to PostgreSQL
         shell: bash
         env:
@@ -46,4 +48,8 @@ jobs:
           trap 'rm -rf "$runtime"' EXIT
           mkdir "$runtime/evidence"
           python scripts/security-lab/build_trading_security.py --runtime-dir "$runtime" --java-home "$JAVA_HOME"
+          python scripts/security-lab/render_read_security.py --output-dir "$runtime/position-service"
+          (cd "$runtime/position-service" && bash gradlew --no-daemon --max-workers=1 '-Dorg.gradle.jvmargs=-Xmx384m -XX:MaxMetaspaceSize=256m' test bootJar)
           python scripts/security-lab/verify_execution_http.py --runtime-dir "$runtime" --output "$runtime/evidence/http.json"
+          python scripts/security-lab/verify_execution_events.py --runtime-dir "$runtime" --output "$runtime/evidence/events.json"
+          python scripts/security-lab/verify_execution_adversarial.py --runtime-dir "$runtime" --output "$runtime/evidence/adversarial.json"

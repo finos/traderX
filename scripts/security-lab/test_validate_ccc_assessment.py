@@ -17,7 +17,7 @@ class CccAssessmentTests(unittest.TestCase):
     def test_committed_map_validates_offline(self):
         controls, requirements = validator.validate_mapping(self.document)
         self.assertEqual(controls, 10)
-        self.assertEqual(requirements, 32)
+        self.assertEqual(requirements, 31)
 
     def test_paths_must_exist_and_remain_repository_relative(self):
         for bad_path in ("../outside.json", "/tmp/outside.json", "missing/evidence.json"):
@@ -96,7 +96,7 @@ class CccAssessmentTests(unittest.TestCase):
                 check=False,
             )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("10 controls, 32 requirements", result.stdout)
+        self.assertIn("10 controls, 31 requirements", result.stdout)
         self.assertIn("offline path/status checks only", result.stdout)
 
 

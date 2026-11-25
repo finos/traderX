@@ -39,7 +39,7 @@
       "id": "CCC.K8S.CN06",
       "title": "Enforce Default-Deny Workload Network Policies",
       "catalog_version": "orchestration/k8s/v2026.11",
-      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/56a388a18a6f2fdf13d933a0f9eddb16c8c9ccac/catalogs/orchestration/k8s/controls.yaml",
+      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/f36872f7ff09bd4db6670f560707107bc3c0a548/catalogs/orchestration/k8s/controls.yaml",
       "implementation_paths": [
         "scripts/security-lab/verify_platform.py",
         "specs/019-traderx-security-lab/spec.md",
@@ -108,8 +108,8 @@
     {
       "id": "CCC.K8S.CN23",
       "title": "Detect Suspicious Workload Runtime Activity",
-      "catalog_version": "unreleased main snapshot at 00bb0a8ffb8c6894968d25e46e0bbe03f14c3919 (no versioned release verified)",
-      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/00bb0a8ffb8c6894968d25e46e0bbe03f14c3919/catalogs/orchestration/k8s/controls.yaml",
+      "catalog_version": "orchestration/k8s/v2026.11",
+      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/f36872f7ff09bd4db6670f560707107bc3c0a548/catalogs/orchestration/k8s/controls.yaml",
       "implementation_paths": [
         "specs/019-traderx-security-lab/spec.md",
         "specs/019-traderx-security-lab/tasks.md"
@@ -122,8 +122,8 @@
           "requirement": "When a cluster is operational, runtime threat detection MUST be enabled for its nodes and workloads and MUST alert an authorized security function on suspicious container activity.",
           "result": "planned",
           "status": "planned",
-          "scope": "State 019 FR-019-05 and task S019-08 plan a bounded comparison of one runtime engine in observation and enforcement modes.",
-          "limitation": "The requirement is present in the pinned FINOS main snapshot but not in the checked v2026.11 Kubernetes release. No runtime sensor, alert delivery, detection or prevention result is evidenced."
+          "scope": "Released v2026.11 runtime-detection requirement; State 019 runtime observation/enforcement integration remains planned.",
+          "limitation": "No runtime sensor or alert-delivery result is committed; detection does not establish prevention."
         }
       ]
     },
@@ -131,7 +131,7 @@
       "id": "CCC.K8S.CN05",
       "title": "Enforce Restricted Workload Security",
       "catalog_version": "orchestration/k8s/v2026.11",
-      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/56a388a18a6f2fdf13d933a0f9eddb16c8c9ccac/catalogs/orchestration/k8s/controls.yaml",
+      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/f36872f7ff09bd4db6670f560707107bc3c0a548/catalogs/orchestration/k8s/controls.yaml",
       "implementation_paths": [
         "scripts/security-lab/verify_platform.py",
         "scripts/security-lab/verify_workloads.py",
@@ -146,7 +146,7 @@
       "requirements": [
         {
           "id": "CCC.K8S.CN05.AR01",
-          "requirement": "When a workload is admitted to a user workload namespace, it MUST satisfy the Kubernetes Baseline Pod Security Standard.",
+          "requirement": "When a workload is admitted to a user workload namespace, it MUST satisfy the Kubernetes Baseline Pod Security Standard AND its Linux containers MUST NOT allow privilege escalation.",
           "result": "verified-within-scope",
           "status": "deployed-local-cluster",
           "scope": "Committed probes show admission denials for privileged and host-access workloads in the dedicated local cluster; selected C3 workloads were separately verified.",
@@ -166,7 +166,7 @@
       "id": "CCC.K8S.CN04",
       "title": "Admit Only Trusted Container Images",
       "catalog_version": "orchestration/k8s/v2026.11",
-      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/56a388a18a6f2fdf13d933a0f9eddb16c8c9ccac/catalogs/orchestration/k8s/controls.yaml",
+      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/f36872f7ff09bd4db6670f560707107bc3c0a548/catalogs/orchestration/k8s/controls.yaml",
       "implementation_paths": [
         "specs/012-platform-convergence-c3/security-lab/evidence/2026-11-22-workloads.md",
         "specs/019-traderx-security-lab/spec.md",
@@ -207,7 +207,7 @@
       "id": "CCC.K8S.CN19",
       "title": "Restrict External Exposure of Workload Services",
       "catalog_version": "orchestration/k8s/v2026.11",
-      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/56a388a18a6f2fdf13d933a0f9eddb16c8c9ccac/catalogs/orchestration/k8s/controls.yaml",
+      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/f36872f7ff09bd4db6670f560707107bc3c0a548/catalogs/orchestration/k8s/controls.yaml",
       "implementation_paths": [
         "specs/019-traderx-security-lab/spec.md",
         "specs/019-traderx-security-lab/system/platform-control-comparison.md"
@@ -253,7 +253,7 @@
       "id": "CCC.K8S.CN02",
       "title": "Enforce Least-Privilege Cluster Authorization",
       "catalog_version": "orchestration/k8s/v2026.11",
-      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/56a388a18a6f2fdf13d933a0f9eddb16c8c9ccac/catalogs/orchestration/k8s/controls.yaml",
+      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/f36872f7ff09bd4db6670f560707107bc3c0a548/catalogs/orchestration/k8s/controls.yaml",
       "implementation_paths": [
         "scripts/security-lab/verify_workloads.py",
         "scripts/security-lab/verify_collector.py",
@@ -291,7 +291,7 @@
         },
         {
           "id": "CCC.K8S.CN02.AR04",
-          "requirement": "When a non-system Kubernetes role grants the escalate, bind, or impersonate verbs, or grants approve on certificatesigningrequests/approval, that role MUST be bound only to a dedicated administrative group.",
+          "requirement": "When a non-system Kubernetes role grants the escalate, bind, or impersonate verbs, grants update on certificatesigningrequests/approval together with approve on signers, or grants create, update, patch, or delete on admission webhook configurations or admission policies, that role MUST be bound only to a dedicated administrative group.",
           "result": "not-assessed",
           "status": "not-assessed",
           "scope": "No cluster-wide privileged-verb or certificate-approval role assessment is recorded.",
@@ -299,7 +299,7 @@
         },
         {
           "id": "CCC.K8S.CN02.AR05",
-          "requirement": "When a workload does not call the Kubernetes API, its service account token MUST NOT be mounted into the workload.",
+          "requirement": "When a workload is not approved for Kubernetes API access, its service account token MUST NOT be mounted into the workload.",
           "result": "verified-within-scope",
           "status": "deployed-local-cluster",
           "scope": "The tested business workloads and collector configuration suppress service-account tokens; committed live workload evidence confirms token absence for selected pods.",
@@ -307,7 +307,7 @@
         },
         {
           "id": "CCC.K8S.CN02.AR06",
-          "requirement": "When a non-system Kubernetes role grants create on pods or workload controllers in a system or privileged namespace, or create on pods/exec, pods/attach, pods/portforward, pods/proxy, services/proxy, nodes/proxy, or serviceaccounts/token, or update or patch on pods/ephemeralcontainers, in any namespace, that role MUST be bound only to a dedicated administrative group.",
+          "requirement": "When a non-system Kubernetes role grants create on pods or workload controllers in a system or privileged namespace, get or create on pods/exec, pods/attach, pods/portforward, pods/proxy, services/proxy, or nodes/proxy, create on serviceaccounts/token, or update or patch on pods/ephemeralcontainers, in any namespace, that role MUST be bound only to a dedicated administrative group.",
           "result": "not-assessed",
           "status": "not-assessed",
           "scope": "No cluster-wide privileged workload/API subresource permission review is recorded.",
@@ -319,7 +319,7 @@
       "id": "CCC.K8S.CN07",
       "title": "Protect Workload Secrets",
       "catalog_version": "orchestration/k8s/v2026.11",
-      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/56a388a18a6f2fdf13d933a0f9eddb16c8c9ccac/catalogs/orchestration/k8s/controls.yaml",
+      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/f36872f7ff09bd4db6670f560707107bc3c0a548/catalogs/orchestration/k8s/controls.yaml",
       "implementation_paths": [
         "scripts/security-lab/verify_workloads.py",
         "scripts/security-lab/verify_database_permissions.py",
@@ -336,7 +336,7 @@
       "requirements": [
         {
           "id": "CCC.K8S.CN07.AR01",
-          "requirement": "When a secret is mounted or injected into a workload, it MUST be readable only by the intended workload's service account.",
+          "requirement": "When a secret is mounted or injected into a workload, it MUST NOT be readable by the service accounts of other workloads in the namespace.",
           "result": "partial",
           "status": "deployed-local-cluster",
           "scope": "Selected C3 workload tests deny cross-service secret reads and use dedicated SQL Secret references.",
@@ -380,7 +380,7 @@
       "id": "CCC.K8S.CN14",
       "title": "Preserve Kubernetes Audit and Monitoring Records",
       "catalog_version": "orchestration/k8s/v2026.11",
-      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/56a388a18a6f2fdf13d933a0f9eddb16c8c9ccac/catalogs/orchestration/k8s/controls.yaml",
+      "catalog_source_url": "https://github.com/finos/common-cloud-controls/blob/f36872f7ff09bd4db6670f560707107bc3c0a548/catalogs/orchestration/k8s/controls.yaml",
       "implementation_paths": [
         "scripts/security-lab/verify_collector.py",
         "scripts/security-lab/verify_workloads.py",
@@ -425,23 +425,15 @@
           "status": "not-assessed",
           "scope": "The evidence verifies metric persistence but not access restrictions for every cluster/workload metric endpoint.",
           "limitation": "No complete metrics authorization test is committed."
-        },
-        {
-          "id": "CCC.K8S.CN14.AR05",
-          "requirement": "When a cluster is operational, runtime threat detection MUST be enabled for its nodes and workloads and MUST alert an authorized security function on suspicious container activity.",
-          "result": "planned",
-          "status": "planned",
-          "scope": "The v2026.11 catalog includes this runtime-detection requirement; State 019 FR-019-05 plans later observation/enforcement comparison.",
-          "limitation": "No runtime sensor or alert-delivery evidence is committed. Detection after an effect is not prevention."
         }
       ]
     }
   ],
   "interpretation_notes": [
     "A local fixture, component candidate, or deployed local kind cluster is not a managed-cloud approximation unless explicitly described as such; no managed-cloud approximation is claimed in this assessment.",
-    "CCC.K8S.CN23 is present at the pinned FINOS main commit but absent from the checked orchestration/k8s/v2026.11 release. The released catalog has a related runtime-detection requirement at CCC.K8S.CN14.AR05.",
     "State 019 HTTP authorization tests and synthetic-token checks are component evidence only. They are not NATS subject authorization, deployment TLS, or deployment-trust evidence.",
     "Runtime detection and runtime prevention are separate outcomes. No runtime detection engine or prevention result is claimed.",
-    "Ingress and service-mesh profiles and the CALM comparison are future work as described by system/platform-control-comparison.md; they are not current implementation evidence."
+    "Ingress and service-mesh profiles and the CALM comparison are future work as described by system/platform-control-comparison.md; they are not current implementation evidence.",
+    "Catalog pins were checked against each release tag independently: Kubernetes v2026.11 resolves to f36872f7ff09bd4db6670f560707107bc3c0a548, while load-balancer and relational v2026.11 resolve to 56a388a18a6f2fdf13d933a0f9eddb16c8c9ccac. Do not infer a shared release commit."
   ]
 }
