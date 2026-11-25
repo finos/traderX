@@ -45,12 +45,23 @@ subjects for the configured account before invoking the adapter. Broker
 permissions and the database allowlist remain the authorization boundaries;
 the local scope check does not provision or replace either.
 
+For example, prepare a separate private configuration with `"mode":
+"reference-consumer"`, `"account_id": 22214`, and `"durable": "ACCOUNT_A"`,
+and its own scoped database and broker credentials. Start it with the same
+`--config` command. Configure the durable to filter both account subjects;
+the worker cannot inspect its server-side filters with the restricted fixture
+permissions. Protect the file with `chmod 600` and make its parent directory
+accessible only to the intended service user.
+
 The only plaintext SQL mode is `fixture-loopback`, restricted to literal
 `127.0.0.1` or `::1`, with `database_ca` set to null. All other SQL connections
 require `verify-full` and an explicit CA file. DNS names such as `localhost`
 are not accepted as proof of loopback. The broker always uses the existing
 hostname-verified TLS adapter. Configuration must not contain connection
 strings or user-supplied libpq options.
+Any inherited `PG*` environment variable is rejected to prevent libpq
+environment defaults from overriding the explicit connection. CA paths must
+refer to operator-controlled trust files.
 
 ## Runtime and supervision
 
@@ -70,6 +81,11 @@ empty poll resets it. Structured JSON status/counters contain no credentials,
 payloads, DSNs or server exception text and do not assert downstream business
 success. Exit 0 means an orderly signal stop, 1 means retry exhaustion or
 runtime failure, and 2 means invalid configuration or terminal authentication.
+Each connection attempt and each complete batch is bounded by the configured
+operation timeout (plus the polling interval for a batch). Choose a batch size,
+lease and timeout suitable for the deployment; a timed-out batch may be replayed.
+A forced shutdown timeout exits 1 after cancellation and bounded connection
+cleanup, not a claim that in-flight work succeeded.
 Supervisors should restart failures only under their own bounded policy and
 alert on exhaustion; startup alone is not delivery health.
 
@@ -80,3 +96,12 @@ backlog monitoring, poison-event recovery, retention and deployment controls.
 The unit tests use injected adapters and do not prove process-crash recovery.
 The separate real 41-check campaign and its resource guard/cleanup are
 documented in `event-delivery.md`; it is not a deployment acceptance test.
+
+With the existing delivery and lab requirements installed in a Python 3.14
+virtual environment, run the focused adapter and worker checks from the
+repository root:
+
+```bash
+cd scripts/security-lab
+python -m unittest -v test_delivery_worker test_event_delivery
+```
