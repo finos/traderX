@@ -185,3 +185,11 @@ both native platform manifests from the same immutable C3 NATS index. The
 fixture selects the daemon's supported architecture explicitly and reports a
 stopped broker before readiness. This preserves the tested Mac broker version
 and avoids relying on cross-architecture emulation on hosted Linux.
+
+On the dedicated native Linux runner, the broker runs as the runner's non-root
+UID/GID so that its private bind-mounted store remains removable by that runner.
+JetStream creates private data directories; using a different UID would leave
+unremovable files after shutdown. Root runners are refused. The Mac fixture keeps
+UID/GID 10001; Docker Desktop mediates host file ownership. Only the intended
+mounted configuration directory is made readable; the outer private directory
+remains 0700 even under the CI `umask 077`.

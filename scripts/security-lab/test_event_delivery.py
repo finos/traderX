@@ -2,7 +2,7 @@ import json
 from decimal import Decimal
 from types import SimpleNamespace
 import unittest
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 import uuid
 from event_delivery import Publisher, consume_message, decode_event, validate_event, Store
 
@@ -76,6 +76,15 @@ class DeliveryTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(arm,image_for_arch('arm64'))
         self.assertEqual(amd,image_for_arch('amd64'))
         with self.assertRaises(ValueError):image_for_arch('unreviewed')
+
+    def test_linux_store_owner_is_unprivileged_runner(self):
+        from jetstream_fixture import broker_user
+        with patch('jetstream_fixture.isolated_linux',return_value=True),patch('jetstream_fixture.os.getuid',return_value=1001),patch('jetstream_fixture.os.getgid',return_value=1001):
+            self.assertEqual(broker_user(),'1001:1001')
+            with patch('jetstream_fixture.os.getuid',return_value=0):
+                with self.assertRaises(ValueError):broker_user()
+        with patch('jetstream_fixture.isolated_linux',return_value=False):
+            self.assertEqual(broker_user(),'10001:10001')
 
     def test_store_refuses_uncommitted_outer_connection(self):
         with self.assertRaises(ValueError):Store(SimpleNamespace(autocommit=False))

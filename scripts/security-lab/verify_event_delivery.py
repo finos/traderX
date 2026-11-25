@@ -181,7 +181,7 @@ async def campaign(runtime):
                 check(business()==before,'all delivery replay and rejection leaves trading business tables unchanged')
                 final_info=await js.stream_info(STREAM)
                 return {'status':'passed','scope':'TLS JetStream + PostgreSQL reference projection; not deployed UI delivery',
-                  'checks':checks,'broker_version':str(bootstrap.connected_server_version),'broker_messages':final_info.state.messages,'broker_architecture':fixture['architecture'],
+                  'checks':checks,'broker_version':str(bootstrap.connected_server_version),'broker_messages':final_info.state.messages,'broker_architecture':fixture['architecture'],'broker_runtime_user':fixture['runtime_user'],
                   'images':{'nats':fixture['image'],'postgresql':image},
                   'client_versions':{p:importlib.metadata.version(p) for p in ('nats-py','psycopg','psycopg-binary','simplejson')},
                   'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in (MIGRATION,SETTLEMENT,EVENTS,CONSUMER,BROKER_LOCK,Path(__file__).resolve(),ROOT/'scripts/security-lab/event_delivery.py',ROOT/'scripts/security-lab/jetstream_fixture.py',ROOT/'scripts/security-lab/requirements-delivery.txt')},
