@@ -35,6 +35,7 @@ Completed prototype evidence and granular implementation history are in the [C3 
 - [x] S019-04b2b7 Validate the bounded publisher/reference-consumer worker candidate: private configuration, verified transport, scoped consumption, retry exhaustion and signal shutdown. Actual worker subprocess recovery and deployed supervision remain a later gate.
 - [x] S019-04b2b8 Independently rerun canonical/wire tampering, stale claims and pre/post-commit acknowledgment boundaries on hosted Linux with unchanged authoritative outcomes.
 - [ ] S019-04b2b9 Exercise actual supervised worker subprocesses with private scoped configuration, signal stop/restart, durable replay and independent database effects; do not substitute adapter mocks for process recovery.
+- [ ] S019-04b2b10 Connect the opt-in generated Angular trade/position consumers to validated settlement invalidations and account-scoped HTTP snapshots; verify coalescing, scope-change cancellation, denial and reconnect in browser tests. Live session/broker issuance remains a deployment gate.
 - [ ] S019-04b2b Wire matcher, authenticated trade handoff and processor to the durable ledger; implement reliable broker/event delivery and cancellation integration.
 - [ ] S019-04b2 Add migrated authority storage, authenticated durable execution/outbox and downstream deduplication; verify restart, expiry, cancellation and retry outcomes.
 - [ ] S019-04b Implement durable authorized background matching and authenticated execution; verify after initiating token expiry.

@@ -42,6 +42,7 @@ jobs:
           python -m unittest discover -s scripts/security-lab -p 'test_event_delivery.py'
           python -m unittest discover -s scripts/security-lab -p 'test_delivery_worker.py'
           python -m unittest discover -s scripts/security-lab -p 'test_event_delivery_adversarial.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_application_consumers.py'
       - name: Build candidates and exercise HTTP to PostgreSQL
         shell: bash
         env:
@@ -61,3 +62,33 @@ jobs:
           python scripts/security-lab/verify_event_delivery.py --runtime-dir "$runtime" --output "$runtime/evidence/broker-delivery.json"
           python scripts/security-lab/verify_event_delivery_adversarial.py --runtime-dir "$runtime" --output "$runtime/evidence/broker-adversarial.json"
           python scripts/security-lab/verify_worker_process.py --runtime-dir "$runtime" --output "$runtime/evidence/worker-process.json"
+  application-consumers:
+    needs: integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Generate pinned application consumer candidate
+        run: |
+          python -m pip install -r scripts/security-lab/requirements.txt
+          python scripts/security-lab/checkpoint.py fetch-baseline
+          python scripts/security-lab/render_application_consumers.py --output-dir "$RUNNER_TEMP/security-frontend"
+      - name: Test actual blotters and build Angular candidate
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
+          NG_CLI_ANALYTICS: 'false'
+        run: |
+          cd "$RUNNER_TEMP/security-frontend"
+          npm ci --ignore-scripts --no-audit --no-fund
+          export CHROME_BIN="$(command -v google-chrome)"
+          test -x "$CHROME_BIN"
+          npx ng test --watch=false --browsers=ChromeHeadlessNoSandbox --include='main/app/security/*.spec.ts'
+          npm run build

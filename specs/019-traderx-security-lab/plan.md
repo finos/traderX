@@ -98,3 +98,11 @@ Next prove actual worker subprocess stop/restart and resulting database state
 (S019-04b2b9), then provision credentials and adopt existing application consumers.
 The integration preserves cloud provenance without importing unsigned initial
 plan commits. No Main merge or generated-state publication occurred.
+
+The [process/application handoff](system/worker-process-recovery.md) now specifies
+actual publisher and consumer process kills at controlled SQL boundaries,
+followed by restart and independently observed state. Next, generated Angular
+trade/position consumers treat settlement messages as invalidations and reload
+scoped HTTP data, with coalescing, cancellation and reconnect refresh. Validate
+both in hosted CI without downloading frontend dependencies or images locally.
+This source candidate does not provision browser sessions or NATS credentials.
