@@ -106,10 +106,15 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(broker_policy({'grants':{'subject':[62654]},'identities':{'62654':{'user':'reader','password':'x'*32}}})[0],{'subject':{62654}})
 
     def test_verified_tls_static_routes_host_and_no_prototype_backend(self):
+        (self.static/'assets').mkdir()
+        (self.static/'assets/state-ui.json').write_text('{"state":"security-lab"}')
         server=self.start()
         status,headers,body=self.request('/trade');self.assertEqual(status,200)
         self.assertIn(b'main-ABC12345',body);self.assertIn("script-src 'self';",headers['Content-Security-Policy'])
         self.assertEqual(self.request('/main-ABC12345.js')[0],200)
+        status,headers,body=self.request('/assets/state-ui.json')
+        self.assertEqual(status,200);self.assertEqual(headers['Content-Type'],'application/json')
+        self.assertEqual(json.loads(body),{'state':'security-lab'})
         for path in ('/config.json','/main-ABC12345.js.map','/app.js','/style.css','/%2e%2e/config.json'):
             self.assertEqual(self.request(path)[0],404,path)
         self.assertEqual(self.request('/health/live')[0],200)

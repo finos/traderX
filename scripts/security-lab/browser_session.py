@@ -132,7 +132,7 @@ class BrowserServer:
         class Handler(BaseHTTPRequestHandler):
             def log_message(self,*args):pass
             def reply(self,status,value='',cookie=None,location=None,kind='application/json'):
-                data=b'' if status==204 else (json.dumps(value).encode() if kind=='application/json' else value if isinstance(value,bytes) else value.encode())
+                data=b'' if status==204 else (value if isinstance(value,bytes) else json.dumps(value).encode() if kind=='application/json' else value.encode())
                 self.send_response(status)
                 from browser_assets import CSP
                 policy=CSP if owner.configured else "default-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
