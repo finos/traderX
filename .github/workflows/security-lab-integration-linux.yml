@@ -1,6 +1,14 @@
 name: Security Lab Linux Integration
 on:
   workflow_dispatch:
+    inputs:
+      campaign:
+        description: Hosted acceptance scope (full suite remains required before acceptance)
+        type: choice
+        default: all
+        options:
+          - all
+          - position-image
   pull_request:
     paths:
       - 'scripts/security-lab/**'
@@ -16,6 +24,7 @@ permissions:
   contents: read
 jobs:
   integration:
+    if: github.event_name != 'workflow_dispatch' || inputs.campaign != 'position-image'
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
@@ -83,6 +92,7 @@ jobs:
           python scripts/security-lab/verify_worker_process.py --runtime-dir "$runtime" --output "$runtime/evidence/worker-process.json"
           test "$candidate_failed" = 0
   application-consumers:
+    if: github.event_name != 'workflow_dispatch' || inputs.campaign != 'position-image'
     # Separate hosted runner and generated root; no shared generation targets.
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -121,6 +131,7 @@ jobs:
           print('Actual production Angular assets accepted by the session runtime allowlist.')
           PY
   people-authorization:
+    if: github.event_name != 'workflow_dispatch' || inputs.campaign != 'position-image'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -149,6 +160,7 @@ jobs:
           dotnet build "$runtime/people-service/PeopleService.WebApi/PeopleService.WebApi.csproj" -c Release --disable-build-servers
           python scripts/security-lab/verify_people_security.py --runtime-dir "$runtime" --output "$runtime/people-result.json"
   integrated-admission:
+    if: github.event_name != 'workflow_dispatch' || inputs.campaign != 'position-image'
     # Independent disposable control plane: schema/policy only, no application activation.
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -183,6 +195,7 @@ jobs:
           PY
           python scripts/security-lab/verify_integrated_admission.py --kind "$RUNNER_TEMP/kind-v0.31.0" --runtime-dir "$RUNNER_TEMP/traderx-admission" --output "$RUNNER_TEMP/traderx-admission-evidence.json"
   browser-journey:
+    if: github.event_name != 'workflow_dispatch' || inputs.campaign != 'position-image'
     # One real browser and its actual APIs on a dedicated disposable runner.
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -252,6 +265,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
   runtime-images:
+    if: github.event_name != 'workflow_dispatch' || inputs.campaign != 'position-image'
     # Sequential image builds on a disposable hosted runner; nothing is published.
     runs-on: ubuntu-latest
     timeout-minutes: 25
