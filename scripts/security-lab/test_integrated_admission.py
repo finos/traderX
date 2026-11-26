@@ -6,7 +6,7 @@ import subprocess
 import tarfile
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import admission_fixture
 import integrated_deployment as compiler
@@ -24,10 +24,12 @@ class FakeAPI:
             if obj['kind']=='Pod' and '--dry-run=server' not in args:self.parked=copy.deepcopy(obj)
             return obj
         if args[:2]==['get','pod']:return copy.deepcopy(self.parked)
-        if args[0]=='delete':self.deleted=True;self.parked=None;return {}
         if args[0]=='get':return {'items':[]}
         raise AssertionError(args)
     def call(self,args,obj=None):
+        if args[0]=='delete':
+            self.deleted=True;self.parked=None
+            return subprocess.CompletedProcess(args,0,'pod/admission-ephemeral-probe\n','')
         if args[0]=='replace' and self.fail_ephemeral:raise RuntimeError('simulated transport failure')
         resource='pods' if obj['kind']=='Pod' else 'deployments'
         return subprocess.CompletedProcess(args,1,'',f'ValidatingAdmissionPolicy {admission_fixture.NAMESPACE}-images-{resource} denied request: Integrated application contract required')
@@ -85,6 +87,18 @@ class IntegratedAdmissionTests(unittest.TestCase):
         with patch('sys.stderr',io.StringIO()):
             with self.assertRaisesRegex(RuntimeError,'transport failure'):verifier.campaign(api,self.documents)
         self.assertTrue(api.deleted);self.assertIsNone(api.parked)
+
+    def test_delete_checks_exit_status_and_confirms_target_absence(self):
+        api=Mock();api.call.return_value=subprocess.CompletedProcess([],0,'pod/probe\n','')
+        api.require.return_value=None
+        verifier.delete_probe(api,'probe','namespace')
+        self.assertEqual(api.call.call_args.args[0][-2:],['-o','name'])
+        api.require.assert_called_once_with(['get','pod','probe','-n','namespace','--ignore-not-found','-o','json'])
+        api.require.return_value={'kind':'Pod'}
+        with self.assertRaisesRegex(RuntimeError,'remains after deletion'):verifier.delete_probe(api,'probe','namespace')
+        api.require.reset_mock();api.call.return_value=subprocess.CompletedProcess([],1,'','deletion error')
+        with self.assertRaisesRegex(RuntimeError,'deletion failed'):verifier.delete_probe(api,'probe','namespace')
+        api.require.assert_not_called()
 
     def test_owned_cluster_cleanup_runs_after_campaign_failure(self):
         pins=compiler.read_json(verifier.TOOLS)

@@ -139,6 +139,15 @@ def typechecked(api,policy,deadline):
     raise RuntimeError('Admission type checking timed out')
 
 
+def delete_probe(api,name,namespace):
+    # kubectl delete supports name output, not JSON. Check its exit status, then
+    # independently read the API to establish absence rather than trusting text.
+    result=api.call(['delete','pod',name,'-n',namespace,'--wait=true','--timeout=30s','-o','name'])
+    if result.returncode:raise RuntimeError('Ephemeral probe deletion failed: '+result.stderr[-3000:])
+    remaining=api.require(['get','pod',name,'-n',namespace,'--ignore-not-found','-o','json'])
+    if remaining is not None:raise RuntimeError('Ephemeral probe remains after deletion')
+
+
 def campaign(api,documents):
     checks=[];namespace=admission_fixture.NAMESPACE
     def passed(name):checks.append(name);print(name+': passed',file=sys.stderr,flush=True)
@@ -200,7 +209,7 @@ def campaign(api,documents):
             raise RuntimeError('Admission-only probe unexpectedly changed or started')
         passed('ephemeral-container update denied and scheduling-gated Pod remains unchanged')
     finally:
-        if created:api.require(['delete','pod',parked['metadata']['name'],'-n',namespace,'--wait=true','--timeout=30s','-o','json'])
+        if created:delete_probe(api,parked['metadata']['name'],namespace)
     for resource in ('pods','deployments'):
         if api.require(['get',resource,'-n',namespace,'-o','json'])['items']:raise RuntimeError('Application object remains after admission probes')
     passed('no application Pod or Deployment remains or was activated')
