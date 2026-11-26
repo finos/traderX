@@ -35,16 +35,18 @@ LABEL='traderx.security-lab.image-smoke'
 STAGES=frozenset(('configuration','verify_images','network','issuer','browser_start','browser_ready',
     'browser_assets','browser_boundaries','worker_event_publisher','worker_event_consumer','cleanup','evidence'))
 PHASE='configuration'
-CHECKS=frozenset(('all_loaded_config_digests_match_inspected_oci','owned_network_is_internal',
+CHECKS=frozenset(('all_loaded_images_bound_to_inspected_oci','owned_network_is_internal',
     'packaged_browser_verified_https_ready','untrusted_browser_certificate_rejected','actual_angular_static_index_and_csp_served',
     'actual_angular_entrypoint_in_index','actual_angular_entrypoint_served','anonymous_packaged_api_denied',
     'root_config_not_served','materialized_config_not_served','private_key_not_served','browser_port_published_only_on_loopback',
     'actual_nonroot_readonly_capability_and_private_file_boundaries','event_publisher_mismatched_role_fails_closed_without_private_output',
-    'event_consumer_mismatched_role_fails_closed_without_private_output','owned_containers_network_and_private_fixture_cleaned'))
+    'event_consumer_mismatched_role_fails_closed_without_private_output','owned_containers_network_and_private_fixture_cleaned',
+    'image_inventory_invalid','image_oci_reinspection_failed','image_source_labels_mismatch','image_inventory_differs_from_oci',
+    'image_loaded_inspection_unavailable','image_loaded_metadata_invalid','image_loaded_identity_mismatch'))
 
 
 class SmokeFailure(RuntimeError):
-    def __init__(self,check):self.check=check
+    def __init__(self,check,metadata=None):self.check=check;self.metadata=metadata
 
 
 def stage(name):
@@ -54,8 +56,45 @@ def stage(name):
 
 
 def failure(error):
-    return {'status':'failed','stage':PHASE,
+    value={'status':'failed','stage':PHASE,
         'check':error.check if isinstance(error,SmokeFailure) and error.check in CHECKS else 'runtime_boundary_unavailable'}
+    if isinstance(error,SmokeFailure) and error.metadata is not None:value['image_identity']=public_identity(error.metadata)
+    return value
+
+
+def public_identity(metadata):
+    """Only digest/descriptor identifiers can enter diagnostic evidence."""
+    result={}
+    if not isinstance(metadata,dict):return result
+    if metadata.get('role') in ROLES:result['role']=metadata['role']
+    for field in ('loaded_id','descriptor_digest','expected_manifest_digest','expected_config_digest'):
+        value=metadata.get(field)
+        result[field]=value if isinstance(value,str) and compiler.DIGEST.fullmatch(value) else None
+    media=metadata.get('descriptor_media_type')
+    known={'application/vnd.oci.image.manifest.v1+json','application/vnd.oci.image.index.v1+json',
+           'application/vnd.docker.distribution.manifest.v2+json','application/vnd.docker.distribution.manifest.list.v2+json'}
+    result['descriptor_media_type']=media if isinstance(media,str) and media in known else None
+    size=metadata.get('descriptor_size')
+    result['descriptor_size']=size if type(size) is int and 0<=size<=16*1024*1024 else None
+    return result
+
+
+def bind_loaded_image(role,loaded,descriptor,config_digest):
+    if not isinstance(loaded,dict):raise SmokeFailure('image_loaded_metadata_invalid',{'role':role})
+    identity=loaded.get('Id');target=loaded.get('Descriptor')
+    details={'role':role,'loaded_id':identity,'expected_manifest_digest':descriptor['digest'],'expected_config_digest':config_digest}
+    if isinstance(target,dict):details.update(descriptor_digest=target.get('digest'),descriptor_media_type=target.get('mediaType'),descriptor_size=target.get('size'))
+    exact_manifest=(isinstance(target,dict) and target.get('digest')==descriptor['digest'] and
+        target.get('mediaType')=='application/vnd.oci.image.manifest.v1+json' and
+        type(target.get('size')) is int and target['size']==descriptor['size'])
+    # Classic Docker keys by config digest. Moby's containerd image store keys
+    # by target.Digest and returns that target as Descriptor (upstream source:
+    # github.com/moby/moby/blob/master/daemon/containerd/image_inspect.go).
+    # Never accept an arbitrary index or ID just because labels happen to match.
+    if identity==config_digest and (target is None or exact_manifest):kind='config'
+    elif identity==descriptor['digest'] and exact_manifest:kind='oci-manifest'
+    else:raise SmokeFailure('image_loaded_identity_mismatch',details)
+    return {'config_digest':config_digest,'manifest_digest':descriptor['digest'],'runtime_id':identity,'identity_kind':kind}
 
 
 class Docker:
@@ -71,25 +110,29 @@ class Docker:
 
 def verified_images(manifest,docker):
     if not isinstance(manifest,dict) or set(manifest)!={'source_commit','images'} or not re.fullmatch(r'[0-9a-f]{40}',manifest.get('source_commit','')):
-        raise ValueError('Explicit source image inventory required')
-    if not isinstance(manifest['images'],dict) or set(manifest['images'])!=set(ROLES):raise ValueError('Three Python runtime images required')
+        raise SmokeFailure('image_inventory_invalid')
+    if not isinstance(manifest['images'],dict) or set(manifest['images'])!=set(ROLES):raise SmokeFailure('image_inventory_invalid')
     result={}
     for role in ROLES:
         entry=manifest['images'][role]
         if not isinstance(entry,dict) or set(entry)!={'image','oci_layout','secret','keys','runtime_reference'}:
-            raise ValueError('Complete inspected runtime reference required')
+            raise SmokeFailure('image_inventory_invalid',{'role':role})
         reference=entry['runtime_reference']
-        inspected=runtime_images.inspect(role,entry['oci_layout'],reference,manifest['source_commit'])
+        try:inspected=runtime_images.inspect(role,entry['oci_layout'],reference,manifest['source_commit'])
+        except (OSError,ValueError,KeyError,TypeError) as error:
+            code='image_source_labels_mismatch' if str(error)=='Image source or interface contract mismatch' else 'image_oci_reinspection_failed'
+            raise SmokeFailure(code,{'role':role}) from None
         if inspected!={key:value for key,value in entry.items() if key!='runtime_reference'}:
-            raise ValueError('Runtime inventory differs from inspected OCI image')
+            raise SmokeFailure('image_inventory_differs_from_oci',{'role':role})
         layout=Path(entry['oci_layout']);index=compiler.read_json(layout/'index.json')
         descriptor=index['manifests'][0]
         image=compiler.blob(layout,descriptor)
         digest=image['config']['digest']
-        # This immutable ID is used for execution after checking the loaded tag.
-        loaded=docker('image','inspect','--format','{{.Id}}',reference).stdout.strip()
-        if loaded!=digest:raise ValueError('Loaded Docker image differs from inspected OCI configuration')
-        result[role]={'config_digest':digest,'manifest_digest':descriptor['digest']}
+        try:raw=docker('image','inspect','--format','{{json .}}',reference).stdout
+        except RuntimeError:raise SmokeFailure('image_loaded_inspection_unavailable',{'role':role}) from None
+        try:loaded=json.loads(raw)
+        except (ValueError,TypeError):raise SmokeFailure('image_loaded_metadata_invalid',{'role':role}) from None
+        result[role]=bind_loaded_image(role,loaded,descriptor,digest)
     return result
 
 
@@ -253,7 +296,7 @@ def campaign(runtime,manifest):
         if name not in CHECKS:raise ValueError('Invalid fixed smoke check')
         if not condition:raise SmokeFailure(name)
         checks.append(name)
-    check(True,'all_loaded_config_digests_match_inspected_oci')
+    check(True,'all_loaded_images_bound_to_inspected_oci')
     with tempfile.TemporaryDirectory(prefix='image-smoke-',dir=runtime) as temporary:
         root=Path(temporary)
         try:
@@ -272,7 +315,7 @@ def campaign(runtime,manifest):
                     'static_root':'/app/static','backends':{name:issuer for name in sorted(BACKENDS)}}
                 projection=projected(root,'browser-session',config,values)
                 name='traderx-image-browser-'+owner;names.append(name)
-                docker(*launch_args(name,network,owner,projection,verified['browser-session']['config_digest'],port))
+                docker(*launch_args(name,network,owner,projection,verified['browser-session']['runtime_id'],port))
                 context=ssl.create_default_context(cafile=root/'ca.pem')
                 stage('browser_ready');deadline=time.monotonic()+30;ready=False
                 while time.monotonic()<deadline:
@@ -305,7 +348,7 @@ def campaign(runtime,manifest):
                     stage('worker_'+role.replace('-','_'))
                     projection=projected(root,role,worker_config(role,gateway),values)
                     name='traderx-image-'+role+'-'+owner;names.append(name)
-                    docker(*launch_args(name,network,owner,projection,verified[role]['config_digest']))
+                    docker(*launch_args(name,network,owner,projection,verified[role]['runtime_id']))
                     code=docker('wait',name,timeout=20).stdout.strip()
                     logs=docker('logs','--tail','10',name)
                     check(code=='2' and (logs.stdout+logs.stderr).strip()==REFUSAL,role.replace('-','_')+'_mismatched_role_fails_closed_without_private_output')

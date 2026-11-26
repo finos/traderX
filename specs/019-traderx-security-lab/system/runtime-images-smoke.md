@@ -4,8 +4,11 @@
 executes only on explicitly isolated hosted Linux. The input contains a source
 commit and the three `runtime_images.inspect` entries, each with a local
 `runtime_reference`. Before starting any image, revalidate its OCI descriptors,
-layers, source labels and exact launcher command; require Docker's loaded image
-ID to equal the inspected configuration digest. Execute that immutable ID.
+layers, source labels and exact launcher command. Bind Docker's loaded image ID
+to the exact inspected config digest (classic store), or to the inspected
+single-platform manifest digest with matching descriptor media type and byte
+size (containerd store). Refuse arbitrary index targets. Execute only that
+validated immutable ID and record whether it identifies config or manifest.
 
 The browser image must start with its actual packaged Angular assets, verified
 HTTPS identity trust and the fixed private-config launcher. Check `/health/ready`,
@@ -36,6 +39,8 @@ container output or credentials from evidence. A failed cleanup prevents a passe
 result. Local unit tests mock Docker and verify digest binding, permissions,
 execution arguments, role mismatch and cleanup ownership. A local loopback test
 also verifies the fixture certificate chain with strict X.509 validation.
-Failures report only fixed stage/check identifiers, never exception text or
-container logs. Only the hosted image
+Failures report only fixed stage/check identifiers and bounded public image
+digests/descriptor metadata, never exception text or container logs. Source
+reinspection, loaded-metadata and identity mismatches have distinct check IDs.
+Only the hosted image
 execution supplies runtime proof.

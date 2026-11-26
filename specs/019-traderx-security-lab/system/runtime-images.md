@@ -95,8 +95,16 @@ The resulting workload fragment includes the actual single-platform OCI manifest
 digest, verified local layout and fixed private Secret-key inventory. OCI
 config/layer descriptors are checked by `integrated_deployment.image`; the
 packaged command must additionally match `runtime_images.argv(role)` exactly.
-The Docker archive loaded for runtime smoke must have the same image config
-digest as that verified OCI export. A local reference is not a published image.
+The Docker archive loaded for runtime smoke must bind to those exact verified
+bytes. Classic Docker's image ID must equal the verified config digest. With
+Docker's containerd store, the ID may equal the verified single-platform manifest
+digest, but its returned descriptor must also match that manifest's digest, OCI
+media type and byte size. This follows the
+[Moby image-inspection implementation](https://github.com/moby/moby/blob/master/daemon/containerd/image_inspect.go),
+which uses the stored target descriptor as the image ID. Arbitrary index targets,
+different descriptors and label-only matches remain rejected. Execute only the
+validated immutable ID and record its identity kind; never run the mutable tag.
+A local reference is not a published image.
 The complete deployment compiler still refuses a three-role contract: all eight
 verified protected application roles are required before staging that bundle.
 

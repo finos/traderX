@@ -37,16 +37,46 @@ class RuntimeImageSmokeTests(unittest.TestCase):
 
     def test_loaded_config_digest_must_equal_reinspected_oci_before_any_run(self):
         manifest,digests=self.inventory()
-        docker=Mock(side_effect=lambda *args,**kwargs:response(digests[args[-1]]+'\n'))
+        docker=Mock(side_effect=lambda *args,**kwargs:response(json.dumps({'Id':digests[args[-1]]})))
         actual=smoke.verified_images(manifest,docker)
         self.assertEqual(set(actual),set(smoke.ROLES))
         self.assertTrue(all(call.args[:3]==('image','inspect','--format') for call in docker.call_args_list))
-        with self.assertRaisesRegex(ValueError,'Loaded Docker'):
-            smoke.verified_images(manifest,Mock(return_value=response('sha256:'+'f'*64)))
+        with self.assertRaises(smoke.SmokeFailure) as failed:
+            smoke.verified_images(manifest,Mock(return_value=response(json.dumps({'Id':'sha256:'+'f'*64}))))
+        self.assertEqual(failed.exception.check,'image_loaded_identity_mismatch')
         changed=copy.deepcopy(manifest);changed['images']['browser-session']['image']='local/other@sha256:'+'f'*64
         docker.reset_mock()
-        with self.assertRaisesRegex(ValueError,'differs from inspected'):smoke.verified_images(changed,docker)
+        with self.assertRaises(smoke.SmokeFailure) as failed:smoke.verified_images(changed,docker)
+        self.assertEqual(failed.exception.check,'image_inventory_differs_from_oci')
         docker.assert_not_called()
+
+    def test_classic_and_containerd_ids_bind_to_exact_verified_content(self):
+        manifest={'digest':'sha256:'+'a'*64,'size':1234,'mediaType':'application/vnd.oci.image.manifest.v1+json'}
+        config='sha256:'+'b'*64
+        classic=smoke.bind_loaded_image('browser-session',{'Id':config},manifest,config)
+        self.assertEqual(classic['runtime_id'],config);self.assertEqual(classic['identity_kind'],'config')
+        modern=smoke.bind_loaded_image('browser-session',{'Id':manifest['digest'],'Descriptor':manifest},manifest,config)
+        self.assertEqual(modern['runtime_id'],manifest['digest']);self.assertEqual(modern['identity_kind'],'oci-manifest')
+        invalid=[{'Id':manifest['digest']},{'Id':manifest['digest'],'Descriptor':dict(manifest,size=1235)},
+            {'Id':manifest['digest'],'Descriptor':dict(manifest,mediaType='application/vnd.oci.image.index.v1+json')},
+            {'Id':manifest['digest'],'Descriptor':dict(manifest,digest='sha256:'+'c'*64)},
+            {'Id':'sha256:'+'c'*64,'Descriptor':manifest},{'Id':config,'Descriptor':dict(manifest,size=1)}]
+        for loaded in invalid:
+            with self.assertRaises(smoke.SmokeFailure) as failure:smoke.bind_loaded_image('browser-session',loaded,manifest,config)
+            self.assertEqual(failure.exception.check,'image_loaded_identity_mismatch')
+
+    def test_source_reinspection_and_loaded_metadata_have_distinct_safe_errors(self):
+        manifest,_=self.inventory()
+        with patch.object(smoke.runtime_images,'inspect',side_effect=ValueError('Image source or interface contract mismatch')):
+            with self.assertRaises(smoke.SmokeFailure) as failure:smoke.verified_images(manifest,Mock())
+            self.assertEqual(failure.exception.check,'image_source_labels_mismatch')
+        with self.assertRaises(smoke.SmokeFailure) as failure:smoke.verified_images(manifest,Mock(return_value=response('private invalid output')))
+        self.assertEqual(failure.exception.check,'image_loaded_metadata_invalid')
+        details=smoke.failure(smoke.SmokeFailure('image_loaded_identity_mismatch',{
+            'role':'browser-session','loaded_id':'sha256:'+'f'*64,'descriptor_media_type':{'private':'secret'},
+            'descriptor_digest':'private-sentinel','password':'private-sentinel'}))
+        self.assertEqual(details['image_identity']['loaded_id'],'sha256:'+'f'*64)
+        self.assertNotIn('private-sentinel',json.dumps(details))
 
     def test_run_uses_immutable_digest_and_hardened_owned_boundaries(self):
         digest='sha256:'+'a'*64
