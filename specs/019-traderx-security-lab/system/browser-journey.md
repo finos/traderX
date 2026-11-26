@@ -27,6 +27,10 @@ campaign continues independently.
 - BJ-05: Missing CSRF, cross-account access, read-only mutations and retired
   sessions are rejected. Independent database counts establish that these
   negative attempts do not create a second settlement or trade.
+  Trader and reader use separate Chromium browser contexts. The trader's local
+  sign-out and retired-cookie rejection are verified before that context closes;
+  the reader then completes a fresh provider login in its own context. Provider
+  SSO/global logout is intentionally not claimed or changed by this exercise.
 - BJ-06: The evidence records input/artifact hashes, fixed check names and
   nonsecret order/execution identities. Private config, credentials, bearer
   tokens, raw provider responses and private service logs are never exported.

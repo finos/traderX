@@ -264,19 +264,31 @@ async function waitForPointerTarget(page, selector) {
 
 function number(value) { return Number(String(value ?? '').replace(/[^0-9.-]/g, '')); }
 
+export async function newUserPage(browser, observe) {
+    const context = await browser.createBrowserContext();
+    try {
+        const page = await context.newPage();
+        page.setDefaultTimeout(TIMEOUT); page.setDefaultNavigationTimeout(TIMEOUT);
+        const stopObserving = observe(page);
+        return {context,page,stopObserving:typeof stopObserving === 'function' ? stopObserving : () => {}};
+    } catch (error) {
+        await context.close();
+        throw error;
+    }
+}
+
 export async function run(config) {
     const require = createRequire(join(config.frontendRoot, 'package.json'));
     const puppeteer = require('puppeteer');
     const ipc = coordinator();
     let browser;
+    const contexts = new Set();
+    const observers = new Map();
     try {
         phase = 'browser_launch';
         browser = await puppeteer.launch({ executablePath: config.executablePath, headless: true,
             userDataDir: config.profileDir, args: ['--no-sandbox', '--disable-dev-shm-usage'],
             defaultViewport: { width: 1600, height: 1100 } });
-        const context = browser.defaultBrowserContext();
-        const page = await context.newPage();
-        page.setDefaultTimeout(TIMEOUT); page.setDefaultNavigationTimeout(TIMEOUT);
         const observed = { accounts: null, events: [], tradeResponses: 0, positionResponses: 0,
             tradeAtNotification: null, positionsAtNotification: null,
             errors: 0, forbiddenHeaders: 0, externalRequests: 0, csp: 0 };
@@ -286,19 +298,21 @@ export async function run(config) {
             task.catch(() => observed.errors++).finally(() => pendingObservers.delete(task));
         };
         const allowedOrigins = new Set([config.origin, new URL(config.issuer).origin]);
-        let expectedAccount = config.accounts.trader;
-        page.on('framenavigated', frame => {
+        function observe(page, expectedAccount) {
+        const listeners = [];
+        const on = (event, listener) => { listeners.push([event,listener]); page.on(event,listener); };
+        on('framenavigated', frame => {
             if (frame !== page.mainFrame()) return;
             try { const origin = new URL(frame.url()).origin;
                 diagnostics.location = origin === config.origin ? 'app' : origin === new URL(config.issuer).origin ? 'issuer' : 'other';
             } catch { diagnostics.location = 'unknown'; }
         });
-        page.on('pageerror', error => {
+        on('pageerror', error => {
             observed.errors++; diagnostics.pageErrors = Math.min(1000, diagnostics.pageErrors + 1);
             for (const code of String(error?.message ?? '').match(/\bNG[0-9]{4,6}\b/g) ?? [])
                 if (!diagnostics.angularCodes.includes(code) && diagnostics.angularCodes.length < 8) diagnostics.angularCodes.push(code);
         });
-        page.on('console', message => {
+        on('console', message => {
             const text = message.text();
             if (/Content Security Policy|Refused to (?:execute|load|apply)/i.test(text)) {
                 observed.csp++; diagnostics.cspErrors = Math.min(1000, diagnostics.cspErrors + 1);
@@ -317,13 +331,13 @@ export async function run(config) {
                 else observed.errors++;
             }
         });
-        page.on('requestfailed', request => { if (request.failure()?.errorText !== 'net::ERR_ABORTED') observed.errors++; });
-        page.on('request', request => {
+        on('requestfailed', request => { if (request.failure()?.errorText !== 'net::ERR_ABORTED') observed.errors++; });
+        on('request', request => {
             const url = new URL(request.url());
             if (url.protocol !== 'data:' && !allowedOrigins.has(url.origin)) observed.externalRequests++;
             if (url.origin === config.origin && request.headers().authorization) observed.forbiddenHeaders++;
         });
-        page.on('response', response => track((async () => {
+        on('response', response => track((async () => {
             try {
                 const url = new URL(response.url());
                 if (url.origin === config.origin && url.pathname === '/session') diagnostics.sessionStatus = response.status();
@@ -347,7 +361,11 @@ export async function run(config) {
                 if (url.pathname === `/api/position-service/positions/${expectedAccount}`) observed.positionResponses++;
             } catch { if (phase !== 'logout' && !phase.startsWith('reader_login')) observed.errors++; }
         })()));
+        return () => { for (const [event,listener] of listeners) page.off(event,listener); };
+        }
 
+        let {context,page,stopObserving} = await newUserPage(browser, page => observe(page, config.accounts.trader));
+        contexts.add(context); observers.set(context,stopObserving);
         await login(page, config, 'trader', observed);
         const cookies = await context.cookies();
         const sessionCookie = cookies.find(cookie => cookie.name === '__Host-traderx-session');
@@ -404,7 +422,13 @@ export async function run(config) {
         check(true, 'actual_grid_cancel_button_updates_open_orders');
         phase = 'logout'; await logout(page, config, 'trader');
 
-        expectedAccount = config.accounts.reader;
+        // BFF sign-out is local. Preserve that contract and model a different
+        // reader browser instead of trying to overwrite the trader's provider SSO.
+        await Promise.all([...pendingObservers]);
+        stopObserving(); observers.delete(context);
+        await context.close(); contexts.delete(context);
+        ({context,page,stopObserving} = await newUserPage(browser, page => observe(page, config.accounts.reader)));
+        contexts.add(context); observers.set(context,stopObserving);
         await login(page, config, 'reader', observed);
         phase = 'reader_denials';
         const foreign = await page.evaluate(async account => (await fetch(`/api/position-service/positions/${account}`)).status, config.accounts.trader);
@@ -418,6 +442,10 @@ export async function run(config) {
         return { status: 'passed', checks, orderId, cancelOrderId };
     } finally {
         ipc.close();
+        for (const context of contexts) {
+            observers.get(context)?.();
+            await context.close().catch(() => {});
+        }
         if (browser) await browser.close();
     }
 }

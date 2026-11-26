@@ -4,7 +4,7 @@ import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { CHECK_IDS, validateConfig, notificationAccounts, failureCode, fill, revealOrderActions, waitForModalClosed } from './browser_journey.mjs';
+import { CHECK_IDS, validateConfig, notificationAccounts, failureCode, fill, revealOrderActions, waitForModalClosed, newUserPage } from './browser_journey.mjs';
 
 const config = () => ({ origin: 'https://localhost:18447', issuer: 'https://localhost:18446/realms/lab',
     frontendRoot: '/tmp/frontend', executablePath: '/usr/bin/chromium', profileDir: '/tmp/isolated-profile',
@@ -90,4 +90,27 @@ test('post-submit synchronization waits until modal and backdrop are removed', a
             assert.equal(predicate(), true);
         }});
     } finally { globalThis.document = original; }
+});
+
+test('each user receives a new browser context with observers attached to its own page', async () => {
+    const contexts = [];
+    const browser = { createBrowserContext: async () => {
+        const page = {setDefaultTimeout: () => {}, setDefaultNavigationTimeout: () => {}};
+        const context = {newPage: async () => page, close: async () => {context.closed = true;}};
+        contexts.push(context); return context;
+    }};
+    const observed = [];
+    const trader = await newUserPage(browser, page => observed.push(['trader',page]));
+    await trader.context.close();
+    const reader = await newUserPage(browser, page => observed.push(['reader',page]));
+    assert.equal(contexts.length, 2); assert.equal(trader.context.closed, true);
+    assert.notEqual(trader.context, reader.context); assert.notEqual(trader.page, reader.page);
+    assert.deepEqual(observed, [['trader',trader.page],['reader',reader.page]]);
+});
+
+test('a failed user-page initialization closes only its newly owned context', async () => {
+    let closed = false;
+    const context = {newPage: async () => {throw new Error('fixed_failure');}, close: async () => {closed = true;}};
+    await assert.rejects(newUserPage({createBrowserContext: async () => context}, () => {}), /fixed_failure/);
+    assert.equal(closed, true);
 });

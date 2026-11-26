@@ -158,6 +158,7 @@ def campaign(runtime):
         limitations=['Synthetic reference symbols, display quotes and scoped market tick; real account/order/trade/position APIs.',
             'PostgreSQL uses explicit loopback fixture transport; HTTPS and broker TLS use an ephemeral localhost CA.',
             'Chromium uses a dedicated temporary profile and hosted-only NSS certificate; no local workstation trust changes.',
+            'Trader and reader use separate browser contexts after trader cookie retirement; provider SSO/global logout is not claimed.',
             'No cumulative Kubernetes, ingress/WAF, network-policy or image-admission claim.'])
 
 
