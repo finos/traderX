@@ -39,6 +39,7 @@ CHECKS=frozenset(('all_loaded_images_bound_to_inspected_oci','owned_network_is_i
     'packaged_browser_verified_https_ready','untrusted_browser_certificate_rejected','actual_angular_static_index_and_csp_served',
     'actual_angular_entrypoint_in_index','actual_angular_entrypoint_served','anonymous_packaged_api_denied',
     'root_config_not_served','materialized_config_not_served','private_key_not_served','browser_port_published_only_on_loopback',
+    'browser_internal_network_has_no_host_port_mapping',
     'actual_nonroot_readonly_capability_and_private_file_boundaries','event_publisher_mismatched_role_fails_closed_without_private_output',
     'event_consumer_mismatched_role_fails_closed_without_private_output','owned_containers_network_and_private_fixture_cleaned',
     'image_inventory_invalid','image_oci_reinspection_failed','image_source_labels_mismatch','image_inventory_differs_from_oci',
@@ -46,7 +47,7 @@ CHECKS=frozenset(('all_loaded_images_bound_to_inspected_oci','owned_network_is_i
 
 
 class SmokeFailure(RuntimeError):
-    def __init__(self,check,metadata=None):self.check=check;self.metadata=metadata
+    def __init__(self,check,metadata=None,readiness=None):self.check=check;self.metadata=metadata;self.readiness=readiness
 
 
 def stage(name):
@@ -59,7 +60,68 @@ def failure(error):
     value={'status':'failed','stage':PHASE,
         'check':error.check if isinstance(error,SmokeFailure) and error.check in CHECKS else 'runtime_boundary_unavailable'}
     if isinstance(error,SmokeFailure) and error.metadata is not None:value['image_identity']=public_identity(error.metadata)
+    if isinstance(error,SmokeFailure) and error.readiness is not None:value['readiness']=public_readiness(error.readiness)
     return value
+
+
+ERROR_CATEGORIES=frozenset(('none','connection_refused','timeout','tls_verification','tls_protocol','connection_reset','http_protocol','os_error'))
+LOG_MARKERS={'Browser runtime started with verified identity trust.':'started',
+    'Browser runtime failed; private details withheld.':'runtime_failed',
+    'Packaged runtime configuration refused; private details withheld.':'configuration_refused',
+    'Private configuration refused; no secret values exported.':'materialization_refused',
+    'Signing key set rejected; restart required.':'signing_keys_rejected',
+    'Signing key refresh unavailable.':'signing_keys_unavailable'}
+
+
+def public_readiness(value):
+    value=value if isinstance(value,dict) else {}
+    status=value.get('last_http_status');code=value.get('exit_code')
+    category=value.get('last_error');markers=value.get('startup_markers')
+    if not isinstance(markers,list):markers=[]
+    return {'last_http_status':status if type(status) is int and 100<=status<=599 else None,
+        'last_error':category if isinstance(category,str) and category in ERROR_CATEGORIES else 'os_error',
+        'running':value.get('running') if type(value.get('running')) is bool else None,
+        'exit_code':code if type(code) is int and 0<=code<=255 else None,
+        'oom_killed':value.get('oom_killed') if type(value.get('oom_killed')) is bool else None,
+        'probe_mode':value.get('probe_mode') if value.get('probe_mode') in ('published-loopback','internal-direct') else None,
+        'startup_markers':[marker for marker in LOG_MARKERS.values() if marker in markers]}
+
+
+def error_category(error):
+    if isinstance(error,ssl.SSLCertVerificationError):return 'tls_verification'
+    if isinstance(error,ssl.SSLError):return 'tls_protocol'
+    if isinstance(error,ConnectionRefusedError):return 'connection_refused'
+    if isinstance(error,(TimeoutError,socket.timeout)):return 'timeout'
+    if isinstance(error,ConnectionResetError):return 'connection_reset'
+    if isinstance(error,http.client.HTTPException):return 'http_protocol'
+    return 'os_error'
+
+
+def readiness_details(docker,name,last,mode):
+    value=dict(last,probe_mode=mode)
+    try:
+        state=json.loads(docker('inspect',name).stdout)[0]['State']
+        value.update(running=state.get('Running'),exit_code=state.get('ExitCode'),oom_killed=state.get('OOMKilled'))
+    except Exception:pass
+    try:
+        logs=docker('logs','--tail','20',name)
+        value['startup_markers']=[LOG_MARKERS[line] for line in (logs.stdout+logs.stderr).splitlines() if line in LOG_MARKERS]
+    except Exception:pass
+    return public_readiness(value)
+
+
+def probe_route(container,network,subnet,port):
+    expected=[{'HostIp':'127.0.0.1','HostPort':str(port)}]
+    if container['HostConfig'].get('PortBindings',{}).get('18447/tcp')!=expected:
+        raise ValueError('Explicit loopback publication request required')
+    effective=container['NetworkSettings'].get('Ports',{}).get('18447/tcp')
+    if effective==expected:return 'published-loopback',None
+    if effective not in (None,[]):raise ValueError('Unexpected effective port publication')
+    # Internal-only bridges may suppress publication. Probe only the inspected
+    # owned-network address; retain localhost TLS verification and Host origin.
+    address=container['NetworkSettings']['Networks'][network]['IPAddress']
+    if ipaddress.IPv4Address(address) not in ipaddress.IPv4Network(subnet):raise ValueError('Container address outside owned network')
+    return 'internal-direct',(address,18447)
 
 
 def public_identity(metadata):
@@ -227,8 +289,14 @@ def launch_args(name,network,owner,projection,image_id,port=None):
     return args+[image_id]
 
 
-def request(port,context,path):
+def request(port,context,path,connect_to=None):
     connection=http.client.HTTPSConnection('localhost',port,context=context,timeout=3)
+    if connect_to is not None:
+        def connect():
+            raw=socket.create_connection(connect_to,timeout=3)
+            try:connection.sock=context.wrap_socket(raw,server_hostname='localhost')
+            except BaseException:raw.close();raise
+        connection.connect=connect
     try:
         connection.request('GET',path);response=connection.getresponse()
         data=response.read(4*1024*1024+1)
@@ -316,32 +384,39 @@ def campaign(runtime,manifest):
                 projection=projected(root,'browser-session',config,values)
                 name='traderx-image-browser-'+owner;names.append(name)
                 docker(*launch_args(name,network,owner,projection,verified['browser-session']['runtime_id'],port))
+                container=json.loads(docker('inspect',name).stdout)[0]
+                probe_mode,connect_to=probe_route(container,network,info['IPAM']['Config'][0]['Subnet'],port)
                 context=ssl.create_default_context(cafile=root/'ca.pem')
                 stage('browser_ready');deadline=time.monotonic()+30;ready=False
+                last={'last_http_status':None,'last_error':'none'}
                 while time.monotonic()<deadline:
                     try:
-                        if request(port,context,'/health/ready')[0]==200:ready=True;break
-                    except (OSError,http.client.HTTPException):pass
+                        status=request(port,context,'/health/ready',connect_to)[0]
+                        last={'last_http_status':status,'last_error':'none'}
+                        if status==200:ready=True;break
+                    except (OSError,http.client.HTTPException) as error:
+                        last={'last_http_status':None,'last_error':error_category(error)}
                     state=json.loads(docker('inspect',name).stdout)[0]['State']
                     if not state.get('Running'):break
                     time.sleep(.2)
-                check(ready,'packaged_browser_verified_https_ready')
+                if not ready:raise SmokeFailure('packaged_browser_verified_https_ready',readiness=readiness_details(docker,name,last,probe_mode))
+                check(True,'packaged_browser_verified_https_ready')
                 untrusted=False
-                try:request(port,ssl.create_default_context(),'/health/ready')
+                try:request(port,ssl.create_default_context(),'/health/ready',connect_to)
                 except ssl.SSLCertVerificationError:untrusted=True
                 check(untrusted,'untrusted_browser_certificate_rejected')
-                stage('browser_assets');status,headers,body=request(port,context,'/trade')
+                stage('browser_assets');status,headers,body=request(port,context,'/trade',connect_to)
                 check(status==200 and b'<app-root' in body and "script-src 'self'" in headers.get('Content-Security-Policy',''),'actual_angular_static_index_and_csp_served')
                 matches=re.findall(rb'<script[^>]+src="((?:\./|/)?main-[A-Za-z0-9_-]{6,64}\.js)"',body)
                 check(len(matches)==1,'actual_angular_entrypoint_in_index')
                 path='/'+matches[0].decode().removeprefix('./').lstrip('/')
-                check(request(port,context,path)[0]==200,'actual_angular_entrypoint_served')
-                stage('browser_boundaries');check(request(port,context,'/api/order-matcher/orders')[0]==401,'anonymous_packaged_api_denied')
+                check(request(port,context,path,connect_to)[0]==200,'actual_angular_entrypoint_served')
+                stage('browser_boundaries');check(request(port,context,'/api/order-matcher/orders',connect_to)[0]==401,'anonymous_packaged_api_denied')
                 for path,label in (('/config.json','root_config_not_served'),('/run/private/config/config.json','materialized_config_not_served'),('/tls.key','private_key_not_served')):
-                    check(request(port,context,path)[0]==404,label)
+                    check(request(port,context,path,connect_to)[0]==404,label)
                 container=json.loads(docker('inspect',name).stdout)[0]
-                bindings=container['HostConfig']['PortBindings']['18447/tcp']
-                check(bindings==[{'HostIp':'127.0.0.1','HostPort':str(port)}],'browser_port_published_only_on_loopback')
+                current_mode,_=probe_route(container,network,info['IPAM']['Config'][0]['Subnet'],port)
+                check(current_mode==probe_mode,'browser_port_published_only_on_loopback' if probe_mode=='published-loopback' else 'browser_internal_network_has_no_host_port_mapping')
                 probe=json.loads(docker('exec',name,'/usr/local/bin/python','-c',PRIVATE_PROBE).stdout)
                 check_restrictions(container,probe);check(True,'actual_nonroot_readonly_capability_and_private_file_boundaries')
                 for role in ('event-publisher','event-consumer'):
@@ -359,9 +434,10 @@ def campaign(runtime,manifest):
     check(True,'owned_containers_network_and_private_fixture_cleaned')
     stage('evidence')
     return {'status':'passed','source_commit':manifest['source_commit'],'scope':'Actual inspected Python images: browser startup/static/anonymous boundary and worker configuration rejection only',
-        'images':verified,'checks':checks,'limitations':[
+        'images':verified,'browser_probe':{'mode':probe_mode,'tls_server_name':'localhost','host_origin_verified':True},'checks':checks,'limitations':[
             'Synthetic TLS signing-key peer supplies no real OIDC login or business API; no browser trading or issuer-provider integration claim.',
             'Workers deliberately reject mismatched roles before connecting; actual image-based PostgreSQL/NATS delivery remains a separate gate.',
+            'When an internal-only bridge suppresses host publication, verified TLS probes use its owned container address; localhost publication is not claimed in that mode.',
             'This is an isolated Docker smoke, not Kubernetes admission, image signature verification, or cumulative deployed-state acceptance.']}
 
 

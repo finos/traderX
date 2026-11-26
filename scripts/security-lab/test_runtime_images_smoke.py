@@ -4,6 +4,8 @@ from pathlib import Path
 import subprocess
 import http.client
 import ssl
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import tempfile
 import unittest
 from unittest.mock import Mock, patch
@@ -132,6 +134,52 @@ class RuntimeImageSmokeTests(unittest.TestCase):
                 reply=connection.getresponse();self.assertEqual(reply.status,200)
                 self.assertEqual(json.loads(reply.read()),keys)
             finally:connection.close()
+
+    def test_internal_direct_probe_preserves_verified_tls_sni_and_host_origin(self):
+        smoke.certificates(self.root,'127.0.0.1');hosts=[]
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self,*_):pass
+            def do_GET(self):
+                hosts.append(self.headers['Host']);self.send_response(200)
+                self.send_header('Content-Length','2');self.end_headers();self.wfile.write(b'[]')
+        server=ThreadingHTTPServer(('127.0.0.1',0),Handler)
+        tls=ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER);tls.load_cert_chain(self.root/'tls.crt',self.root/'tls.key')
+        server.socket=tls.wrap_socket(server.socket,server_side=True)
+        thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
+        try:
+            context=ssl.create_default_context(cafile=self.root/'ca.pem');context.verify_flags|=ssl.VERIFY_X509_STRICT
+            with patch.object(context,'wrap_socket',wraps=context.wrap_socket) as wrap:
+                status,_,_=smoke.request(18447,context,'/health/ready',('127.0.0.1',server.server_port))
+                self.assertEqual(status,200);self.assertEqual(wrap.call_args.kwargs['server_hostname'],'localhost')
+            self.assertEqual(hosts,['localhost:18447'])
+            with self.assertRaises(ssl.SSLCertVerificationError):
+                smoke.request(18447,ssl.create_default_context(),'/health/ready',('127.0.0.1',server.server_port))
+        finally:server.shutdown();server.server_close();thread.join(2)
+
+    def test_probe_route_uses_effective_mappings_not_just_requested_bindings(self):
+        binding=[{'HostIp':'127.0.0.1','HostPort':'18447'}]
+        container={'HostConfig':{'PortBindings':{'18447/tcp':binding}},
+            'NetworkSettings':{'Ports':{'18447/tcp':None},'Networks':{'owned':{'IPAddress':'172.18.0.2'}}}}
+        self.assertEqual(smoke.probe_route(container,'owned','172.18.0.0/16',18447),('internal-direct',('172.18.0.2',18447)))
+        container['NetworkSettings']['Ports']['18447/tcp']=binding
+        self.assertEqual(smoke.probe_route(container,'owned','172.18.0.0/16',18447),('published-loopback',None))
+        container['NetworkSettings']['Ports']['18447/tcp']=[{'HostIp':'0.0.0.0','HostPort':'18447'}]
+        with self.assertRaises(ValueError):smoke.probe_route(container,'owned','172.18.0.0/16',18447)
+        container['NetworkSettings']['Ports']['18447/tcp']=None
+        container['NetworkSettings']['Networks']['owned']['IPAddress']='192.0.2.1'
+        with self.assertRaises(ValueError):smoke.probe_route(container,'owned','172.18.0.0/16',18447)
+
+    def test_readiness_failure_contains_only_status_categories_state_and_known_markers(self):
+        docker=Mock(side_effect=[response(json.dumps([{'State':{'Running':True,'ExitCode':0,'OOMKilled':False,'Error':'private-sentinel'}}])),
+                                response('Browser runtime started with verified identity trust.\nprivate-sentinel\n')])
+        details=smoke.readiness_details(docker,'owned',{'last_http_status':None,'last_error':'connection_refused'},'internal-direct')
+        self.assertEqual(details['startup_markers'],['started']);self.assertIs(details['running'],True)
+        self.assertEqual(details['last_error'],'connection_refused')
+        report=smoke.failure(smoke.SmokeFailure('packaged_browser_verified_https_ready',readiness=details))
+        self.assertNotIn('private-sentinel',json.dumps(report))
+        self.assertEqual(smoke.error_category(TimeoutError('private-sentinel')),'timeout')
+        self.assertEqual(smoke.error_category(ssl.SSLCertVerificationError('private-sentinel')),'tls_verification')
+        self.assertNotIn('private-sentinel',json.dumps(smoke.public_readiness({'last_error':{'private':'private-sentinel'},'startup_markers':None})))
 
     def test_failure_diagnostics_never_echo_exception_or_private_material(self):
         smoke.stage('browser_ready')
