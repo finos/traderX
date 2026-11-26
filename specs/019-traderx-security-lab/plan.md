@@ -51,9 +51,19 @@ Copilot PR [#521](https://github.com/finos/traderX/pull/521) supplies a separate
 reviewed .NET adapter candidate; actual .NET image acceptance remains b3.
 Continue b2–b4 for the remaining Java/.NET services and support composition.
 The [account/processor image contract](system/core-java-images.md) splits b2a/b
-into independent shared-interface and service-specific acceptance work. Matcher
-b2c follows their identity and outbound-trust prerequisites. A separate Copilot
-proposal prepares .NET image packaging; it is not actual image acceptance.
+into independent shared-interface and service-specific acceptance work.
+At functional source `75ef3cc9`, [44 account image checks](evidence/2026-11-27-account-image.json)
+and [51 processor image checks](evidence/2026-11-27-processor-image.json) pass.
+The processor settles one reservation with two outbox events, preserves unrelated
+rows and all reservations, and retains the same effects after duplicate delivery
+and actual image restart. Local regression is 427 Python tests; all nine
+[hosted regression jobs](https://github.com/finos/traderX/actions/runs/45905166697)
+and the hosted docs build pass. Matcher
+b2c follows their identity and outbound-trust prerequisites. Copilot [PR #522](https://github.com/finos/traderX/pull/522) proposes .NET image
+packaging. Its 21 lightweight tests pass review, but the copied runtime omits ICU
+native dependencies. A revision is requested; the proposal is not incorporated
+or accepted as an actual image. Its eventual integration must bind the new
+runtime lock into the shared source manifest.
 Provision issuer/broker/market-data TLS, complete their permitted gateway/egress
 flows, and activate one cumulative cluster before closing S019-04/05/06. The
 admission campaign uses synthetic OCI files and unscheduled probes; it is not

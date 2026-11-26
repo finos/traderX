@@ -78,3 +78,14 @@ For a packaging-specific failure, dispatch the workflow with `campaign=position-
 to run that job alone; `all` is the default. Focused diagnostics do not substitute
 for the complete regression run before accepting a checkpoint. This avoids
 repeated unrelated Java/Angular downloads while debugging startup.
+
+## Account and processor image campaigns
+
+The `java-core-images` matrix follows [core-java-images.md](core-java-images.md).
+Separate account and processor runners reuse the verified Java image builder and
+instance-scoped test fixture, with distinct ports, audiences and projected-file
+inventories. No generation target or credential is shared. `campaign=java-core-images`
+selects these jobs for diagnosis; the default full run also preserves all existing
+position, Python image, browser, delivery and admission checks. Only sanitized
+`security-account-service-image` and `security-trade-processor-image` JSON artifacts
+are retained. A processor outbox commit is not proof of later broker delivery.

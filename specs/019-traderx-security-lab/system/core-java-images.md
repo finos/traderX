@@ -3,7 +3,10 @@
 This extends the accepted [position image](java-runtime.md) under S019-06a3b2.
 Account and processor are independent image checkpoints; matcher remains a later
 checkpoint with identity-client and outbound HTTPS/NATS trust prerequisites.
-None activates the staged Kubernetes deployment or closes cumulative acceptance.
+The [44-check account](../evidence/2026-11-27-account-image.json) and
+[51-check processor](../evidence/2026-11-27-processor-image.json) image campaigns
+pass at `75ef3cc9`. Neither activates the staged Kubernetes deployment or closes
+cumulative acceptance.
 
 ## Common requirements
 

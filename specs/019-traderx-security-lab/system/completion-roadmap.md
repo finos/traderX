@@ -45,9 +45,11 @@ must not be advertised as implemented experiments until their own gates pass.
 
 S019-06a3c is accepted in the [packaged-worker evidence](../evidence/2026-11-26-worker-image-delivery.json).
 S019-06a3b1 now has [41 passing image checks](../evidence/2026-11-26-position-image.json).
-Next reuse the verified private Spring interface for account, matcher and processor
-(S019-06a3b2), then package the separately reviewed .NET adapter (b3) and provision
-support-service TLS/flows (b4). Copilot PR #521 supplies the .NET launcher only;
+Account (b2a) and processor (b2b) now have 44 and 51 passing actual-image checks
+respectively; see [account evidence](../evidence/2026-11-27-account-image.json) and
+[processor evidence](../evidence/2026-11-27-processor-image.json). Next package
+matcher with its service-client identity and explicit outbound HTTPS/NATS trust
+(b2c), then accept the actual .NET image (b3) and support-service TLS/flows (b4). Copilot PR #521 supplies the .NET launcher only;
 its nine source tests do not establish image or operator-directory acceptance. Keep local
 Docker and Citrix untouched; continue with disposable hosted Linux execution
 and small local source tests.
