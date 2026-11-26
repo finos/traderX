@@ -118,15 +118,37 @@ def has_symlink_ancestor(name, links):
                if parent.as_posix() != '.')
 
 
+def path_bytes(value):
+    try:
+        return len(value.encode('utf-8', 'surrogateescape'))
+    except UnicodeEncodeError:
+        raise ValueError('Invalid OCI path encoding') from None
+
+
+class IndexBudget:
+    BYTE_LIMIT = 32 * 1024 * 1024
+
+    def __init__(self):
+        self.used = 0
+
+    def charge(self, size):
+        if self.used + size > self.BYTE_LIMIT:
+            raise ValueError('OCI aggregate path index bytes exceed bound')
+        self.used += size
+
+
 class PathInventory:
     """Index descendants so unrelated paths are never scanned during removal."""
     LIMIT = 200000
     REFERENCE_LIMIT = 1000000
 
-    def __init__(self):
+    def __init__(self, budget=None):
         self.items = {}
         self.descendants = {}
         self.references = 0
+        self.budget = budget if budget is not None else IndexBudget()
+        self.costs = {}
+        self.bytes_used = 0
 
     def __contains__(self, name):
         return name in self.items
@@ -140,15 +162,22 @@ class PathInventory:
                        if parent.as_posix() != '.']
             if len(self.items) >= self.LIMIT or self.references + len(parents) > self.REFERENCE_LIMIT:
                 raise ValueError('OCI path index exceeds bound')
+            cost = sum(path_bytes(part) for part in (name, *parents))
+            self.budget.charge(cost)
             for parent in parents:
                 self.descendants.setdefault(parent, set()).add(name)
             self.references += len(parents)
+            self.costs[name] = cost
+            self.bytes_used += cost
         self.items[name] = value
 
     def discard(self, name):
         if name not in self.items:
             return
         del self.items[name]
+        cost = self.costs.pop(name)
+        self.bytes_used -= cost
+        self.budget.used -= cost
         for parent in PurePosixPath(name).parents:
             parent = parent.as_posix()
             if parent == '.':
@@ -161,6 +190,9 @@ class PathInventory:
 
     def remove(self, name, *, include_self):
         if name == '.':
+            self.budget.used -= self.bytes_used
+            self.bytes_used = 0
+            self.costs.clear()
             self.items.clear()
             self.descendants.clear()
             self.references = 0
@@ -173,14 +205,19 @@ class PathInventory:
 
 def filesystem(layout, manifest, expected, diff_ids):
     """Reconstruct relevant final paths, including whiteouts and all ancestors."""
-    state = PathInventory()
+    budget = IndexBudget()
+    state = PathInventory(budget)
     directories = {'opt', 'opt/traderx'}
     for name in expected:
         directories.update(p.as_posix() for p in PurePosixPath(name).parents if p.as_posix() != '.')
     runtime_directories = {'usr', 'usr/local', 'usr/local/bin', 'usr/share',
                            'usr/share/dotnet'}
     tracked = directories | runtime_directories | {'usr/share/dotnet/dotnet'}
-    links = PathInventory()
+    links = PathInventory(budget)
+    def protected(name):
+        return (name in tracked or name.startswith('opt/traderx/')
+                or name.startswith('usr/share/dotnet/')
+                or bool(re.fullmatch(r'usr/local/bin/python(?:3(?:\.\d+)?)?', name)))
     if not isinstance(diff_ids, list) or len(diff_ids) != len(manifest['layers']):
         raise ValueError('OCI uncompressed layer inventory mismatch')
     for descriptor, diff_id in zip(manifest['layers'], diff_ids):
@@ -191,6 +228,7 @@ def filesystem(layout, manifest, expected, diff_ids):
         if layer_diff_id(path, descriptor['mediaType']) != diff_id:
             raise ValueError('OCI uncompressed layer digest mismatch')
         count = size = 0
+        layer_path_bytes = 0
         whiteouts, additions = [], []
         mode = 'r|gz' if descriptor['mediaType'].endswith('+gzip') else 'r|'
         with tarfile.open(path, mode) as tar:
@@ -201,8 +239,12 @@ def filesystem(layout, manifest, expected, diff_ids):
                     raise ValueError('OCI layer exceeds bound')
                 name = PurePosixPath(member.name)
                 if (name.is_absolute() or '..' in name.parts or '\\' in member.name
-                        or len(member.name) > 4096 or len(name.parts) > 256):
+                        or len(member.name) > 4096 or len(member.linkname) > 4096
+                        or len(name.parts) > 256):
                     raise ValueError('Invalid OCI path')
+                path_cost = path_bytes(member.name) + path_bytes(member.linkname)
+                budget.charge(path_cost)
+                layer_path_bytes += path_cost
                 rel = name.as_posix()
                 if rel == '.' and not member.isdir():
                     raise ValueError('Invalid OCI root entry')
@@ -232,9 +274,10 @@ def filesystem(layout, manifest, expected, diff_ids):
                             header = part[:65536]
                         h.update(part)
                     digest = h.hexdigest()
+                elf_valid = bool(header) and amd64_elf(header, member.size)
                 item = (member.isdir(), member.isfile(), member.issym(), member.uid,
                         member.gid, member.mode & 0o7777, digest, member.linkname,
-                        header, member.size) if relevant else None
+                        elf_valid, member.size) if relevant else None
                 additions.append((rel, member.isdir(), member.issym(), member.islnk(), member.linkname, item))
         # OCI whiteouts mask lower layers only, irrespective of tar entry order.
         layer_links = {rel for rel, _, issym, _, _, _ in additions if issym}
@@ -255,10 +298,11 @@ def filesystem(layout, manifest, expected, diff_ids):
                 link_path = PurePosixPath(target)
                 if (link_path.is_absolute() or '..' in link_path.parts or '\\' in target
                         or len(target) > 4096 or len(link_path.parts) > 256
+                        or protected(rel) or protected(link_path.as_posix())
                         or link_path.as_posix() in links or link_path.as_posix() in layer_links
                         or has_symlink_ancestor(link_path.as_posix(), links)
                         or has_symlink_ancestor(link_path.as_posix(), layer_links)):
-                    raise ValueError('OCI hardlink traverses a symlink')
+                    raise ValueError('OCI hardlink traverses a symlink or targets protected path')
             if not isdir:
                 state.remove(rel, include_self=False)
                 links.remove(rel, include_self=False)
@@ -267,6 +311,7 @@ def filesystem(layout, manifest, expected, diff_ids):
                 links.put(rel, True)
             if item is not None:
                 state.put(rel, item)
+        budget.used -= layer_path_bytes
     app_state = {k: v for k, v in state.items.items() if k == 'opt' or k == 'opt/traderx'
                  or k.startswith('opt/traderx/')}
     if set(app_state) != directories | set(expected):
@@ -291,7 +336,7 @@ def executable(state, path, *, allow_python_links):
         if path in seen or path not in state:
             raise ValueError('Missing or cyclic OCI executable')
         seen.add(path)
-        _, isfile, issym, uid, gid, mode, _, link, header, size = state.items[path]
+        _, isfile, issym, uid, gid, mode, _, link, elf_valid, _ = state.items[path]
         if uid != 0 or gid != 0:
             raise ValueError('Unsafe OCI executable ownership')
         if issym and allow_python_links:
@@ -299,7 +344,7 @@ def executable(state, path, *, allow_python_links):
                 raise ValueError('Unreviewed Python executable link')
             path = 'usr/local/bin/' + link
             continue
-        if not isfile or mode not in (0o555, 0o755) or not amd64_elf(header, size):
+        if not isfile or mode not in (0o555, 0o755) or not elf_valid:
             raise ValueError('Unsafe or non-amd64 OCI executable')
         return
 

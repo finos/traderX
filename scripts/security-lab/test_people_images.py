@@ -331,6 +331,31 @@ class PeopleImageTests(unittest.TestCase):
             with self.subTest(target=target), self.assertRaisesRegex(ValueError, 'hardlink traverses'):
                 self.inspect(test_layout)
 
+    def test_hardlink_cannot_alias_protected_application_or_runtime_files(self):
+        for target in ('opt/traderx/people_runtime.py', 'opt/traderx/MockDirectory/people.json',
+                       'usr/share/dotnet/dotnet', 'usr/local/bin/python3.14',
+                       'usr/share/dotnet/shared/Microsoft.NETCore.App/runtime.dll'):
+            alias = tarfile.TarInfo('untracked-hardlink')
+            alias.type, alias.linkname, alias.mode = tarfile.LNKTYPE, target, 0o777
+            indirect = tarfile.TarInfo('another-hardlink')
+            indirect.type, indirect.linkname = tarfile.LNKTYPE, 'untracked-hardlink'
+            for members in ([alias], [alias, indirect], [indirect, alias]):
+                layout = self.layout()
+                self.add_layer(layout, members)
+                with self.subTest(target=target), self.assertRaisesRegex(ValueError, 'protected path'):
+                    self.inspect(layout)
+        protected_alias = tarfile.TarInfo('usr/share/dotnet/shared/alias')
+        protected_alias.type, protected_alias.linkname = tarfile.LNKTYPE, 'unrelated-file'
+        layout = self.layout()
+        self.add_layer(layout, [self.member('unrelated-file', 1), protected_alias])
+        with self.assertRaisesRegex(ValueError, 'protected path'):
+            self.inspect(layout)
+        benign = tarfile.TarInfo('unrelated-link')
+        benign.type, benign.linkname = tarfile.LNKTYPE, 'unrelated-file'
+        layout = self.layout()
+        self.add_layer(layout, [self.member('unrelated-file', 1), benign])
+        self.inspect(layout)
+
     def test_actual_uncompressed_layer_digest_for_tar_and_gzip(self):
         for compressed in (False, True):
             layout = self.layout()
@@ -390,6 +415,38 @@ class PeopleImageTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'index exceeds bound'):
                 index.put('a/b/c/d', True)
             self.assertEqual(len(index), 0)
+
+    def test_aggregate_index_byte_budget_bounds_deep_distinct_paths(self):
+        budget = images.IndexBudget()
+        state = images.PathInventory(budget)
+        links = images.PathInventory(budget)
+        for number in range(200):
+            part = '%04dabcdefghijk' % number
+            name = '/'.join([part] * 255 + ['leaf%04d' % number])
+            self.assertLessEqual(len(name), 4096)
+            self.assertEqual(len(name.split('/')), 256)
+            try:
+                (state if number % 2 == 0 else links).put(name, True)
+            except ValueError as error:
+                self.assertIn('aggregate path index bytes', str(error))
+                break
+        else:
+            self.fail('Deep paths must exhaust the shared byte budget')
+        self.assertGreater(len(state), 0)
+        self.assertGreater(len(links), 0)
+        self.assertLessEqual(budget.used, budget.BYTE_LIMIT)
+        self.assertEqual(budget.used, state.bytes_used + links.bytes_used)
+        state.remove('.', include_self=False)
+        self.assertEqual(budget.used, links.bytes_used)
+        links.remove('.', include_self=False)
+        self.assertEqual(budget.used, 0)
+
+    def test_layer_path_names_also_consume_shared_byte_budget(self):
+        names = [self.symlink(('name-%03d-' % n) + 'x' * 180, '/opt/traderx') for n in range(100)]
+        layout = self.layout(extra=names)
+        with patch.object(images.IndexBudget, 'BYTE_LIMIT', 8000):
+            with self.assertRaisesRegex(ValueError, 'aggregate path index bytes'):
+                self.inspect(layout)
 
     def test_many_application_whiteouts_remove_only_indexed_entries(self):
         names = ['extra-%04d' % n for n in range(3000)]
