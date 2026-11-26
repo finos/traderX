@@ -3,12 +3,12 @@
   "date": "2026-11-26",
   "status": "passed-bounded-image-checkpoint",
   "task": "S019-06a3a",
-  "source_branch_commit": "ea8af46f8ec4d7ae7fd5162fabdc67c860a9357e",
-  "hosted_checkout_commit": "85cac09b351e8c12215909d69814e8d79db6a356",
-  "hosted_run": "https://github.com/finos/traderX/actions/runs/45773626277",
-  "hosted_job": "https://github.com/finos/traderX/actions/runs/45773626277/job/139751916426",
+  "source_branch_commit": "04b42265e06427014cac92891c0d9505d708ea5a",
+  "hosted_checkout_commit": "463ca5b625b48daacd17b52791597edc7e9ec5a4",
+  "hosted_run": "https://github.com/finos/traderX/actions/runs/45774719041",
+  "hosted_job": "https://github.com/finos/traderX/actions/runs/45774719041/job/139755496941",
   "dependency_lock_sha256": "f6f95b6630241e3a4e6fdee9ded2d38f143c58652b41d00c72255db6d4fc35f3",
-  "local_python_tests": 332,
+  "local_python_tests": 337,
   "local_driver_tests": 10,
   "required_spec_gates": "passed",
   "runtime_images": {
@@ -37,22 +37,22 @@
     ],
     "images": {
       "browser-session": {
-        "config_digest": "sha256:0fbea384d225821551c53e763bcd4ac6fbb8acb7cb6f1f3f4acfa90a093bad9a",
+        "config_digest": "sha256:7edb6a64c101e2e46139614ecec84109336950912a74ec46bceea7e49d270d9d",
         "identity_kind": "oci-manifest",
-        "manifest_digest": "sha256:89cdf91269c04c39ef183b0966127178bfe30a40bead92f4de9d02e1e72938de",
-        "runtime_id": "sha256:89cdf91269c04c39ef183b0966127178bfe30a40bead92f4de9d02e1e72938de"
+        "manifest_digest": "sha256:3da7f4e2b612c1783686fc18ccceab78689a97fe8c84c3b77341bd5331efc8c2",
+        "runtime_id": "sha256:3da7f4e2b612c1783686fc18ccceab78689a97fe8c84c3b77341bd5331efc8c2"
       },
       "event-consumer": {
-        "config_digest": "sha256:6c4b9e92fbf62e02ad48eac0c02316af82241f882264ee76ed3d95ebd6037650",
+        "config_digest": "sha256:d42dc10837fe7e8513d234f71f29c2af8ade89def872486d06b71b72c55a189b",
         "identity_kind": "oci-manifest",
-        "manifest_digest": "sha256:df1718245f26ebdf714dc0c24898e582f3fabb81c63c2c274f1f8c7d995addbe",
-        "runtime_id": "sha256:df1718245f26ebdf714dc0c24898e582f3fabb81c63c2c274f1f8c7d995addbe"
+        "manifest_digest": "sha256:d44a6cf03b41b9ba5c5c6597e47b88de16e95e0472e51f19b108af3b7de59d42",
+        "runtime_id": "sha256:d44a6cf03b41b9ba5c5c6597e47b88de16e95e0472e51f19b108af3b7de59d42"
       },
       "event-publisher": {
-        "config_digest": "sha256:6a6c55581a87558896daba90c76a2d494de441b14e4b59b1321d753527ae1e0c",
+        "config_digest": "sha256:9e25f05e31441eb5863f7f08b05312cea10c894eed58de60488aecf961991bcf",
         "identity_kind": "oci-manifest",
-        "manifest_digest": "sha256:76d97adb59baa16e56c0aa049220e207433951e02881760b7781ba045ad2788c",
-        "runtime_id": "sha256:76d97adb59baa16e56c0aa049220e207433951e02881760b7781ba045ad2788c"
+        "manifest_digest": "sha256:d0cc7ad0dc3bc271ef04b80ce9420d6a5287c1d75227d9077d950bcf51c3a6e1",
+        "runtime_id": "sha256:d0cc7ad0dc3bc271ef04b80ce9420d6a5287c1d75227d9077d950bcf51c3a6e1"
       }
     },
     "limitations": [
@@ -62,7 +62,7 @@
       "This is an isolated Docker smoke, not Kubernetes admission, image signature verification, or cumulative deployed-state acceptance."
     ],
     "scope": "Actual inspected Python images: browser startup/static/anonymous boundary and worker configuration rejection only",
-    "source_commit": "85cac09b351e8c12215909d69814e8d79db6a356",
+    "source_commit": "463ca5b625b48daacd17b52791597edc7e9ec5a4",
     "status": "passed"
   },
   "remaining": [
