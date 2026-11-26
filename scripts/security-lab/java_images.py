@@ -1,0 +1,215 @@
+"""Prepare and inspect one verified position-service image; never build or publish."""
+import argparse
+import ast
+import hashlib
+import io
+import json
+from pathlib import Path, PurePosixPath
+import re
+import tarfile
+import zipfile
+
+import build_position_security as build
+import integrated_deployment as compiler
+import runtime_images
+
+ROLE = 'position-service'
+LOCK = compiler.STATE / 'system/java-runtime-images.lock.json'
+SOURCE = compiler.ROOT / 'scripts/security-lab'
+FILES = {'java_runtime.py', 'private_materializer.py'}
+KEYS = ['config.json', 'database-ca.pem', 'entitlements.properties', 'public.pem', 'tls.p12']
+STARTUP = b'SELECT 1;\n'
+
+
+def argv():
+    command = ['/usr/local/bin/python', '/opt/traderx/private_materializer.py',
+               '--source', '/run/projected', '--target', '/run/private/config']
+    command += [value for key in KEYS for value in ('--key', key)]
+    return command + ['--', '/usr/local/bin/python', '/opt/traderx/java_runtime.py',
+                      '--role', ROLE, '--config', '/run/private/config/config.json']
+
+
+def jar_bytes(root):
+    data = build.regular(Path(root) / build.JAR, build.LIMIT)
+    required = {'finos/traderx/positionservice/' + name + '.class' for name in (
+        'PositionServiceApplication', 'security/ReadSecurity', 'security/TradingAccess',
+        'controller/PositionController', 'controller/TradeController')}
+    with zipfile.ZipFile(io.BytesIO(data)) as jar:
+        names = jar.namelist()
+        if len(names) != len(set(names)) or len(names) > 100000:
+            raise ValueError('Duplicate or excessive JAR entries')
+        if any(PurePosixPath(name).is_absolute() or '..' in PurePosixPath(name).parts or '\\' in name for name in names):
+            raise ValueError('Invalid JAR entry path')
+        if not {'BOOT-INF/classes/' + name for name in required}.issubset(names):
+            raise ValueError('Position security classes absent from bootJar')
+        manifest = jar.getinfo('META-INF/MANIFEST.MF')
+        if manifest.file_size > 16384:
+            raise ValueError('Bounded bootJar manifest required')
+        text = jar.read(manifest).decode().replace('\r\n', '\n').replace('\n ', '')
+        fields = dict(line.split(': ', 1) for line in text.splitlines() if ': ' in line)
+        if (fields.get('Main-Class') != 'org.springframework.boot.loader.launch.JarLauncher' or
+                fields.get('Start-Class') != 'finos.traderx.positionservice.PositionServiceApplication'):
+            raise ValueError('Explicit position bootJar entrypoint required')
+    return data
+
+
+def inputs(root, report):
+    verified = build.verify(root, report)
+    files = {'application.jar': jar_bytes(root), 'source/startup-check.sql': STARTUP}
+    for name in sorted(FILES):
+        files['source/' + name] = build.regular(SOURCE / name)
+    for name in FILES:
+        for node in ast.walk(ast.parse(files['source/' + name])):
+            modules = []
+            if isinstance(node, ast.Import):
+                modules = [value.name.split('.')[0] for value in node.names]
+            elif isinstance(node, ast.ImportFrom) and node.module:
+                modules = [node.module.split('.')[0]]
+            if any((SOURCE / (module + '.py')).is_file() and module + '.py' not in FILES for module in modules):
+                raise ValueError('Java adapter import absent from source allowlist')
+    return files, verified
+
+
+def labels(revision, report):
+    return {'org.opencontainers.image.revision': revision,
+            'traderx.security-lab.role': ROLE,
+            'traderx.security-lab.source-manifest': report['source_manifest']['sha256'],
+            'traderx.security-lab.config-interface': 'private-config-v1',
+            'traderx.security-lab.bind-address': '0.0.0.0',
+            'traderx.security-lab.transport': 'https', 'traderx.security-lab.port': '18090',
+            'traderx.security-lab.jar-sha256': report['jar']['sha256'],
+            'traderx.security-lab.build-report-sha256': compiler.sha(compiler.encoded(report))}
+
+
+def prepare(root, report, output, revision):
+    if not re.fullmatch(r'[0-9a-f]{40}', revision):
+        raise ValueError('Explicit source revision required')
+    files, verified = inputs(root, report)
+    lock = compiler.read_json(LOCK)
+    python = compiler.read_json(runtime_images.LOCK)['base']
+    if lock['platform'] != 'linux/amd64' or lock['java_major'] != 21:
+        raise ValueError('Reviewed Java platform required')
+    for reference in (python['reference'], lock['jre']['reference']):
+        if not re.fullmatch(r'[a-z0-9][a-z0-9./:_-]+@sha256:[0-9a-f]{64}', reference):
+            raise ValueError('Pinned runtime image required')
+    dockerfile = [f'FROM {lock["jre"]["reference"]} AS jre', f'FROM {python["reference"]}',
+        'COPY --from=jre /opt/java/openjdk/ /opt/java/openjdk/',
+        'ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 JAVA_HOME=/opt/java/openjdk',
+        'COPY --chmod=0555 source/ /opt/traderx/',
+        'COPY --chmod=0444 application.jar /app/application.jar',
+        'RUN /opt/java/openjdk/bin/java -Djava.awt.headless=true --version && /usr/local/bin/python --version',
+        'RUN mkdir -p /run/projected /run/private /tmp && chown 10001:10001 /run/private /tmp && chmod 0700 /run/private',
+        'WORKDIR /opt/traderx', 'EXPOSE 18090']
+    dockerfile += ['LABEL ' + key + '=' + json.dumps(value) for key, value in sorted(labels(revision, verified).items())]
+    dockerfile += ['USER 10001:10001', 'ENTRYPOINT ' + json.dumps(argv()), 'CMD []']
+    files['Dockerfile'] = ('\n'.join(dockerfile) + '\n').encode()
+    files['.dockerignore'] = b'**\n!Dockerfile\n!application.jar\n!source/\n!source/java_runtime.py\n!source/private_materializer.py\n!source/startup-check.sql\n'
+    record = {'schema_version': 1, 'role': ROLE, 'platform': lock['platform'], 'source_commit': revision,
+              'source_manifest': verified['source_manifest'], 'python_base': python, 'jre': lock['jre'],
+              'jar': verified['jar'], 'build_report_sha256': compiler.sha(compiler.encoded(verified)),
+              'command': argv(), 'keys': KEYS,
+              'context_files': {name: compiler.sha(data) for name, data in sorted(files.items())},
+              'status': 'build-context-prepared-not-image-built-or-runtime-accepted'}
+    files['image-build.json'] = compiler.encoded(record)
+    output = Path(output)
+    output.mkdir(parents=True, exist_ok=False)
+    for name, data in files.items():
+        path = output / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+    return record
+
+
+def filesystem(layout, manifest, expected):
+    """Bind actual final OCI files, not only self-declared labels, to build inputs."""
+    found = {}
+    for descriptor in manifest['layers']:
+        if descriptor['mediaType'] not in ('application/vnd.oci.image.layer.v1.tar', 'application/vnd.oci.image.layer.v1.tar+gzip'):
+            raise ValueError('Reviewed tar/gzip Java image export required')
+        path = layout / 'blobs/sha256' / descriptor['digest'].split(':')[1]
+        expanded = members = 0
+        with tarfile.open(path, mode='r|*') as archive:
+            for member in archive:
+                members += 1
+                expanded += member.size
+                if members > 200000 or expanded > 8 * 1024**3 or member.size < 0:
+                    raise ValueError('OCI filesystem exceeds bound')
+                name = PurePosixPath(member.name)
+                if name.is_absolute() or '..' in name.parts:
+                    raise ValueError('Invalid OCI filesystem path')
+                relative = name.as_posix()
+                if name.name == '.wh..wh..opq':
+                    prefix = name.parent.as_posix().rstrip('.') + '/'
+                    found = {key: value for key, value in found.items() if not key.startswith(prefix.lstrip('/'))}
+                    continue
+                if name.name.startswith('.wh.'):
+                    erased = (name.parent / name.name[4:]).as_posix()
+                    found = {key: value for key, value in found.items() if key != erased and not key.startswith(erased + '/')}
+                    continue
+                if not member.isdir() and (relative.startswith('opt/traderx/') or relative.startswith('app/')) and relative not in expected:
+                    raise ValueError('Unexpected packaged application file')
+                for key in expected:
+                    if key.startswith(relative + '/') and not member.isdir():
+                        raise ValueError('Packaged input ancestor is not a directory')
+                if relative not in expected:
+                    continue
+                digest, mode = expected[relative]
+                if not member.isfile() or member.uid != 0 or member.gid != 0 or member.mode & 0o7777 != mode or member.size > build.LIMIT:
+                    raise ValueError('Packaged runtime file ownership/type/mode changed')
+                stream = archive.extractfile(member)
+                actual = hashlib.sha256()
+                for part in iter(lambda: stream.read(1024 * 1024), b''):
+                    actual.update(part)
+                if actual.hexdigest() != digest:
+                    raise ValueError('Packaged runtime file bytes changed')
+                found[relative] = digest
+    if set(found) != set(expected):
+        raise ValueError('Verified JAR/runtime file absent from final OCI filesystem')
+
+
+def inspect(layout, name, revision, root, report):
+    if not re.fullmatch(r'[a-z0-9][a-z0-9./:_-]+', name) or not re.fullmatch(r'[0-9a-f]{40}', revision):
+        raise ValueError('Explicit local image reference and revision required')
+    files, verified = inputs(root, report)
+    layout = Path(layout).resolve()
+    index = compiler.read_json(layout / 'index.json')
+    if len(index.get('manifests', [])) != 1:
+        raise ValueError('Single-platform unattested local export required')
+    entry = {'image': name + '@' + index['manifests'][0]['digest'], 'oci_layout': str(layout),
+             'secret': 'private-position-service', 'keys': KEYS}
+    actual = compiler.image(ROLE, entry, verified['source_manifest'], revision, 'linux/amd64')
+    if actual != argv():
+        raise ValueError('Packaged Java launcher command changed')
+    manifest = compiler.blob(layout, index['manifests'][0])
+    config = compiler.blob(layout, manifest['config'])
+    actual_labels = config['config'].get('Labels', {})
+    if any(actual_labels.get(key) != value for key, value in labels(revision, verified).items()):
+        raise ValueError('Packaged Java build labels differ')
+    expected = {'app/application.jar': (verified['jar']['sha256'], 0o444)}
+    expected.update({'opt/traderx/' + name.removeprefix('source/'): (compiler.sha(data), 0o555)
+                     for name, data in files.items() if name.startswith('source/')})
+    filesystem(layout, manifest, expected)
+    return entry
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    commands = parser.add_subparsers(dest='action', required=True)
+    for action in ('prepare', 'inspect'):
+        command = commands.add_parser(action)
+        command.add_argument('--generated-root', type=Path, required=True)
+        command.add_argument('--build-report', type=Path, required=True)
+        command.add_argument('--source-commit', required=True)
+        if action == 'prepare':
+            command.add_argument('--output', type=Path, required=True)
+        else:
+            command.add_argument('--layout', type=Path, required=True)
+            command.add_argument('--image-name', required=True)
+    args = parser.parse_args()
+    value = (prepare(args.generated_root, args.build_report, args.output, args.source_commit)
+             if args.action == 'prepare' else inspect(args.layout, args.image_name, args.source_commit, args.generated_root, args.build_report))
+    print(json.dumps(value, sort_keys=True))
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "platform": "linux/amd64",
+  "java_major": 21,
+  "java_version": "21.0.13.1+2",
+  "python_base_lock": "specs/019-traderx-security-lab/system/runtime-images.lock.json",
+  "jre": {
+    "reference": "eclipse-temurin:21-jre-jammy@sha256:04bcffe1d3d31b0829c827e2c5c30c82f1768e16eae880d11961910c33db7456",
+    "index_digest": "sha256:a8bff88f760e87e0c8844f8461f807c203fd5e8f78c951c843024647e965eaf5",
+    "config_digest": "sha256:0e061db544f0307438fa3104d5127b5753033bd9590f6b91c1988a61a02e409a",
+    "metadata_source": "https://registry-1.docker.io/v2/library/eclipse-temurin/manifests/21-jre-jammy"
+  },
+  "composition": {
+    "copy_from": "/opt/java/openjdk",
+    "copy_to": "/opt/java/openjdk",
+    "source_distribution": "Ubuntu 22.04 (glibc)",
+    "runtime_distribution": "Debian bookworm (glibc)",
+    "scope": "Headless position-service only; hosted build Java startup and live HTTPS/PostgreSQL verify-full acceptance required. No GUI/font-library compatibility claim."
+  },
+  "metadata_verified_on": "2026-11-26"
+}
