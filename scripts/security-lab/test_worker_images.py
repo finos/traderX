@@ -1,6 +1,8 @@
 import asyncio
 import copy
 import json
+import io
+from contextlib import redirect_stdout
 from pathlib import Path
 import subprocess
 import tempfile
@@ -71,6 +73,23 @@ class WorkerImageTests(unittest.TestCase):
             self.assertEqual(value['stage'], 'guard')
             self.assertEqual(value['error_type'], 'other')
             self.assertNotIn('private-sentinel', json.dumps(value))
+
+    def test_partial_checkpoints_are_fixed_and_never_claim_completed_campaign(self):
+        checks, output = [], io.StringIO()
+        with redirect_stdout(output):
+            campaign.checkpoint(checks, 'inspected_immutable_images_revalidated')
+            with self.assertRaises(ValueError): campaign.checkpoint(checks, 'private-sentinel')
+        value = json.loads(output.getvalue())
+        self.assertEqual(value['campaign_status'], 'incomplete')
+        self.assertEqual(value['result'], 'passed')
+        self.assertEqual(checks, ['inspected_immutable_images_revalidated'])
+        self.assertNotIn('private-sentinel', output.getvalue())
+
+    def test_postcommit_diagnostics_distinguish_policy_probe_window_and_restore(self):
+        for name in ('disable', 'probe', 'start', 'window', 'restore'):
+            campaign.phase('consumer_postcommit_' + name)
+            self.assertEqual(campaign.failure(RuntimeError('private'))['phase'], 'consumer_postcommit_' + name)
+        campaign.phase('configuration')
 
     def test_broker_closes_if_subsequent_database_connection_fails(self):
         broker = NS(close=AsyncMock())

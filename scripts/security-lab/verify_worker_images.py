@@ -27,7 +27,9 @@ NEGATIVES = ('database_password', 'broker_password', 'database_ca', 'broker_ca',
              'database_hostname', 'broker_hostname')
 PHASES = frozenset(('configuration', 'images', 'fixture', 'bootstrap', 'negative_cases',
                    'publisher_gate', 'publisher_restart', 'consumer_precommit',
-                   'consumer_postcommit', 'consumer_restart', 'idle_restart', 'cleanup'))
+                   'consumer_postcommit_disable', 'consumer_postcommit_probe', 'consumer_postcommit_start',
+                   'consumer_postcommit_window', 'consumer_postcommit_restore',
+                   'consumer_restart', 'idle_restart', 'cleanup'))
 PHASE = 'configuration'
 DIAGNOSTIC = {}
 FIXED_ERRORS = frozenset(('projection_ownership', 'worker_output_secret', 'worker_image_changed',
@@ -41,6 +43,12 @@ FIXED_ERRORS = frozenset(('projection_ownership', 'worker_output_secret', 'worke
     'one_authoritative_settlement_receipt')) | frozenset(
         role + '_' + kind + '_' + suffix for role in ('event_publisher', 'event_consumer')
         for kind in NEGATIVES for suffix in ('terminal_rejection', 'no_effects'))
+CHECK_IDS = FIXED_ERRORS | frozenset(('inspected_immutable_images_revalidated',
+    'publisher_restricted_nonroot_private_materialization_verified',
+    'consumer_restricted_nonroot_private_materialization_verified',
+    'scoped_consumer_ack_permission_fault_confirmed_by_broker_probe',
+    'scoped_consumer_ack_permission_restored_and_confirmed',
+    'owned_workers_peers_network_and_private_files_cleaned'))
 
 
 def phase(value):
@@ -48,6 +56,14 @@ def phase(value):
     if value not in PHASES:
         raise ValueError('Unknown campaign phase')
     PHASE = value
+
+
+def checkpoint(checks, name):
+    if not isinstance(name, str) or name not in CHECK_IDS:
+        raise ValueError('Unknown fixed checkpoint')
+    checks.append(name)
+    print(json.dumps({'type': 'worker_image_checkpoint', 'check': name,
+                      'result': 'passed', 'campaign_status': 'incomplete'}), flush=True)
 
 
 class Failure(RuntimeError):
@@ -280,12 +296,13 @@ async def campaign(runtime, manifest):
         raise Failure('hosted_linux_required')
     phase('images')
     verified = images.verified_images(manifest, images.Docker(runtime))
-    checks = ['inspected_immutable_images_revalidated']
+    checks = []
+    checkpoint(checks, 'inspected_immutable_images_revalidated')
 
     def check(condition, name):
         if not condition:
             raise Failure(name)
-        checks.append(name)
+        checkpoint(checks, name)
 
     phase('fixture')
     with fixture(runtime) as f, tempfile.TemporaryDirectory(prefix='worker-projections-', dir=runtime) as temp:
@@ -361,7 +378,7 @@ async def campaign(runtime, manifest):
             with worker('event-publisher').run() as w:
                 await until(lambda: blocked('event_publisher'), 'publisher acknowledgment gate')
                 w.verify_restrictions()
-                checks.append('publisher_restricted_nonroot_private_materialization_verified')
+                checkpoint(checks, 'publisher_restricted_nonroot_private_materialization_verified')
                 check(encrypted('event_publisher'), 'publisher_sql_session_verified_encrypted')
                 check((await js.stream_info(STREAM)).state.messages == 1, 'broker_accepts_before_publisher_sql_ack')
                 w.signal('SIGKILL', 137)
@@ -380,19 +397,22 @@ async def campaign(runtime, manifest):
             with worker('event-consumer').run() as w:
                 await until(lambda: blocked('event_consumer_a'), 'consumer precommit gate')
                 w.verify_restrictions()
-                checks.append('consumer_restricted_nonroot_private_materialization_verified')
+                checkpoint(checks, 'consumer_restricted_nonroot_private_materialization_verified')
                 check(encrypted('event_consumer_a'), 'consumer_sql_session_verified_encrypted')
                 check((await js.consumer_info(STREAM, 'ACCOUNT_A')).num_ack_pending >= 1, 'consumer_precommit_has_unacked_delivery')
                 w.signal('SIGKILL', 137)
             check(effects() == (0, 0, 0), 'precommit_kill_rolls_back_inbox_and_projection')
             await gate.execute('SELECT pg_advisory_unlock(41902)')
             admin('DROP TRIGGER image_gate ON lab_execution.trade_projection; DROP FUNCTION lab_execution.image_gate();')
-            phase('consumer_postcommit')
+            phase('consumer_postcommit_disable')
             await asyncio.to_thread(f['set_consumer_ack_allowed'], False)
-            checks.append('scoped_consumer_ack_permission_fault_confirmed_by_broker_probe')
+            checkpoint(checks, 'scoped_consumer_ack_permission_fault_confirmed_by_broker_probe')
             try:
+                phase('consumer_postcommit_probe')
                 initial = await js.consumer_info(STREAM, 'ACCOUNT_A')
+                phase('consumer_postcommit_start')
                 with worker('event-consumer').run() as w:
+                    phase('consumer_postcommit_window')
                     async def committed():
                         cursor = await gate.execute("SELECT count(*) FROM lab_execution.consumer_inbox WHERE login_role='event_consumer_a' AND event_id=%s", (execution + ':trade',))
                         return (await cursor.fetchone())[0] == 1
@@ -406,8 +426,11 @@ async def campaign(runtime, manifest):
                     w.signal('SIGKILL', 137)
                 check(effects() == (1, 1, 0), 'postcommit_kill_preserves_exactly_one_effect')
             finally:
+                interrupted_phase = PHASE
+                phase('consumer_postcommit_restore')
                 await asyncio.to_thread(f['set_consumer_ack_allowed'], True)
-            checks.append('scoped_consumer_ack_permission_restored_and_confirmed')
+                phase(interrupted_phase)
+            checkpoint(checks, 'scoped_consumer_ack_permission_restored_and_confirmed')
             phase('consumer_restart')
 
             async def drained():
@@ -428,7 +451,7 @@ async def campaign(runtime, manifest):
             check(fingerprint(sql, f['database_password']) == before, 'delivery_recovery_does_not_rebook_business_trade')
             check(count('receipts') == 1, 'one_authoritative_settlement_receipt')
         phase('cleanup')
-    checks.append('owned_workers_peers_network_and_private_files_cleaned')
+    checkpoint(checks, 'owned_workers_peers_network_and_private_files_cleaned')
     return {'status': 'passed', 'source_commit': manifest['source_commit'],
             'worker_images': {role: verified[role] for role in ('event-publisher', 'event-consumer')},
             'peer_images': peer_images,
