@@ -114,11 +114,13 @@ def campaign(runtime):
                     status,invalid=poll(cursor)
                     check('malformed and wrong-account wire envelopes discarded',status==200 and not invalid['events'] and invalid['cursor']==cursor)
                     # Observe an actual broker restart, not merely a synthetic status flag.
-                    fixture['restart']()
+                    check('broker restart retains its explicit loopback endpoint',fixture['restart']()==fixture['endpoint'])
                     def reconnected():
                         status,value=poll(cursor)
                         return value if status==200 and value.get('reset') and value['cursor']!=cursor else None
-                    page=wait_for(reconnected,'Broker reconnect did not invalidate stale snapshot',seconds=15)
+                    try:page=wait_for(reconnected,'Broker reconnect did not invalidate stale snapshot',seconds=15)
+                    except AssertionError:
+                        raise AssertionError('Broker reconnect unavailable: '+json.dumps(hub.diagnostics(),sort_keys=True)) from None
                     check('real broker restart requires fresh HTTP snapshot',page['reset'] and not page['events'])
                     cursor=page['cursor']
                     asyncio.run(publish([(22214,envelope(22214,index+1)) for index in range(MAX_EVENTS+1)]))

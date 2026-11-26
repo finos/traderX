@@ -1,5 +1,7 @@
 import json
 import unittest
+import asyncio
+from unittest.mock import patch
 from browser_broker import BrokerEvents, EventHub, FeedError, MAX_EVENTS, reader_permissions
 
 
@@ -76,6 +78,36 @@ class BrowserBrokerTests(unittest.TestCase):
         self.assertEqual({name:rules[name] for name in permissions()},permissions())
         with self.assertRaises(ValueError):fixture_permissions({'publisher':reader_permissions(22214)})
         with self.assertRaises(ValueError):fixture_permissions({'browser-22214':{'publish':{'allow':[]},'subscribe':{'allow':['a']}}})
+
+
+class BrokerReconnectTests(unittest.IsolatedAsyncioTestCase):
+    async def test_closed_connection_is_replaced_and_old_cursor_invalidated(self):
+        class Client:
+            def __init__(self):self.is_connected=True;self.closed=False;self.topics=[]
+            async def subscribe(self,topic,**options):self.topics.append(topic)
+            async def flush(self,**options):pass
+            async def close(self):self.closed=True;self.is_connected=False
+        first,second=Client(),Client()
+        identity={'user':'browser-22214','password':'x'*32}
+        hub=BrokerEvents({'reader':{22214}},{22214:identity},'tls://localhost:4222','ca.pem')
+        async def until(predicate):
+            deadline=asyncio.get_running_loop().time()+2
+            while not predicate():
+                if asyncio.get_running_loop().time()>deadline:self.fail('Reconnect lifecycle timed out')
+                await asyncio.sleep(.01)
+        with patch('browser_broker.connect_broker',side_effect=[first,second]) as connect:
+            task=asyncio.create_task(hub._account(22214,identity))
+            try:
+                await until(hub.ready);revision,initial=hub.poll('reader')
+                first.is_connected=False
+                await until(lambda:connect.call_count==2 and hub.ready())
+                current,page=hub.poll('reader',initial['cursor'],revision)
+                self.assertEqual(current,revision);self.assertTrue(page['reset']);self.assertEqual(page['events'],[])
+                self.assertTrue(first.closed)
+                self.assertEqual(second.topics,['/accounts/22214/trades','/accounts/22214/positions'])
+            finally:
+                hub.stopping.set();await asyncio.wait_for(task,2)
+        self.assertTrue(second.closed);self.assertFalse(hub.ready())
 
 
 if __name__=='__main__':unittest.main()

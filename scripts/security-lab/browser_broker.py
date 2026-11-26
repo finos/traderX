@@ -117,6 +117,7 @@ class BrokerEvents(EventHub):
             users.add(user)
             self.identities[account] = dict(value)
         self.endpoint, self.ca_file = endpoint, ca_file
+        self.last_errors = {}
         self.stopping = threading.Event()
         self.thread = None
 
@@ -136,14 +137,17 @@ class BrokerEvents(EventHub):
                 await client.flush(timeout=3)
                 if errors:
                     raise ValueError('Broker subscription denied')
-                self.connection(account, True)
+                with self.lock:
+                    self.connection(account, True)
+                    self.last_errors.pop(account, None)
                 delay = .25
                 while not self.stopping.is_set() and client.is_connected and not errors:
                     await asyncio.sleep(.1)
-            except Exception:
+            except Exception as error:
                 # Exceptions may contain credentials, server messages or subjects.
                 # A failed account is exposed only as unavailable, never as ready.
-                pass
+                with self.lock:
+                    self.last_errors[account] = type(error).__name__
             finally:
                 self.connection(account, False)
                 if client is not None:
@@ -163,6 +167,12 @@ class BrokerEvents(EventHub):
         self.thread = threading.Thread(target=lambda: asyncio.run(self._run()), daemon=True)
         self.thread.start()
         return self
+
+    def diagnostics(self):
+        with self.lock:
+            return {'ready': all(self.online.values()), 'accounts': {
+                str(account): {'connected': online, 'last_error': self.last_errors.get(account)}
+                for account, online in self.online.items()}}
 
     def close(self):
         self.stopping.set()

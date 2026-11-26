@@ -117,13 +117,18 @@ def broker(runtime, extra_permissions=None):
         try:
             if subprocess.run(cli+['image','inspect',image],capture_output=True).returncode:
                 command(cli+['pull','--platform','linux/'+arch,image],timeout=180)
+            # Docker may reallocate an ephemeral publication after restart. Reserve
+            # an explicit loopback endpoint so reconnect exercises the same address.
+            # A competing bind fails create safely; no unrelated listener is reused.
+            with socket.socket() as probe:
+                probe.bind(('127.0.0.1',0));published_port=probe.getsockname()[1]
             attempted=True
             command(cli+['create','--name',name,'--label',label+'='+run_id,'--restart','no',
               '--platform','linux/'+arch,'--read-only','--user',user,'--cap-drop','ALL','--security-opt','no-new-privileges:true',
               '--memory','128m','--memory-swap','128m','--cpus','0.5','--pids-limit','64',
               '--log-driver','local','--log-opt','max-size=2m','--log-opt','max-file=2',
               '--mount',f'type=bind,src={config_dir},dst=/lab,readonly',
-              '--mount',f'type=bind,src={data_dir},dst=/store','--publish','127.0.0.1::4222',image,'-c','/lab/nats.json'])
+              '--mount',f'type=bind,src={data_dir},dst=/store','--publish',f'127.0.0.1:{published_port}:4222',image,'-c','/lab/nats.json'])
             command(cli+['start',name]);endpoint=ready()
             info=json.loads(command(cli+['inspect',name]))[0]
             host=info['HostConfig']
