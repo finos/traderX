@@ -214,6 +214,22 @@ class WorkerImageFixtureTests(unittest.TestCase):
         self.assertEqual(error.details,{'peer':'database','category':'permissions','running':False,'exit_code':1,'oom_killed':False})
         self.assertNotIn('secret-password',str(error));self.assertNotIn('/private/key',json.dumps(error.details))
 
+    def test_permission_probe_handles_protocol_one_async_info_and_keepalives(self):
+        for decision,expected in ((b'+OK\r\n',True),(b'-ERR \'Permissions Violation for Publish\'\r\n',False)):
+            for info in (b'INFO {"server_id":"synthetic"}\r\n',b'INFO []\r\n',b'INFO broken\r\n'):
+                transcript=b'INFO {}\r\nPING\r\n+OK\r\nPONG\r\n'+info+b'PING\r\n'+decision+b'PONG\r\n'
+                connection=Mock();connection.makefile.return_value=io.BytesIO(transcript)
+                wrapped=Mock();wrapped.__enter__=Mock(return_value=connection);wrapped.__exit__=Mock(return_value=False)
+                context=Mock();context.wrap_socket.return_value=wrapped
+                raw=Mock();raw.__enter__=Mock(return_value=raw);raw.__exit__=Mock(return_value=False)
+                with patch.object(peers.ssl,'create_default_context',return_value=context),patch.object(peers.socket,'create_connection',return_value=raw):
+                    if info.startswith(b'INFO {'):
+                        self.assertEqual(peers.permission_probe('172.28.240.3',Path('/ca'),'secret'),expected)
+                        self.assertEqual(sum(call.args[0]==b'PONG\r\n' for call in connection.sendall.call_args_list),2)
+                    else:
+                        with self.assertRaises(peers.ProbeFailure) as result:peers.permission_probe('172.28.240.3',Path('/ca'),'secret')
+                        self.assertEqual(result.exception.code,'info')
+
     def test_permission_probe_requires_explicit_accept_or_specific_publish_denial(self):
         for outcome,expected in ((b'+OK\r\n',True),(b'-ERR \'Permissions Violation for Publish\'\r\n',False),
                                  (b'-ERR \'Authorization Violation\'\r\n',None),(b'',None)):

@@ -244,23 +244,39 @@ def permission_probe(address,ca,password):
     context=ssl.create_default_context(cafile=ca)
     with socket.create_connection((address,4222),timeout=3) as raw:
         with context.wrap_socket(raw,server_hostname=address) as connection:
-            stream=connection.makefile('rb');budget=4096
+            stream=connection.makefile('rb');budget=4096;deadline=time.monotonic()+3
             def line():
                 nonlocal budget
+                remaining=deadline-time.monotonic()
+                if remaining<=0:raise TimeoutError('Broker permission probe deadline exceeded')
+                connection.settimeout(remaining)
                 value=stream.readline(min(1024,budget)+1);budget-=len(value)
                 if not value.endswith(b'\r\n') or budget<0:raise ProbeFailure('framing')
                 return value
-            if not line().startswith(b'INFO '):raise ProbeFailure('info')
+            def info(value):
+                if not value.startswith(b'INFO '):raise ProbeFailure('info')
+                try:parsed=json.loads(value[5:-2])
+                except (ValueError,UnicodeError):raise ProbeFailure('info') from None
+                if not isinstance(parsed,dict):raise ProbeFailure('info')
+            def control(value):
+                # Protocol 1 may enqueue updated INFO after the first PONG.
+                # Neither INFO nor server keepalives prove publication permission.
+                if value.startswith(b'INFO '):info(value);return True
+                if value==b'PING\r\n':connection.sendall(b'PONG\r\n');return True
+                return False
+            info(line())
             connect=json.dumps({'user':'consumer-a','pass':password,'verbose':True,'pedantic':True,'lang':'python','version':'fixture','protocol':1}).encode()
             connection.sendall(b'CONNECT '+connect+b'\r\nPING\r\n')
             while True:
                 value=line()
+                if control(value):continue
                 if value==b'PONG\r\n':break
                 if value!=b'+OK\r\n':raise ProbeFailure('authentication')
             connection.sendall(b'PUB '+ACK_PROBE.encode()+b' 4\r\n+ACK\r\nPING\r\n')
             accepted=denied=False
             while True:
                 value=line()
+                if control(value):continue
                 if value==b'PONG\r\n':break
                 if value==b'+OK\r\n':accepted=True
                 elif value.startswith(b'-ERR ') and b'Permissions Violation for Publish' in value:denied=True
