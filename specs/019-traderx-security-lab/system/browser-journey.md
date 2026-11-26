@@ -63,3 +63,10 @@ the independent SQL state before replying with `{ "ok": true }` on stdin.
 The final result contains fixed checks and the canceled order ID; protocol output
 is validated and never forwarded verbatim. Unexpected stages, oversized messages,
 early exit and deadlines fail the campaign and terminate only owned processes.
+
+Build failures are separate from browser acceptance. Suppressed account/trading
+Gradle failures produce a bounded summary with fixed service/task/category names,
+exit or timeout status and numeric JUnit counts. Failed suite names are included
+only when their source file matches the generated manifest. The hosted cleanup
+preserves only these JSON summaries for a failure artifact; raw build logs,
+exception messages, URLs, credentials and arbitrary runtime files are not uploaded.

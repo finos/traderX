@@ -7,6 +7,7 @@ from pathlib import Path
 import subprocess
 from render_trading_security import ROOT, SERVICES, render
 from resource_operation import operation
+from build_diagnostics import record_failure
 
 
 def build(runtime,java_home):
@@ -22,8 +23,13 @@ def build(runtime,java_home):
                         raise ValueError('Build input drift; render into a fresh private build directory')
             evidence=runtime/'evidence';evidence.mkdir(exist_ok=True)
             env=dict(os.environ,JAVA_HOME=str(java_home),GRADLE_OPTS='-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=1')
-            with (evidence/(service+'-authorization-build.log')).open('w') as log:
-                subprocess.run(['bash','gradlew','--no-daemon','--max-workers=1','-Dorg.gradle.jvmargs=-Xmx384m -XX:MaxMetaspaceSize=256m','test','bootJar'],cwd=target,env=env,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=600)
+            log_path=evidence/(service+'-authorization-build.log')
+            try:
+                with log_path.open('w') as log:
+                    subprocess.run(['bash','gradlew','--no-daemon','--max-workers=1','-Dorg.gradle.jvmargs=-Xmx384m -XX:MaxMetaspaceSize=256m','test','bootJar'],cwd=target,env=env,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=600)
+            except (subprocess.CalledProcessError,subprocess.TimeoutExpired) as error:
+                record_failure(runtime,service,target,log_path,error)
+                raise RuntimeError(service+' candidate build failed; bounded diagnostics recorded') from None
             jars=[p for p in (target/'build/libs').glob('*.jar') if not p.name.endswith('-plain.jar')]
             if len(jars)!=1:raise ValueError('Expected one bootJar')
             import xml.etree.ElementTree as ET

@@ -9,6 +9,7 @@ import subprocess
 from account_dev import ROOT
 from render_account_security import render
 from resource_operation import operation
+from build_diagnostics import record_failure
 
 
 def main():
@@ -25,8 +26,12 @@ def main():
                     raise ValueError('Build input drift; render into a fresh private build directory')
         env=dict(os.environ,JAVA_HOME=str(args.java_home),GRADLE_OPTS='-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=1')
         log=runtime/'evidence/account-security-build.log';log.parent.mkdir(exist_ok=True)
-        with log.open('w') as out:
-            subprocess.run(['bash','gradlew','--no-daemon','--max-workers=1','-Dorg.gradle.jvmargs=-Xmx384m -XX:MaxMetaspaceSize=256m','test','bootJar'],cwd=target,env=env,stdout=out,stderr=subprocess.STDOUT,check=True,timeout=600)
+        try:
+            with log.open('w') as out:
+                subprocess.run(['bash','gradlew','--no-daemon','--max-workers=1','-Dorg.gradle.jvmargs=-Xmx384m -XX:MaxMetaspaceSize=256m','test','bootJar'],cwd=target,env=env,stdout=out,stderr=subprocess.STDOUT,check=True,timeout=600)
+        except (subprocess.CalledProcessError,subprocess.TimeoutExpired) as error:
+            record_failure(runtime,'account-service',target,log,error)
+            raise RuntimeError('Account candidate build failed; bounded diagnostics recorded') from None
         jars=[p for p in (target/'build/libs').glob('*.jar') if not p.name.endswith('-plain.jar')]
         if len(jars)!=1: raise ValueError('Expected one bootJar')
         result={'status':'built-and-unit-tested-not-deployed','jar':str(jars[0]),'jar_sha256':hashlib.sha256(jars[0].read_bytes()).hexdigest(),'generation':manifest}

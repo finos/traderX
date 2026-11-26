@@ -214,8 +214,18 @@ jobs:
           python -m pip install --require-hashes -r scripts/security-lab/requirements-delivery.txt
           python scripts/security-lab/checkpoint.py fetch-baseline
           runtime="$(mktemp -d "$RUNNER_TEMP/traderx-browser-journey.XXXXXXXX")"
-          trap 'rm -rf "$runtime"' EXIT
+          cleanup_browser_journey() {
+            for service in trade-service order-matcher trade-processor account-service; do
+              summary="$runtime/evidence/build-failure-$service.json"
+              if [ -f "$summary" ]; then
+                cp "$summary" "$RUNNER_TEMP/browser-build-failure-$service.json"
+              fi
+            done
+            rm -rf "$runtime"
+          }
+          trap cleanup_browser_journey EXIT
           mkdir "$runtime/evidence"
+          python -m unittest discover -s scripts/security-lab -p 'test_build_diagnostics.py'
           python scripts/security-lab/build_trading_security.py --runtime-dir "$runtime" --java-home "$JAVA_HOME"
           python scripts/security-lab/build_account_security.py --runtime-dir "$runtime" --java-home "$JAVA_HOME"
           python scripts/security-lab/render_read_security.py --output-dir "$runtime/position-service"
@@ -232,6 +242,13 @@ jobs:
           name: security-browser-journey
           path: ${{ runner.temp }}/browser-journey.json
           if-no-files-found: error
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: security-browser-build-diagnostics
+          path: ${{ runner.temp }}/browser-build-failure-*.json
+          if-no-files-found: warn
           retention-days: 7
   runtime-images:
     # Sequential image builds on a disposable hosted runner; nothing is published.
