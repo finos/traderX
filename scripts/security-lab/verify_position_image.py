@@ -266,11 +266,11 @@ from pathlib import Path
 def mode(path):
  s=os.stat(path);return [s.st_uid,s.st_gid,stat.S_IMODE(s.st_mode)]
 c=json.loads(Path('/run/private/config/config.json').read_bytes())
-properties=dict(line.split('=',1) for line in Path('/run/private/application.properties').read_text().splitlines())
+properties=dict(line.split('=',1) for line in Path('/run/private/java/application.properties').read_text().splitlines())
 secrets=[c['database']['password'].encode(),c['tls']['password'].encode()]
 exposed=Path('/proc/1/cmdline').read_bytes()+Path('/proc/1/environ').read_bytes()
 print(json.dumps({'files':{p.name:mode(p) for p in Path('/run/private/config').iterdir()},
- 'properties':mode('/run/private/application.properties'),'credentials_exposed':any(s in exposed for s in secrets),
+ 'properties':mode('/run/private/java/application.properties'),'properties_directory':mode('/run/private/java'),'credentials_exposed':any(s in exposed for s in secrets),
  'listener':properties.get('server.address')=='0.0.0.0' and properties.get('server.port')=='18090' and properties.get('server.ssl.enabled')=='true'}))
 '''
 
@@ -333,6 +333,7 @@ def campaign(runtime, manifest):
             private = json.loads(app.docker('exec', app.name, '/usr/local/bin/python', '-c', PRIVATE_JAVA_PROBE).stdout)
             check(private['files'] == {name: [10001, 10001, 0o600] for name in KEYS} and
                   private['properties'] == [10001, 10001, 0o600] and
+                  private['properties_directory'] == [10001, 10001, 0o700] and
                   private['listener'] is True and
                   inspected['HostConfig']['Memory'] == 768*1024*1024 and inspected['HostConfig']['PidsLimit'] == 128 and
                   not inspected['HostConfig'].get('PortBindings'), 'restricted_runtime_and_private_materialization')
