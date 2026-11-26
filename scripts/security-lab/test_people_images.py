@@ -71,7 +71,8 @@ class PeopleImageTests(unittest.TestCase):
         struct.pack_into('<IIQQQQQQ', elf, 120, 3, 4, 512, 0, 0, 28, 28, 1)
         elf = bytes(elf)  # Deliberately synthetic; never executed.
         runtime = {}
-        for name in ('usr', 'usr/local', 'usr/local/bin', 'usr/share', 'usr/share/dotnet'):
+        for name in ('usr', 'usr/local', 'usr/local/bin', 'usr/share', 'usr/share/dotnet',
+                     'usr/lib', images.NATIVE_DIR):
             member = tarfile.TarInfo(name)
             member.type, member.mode = tarfile.DIRTYPE, 0o755
             runtime[name] = (member, b'')
@@ -83,6 +84,11 @@ class PeopleImageTests(unittest.TestCase):
         for name in ('usr/local/bin/python3.14', 'usr/share/dotnet/dotnet'):
             member = tarfile.TarInfo(name)
             member.size, member.mode = len(elf), 0o755
+            runtime[name] = (member, elf)
+        for target in images.NATIVE_LIBRARIES.values():
+            name = images.NATIVE_DIR + '/' + target
+            member = tarfile.TarInfo(name)
+            member.size, member.mode = len(elf), 0o444
             runtime[name] = (member, elf)
         if runtime_change:
             runtime_change(runtime)
@@ -168,10 +174,49 @@ class PeopleImageTests(unittest.TestCase):
         recipe = (self.root / 'context/Dockerfile').read_text()
         for value in ('USER 10001:10001', '/usr/share/dotnet/', 'EXPOSE 18089', 'chmod 0755'):
             self.assertIn(value, recipe)
+        self.assertIn('aspnet:9.0-bookworm-slim@sha256:a60942190e73c283ebb767e76f847ec2a442a6d31795f9d335aa939557555249', recipe)
+        self.assertEqual(result['native_libraries'], images.NATIVE_LIBRARIES)
+        for source, target in images.NATIVE_LIBRARIES.items():
+            self.assertIn(f'COPY --from=dotnet --chmod=0444 {source} /{images.NATIVE_DIR}/{target}', recipe)
+        self.assertNotIn('DOTNET_', recipe)
+        self.assertNotIn('ASPNETCORE_', recipe)
         self.assertNotIn('COPY . ', recipe)
         self.assertEqual((self.root / 'context/application/MockDirectory/people.json').read_bytes(),
                          (self.source / build.ASSET).read_bytes())
         self.assertEqual(images.COMMAND[-1], '/opt/traderx/people_runtime.py')
+
+    def test_native_libraries_are_required_regular_safe_amd64(self):
+        for target in images.NATIVE_LIBRARIES.values():
+            name = images.NATIVE_DIR + '/' + target
+            with self.subTest(target=target), self.assertRaises(ValueError):
+                self.inspect(self.layout(runtime_change=lambda paths: paths.pop(name)))
+            for mode in (0o666, 0o555):
+                def change(paths):
+                    paths[name][0].mode = mode
+                with self.subTest(target=target, mode=mode), self.assertRaises(ValueError):
+                    self.inspect(self.layout(runtime_change=change))
+            def link(paths):
+                member = paths[name][0]
+                member.type, member.linkname, member.size = tarfile.SYMTYPE, 'elsewhere', 0
+                paths[name] = (member, b'')
+            with self.subTest(target=target, link=True), self.assertRaises(ValueError):
+                self.inspect(self.layout(runtime_change=link))
+            def wrong_elf(paths):
+                member, data = paths[name]
+                paths[name] = (member, b'\0' * len(data))
+            with self.subTest(target=target, elf=True), self.assertRaises(ValueError):
+                self.inspect(self.layout(runtime_change=wrong_elf))
+
+    def test_native_inventory_and_lock_label_are_bound(self):
+        layout = self.layout()
+        lock = images.runtime_lock()
+        with patch.object(images, 'runtime_lock', return_value={**lock, 'native_libraries': {}}):
+            with self.assertRaises(ValueError):
+                self.inspect(layout)
+        path = self.root / 'bad-lock.json'
+        path.write_bytes(compiler.encoded({**lock, 'native_libraries': {}}))
+        with patch.object(images, 'LOCK', path), self.assertRaises(ValueError):
+            images.runtime_lock()
 
     def test_web_config_is_recorded_but_not_packaged(self):
         path = self.publish / 'web.config'

@@ -76,8 +76,13 @@ stream, including trailing blocks, with bounded decompression for gzip layers.
 It also checks the fixed .NET host
 and Python interpreter paths, safe root ownership and searchable parents,
 permitted relative Python symlink chain, executable modes and AMD64 ELF
-structure. These checks do **not** authenticate either executable or establish
-base-image provenance or its dynamic dependencies. It
+structure. The five native library destinations must be root-owned regular
+`0444` AMD64 ELF shared objects with searchable root-owned parents; their
+presence and structure do not authenticate their bytes or prove their ABI.
+The image label and `image-build.json` bind the canonical people runtime lock
+hash independently of the shared source manifest. These checks do **not**
+authenticate either executable or establish base-image provenance or dynamic
+dependency closure. It
 returns the immutable manifest reference and required private keys; it does not
 load an image or run it. The verified Python base and existing BuildKit lock
 remain in `runtime-images.lock.json`; the separate .NET runtime lock records the
@@ -124,21 +129,33 @@ projected keys, then invokes the fixed DLL with the private content root.
 The image inspector additionally refuses unreviewed inherited Python, loader,
 application or other environment variables. Any base environment outside the
 reviewed allowlist fails closed and needs separate review, not a bypass.
-The recipe copies `/usr/share/dotnet` from the pinned Ubuntu chiseled runtime
-onto the pinned Debian Python image; shared-library and globalization
-compatibility are **not established** by these offline checks. The image is
-**likely not runnable as composed**: the verified Python slim base lacks ICU,
-and copying only `/usr/share/dotnet` omits the chiseled-extra ICU libraries
-under `/usr/lib/x86_64-linux-gnu/libicu*.so.74*`. The launcher rejects inherited
-`DOTNET_` overrides, so an invariant-mode environment toggle is not a remedy.
-Microsoft's
-[image documentation](https://github.com/dotnet/docs/blob/main/docs/core/docker/container-images.md)
-describes `chiseled-extra` as including ICU, tzdata and C++ libraries, while
-the [official Python slim Dockerfile](https://github.com/docker-library/python/blob/master/3.14/slim-bookworm/Dockerfile)
-does not install ICU. Copying Ubuntu native libraries into Debian also requires
-ABI review. No separately reviewed, pinned compatible library set is available
-here, so no libraries are copied or installed; actual startup remains a
-required hosted gate after this gap is resolved.
+The runtime composition uses the pinned Linux/AMD64 Microsoft ASP.NET
+`9.0-bookworm-slim` manifest and the existing Python `slim-bookworm` manifest.
+The final stage is the Python base, so it does not inherit the .NET base image's
+`DOTNET_` or `ASPNETCORE_` variables. From the pinned .NET stage it copies
+`/usr/share/dotnet` and exactly these native library files:
+
+| Source in the .NET image | Destination under `/usr/lib/x86_64-linux-gnu` |
+| --- | --- |
+| `/usr/lib/x86_64-linux-gnu/libicudata.so.72.1` | `libicudata.so.72` |
+| `/usr/lib/x86_64-linux-gnu/libicui18n.so.72.1` | `libicui18n.so.72` |
+| `/usr/lib/x86_64-linux-gnu/libicuuc.so.72.1` | `libicuuc.so.72` |
+| `/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30` | `libstdc++.so.6` |
+| `/lib/x86_64-linux-gnu/libgcc_s.so.1` | `libgcc_s.so.1` |
+
+These are copied as regular `0444` files, not as package symlinks, with the
+runtime sonames as destinations. No network package install, invariant
+globalization override or floating image is used. The pinned
+[Microsoft runtime-deps Dockerfile](https://github.com/dotnet/dotnet-docker/blob/a2831a5c5f6fe48f413a0840b207488d1ecd8903/src/runtime-deps/9.0/bookworm-slim/amd64/Dockerfile)
+lists `libicu72`, `libstdc++6`, `libgcc-s1`, libc and OpenSSL. The Debian
+bookworm/AMD64 package files in the
+[ICU](https://deb.debian.org/debian/pool/main/i/icu/) and
+[GCC 12](https://deb.debian.org/debian/pool/main/g/gcc-12/) pools identify
+the listed library paths. This metadata review is not an inspection of the
+pinned image layers: if an expected path is absent, BuildKit must fail.
+Both bases use Debian Bookworm, but their package patch levels and the full
+native dependency closure have not been compared or exercised. Actual
+compatibility and globalization behavior remain required hosted checks.
 
 The projection must have Kubernetes-style `..data` generation semantics; a
 plain directory of five regular files is not an equivalent fixture. The
