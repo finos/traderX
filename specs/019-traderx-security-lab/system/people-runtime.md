@@ -54,7 +54,8 @@ is a non-empty JSON object of at most 1024 bounded subject strings mapped only
 to `operator`, `trader` or `read-only`; duplicate JSON keys are rejected.
 Kestrel must successfully load the PEM certificate and matching unencrypted
 PEM private key. The server key is never passed as an argument or environment
-value; only its fixed materialized path is provided to Kestrel.
+value; only its fixed materialized path is provided to Kestrel. Encrypted keys
+are refused without an interactive password prompt, even when stdin is open.
 
 ## Application mapping and compatibility
 
@@ -76,6 +77,15 @@ fixed arguments configure the host. There is no PKCS#12 password and no
 plaintext or loopback override. The current app still owns route filtering,
 operator authorization, JWT claim validation, and no-store response behavior.
 
+`JsonDirectoryService` otherwise resolves `MockDirectory/people.json` under
+that private content root. The launcher therefore sets the non-secret
+`PeopleJsonFilePath` to the fixed absolute path
+`/opt/traderx/MockDirectory/people.json`. The future image must package the
+reviewed synthetic directory asset at exactly that location and verify its
+bytes; it is not another projected Secret or a caller-configurable path.
+An authenticated operator lookup against that packaged asset remains a hosted
+acceptance requirement. HTTPS liveness alone cannot prove directory usability.
+
 The strict projection and launcher are additive; they do not change
 `Program.cs`, `DirectoryTrust.cs`, existing host-fixture semantics, image
 builders, integrated deployment configuration or workflows. The published
@@ -92,8 +102,10 @@ audience are non-secret values and are passed only through the app's documented
 configuration interface.
 
 Unit tests exercise schema and trust rejection, file/projection boundaries,
-environment contamination, fixed HTTPS/exec arguments and sanitized failure
-output without Docker or starting the .NET application. They do not prove image
+environment contamination, fixed HTTPS/exec/directory arguments and sanitized
+failure output without Docker or starting the .NET application. A real PEM
+regression checks successful certificate loading and bounded encrypted-key
+rejection with no OpenSSL prompt. They do not prove image
 contents, actual Kestrel HTTPS startup, TLS client verification, operator token
 authorization, directory behavior or cluster policy. Those remain explicit
 hosted-image and integrated acceptance gates for S019-06a3b3 and the broader

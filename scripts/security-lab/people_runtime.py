@@ -16,6 +16,7 @@ PROJECTED = Path('/run/projected')
 PRIVATE = Path('/run/private/config')
 DOTNET = '/usr/share/dotnet/dotnet'
 APPLICATION = '/opt/traderx/PeopleService.WebApi.dll'
+DIRECTORY = '/opt/traderx/MockDirectory/people.json'
 LISTEN_URL = 'https://0.0.0.0:18089'
 FILES = (
     'config.json',
@@ -271,6 +272,9 @@ def validate_configuration(private_dir=PRIVATE, expected_uid=10001, now=None):
     context.load_cert_chain(
         str(expected_paths['server_certificate_file']),
         str(expected_paths['server_key_file']),
+        # No encrypted-key password is part of this interface. Supplying an
+        # explicit empty callback prevents OpenSSL's interactive stdin prompt.
+        password=lambda: b'',
     )
     return config
 
@@ -293,6 +297,7 @@ def application_environment(config):
         'Kestrel__Endpoints__Https__Url': LISTEN_URL,
         'Kestrel__Endpoints__Https__Certificate__Path': str(PRIVATE / 'server-cert.pem'),
         'Kestrel__Endpoints__Https__Certificate__KeyPath': str(PRIVATE / 'server-key.pem'),
+        'PeopleJsonFilePath': DIRECTORY,
     }
 
 

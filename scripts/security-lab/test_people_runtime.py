@@ -3,6 +3,8 @@ from datetime import datetime, timedelta, timezone
 import json
 import os
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -41,7 +43,7 @@ class PeopleRuntimeTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name)
+        self.root = Path(self.temp.name).resolve()
         self.uid = os.geteuid()
         self.projected = self.root / 'projected'
         self.private = self.root / 'private'
@@ -197,7 +199,11 @@ class PeopleRuntimeTests(unittest.TestCase):
             'Kestrel__Endpoints__Https__Url',
             'Kestrel__Endpoints__Https__Certificate__Path',
             'Kestrel__Endpoints__Https__Certificate__KeyPath',
+            'PeopleJsonFilePath',
         })
+        self.assertEqual(environment['PeopleJsonFilePath'], '/opt/traderx/MockDirectory/people.json')
+        self.assertTrue(Path(environment['PeopleJsonFilePath']).is_absolute())
+        self.assertFalse(Path(environment['PeopleJsonFilePath']).is_relative_to(runtime.PRIVATE))
         self.assertNotIn('private-key-bytes', environment.values())
         with patch('people_runtime.os.execve') as execve:
             runtime.exec_application(environment)
@@ -206,6 +212,48 @@ class PeopleRuntimeTests(unittest.TestCase):
             [runtime.DOTNET, runtime.APPLICATION, '--contentRoot', str(runtime.PRIVATE)],
             environment,
         )
+
+    def test_real_tls_material_and_encrypted_key_rejection_never_prompt(self):
+        from cryptography import x509
+        from cryptography.hazmat.primitives import hashes, serialization
+        from cryptography.hazmat.primitives.asymmetric import rsa
+        from cryptography.x509.oid import NameOID
+        key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+        name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, 'synthetic-people-test')])
+        now = datetime.now(timezone.utc)
+        certificate = (x509.CertificateBuilder().subject_name(name).issuer_name(name)
+            .public_key(key.public_key()).serial_number(x509.random_serial_number())
+            .not_valid_before(now - timedelta(minutes=1)).not_valid_after(now + timedelta(minutes=5))
+            .sign(key, hashes.SHA256()))
+        (self.private / 'server-cert.pem').write_bytes(certificate.public_bytes(serialization.Encoding.PEM))
+        (self.private / 'server-key.pem').write_bytes(key.private_bytes(serialization.Encoding.PEM,
+            serialization.PrivateFormat.PKCS8, serialization.NoEncryption()))
+        self.validate()
+        (self.private / 'server-key.pem').write_bytes(key.private_bytes(serialization.Encoding.PEM,
+            serialization.PrivateFormat.PKCS8, serialization.BestAvailableEncryption(b'synthetic-test-only')))
+        # Keep stdin open: omitting the explicit password callback previously
+        # blocked here and printed an OpenSSL prompt instead of failing closed.
+        code = '''import os,ssl,sys
+import people_runtime
+try:
+    people_runtime.validate_configuration(sys.argv[1],expected_uid=os.geteuid())
+except ssl.SSLError:
+    sys.exit(0)
+sys.exit(1)
+'''
+        process = subprocess.Popen([sys.executable, '-c', code, str(self.private)],
+            cwd=Path(runtime.__file__).parent, stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            self.fail('Encrypted TLS key prompted or blocked')
+        finally:
+            if process.poll() is None:
+                process.kill()
+            stdout, stderr = process.communicate(timeout=3)
+        self.assertEqual(process.returncode, 0)
+        self.assertEqual((stdout, stderr), (b'', b''))
 
     def test_launcher_failure_is_fixed_and_does_not_log_private_details(self):
         output = []
