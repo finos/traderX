@@ -12,6 +12,15 @@ also pass; local regression is 297 Python tests. Three subagents supplied
 independent trading, broker/UI and deployment work; all heavy execution ran in
 GitHub. No new Copilot or Codex Cloud worker is claimed.
 
+The [Python image checkpoint](evidence/2026-11-26-python-runtime-images.json)
+closes S019-06a3a at `ebbbeb1c`: three actual OCI images build and sixteen hosted
+startup/configuration checks pass. Browser HTTPS, compiled assets, private mounts
+and restricted execution are verified; worker images reject mismatched roles.
+The runner uses verified TLS directly to its owned internal container address
+because Docker suppresses host publication on that internal network. This is
+not proof of a learner-facing port or successful image-based event delivery.
+S019-06a3c records that positive worker-delivery gate explicitly.
+
 Next close S019-04e with actual Angular navigation through the live services,
 then S019-06a3 with runnable OCI packages and private configuration interfaces.
 Provision issuer/broker/market-data TLS, complete their permitted gateway/egress
