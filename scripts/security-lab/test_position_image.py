@@ -117,6 +117,27 @@ class PositionImageTests(unittest.TestCase):
                        {'oom_killed': True}, {'tls_rejection': False}, {'markers': ['configuration_refused']}):
             self.assertFalse(campaign.rejected_database_startup(dict(healthy_failure, **change)))
 
+    def test_startup_diagnostic_exports_only_categories_and_bounded_java_classes(self):
+        raw = '\n'.join([
+            'Exception in thread "main" java.lang.UnsatisfiedLinkError: /private/secret-library: private-password',
+            'Caused by: java.io.FileNotFoundException: /private/secret-file',
+            'Caused by: org.springframework.beans.factory.BeanCreationException: private-token',
+            'Caused by: private.customer.PasswordException: private-password',
+            'Error occurred during initialization of VM',
+            'error while loading shared libraries: private-library',
+            'PermissionError: private-key-path',
+            'java.lang.Invalid ThingException: invalid-class',
+            'https://private-host/java.lang.SecretError: URL is not a class'])
+        diagnostic = campaign.startup_diagnostic(raw)
+        self.assertEqual(diagnostic['exception_classes'], ['java.io.FileNotFoundException',
+            'java.lang.UnsatisfiedLinkError', 'org.springframework.beans.factory.BeanCreationException'])
+        self.assertIn('jvm_initialization', diagnostic['categories'])
+        self.assertIn('native_library_missing', diagnostic['categories'])
+        self.assertIn('launcher_permission', diagnostic['categories'])
+        for private in ('private', 'secret-library', 'secret-file', 'private-token', 'PasswordException', 'invalid-class'):
+            self.assertNotIn(private, json.dumps(diagnostic))
+        self.assertEqual(campaign.startup_diagnostic('java.lang.IllegalStateException: old\n'+'x'*70000)['exception_classes'], [])
+
     def test_build_failure_exports_bounded_categories_without_raw_private_log(self):
         import build_position_security as build
         with tempfile.TemporaryDirectory() as temp:

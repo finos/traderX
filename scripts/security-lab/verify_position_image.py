@@ -195,6 +195,40 @@ TLS_MARKERS = ('SSLHandshakeException', 'PKIX path building failed', 'unable to 
                'CertPathValidatorException', 'certificate verify failed')
 LOG_MARKERS = {'Protected Java configuration refused; private details withheld.': 'configuration_refused',
                'APPLICATION FAILED TO START': 'spring_startup_failed', 'Started PositionServiceApplication': 'spring_started'}
+STARTUP_MARKERS = {
+    'Error occurred during initialization of VM': 'jvm_initialization',
+    'Could not create the Java Virtual Machine': 'jvm_initialization',
+    'Unrecognized VM option': 'jvm_option', 'Unrecognized option:': 'jvm_option',
+    'Could not reserve enough space': 'jvm_memory_reservation', 'OutOfMemoryError': 'memory',
+    'unable to create native thread': 'native_thread_limit', 'pthread_create failed': 'native_thread_limit',
+    'error while loading shared libraries': 'native_library_missing', 'cannot open shared object file': 'native_library_missing',
+    'failed to map segment from shared object': 'native_library_mapping', 'UnsatisfiedLinkError': 'native_link',
+    'UnsupportedClassVersionError': 'java_version', 'NoClassDefFoundError': 'classpath',
+    'ClassNotFoundException': 'classpath', 'Could not find or load main class': 'main_class',
+    'Unable to access jarfile': 'jar_access', 'Invalid or corrupt jarfile': 'jar_invalid',
+    'PermissionError:': 'launcher_permission', 'FileNotFoundError:': 'launcher_file_missing',
+    'Permission denied': 'filesystem_permission', 'Read-only file system': 'readonly_filesystem',
+    'No space left on device': 'storage_capacity', 'Traceback (most recent call last):': 'python_launcher',
+    'Failed to bind properties': 'spring_properties', 'BeanCreationException': 'spring_bean_creation',
+    'Application run failed': 'spring_run_failed', 'Logging system failed to initialize': 'spring_logging',
+    'Unable to create tempDir': 'tomcat_temp_directory', 'Address already in use': 'listener_conflict',
+    'Failed to initialize pool': 'database_pool', 'Failed to obtain JDBC Connection': 'database_connection',
+    'PKIX path building failed': 'tls_certificate_chain', 'SSLHandshakeException': 'tls_handshake',
+    'keystore password was incorrect': 'tls_keystore_password', 'UnrecoverableKeyException': 'tls_keystore_key',
+    'NoSuchAlgorithmException': 'crypto_algorithm', 'ExceptionInInitializerError': 'class_initialization'}
+JAVA_EXCEPTION = re.compile(
+    r'(?m)^(?:Caused by: |Suppressed: |Exception in thread "[A-Za-z0-9_-]{1,40}" )?'
+    r'((?:java\.(?:lang|io|net|security|util)|javax\.(?:net|crypto)|jdk\.internal|sun\.security|'
+    r'org\.(?:springframework|postgresql|apache)|com\.zaxxer)'
+    r'(?:\.[A-Za-z_$][A-Za-z0-9_$]{0,63}){1,8}(?:Exception|Error))(?=:|$)')
+
+
+def startup_diagnostic(text):
+    """No exception messages, arbitrary class namespaces, paths or log excerpts."""
+    text = text[-65536:]
+    return {'categories': sorted({category for marker, category in STARTUP_MARKERS.items() if marker in text}),
+            'exception_classes': sorted({match.group(1) for match in JAVA_EXCEPTION.finditer(text)
+                                         if len(match.group(1)) <= 160})[:16]}
 
 
 def rejected_database_startup(diagnostic, served_http=False):
@@ -215,14 +249,15 @@ class PositionImage:
 
     def diagnostics(self):
         state = self.inspect()['State']
-        log = self.docker('logs', '--tail', '100', self.name)
+        log = self.docker('logs', '--tail', '160', self.name)
         text = log.stdout+log.stderr
         if any(secret in text for secret in self.secrets): raise Failure('private_output_detected')
         code = state.get('ExitCode')
         return {'running': state.get('Running') is True, 'oom_killed': state.get('OOMKilled') is True,
                 'exit_code': code if type(code) is int and 0 <= code <= 255 else None,
                 'tls_rejection': any(marker in text for marker in TLS_MARKERS),
-                'markers': [value for key, value in LOG_MARKERS.items() if key in text]}
+                'markers': [value for key, value in LOG_MARKERS.items() if key in text],
+                **startup_diagnostic(text)}
 
     def cleanup(self):
         label = self.docker('inspect', '--format', '{{index .Config.Labels "'+images.LABEL+'"}}', self.name, check=False)
