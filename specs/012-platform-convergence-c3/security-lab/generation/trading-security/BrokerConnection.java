@@ -54,25 +54,29 @@ public final class BrokerConnection {
 
   public static Connection connect(String address,String username,String filename) throws IOException {
     try {
-      URI uri=endpoint(address);
-      if(username==null || !username.matches("[A-Za-z0-9_-]{1,64}")) throw new IOException();
-      var options=new Options.Builder().server(uri.toString()).noResolveHostnames()
-          .ignoreDiscoveredServers().sslContext(verifiedContext()).tlsFirst()
-          .userInfo(username,secret(Path.of(filename))).maxReconnects(3)
-          .reconnectWait(Duration.ofSeconds(1)).reconnectBufferSize(65536)
-          .connectionTimeout(Duration.ofSeconds(5)).socketWriteTimeout(Duration.ofSeconds(2)).build();
-      return Nats.connect(options);
+      return Nats.connect(options(address,username,filename,verifiedContext()));
     } catch(Exception unavailable) {
       // Safe fixed category only: broker exceptions may contain endpoint credentials.
       String category="other";
       for(Throwable cause=unavailable;cause!=null;cause=cause.getCause()) {
         if(cause instanceof javax.net.ssl.SSLException || cause instanceof CertificateException) { category="tls";break; }
-        if(cause instanceof IllegalArgumentException) category="configuration";
+        if(cause instanceof IllegalArgumentException || cause instanceof IllegalStateException) category="configuration";
         else if(cause instanceof InterruptedException) category="interrupted";
         else if(cause instanceof IOException && category.equals("other")) category="io";
       }
       throw new IOException("Authenticated broker unavailable; broker-failure="+category);
     }
+  }
+
+  static Options options(String address,String username,String filename,SSLContext context) throws IOException {
+    URI uri=endpoint(address);
+    if(username==null || !username.matches("[A-Za-z0-9_-]{1,64}") || context==null) throw new IOException();
+    return new Options.Builder().server(uri.toString()).noResolveHostnames()
+        .ignoreDiscoveredServers().sslContext(context).tlsFirst()
+        .userInfo(username,secret(Path.of(filename))).maxReconnects(3)
+        .reconnectWait(Duration.ofSeconds(1)).reconnectBufferSize(65536)
+        // jnats requires write timeout >= connection timeout + 100 ms.
+        .connectionTimeout(Duration.ofSeconds(5)).socketWriteTimeout(Duration.ofSeconds(10)).build();
   }
 
   static SSLContext verifiedContext() throws Exception {

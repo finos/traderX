@@ -4,6 +4,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.security.cert.CertificateException;
+import java.time.Duration;
+import io.nats.client.Options;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedTrustManager;
@@ -41,5 +43,19 @@ class OrderBrokerConnectionTest {
     }).when(delegate).checkServerTrusted(null,"RSA",engine);
     assertThrows(CertificateException.class,()->trust.checkServerTrusted(null,"RSA",engine));
     verify(delegate).checkServerTrusted(null,"RSA",engine);
+  }
+
+  @Test void buildsBoundedAuthenticatedTlsOptionsWithoutOpeningConnection() throws Exception {
+    Path value=temp.resolve("options-secret");Files.writeString(value,"synthetic-private-value");
+    Files.setPosixFilePermissions(value,PosixFilePermissions.fromString("rw-------"));
+    SSLContext context=BrokerConnection.verifiedContext();
+    Options options=assertDoesNotThrow(()->BrokerConnection.options("tls://localhost:4222","matcher",value.toString(),context));
+    assertSame(context,options.getSslContext());
+    assertEquals(Duration.ofSeconds(5),options.getConnectionTimeout());
+    assertEquals(Duration.ofSeconds(10),options.getSocketWriteTimeout());
+    assertTrue(options.getSocketWriteTimeout().toMillis()>=options.getConnectionTimeout().toMillis()
+        + Options.MINIMUM_SOCKET_WRITE_TIMEOUT_GT_CONNECTION_TIMEOUT);
+    assertEquals(3,options.getMaxReconnect());
+    assertEquals(65536,options.getReconnectBufferSize());
   }
 }
