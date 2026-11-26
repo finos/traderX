@@ -9,6 +9,7 @@ import tarfile
 from render_account_security import ROOT, PROFILE, replace_once
 from render_order_consumers import apply as apply_order_consumers
 from render_trading_ui import apply as apply_trading_ui
+from render_portfolio_consumers import apply as apply_portfolio_consumers
 
 OVERLAY = ROOT / 'specs/019-traderx-security-lab/generation/application-consumers'
 
@@ -102,6 +103,7 @@ def render(target):
     path=app/'service/trade-feed.service.ts'; path.write_text(feed(path.read_text()))
     apply_order_consumers(target)
     apply_trading_ui(target)
+    apply_portfolio_consumers(target)
     path=app/'app.module.ts'
     source="import { browserSessionInterceptor } from './security/browser-session';\n"+path.read_text()
     source=replace_once(source,'provideHttpClient, withInterceptorsFromDi,','provideHttpClient, withInterceptors, withInterceptorsFromDi,')
@@ -132,6 +134,7 @@ def render(target):
         if path.name != 'broker-feed.service.ts': (dest/path.name).write_bytes(path.read_bytes())
     inputs=[Path(__file__).resolve(),ROOT/'scripts/security-lab/render_account_security.py',
         ROOT/'scripts/security-lab/render_order_consumers.py',ROOT/'scripts/security-lab/render_trading_ui.py',
+        ROOT/'scripts/security-lab/render_portfolio_consumers.py',
         PROFILE/'baseline.lock.json',*sorted(OVERLAY.glob('*.ts'))]
     manifest={'scope':'Cookie-session, mediated broker and snapshot consumer source candidate; cumulative deployment/trading remains pending',
         'generated_commit':baseline['generated_commit'],

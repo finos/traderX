@@ -51,6 +51,7 @@ jobs:
           python -m unittest discover -s scripts/security-lab -p 'test_browser_assets.py'
           python -m unittest discover -s scripts/security-lab -p 'test_authenticated_trading.py'
           python -m unittest discover -s scripts/security-lab -p 'test_order_consumers.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_portfolio_consumers.py'
           python -m unittest discover -s scripts/security-lab -p 'test_integrated_deployment.py'
           python -m unittest discover -s scripts/security-lab -p 'test_private_materializer.py'
       - name: Build candidates and exercise HTTP to PostgreSQL
