@@ -42,6 +42,26 @@ def secure_controller(text, membership=False):
     return text
 
 
+
+def read_only_controller(text,membership=False):
+    """Remove inaccessible legacy writes and their people-validation dependency."""
+    start='  @PostMapping("/")';end='  @GetMapping("/")'
+    if text.count(start)!=1 or text.count(end)!=1 or text.count('  @PutMapping("/")')!=1:
+        raise ValueError('Inherited account write boundary changed')
+    a,b=text.index(start),text.index(end)
+    if a>=b or '  @PutMapping("/")' not in text[a:b]:raise ValueError('Inherited write ordering changed')
+    text=text[:a]+text[b:]
+    for name in ('PostMapping','PutMapping','RequestBody'):
+        text=replace_once(text,'import org.springframework.web.bind.annotation.'+name+';\n','')
+    if membership:
+        for before in ('import finos.traderx.accountservice.service.PeopleValidationService;\n',
+                       '  private final PeopleValidationService peopleValidationService;\n',
+                       '      PeopleValidationService peopleValidationService,\n',
+                       '    this.peopleValidationService = peopleValidationService;\n'):
+            text=replace_once(text,before,'')
+    return text
+
+
 def render(target):
     baseline=json.loads((PROFILE/'baseline.lock.json').read_text())
     commit=baseline['generated_commit']
@@ -56,8 +76,11 @@ def render(target):
                 destination.write_bytes(archive.extractfile(member).read()); destination.chmod(member.mode & 0o777)
     package=target/'src/main/java/finos/traderx/accountservice'
     for name in ('AccountController','AccountUserController'):
-        path=package/'controller'/f'{name}.java'; path.write_text(secure_controller(path.read_text(),name=='AccountUserController'))
+        path=package/'controller'/f'{name}.java'; path.write_text(read_only_controller(secure_controller(path.read_text(),name=='AccountUserController'),name=='AccountUserController'))
     (package/'config/CorsConfig.java').unlink()
+    (package/'service/PeopleValidationService.java').unlink()
+    properties=target/'src/main/resources/application.properties'
+    properties.write_text(replace_once(properties.read_text(),'people.service.url=${PEOPLE_SERVICE_URL:http://${PEOPLE_SERVICE_HOST:localhost}:18089}\n',''))
     security=package/'security'; security.mkdir()
     for name in ('AccountAccess.java','AccountSecurity.java'): (security/name).write_bytes((OVERLAY/name).read_bytes())
     tests=target/'src/test/java/finos/traderx/accountservice/security'; tests.mkdir(parents=True,exist_ok=True)
