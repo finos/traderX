@@ -54,7 +54,7 @@ class IntegratedDeploymentTests(unittest.TestCase):
     def test_repeatable_complete_staging_with_no_secret_values_or_auto_activation(self):
         files=self.compile();self.assertEqual(files,self.compile())
         manifest=json.loads(files['application-core.json']);plan=json.loads(files['plan.json'])
-        self.assertEqual(len([d for d in manifest['items'] if d['kind']=='Deployment']),9)
+        self.assertEqual(len([d for d in manifest['items'] if d['kind']=='Deployment']),8)
         self.assertFalse(any(d['kind'] in ('Secret','Ingress','ClusterRoleBinding') for d in manifest['items']))
         for doc in manifest['items']:
             if doc['kind']=='Deployment':
@@ -111,9 +111,16 @@ class IntegratedDeploymentTests(unittest.TestCase):
                 for peer in rule['from']:
                     if 'namespaceSelector' in peer:gateway_target.append(name)
             self.assertNotIn('ipBlock',json.dumps(spec))
-        self.assertEqual(sorted(gateway_target),['integrated-browser-session','integrated-web-front-end-angular'])
+        self.assertEqual(sorted(gateway_target),['integrated-browser-session'])
         self.assertEqual(policies['integrated-event-consumer']['ingress'],[])
-        self.assertEqual(policies['integrated-web-front-end-angular']['egress'][0]['ports'][0]['port'],53)
+        self.assertEqual(policies['integrated-people-service']['ingress'],[])
+        def targets(name):
+            return {peer.get('podSelector',{}).get('matchLabels',{}).get('app')
+                for rule in policies['integrated-'+name]['egress'] for peer in rule['to']}
+        self.assertTrue({'reference-data','price-publisher'}<=targets('browser-session'))
+        self.assertNotIn('people-service',targets('browser-session'))
+        self.assertNotIn('people-service',targets('account-service'))
+        self.assertEqual(targets('order-matcher')-{None},{'database','trade-processor','identity','nats-broker'})
 
     def test_admission_covers_exact_images_commands_and_private_secret_for_pods_and_deployments(self):
         docs=json.loads(self.compile()['application-core.json'])['items']

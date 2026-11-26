@@ -9,16 +9,16 @@ ROOT=Path(__file__).resolve().parents[2]
 STATE=ROOT/'specs/019-traderx-security-lab'
 ROLES={'account-service':18088,'position-service':18090,
        'trade-processor':18091,'order-matcher':18110,'people-service':18089,
-       'browser-session':18447,'web-front-end-angular':8080,
+       'browser-session':18447,
        'event-publisher':None,'event-consumer':None}
 WORKERS={'event-publisher','event-consumer','browser-session'}
 DEPS={'database':(5432,'tls'),'nats-broker':(4222,'tls'),
-      'identity':(8443,'https'),'reference-data':(18085,'https')}
+      'identity':(8443,'https'),'reference-data':(18085,'https'),'price-publisher':(18100,'https')}
 EDGES={
- 'browser-session':['account-service','position-service','order-matcher','people-service','identity','nats-broker'],
- 'account-service':['database','people-service'], 'position-service':['database'],
+ 'browser-session':['account-service','position-service','order-matcher','reference-data','price-publisher','identity','nats-broker'],
+ 'account-service':['database'], 'position-service':['database'],
  'trade-processor':['database'],
- 'order-matcher':['database','reference-data','account-service','trade-processor','identity','nats-broker'],
+ 'order-matcher':['database','trade-processor','identity','nats-broker'],
  'event-publisher':['database','nats-broker'], 'event-consumer':['database','nats-broker']}
 MIGRATIONS=['execution-reservations.sql','execution-settlement.sql',
             'execution-cancellation.sql','execution-events.sql','execution-consumer.sql']
@@ -137,7 +137,7 @@ def network(namespace,gateway):
         'spec':{'podSelector':{},'policyTypes':['Ingress','Egress'],'ingress':[],'egress':[]}}]
     ports={**ROLES,**{name:value[0] for name,value in DEPS.items()}}
     ingress={name:[] for name in ports}
-    for role in ('browser-session','web-front-end-angular'):
+    for role in ('browser-session',):
         ingress[role].append({'from':[peer(gateway['name'],gateway['namespace'])],
             'ports':[{'protocol':'TCP','port':ports[role]}]})
     for source,targets in EDGES.items():
@@ -250,7 +250,7 @@ def compile_bundle(config):
         'images':{n:v['image'] for n,v in sorted(entries.items())},
         'required_private_secrets':{v['secret']:v['keys'] for n,v in sorted(entries.items())},
         'dependencies':config['dependencies'],'gateway':gateway,'execution_migrations':migrations,
-        'activation_order':['account-service','position-service','people-service','trade-processor','order-matcher','event-publisher','event-consumer','browser-session','web-front-end-angular'],
+        'activation_order':['account-service','position-service','people-service','trade-processor','order-matcher','event-publisher','event-consumer','browser-session'],
         'required_live_gates':['owned namespace/resource and CNI checks','preprovisioned scoped SQL/broker/OIDC identities and TLS trust',
             'fresh schema and ordered execution migrations before settlement','actual private-config and reachable HTTPS listener verification',
             'finite signing-key trust provisioning/refresh','gateway WAF and operator/public route separation',

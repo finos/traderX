@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "kind": {
+    "version": "v0.31.0",
+    "platform": "linux/amd64",
+    "url": "https://github.com/kubernetes-sigs/kind/releases/download/v0.31.0/kind-linux-amd64",
+    "checksum_url": "https://github.com/kubernetes-sigs/kind/releases/download/v0.31.0/kind-linux-amd64.sha256sum",
+    "sha256": "eb244cbafcc157dff60cf68693c14c9a75c4e6e6fedaf9cd71c58117cb93e3fa"
+  },
+  "kubernetes_version": "v1.35.0",
+  "node_image": "kindest/node:v1.35.0@sha256:452d707d4862f52530247495d180205e029056831160e22870e37e3f6c1ac31f",
+  "scope": "Isolated hosted admission/schema fixture; not application, CNI enforcement or full-state runtime acceptance"
+}
