@@ -110,6 +110,7 @@ class PositionImageTests(unittest.TestCase):
     def test_wrong_ca_acceptance_must_not_be_confused_with_configuration_refusal(self):
         healthy_failure = {'running': False, 'exit_code': 1, 'oom_killed': False, 'tls_rejection': True, 'markers': []}
         self.assertTrue(campaign.rejected_database_startup(healthy_failure))
+        self.assertFalse(campaign.rejected_database_startup(healthy_failure, served_http=True))
         for change in ({'running': True}, {'exit_code': 0}, {'exit_code': 2}, {'exit_code': None},
                        {'oom_killed': True}, {'tls_rejection': False}, {'markers': ['configuration_refused']}):
             self.assertFalse(campaign.rejected_database_startup(dict(healthy_failure, **change)))

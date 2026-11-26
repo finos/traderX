@@ -196,10 +196,10 @@ LOG_MARKERS = {'Protected Java configuration refused; private details withheld.'
                'APPLICATION FAILED TO START': 'spring_startup_failed', 'Started PositionServiceApplication': 'spring_started'}
 
 
-def rejected_database_startup(diagnostic):
+def rejected_database_startup(diagnostic, served_http=False):
     return (not diagnostic['running'] and diagnostic['exit_code'] not in (None, 0, 2) and
             not diagnostic['oom_killed'] and diagnostic['tls_rejection'] and
-            'configuration_refused' not in diagnostic['markers'])
+            'configuration_refused' not in diagnostic['markers'] and not served_http)
 
 
 class PositionImage:
@@ -313,9 +313,15 @@ def campaign(runtime, manifest):
         wrong_materials = dict(materials, **{'database-ca.pem': ca})
         with PositionImage(f, root, identity, config, wrong_materials).run() as app:
             deadline = time.monotonic()+90
-            while app.inspect()['State'].get('Running') is True and time.monotonic() < deadline: time.sleep(.25)
+            served_http = False
+            while app.inspect()['State'].get('Running') is True and time.monotonic() < deadline:
+                try:
+                    request(app.address, context, '/actuator/health')
+                    served_http = True
+                except (OSError, http.client.HTTPException): pass
+                time.sleep(.25)
             diagnostic = app.diagnostics()
-            check(rejected_database_startup(diagnostic), 'untrusted_database_ca_terminates_startup')
+            check(rejected_database_startup(diagnostic, served_http), 'untrusted_database_ca_terminates_startup')
         check(fingerprint(f['sql'], f['database_password']) == before, 'untrusted_database_ca_no_data_effects')
         phase('startup')
         with PositionImage(f, root, identity, config, materials).run() as app:
