@@ -47,6 +47,8 @@ jobs:
           python -m unittest discover -s scripts/security-lab -p 'test_browser_api.py'
           python -m unittest discover -s scripts/security-lab -p 'test_browser_session.py'
           python -m unittest discover -s scripts/security-lab -p 'test_browser_broker.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_browser_runtime.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_browser_assets.py'
           python -m unittest discover -s scripts/security-lab -p 'test_authenticated_trading.py'
           python -m unittest discover -s scripts/security-lab -p 'test_order_consumers.py'
           python -m unittest discover -s scripts/security-lab -p 'test_integrated_deployment.py'
@@ -107,6 +109,14 @@ jobs:
           test -x "$CHROME_BIN"
           npx ng test --watch=false --browsers=ChromeHeadlessNoSandbox --include='main/app/security/*.spec.ts'
           npm run build
+          PYTHONPATH="$GITHUB_WORKSPACE/scripts/security-lab" python - <<'PY'
+          from pathlib import Path
+          from browser_assets import PublicAssets
+          assets = PublicAssets(Path('dist/main-application/browser').resolve())
+          assert assets.get('/trade') == assets.get('/')
+          assert assets.get('/config.json') is None
+          print('Actual production Angular assets accepted by the session runtime allowlist.')
+          PY
   people-authorization:
     runs-on: ubuntu-latest
     timeout-minutes: 15
