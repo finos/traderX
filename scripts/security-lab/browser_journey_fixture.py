@@ -135,8 +135,8 @@ def driver_failure(value):
     phases.update(role+'_login_'+step for role in ('trader','reader') for step in
         ('initial_page','signin_link','provider_navigation','credentials','username','password','callback','accounts','account_menu'))
     phases.update(flow+'_'+step for flow in ('trader_order','cancel_order','reader_order') for step in
-        ('open_ticket','stock_input','typeahead','terms','submit_click','submit_response','denial_message','open_row'))
-    phases.update(('cancel_order_scroll','cancel_order_click','cancel_order_response','cancel_order_removed'))
+        ('open_ticket','stock_input','typeahead','terms','submit_click','submit_response','modal_closed','denial_message','open_row'))
+    phases.update(('cancel_order_scroll','cancel_order_pointer_target','cancel_order_click','cancel_order_response','cancel_order_removed'))
     phase=value.get('phase') if value.get('phase') in phases else 'unclassified'
     codes={'timeout','certificate_trust','tls_failure','connection_unavailable','unexpected_error','check_failed',
         'unsupported_api','element_not_clickable','context_destroyed',
@@ -151,6 +151,7 @@ def driver_failure(value):
             item=supplied.get(name)
             if type(item) is int and 0<=item<=1000:safe[name]=item
         if supplied.get('location') in ('app','issuer','other','unknown'):safe['location']=supplied['location']
+        if type(supplied.get('cancelPointerTarget')) is bool:safe['cancelPointerTarget']=supplied['cancelPointerTarget']
         values=supplied.get('angularCodes')
         if isinstance(values,list) and len(values)<=8 and all(isinstance(item,str) and re.fullmatch(r'NG[0-9]{4,6}',item) for item in values):safe['angularCodes']=values
         directives=supplied.get('cspDirectives')

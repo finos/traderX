@@ -25,7 +25,7 @@ export const CHECK_IDS = Object.freeze([
 const checks = [];
 let phase = 'configuration';
 const diagnostics = { pageErrors: 0, cspErrors: 0, sessionStatus: 0, accountStatus: 0,
-    orderStatus: 0, cancelStatus: 0, location: 'unknown', angularCodes: [], cspDirectives: [] };
+    orderStatus: 0, cancelStatus: 0, cancelPointerTarget: false, location: 'unknown', angularCodes: [], cspDirectives: [] };
 
 export const FAILURE_CODES = Object.freeze([
     'timeout', 'certificate_trust', 'tls_failure', 'connection_unavailable', 'unexpected_error',
@@ -205,6 +205,10 @@ async function submitOrder(page, config, limitPrice, accepted = true) {
     await page.click('#createOrderButton');
     phase = `${flow}_submit_response`;
     const response = await responsePromise;
+    phase = `${flow}_modal_closed`;
+    // A rendered row can appear before ngx-bootstrap's modal fade has finished.
+    // Wait for removal, not just an opacity change, before interacting underneath.
+    await waitForModalClosed(page);
     if (!accepted) {
         check(response.status() === 403, 'reader_order_rejected_by_api');
         phase = `${flow}_denial_message`;
@@ -241,6 +245,21 @@ export async function revealOrderActions(page) {
     await page.$eval('app-order-blotter .ag-body-horizontal-scroll-viewport', element => {
         element.scrollLeft = element.scrollWidth;
     });
+}
+
+export async function waitForModalClosed(page) {
+    await page.waitForFunction(() => !document.querySelector('modal-container, .modal-backdrop'));
+}
+
+async function waitForPointerTarget(page, selector) {
+    await page.waitForFunction(selector => {
+        const element = document.querySelector(selector);
+        if (!element) return false;
+        element.scrollIntoView({block:'center',inline:'center'});
+        const rect = element.getBoundingClientRect();
+        const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        return rect.width > 0 && rect.height > 0 && (hit === element || element.contains(hit));
+    }, {timeout:TIMEOUT}, selector);
 }
 
 function number(value) { return Number(String(value ?? '').replace(/[^0-9.-]/g, '')); }
@@ -371,9 +390,13 @@ export async function run(config) {
         const cancelOrderId = await submitOrder(page, config, 1);
         phase = 'cancel_order_scroll';
         await revealOrderActions(page);
+        const cancelSelector = `app-order-blotter .ag-row[row-id="${cancelOrderId}"] [col-id="cancel"] button`;
+        phase = 'cancel_order_pointer_target';
+        await waitForPointerTarget(page, cancelSelector);
+        diagnostics.cancelPointerTarget = true;
         const cancelResponse = page.waitForResponse(response => response.url() === config.origin + `/api/order-matcher/orders/${cancelOrderId}/cancel` && response.request().method() === 'POST');
         phase = 'cancel_order_click';
-        await page.locator(`app-order-blotter .ag-row[row-id="${cancelOrderId}"] [col-id="cancel"] button`).click();
+        await page.locator(cancelSelector).click();
         phase = 'cancel_order_response';
         demand((await cancelResponse).status() === 200, 'cancel_rejected');
         phase = 'cancel_order_removed';

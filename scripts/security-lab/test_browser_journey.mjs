@@ -4,7 +4,7 @@ import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { CHECK_IDS, validateConfig, notificationAccounts, failureCode, fill, revealOrderActions } from './browser_journey.mjs';
+import { CHECK_IDS, validateConfig, notificationAccounts, failureCode, fill, revealOrderActions, waitForModalClosed } from './browser_journey.mjs';
 
 const config = () => ({ origin: 'https://localhost:18447', issuer: 'https://localhost:18446/realms/lab',
     frontendRoot: '/tmp/frontend', executablePath: '/usr/bin/chromium', profileDir: '/tmp/isolated-profile',
@@ -44,7 +44,7 @@ test('configuration errors produce only bounded fixed diagnostics, never private
         const result = spawnSync(process.execPath, [new URL('./browser_journey.mjs', import.meta.url).pathname, '--config', path], { encoding: 'utf8' });
         assert.equal(result.status, 1);
         assert.deepEqual(JSON.parse(result.stdout), { status: 'failed', phase: 'configuration', checks: [], error: 'unexpected_error',
-            diagnostics: { pageErrors: 0, cspErrors: 0, sessionStatus: 0, accountStatus: 0, orderStatus: 0, cancelStatus: 0, location: 'unknown', angularCodes: [], cspDirectives: [] } });
+            diagnostics: { pageErrors: 0, cspErrors: 0, sessionStatus: 0, accountStatus: 0, orderStatus: 0, cancelStatus: 0, cancelPointerTarget: false, location: 'unknown', angularCodes: [], cspDirectives: [] } });
         assert.equal(result.stderr, '');
         assert(!result.stdout.includes('sentinel-private-value'));
         assert(!result.stdout.includes('private-password'));
@@ -74,4 +74,20 @@ test('cancellation reveals virtualized action columns through the actual scroll 
     }};
     await revealOrderActions(page);
     assert.equal(viewport.scrollLeft, 1600);
+});
+
+test('post-submit synchronization waits until modal and backdrop are removed', async () => {
+    const original = globalThis.document;
+    let overlay = {};
+    globalThis.document = {querySelector: selector => {
+        assert.equal(selector, 'modal-container, .modal-backdrop');
+        return overlay;
+    }};
+    try {
+        await waitForModalClosed({waitForFunction: async predicate => {
+            assert.equal(predicate(), false);
+            overlay = null;
+            assert.equal(predicate(), true);
+        }});
+    } finally { globalThis.document = original; }
 });
