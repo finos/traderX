@@ -15,8 +15,14 @@ import urllib.parse
 import urllib.request
 import urllib.error
 from identity_fixture import ISSUER, CLIENT, AUDIENCE, TokenVerifier
-from verify_account_authorization import request as api_request
 from browser_api import BoundaryError, MAX_BODY, json_body, route
+
+
+def api_request(*args, **kwargs):
+    # Only the legacy local fixture uses this adapter. Configured runtimes use
+    # ApiProxy and must not import development orchestration into their images.
+    from verify_account_authorization import request
+    return request(*args, **kwargs)
 
 ORIGIN='https://localhost:18447'
 CALLBACK=ORIGIN+'/callback'

@@ -36,6 +36,7 @@ def source_manifest():
     for directory in (STATE/'generation',STATE/'system/sql',ROOT/'specs/012-platform-convergence-c3/security-lab/generation'):
         paths.update(p for p in directory.rglob('*') if p.is_file())
     paths.add(ROOT/'specs/012-platform-convergence-c3/security-lab/baseline.lock.json')
+    paths.add(STATE/'system/runtime-images.lock.json')
     values={str(p.relative_to(ROOT)):sha(p.read_bytes()) for p in sorted(paths)}
     return {'files':values,'sha256':sha(encoded(values))}
 
