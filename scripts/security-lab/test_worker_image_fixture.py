@@ -111,9 +111,44 @@ class WorkerImageFixtureTests(unittest.TestCase):
 
     def test_guard_refuses_local_execution_before_contacting_docker(self):
         with patch.object(peers.portability,'isolated_linux',return_value=False),patch.object(peers,'Docker') as docker:
-            with self.assertRaisesRegex(ValueError,'hosted'):
+            with self.assertRaises(peers.FixtureFailure) as result:
                 with peers.fixture(Path('/unused')):pass
+            self.assertEqual(result.exception.details['stage'],'guard')
+            self.assertEqual(result.exception.details['error_type'],'ValueError')
             docker.assert_not_called()
+
+    def test_setup_stage_diagnostics_never_export_raw_errors_and_preserve_caller_failure(self):
+        from contextlib import contextmanager
+        @contextmanager
+        def setup_failure(_,progress):
+            progress['stage']='network_plan'
+            raise TypeError('private-password or private endpoint')
+            yield
+        with patch.object(peers,'_fixture',setup_failure):
+            with self.assertRaises(peers.FixtureFailure) as result:
+                with peers.fixture(Path('/unused')):pass
+        details=result.exception.details
+        self.assertEqual(details['stage'],'network_plan');self.assertEqual(details['error_type'],'TypeError')
+        self.assertNotIn('private',json.dumps(details));self.assertNotIn('endpoint',str(result.exception))
+        @contextmanager
+        def active(_,progress):
+            progress['stage']='active';yield {}
+        with patch.object(peers,'_fixture',active):
+            with self.assertRaisesRegex(ValueError,'campaign-owned'):
+                with peers.fixture(Path('/unused')):raise ValueError('campaign-owned')
+
+    def test_cleanup_failure_keeps_its_explicit_stage_and_custom_type_is_redacted(self):
+        class UntrustedExceptionName(Exception):pass
+        value=peers.setup_failure('cleanup',UntrustedExceptionName('never print'))
+        self.assertEqual(value.details['stage'],'cleanup');self.assertEqual(value.details['error_type'],'other')
+        self.assertNotIn('never print',str(value))
+        with patch.object(peers.tempfile,'TemporaryDirectory') as temporary:
+            temporary.return_value.name='/fixture'
+            temporary.return_value.cleanup.side_effect=PermissionError('secret-path')
+            with self.assertRaises(peers.FixtureFailure) as result:
+                with peers.private_directory(Path('/unused')):pass
+        self.assertEqual(result.exception.details['stage'],'private_cleanup')
+        self.assertEqual(result.exception.details['error_type'],'PermissionError')
 
     def test_readiness_failure_exports_only_fixed_categories_and_state(self):
         docker=Mock(side_effect=[subprocess.CompletedProcess([],0,json.dumps([{'State':{'Running':False,'ExitCode':1,'OOMKilled':False}}]),''),

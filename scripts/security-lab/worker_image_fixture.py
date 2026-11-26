@@ -25,12 +25,33 @@ from verify_runtime_images import Docker
 
 LABEL='traderx.security-lab.worker-peers'
 ACK_PROBE=f'$JS.ACK.{STREAM}.ACCOUNT_A.0.0.0.0.0'
+STAGES=frozenset(('guard','pins','pull_database','pull_broker','private_directory','network_plan','certificates',
+    'database_files','broker_files','network_create','network_verify','volume_create','database_create','broker_create',
+    'database_start','broker_start','database_ready','broker_ready','bootstrap','active','cleanup','private_cleanup'))
+ERROR_TYPES=frozenset(('ValueError','RuntimeError','OSError','PermissionError','FileNotFoundError','TimeoutError',
+    'SubprocessError','KeyError','TypeError','JSONDecodeError','other'))
 
 
 class FixtureFailure(RuntimeError):
     def __init__(self,details):
         self.details=details
         super().__init__('Owned TLS peer readiness failed; private details withheld')
+
+
+def setup_failure(stage,error):
+    kind=type(error).__name__
+    details={'peer':'unknown','category':'unclassified','running':None,'exit_code':None,'oom_killed':None,
+             'stage':stage if stage in STAGES else 'guard','error_type':kind if kind in ERROR_TYPES else 'other'}
+    return FixtureFailure(details)
+
+
+@contextmanager
+def private_directory(runtime):
+    directory=tempfile.TemporaryDirectory(prefix='worker-peers-private-',dir=runtime)
+    try:yield directory.name
+    finally:
+        try:directory.cleanup()
+        except Exception as error:raise setup_failure('private_cleanup',error) from None
 
 
 def readiness_failure(docker,name,peer):
@@ -223,27 +244,33 @@ def permission_probe(address,ca,password):
 
 
 @contextmanager
-def fixture(runtime):
+def _fixture(runtime,progress):
     if not portability.isolated_linux() or os.environ.get('GITHUB_ACTIONS')!='true' or os.getuid()<=0 or os.getgid()<=0:
         raise ValueError('Worker peers require unprivileged isolated hosted Linux')
     runtime=Path(runtime).resolve();docker=Docker(runtime);owner=secrets.token_hex(12)
     network='traderx-worker-peers-'+owner;volume=network+'-pgdata'
     containers=[];network_attempted=volume_attempted=False
+    progress['stage']='pins'
     reference=bootstrap_database.pinned_reference();identities=bootstrap_database.credentials()
     database_image=next(value for value in reference['items'] if value['kind']=='Deployment' and value['metadata']['name']=='database')['spec']['template']['spec']['containers'][0]['image']
     _,broker_image=image_for_arch('amd64')
-    for image in (database_image,broker_image):
+    for peer,image in (('database',database_image),('broker',broker_image)):
+        progress['stage']='pull_'+peer
         if '@sha256:' not in image:raise ValueError('Pinned peer image required')
         if docker('image','inspect',image,check=False).returncode:docker('pull','--platform','linux/amd64',image,timeout=240)
-    with tempfile.TemporaryDirectory(prefix='worker-peers-private-',dir=runtime) as temporary:
-        private=Path(temporary);subnet=network_plan(docker)
+    progress['stage']='private_directory'
+    with private_directory(runtime) as temporary:
+        private=Path(temporary);progress['stage']='network_plan';subnet=network_plan(docker)
         gateway=str(subnet.network_address+1);addresses={'database':str(subnet.network_address+2),'nats-broker':str(subnet.network_address+3)}
+        progress['stage']='certificates'
         material=tls_material(addresses);ca=private/'ca.pem';ca.write_bytes(material['ca.pem']);ca.chmod(0o600)
         passwords={name:secrets.token_hex(24) for name in permissions()};password=secrets.token_hex(32)
         database_config=private/'database';broker_config=private/'broker';store=private/'store';store.mkdir(mode=0o700)
         hba=('local all all trust\nhostnossl all all 0.0.0.0/0 reject\nhostssl all all '+str(subnet)+' scram-sha-256\nhost all all 0.0.0.0/0 reject\n')
+        progress['stage']='database_files'
         private_files(database_config,{**material['database'],'ca.pem':material['ca.pem'],'password':password.encode(),
                                      'pg_hba.conf':hba.encode()},70)
+        progress['stage']='broker_files'
         private_files(broker_config,{**material['nats-broker'],'nats.json':json.dumps(peer_config(passwords)).encode()},os.getgid())
         db_name=network+'-database';broker_name=network+'-broker'
         def inspected(name,address):
@@ -305,20 +332,46 @@ def fixture(runtime):
                 time.sleep(.1)
             raise RuntimeError('Broker ACK permission change unverified')
         try:
+            progress['stage']='network_create'
             network_attempted=True
             docker('network','create','--internal','--subnet',str(subnet),'--gateway',gateway,'--label',LABEL+'='+owner,network)
+            progress['stage']='network_verify'
             info=owned(docker,'network',network,owner)
             if info.get('Internal') is not True or info['IPAM']['Config']!=[{'Subnet':str(subnet),'Gateway':gateway}]:
                 raise RuntimeError('Owned internal network not established')
-            volume_attempted=True;docker('volume','create','--label',LABEL+'='+owner,volume)
+            progress['stage']='volume_create';volume_attempted=True;docker('volume','create','--label',LABEL+'='+owner,volume)
+            progress['stage']='database_create'
             containers.append(db_name);docker(*postgres_args(db_name,network,owner,addresses['database'],database_image,database_config,volume))
+            progress['stage']='broker_create'
             containers.append(broker_name);docker(*nats_args(broker_name,network,owner,addresses['nats-broker'],broker_image,broker_config,store,f'{os.getuid()}:{os.getgid()}'))
-            docker('start',db_name);docker('start',broker_name)
-            database_ready();broker_ready();admin(bootstrap_database.render(reference,identities))
+            progress['stage']='database_start';docker('start',db_name)
+            progress['stage']='broker_start';docker('start',broker_name)
+            progress['stage']='database_ready';database_ready()
+            progress['stage']='broker_ready';broker_ready()
+            progress['stage']='bootstrap';admin(bootstrap_database.render(reference,identities))
+            progress['stage']='active'
             yield {'network':network,'owner':owner,'docker':docker,'private':private,'ca':ca,
                 'database':{'host':'database','hostaddr':addresses['database'],'port':5432,'name':'traderx','ca':ca,'password':password,'image':database_image},
                 'broker':{'endpoint':'tls://nats-broker:4222','host_endpoint':'tls://'+addresses['nats-broker']+':4222',
                           'ca':ca,'passwords':passwords,'image':broker_image},
                 'sql':sql,'admin':admin,'database_password':password,'identities':identities,
                 'restart_database':restart_database,'restart_broker':restart_broker,'set_consumer_ack_allowed':set_consumer_ack_allowed}
-        finally:cleanup(docker,containers,volume if volume_attempted else None,network if network_attempted else None,owner)
+        finally:
+            try:cleanup(docker,containers,volume if volume_attempted else None,network if network_attempted else None,owner)
+            except Exception as error:raise setup_failure('cleanup',error) from None
+
+
+@contextmanager
+def fixture(runtime):
+    progress={'stage':'guard'}
+    try:
+        with _fixture(runtime,progress) as value:yield value
+    except FixtureFailure as error:
+        error.details.setdefault('stage',progress['stage'])
+        error.details.setdefault('error_type','RuntimeError')
+        raise
+    except Exception as error:
+        # An exception in the caller's business campaign is its own evidence,
+        # not a setup failure. Cleanup failures have already been wrapped above.
+        if progress['stage']=='active':raise
+        raise setup_failure(progress['stage'],error) from None
