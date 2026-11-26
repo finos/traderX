@@ -146,3 +146,37 @@ jobs:
           python scripts/security-lab/render_people_security.py --output-dir "$runtime/people-service"
           dotnet build "$runtime/people-service/PeopleService.WebApi/PeopleService.WebApi.csproj" -c Release --disable-build-servers
           python scripts/security-lab/verify_people_security.py --runtime-dir "$runtime" --output "$runtime/people-result.json"
+  integrated-admission:
+    # Independent disposable control plane: schema/policy only, no application activation.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+      - name: Validate compiler and private configuration
+        run: |
+          python -m pip install -r scripts/security-lab/requirements.txt
+          python -m unittest discover -s scripts/security-lab -p 'test_integrated_deployment.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_private_materializer.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_integrated_admission.py'
+      - name: Verify staged workload admission against an isolated Kubernetes API
+        env:
+          TRADERX_LAB_ISOLATED_LINUX: '1'
+        run: |
+          set -euo pipefail
+          umask 077
+          python - <<'PY'
+          import hashlib, json, os, pathlib, urllib.request
+          pin = json.loads(pathlib.Path('specs/019-traderx-security-lab/system/admission-tools.lock.json').read_text())['kind']
+          with urllib.request.urlopen(pin['url'], timeout=90) as response:
+              data = response.read(32 * 1024 * 1024 + 1)
+          assert len(data) <= 32 * 1024 * 1024 and hashlib.sha256(data).hexdigest() == pin['sha256']
+          path = pathlib.Path(os.environ['RUNNER_TEMP']) / 'kind-v0.31.0'
+          with path.open('xb') as output: output.write(data)
+          path.chmod(0o700)
+          PY
+          python scripts/security-lab/verify_integrated_admission.py --kind "$RUNNER_TEMP/kind-v0.31.0" --runtime-dir "$RUNNER_TEMP/traderx-admission" --output "$RUNNER_TEMP/traderx-admission-evidence.json"
