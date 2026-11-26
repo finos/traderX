@@ -104,7 +104,15 @@ def image(role,value,source,revision,platform):
     if runtime.get('User')!='10001:10001':raise ValueError('Reviewed image UID required')
     if any(re.search(r'(^|_)(PASSWORD|DBPASS|TOKEN|SECRET|API_KEY)=',v,re.I) for v in runtime.get('Env',[])):
         raise ValueError('Image contains credential environment values')
-    argv=runtime.get('Entrypoint',[])+runtime.get('Cmd',[])
+    # OCI exporters may encode unset/empty command arrays as null. Treat only
+    # absent/null as empty; strings and other values must never become argv.
+    parts=[]
+    for field in ('Entrypoint','Cmd'):
+        value_part=runtime.get(field)
+        if value_part is None:value_part=[]
+        if not isinstance(value_part,list):raise ValueError('Image argv fields must be arrays or null')
+        parts.extend(value_part)
+    argv=parts
     if (not argv or len(argv)>64 or not all(isinstance(a,str) and 0<len(a)<=512 and not re.search(r'[\x00-\x1f]',a) for a in argv)
             or not Path(argv[0]).is_absolute() or Path(argv[0]).name in ('sh','bash','dash','zsh','env')):
         raise ValueError('Explicit non-shell image argv required')

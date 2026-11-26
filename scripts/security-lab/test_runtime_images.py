@@ -84,6 +84,18 @@ class RuntimeImageTests(unittest.TestCase):
         self.assertEqual(value['keys'],images.KEYS[role])
         with self.assertRaisesRegex(ValueError,'source'):images.inspect(role,Path(entry['oci_layout']),'local/traderx-browser','1'*40)
 
+    def test_actual_export_null_command_fields_are_normalized_without_accepting_invalid_types(self):
+        role='browser-session';source=compiler.source_manifest()
+        for entrypoint,command in ((images.argv(role),None),(None,images.argv(role))):
+            entry=admission_fixture.image(self.root,role,source,'0'*40,
+                lambda cfg:cfg['config'].update(Entrypoint=entrypoint,Cmd=command))
+            value=images.inspect(role,Path(entry['oci_layout']),'local/traderx-browser','0'*40)
+            self.assertEqual(value['image'].split('@')[1],entry['image'].split('@')[1])
+        for entrypoint,command in ((None,None),(images.argv(role),''),({},images.argv(role))):
+            entry=admission_fixture.image(self.root,role,source,'0'*40,
+                lambda cfg:cfg['config'].update(Entrypoint=entrypoint,Cmd=command))
+            with self.assertRaisesRegex(ValueError,'argv'):images.inspect(role,Path(entry['oci_layout']),'local/traderx-browser','0'*40)
+
     def test_worker_launcher_rejects_other_role_and_loopback_tls_exception(self):
         good={'mode':'publisher','database_transport':'verify-full','broker_ca':'/run/private/config/broker-ca.pem','database_ca':'/run/private/config/database-ca.pem'}
         launcher.validate('event-publisher',good)
