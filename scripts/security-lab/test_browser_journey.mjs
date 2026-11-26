@@ -31,7 +31,7 @@ test('notification observation rejects business payloads and invalid scopes', ()
 });
 
 test('evidence check vocabulary is fixed, unique and contains no credentials', () => {
-    assert.equal(CHECK_IDS.length, 23);
+    assert.equal(CHECK_IDS.length, 24);
     assert.equal(new Set(CHECK_IDS).size, CHECK_IDS.length);
     assert(CHECK_IDS.every(name => /^[a-z][a-z0-9_]{1,80}$/.test(name)));
 });

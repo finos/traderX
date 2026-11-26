@@ -12,6 +12,7 @@ const TIMEOUT = 30000;
 export const CHECK_IDS = Object.freeze([
     'trader_account_snapshot_scoped', 'trader_account_menu_scoped',
     'session_cookie_secure_httponly', 'browser_script_has_no_session_cookie_or_stored_tokens',
+    'missing_csrf_order_rejected',
     'actual_limit_order_form_and_open_grid', 'matched_order_leaves_open_grid',
     'actual_scoped_broker_notifications_received', 'mounted_blotters_refetch_after_notifications',
     'settled_trade_visible_in_actual_grid', 'settled_position_and_live_valuation_visible',
@@ -263,6 +264,11 @@ export async function run(config) {
             !Object.values(localStorage).some(value => /(?:access_token|refresh_token|id_token|Bearer\s|eyJ[A-Za-z0-9_-]+\.)/.test(value))), 'browser_script_has_no_session_cookie_or_stored_tokens');
 
         phase = 'trader_order';
+        const missingCsrf = await page.evaluate(async accountId => (await fetch('/api/order-matcher/orders', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accountId, security: 'IBM', side: 'Buy', quantity: 2, limitPrice: 1 }),
+        })).status, config.accounts.trader);
+        check(missingCsrf === 403, 'missing_csrf_order_rejected');
         const orderId = await submitOrder(page, config, config.limitPrice);
         check(true, 'actual_limit_order_form_and_open_grid');
         await ipc.stage('ready_for_price', orderId);
