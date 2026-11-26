@@ -45,6 +45,11 @@ are owned and removed by the campaign; only the owned certificate is removed fro
 the NSS database. Heavy execution runs only on hosted CI;
 no local Docker, Java, npm installation or screen access is needed for source work.
 
+The pinned AG Grid Alpine theme embeds icon fonts in its compiled CSS. The public
+asset policy permits `data:` for fonts, as described in [AG Grid's CSP guidance](https://www.ag-grid.com/javascript-data-grid/security/).
+Scripts and API connections remain same-origin; script evaluation, external font
+CDNs and certificate-error bypasses are not enabled by this compatibility setting.
+
 ## Driver coordination
 
 The Python orchestrator launches the Node driver with an absolute private config

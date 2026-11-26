@@ -7,7 +7,9 @@ MAX_FILE=16*1024*1024
 MAX_TOTAL=64*1024*1024
 MAX_FILES=1024
 SPA_ROUTES=frozenset(('/', '/trade', '/account', '/admin', '/about', '/status'))
-CSP="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+# Pinned AG Grid Alpine embeds its icon font in compiled CSS as a data URL.
+# Font bytes need data:, while executable scripts and network connections stay same-origin.
+CSP="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
 MEDIA={'.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.svg':'image/svg+xml',
        '.gif':'image/gif','.webp':'image/webp','.ico':'image/x-icon','.woff':'font/woff',
        '.woff2':'font/woff2','.ttf':'font/ttf','.otf':'font/otf'}

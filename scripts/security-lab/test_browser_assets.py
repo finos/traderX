@@ -27,6 +27,8 @@ class AssetTests(unittest.TestCase):
         for path in ('/.env','/config.json','/server.key','/main-ABC12345.js.map','/unknown','/../index.html','/%2e%2e/index.html','//index.html','/index.html?x=1','/media\\private'):
             self.assertIsNone(public.get(path),path)
         self.assertIn("script-src 'self';",CSP)
+        self.assertIn("font-src 'self' data:;",CSP)
+        self.assertIn("connect-src 'self';",CSP)
         self.assertNotIn('unsafe-eval',CSP)
 
     def test_symlinks_and_budgets_fail_closed(self):
