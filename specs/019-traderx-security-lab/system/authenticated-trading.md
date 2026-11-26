@@ -70,6 +70,12 @@ publish only `/accounts/62654/orders`; the synthetic price identity can publish
 only `pricing.IBM` and explicitly denies subscription. Empty NATS allow lists are
 not used as a denial policy.
 
+The Java connection-options test builds the actual pinned NATS options without
+opening a socket. It verifies the five-second connect and ten-second write
+timeouts against the [client's required timeout relationship](https://github.com/nats-io/nats.java/blob/2.20.5/src/main/java/io/nats/client/Options.java).
+Testing only endpoint strings and credential-file validation did not catch this
+startup configuration error; the live campaign remains the connection proof.
+
 An initially invalid service credential leaves a pending reservation and no
 settlement. A private-file replacement permits the existing token client to
 recover. The separate outage/restart case waits beyond the initiating access

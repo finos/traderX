@@ -42,10 +42,13 @@ Completed prototype evidence and granular implementation history are in the [C3 
 - [x] S019-04c1 Implement position/history direct API authorization; verify 11 Java tests and deterministic generation. People/UI integration remains pending.
 - [x] S019-04c2 Validate live Keycloak/PKCE cookie sessions through an explicit API boundary against the generated position/history service and scoped PostgreSQL; include CSRF, cross-account, expiry and logout checks. See `system/browser-api-session.md`.
 - [x] S019-04c3 Connect the generated Angular root and HTTP client to server-held cookie sessions; verify CSRF, expiry/view teardown, canceled stale requests and refusal of anonymous broker fallback in hosted Chrome.
-- [ ] S019-04c4 Protect inherited people-directory routes with explicit operator-only server grants; validate real Keycloak identities against the generated .NET service.
-- [ ] S019-04d Validate real browser-cookie order creation/cancellation, live matcher service credentials, TLS execution and independent SQL settlement/outbox outcomes together.
-- [ ] S019-05a Integrate mediated read-only browser notifications with account-scoped TLS broker identities, policy revocation and bounded reconnect/reset handling.
+- [x] S019-04c4 Protect inherited people-directory routes with explicit operator-only server grants; 30 hosted real-Keycloak/generated-.NET checks pass. Directory access remains outside the public browser proxy; this is a candidate API gate.
+- [x] S019-04d Validate real browser-cookie order creation/cancellation, live matcher service credentials, TLS execution, actual outbox workers, mediated notifications and independent SQL/API outcomes together; 47 hosted checks pass. Actual Angular navigation remains S019-04e.
+- [x] S019-05a Validate mediated read-only browser notifications with account-scoped TLS broker identities, policy revocation and bounded reconnect/reset handling; 27 hosted checks pass. Deployed broker cutover remains S019-05.
 - [ ] S019-06a Compile and validate an opt-in integrated deployment with verified build/image inputs, ordered migrations, private configuration materialization and explicit network/exposure/admission contracts.
+- [x] S019-06a1 Implement deterministic OCI-byte verification, private configuration materialization and zero-replica core composition. Synthetic OCI test fixtures are not application images.
+- [x] S019-06a2 Verify the generated policies against a real hosted Kubernetes API: 30 schema/admission/cleanup checks pass, with no application workload activation or CNI enforcement claim.
+- [ ] S019-06a3 Build runnable core images, verify each private-config/TLS interface and provision issuer, broker and market-data dependencies before controlled activation.
 - [ ] S019-04e Run the actual Angular login → limit order → settlement → mediated notification → scoped snapshot journey with supervised delivery and independent SQL effects in one environment; see `system/integrated-acceptance.md`.
 - [ ] S019-04c Integrate remaining read APIs and Angular session/CSRF flow; validate direct-backend and full trading outcomes together.
 - [ ] S019-04 Integrate account/order/cancel/operator authorization and deny bypass routes while normal trading passes.

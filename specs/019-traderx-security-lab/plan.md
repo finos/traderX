@@ -2,6 +2,25 @@
 
 The current Phase 1/2 work follows the [integrated acceptance boundary](system/integrated-acceptance.md): authenticated application journey first, then the same journey under enforced deployment controls. Independent component campaigns remain checkpoints, not completion of either full phase.
 
+The [26 November checkpoint](evidence/2026-11-26-phase-one-two.json) advances both
+phases at source `5dd9f72d`: 47 live authenticated trading/delivery/API checks,
+27 broker-session checks, 30 operator-directory checks, 38 Chrome component
+checks plus production asset validation, and 30 real Kubernetes schema/admission
+checks pass in [hosted run 45763236023](https://github.com/finos/traderX/actions/runs/45763236023).
+The existing 51 browser/API checks and execution/delivery/process regressions
+also pass; local regression is 297 Python tests. Three subagents supplied
+independent trading, broker/UI and deployment work; all heavy execution ran in
+GitHub. No new Copilot or Codex Cloud worker is claimed.
+
+Next close S019-04e with actual Angular navigation through the live services,
+then S019-06a3 with runnable OCI packages and private configuration interfaces.
+Provision issuer/broker/market-data TLS, complete their permitted gateway/egress
+flows, and activate one cumulative cluster before closing S019-04/05/06. The
+admission campaign uses synthetic OCI files and unscheduled probes; it is not
+image provenance, network enforcement or runnable image acceptance. The new
+core intentionally uses limit orders and omits legacy immediate booking. It
+does not silently replace the retained nineteen-deployment C3 candidate.
+
 1. Register the planned C3 child and review existing checkpoint evidence. Publish a draft portal preview and tracking issue.
 2. Promote the profile into deterministic state generation/start/stop/test entrypoints; preserve pinned fixtures and earlier states.
 3. Integrate identity into the trading UI and owning APIs, then cut over authenticated NATS with dynamic account subjects and browser credentials.

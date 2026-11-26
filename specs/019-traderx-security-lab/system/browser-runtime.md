@@ -52,6 +52,13 @@ closed rather than falling back to anonymous NATS.
   includes finite key trust and configured broker availability. SIGTERM/SIGINT
   close the HTTPS listener and broker adapter without printing private config,
   bearer tokens or provider responses.
+- Accept raw sockets before starting TLS in one of at most 32 connection workers.
+  TLS/HTTP idle reads time out after five seconds. Idle clients must not block the
+  listener; shutdown closes tracked connections. Provider/backend calls and client
+  writes occur outside the global session lock, so one slow upstream cannot hold
+  health, session checks or logout behind it. Authorization and revocation remain
+  atomic. A request authorized before logout may finish within its existing
+  network timeout; subsequent requests must observe the revoked session.
 
 Deployment probes must send the Host header from the public origin, including its
 port when present. Health probes cannot override the normal Host boundary.
