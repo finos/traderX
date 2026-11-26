@@ -24,6 +24,31 @@ export const CHECK_IDS = Object.freeze([
 ]);
 const checks = [];
 let phase = 'configuration';
+const diagnostics = { pageErrors: 0, cspErrors: 0, sessionStatus: 0, accountStatus: 0,
+    location: 'unknown', angularCodes: [] };
+
+export const FAILURE_CODES = Object.freeze([
+    'timeout', 'certificate_trust', 'tls_failure', 'connection_unavailable', 'unexpected_error',
+    'check_failed', 'invalid_configuration', 'invalid_origin', 'invalid_issuer', 'invalid_private_path',
+    'invalid_credentials', 'invalid_account', 'distinct_accounts_required', 'unexpected_fixture_terms',
+    'absolute_configuration_required', 'private_configuration_required', 'invalid_notification_response',
+    'invalid_notification_topic', 'notification_business_payload', 'invalid_stage_reply', 'stage_not_approved',
+    'coordinator_closed', 'coordinator_timeout', 'invalid_order_id', 'visible_control_missing',
+    'unexpected_login_origin', 'unexpected_callback_origin', 'account_snapshot_missing', 'account_label_missing',
+    'order_submission_rejected', 'invalid_created_order', 'logout_unconfirmed', 'initial_settlement_snapshots_missing',
+    'actual_broker_notifications_missing', 'notification_snapshots_not_refreshed', 'settled_trade_not_rendered',
+    'position_valuation_not_rendered', 'cancel_rejected', 'configuration_argument_required',
+]);
+
+export function failureCode(error) {
+    const message = typeof error?.message === 'string' ? error.message : '';
+    if (FAILURE_CODES.includes(message)) return message;
+    if (error?.name === 'TimeoutError') return 'timeout';
+    if (/net::ERR_CERT_[A-Z_]+/.test(message)) return 'certificate_trust';
+    if (/net::ERR_SSL_[A-Z_]+/.test(message)) return 'tls_failure';
+    if (/net::ERR_CONNECTION_(?:REFUSED|CLOSED|RESET|TIMED_OUT)/.test(message)) return 'connection_unavailable';
+    return 'unexpected_error';
+}
 
 function demand(condition, code) { if (!condition) throw new Error(code); }
 function check(condition, name) { demand(CHECK_IDS.includes(name) && condition, 'check_failed'); checks.push(name); }
@@ -126,21 +151,27 @@ async function fill(page, selector, value) {
 }
 
 async function login(page, config, role, observed) {
-    phase = `${role}_login`;
+    phase = `${role}_login_initial_page`;
     observed.accounts = null;
     await page.goto(config.origin, { waitUntil: 'domcontentloaded' });
+    phase = `${role}_login_signin_link`;
     await page.waitForSelector('a[href="/login"]', { visible: true });
+    phase = `${role}_login_provider_navigation`;
     await Promise.all([page.waitForNavigation({ waitUntil: 'domcontentloaded' }), page.click('a[href="/login"]')]);
     demand(new URL(page.url()).origin === new URL(config.issuer).origin, 'unexpected_login_origin');
+    phase = `${role}_login_credentials`;
     await fill(page, '#username', config.users[role].username);
     await fill(page, '#password', config.users[role].password);
+    phase = `${role}_login_callback`;
     await Promise.all([page.waitForNavigation({ waitUntil: 'domcontentloaded' }), page.click('#kc-login')]);
     await page.waitForSelector('app-trade #createOrderBtn', { visible: true });
     demand(new URL(page.url()).origin === config.origin, 'unexpected_callback_origin');
+    phase = `${role}_login_accounts`;
     await until(() => Array.isArray(observed.accounts), 'account_snapshot_missing');
     check(observed.accounts.length === 1 && Number(observed.accounts[0].id) === config.accounts[role], `${role}_account_snapshot_scoped`);
     const label = observed.accounts[0].displayName;
     demand(typeof label === 'string' && label.length > 0, 'account_label_missing');
+    phase = `${role}_login_account_menu`;
     await page.click('app-trade app-ngx-dropdown button.dropdown-toggle');
     const labels = await page.$$eval('app-trade app-ngx-dropdown [role="menuitem"]', items => items.map(item => item.textContent?.trim()));
     check(labels.length === 2 && labels.includes('All Accounts') && labels.includes(label), `${role}_account_menu_scoped`);
@@ -213,10 +244,22 @@ export async function run(config) {
         };
         const allowedOrigins = new Set([config.origin, new URL(config.issuer).origin]);
         let expectedAccount = config.accounts.trader;
-        page.on('pageerror', () => observed.errors++);
+        page.on('framenavigated', frame => {
+            if (frame !== page.mainFrame()) return;
+            try { const origin = new URL(frame.url()).origin;
+                diagnostics.location = origin === config.origin ? 'app' : origin === new URL(config.issuer).origin ? 'issuer' : 'other';
+            } catch { diagnostics.location = 'unknown'; }
+        });
+        page.on('pageerror', error => {
+            observed.errors++; diagnostics.pageErrors = Math.min(1000, diagnostics.pageErrors + 1);
+            for (const code of String(error?.message ?? '').match(/\bNG[0-9]{4,6}\b/g) ?? [])
+                if (!diagnostics.angularCodes.includes(code) && diagnostics.angularCodes.length < 8) diagnostics.angularCodes.push(code);
+        });
         page.on('console', message => {
             const text = message.text();
-            if (/Content Security Policy|Refused to (?:execute|load|apply)/i.test(text)) observed.csp++;
+            if (/Content Security Policy|Refused to (?:execute|load|apply)/i.test(text)) {
+                observed.csp++; diagnostics.cspErrors = Math.min(1000, diagnostics.cspErrors + 1);
+            }
             else if (message.type() === 'error' && !/^Failed to load resource: the server responded with a status of (401|403)\b/.test(text)) {
                 if (phase === 'reader_denials') track((async () => {
                     // The inherited API service logs HttpErrorResponse on the
@@ -238,6 +281,8 @@ export async function run(config) {
         page.on('response', response => track((async () => {
             try {
                 const url = new URL(response.url());
+                if (url.origin === config.origin && url.pathname === '/session') diagnostics.sessionStatus = response.status();
+                if (url.origin === config.origin && url.pathname === '/api/account-service/account/') diagnostics.accountStatus = response.status();
                 if (url.origin !== config.origin || response.status() !== 200) return;
                 if (url.pathname === '/api/account-service/account/') observed.accounts = await response.json();
                 if (url.pathname === '/events') {
@@ -261,7 +306,7 @@ export async function run(config) {
         const sessionCookie = cookies.find(cookie => cookie.name === '__Host-traderx-session');
         check(sessionCookie?.secure && sessionCookie.httpOnly && sessionCookie.sameSite === 'Lax', 'session_cookie_secure_httponly');
         check(await page.evaluate(() => !document.cookie.includes('__Host-traderx-session') &&
-            !Object.values(localStorage).some(value => /(?:access_token|refresh_token|id_token|Bearer\s|eyJ[A-Za-z0-9_-]+\.)/.test(value))), 'browser_script_has_no_session_cookie_or_stored_tokens');
+            ![...Object.values(localStorage), ...Object.values(sessionStorage)].some(value => /(?:access_token|refresh_token|id_token|Bearer\s|eyJ[A-Za-z0-9_-]+\.)/.test(value))), 'browser_script_has_no_session_cookie_or_stored_tokens');
 
         phase = 'trader_order';
         const missingCsrf = await page.evaluate(async accountId => (await fetch('/api/order-matcher/orders', {
@@ -325,8 +370,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     try {
         demand(process.argv.length === 4 && process.argv[2] === '--config', 'configuration_argument_required');
         write(await run(await loadConfig(process.argv[3])));
-    } catch {
-        write({ status: 'failed', phase, checks, error: 'browser_journey_failed' });
+    } catch (error) {
+        write({ status: 'failed', phase, checks, error: failureCode(error), diagnostics });
         process.exitCode = 1;
     }
 }

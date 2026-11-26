@@ -9,12 +9,19 @@ import unittest
 from unittest.mock import Mock, patch
 
 from authenticated_delivery import deliver
-from browser_journey_fixture import AccountService, chromium_trust, driver_checks, order_id, run_driver, verified_frontend
+from browser_journey_fixture import AccountService, chromium_trust, driver_checks, driver_failure, order_id, run_driver, verified_frontend
 
 CHECKS=['check-'+name for name in ('one','two','three','four','five','six','seven','eight')]
 
 
 class BrowserJourneyTests(unittest.TestCase):
+    def test_browser_diagnostics_only_allow_fixed_fields_and_numeric_codes(self):
+        value=driver_failure(dict(phase='trader_login_callback',error='timeout',diagnostics=dict(
+            pageErrors=1,cspErrors='secret',sessionStatus=401,accountStatus=0,location='issuer',angularCodes=['NG0908'],url='private-secret')))
+        self.assertIn('trader_login_callback',value);self.assertIn('NG0908',value);self.assertIn('401',value)
+        self.assertNotIn('secret',value)
+        value=driver_failure(dict(phase='secret-password',error='secret-password',diagnostics={'angularCodes':['private-secret']}))
+        self.assertNotIn('secret',value)
     def test_order_identity_cannot_be_sql_or_path_input(self):
         self.assertEqual(order_id('ord-013-42'),'ord-013-42')
         for value in ('../order',"ord-013-42';DROP TABLE orderbook;--",None,'ord-013-'+('1'*25)):

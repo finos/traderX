@@ -129,6 +129,29 @@ def driver_checks(node,driver):
     except (subprocess.SubprocessError,OSError,ValueError):raise RuntimeError('Browser driver check contract unavailable') from None
 
 
+def driver_failure(value):
+    phases={'configuration','browser_launch','trader_login','trader_order','ready_for_price','ready_for_delivery',
+            'settled_grids','cancel_order','logout','reader_login','reader_denials'}
+    phases.update(role+'_login_'+step for role in ('trader','reader') for step in
+        ('initial_page','signin_link','provider_navigation','credentials','callback','accounts','account_menu'))
+    phase=value.get('phase') if value.get('phase') in phases else 'unclassified'
+    codes={'timeout','certificate_trust','tls_failure','connection_unavailable','unexpected_error','check_failed',
+        'unexpected_login_origin','unexpected_callback_origin','account_snapshot_missing','account_label_missing',
+        'order_submission_rejected','invalid_created_order','logout_unconfirmed','initial_settlement_snapshots_missing',
+        'actual_broker_notifications_missing','notification_snapshots_not_refreshed','settled_trade_not_rendered',
+        'position_valuation_not_rendered','cancel_rejected','visible_control_missing','coordinator_timeout'}
+    code=value.get('error') if value.get('error') in codes else 'unclassified'
+    supplied=value.get('diagnostics',{});safe={}
+    if isinstance(supplied,dict):
+        for name in ('pageErrors','cspErrors','sessionStatus','accountStatus'):
+            item=supplied.get(name)
+            if type(item) is int and 0<=item<=1000:safe[name]=item
+        if supplied.get('location') in ('app','issuer','other','unknown'):safe['location']=supplied['location']
+        values=supplied.get('angularCodes')
+        if isinstance(values,list) and len(values)<=8 and all(isinstance(item,str) and re.fullmatch(r'NG[0-9]{4,6}',item) for item in values):safe['angularCodes']=values
+    return 'Browser journey driver failed during '+phase+'; code='+code+'; diagnostics='+json.dumps(safe,sort_keys=True)+'; private diagnostics withheld'
+
+
 async def run_driver(node,driver,config,private,stage,expected_checks):
     stderr=private/'browser-driver.log'
     with stderr.open('xb') as output:
@@ -144,10 +167,7 @@ async def run_driver(node,driver,config,private,stage,expected_checks):
                 except (ValueError,UnicodeError):raise RuntimeError('Invalid browser driver protocol') from None
                 if not isinstance(value,dict):raise RuntimeError('Invalid browser driver protocol')
                 if value.get('status')=='failed':
-                    phases={'configuration','browser_launch','trader_login','trader_order','ready_for_price','ready_for_delivery',
-                            'settled_grids','cancel_order','logout','reader_login','reader_denials'}
-                    phase=value.get('phase') if value.get('phase') in phases else 'unclassified'
-                    raise RuntimeError('Browser journey driver failed during '+phase+'; private diagnostics withheld')
+                    raise RuntimeError(driver_failure(value))
                 if 'stage' in value:
                     if position>=len(expected) or set(value)!={'stage','orderId'} or value['stage']!=expected[position]:
                         raise RuntimeError('Unexpected browser journey stage')

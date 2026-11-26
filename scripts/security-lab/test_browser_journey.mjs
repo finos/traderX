@@ -4,7 +4,7 @@ import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { CHECK_IDS, validateConfig, notificationAccounts } from './browser_journey.mjs';
+import { CHECK_IDS, validateConfig, notificationAccounts, failureCode } from './browser_journey.mjs';
 
 const config = () => ({ origin: 'https://localhost:18447', issuer: 'https://localhost:18446/realms/lab',
     frontendRoot: '/tmp/frontend', executablePath: '/usr/bin/chromium', profileDir: '/tmp/isolated-profile',
@@ -43,9 +43,17 @@ test('configuration errors produce only bounded fixed diagnostics, never private
         await writeFile(path, JSON.stringify({ ...config(), issuer: 'sentinel-private-value' }), { mode: 0o600 });
         const result = spawnSync(process.execPath, [new URL('./browser_journey.mjs', import.meta.url).pathname, '--config', path], { encoding: 'utf8' });
         assert.equal(result.status, 1);
-        assert.deepEqual(JSON.parse(result.stdout), { status: 'failed', phase: 'configuration', checks: [], error: 'browser_journey_failed' });
+        assert.deepEqual(JSON.parse(result.stdout), { status: 'failed', phase: 'configuration', checks: [], error: 'unexpected_error',
+            diagnostics: { pageErrors: 0, cspErrors: 0, sessionStatus: 0, accountStatus: 0, location: 'unknown', angularCodes: [] } });
         assert.equal(result.stderr, '');
         assert(!result.stdout.includes('sentinel-private-value'));
         assert(!result.stdout.includes('private-password'));
     } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('failure categories never echo private URLs, credentials or arbitrary exception messages', () => {
+    assert.equal(failureCode({ name:'TimeoutError', message:'private-selector' }), 'timeout');
+    assert.equal(failureCode(new Error('net::ERR_CERT_AUTHORITY_INVALID at https://private/?token=secret')), 'certificate_trust');
+    assert.equal(failureCode(new Error('account_snapshot_missing')), 'account_snapshot_missing');
+    assert.equal(failureCode(new Error('private-password')), 'unexpected_error');
 });
