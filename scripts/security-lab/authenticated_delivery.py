@@ -29,7 +29,8 @@ def worker_configs(settings,pgport,passwords):
         dict(config('reference-consumer','consumer-b','event_consumer_b'),account_id=62654,durable='ACCOUNT_B'))
 
 
-async def deliver(private,settings,pgport,passwords,admin,check):
+async def deliver(private,settings,pgport,passwords,admin,check,expected_events=4):
+    if type(expected_events) is not int or expected_events not in (2,4):raise ValueError('Bounded settlement event count required')
     from nats.js.api import StreamConfig, ConsumerConfig, StorageType, AckPolicy, DiscardPolicy
     connection=await connect_broker(settings['endpoint'],'bootstrap',settings['passwords']['bootstrap'],settings['ca'])
     try:
@@ -44,17 +45,17 @@ async def deliver(private,settings,pgport,passwords,admin,check):
         async def consumed():
             info=await js.consumer_info(STREAM,'ACCOUNT_B')
             return (info.num_pending==0 and info.num_ack_pending==0 and
-                admin("SELECT count(*) FROM lab_execution.consumer_inbox WHERE login_role='event_consumer_b';")=='4')
+                admin("SELECT count(*) FROM lab_execution.consumer_inbox WHERE login_role='event_consumer_b';")==str(expected_events))
         async with child(private,pub) as publisher,child(private,con) as consumer:
-            await until(lambda:admin('SELECT count(*) FROM lab_execution.events WHERE delivered_at IS NOT NULL;')=='4',
+            await until(lambda:admin('SELECT count(*) FROM lab_execution.events WHERE delivered_at IS NOT NULL;')==str(expected_events),
                 'actual settlement publisher delivery',publisher,seconds=30)
             await until(consumed,'actual settlement consumer acknowledgments',consumer,seconds=30)
-            check('real CLI publisher delivers all four committed settlement events',True)
+            check('real CLI publisher delivers all four committed settlement events' if expected_events==4 else 'real CLI publisher delivers both committed settlement events',True)
             check('scoped CLI consumer commits inbox before durable acknowledgment',True)
-            check('real broker contains exactly four settlement messages',(await js.stream_info(STREAM)).state.messages==4)
+            check('real broker contains exactly four settlement messages' if expected_events==4 else 'real broker contains exactly two settlement messages',(await js.stream_info(STREAM)).state.messages==expected_events)
             await end(publisher,signal.SIGTERM,0);await end(consumer,signal.SIGTERM,0)
-        check('scoped reference consumer projects two trades and latest position',
-            admin("SELECT count(*) FROM lab_execution.trade_projection WHERE login_role='event_consumer_b';")=='2' and
+        check('scoped reference consumer projects two trades and latest position' if expected_events==4 else 'scoped reference consumer projects one trade and latest position',
+            admin("SELECT count(*) FROM lab_execution.trade_projection WHERE login_role='event_consumer_b';")==str(expected_events//2) and
             admin("SELECT count(*) FROM lab_execution.position_projection WHERE login_role='event_consumer_b' AND account_id=62654 AND security='IBM';")=='1' and
             admin("SELECT count(*) FROM lab_execution.consumer_inbox WHERE (envelope->'payload'->>'accountId')::integer<>62654;")=='0')
         # Restart the actual supervised processes, not only their Python adapters.
@@ -64,6 +65,6 @@ async def deliver(private,settings,pgport,passwords,admin,check):
             await until(lambda:running(publisher),'restarted publisher healthy idle',publisher)
             await until(lambda:running(consumer),'restarted consumer healthy idle',consumer)
             check('healthy worker restart adds no duplicate settlement messages or effects',
-                (await js.stream_info(STREAM)).state.messages==4 and await consumed())
+                (await js.stream_info(STREAM)).state.messages==expected_events and await consumed())
             await end(publisher,signal.SIGTERM,0);await end(consumer,signal.SIGTERM,0)
     finally:await connection.close()
