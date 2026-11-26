@@ -114,16 +114,19 @@ application or other environment variables. Any base environment outside the
 reviewed allowlist fails closed and needs separate review, not a bypass.
 The recipe copies `/usr/share/dotnet` from the pinned Ubuntu chiseled runtime
 onto the pinned Debian Python image; shared-library and globalization
-compatibility are **not established** by these offline checks. The application
-may fail to start: the copy excludes the source image's operating-system
-libraries, including its ICU globalization dependencies, and the final Python
-base's ICU inventory has not been verified. Microsoft's
+compatibility are **not established** by these offline checks. The image is
+**likely not runnable as composed**: the verified Python slim base lacks ICU,
+and copying only `/usr/share/dotnet` omits the chiseled-extra ICU libraries
+under `/usr/lib/x86_64-linux-gnu/libicu*.so.74*`. The launcher rejects inherited
+`DOTNET_` overrides, so an invariant-mode environment toggle is not a remedy.
+Microsoft's
 [image documentation](https://github.com/dotnet/docs/blob/main/docs/core/docker/container-images.md)
 describes `chiseled-extra` as including ICU, tzdata and C++ libraries, while
 the [official Python slim Dockerfile](https://github.com/docker-library/python/blob/master/3.14/slim-bookworm/Dockerfile)
-does not explicitly install ICU. This is a concrete compatibility risk, not
-proof that ICU is absent from the pinned final image. No separately reviewed
-library set is available here, so no libraries are copied or installed.
+does not install ICU. Copying Ubuntu native libraries into Debian also requires
+ABI review. No separately reviewed, pinned compatible library set is available
+here, so no libraries are copied or installed; actual startup remains a
+required hosted gate after this gap is resolved.
 
 The projection must have Kubernetes-style `..data` generation semantics; a
 plain directory of five regular files is not an equivalent fixture. The
