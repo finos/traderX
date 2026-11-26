@@ -9,6 +9,7 @@ import xml.etree.ElementTree as ET
 
 import integrated_deployment as compiler
 import portability
+from build_diagnostics import record_failure
 from render_read_security import render
 from resource_operation import operation
 
@@ -130,13 +131,15 @@ def build(runtime, java_home):
         generation(target)
         report.parent.mkdir(exist_ok=True)
         env = dict(os.environ, JAVA_HOME=str(java_home), GRADLE_OPTS='-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=1')
-        with (report.parent / 'position-security-build.log').open('x') as log:
-            try:
+        log_path = report.parent / 'position-security-build.log'
+        try:
+            with log_path.open('x') as log:
                 subprocess.run(['bash', 'gradlew', '--no-daemon', '--max-workers=1',
                     '-Dorg.gradle.jvmargs=-Xmx384m -XX:MaxMetaspaceSize=256m', 'clean', 'test', 'bootJar'],
                     cwd=target, env=env, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=600)
-            except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
-                raise RuntimeError('Position build failed; private hosted log retained') from None
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
+            record_failure(runtime, 'position-service', target, log_path, error)
+            raise RuntimeError('Position build failed; bounded diagnostics recorded') from None
         value = {'schema_version': 1, 'service': 'position-service', 'status': STATUS,
                  'source_manifest': compiler.source_manifest(), **artifacts(target)}
         with report.open('x') as output:

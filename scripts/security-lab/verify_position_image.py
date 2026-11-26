@@ -39,7 +39,7 @@ PHASES = frozenset(('configuration', 'image', 'fixture', 'configuration_material
                    'startup', 'restrictions', 'authorization', 'sql_tls', 'cleanup'))
 PHASE = 'configuration'
 DIAGNOSTIC = {}
-INVALID_TOKENS = ('invalid_signature', 'foreign_issuer', 'foreign_audience', 'expired')
+INVALID_TOKENS = ('malformed', 'invalid_signature', 'foreign_issuer', 'foreign_audience', 'expired')
 CHECKS = frozenset(('immutable_position_image_revalidated', 'untrusted_database_ca_terminates_startup',
     'untrusted_database_ca_no_data_effects', 'verified_https_database_health_up',
     'restricted_runtime_and_private_materialization', 'no_credentials_in_argv_or_environment',
@@ -135,6 +135,7 @@ def configuration(f, password):
 
 
 def token(key, subject='lab-reader', variant=None):
+    if variant == 'malformed': return 'not.a.jwt'
     now = int(time.time())
     claims = {'sub': subject, 'iss': ISSUER, 'aud': AUDIENCE, 'iat': now-5, 'exp': now+900}
     if variant == 'foreign_issuer': claims['iss'] = 'https://foreign.example.test'

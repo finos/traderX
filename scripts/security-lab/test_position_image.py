@@ -1,5 +1,7 @@
 import copy
 import datetime
+from contextlib import nullcontext, redirect_stdout
+import io
 import json
 from pathlib import Path
 import subprocess
@@ -37,7 +39,7 @@ class PositionImageTests(unittest.TestCase):
         def decode(value):
             return jwt.decode(value, key.public_key(), algorithms=['RS256'], issuer=campaign.ISSUER, audience=campaign.AUDIENCE)
         self.assertEqual(decode(campaign.token(key))['sub'], 'lab-reader')
-        cases = [('invalid_signature', other, jwt.InvalidSignatureError), ('foreign_issuer', key, jwt.InvalidIssuerError),
+        cases = [('malformed', key, jwt.DecodeError), ('invalid_signature', other, jwt.InvalidSignatureError), ('foreign_issuer', key, jwt.InvalidIssuerError),
                  ('foreign_audience', key, jwt.InvalidAudienceError), ('expired', key, jwt.ExpiredSignatureError)]
         for name, signing, error in cases:
             with self.assertRaises(error): decode(campaign.token(signing, variant=name))
@@ -114,6 +116,30 @@ class PositionImageTests(unittest.TestCase):
         for change in ({'running': True}, {'exit_code': 0}, {'exit_code': 2}, {'exit_code': None},
                        {'oom_killed': True}, {'tls_rejection': False}, {'markers': ['configuration_refused']}):
             self.assertFalse(campaign.rejected_database_startup(dict(healthy_failure, **change)))
+
+    def test_build_failure_exports_bounded_categories_without_raw_private_log(self):
+        import build_position_security as build
+        with tempfile.TemporaryDirectory() as temp:
+            runtime = Path(temp).resolve()
+            def refused(*args, **kwargs):
+                kwargs['stdout'].write('> Task :compileJava FAILED\nCould not GET https://user:private-secret@private.example/dependency\n')
+                raise subprocess.CalledProcessError(1, ['private-command'])
+            output = io.StringIO()
+            with patch.object(build.portability, 'isolated_linux', return_value=True), \
+                    patch.dict(build.os.environ, {'GITHUB_ACTIONS': 'true'}), \
+                    patch.object(build, 'operation', return_value=nullcontext()), \
+                    patch.object(build, 'render', side_effect=lambda target: target.mkdir()), \
+                    patch.object(build, 'generation', return_value={}), \
+                    patch.object(build.subprocess, 'run', side_effect=refused), redirect_stdout(output):
+                with self.assertRaisesRegex(RuntimeError, '^Position build failed; bounded diagnostics recorded$'):
+                    build.build(runtime, Path('/java'))
+            value = json.loads((runtime/'evidence/build-failure-position-service.json').read_text())
+            self.assertEqual(value['service'], 'position-service')
+            self.assertEqual(value['categories'], ['dependency-download'])
+            self.assertEqual(value['failed_tasks'], ['compileJava'])
+            self.assertEqual(json.loads(output.getvalue()), value)
+            for private in ('private-secret', 'private.example', 'private-command'):
+                self.assertNotIn(private, output.getvalue())
 
 
 if __name__ == '__main__': unittest.main()
