@@ -25,7 +25,7 @@ export const CHECK_IDS = Object.freeze([
 const checks = [];
 let phase = 'configuration';
 const diagnostics = { pageErrors: 0, cspErrors: 0, sessionStatus: 0, accountStatus: 0,
-    location: 'unknown', angularCodes: [], cspDirectives: [] };
+    orderStatus: 0, cancelStatus: 0, location: 'unknown', angularCodes: [], cspDirectives: [] };
 
 export const FAILURE_CODES = Object.freeze([
     'timeout', 'certificate_trust', 'tls_failure', 'connection_unavailable', 'unexpected_error',
@@ -184,19 +184,30 @@ async function login(page, config, role, observed) {
 }
 
 async function submitOrder(page, config, limitPrice, accepted = true) {
+    const flow = phase === 'cancel_order' ? 'cancel_order' : accepted ? 'trader_order' : 'reader_order';
+    phase = `${flow}_open_ticket`;
     await page.click('#createOrderBtn');
+    phase = `${flow}_stock_input`;
+    // A preset can retain the selected security. Clear it so the real typeahead
+    // receives a new input event even when the requested ticker is unchanged.
+    await fill(page, '#order-stock-input', '');
     await fill(page, '#order-stock-input', config.security);
+    phase = `${flow}_typeahead`;
     await page.waitForSelector('typeahead-container .dropdown-item', { visible: true });
     await clickText(page, 'typeahead-container .dropdown-item', config.security, true);
+    phase = `${flow}_terms`;
     await page.click('label[for="orderBuyButton"]');
     await fill(page, '#orderQuantityField', config.quantity);
     await fill(page, '#orderStrikeField', limitPrice);
     const responsePromise = page.waitForResponse(response => new URL(response.url()).origin === config.origin &&
         new URL(response.url()).pathname === '/api/order-matcher/orders' && response.request().method() === 'POST');
+    phase = `${flow}_submit_click`;
     await page.click('#createOrderButton');
+    phase = `${flow}_submit_response`;
     const response = await responsePromise;
     if (!accepted) {
         check(response.status() === 403, 'reader_order_rejected_by_api');
+        phase = `${flow}_denial_message`;
         await page.waitForFunction(() => document.querySelector('app-trade')?.textContent?.includes('Order was not accepted.'));
         check(true, 'reader_write_denial_visible_in_ui');
         return null;
@@ -204,6 +215,7 @@ async function submitOrder(page, config, limitPrice, accepted = true) {
     demand([200, 201].includes(response.status()), 'order_submission_rejected');
     const order = await response.json();
     demand(ORDER.test(order?.orderId) && Number(order.accountId) === config.accounts.trader, 'invalid_created_order');
+    phase = `${flow}_open_row`;
     await page.waitForSelector(`app-order-blotter .ag-center-cols-container .ag-row[row-id="${order.orderId}"]`, { visible: true });
     return order.orderId;
 }
@@ -267,7 +279,7 @@ export async function run(config) {
                     if (new RegExp('\\b'+name+'\\b').test(text) && !diagnostics.cspDirectives.includes(name)) diagnostics.cspDirectives.push(name);
             }
             else if (message.type() === 'error' && !/^Failed to load resource: the server responded with a status of (401|403)\b/.test(text)) {
-                if (phase === 'reader_denials') track((async () => {
+                if (phase === 'reader_denials' || phase.startsWith('reader_order_')) track((async () => {
                     // The inherited API service logs HttpErrorResponse on the
                     // deliberately denied reader order. Inspect status only;
                     // never export the object, URL, request or response body.
@@ -289,6 +301,8 @@ export async function run(config) {
                 const url = new URL(response.url());
                 if (url.origin === config.origin && url.pathname === '/session') diagnostics.sessionStatus = response.status();
                 if (url.origin === config.origin && url.pathname === '/api/account-service/account/') diagnostics.accountStatus = response.status();
+                if (url.origin === config.origin && url.pathname === '/api/order-matcher/orders' && response.request().method() === 'POST') diagnostics.orderStatus = response.status();
+                if (url.origin === config.origin && /^\/api\/order-matcher\/orders\/ord-013-[0-9]+\/cancel$/.test(url.pathname)) diagnostics.cancelStatus = response.status();
                 if (url.origin !== config.origin || response.status() !== 200) return;
                 if (url.pathname === '/api/account-service/account/') observed.accounts = await response.json();
                 if (url.pathname === '/events') {
@@ -304,7 +318,7 @@ export async function run(config) {
                 }
                 if (url.pathname === `/api/position-service/trades/${expectedAccount}`) observed.tradeResponses++;
                 if (url.pathname === `/api/position-service/positions/${expectedAccount}`) observed.positionResponses++;
-            } catch { if (phase !== 'logout' && phase !== 'reader_login') observed.errors++; }
+            } catch { if (phase !== 'logout' && !phase.startsWith('reader_login')) observed.errors++; }
         })()));
 
         await login(page, config, 'trader', observed);
@@ -348,8 +362,11 @@ export async function run(config) {
         phase = 'cancel_order';
         const cancelOrderId = await submitOrder(page, config, 1);
         const cancelResponse = page.waitForResponse(response => response.url() === config.origin + `/api/order-matcher/orders/${cancelOrderId}/cancel` && response.request().method() === 'POST');
-        await page.click(`app-order-blotter .ag-row[row-id="${cancelOrderId}"] [col-id="cancel"] button`);
+        phase = 'cancel_order_click';
+        await page.locator(`app-order-blotter .ag-row[row-id="${cancelOrderId}"] [col-id="cancel"] button`).click();
+        phase = 'cancel_order_response';
         demand((await cancelResponse).status() === 200, 'cancel_rejected');
+        phase = 'cancel_order_removed';
         await page.waitForSelector(`app-order-blotter .ag-row[row-id="${cancelOrderId}"]`, { hidden: true });
         check(true, 'actual_grid_cancel_button_updates_open_orders');
         phase = 'logout'; await logout(page, config, 'trader');

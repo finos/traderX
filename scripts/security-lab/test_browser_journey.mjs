@@ -44,7 +44,7 @@ test('configuration errors produce only bounded fixed diagnostics, never private
         const result = spawnSync(process.execPath, [new URL('./browser_journey.mjs', import.meta.url).pathname, '--config', path], { encoding: 'utf8' });
         assert.equal(result.status, 1);
         assert.deepEqual(JSON.parse(result.stdout), { status: 'failed', phase: 'configuration', checks: [], error: 'unexpected_error',
-            diagnostics: { pageErrors: 0, cspErrors: 0, sessionStatus: 0, accountStatus: 0, location: 'unknown', angularCodes: [], cspDirectives: [] } });
+            diagnostics: { pageErrors: 0, cspErrors: 0, sessionStatus: 0, accountStatus: 0, orderStatus: 0, cancelStatus: 0, location: 'unknown', angularCodes: [], cspDirectives: [] } });
         assert.equal(result.stderr, '');
         assert(!result.stdout.includes('sentinel-private-value'));
         assert(!result.stdout.includes('private-password'));
