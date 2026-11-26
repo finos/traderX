@@ -49,8 +49,9 @@ Completed prototype evidence and granular implementation history are in the [C3 
 - [x] S019-06a1 Implement deterministic OCI-byte verification, private configuration materialization and zero-replica core composition. Synthetic OCI test fixtures are not application images.
 - [x] S019-06a2 Verify the generated policies against a real hosted Kubernetes API: 30 schema/admission/cleanup checks pass, with no application workload activation or CNI enforcement claim.
 - [ ] S019-06a3 Build runnable core images, verify each private-config/TLS interface and provision issuer, broker and market-data dependencies before controlled activation.
-- [ ] S019-06a3a Build and smoke-test the browser-session and two supervised Python worker images from pinned bases and hash-verified wheels; export actual OCI digests and verify the compiler's interface contract.
+- [ ] S019-06a3a Build the browser-session and two supervised Python worker images from pinned bases and hash-verified wheels; verify actual OCI digests, restricted browser startup/static serving and worker configuration rejection. Successful worker delivery remains S019-06a3c.
 - [ ] S019-06a3b Package the Java/.NET core with explicit private configuration adapters and live TLS/identity tests, then provision the support-service flows before activation.
+- [ ] S019-06a3c Run the packaged publisher and consumer successfully against scoped PostgreSQL and NATS identities with verified TLS; verify independent effects, restart, replay and credential rejection using the same immutable image IDs.
 - [ ] S019-04e Run the actual Angular login → limit order → settlement → mediated notification → scoped snapshot journey with supervised delivery and independent SQL effects in one environment; see `system/integrated-acceptance.md`.
 - [ ] S019-04c Integrate remaining read APIs and Angular session/CSRF flow; validate direct-backend and full trading outcomes together.
 - [ ] S019-04 Integrate account/order/cancel/operator authorization and deny bypass routes while normal trading passes.

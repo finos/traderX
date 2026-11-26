@@ -9,3 +9,5 @@ Parent: **012 / C3**. This is a first-class optional TraderX learning branch. It
 The implementation currently lives in the [C3 experimental profile](../012-platform-convergence-c3/security-lab/README.md) and `scripts/security-lab`. Keep that single source during promotion; do not duplicate or silently relocate hash-pinned fixtures. The [release audit](../012-platform-convergence-c3/security-lab/state-readiness.md) distinguishes local proof from remaining integration.
 
 Start with the [specification](spec.md), [learning contract](learning-contract.json), [plan](plan.md), [tasks](tasks.md), and [prototype quickstart](quickstart.md). CALM will be a separate successor, comparing manually implemented boundaries with model-derived controls against the same evidence contract.
+
+The current integration work connects the [real Angular browser journey](system/browser-journey.md) to the authenticated services and builds the first [runnable Python role images](system/runtime-images.md). Their hosted evidence advances the [Phase 1/2 acceptance boundary](system/integrated-acceptance.md); it does not publish or activate the generated state.

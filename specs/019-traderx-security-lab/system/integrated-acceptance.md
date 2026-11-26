@@ -63,6 +63,14 @@ images, CNI enforcement, image provenance signatures nor production deployment.
 Private launcher and static-asset tests likewise do not replace a built-image
 startup test. Each limitation remains visible in the exported evidence.
 
+The [first Python image checkpoint](runtime-images.md) is deliberately narrower:
+three actual OCI builds, verified browser HTTPS/static startup under restricted
+mounts, and worker role/configuration rejection. [Its smoke contract](runtime-images-smoke.md)
+does not establish successful image-based SQL/broker delivery. S019-06a3c requires
+that positive path, including replay and restart, before those workers can be
+accepted in the cumulative deployment. The [real Angular journey](browser-journey.md)
+runs actual source-built services independently of this packaging checkpoint.
+
 ## What follows
 
 After these two acceptance gates, retain the identical controls and introduce the

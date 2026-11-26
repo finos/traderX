@@ -43,3 +43,11 @@ The [telemetry and cumulative lifecycle contract](system/telemetry-lifecycle.md)
 Use the [verified contributor entrypoint](system/contributor-entrypoint.md) for fresh-checkout artifact generation and guarded candidate start/test/stop. Runtime arguments are explicit; the wrapper does not provision a cluster or imply full security acceptance. Recovery stop remains available when artifacts have drifted.
 
 Before a full candidate run, invoke `state_candidate.py doctor` with the checkpoint and explicit runtime arguments. A blocked result while the lightweight lab is running is expected; it does not stop that lab or resume Kubernetes. See the contributor contract for readiness checks and provisioning limitations.
+
+## Hosted browser and image validation
+
+Contributors can use the **Security Lab Linux Integration** workflow on their reviewed branch for the heavier checks. Its independent disposable runners build the real Angular/Java candidates, drive Chromium through login and trading, and build the first three Python runtime images. No local cluster, laptop certificate installation or image download is needed to inspect these results.
+
+The `browser-journey` job follows the [browser acceptance contract](system/browser-journey.md). The `runtime-images` job follows the [packaging contract](system/runtime-images.md), builds each role sequentially and exports local OCI artifacts without publishing images. Successful jobs attach small JSON evidence reports; the workflow never uploads credentials, private configuration or raw service logs. Match a report to the workflow's source commit before reusing it.
+
+These are contributor verification jobs, not a remotely hosted experiment portal. Browser trading still uses explicitly synthetic market peers and a loopback database fixture. Image startup checks do not prove packaged worker delivery or the remaining Java/.NET adapters. A cumulative cluster with the gateway, enforced network controls and signed-image policy remains a separate acceptance gate.

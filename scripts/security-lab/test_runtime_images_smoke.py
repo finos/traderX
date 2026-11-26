@@ -54,6 +54,7 @@ class RuntimeImageSmokeTests(unittest.TestCase):
         self.assertEqual(args[-1],digest)
         self.assertIn('127.0.0.1:18447:18447',args)
         self.assertIn('10001:10001',args);self.assertIn('--read-only',args)
+        self.assertEqual(args[args.index('--memory')+1],'256m')
         self.assertEqual(args[args.index('--cap-drop')+1],'ALL')
         self.assertIn('no-new-privileges:true',args)
         self.assertTrue(any('uid=10001,gid=10001,mode=0700' in value for value in args))

@@ -176,7 +176,7 @@ def worker_config(role,gateway):
 def launch_args(name,network,owner,projection,image_id,port=None):
     args=['run','-d','--name',name,'--label',LABEL+'='+owner,'--network',network,
           '--user','10001:10001','--read-only','--cap-drop','ALL','--security-opt','no-new-privileges:true',
-          '--pids-limit','64','--memory','384m','--cpus','1',
+          '--pids-limit','64','--memory','256m','--cpus','1',
           '--mount',f'type=bind,src={projection},dst=/run/projected,readonly',
           '--tmpfs','/run/private:rw,noexec,nosuid,nodev,uid=10001,gid=10001,mode=0700,size=16m',
           '--tmpfs','/tmp:rw,noexec,nosuid,nodev,uid=10001,gid=10001,mode=0700,size=8m']
