@@ -61,7 +61,11 @@ It does not build, pull or publish. `inspect` reads an already exported
 single-platform OCI layout, validates its descriptors and actual application
 bytes, exact inventory, ownership, file modes, searchable root-owned parents,
 user, command, working directory, environment and role/interface labels. Layer
-whiteouts remove only lower-layer entries. It also checks the fixed .NET host
+whiteouts remove only lower-layer entries; entries or whiteouts traversing any
+tracked symlink ancestor are refused, including outside the application tree.
+Each `rootfs.diff_ids` value is checked against the entire uncompressed tar
+stream, including trailing blocks, with bounded decompression for gzip layers.
+It also checks the fixed .NET host
 and Python interpreter paths, safe root ownership and searchable parents,
 permitted relative Python symlink chain, executable modes and AMD64 ELF
 structure. These checks do **not** authenticate either executable or establish

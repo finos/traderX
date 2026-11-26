@@ -1,5 +1,6 @@
 """Prepare and inspect a people image without building, loading or publishing it."""
 import argparse
+import gzip
 import hashlib
 import json
 from pathlib import Path, PurePosixPath
@@ -100,7 +101,24 @@ def environment(values, version):
         raise ValueError('Unreviewed inherited image environment')
 
 
-def filesystem(layout, manifest, expected):
+def layer_diff_id(path, media_type):
+    opener = gzip.open if media_type.endswith('+gzip') else Path.open
+    digest, size = hashlib.sha256(), 0
+    with opener(path, 'rb') as stream:
+        for part in iter(lambda: stream.read(1024 * 1024), b''):
+            size += len(part)
+            if size > 8 * 1024**3:
+                raise ValueError('Uncompressed OCI layer exceeds bound')
+            digest.update(part)
+    return 'sha256:' + digest.hexdigest()
+
+
+def has_symlink_ancestor(name, links):
+    return any(parent.as_posix() in links for parent in PurePosixPath(name).parents
+               if parent.as_posix() != '.')
+
+
+def filesystem(layout, manifest, expected, diff_ids):
     """Reconstruct relevant final paths, including whiteouts and all ancestors."""
     state = {}
     directories = {'opt', 'opt/traderx'}
@@ -109,14 +127,20 @@ def filesystem(layout, manifest, expected):
     runtime_directories = {'usr', 'usr/local', 'usr/local/bin', 'usr/share',
                            'usr/share/dotnet'}
     tracked = directories | runtime_directories | {'usr/share/dotnet/dotnet'}
-    for descriptor in manifest['layers']:
+    links = set()
+    if not isinstance(diff_ids, list) or len(diff_ids) != len(manifest['layers']):
+        raise ValueError('OCI uncompressed layer inventory mismatch')
+    for descriptor, diff_id in zip(manifest['layers'], diff_ids):
         if descriptor['mediaType'] not in ('application/vnd.oci.image.layer.v1.tar',
                                             'application/vnd.oci.image.layer.v1.tar+gzip'):
             raise ValueError('Reviewed tar/gzip layers required')
         path = layout / 'blobs/sha256' / descriptor['digest'].split(':')[1]
+        if layer_diff_id(path, descriptor['mediaType']) != diff_id:
+            raise ValueError('OCI uncompressed layer digest mismatch')
         count = size = 0
         whiteouts, additions = [], []
-        with tarfile.open(path, 'r|*') as tar:
+        mode = 'r|gz' if descriptor['mediaType'].endswith('+gzip') else 'r|'
+        with tarfile.open(path, mode) as tar:
             for member in tar:
                 count += 1
                 size += member.size
@@ -129,20 +153,19 @@ def filesystem(layout, manifest, expected):
                 if name.name == '.wh..wh..opq':
                     if not member.isfile() or member.size:
                         raise ValueError('Invalid OCI opaque whiteout')
-                    whiteouts.append(('opaque', name.parent.as_posix()))
+                    whiteouts.append(('opaque', name.parent.as_posix(), rel))
                     continue
                 if name.name.startswith('.wh.'):
                     if not member.isfile() or member.size or name.name == '.wh.':
                         raise ValueError('Invalid OCI whiteout')
-                    whiteouts.append(('remove', (name.parent / name.name[4:]).as_posix()))
+                    whiteouts.append(('remove', (name.parent / name.name[4:]).as_posix(), rel))
                     continue
-                if (rel not in tracked and not rel.startswith('opt/traderx/')
-                        and not re.fullmatch(r'usr/local/bin/python(?:3(?:\.\d+)?)?', rel)):
-                    continue
+                relevant = (rel in tracked or rel.startswith('opt/traderx/')
+                            or re.fullmatch(r'usr/local/bin/python(?:3(?:\.\d+)?)?', rel))
                 if rel in directories | runtime_directories and not member.isdir():
                     raise ValueError('OCI required ancestor is not a directory: ' + rel)
                 digest, header = None, b''
-                if member.isfile():
+                if relevant and member.isfile():
                     if member.size > build.LIMIT:
                         raise ValueError('OCI tracked file exceeds bound')
                     stream = tar.extractfile(member)
@@ -153,20 +176,43 @@ def filesystem(layout, manifest, expected):
                             header = part[:65536]
                         h.update(part)
                     digest = h.hexdigest()
-                additions.append((rel, (member.isdir(), member.isfile(), member.issym(), member.uid,
-                                        member.gid, member.mode & 0o7777, digest, member.linkname,
-                                        header, member.size)))
+                item = (member.isdir(), member.isfile(), member.issym(), member.uid,
+                        member.gid, member.mode & 0o7777, digest, member.linkname,
+                        header, member.size) if relevant else None
+                additions.append((rel, member.isdir(), member.issym(), member.islnk(), member.linkname, item))
         # OCI whiteouts mask lower layers only, irrespective of tar entry order.
-        for kind, name in whiteouts:
+        layer_links = {rel for rel, _, issym, _, _, _ in additions if issym}
+        for _, _, rel in whiteouts:
+            if has_symlink_ancestor(rel, links) or has_symlink_ancestor(rel, layer_links):
+                raise ValueError('OCI whiteout traverses a symlink ancestor')
+        for kind, name, _ in whiteouts:
             if kind == 'opaque':
                 prefix = '' if name == '.' else name + '/'
                 state = {k: v for k, v in state.items() if not k.startswith(prefix)}
+                links = {k for k in links if not k.startswith(prefix)}
             else:
                 state = {k: v for k, v in state.items() if k != name and not k.startswith(name + '/')}
-        for rel, item in additions:
-            if not item[0]:
+                links = {k for k in links if k != name and not k.startswith(name + '/')}
+        for rel, isdir, issym, islink, target, item in additions:
+            if has_symlink_ancestor(rel, links) or has_symlink_ancestor(rel, layer_links):
+                raise ValueError('OCI entry traverses a symlink ancestor')
+            if islink:
+                link_path = PurePosixPath(target)
+                if (link_path.is_absolute() or '..' in link_path.parts or '\\' in target
+                        or link_path.as_posix() in links or link_path.as_posix() in layer_links
+                        or has_symlink_ancestor(link_path.as_posix(), links)
+                        or has_symlink_ancestor(link_path.as_posix(), layer_links)):
+                    raise ValueError('OCI hardlink traverses a symlink')
+            if not isdir:
                 state = {k: v for k, v in state.items() if not k.startswith(rel + '/')}
-            state[rel] = item
+                links = {k for k in links if not k.startswith(rel + '/')}
+            links.discard(rel)
+            if issym:
+                links.add(rel)
+            if len(links) > 200000:
+                raise ValueError('OCI symlink inventory exceeds bound')
+            if item is not None:
+                state[rel] = item
     app_state = {k: v for k, v in state.items() if k == 'opt' or k == 'opt/traderx'
                  or k.startswith('opt/traderx/')}
     if set(app_state) != directories | set(expected):
@@ -240,7 +286,8 @@ def inspect(layout, name, revision, root, publish, report):
     if compiler.image(ROLE, entry, verified['source_manifest'], revision, 'linux/amd64') != COMMAND:
         raise ValueError('People launcher command changed')
     manifest = compiler.blob(layout, descriptor)
-    config = compiler.blob(layout, manifest['config'])['config']
+    image_config = compiler.blob(layout, manifest['config'])
+    config = image_config['config']
     if config.get('Entrypoint') != COMMAND or config.get('Cmd') not in (None, []) or config.get('WorkingDir') != '/opt/traderx':
         raise ValueError('People image command or working directory changed')
     if any(config.get('Labels', {}).get(k) != v for k, v in labels(revision, verified).items()):
@@ -250,7 +297,7 @@ def inspect(layout, name, revision, root, publish, report):
                 for name, data in files.items() if name.startswith('application/')}
     expected.update({'opt/traderx/' + name.removeprefix('source/'): (compiler.sha(data), 0o555)
                      for name, data in files.items() if name.startswith('source/')})
-    filesystem(layout, manifest, expected)
+    filesystem(layout, manifest, expected, image_config['rootfs']['diff_ids'])
     return entry
 
 
