@@ -140,6 +140,13 @@ def network_plan(docker):
     return choose_subnet(existing,json.loads(result.stdout))
 
 
+def verified_network(info,subnet,gateway):
+    pools=info.get('IPAM',{}).get('Config')
+    return (info.get('Internal') is True and isinstance(pools,list) and len(pools)==1
+        and isinstance(pools[0],dict) and pools[0].get('Subnet')==str(subnet)
+        and pools[0].get('Gateway')==gateway and not pools[0].get('IPRange'))
+
+
 def owned(docker,kind,name,owner,missing=False):
     result=docker(kind,'inspect',name,check=False)
     if result.returncode:
@@ -354,7 +361,7 @@ def _fixture(runtime,progress):
             docker('network','create','--internal','--subnet',str(subnet),'--gateway',gateway,'--label',LABEL+'='+owner,network)
             progress['stage']='network_verify'
             info=owned(docker,'network',network,owner)
-            if info.get('Internal') is not True or info['IPAM']['Config']!=[{'Subnet':str(subnet),'Gateway':gateway}]:
+            if not verified_network(info,subnet,gateway):
                 raise RuntimeError('Owned internal network not established')
             progress['stage']='volume_create';volume_attempted=True;docker('volume','create','--label',LABEL+'='+owner,volume)
             progress['stage']='database_create'

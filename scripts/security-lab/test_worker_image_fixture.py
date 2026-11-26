@@ -16,6 +16,17 @@ import worker_image_fixture as peers
 
 
 class WorkerImageFixtureTests(unittest.TestCase):
+    def test_network_verification_checks_actual_boundary_with_additive_metadata(self):
+        pool={'Subnet':'172.28.240.0/24','Gateway':'172.28.240.1','IPRange':'','AuxiliaryAddresses':{}}
+        info={'Internal':True,'IPAM':{'Config':[pool]}}
+        self.assertTrue(peers.verified_network(info,'172.28.240.0/24','172.28.240.1'))
+        for bad in (dict(info,Internal=False),dict(info,IPAM={'Config':None}),
+                    dict(info,IPAM={'Config':[pool,pool]}),
+                    dict(info,IPAM={'Config':[dict(pool,Gateway='172.28.240.9')]}),
+                    dict(info,IPAM={'Config':[dict(pool,Subnet='172.29.0.0/16')]}),
+                    dict(info,IPAM={'Config':[dict(pool,IPRange='172.28.240.0/25')]})):
+            self.assertFalse(peers.verified_network(bad,'172.28.240.0/24','172.28.240.1'))
+
     @classmethod
     def setUpClass(cls):
         cls.material=peers.tls_material({'database':'172.28.240.2','nats-broker':'172.28.240.3'})
