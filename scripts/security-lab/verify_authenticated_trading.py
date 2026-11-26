@@ -36,6 +36,33 @@ MATCHER_CLIENT='security-lab-matcher'
 MATCHER_SUBJECT='lab-matcher-service'
 TRADING_AUDIENCE='traderx-api'
 EXECUTION_AUDIENCE='traderx-execution'
+FAILURE_MARKERS={
+    'BeanCreationException':'bean-creation','UnsatisfiedDependencyException':'dependency-injection',
+    'PlaceholderResolutionException':'missing-property','Could not resolve placeholder':'missing-property',
+    'BeanCurrentlyInCreationException':'circular-dependency','BindException':'listener-bind',
+    'SSLHandshakeException':'tls-handshake','CertificateException':'certificate-validation',
+    'PKIX path building failed':'certificate-chain','No subject alternative':'certificate-name',
+    'PSQLException':'postgresql','permission denied':'database-permission',
+    'Schema-validation':'schema-validation','FileNotFoundException':'missing-file',
+    'NoSuchFileException':'missing-file','Invalid execution endpoint':'execution-endpoint',
+    'Authenticated broker unavailable':'broker-unavailable','broker-failure=':'broker-classified',
+    'broker-failure=tls':'broker-tls','broker-failure=io':'broker-io',
+    'broker-failure=configuration':'broker-configuration','broker-failure=interrupted':'broker-interrupted',
+    'InvalidUserCredentials':'broker-credentials','AuthenticationException':'authentication',
+    'OutOfMemoryError':'memory','UnsupportedClassVersionError':'java-version',
+    'NoSuchMethodError':'binary-linkage','NoClassDefFoundError':'missing-class',
+}
+
+
+def failure_summary(log,service):
+    # Only fixed labels cross this boundary. Never emit exception messages,
+    # source lines, environment values, URLs, provider bodies or private paths.
+    if service not in ('order-matcher','trade-processor','position-service'):service='candidate'
+    with log.open('rb') as source:
+        source.seek(0,2);length=source.tell();source.seek(max(0,length-65536))
+        text=source.read(65536).decode('utf-8',errors='replace')
+    labels=sorted({label for marker,label in FAILURE_MARKERS.items() if marker in text})
+    return service+' startup failed; categories='+','.join(labels or ['unclassified'])+'; private log withheld'
 BROKER_PERMISSIONS={
     'matcher':{'publish':{'allow':['/accounts/62654/orders']},'subscribe':{'allow':['pricing.*']}},
     'pricing-fixture':{'publish':{'allow':['pricing.IBM']},'subscribe':{'deny':['>']}},
@@ -129,12 +156,12 @@ class JavaService:
             self.child=subprocess.Popen(self.args,env=self.env,stdout=output,stderr=subprocess.STDOUT)
         deadline=time.monotonic()+90
         while time.monotonic()<deadline:
-            if self.child.poll() is not None:raise RuntimeError('Trading service exited; private log withheld')
+            if self.child.poll() is not None:raise RuntimeError(failure_summary(self.log,self.entry['service']))
             try:
                 if request(self.client,self.origin+'/actuator/health')[0]==200:return self
             except OSError:pass
             time.sleep(.5)
-        raise RuntimeError('Trading service readiness timed out')
+        raise RuntimeError(failure_summary(self.log,self.entry['service'])+'; readiness timeout')
 
     def stop(self):
         if self.child and self.child.poll() is None:

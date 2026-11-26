@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 from identity_fixture import AUDIENCE, realm
 from verify_authenticated_trading import (configure_realm, MATCHER_CLIENT, MATCHER_SUBJECT,
-    TRADING_AUDIENCE, EXECUTION_AUDIENCE, BROKER_PERMISSIONS, JavaService, wait_for)
+    TRADING_AUDIENCE, EXECUTION_AUDIENCE, BROKER_PERMISSIONS, JavaService, wait_for, failure_summary)
 
 
 class AuthenticatedTradingTests(unittest.TestCase):
@@ -48,6 +48,16 @@ class AuthenticatedTradingTests(unittest.TestCase):
         with patch('verify_authenticated_trading.time.monotonic',side_effect=[0,0,2]),patch('verify_authenticated_trading.time.sleep'):
             with self.assertRaisesRegex(AssertionError,'missing independent effect'):
                 wait_for(lambda:False,'missing independent effect',timeout=1)
+
+    def test_startup_diagnostics_emit_only_fixed_categories(self):
+        with tempfile.TemporaryDirectory() as temp:
+            log=Path(temp)/'private.log'
+            log.write_text('secret-password https://user:credential@private.example/path\nCaused by: org.springframework.beans.factory.BeanCreationException: private body\nAuthenticated broker unavailable; broker-failure=tls\n')
+            value=failure_summary(log,'order-matcher')
+            self.assertIn('order-matcher startup failed',value)
+            self.assertIn('bean-creation',value);self.assertIn('broker-tls',value)
+            for secret in ('secret-password','credential','private.example','private body','Caused by',str(log)):
+                self.assertNotIn(secret,value)
 
 
 if __name__=='__main__':unittest.main()

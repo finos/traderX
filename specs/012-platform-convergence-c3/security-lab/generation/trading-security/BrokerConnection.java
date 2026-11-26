@@ -63,7 +63,15 @@ public final class BrokerConnection {
           .connectionTimeout(Duration.ofSeconds(5)).socketWriteTimeout(Duration.ofSeconds(2)).build();
       return Nats.connect(options);
     } catch(Exception unavailable) {
-      throw new IOException("Authenticated broker unavailable");
+      // Safe fixed category only: broker exceptions may contain endpoint credentials.
+      String category="other";
+      for(Throwable cause=unavailable;cause!=null;cause=cause.getCause()) {
+        if(cause instanceof javax.net.ssl.SSLException || cause instanceof CertificateException) { category="tls";break; }
+        if(cause instanceof IllegalArgumentException) category="configuration";
+        else if(cause instanceof InterruptedException) category="interrupted";
+        else if(cause instanceof IOException && category.equals("other")) category="io";
+      }
+      throw new IOException("Authenticated broker unavailable; broker-failure="+category);
     }
   }
 
