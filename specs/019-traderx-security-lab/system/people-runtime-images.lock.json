@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "platform": "linux/amd64",
+  "runtime": {
+    "reference": "mcr.microsoft.com/dotnet/aspnet:9.0-noble-chiseled-extra@sha256:00fad87f88ec89501e071421d4cf8c53a58080606c70419b3ac234b2b74b6cf2",
+    "index_digest": "sha256:a14213a1dcdee4dd4873f4f38f6a4e7c7d49857b02245c83b295192c7584a91f",
+    "metadata_source": "https://mcr.microsoft.com/v2/dotnet/aspnet/manifests/9.0-noble-chiseled-extra"
+  },
+  "python_base_lock": "specs/019-traderx-security-lab/system/runtime-images.lock.json",
+  "metadata_verified_on": "2026-11-26",
+  "limitations": "Registry config was not fetched; copied runtime native compatibility requires hosted verification."
+}
