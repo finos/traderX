@@ -194,6 +194,7 @@ def rows_match(raw, expected, kind, account):
 TLS_MARKERS = ('SSLHandshakeException', 'PKIX path building failed', 'unable to find valid certification path',
                'CertPathValidatorException', 'certificate verify failed')
 LOG_MARKERS = {'Protected Java configuration refused; private details withheld.': 'configuration_refused',
+               'Private configuration refused; no secret values exported.': 'materialization_refused',
                'APPLICATION FAILED TO START': 'spring_startup_failed', 'Started PositionServiceApplication': 'spring_started'}
 STARTUP_MARKERS = {
     'Error occurred during initialization of VM': 'jvm_initialization',
