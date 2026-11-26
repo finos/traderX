@@ -50,6 +50,10 @@ pass at that same functional source; local regression is 403 Python tests.
 Copilot PR [#521](https://github.com/finos/traderX/pull/521) supplies a separately
 reviewed .NET adapter candidate; actual .NET image acceptance remains b3.
 Continue b2–b4 for the remaining Java/.NET services and support composition.
+The [account/processor image contract](system/core-java-images.md) splits b2a/b
+into independent shared-interface and service-specific acceptance work. Matcher
+b2c follows their identity and outbound-trust prerequisites. A separate Copilot
+proposal prepares .NET image packaging; it is not actual image acceptance.
 Provision issuer/broker/market-data TLS, complete their permitted gateway/egress
 flows, and activate one cumulative cluster before closing S019-04/05/06. The
 admission campaign uses synthetic OCI files and unscheduled probes; it is not
