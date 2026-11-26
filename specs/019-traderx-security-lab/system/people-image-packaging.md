@@ -52,13 +52,20 @@ campaign, including its repeated labels. The report's fixture checks are consist
 **not cryptographic attestations**: a person able to replace reports and
 artifacts can fabricate them. The revision is an explicit caller-supplied label;
 the content hashes do not independently authenticate that revision.
+The Web SDK's `web.config`, when present, is hashed in the full publish
+inventory but excluded from the image context.
 
 `prepare` writes a new offline context and `image-build.json` with the context
 hashes, source/report hashes, pinned bases, command and projection inventory.
 It does not build, pull or publish. `inspect` reads an already exported
 single-platform OCI layout, validates its descriptors and actual application
 bytes, exact inventory, ownership, file modes, searchable root-owned parents,
-user, command, working directory, environment and role/interface labels. It
+user, command, working directory, environment and role/interface labels. Layer
+whiteouts remove only lower-layer entries. It also checks the fixed .NET host
+and Python interpreter paths, safe root ownership and searchable parents,
+permitted relative Python symlink chain, executable modes and AMD64 ELF
+structure. These checks do **not** authenticate either executable or establish
+base-image provenance or its dynamic dependencies. It
 returns the immutable manifest reference and required private keys; it does not
 load an image or run it. The verified Python base and existing BuildKit lock
 remain in `runtime-images.lock.json`; the separate .NET runtime lock records the
@@ -107,7 +114,16 @@ application or other environment variables. Any base environment outside the
 reviewed allowlist fails closed and needs separate review, not a bypass.
 The recipe copies `/usr/share/dotnet` from the pinned Ubuntu chiseled runtime
 onto the pinned Debian Python image; shared-library and globalization
-compatibility are **not established** by these offline checks.
+compatibility are **not established** by these offline checks. The application
+may fail to start: the copy excludes the source image's operating-system
+libraries, including its ICU globalization dependencies, and the final Python
+base's ICU inventory has not been verified. Microsoft's
+[image documentation](https://github.com/dotnet/docs/blob/main/docs/core/docker/container-images.md)
+describes `chiseled-extra` as including ICU, tzdata and C++ libraries, while
+the [official Python slim Dockerfile](https://github.com/docker-library/python/blob/master/3.14/slim-bookworm/Dockerfile)
+does not explicitly install ICU. This is a concrete compatibility risk, not
+proof that ICU is absent from the pinned final image. No separately reviewed
+library set is available here, so no libraries are copied or installed.
 
 The projection must have Kubernetes-style `..data` generation semantics; a
 plain directory of five regular files is not an equivalent fixture. The

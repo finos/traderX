@@ -2,6 +2,7 @@
 import io
 import json
 from pathlib import Path
+import struct
 import tarfile
 import tempfile
 import unittest
@@ -52,7 +53,8 @@ class PeopleImageTests(unittest.TestCase):
         return images.inspect(layout, 'local/people:unit', '0' * 40,
                               self.source, self.publish, self.report)
 
-    def layout(self, file_change=None, directory_change=None, config_change=None, extra=None):
+    def layout(self, file_change=None, directory_change=None, config_change=None, extra=None,
+               runtime_change=None):
         layout = self.root / ('oci-' + str(len(list(self.root.glob('oci-*')))))
         layout.mkdir()
         files, verified = images.inputs(self.source, self.publish, self.report)
@@ -61,6 +63,28 @@ class PeopleImageTests(unittest.TestCase):
                  for name, data in files.items()}
         if file_change:
             file_change(paths)
+        elf = bytearray(4096)
+        elf[:16] = b'\x7fELF\x02\x01\x01' + b'\0' * 9
+        struct.pack_into('<HHIQQQIHHHHHH', elf, 16, 3, 62, 1, 4096, 64, 0, 0, 64, 56, 2, 0, 0, 0)
+        struct.pack_into('<IIQQQQQQ', elf, 64, 1, 5, 0, 0, 0, len(elf), len(elf), 4096)
+        struct.pack_into('<IIQQQQQQ', elf, 120, 3, 4, 512, 0, 0, 28, 28, 1)
+        elf = bytes(elf)  # Deliberately synthetic; never executed.
+        runtime = {}
+        for name in ('usr', 'usr/local', 'usr/local/bin', 'usr/share', 'usr/share/dotnet'):
+            member = tarfile.TarInfo(name)
+            member.type, member.mode = tarfile.DIRTYPE, 0o755
+            runtime[name] = (member, b'')
+        for name, target in (('usr/local/bin/python', 'python3'),
+                             ('usr/local/bin/python3', 'python3.14')):
+            member = tarfile.TarInfo(name)
+            member.type, member.linkname, member.mode = tarfile.SYMTYPE, target, 0o777
+            runtime[name] = (member, b'')
+        for name in ('usr/local/bin/python3.14', 'usr/share/dotnet/dotnet'):
+            member = tarfile.TarInfo(name)
+            member.size, member.mode = len(elf), 0o755
+            runtime[name] = (member, elf)
+        if runtime_change:
+            runtime_change(runtime)
         archive = io.BytesIO()
         with tarfile.open(fileobj=archive, mode='w') as tar:
             for name in ('opt', 'opt/traderx', 'opt/traderx/MockDirectory'):
@@ -69,12 +93,15 @@ class PeopleImageTests(unittest.TestCase):
                 if directory_change:
                     directory_change(member)
                 tar.addfile(member)
+            for member, data in runtime.values():
+                tar.addfile(member, io.BytesIO(data) if member.isfile() else None)
             for name, (data, mode) in paths.items():
                 member = tarfile.TarInfo(name)
                 member.size, member.mode = len(data), mode
                 tar.addfile(member, io.BytesIO(data))
             if extra:
-                tar.addfile(extra)
+                for member in extra if isinstance(extra, list) else [extra]:
+                    tar.addfile(member, io.BytesIO(b'x' * member.size) if member.isfile() else None)
         layer = admission_fixture.put(layout, archive.getvalue(), False)
         layer['mediaType'] = 'application/vnd.oci.image.layer.v1.tar'
         env = ['PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
@@ -98,6 +125,33 @@ class PeopleImageTests(unittest.TestCase):
         (layout / 'oci-layout').write_bytes(compiler.encoded({'imageLayoutVersion': '1.0.0'}))
         return layout
 
+    def add_layer(self, layout, members):
+        archive = io.BytesIO()
+        with tarfile.open(fileobj=archive, mode='w') as tar:
+            for entry in members:
+                member, data = entry if isinstance(entry, tuple) else (entry, b'x' * entry.size)
+                tar.addfile(member, io.BytesIO(data) if member.isfile() else None)
+        layer = admission_fixture.put(layout, archive.getvalue(), False)
+        layer['mediaType'] = 'application/vnd.oci.image.layer.v1.tar'
+        index = compiler.read_json(layout / 'index.json')
+        manifest = compiler.blob(layout, index['manifests'][0])
+        config = compiler.blob(layout, manifest['config'])
+        manifest['layers'].append(layer)
+        config['rootfs']['diff_ids'].append(layer['digest'])
+        config_descriptor = admission_fixture.put(layout, config)
+        config_descriptor['mediaType'] = 'application/vnd.oci.image.config.v1+json'
+        manifest['config'] = config_descriptor
+        descriptor = admission_fixture.put(layout, manifest)
+        descriptor['mediaType'] = manifest['mediaType']
+        index['manifests'] = [descriptor]
+        (layout / 'index.json').write_bytes(compiler.encoded(index))
+
+    @staticmethod
+    def member(name, size=0):
+        member = tarfile.TarInfo(name)
+        member.mode, member.size = 0o444, size
+        return member
+
     def test_context_is_explicit_and_private_interface_fixed(self):
         result = images.prepare(self.source, self.publish, self.report, self.root / 'context', '0' * 40)
         self.assertEqual(result['keys'], sorted(people_runtime.FILES))
@@ -108,6 +162,19 @@ class PeopleImageTests(unittest.TestCase):
         self.assertEqual((self.root / 'context/application/MockDirectory/people.json').read_bytes(),
                          (self.source / build.ASSET).read_bytes())
         self.assertEqual(images.COMMAND[-1], '/opt/traderx/people_runtime.py')
+
+    def test_web_config_is_recorded_but_not_packaged(self):
+        path = self.publish / 'web.config'
+        path.write_bytes(b'published IIS configuration')
+        self.value.update(build.artifacts(self.source, self.publish, self.value['fixture']))
+        self.report.write_bytes(compiler.encoded(self.value))
+        record = images.prepare(self.source, self.publish, self.report, self.root / 'context', '0' * 40)
+        self.assertIn('web.config', self.value['publish_inventory'])
+        self.assertNotIn('web.config', self.value['publish_files'])
+        self.assertNotIn('application/web.config', record['context_files'])
+        path.write_bytes(b'changed')
+        with self.assertRaises(ValueError):
+            build.verify(self.source, self.publish, self.report)
 
     def test_source_publish_fixture_and_report_drift_fail(self):
         self.assertEqual(build.verify(self.source, self.publish, self.report)['status'], build.STATUS)
@@ -180,6 +247,75 @@ class PeopleImageTests(unittest.TestCase):
             member.type, member.linkname = kind, 'elsewhere'
             with self.assertRaises(ValueError):
                 self.inspect(self.layout(extra=member))
+
+    def test_whiteout_only_removes_lower_layer_entries(self):
+        extra = self.member('opt/traderx/extra.py', 1)
+        whiteout = self.member('opt/traderx/.wh.extra.py')
+        lower = self.layout(extra=extra)
+        self.add_layer(lower, [whiteout])
+        self.inspect(lower)
+        for members in ([extra, whiteout], [whiteout, extra]):
+            layout = self.layout()
+            self.add_layer(layout, members)
+            with self.assertRaises(ValueError):
+                self.inspect(layout)
+        files, _ = images.inputs(self.source, self.publish, self.report)
+        directory = tarfile.TarInfo('opt/traderx/MockDirectory')
+        directory.type, directory.mode = tarfile.DIRTYPE, 0o755
+        replacements = [directory]
+        for name, data in files.items():
+            path = 'opt/traderx/' + name.split('/', 1)[1]
+            member = self.member(path, len(data))
+            member.mode = 0o444 if name.startswith('application/') else 0o555
+            replacements.append((member, data))
+        opaque = self.member('opt/traderx/.wh..wh..opq')
+        layout = self.layout(extra=extra)
+        self.add_layer(layout, replacements + [opaque])
+        self.inspect(layout)
+        for added in (replacements + [extra, opaque], [opaque, extra] + replacements):
+            layout = self.layout()
+            self.add_layer(layout, added)
+            with self.assertRaises(ValueError):
+                self.inspect(layout)
+
+    def test_runtime_executables_and_ancestors_are_required_and_safe(self):
+        for name in ('usr/local/bin/python', 'usr/local/bin/python3', 'usr/local/bin/python3.14',
+                     'usr/share/dotnet/dotnet', 'usr', 'usr/local', 'usr/local/bin',
+                     'usr/share', 'usr/share/dotnet'):
+            with self.subTest(missing=name), self.assertRaises(ValueError):
+                self.inspect(self.layout(runtime_change=lambda paths: paths.pop(name)))
+        for name, attr, value in (
+                ('usr/local/bin/python3.14', 'mode', 0o777),
+                ('usr/share/dotnet/dotnet', 'mode', 0o644),
+                ('usr/share/dotnet/dotnet', 'uid', 10001),
+                ('usr/local/bin/python', 'uid', 10001),
+                ('usr/share', 'mode', 0o700),
+                ('usr/local/bin', 'gid', 10001),
+                ('usr/local/bin/python', 'linkname', '../../evil'),
+                ('usr/local/bin/python3', 'linkname', 'python3')):
+            def mutate(paths):
+                setattr(paths[name][0], attr, value)
+            with self.subTest(name=name, attr=attr), self.assertRaises(ValueError):
+                self.inspect(self.layout(runtime_change=mutate))
+        for name in ('usr/local/bin/python3.14', 'usr/share/dotnet/dotnet', 'usr/local/bin'):
+            def replace(paths):
+                member = paths[name][0]
+                member.type, member.linkname, member.size = tarfile.LNKTYPE, 'elsewhere', 0
+                paths[name] = (member, b'')
+            with self.subTest(hardlink=name), self.assertRaises(ValueError):
+                self.inspect(self.layout(runtime_change=replace))
+        def non_elf(paths):
+            member = paths['usr/share/dotnet/dotnet'][0]
+            member.size = 3
+            paths[member.name] = (member, b'bad')
+        with self.assertRaises(ValueError):
+            self.inspect(self.layout(runtime_change=non_elf))
+        def dotnet_symlink(paths):
+            member = paths['usr/share/dotnet/dotnet'][0]
+            member.type, member.linkname, member.size = tarfile.SYMTYPE, 'elsewhere', 0
+            paths[member.name] = (member, b'')
+        with self.assertRaises(ValueError):
+            self.inspect(self.layout(runtime_change=dotnet_symlink))
 
     def test_oci_environment_commands_labels_and_platform_fail_closed(self):
         for item in ('DOTNET_X=1', 'ASPNETCORE_URLS=http://x', 'LAB_X=1', 'A__B=x',
