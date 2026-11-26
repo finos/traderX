@@ -75,6 +75,26 @@ def feed(source):
     return (OVERLAY/'broker-feed.service.ts').read_text().replace("from './broker-notifications'", "from '../security/broker-notifications'")
 
 
+def protected_metadata(target):
+    path=target/'main/assets/state-ui.json'
+    metadata=json.loads(path.read_text())
+    parent={key:metadata[key] for key in ('sourceBranch','sourceBranchUrl')}
+    parent.update(id=metadata['stateId'],title=metadata['stateTitle'],
+                  summary='Pinned C3 parent of this protected consumer preview.')
+    metadata.update(stateId='019-traderx-security-lab',
+        stateTitle='TraderX Security Lab (planned state preview)',stateTrack='nonfunctional',
+        generatedAtUtc='',sourceBranch='State 019 protected consumer preview (unpublished)',sourceBranchUrl='',
+        apiExplorerUrl='',pubSubInspectorUrl='',runtimeMetadataUrl='',
+        features={'statusPage':False,'apiExplorer':False,'pubSubInspector':False},
+        previousStates=[parent,*metadata['previousStates']],
+        statusChecks=[{'id':'browser-session','name':'Security Lab session runtime',
+                       'url':'/health/ready','expectedStatuses':[200]}])
+    # StateMetadataService explicitly treats an empty runtimeMetadataUrl as
+    # unavailable. Do not request the inherited server-generated metadata file
+    # or advertise legacy public operator routes in this bounded candidate.
+    path.write_text(json.dumps(metadata,indent=2)+'\n')
+
+
 def render(target):
     target=Path(target).resolve(); baseline=json.loads((PROFILE/'baseline.lock.json').read_text())
     prefix='web-front-end/angular'
@@ -87,6 +107,7 @@ def render(target):
                 if '..' in relative.parts: raise ValueError('Invalid pinned frontend member')
                 dest=target/relative; dest.parent.mkdir(parents=True,exist_ok=True)
                 dest.write_bytes(archive.extractfile(member).read()); dest.chmod(member.mode & 0o777)
+    protected_metadata(target)
     app=target/'main/app'
     angular=target/'angular.json';configuration=json.loads(angular.read_text())
     configuration['projects']['main-application']['architect']['build']['configurations']['production']['optimization']={
