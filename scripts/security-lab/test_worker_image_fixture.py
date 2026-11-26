@@ -62,6 +62,25 @@ class WorkerImageFixtureTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'unoccupied'):
             peers.choose_subnet(docker,[{'dst':'10.0.0.0/8'}])
 
+    def test_host_none_networks_can_have_null_ipam_but_wrong_types_are_refused(self):
+        empty=[{'IPAM':{'Config':None}},{'IPAM':{}},{'IPAM':{'Config':[]}}]
+        self.assertEqual(peers.choose_subnet(empty,[]),ipaddress.ip_network('172.28.240.0/24'))
+        for config in ('',{},False,[None]):
+            with self.assertRaisesRegex(ValueError,'IPAM'):peers.choose_subnet([{'IPAM':{'Config':config}}],[])
+
+    def test_broker_info_handles_fragmented_stream_with_size_and_line_boundary(self):
+        class Fragments(io.RawIOBase):
+            def __init__(self):self.parts=[b'I',b'N',b'FO ',b'{}',b'\r',b'\n']
+            def readable(self):return True
+            def readinto(self,buffer):
+                if not self.parts:return 0
+                part=self.parts.pop(0);buffer[:len(part)]=part;return len(part)
+        connection=Mock();connection.makefile.return_value=io.BufferedReader(Fragments())
+        peers.broker_info(connection)
+        for value in (b'INFO {}',b'OTHER {}\r\n',b'INFO '+b'x'*4096+b'\r\n'):
+            connection.makefile.return_value=io.BytesIO(value)
+            with self.assertRaisesRegex(ValueError,'INFO'):peers.broker_info(connection)
+
     def test_peer_commands_have_no_host_publication_or_plaintext_database_transport(self):
         pg=peers.postgres_args('db','net','owner','172.28.240.2','image@sha256:abc',Path('/private/db'),'volume')
         nats=peers.nats_args('broker','net','owner','172.28.240.3','image@sha256:def',Path('/private/broker'),Path('/private/store'),'1001:1001')

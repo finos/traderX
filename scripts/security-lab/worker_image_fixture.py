@@ -111,7 +111,15 @@ def tls_material(addresses):
 def choose_subnet(existing,host_routes):
     occupied=[]
     for value in existing:
-        for entry in value.get('IPAM',{}).get('Config',[]):
+        ipam=value.get('IPAM',{})
+        if not isinstance(ipam,dict):raise ValueError('Invalid Docker IPAM metadata')
+        config=ipam.get('Config')
+        # Docker host/none networks legitimately have no IPAM configuration.
+        # An explicit JSON null and an omitted field both mean no subnets.
+        if config is None:config=[]
+        if not isinstance(config,list) or any(not isinstance(entry,dict) for entry in config):
+            raise ValueError('Invalid Docker IPAM subnet inventory')
+        for entry in config:
             if entry.get('Subnet'):occupied.append(ipaddress.ip_network(entry['Subnet']))
     for route in host_routes:
         destination=route.get('dst')
@@ -243,6 +251,14 @@ def permission_probe(address,ca,password):
             return accepted
 
 
+def broker_info(connection):
+    # TLS preserves a byte stream, not NATS message boundaries. A single recv
+    # may legally return only the first byte of INFO; read one bounded line.
+    with connection.makefile('rb') as stream:value=stream.readline(4097)
+    if len(value)>4096 or not value.startswith(b'INFO ') or not value.endswith(b'\r\n'):
+        raise ValueError('Bounded broker INFO unavailable')
+
+
 @contextmanager
 def _fixture(runtime,progress):
     if not portability.isolated_linux() or os.environ.get('GITHUB_ACTIONS')!='true' or os.getuid()<=0 or os.getgid()<=0:
@@ -308,9 +324,10 @@ def _fixture(runtime,progress):
                     context=ssl.create_default_context(cafile=ca)
                     with socket.create_connection((addresses['nats-broker'],4222),timeout=1) as raw:
                         with context.wrap_socket(raw,server_hostname=addresses['nats-broker']) as connection:
-                            if not connection.recv(4096).startswith(b'INFO '):raise ValueError('Broker INFO unavailable')
+                            broker_info(connection)
                     inspected(broker_name,addresses['nats-broker']);return
                 except OSError:time.sleep(.1)
+                except ValueError:raise readiness_failure(docker,broker_name,'broker') from None
             raise readiness_failure(docker,broker_name,'broker')
         def restart_database():
             owned(docker,'container',db_name,owner);docker('restart','--time','10',db_name,timeout=30);database_ready()
