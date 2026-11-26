@@ -147,6 +147,53 @@ class RuntimeTests(unittest.TestCase):
         server.refresh_trust(self.jwks)
         self.assertEqual(self.request('/health/ready')[0],200)
 
+    def test_idle_tcp_and_partial_http_do_not_block_tls_accept_or_shutdown(self):
+        server=self.start()
+        plain=socket.create_connection(('127.0.0.1',self.port),timeout=2)
+        partial=None
+        try:
+            # The old listening SSLSocket blocked here until plain closed.
+            self.assertEqual(self.request('/health/live')[0],200)
+            partial=self.context.wrap_socket(socket.create_connection(('127.0.0.1',self.port),timeout=2),server_hostname='localhost')
+            partial.sendall(b'GET /health/live HTTP/1.1\r\n')
+            self.assertEqual(self.request('/health/live')[0],200)
+            started=time.monotonic();server.close()
+            self.assertLess(time.monotonic()-started,2)
+            plain.settimeout(1);partial.settimeout(1)
+            self.assertEqual(plain.recv(1),b'')
+            self.assertEqual(partial.recv(1),b'')
+        finally:
+            plain.close()
+            if partial:partial.close()
+
+    def test_connection_workers_are_bounded_and_release_capacity(self):
+        with patch('browser_session.MAX_CONNECTIONS',2),patch('browser_session.CONNECTION_TIMEOUT',0.5):
+            server=self.start();clients=[]
+            try:
+                for _ in range(2):clients.append(socket.create_connection(('127.0.0.1',self.port),timeout=2))
+                deadline=time.monotonic()+1
+                while time.monotonic()<deadline:
+                    with server.server.connections_lock:
+                        if len(server.server.connections)==2:break
+                    time.sleep(.01)
+                with server.server.connections_lock:self.assertEqual(len(server.server.connections),2)
+                excess=socket.create_connection(('127.0.0.1',self.port),timeout=1)
+                try:
+                    excess.settimeout(1);self.assertEqual(excess.recv(1),b'')
+                finally:excess.close()
+                # Each incomplete handshake expires and returns its worker slot.
+                for client in clients:
+                    client.settimeout(2);self.assertEqual(client.recv(1),b'')
+                deadline=time.monotonic()+1
+                while time.monotonic()<deadline:
+                    with server.server.connections_lock:
+                        if not server.server.connections:break
+                    time.sleep(.01)
+                with server.server.connections_lock:self.assertEqual(len(server.server.connections),0)
+                self.assertEqual(self.request('/health/live')[0],200)
+            finally:
+                for client in clients:client.close()
+
     def test_runtime_shutdown_closes_broker_and_listener(self):
         self.config['broker']=dict(endpoint='tls://broker.example.test:4222',ca_file=str(self.cert),
             grants={'trader':[62654]},identities={'62654':{'user':'reader','password':'x'*32}})

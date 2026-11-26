@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import re
 import secrets
+import socket
 import ssl
 import threading
 import time
@@ -21,6 +22,68 @@ ORIGIN='https://localhost:18447'
 CALLBACK=ORIGIN+'/callback'
 SESSION='__Host-traderx-session'
 TRANSACTION='__Host-traderx-login'
+CONNECTION_TIMEOUT=5
+MAX_CONNECTIONS=32
+
+
+class BoundedTLSServer(ThreadingHTTPServer):
+    """Accept raw TCP promptly; bound TLS/HTTP workers and close idle sockets."""
+    def __init__(self,address,handler,tls):
+        self.tls=tls
+        self.capacity=threading.BoundedSemaphore(MAX_CONNECTIONS)
+        self.connections=set()
+        self.connections_lock=threading.Lock()
+        self.closing=False
+        super().__init__(address,handler)
+
+    def process_request(self,request,client_address):
+        with self.connections_lock:
+            if self.closing or not self.capacity.acquire(blocking=False):
+                self.shutdown_request(request)
+                return
+            self.connections.add(request)
+        try:
+            super().process_request(request,client_address)
+        except BaseException:
+            with self.connections_lock:self.connections.discard(request)
+            self.capacity.release()
+            self.shutdown_request(request)
+            raise
+
+    def process_request_thread(self,request,client_address):
+        secure=None
+        try:
+            # Wrapping without a handshake performs no peer-controlled I/O.
+            # Keep the raw-to-TLS ownership transfer atomic with server_close.
+            with self.connections_lock:
+                if self.closing:return
+                request.settimeout(CONNECTION_TIMEOUT)
+                secure=self.tls.wrap_socket(request,server_side=True,do_handshake_on_connect=False)
+                self.connections.discard(request)
+                self.connections.add(secure)
+            secure.do_handshake()
+            self.finish_request(secure,client_address)
+        except (OSError,ValueError):
+            # Idle, aborted and malformed connections have no private diagnostics.
+            pass
+        except Exception:
+            self.handle_error(secure or request,client_address)
+        finally:
+            self.shutdown_request(secure or request)
+            with self.connections_lock:
+                self.connections.discard(request)
+                self.connections.discard(secure)
+            self.capacity.release()
+
+    def server_close(self):
+        with self.connections_lock:
+            self.closing=True
+            connections=list(self.connections)
+        for connection in connections:
+            try:connection.shutdown(socket.SHUT_RDWR)
+            except OSError:pass
+            connection.close()
+        super().server_close()
 
 PAGE='''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>TraderX account security lab</title><link rel="stylesheet" href="/style.css"><main><img class="logo" src="/traderx-logo.svg" alt="TraderX"><h1>TraderX account security lab</h1><p>Local identity checkpoint · synthetic accounts only</p><p id="status">Checking session…</p><a href="/login">Sign in with Keycloak</a><button id="accounts">My accounts</button><button id="memberships">My memberships</button><p><label>Test account ID <input id="account" inputmode="numeric" value="62654"></label><button id="check">Check access</button></p><button id="switch">Switch account</button><button id="logout">Sign out of this lab</button><pre id="result" aria-live="polite"></pre><p>Account permissions are enforced by the API. Local sign-out ends this browser session; it does not revoke provider SSO or other issued tokens.</p></main><script src="/app.js"></script></html>'''
 JS='''let csrf; const result=document.querySelector('#result'); async function show(path){const r=await fetch(path);result.textContent=`HTTP ${r.status}\\n`+await r.text();} fetch('/session').then(async r=>{if(!r.ok){document.querySelector('#status').textContent='Signed out';return;}const s=await r.json();csrf=s.csrf;document.querySelector('#status').textContent='Signed in as '+s.subject;});document.querySelector('#accounts').onclick=()=>show('/api/account/');document.querySelector('#memberships').onclick=()=>show('/api/accountuser/');document.querySelector('#check').onclick=()=>show('/api/account/'+encodeURIComponent(document.querySelector('#account').value));document.querySelector('#logout').onclick=async()=>{const r=await fetch('/logout',{method:'POST',headers:{'X-CSRF-Token':csrf||''}});if(r.ok)location.href='/';else result.textContent='Sign-out rejected: '+r.status;};'''
@@ -181,8 +244,7 @@ class BrowserServer:
                         except OSError:return self.reply(503,'Account API unavailable')
                     return self.reply(404,'Not found')
         tls=ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER);tls.minimum_version=ssl.TLSVersion.TLSv1_2;tls.load_cert_chain(cert,key)
-        self.server=ThreadingHTTPServer((listen_host,listen_port),Handler)
-        self.server.socket=tls.wrap_socket(self.server.socket,server_side=True)
+        self.server=BoundedTLSServer((listen_host,listen_port),Handler,tls)
     @staticmethod
     def switch_url(origin=ORIGIN,issuer=ISSUER,client_id=CLIENT):
         return issuer+'/protocol/openid-connect/logout?'+urllib.parse.urlencode(dict(client_id=client_id,post_logout_redirect_uri=origin+'/'))
