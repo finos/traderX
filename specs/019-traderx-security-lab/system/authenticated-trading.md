@@ -26,20 +26,31 @@ does not establish the Phase 2 Kubernetes/gateway/admission deployment.
   private credential file, platform chain trust and hostname verification. Do not
   embed credentials in URLs. Remove the inherited global `/orders` broadcast;
   publishing remains scoped by broker subject permissions.
+- ATR-08: The same campaign's committed outbox is delivered by the real supervised
+  publisher and account-scoped reference-consumer CLI processes. Independent SQL
+  inbox/projection rows and broker durable acknowledgments establish completion;
+  no synthetic event injection substitutes for those settlements.
+- ATR-09: Session-mediated browser notifications contain only scoped metadata
+  matching the committed SQL event identities. Their cursor advance prompts an
+  authenticated HTTPS position/history snapshot from the same database. Another
+  account cannot observe those notifications or read those snapshots.
 
 ## Fixture boundaries
 
 The isolated hosted runner uses one disposable TLS Keycloak, one bounded
-PostgreSQL and one bounded TLS NATS container, plus two Java services. HTTPS
+PostgreSQL and one bounded TLS NATS container, plus matcher, processor and position
+Java candidates. The position candidate starts only for the final snapshot stage. HTTPS
 certificates and credentials are private, ephemeral and never exported. Java
 uses a fixture PKCS12 truststore; no insecure TLS switch is permitted. PostgreSQL
 is an explicitly loopback-only transport exception in this campaign.
 
 The price producer is a synthetic scoped fixture, not the full C3 market-data
-application. Order notifications are best effort; settlement events are checked
-in the transactional outbox here. Durable event delivery, browser consumption,
-revocation and full deployed trading are cumulative acceptance gates and must not
-be inferred from an HTTP status or from this candidate alone.
+application. Order notifications are best effort. Settlement notifications traverse
+the actual outbox publisher, TLS broker and session feed. Durable consumption uses
+the existing reference projections; the position API reads authoritative business
+tables, not that projection. Angular navigation, revocation and full deployed
+trading remain separate acceptance gates and must not be inferred from this
+candidate alone.
 
 The campaign must preserve the earlier C3 branch, clean up only owned processes
 and containers, and run separately from an occupied browser lab. Heavy validation
@@ -47,7 +58,7 @@ runs in hosted CI; source/unit work does not interrupt Citrix or use screen shar
 
 ## Candidate invocation
 
-After the existing sequential Java candidate build, run:
+After the existing sequential trading and position Java candidate builds, run:
 
 ```bash
 python scripts/security-lab/verify_authenticated_trading.py --runtime-dir "$runtime" --output "$runtime/evidence/authenticated-trading.json"

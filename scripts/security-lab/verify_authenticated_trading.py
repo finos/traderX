@@ -19,7 +19,9 @@ import uuid
 from cryptography.hazmat.primitives import serialization
 import bootstrap_database
 from browser_api import ApiProxy
+from browser_broker import BrokerEvents, reader_permissions
 from browser_session import BrowserServer, ORIGIN, SESSION
+from authenticated_delivery import deliver, matches_notifications
 from event_delivery import connect_broker
 from identity_fixture import ISSUER, IMAGE, TokenVerifier
 from jetstream_fixture import broker
@@ -29,6 +31,7 @@ from verify_bootstrap import database, fingerprint, require
 from verify_browser_api import Browser, provider
 from verify_execution_reservations import MIGRATION, SETTLEMENT
 from verify_execution_events import EVENTS
+from verify_event_delivery import CONSUMER
 
 ROOT=Path(__file__).resolve().parents[2]
 CANCELLATION=ROOT/'specs/019-traderx-security-lab/system/sql/execution-cancellation.sql'
@@ -66,6 +69,8 @@ def failure_summary(log,service):
 BROKER_PERMISSIONS={
     'matcher':{'publish':{'allow':['/accounts/62654/orders']},'subscribe':{'allow':['pricing.*']}},
     'pricing-fixture':{'publish':{'allow':['pricing.IBM']},'subscribe':{'deny':['>']}},
+    'browser-reader':reader_permissions(22214),
+    'browser-trader':reader_permissions(62654),
 }
 
 
@@ -134,12 +139,20 @@ def tls_files(private, mount, broker_ca):
 
 class JavaService:
     def __init__(self,runtime,private,service,environment,context,truststore):
-        target=runtime/'trading-security-build'/service
-        report=json.loads((runtime/'evidence/trading-security-build.json').read_text())
-        self.entry=next(item for item in report['services'] if item['service']==service)
+        if service=='position-service':
+            target=runtime/service
+            generation=json.loads((target/'security-generation.json').read_text())
+            for name,digest in generation['files'].items():
+                if hashlib.sha256((target/name).read_bytes()).hexdigest()!=digest:raise ValueError('Read API generated source drift')
+            self.entry=dict(service=service,generation=generation)
+        else:
+            target=runtime/'trading-security-build'/service
+            report=json.loads((runtime/'evidence/trading-security-build.json').read_text())
+            self.entry=next(item for item in report['services'] if item['service']==service)
         for name,digest in self.entry['generation']['inputs'].items():
             if hashlib.sha256((ROOT/name).read_bytes()).hexdigest()!=digest:raise ValueError('Trading input drift')
         jars=[path for path in (target/'build/libs').glob('*.jar') if not path.name.endswith('-plain.jar')]
+        if service=='position-service' and len(jars)==1:self.entry['jar_sha256']=hashlib.sha256(jars[0].read_bytes()).hexdigest()
         if len(jars)!=1 or hashlib.sha256(jars[0].read_bytes()).hexdigest()!=self.entry['jar_sha256']:
             raise ValueError('Unverified trading jar')
         self.port=free_port();self.origin=f'https://localhost:{self.port}'
@@ -200,7 +213,12 @@ def campaign(runtime):
             with database(runtime,image,persistent=True,loopback=True) as (sql,password,restart_db,pgport):
                 def admin(query):return require(sql('traderx',password,query),'Trading SQL observation failed')
                 admin(bootstrap_database.render(reference,identities))
-                for migration in (MIGRATION,SETTLEMENT,CANCELLATION,EVENTS):admin(migration.read_text())
+                for migration in (MIGRATION,SETTLEMENT,CANCELLATION,EVENTS,CONSUMER):admin(migration.read_text())
+                worker_passwords={name:secrets.token_hex(24) for name in ('event_publisher','event_consumer_b')}
+                for name,secret in worker_passwords.items():
+                    group='lab_event_publisher' if name=='event_publisher' else 'lab_event_consumer'
+                    admin(f"CREATE ROLE {name} LOGIN PASSWORD '{secret}' IN ROLE {group}; GRANT CONNECT ON DATABASE traderx TO {name};")
+                admin("INSERT INTO lab_execution.consumer_accounts VALUES ('event_consumer_b',62654);")
                 initial_quantity=int(admin("SELECT COALESCE(sum(quantity),0) FROM positions WHERE accountid=62654 AND security='IBM';"))
                 initial_trades=int(admin('SELECT count(*) FROM trades;'))
                 with broker(runtime,extra_permissions=BROKER_PERMISSIONS) as settings:
@@ -230,13 +248,17 @@ def campaign(runtime):
                         LAB_EXECUTION_CLIENT_ID=MATCHER_CLIENT,LAB_EXECUTION_SECRET_FILE=str(service_secret),
                         NATS_ADDRESS=settings['endpoint'],LAB_BROKER_USERNAME='matcher',LAB_BROKER_SECRET_FILE=str(broker_secret),
                         ORDER_MATCHER_SEED_ENABLED='false',ORDER_MATCHER_TICK_MS='250'),context,stores[2])
-                    server=None
+                    position_identity=identities['position-service']
+                    position=JavaService(runtime,private,'position-service',dict(common,
+                        DATABASE_DBUSER=position_identity['username'],DATABASE_DBPASS=position_identity['password'],
+                        LAB_IDENTITY_AUDIENCE=TRADING_AUDIENCE,LAB_IDENTITY_ENTITLEMENTS_FILE=str(entitlements)),context,stores[2])
+                    server=None;notifications=None
                     try:
                         processor.start();matcher.start()
                         grant=service_token(context,matcher_secret,jwks)
                         check('live service grant has dedicated audience and exact matcher subject',bool(grant));del grant
                         server=BrowserServer(mount/'cert.pem',mount/'key.pem',context,jwks,
-                            api_proxy=ApiProxy({'order-matcher':matcher.origin},context)).start()
+                            api_proxy=ApiProxy({'order-matcher':matcher.origin,'position-service':position.origin},context)).start()
                         browser=Browser(context)
                         def call(path,body=None,csrf=None):
                             headers={} if body is None else {'Origin':ORIGIN,'X-CSRF-Token':csrf or '', 'Content-Type':'application/json'}
@@ -312,19 +334,58 @@ def campaign(runtime):
                         status,_,raw=call('/api/order-matcher/orders/'+recovery)
                         check('fresh browser session sees settled order',status==200 and json.loads(raw)['status']=='FILLED')
                         check('retired anonymous processor booking path denied',request(trusted_client(context),processor.origin+'/tradeservice/order','POST',b'{}',{'Content-Type':'application/json'})[0] in (401,403))
-                        for service in (matcher,processor):
+                        position.start()
+                        notifications=BrokerEvents({'lab-reader':{22214},'lab-trader':{62654},'lab-operator':set()},
+                            {account:{'user':name,'password':settings['passwords'][name]} for account,name in ((22214,'browser-reader'),(62654,'browser-trader'))},
+                            settings['endpoint'],settings['ca']).start()
+                        wait_for(notifications.ready,'Scoped browser subscriptions unavailable')
+                        server.broker_events=notifications
+                        login('reader');status,_,raw=call('/events');reader_cursor=json.loads(raw)['cursor']
+                        check('reader notification baseline ready',status==200)
+                        login('trader');status,_,raw=call('/events');trader_cursor=json.loads(raw)['cursor']
+                        check('trader notification baseline ready',status==200)
+                        settled=fingerprint(sql,password)
+                        asyncio.run(deliver(private,settings,pgport,worker_passwords,admin,check))
+                        wait_for(lambda:len(notifications.poll('lab-trader',trader_cursor)[1]['events'])==4,
+                            'Committed settlement notifications missing')
+                        login('trader');status,_,raw=call('/events?after='+trader_cursor);page=json.loads(raw)
+                        expected_ids=set(admin('SELECT event_id FROM lab_execution.events ORDER BY event_id;').splitlines())
+                        check('browser notifications match committed settlement identities without payloads',
+                            status==200 and len(expected_ids)==4 and matches_notifications(page,expected_ids))
+                        status,_,raw=call('/api/position-service/positions/62654');positions=json.loads(raw)
+                        check('authenticated HTTPS position snapshot reflects both actual settlements',
+                            status==200 and all(row['accountId']==62654 for row in positions) and
+                            next(row['quantity'] for row in positions if row['security']=='IBM')==initial_quantity+14)
+                        status,_,raw=call('/api/position-service/trades/62654');trades=json.loads(raw)
+                        expected_trades=int(admin('SELECT count(*) FROM trades WHERE accountid=62654;'))
+                        settled_ids=set(admin('SELECT trade_id FROM lab_execution.receipts ORDER BY trade_id;').splitlines())
+                        check('authenticated HTTPS trade history includes exact settlement receipt IDs',
+                            status==200 and len(trades)==expected_trades and all(row['accountId']==62654 for row in trades) and
+                            settled_ids<={str(row['id']) for row in trades})
+                        login('reader');status,_,raw=call('/events?after='+reader_cursor);reader_page=json.loads(raw)
+                        check('other account receives no settlement notifications or cursor advance',
+                            status==200 and reader_page['events']==[] and reader_page['cursor']==reader_cursor and reader_page['reset'] is False)
+                        for kind in ('positions','trades'):
+                            check('reader denied trader '+kind+' snapshot',call('/api/position-service/'+kind+'/62654')[0]==403)
+                        check('delivery notification snapshots and worker restart never rebook trades',fingerprint(sql,password)==settled)
+                        for service in (matcher,processor,position):
                             text=service.log.read_text()
-                            check(service.entry['service']+' log omits configured credentials',all(value not in text for value in (matcher_secret,settings['passwords']['matcher'],matcher_identity['password'],processor_identity['password'],stores[1])))
+                            check(service.entry['service']+' log omits configured credentials',all(value not in text for value in (matcher_secret,*settings['passwords'].values(),matcher_identity['password'],processor_identity['password'],position_identity['password'],stores[1])))
+                        worker_logs=''.join(path.read_text() for path in private.glob('*.log'))
+                        check('actual worker logs omit database and broker credentials',all(secret not in worker_logs for secret in (*worker_passwords.values(),*settings['passwords'].values())))
                     finally:
                         if server:server.close()
-                        matcher.stop();processor.stop()
-                    jar_hashes={service.entry['service']:service.entry['jar_sha256'] for service in (matcher,processor)}
+                        if notifications:notifications.close()
+                        matcher.stop();processor.stop();position.stop()
+                    jar_hashes={service.entry['service']:service.entry['jar_sha256'] for service in (matcher,processor,position)}
                     broker_image=settings['image']
     return dict(status='passed',scope='Real authenticated trading candidate; not deployed cumulative State019',
         jars=jar_hashes,provider_image=IMAGE,database_image=image,broker_image=broker_image,checks=checks,
-        migrations={str(path.relative_to(ROOT)):hashlib.sha256(path.read_bytes()).hexdigest() for path in (MIGRATION,SETTLEMENT,CANCELLATION,EVENTS)},
+        delivery_sources={name:hashlib.sha256((ROOT/'scripts/security-lab'/name).read_bytes()).hexdigest()
+            for name in ('authenticated_delivery.py','delivery_worker.py','event_delivery.py','browser_broker.py','browser_session.py')},
+        migrations={str(path.relative_to(ROOT)):hashlib.sha256(path.read_bytes()).hexdigest() for path in (MIGRATION,SETTLEMENT,CANCELLATION,EVENTS,CONSUMER)},
         limitations=['Synthetic scoped price producer, not the complete C3 market-data application',
-            'Settlement outbox effects are observed; durable delivery/browser notification is a separate cumulative gate',
+            'Real outbox worker delivery, broker metadata and authoritative API snapshots; no Angular navigation claim',
             'PostgreSQL uses explicit loopback transport; gateway/WAF/network/admission integration is not established',
             'Logout ends only the browser session; accepted order authority intentionally remains subject to the loaded entitlement map',
             'No live entitlement-policy reload, issuer rotation, production TLS provisioning or Kubernetes cutover claim'])
