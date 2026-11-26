@@ -1,0 +1,139 @@
+import ipaddress
+import io
+import json
+from pathlib import Path
+import socket
+import ssl
+import subprocess
+import tempfile
+import threading
+import unittest
+from unittest.mock import Mock,patch
+
+from cryptography import x509
+
+import worker_image_fixture as peers
+
+
+class WorkerImageFixtureTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.material=peers.tls_material({'database':'172.28.240.2','nats-broker':'172.28.240.3'})
+
+    def handshake(self,name,hostname,trusted=True):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)
+            (root/'ca.pem').write_bytes(self.material['ca.pem'])
+            for filename,data in self.material[name].items():(root/filename).write_bytes(data)
+            server_context=ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+            server_context.minimum_version=ssl.TLSVersion.TLSv1_2
+            server_context.load_cert_chain(root/'cert.pem',root/'key.pem')
+            errors=[]
+            with socket.socket() as listener:
+                listener.bind(('127.0.0.1',0));listener.listen(1);listener.settimeout(3)
+                def serve():
+                    try:
+                        raw,_=listener.accept()
+                        with raw:
+                            with server_context.wrap_socket(raw,server_side=True) as connection:connection.sendall(b'ok')
+                    except (OSError,ssl.SSLError) as error:errors.append(type(error).__name__)
+                thread=threading.Thread(target=serve,daemon=True);thread.start()
+                context=ssl.create_default_context(cafile=root/'ca.pem') if trusted else ssl.create_default_context()
+                context.verify_flags|=ssl.VERIFY_X509_STRICT
+                try:
+                    with socket.create_connection(listener.getsockname(),timeout=3) as raw:
+                        with context.wrap_socket(raw,server_hostname=hostname) as connection:
+                            self.assertEqual(connection.recv(2),b'ok')
+                finally:thread.join(timeout=4)
+                self.assertFalse(thread.is_alive())
+
+    def test_strict_x509_accepts_alias_and_actual_ip_and_rejects_negative_alias_and_unknown_ca(self):
+        for name,address in (('database','172.28.240.2'),('nats-broker','172.28.240.3')):
+            self.handshake(name,name);self.handshake(name,address)
+            for hostname,trusted in (('wrong-'+('database' if name=='database' else 'broker'),True),(name,False)):
+                with self.assertRaises(ssl.SSLCertVerificationError):self.handshake(name,hostname,trusted)
+        leaf=x509.load_pem_x509_certificate(self.material['database']['cert.pem'])
+        self.assertFalse(leaf.extensions.get_extension_for_class(x509.BasicConstraints).value.ca)
+
+    def test_network_selection_refuses_overlap_with_docker_and_host_routes(self):
+        docker=[{'IPAM':{'Config':[{'Subnet':'172.28.0.0/16'}]}}]
+        route=[{'dst':'10.248.240.0/24'},{'dst':'default'}]
+        self.assertEqual(peers.choose_subnet(docker,route),ipaddress.ip_network('10.248.241.0/24'))
+        with self.assertRaisesRegex(ValueError,'unoccupied'):
+            peers.choose_subnet(docker,[{'dst':'10.0.0.0/8'}])
+
+    def test_peer_commands_have_no_host_publication_or_plaintext_database_transport(self):
+        pg=peers.postgres_args('db','net','owner','172.28.240.2','image@sha256:abc',Path('/private/db'),'volume')
+        nats=peers.nats_args('broker','net','owner','172.28.240.3','image@sha256:def',Path('/private/broker'),Path('/private/store'),'1001:1001')
+        for args in (pg,nats):
+            self.assertNotIn('--publish',args);self.assertNotIn('--privileged',args)
+            self.assertIn('--read-only',args);self.assertIn('no-new-privileges:true',args);self.assertIn('ALL',args)
+            self.assertIn('--memory-swap',args);self.assertIn('--pids-limit',args)
+        self.assertIn('ssl=on',pg);self.assertIn('ssl_key_file=/lab/key.pem',pg)
+        self.assertIn('hba_file=/lab/pg_hba.conf',pg);self.assertIn('POSTGRES_PASSWORD_FILE=/lab/password',pg)
+        self.assertIn('wrong-database',pg);self.assertIn('wrong-broker',nats)
+
+    def test_ack_toggle_changes_only_consumer_ack_permission(self):
+        passwords={name:'synthetic-private' for name in peers.permissions()}
+        allow=peers.peer_config(passwords);deny=peers.peer_config(passwords,False)
+        a={v['user']:v for v in allow['authorization']['users']};b={v['user']:v for v in deny['authorization']['users']}
+        for name in a:
+            if name!='consumer-a':self.assertEqual(a[name],b[name])
+        rules=b['consumer-a']['permissions']
+        self.assertEqual(rules['subscribe'],a['consumer-a']['permissions']['subscribe'])
+        self.assertEqual(rules['publish']['allow'],[f'$JS.API.CONSUMER.MSG.NEXT.{peers.STREAM}.ACCOUNT_A'])
+        self.assertNotIn('http',allow);self.assertTrue(allow['tls']['handshake_first'])
+        with self.assertRaises(ValueError):peers.peer_config(passwords,'false')
+
+    def test_cleanup_attempts_all_owned_resources_after_one_failure_and_refuses_success(self):
+        docker=Mock()
+        def execute(*args,**kwargs):
+            if args==('rm','-f','worker'):raise RuntimeError('injected removal failure')
+            return subprocess.CompletedProcess(args,0,'','')
+        docker.side_effect=execute
+        def owned(_,kind,name,owner,missing=False):
+            if name=='worker':return {'Name':'worker'}
+            # First read finds resource; subsequent read confirms absent.
+            count=counts.get(name,0);counts[name]=count+1
+            return {} if count==0 else None
+        counts={}
+        with patch.object(peers,'owned',side_effect=owned):
+            with self.assertRaisesRegex(RuntimeError,'cleanup incomplete'):peers.cleanup(docker,['worker'],'volume','network','owner')
+        self.assertIn(('volume','rm','volume'),[call.args for call in docker.call_args_list])
+        self.assertIn(('network','rm','network'),[call.args for call in docker.call_args_list])
+
+    def test_foreign_owner_is_never_removed_and_inspect_failure_is_not_false_absence(self):
+        foreign={'Name':'/peer','Config':{'Labels':{peers.LABEL:'other'}}}
+        docker=Mock(return_value=subprocess.CompletedProcess([],0,json.dumps([foreign]),''))
+        with self.assertRaisesRegex(ValueError,'ownership'):peers.owned(docker,'container','peer','owner',missing=True)
+        docker=Mock(side_effect=[subprocess.CompletedProcess([],1,'','unavailable'),subprocess.CompletedProcess([],0,'peer\n','')])
+        with self.assertRaisesRegex(RuntimeError,'inspection unavailable'):peers.owned(docker,'container','peer','owner',missing=True)
+
+    def test_guard_refuses_local_execution_before_contacting_docker(self):
+        with patch.object(peers.portability,'isolated_linux',return_value=False),patch.object(peers,'Docker') as docker:
+            with self.assertRaisesRegex(ValueError,'hosted'):
+                with peers.fixture(Path('/unused')):pass
+            docker.assert_not_called()
+
+    def test_readiness_failure_exports_only_fixed_categories_and_state(self):
+        docker=Mock(side_effect=[subprocess.CompletedProcess([],0,json.dumps([{'State':{'Running':False,'ExitCode':1,'OOMKilled':False}}]),''),
+            subprocess.CompletedProcess([],0,'secret-password and permission denied /private/key','')])
+        error=peers.readiness_failure(docker,'owned-name','database')
+        self.assertEqual(error.details,{'peer':'database','category':'permissions','running':False,'exit_code':1,'oom_killed':False})
+        self.assertNotIn('secret-password',str(error));self.assertNotIn('/private/key',json.dumps(error.details))
+
+    def test_permission_probe_requires_explicit_accept_or_specific_publish_denial(self):
+        for outcome,expected in ((b'+OK\r\n',True),(b'-ERR \'Permissions Violation for Publish\'\r\n',False),
+                                 (b'-ERR \'Authorization Violation\'\r\n',None),(b'',None)):
+            connection=Mock();connection.makefile.return_value=io.BytesIO(b'INFO {}\r\n+OK\r\nPONG\r\n'+outcome+b'PONG\r\n')
+            wrapped=Mock();wrapped.__enter__=Mock(return_value=connection);wrapped.__exit__=Mock(return_value=False)
+            context=Mock();context.wrap_socket.return_value=wrapped
+            raw=Mock();raw.__enter__=Mock(return_value=raw);raw.__exit__=Mock(return_value=False)
+            with patch.object(peers.ssl,'create_default_context',return_value=context),patch.object(peers.socket,'create_connection',return_value=raw):
+                if expected is None:
+                    with self.assertRaises(ValueError):peers.permission_probe('172.28.240.3',Path('/ca.pem'),'never-log-this')
+                else:self.assertEqual(peers.permission_probe('172.28.240.3',Path('/ca.pem'),'never-log-this'),expected)
+            self.assertTrue(connection.sendall.call_args_list[1].args[0].startswith(b'PUB '+peers.ACK_PROBE.encode()))
+
+
+if __name__=='__main__':unittest.main()
