@@ -136,7 +136,7 @@ def driver_failure(value):
         ('initial_page','signin_link','provider_navigation','credentials','username','password','callback','accounts','account_menu'))
     phases.update(flow+'_'+step for flow in ('trader_order','cancel_order','reader_order') for step in
         ('open_ticket','stock_input','typeahead','terms','submit_click','submit_response','denial_message','open_row'))
-    phases.update(('cancel_order_click','cancel_order_response','cancel_order_removed'))
+    phases.update(('cancel_order_scroll','cancel_order_click','cancel_order_response','cancel_order_removed'))
     phase=value.get('phase') if value.get('phase') in phases else 'unclassified'
     codes={'timeout','certificate_trust','tls_failure','connection_unavailable','unexpected_error','check_failed',
         'unsupported_api','element_not_clickable','context_destroyed',

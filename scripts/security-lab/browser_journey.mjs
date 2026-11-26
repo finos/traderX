@@ -235,6 +235,14 @@ async function gridValues(page, scope) {
         Object.fromEntries([...row.querySelectorAll('[col-id]')].map(cell => [cell.getAttribute('col-id'), cell.textContent?.trim()]))));
 }
 
+export async function revealOrderActions(page) {
+    // AG Grid virtualizes horizontal columns. Scroll the real viewport instead
+    // of asking a locator to find a button that has not been rendered yet.
+    await page.$eval('app-order-blotter .ag-body-horizontal-scroll-viewport', element => {
+        element.scrollLeft = element.scrollWidth;
+    });
+}
+
 function number(value) { return Number(String(value ?? '').replace(/[^0-9.-]/g, '')); }
 
 export async function run(config) {
@@ -361,6 +369,8 @@ export async function run(config) {
 
         phase = 'cancel_order';
         const cancelOrderId = await submitOrder(page, config, 1);
+        phase = 'cancel_order_scroll';
+        await revealOrderActions(page);
         const cancelResponse = page.waitForResponse(response => response.url() === config.origin + `/api/order-matcher/orders/${cancelOrderId}/cancel` && response.request().method() === 'POST');
         phase = 'cancel_order_click';
         await page.locator(`app-order-blotter .ag-row[row-id="${cancelOrderId}"] [col-id="cancel"] button`).click();

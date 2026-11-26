@@ -4,7 +4,7 @@ import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { CHECK_IDS, validateConfig, notificationAccounts, failureCode, fill } from './browser_journey.mjs';
+import { CHECK_IDS, validateConfig, notificationAccounts, failureCode, fill, revealOrderActions } from './browser_journey.mjs';
 
 const config = () => ({ origin: 'https://localhost:18447', issuer: 'https://localhost:18446/realms/lab',
     frontendRoot: '/tmp/frontend', executablePath: '/usr/bin/chromium', profileDir: '/tmp/isolated-profile',
@@ -64,4 +64,14 @@ test('form filling uses supported locator replacement without keyboard chord API
     await fill(page, '#password', 'private-password');
     await fill(page, '#orderQuantityField', 2);
     assert.deepEqual(calls, [{selector:'#password',value:'private-password'},{selector:'#orderQuantityField',value:'2'}]);
+});
+
+test('cancellation reveals virtualized action columns through the actual scroll viewport', async () => {
+    const viewport = { scrollLeft:0, scrollWidth:1600 };
+    const page = { $eval: async (selector, action) => {
+        assert.equal(selector, 'app-order-blotter .ag-body-horizontal-scroll-viewport');
+        action(viewport);
+    }};
+    await revealOrderActions(page);
+    assert.equal(viewport.scrollLeft, 1600);
 });
