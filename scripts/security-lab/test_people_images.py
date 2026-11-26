@@ -341,6 +341,64 @@ class PeopleImageTests(unittest.TestCase):
             with self.subTest(compressed=compressed), self.assertRaisesRegex(ValueError, 'uncompressed layer digest'):
                 self.inspect(layout)
 
+    def test_many_unrelated_paths_use_indexed_removal_without_scanning(self):
+        class NoScan(dict):
+            def __iter__(self):
+                raise AssertionError('Full index scan')
+
+            def items(self):
+                raise AssertionError('Full index scan')
+
+            def values(self):
+                raise AssertionError('Full index scan')
+
+        index = images.PathInventory()
+        for number in range(5000):
+            index.put('unrelated-%05d/leaf' % number, True)
+        index.put('selected', True)
+        index.put('selected/child', True)
+        index.put('selected/nested/child', True)
+        index.items = NoScan(index.items)
+        index.descendants = NoScan(index.descendants)
+        for number in range(5000):
+            index.remove('different-%05d' % number, include_self=False)
+        index.remove('selected', include_self=False)
+        self.assertIn('selected', index)
+        self.assertNotIn('selected/child', index)
+        self.assertNotIn('selected/nested/child', index)
+        self.assertEqual(len(index), 5001)
+        self.assertIn('unrelated-00001/leaf', index)
+        index.remove('selected', include_self=True)
+        self.assertNotIn('selected', index)
+        self.assertEqual(len(index), 5000)
+        index.remove('.', include_self=False)
+        self.assertEqual(len(index), 0)
+        self.assertEqual(index.references, 0)
+
+    def test_many_unrelated_symlinks_are_valid_and_index_is_bounded(self):
+        members = [self.symlink('alias-%05d' % n, '/opt/traderx') for n in range(3000)]
+        members += [self.member('ordinary-%05d' % n, 1) for n in range(3000)]
+        self.inspect(self.layout(extra=members))
+        with patch.object(images.PathInventory, 'LIMIT', 2):
+            index = images.PathInventory()
+            index.put('a', True)
+            index.put('b', True)
+            with self.assertRaisesRegex(ValueError, 'index exceeds bound'):
+                index.put('c', True)
+        with patch.object(images.PathInventory, 'REFERENCE_LIMIT', 2):
+            index = images.PathInventory()
+            with self.assertRaisesRegex(ValueError, 'index exceeds bound'):
+                index.put('a/b/c/d', True)
+            self.assertEqual(len(index), 0)
+
+    def test_many_application_whiteouts_remove_only_indexed_entries(self):
+        names = ['extra-%04d' % n for n in range(3000)]
+        lower = self.layout(extra=[self.member('opt/traderx/' + name, 1) for name in names])
+        with self.assertRaisesRegex(ValueError, 'inventory'):
+            self.inspect(lower)
+        self.add_layer(lower, [self.member('opt/traderx/.wh.' + name) for name in names])
+        self.inspect(lower)
+
     def test_runtime_executables_and_ancestors_are_required_and_safe(self):
         for name in ('usr/local/bin/python', 'usr/local/bin/python3', 'usr/local/bin/python3.14',
                      'usr/share/dotnet/dotnet', 'usr', 'usr/local', 'usr/local/bin',
