@@ -32,7 +32,7 @@ class JavaRuntimeTests(unittest.TestCase):
         self.assertNotIn(config['tls']['password'],' '.join(runtime.argv()))
         self.assertEqual(runtime.argv()[0],'/opt/java/openjdk/bin/java')
         self.assertIn('/app/application.jar',runtime.argv())
-        self.assertIn('--spring.config.location=file:/run/private/application.properties',runtime.argv())
+        self.assertIn('--spring.config.location=file:/run/private/java/application.properties',runtime.argv())
 
     def test_unknown_keys_interpolation_control_characters_and_unscoped_identity_fail_closed(self):
         cases=[(('unexpected',),'x'),(('database','sslmode'),'disable'),(('tls','path'),'/tmp/unsafe'),
@@ -74,18 +74,35 @@ class JavaRuntimeTests(unittest.TestCase):
 
     def test_atomic_output_is_private_and_never_overwrites_or_follows_links(self):
         with tempfile.TemporaryDirectory() as temporary:
-            root=Path(temporary).resolve();destination=root/'application.properties'
+            root=Path(temporary).resolve();destination=root/'java/application.properties'
             with patch.object(runtime,'PROPERTIES',destination):
                 runtime.write_properties(b'private-data')
                 self.assertEqual(destination.read_bytes(),b'private-data')
                 self.assertEqual(destination.stat().st_mode&0o777,0o600)
                 self.assertEqual(destination.stat().st_uid,os.geteuid())
+                self.assertEqual(destination.parent.stat().st_uid,os.geteuid())
+                self.assertEqual(destination.parent.stat().st_mode&0o777,0o700)
                 with self.assertRaises(FileExistsError):runtime.write_properties(b'replacement')
                 self.assertEqual(destination.read_bytes(),b'private-data')
                 destination.unlink();outside=root/'other';outside.write_bytes(b'unchanged');destination.symlink_to(outside)
                 with self.assertRaises(FileExistsError):runtime.write_properties(b'replacement')
                 self.assertEqual(outside.read_bytes(),b'unchanged')
-                self.assertFalse(any(path.name.startswith('.java-') for path in root.iterdir()))
+                self.assertFalse(any(path.name.startswith('.java-') for path in destination.parent.iterdir()))
+
+    def test_private_output_directory_refuses_foreign_owner_group_access_and_symlink(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary).resolve();directory=root/'java';directory.mkdir(mode=0o700)
+            with patch.object(runtime,'PROPERTIES',directory/'application.properties'):
+                for mode in (0o770,0o750,0o755,0o2770):
+                    directory.chmod(mode)
+                    with self.subTest(mode=mode),self.assertRaisesRegex(ValueError,'ownership and mode'):runtime.write_properties(b'secret')
+                    self.assertEqual(list(directory.iterdir()),[])
+                directory.chmod(0o700)
+                with patch.object(runtime.os,'geteuid',return_value=os.geteuid()+1):
+                    with self.assertRaisesRegex(ValueError,'ownership and mode'):runtime.write_properties(b'secret')
+                directory.rmdir();directory.symlink_to(root,target_is_directory=True)
+                with self.assertRaisesRegex(ValueError,'Direct private'):runtime.write_properties(b'secret')
+                self.assertFalse((root/'application.properties').exists())
 
     def test_environment_overrides_are_refused_before_java_exec(self):
         runtime.check_environment({'PATH':'/usr/local/bin','JAVA_HOME':'/opt/java/openjdk','PYTHON_VERSION':'3.14.0'})

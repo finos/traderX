@@ -13,7 +13,7 @@ from urllib.parse import urlsplit
 
 PRIVATE=Path('/run/private/config')
 CONFIG=PRIVATE/'config.json'
-PROPERTIES=Path('/run/private/application.properties')
+PROPERTIES=Path('/run/private/java/application.properties')
 KEYS=['config.json','database-ca.pem','entitlements.properties','public.pem','tls.p12']
 JAVA='/opt/java/openjdk/bin/java'
 JAR='/app/application.jar'
@@ -124,12 +124,16 @@ def properties(config):
 
 def write_properties(raw):
     parent=PROPERTIES.parent
-    if parent.resolve(strict=True)!=parent:raise ValueError('Direct private output directory required')
+    if parent.parent.resolve(strict=True)!=parent.parent or parent.is_symlink():raise ValueError('Direct private output directory required')
+    # emptyDir may have a root-owned fsGroup-writable mount root. Reserve an
+    # application-owned subdirectory instead of weakening file confidentiality.
+    try:parent.mkdir(mode=0o700)
+    except FileExistsError:pass
     fd=os.open(parent,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
     pending='.java-'+secrets.token_hex(16)
     try:
         info=os.fstat(fd)
-        if info.st_uid not in (0,os.geteuid()) or info.st_mode&0o002:raise ValueError('Private output ownership required')
+        if info.st_uid!=os.geteuid() or stat.S_IMODE(info.st_mode)!=0o700:raise ValueError('Private output ownership and mode required')
         out=os.open(pending,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600,dir_fd=fd)
         try:
             with os.fdopen(out,'wb') as stream:
