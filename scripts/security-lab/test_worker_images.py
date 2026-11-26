@@ -68,10 +68,12 @@ class WorkerImageTests(unittest.TestCase):
         evidence = campaign.failure(FixtureFailure({'stage': 'network_plan', 'error_type': 'TypeError'}))
         self.assertEqual(evidence['peer']['stage'], 'network_plan')
         self.assertEqual(evidence['peer']['error_type'], 'TypeError')
+        self.assertEqual(campaign.peer_diagnostic({'probe_code':'framing'})['probe_code'],'framing')
         for private in ('private-sentinel', ['private-sentinel']):
-            value = campaign.peer_diagnostic({'stage': private, 'error_type': private})
+            value = campaign.peer_diagnostic({'stage': private, 'error_type': private, 'probe_code':private})
             self.assertEqual(value['stage'], 'guard')
             self.assertEqual(value['error_type'], 'other')
+            self.assertIsNone(value['probe_code'])
             self.assertNotIn('private-sentinel', json.dumps(value))
 
     def test_partial_checkpoints_are_fixed_and_never_claim_completed_campaign(self):

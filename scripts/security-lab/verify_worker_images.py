@@ -86,13 +86,15 @@ def failure(error):
 
 
 def peer_diagnostic(details):
-    from worker_image_fixture import STAGES, ERROR_TYPES
+    from worker_image_fixture import STAGES, ERROR_TYPES, PROBE_CODES
     details = details if isinstance(details, dict) else {}
     categories = ('unclassified', 'storage_capacity', 'readonly_filesystem', 'tls_private_key',
                   'permissions', 'authentication', 'tls_configuration', 'configuration', 'memory_limit')
     code = details.get('exit_code')
     stage, kind = details.get('stage'), details.get('error_type')
+    probe = details.get('probe_code')
     return {'peer': details.get('peer') if details.get('peer') in ('database', 'broker') else 'unknown',
+            'probe_code': probe if isinstance(probe,str) and probe in PROBE_CODES else None,
             'category': details.get('category') if details.get('category') in categories else 'unclassified',
             'running': details.get('running') if type(details.get('running')) is bool else None,
             'oom_killed': details.get('oom_killed') if type(details.get('oom_killed')) is bool else None,
