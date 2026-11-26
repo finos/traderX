@@ -8,6 +8,7 @@ on:
       - 'specs/019-traderx-security-lab/system/linux-integration.md'
       - 'specs/019-traderx-security-lab/system/sql/**'
       - 'specs/019-traderx-security-lab/system/jetstream-images.lock.json'
+      - 'specs/019-traderx-security-lab/generation/**'
       - '.github/workflows/security-lab-integration-linux.yml'
 permissions:
   contents: read
@@ -66,7 +67,7 @@ jobs:
           python scripts/security-lab/verify_event_delivery_adversarial.py --runtime-dir "$runtime" --output "$runtime/evidence/broker-adversarial.json"
           python scripts/security-lab/verify_worker_process.py --runtime-dir "$runtime" --output "$runtime/evidence/worker-process.json"
   application-consumers:
-    needs: integration
+    # Separate hosted runner and generated root; no shared generation targets.
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -95,3 +96,31 @@ jobs:
           test -x "$CHROME_BIN"
           npx ng test --watch=false --browsers=ChromeHeadlessNoSandbox --include='main/app/security/*.spec.ts'
           npm run build
+  people-authorization:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '9.0.x'
+      - name: Build operator-only directory candidate and verify live identity
+        env:
+          TRADERX_LAB_ISOLATED_LINUX: '1'
+        run: |
+          set -euo pipefail
+          umask 077
+          python -m pip install -r scripts/security-lab/requirements.txt
+          python -m pip install 'cryptography==50.0.2' 'PyJWT==2.15.1'
+          python scripts/security-lab/checkpoint.py fetch-baseline
+          python -m unittest discover -s scripts/security-lab -p 'test_people_security.py'
+          runtime="$(mktemp -d "$RUNNER_TEMP/traderx-people-integration.XXXXXXXX")"
+          trap 'rm -rf "$runtime"' EXIT
+          python scripts/security-lab/render_people_security.py --output-dir "$runtime/people-service"
+          dotnet build "$runtime/people-service/PeopleService.WebApi/PeopleService.WebApi.csproj" -c Release --disable-build-servers
+          python scripts/security-lab/verify_people_security.py --runtime-dir "$runtime" --output "$runtime/people-result.json"

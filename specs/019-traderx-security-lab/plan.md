@@ -149,3 +149,19 @@ sessions/revocation, people-service authorization and matcher identity/TLS, then
 serve and validate the combined frontend/API/worker candidate before rollout.
 No screen sharing, local dependency/image installation, Citrix change, Main merge
 or generated-state publication occurred.
+
+## Phase one/two parallel execution — 26 November
+
+User-authorized isolated agent worktrees own broker/session transport (05a),
+authenticated trading acceptance (04d), and integrated deployment composition
+(06a). The integration owner handles the operator-only directory (04c4), shared
+workflow/status, review and hosted validation. Each track adds a contract and
+tests before integration. GitHub jobs use separate runner filesystems; generation
+within each job remains sequential. No local container/Java/npm downloads or
+screen sharing is required, and Citrix stays untouched.
+
+Phase one closes only after the combined supported login/order/cancel/settlement
+and application-update journey passes with intended denials. Phase two closes
+only after that same journey runs with all advertised deployment controls.
+Offline compiler tests, component candidates and missing image/identity inputs
+must not be relabeled as either completion gate.

@@ -29,13 +29,14 @@ from verify_identity import LoginForm, NoRedirect
 
 
 @contextmanager
-def provider(runtime, private):
+def provider(runtime, private, configure=None):
     """One owned provider, native platform, no inherited local-lab lifecycle."""
     docker=portability.docker(runtime);run_id=uuid.uuid4().hex
     name='traderx-browser-identity-'+run_id[:12];label='traderx.security-lab.browser='+run_id
     mount=private/'provider';mount.mkdir();mount.chmod(0o755)
     passwords={name:secrets.token_urlsafe(32) for name in SUBJECTS}
     config=realm(passwords);config['clients'][0]['redirectUris']=[CALLBACK]
+    if configure is not None:configure(config)
     (mount/'realm.json').write_text(json.dumps(config))
     subprocess.run(['openssl','req','-x509','-newkey','rsa:2048','-nodes',
         '-keyout',str(mount/'key.pem'),'-out',str(mount/'cert.pem'),'-days','1',
