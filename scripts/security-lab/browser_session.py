@@ -13,7 +13,7 @@ import time
 import urllib.parse
 import urllib.request
 import urllib.error
-from identity_fixture import ISSUER, CLIENT, TokenVerifier
+from identity_fixture import ISSUER, CLIENT, AUDIENCE, TokenVerifier
 from verify_account_authorization import request as api_request
 from browser_api import BoundaryError, MAX_BODY, json_body, route
 
@@ -38,17 +38,36 @@ class Store:
         self.prune();return self.sessions.get(key)
 
 class BrowserServer:
-    def __init__(self,cert,key,context,jwks,api_proxy=None,broker_events=None):
-        self.store=Store();self.access=TokenVerifier(jwks);self.identity=TokenVerifier(jwks,audience=CLIENT);self.context=context
+    def __init__(self,cert,key,context,jwks,api_proxy=None,broker_events=None,*,
+                 origin=ORIGIN,issuer=ISSUER,client_id=CLIENT,audience=AUDIENCE,
+                 listen_host='127.0.0.1',listen_port=18447,assets=None,configured=False):
+        public=urllib.parse.urlsplit(origin)
+        authority=urllib.parse.urlsplit(issuer)
+        if public.scheme!='https' or not public.hostname or public.username or public.password or public.path or public.query or public.fragment:
+            raise ValueError('HTTPS browser origin required')
+        if authority.scheme!='https' or not authority.hostname or authority.username or authority.password or authority.query or authority.fragment or issuer.endswith('/'):
+            raise ValueError('HTTPS issuer required')
+        if listen_host not in ('127.0.0.1','0.0.0.0') or type(listen_port) is not int or not 1<=listen_port<=65535:
+            raise ValueError('Explicit listener required')
+        if not re.fullmatch(r'[A-Za-z0-9_.-]{1,128}',client_id) or not isinstance(audience,str) or not audience or len(audience)>128:
+            raise ValueError('Explicit client and audience required')
+        if not context.check_hostname or context.verify_mode!=ssl.CERT_REQUIRED:raise ValueError('Verified provider TLS required')
+        self.origin,self.issuer,self.client_id,self.audience=origin,issuer,client_id,audience
+        self.host=public.netloc;self.callback=origin+'/callback';self.assets=assets;self.configured=configured
+        self.store=Store();self.access=TokenVerifier(jwks,issuer=issuer,audience=audience)
+        self.identity=TokenVerifier(jwks,issuer=issuer,audience=client_id);self.context=context
+        self.approved_keys=self.key_fingerprint(self.access);self.trust_failed=False;self.thread=None;self.closed=False
         self.api_proxy=api_proxy
         self.broker_events=broker_events
         owner=self
         class Handler(BaseHTTPRequestHandler):
             def log_message(self,*args):pass
             def reply(self,status,value='',cookie=None,location=None,kind='application/json'):
-                data=b'' if status==204 else (json.dumps(value) if kind=='application/json' else value).encode()
+                data=b'' if status==204 else (json.dumps(value).encode() if kind=='application/json' else value if isinstance(value,bytes) else value.encode())
                 self.send_response(status)
-                for k,v in {'Content-Type':kind,'Content-Length':str(len(data)),'Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"}.items():self.send_header(k,v)
+                from browser_assets import CSP
+                policy=CSP if owner.configured else "default-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
+                for k,v in {'Content-Type':kind,'Content-Length':str(len(data)),'Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff','Content-Security-Policy':policy}.items():self.send_header(k,v)
                 if cookie:self.send_header('Set-Cookie',cookie)
                 if location:self.send_header('Location',location)
                 self.end_headers();self.wfile.write(data)
@@ -58,10 +77,14 @@ class BrowserServer:
             def do_GET(self):self.dispatch()
             def do_POST(self):self.dispatch()
             def dispatch(self):
-                if self.headers.get('Host')!='localhost:18447':return self.reply(400,'Invalid host')
+                if self.headers.get_all('Host',[])!=[owner.host]:return self.reply(400,'Invalid host')
                 with owner.store.lock:
                     owner.store.prune()
                     path=urllib.parse.urlsplit(self.path).path
+                    if owner.configured and self.command=='GET' and self.path in ('/health/live','/health/ready'):
+                        ready=owner.trust_ready() and (owner.broker_events is None or owner.broker_events.ready())
+                        status=200 if self.path=='/health/live' or ready else 503
+                        return self.reply(status,{'status':'ok' if status==200 else 'unavailable'})
                     session=owner.store.session(self.cookie(SESSION))
                     if session:
                         try:owner.access.verify(session['token'])
@@ -86,13 +109,14 @@ class BrowserServer:
                             if error.status==403:owner.store.sessions.pop(self.cookie(SESSION),None)
                             return self.reply(error.status,str(error))
                         except ValueError:return self.reply(400,'Invalid notification query')
-                    if owner.api_proxy and path.startswith('/api/') and not re.fullmatch(r'/api/(account|accountuser)/(\d+)?',path):
+                    if path.startswith('/api/') and (owner.configured or (owner.api_proxy and not re.fullmatch(r'/api/(account|accountuser)/(\d+)?',path))):
                         if not session:return self.reply(401,'Sign in required')
                         try:
                             selected=route(self.command,self.path)
+                            if owner.api_proxy is None:raise BoundaryError(503,'API not configured')
                             body=None
                             if self.command=='POST':
-                                if self.headers.get('Origin')!=ORIGIN or not secrets.compare_digest(self.headers.get('X-CSRF-Token',''),session['csrf']):return self.reply(403,'CSRF check failed')
+                                if self.headers.get('Origin')!=owner.origin or not secrets.compare_digest(self.headers.get('X-CSRF-Token',''),session['csrf']):return self.reply(403,'CSRF check failed')
                                 lengths=self.headers.get_all('Content-Length',[])
                                 if self.headers.get('Transfer-Encoding') or len(lengths)!=1 or not re.fullmatch(r'[0-9]+',lengths[0]):raise BoundaryError(400,'Invalid request framing')
                                 length=int(lengths[0])
@@ -110,27 +134,36 @@ class BrowserServer:
                     if self.command=='POST':
                         if path not in ('/logout','/switch'):return self.reply(405,'Unsupported method')
                         if not session:return self.reply(401,'Sign in required')
-                        if self.headers.get('Origin')!=ORIGIN or not secrets.compare_digest(self.headers.get('X-CSRF-Token',''),session['csrf']):return self.reply(403,'CSRF check failed')
+                        if self.headers.get('Origin')!=owner.origin or not secrets.compare_digest(self.headers.get('X-CSRF-Token',''),session['csrf']):return self.reply(403,'CSRF check failed')
                         del owner.store.sessions[self.cookie(SESSION)]
-                        return self.reply(200,{'redirect':owner.switch_url()} if path=='/switch' else 'Signed out',cookie=owner.cookie(SESSION,'',0))
-                    if path=='/':return self.reply(200,PAGE,kind='text/html; charset=utf-8')
-                    if path=='/app.js':return self.reply(200,JS,kind='text/javascript')
-                    if path=='/traderx-logo.svg':return self.reply(200,(Path(__file__).resolve().parents[2]/'website/static/img/traderX/TraderX_Horizontal.svg').read_text(),kind='image/svg+xml')
-                    if path=='/style.css':return self.reply(200,CSS,kind='text/css')
+                        return self.reply(200,{'redirect':owner.switch_url(owner.origin,owner.issuer,owner.client_id)} if path=='/switch' else 'Signed out',cookie=owner.cookie(SESSION,'',0))
+                    if owner.assets:
+                        asset=owner.assets.get(self.path)
+                        if asset:return self.reply(200,asset[0],kind=asset[1])
+                    if not owner.configured:
+                        if path=='/':return self.reply(200,PAGE,kind='text/html; charset=utf-8')
+                        if path=='/app.js':return self.reply(200,JS,kind='text/javascript')
+                        if path=='/traderx-logo.svg':return self.reply(200,(Path(__file__).resolve().parents[2]/'website/static/img/traderX/TraderX_Horizontal.svg').read_text(),kind='image/svg+xml')
+                        if path=='/style.css':return self.reply(200,CSS,kind='text/css')
                     if path=='/login':
+                        if not owner.trust_ready():return self.reply(503,'Identity trust unavailable')
                         if len(owner.store.pending)>=100:return self.reply(429,'Too many pending logins')
                         transaction=secrets.token_urlsafe(32);state=secrets.token_urlsafe(32);nonce=secrets.token_urlsafe(32);verifier=secrets.token_urlsafe(48)
                         owner.store.pending[transaction]=dict(state=state,nonce=nonce,verifier=verifier,until=time.time()+120)
                         challenge=base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).decode().rstrip('=')
-                        query=urllib.parse.urlencode(dict(client_id=CLIENT,redirect_uri=CALLBACK,response_type='code',scope='openid',prompt='login',state=state,nonce=nonce,code_challenge=challenge,code_challenge_method='S256'))
-                        return self.reply(302,'',cookie=owner.cookie(TRANSACTION,transaction,120),location=ISSUER+'/protocol/openid-connect/auth?'+query)
+                        query=urllib.parse.urlencode(dict(client_id=owner.client_id,redirect_uri=owner.callback,response_type='code',scope='openid',prompt='login',state=state,nonce=nonce,code_challenge=challenge,code_challenge_method='S256'))
+                        return self.reply(302,'',cookie=owner.cookie(TRANSACTION,transaction,120),location=owner.issuer+'/protocol/openid-connect/auth?'+query)
                     if path=='/callback':
                         pending=owner.store.pending.pop(self.cookie(TRANSACTION),None);query=urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query)
                         if not pending or len(query.get('state',[]))!=1 or not secrets.compare_digest(query['state'][0],pending['state']) or len(query.get('code',[]))!=1:return self.reply(400,'Invalid login transaction')
                         try:
-                            body=urllib.parse.urlencode(dict(grant_type='authorization_code',client_id=CLIENT,redirect_uri=CALLBACK,code=query['code'][0],code_verifier=pending['verifier'])).encode()
-                            opener=urllib.request.build_opener(urllib.request.ProxyHandler({}),urllib.request.HTTPSHandler(context=owner.context))
-                            with opener.open(ISSUER+'/protocol/openid-connect/token',data=body,timeout=10) as response:tokens=json.load(response)
+                            body=urllib.parse.urlencode(dict(grant_type='authorization_code',client_id=owner.client_id,redirect_uri=owner.callback,code=query['code'][0],code_verifier=pending['verifier'])).encode()
+                            from browser_api import NoRedirect
+                            opener=urllib.request.build_opener(urllib.request.ProxyHandler({}),urllib.request.HTTPSHandler(context=owner.context),NoRedirect())
+                            with opener.open(owner.issuer+'/protocol/openid-connect/token',data=body,timeout=10) as response:
+                                raw=response.read(65537)
+                                if len(raw)>65536:raise ValueError('Token response too large')
+                                tokens=json.loads(raw)
                             access=owner.access.verify(tokens['access_token']);identity=owner.identity.verify(tokens['id_token'])
                             if identity.get('nonce')!=pending['nonce'] or identity['sub']!=access['sub']:raise ValueError('Invalid identity')
                             if len(owner.store.sessions)>=100:raise ValueError('Session capacity')
@@ -140,19 +173,45 @@ class BrowserServer:
                             owner.store.sessions[sid]=dict(token=tokens['access_token'],subject=access['sub'],csrf=secrets.token_urlsafe(32),until=until)
                             return self.reply(302,'',cookie=owner.cookie(SESSION,sid,max(0,int(until-time.time()))),location='/')
                         except Exception:return self.reply(401,'Login could not be verified')
+                    if owner.configured and path!='/session':return self.reply(404,'Not found')
                     if not session:return self.reply(401,'Sign in required')
                     if path=='/session':return self.reply(200,dict(subject=session['subject'],csrf=session['csrf'],expiresAt=session['until']))
-                    if re.fullmatch(r'/api/(account|accountuser)/(\d+)?',path):
+                    if not owner.configured and re.fullmatch(r'/api/(account|accountuser)/(\d+)?',path):
                         try:status,data=api_request('GET',path[4:],session['token']);return self.reply(status,data)
                         except OSError:return self.reply(503,'Account API unavailable')
                     return self.reply(404,'Not found')
-        self.server=ThreadingHTTPServer(('127.0.0.1',18447),Handler)
         tls=ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER);tls.minimum_version=ssl.TLSVersion.TLSv1_2;tls.load_cert_chain(cert,key)
+        self.server=ThreadingHTTPServer((listen_host,listen_port),Handler)
         self.server.socket=tls.wrap_socket(self.server.socket,server_side=True)
     @staticmethod
-    def switch_url():
-        return ISSUER+'/protocol/openid-connect/logout?'+urllib.parse.urlencode(dict(client_id=CLIENT,post_logout_redirect_uri=ORIGIN+'/'))
+    def switch_url(origin=ORIGIN,issuer=ISSUER,client_id=CLIENT):
+        return issuer+'/protocol/openid-connect/logout?'+urllib.parse.urlencode(dict(client_id=client_id,post_logout_redirect_uri=origin+'/'))
     @staticmethod
     def cookie(name,value,age):return f'{name}={value}; Path=/; Max-Age={age}; Secure; HttpOnly; SameSite=Lax'
     def start(self):self.thread=threading.Thread(target=self.server.serve_forever,daemon=True);self.thread.start();return self
-    def close(self):self.server.shutdown();self.server.server_close();self.thread.join()
+    @staticmethod
+    def key_fingerprint(verifier):
+        from cryptography.hazmat.primitives import serialization
+        result=[]
+        for kid,key in verifier.keys.items():
+            if not isinstance(kid,str) or not kid or len(kid)>128 or key.key_size<2048:raise ValueError('Invalid signing key')
+            result.append((kid,hashlib.sha256(key.public_bytes(serialization.Encoding.DER,serialization.PublicFormat.SubjectPublicKeyInfo)).hexdigest()))
+        return tuple(sorted(result))
+    def trust_ready(self):return not self.trust_failed and self.access.clock()-self.access.loaded<300
+    def invalidate_trust(self):
+        with self.store.lock:
+            self.trust_failed=True;self.access.loaded=float('-inf');self.identity.loaded=float('-inf')
+            self.store.sessions.clear();self.store.pending.clear()
+    def refresh_trust(self,jwks):
+        access=TokenVerifier(jwks,issuer=self.issuer,audience=self.audience)
+        identity=TokenVerifier(jwks,issuer=self.issuer,audience=self.client_id)
+        with self.store.lock:
+            if self.trust_failed or self.key_fingerprint(access)!=self.approved_keys:
+                self.invalidate_trust();raise ValueError('Signing key set changed; restart required')
+            self.access,self.identity=access,identity
+    def close(self):
+        if self.closed:return
+        self.closed=True
+        if self.thread:self.server.shutdown()
+        self.server.server_close()
+        if self.thread:self.thread.join(timeout=5)
