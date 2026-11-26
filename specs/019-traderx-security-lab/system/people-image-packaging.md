@@ -67,6 +67,10 @@ Tracked paths and symlinks use bounded descendant indexes; whiteouts and
 replacements remove only indexed subtrees rather than scanning unrelated paths.
 Each index permits at most 200,000 paths and one million ancestor references;
 OCI entry and hardlink paths are limited to 4,096 characters and 256 components.
+Both indexes and the current layer's recorded path/link names share a
+conservative 32 MiB aggregate budget for their UTF-8 bytes; duplicate ancestor
+strings are counted again. Hardlinks involving the application tree, .NET runtime tree, or tracked
+Python executable paths are refused, including symlink-mediated aliases.
 Each `rootfs.diff_ids` value is checked against the entire uncompressed tar
 stream, including trailing blocks, with bounded decompression for gzip layers.
 It also checks the fixed .NET host
