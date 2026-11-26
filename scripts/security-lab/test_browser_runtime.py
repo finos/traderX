@@ -1,5 +1,6 @@
 import datetime
 import http.client
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
 from pathlib import Path
@@ -19,6 +20,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
 
 from browser_assets import PublicAssets
+from browser_api import ApiProxy
 from browser_runtime import broker_policy, load_config, serve
 from browser_session import BrowserServer, SESSION, ORIGIN
 from test_browser_assets import assets
@@ -193,6 +195,48 @@ class RuntimeTests(unittest.TestCase):
                 self.assertEqual(self.request('/health/live')[0],200)
             finally:
                 for client in clients:client.close()
+
+    def test_slow_verified_upstream_does_not_block_health_session_or_revocation(self):
+        entered=threading.Event();release=threading.Event();results=[]
+        class Upstream(BaseHTTPRequestHandler):
+            def log_message(self,*_):pass
+            def do_GET(self):
+                entered.set()
+                if not release.wait(3):self.send_error(503);return
+                data=b'[]';self.send_response(200)
+                self.send_header('Content-Type','application/json');self.send_header('Content-Length',str(len(data)))
+                self.end_headers();self.wfile.write(data)
+        upstream=ThreadingHTTPServer(('127.0.0.1',0),Upstream)
+        tls=ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER);tls.load_cert_chain(self.cert,self.key)
+        upstream.socket=tls.wrap_socket(upstream.socket,server_side=True)
+        serving=threading.Thread(target=upstream.serve_forever,daemon=True);serving.start()
+        worker=None
+        try:
+            server=self.start();headers=self.session(server)
+            server.api_proxy=ApiProxy({'order-matcher':f'https://localhost:{upstream.server_port}'},self.context)
+            def slow_request():
+                try:results.append(self.request('/api/order-matcher/orders',headers)[0])
+                except Exception as error:results.append(type(error).__name__)
+            worker=threading.Thread(target=slow_request);worker.start()
+            self.assertTrue(entered.wait(1))
+            started=time.monotonic()
+            self.assertEqual(self.request('/health/live')[0],200)
+            self.assertEqual(self.request('/session',headers)[0],200)
+            self.assertLess(time.monotonic()-started,1)
+            client=http.client.HTTPSConnection('localhost',self.port,context=self.context,timeout=1)
+            try:
+                client.request('POST','/logout',headers={**headers,'Origin':self.config['origin'],'X-CSRF-Token':'private-csrf'})
+                response=client.getresponse();self.assertEqual(response.status,200);response.read()
+            finally:client.close()
+            self.assertEqual(self.request('/session',headers)[0],401)
+            self.assertEqual(self.request('/api/order-matcher/orders',headers)[0],401)
+            release.set();worker.join(2)
+            self.assertFalse(worker.is_alive())
+            self.assertEqual(results,[200])  # Authorized in-flight operation may complete.
+        finally:
+            release.set()
+            if worker:worker.join(4)
+            upstream.shutdown();upstream.server_close();serving.join(2)
 
     def test_runtime_shutdown_closes_broker_and_listener(self):
         self.config['broker']=dict(endpoint='tls://broker.example.test:4222',ca_file=str(self.cert),
