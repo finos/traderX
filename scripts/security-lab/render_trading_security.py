@@ -13,6 +13,7 @@ SERVICES={'trade-service':'finos.traderx.tradeservice','order-matcher':'finos.tr
 
 
 def matcher(source):
+    source=replace_once(source,'            orderPublisher.publish(ALL_ORDERS_TOPIC, order);\n','')
     source=replace_once(source,'    private final OrderRepository orderRepository;',
         '''    private final finos.traderx.ordermatcher.security.AcceptedOrderAuthority acceptedAuthority;
     private final finos.traderx.ordermatcher.security.TradingAccess tradingAccess;
@@ -194,6 +195,7 @@ def render(target,service):
     if service=='trade-processor':
         (dest/'ExecutionController.java').write_text((OVERLAY/'ExecutionController.java').read_text().replace('__PACKAGE__',SERVICES[service]))
     if service=='order-matcher':
+        (dest/'BrokerConnection.java').write_text((OVERLAY/'BrokerConnection.java').read_text().replace('__PACKAGE__',SERVICES[service]))
         (dest/'MatcherExecution.java').write_text((OVERLAY/'MatcherExecution.java').read_text().replace('__PACKAGE__',SERVICES[service]))
         (dest/'ServiceTokenClient.java').write_text((OVERLAY/'ServiceTokenClient.java').read_text().replace('__PACKAGE__',SERVICES[service]))
         (dest/'AcceptedOrderAuthority.java').write_text((OVERLAY/'AcceptedOrderAuthority.java').read_text().replace('__PACKAGE__',SERVICES[service]))
@@ -214,6 +216,44 @@ def render(target,service):
     @PrePersist'''))
         service_path=package/'service/OrderMatcherService.java'
         service_path.write_text(matcher(service_path.read_text()))
+        pricing=package/'service/PricingNatsSubscriberService.java'
+        source=pricing.read_text()
+        source=replace_once(source,'    private final String natsAddress;', '''    private final String natsAddress;
+    private final String brokerUsername;
+    private final String brokerSecretFile;''')
+        source=replace_once(source,'String natsAddress\n    )', '''String natsAddress,
+        @Value("${lab.broker.username}") String brokerUsername,
+        @Value("${lab.broker.secret-file}") String brokerSecretFile
+    )''')
+        source=replace_once(source,'        this.natsAddress = natsAddress;', '''        this.natsAddress = natsAddress;
+        this.brokerUsername = brokerUsername;
+        this.brokerSecretFile = brokerSecretFile;''')
+        start=source.index('        Options options = new Options.Builder()')
+        end=source.index('        dispatcher = connection.createDispatcher',start)
+        source=source[:start]+'''        connection = finos.traderx.ordermatcher.security.BrokerConnection.connect(natsAddress,brokerUsername,brokerSecretFile);
+'''+source[end:]
+        pricing.write_text(source)
+        config=package/'config/PubSubConfig.java';source=config.read_text()
+        source=replace_once(source,'String natsAddress\n    )', '''String natsAddress,
+        @Value("${lab.broker.username}") String username,
+        @Value("${lab.broker.secret-file}") String secretFile
+    )''')
+        source=replace_once(source,'        publisher.setServerAddress(natsAddress);', '''        publisher.setServerAddress(natsAddress);
+        publisher.setBrokerCredentials(username,secretFile);''')
+        config.write_text(source)
+        publisher=target/'src/main/java/finos/traderx/messaging/nats/NatsJSONPublisher.java'
+        source=publisher.read_text()
+        source=replace_once(source,'  private boolean connected = false;', '''  private String brokerUsername;
+  private String brokerSecretFile;
+  public void setBrokerCredentials(String username,String secretFile) {
+    this.brokerUsername=username;this.brokerSecretFile=secretFile;
+  }
+  private boolean connected = false;''')
+        start=source.index('      Options options = new Options.Builder()')
+        end=source.index('      connected = true;',start)
+        source=source[:start]+'''      connection = finos.traderx.ordermatcher.security.BrokerConnection.connect(serverAddress,brokerUsername,brokerSecretFile);
+'''+source[end:]
+        publisher.write_text(source)
     tests=target/'src/test/java'/SERVICES[service].replace('.','/')/'security';tests.mkdir(parents=True,exist_ok=True)
     for source in (OVERLAY/'tests').glob('*.java'):
         if service=='trade-processor' and source.name not in ('SecurityTestSupport.java','ProcessorApiSecurityTest.java'):continue
@@ -227,7 +267,7 @@ def render(target,service):
             '@org.springframework.test.context.ContextConfiguration(initializers=finos.traderx.ordermatcher.security.SecurityTestSupport.Trust.class)\n@SpringBootTest(properties = {'))
     build=target/'build.gradle';build.write_text(replace_once(build.read_text(),'dependencies {',"dependencies {\n  implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'\n  testImplementation 'org.springframework.security:spring-security-test'"))
     inputs=[Path(__file__).resolve(),PROFILE/'baseline.lock.json',ROOT/'scripts/security-lab/render_account_security.py',PROFILE/'generation/account-security/AccountSecurity.java',*sorted(OVERLAY.rglob('*.java'))]
-    manifest={'scope':'Direct API candidate only; background execution and deployed UI cutover not accepted','service':service,'generated_commit':commit,'source_commit':baseline['canonical_source_commit'],
+    manifest={'scope':'Authenticated API/execution source candidate; deployed UI cutover not accepted','service':service,'generated_commit':commit,'source_commit':baseline['canonical_source_commit'],
         'inputs':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in inputs},
         'files':{str(p.relative_to(target)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(target.rglob('*')) if p.is_file()}}
     (target/'security-generation.json').write_text(json.dumps(manifest,indent=2)+'\n')
