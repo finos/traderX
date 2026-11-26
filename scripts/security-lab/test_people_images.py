@@ -1,5 +1,6 @@
 """Synthetic unit tests; these do not constitute a real .NET or image run."""
 import io
+import gzip
 import json
 from pathlib import Path
 import struct
@@ -125,19 +126,22 @@ class PeopleImageTests(unittest.TestCase):
         (layout / 'oci-layout').write_bytes(compiler.encoded({'imageLayoutVersion': '1.0.0'}))
         return layout
 
-    def add_layer(self, layout, members):
+    def add_layer(self, layout, members, *, compressed=False, wrong_diff=False):
         archive = io.BytesIO()
         with tarfile.open(fileobj=archive, mode='w') as tar:
             for entry in members:
                 member, data = entry if isinstance(entry, tuple) else (entry, b'x' * entry.size)
                 tar.addfile(member, io.BytesIO(data) if member.isfile() else None)
-        layer = admission_fixture.put(layout, archive.getvalue(), False)
-        layer['mediaType'] = 'application/vnd.oci.image.layer.v1.tar'
+        raw = archive.getvalue()
+        layer = admission_fixture.put(layout, gzip.compress(raw) if compressed else raw, False)
+        layer['mediaType'] = ('application/vnd.oci.image.layer.v1.tar+gzip' if compressed
+                              else 'application/vnd.oci.image.layer.v1.tar')
         index = compiler.read_json(layout / 'index.json')
         manifest = compiler.blob(layout, index['manifests'][0])
         config = compiler.blob(layout, manifest['config'])
         manifest['layers'].append(layer)
-        config['rootfs']['diff_ids'].append(layer['digest'])
+        # A digest omitting only trailing tar padding still must not validate.
+        config['rootfs']['diff_ids'].append('sha256:' + compiler.sha(raw[:-512] if wrong_diff else raw))
         config_descriptor = admission_fixture.put(layout, config)
         config_descriptor['mediaType'] = 'application/vnd.oci.image.config.v1+json'
         manifest['config'] = config_descriptor
@@ -150,6 +154,12 @@ class PeopleImageTests(unittest.TestCase):
     def member(name, size=0):
         member = tarfile.TarInfo(name)
         member.mode, member.size = 0o444, size
+        return member
+
+    @staticmethod
+    def symlink(name, target):
+        member = tarfile.TarInfo(name)
+        member.type, member.linkname, member.mode = tarfile.SYMTYPE, target, 0o777
         return member
 
     def test_context_is_explicit_and_private_interface_fixed(self):
@@ -276,6 +286,59 @@ class PeopleImageTests(unittest.TestCase):
             layout = self.layout()
             self.add_layer(layout, added)
             with self.assertRaises(ValueError):
+                self.inspect(layout)
+
+    def test_alias_ancestors_are_tracked_across_all_paths_and_layers(self):
+        for target in ('/opt/traderx', '/usr/share/dotnet', '/usr/local/bin'):
+            alias = self.symlink('untracked-alias', target)
+            layout = self.layout(extra=alias)
+            self.inspect(layout)  # A symlink alone, including Python's chain, is permitted.
+            self.add_layer(layout, [self.member('untracked-alias/injected', 1)])
+            with self.subTest(target=target), self.assertRaisesRegex(ValueError, 'symlink ancestor'):
+                self.inspect(layout)
+            for members in ([alias, self.member('untracked-alias/injected', 1)],
+                            [self.member('untracked-alias/injected', 1), alias]):
+                layout = self.layout()
+                self.add_layer(layout, members)
+                with self.assertRaisesRegex(ValueError, 'symlink ancestor'):
+                    self.inspect(layout)
+        for marker in ('untracked-alias/.wh.injection', 'untracked-alias/.wh..wh..opq'):
+            layout = self.layout(extra=self.symlink('untracked-alias', '/opt/traderx'))
+            self.add_layer(layout, [self.member(marker)])
+            with self.subTest(marker=marker), self.assertRaisesRegex(ValueError, 'symlink ancestor'):
+                self.inspect(layout)
+            layout = self.layout()
+            self.add_layer(layout, [self.member(marker), self.symlink('untracked-alias', '/opt/traderx')])
+            with self.assertRaisesRegex(ValueError, 'symlink ancestor'):
+                self.inspect(layout)
+
+    def test_whiteout_can_remove_alias_before_new_directory_entries(self):
+        for order in (False, True):
+            layout = self.layout(extra=self.symlink('untracked-alias', '/opt/traderx'))
+            directory = tarfile.TarInfo('untracked-alias')
+            directory.type, directory.mode = tarfile.DIRTYPE, 0o755
+            whiteout = self.member('.wh.untracked-alias')
+            additions = [directory, self.member('untracked-alias/unrelated', 1)]
+            self.add_layer(layout, additions + [whiteout] if order else [whiteout] + additions)
+            self.inspect(layout)
+
+    def test_hardlink_cannot_use_symlink_target_or_ancestor(self):
+        for target in ('untracked-alias', 'untracked-alias/people_runtime.py'):
+            hardlink = tarfile.TarInfo('unrelated-hardlink')
+            hardlink.type, hardlink.linkname = tarfile.LNKTYPE, target
+            test_layout = self.layout(extra=self.symlink('untracked-alias', '/opt/traderx'))
+            self.add_layer(test_layout, [hardlink])
+            with self.subTest(target=target), self.assertRaisesRegex(ValueError, 'hardlink traverses'):
+                self.inspect(test_layout)
+
+    def test_actual_uncompressed_layer_digest_for_tar_and_gzip(self):
+        for compressed in (False, True):
+            layout = self.layout()
+            self.add_layer(layout, [self.member('unrelated', 1)], compressed=compressed)
+            self.inspect(layout)
+            layout = self.layout()
+            self.add_layer(layout, [self.member('unrelated', 1)], compressed=compressed, wrong_diff=True)
+            with self.subTest(compressed=compressed), self.assertRaisesRegex(ValueError, 'uncompressed layer digest'):
                 self.inspect(layout)
 
     def test_runtime_executables_and_ancestors_are_required_and_safe(self):
