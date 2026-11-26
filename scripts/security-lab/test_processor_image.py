@@ -70,6 +70,33 @@ class ProcessorImageTests(unittest.TestCase):
         self.assertEqual(set(value), {'trades', 'positions', 'execution_reservations', 'execution_receipts', 'execution_events'})
         self.assertTrue(all('md5(string_agg' in query for query in queries))
 
+    def test_correct_main_settlement_cannot_hide_unrelated_row_mutation_or_changed_reservation(self):
+        observation = {name: 1 for name in ('receipts', 'receiptMatches', 'tradeMatches', 'positionMatches', 'orderMatches')}
+        baseline = {name: '2|before-hash' for name in
+                    ('accounts', 'accountusers', 'trades', 'positions', 'orderbook', 'lab_execution.reservations')}
+        self.assertTrue(campaign.isolated_settlement(observation, baseline, dict(baseline)))
+        for table in baseline:
+            # The row count and every expected main effect remain correct. A
+            # changed unrelated row still changes its full-row fingerprint.
+            changed = dict(baseline, **{table: '2|after-hash'})
+            self.assertTrue(campaign.settled_once(observation))
+            self.assertFalse(campaign.isolated_settlement(observation, baseline, changed), table)
+        incomplete = dict(baseline); incomplete.pop('lab_execution.reservations')
+        self.assertFalse(campaign.isolated_settlement(observation, incomplete, incomplete))
+
+    def test_protected_snapshot_excludes_only_exact_authorized_business_rows(self):
+        execution = '00000000-0000-4000-8000-000000000001'
+        queries = []
+        value = campaign.protected_snapshot({'admin': lambda query: queries.append(query) or '0|empty'}, execution)
+        self.assertEqual(len(value), 6)
+        by_table = dict(zip(value, queries))
+        self.assertIn("WHERE id <> '"+execution+"'", by_table['trades'])
+        self.assertIn("WHERE NOT (accountid=62654 AND security='IBM')", by_table['positions'])
+        self.assertIn("WHERE orderid <> 'processor-image-main'", by_table['orderbook'])
+        for table in ('accounts', 'accountusers', 'lab_execution.reservations'):
+            self.assertNotIn('WHERE', by_table[table])
+        with self.assertRaises(ValueError): campaign.protected_snapshot({'admin': self.fail}, "invalid' OR true")
+
     def test_failure_never_copies_private_exceptions_or_unreviewed_check_names(self):
         for error in (RuntimeError('private-password'), campaign.Failure('private-password')):
             result = campaign.failure(error)

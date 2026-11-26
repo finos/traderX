@@ -47,6 +47,7 @@ CHECKS = frozenset(('immutable_processor_image_revalidated', 'scoped_matcher_res
     'untrusted_https_ca_rejected', 'mismatched_https_hostname_rejected', 'anonymous_execution_denied',
     'body_override_denied', 'invalid_execution_identifier_denied', 'unknown_execution_denied', 'execution_get_denied',
     'correct_matcher_receives_execution_receipt', 'one_authoritative_trade_position_and_receipt',
+    'settlement_preserves_unrelated_business_rows_and_all_reservations',
     'two_committed_account_outbox_events', 'unrelated_reserved_order_remains_untouched', 'duplicate_execution_is_idempotent',
     'same_immutable_processor_restarts_and_replays_idempotently', 'all_runtime_sql_connections_encrypted',
     'processor_sql_identity_nonadministrative', 'owned_processor_image_fixture_cleaned')) | frozenset(
@@ -117,6 +118,28 @@ def snapshot(f):
     for table in ('reservations', 'receipts', 'events'):
         result['execution_'+table] = f['admin']("SELECT count(*),coalesce(md5(string_agg(x::text,'' ORDER BY x::text)),'empty') FROM (SELECT to_jsonb(t) x FROM lab_execution."+table+' t) s;')
     return result
+
+
+def protected_snapshot(f, execution):
+    """Only the one reserved trade, position and order may change on settlement."""
+    if str(uuid.UUID(execution)) != execution:
+        raise ValueError('Canonical execution identifier required')
+    predicates = {'accounts': '', 'accountusers': '',
+                  'trades': f" WHERE id <> '{execution}'",
+                  'positions': " WHERE NOT (accountid=62654 AND security='IBM')",
+                  'orderbook': " WHERE orderid <> 'processor-image-main'",
+                  'lab_execution.reservations': ''}
+    result = {}
+    for table, predicate in predicates.items():
+        result[table] = f['admin']("SELECT count(*),coalesce(md5(string_agg(x::text,'' ORDER BY x::text)),'empty') "
+                                  'FROM (SELECT to_jsonb(t) x FROM '+table+' t'+predicate+') s;')
+    return result
+
+
+def isolated_settlement(observation, protected_before, protected_after):
+    required = {'accounts', 'accountusers', 'trades', 'positions', 'orderbook', 'lab_execution.reservations'}
+    return (settled_once(observation) and set(protected_before) == required and
+            set(protected_after) == required and protected_before == protected_after)
 
 
 def reservation_fixture(f):
@@ -234,11 +257,14 @@ def campaign(runtime, manifest):
                 for name, route in LEGACY.items(): deny(name, 403, valid, route=route)
                 deny('execution_get', 403, valid, method='GET')
                 phase('settlement')
+                protected_before = protected_snapshot(f, ids['main'])
                 status, raw = app.request(context, path, bearer=valid, method='POST')
                 receipt = {'executionId': ids['main'], 'tradeId': ids['main']}
                 check(status == 200 and json.loads(raw) == receipt, 'correct_matcher_receives_execution_receipt')
                 observation = settlement_observation(f, ids['main'])
                 check(settled_once(observation), 'one_authoritative_trade_position_and_receipt')
+                check(isolated_settlement(observation, protected_before, protected_snapshot(f, ids['main'])),
+                      'settlement_preserves_unrelated_business_rows_and_all_reservations')
                 check(outbox_matches(observation['events'], ids['main']), 'two_committed_account_outbox_events')
                 check(f['admin']("SELECT remainingquantity||'|'||status FROM orderbook WHERE orderid='processor-image-canary';") == '1|NEW' and
                       f['admin'](f"SELECT count(*) FROM lab_execution.receipts WHERE execution_id='{ids['canary']}';") == '0', 'unrelated_reserved_order_remains_untouched')
