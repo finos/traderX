@@ -13,7 +13,7 @@ independent trading, broker/UI and deployment work; all heavy execution ran in
 GitHub. No new Copilot or Codex Cloud worker is claimed.
 
 The [Python image checkpoint](evidence/2026-11-26-python-runtime-images.json)
-closes S019-06a3a at `ebbbeb1c`: three actual OCI images build and sixteen hosted
+closes S019-06a3a, revalidated at `ea8af46f`: three actual OCI images build and sixteen hosted
 startup/configuration checks pass. Browser HTTPS, compiled assets, private mounts
 and restricted execution are verified; worker images reject mismatched roles.
 The runner uses verified TLS directly to its owned internal container address
