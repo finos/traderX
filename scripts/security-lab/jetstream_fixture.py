@@ -49,7 +49,7 @@ def permissions():
 
 
 @contextmanager
-def broker(runtime):
+def broker(runtime, extra_permissions=None):
     cli=docker(runtime);run_id=uuid.uuid4().hex;name='traderx-events-'+run_id[:12]
     arch,image=image_for_arch(command(cli+['info','--format','{{.Architecture}}']))
     user=broker_user()
@@ -58,7 +58,19 @@ def broker(runtime):
         private=Path(temp);config_dir=private/'config';data_dir=private/'data'
         config_dir.mkdir(mode=0o755);config_dir.chmod(0o755)
         data_dir.mkdir(mode=0o777);data_dir.chmod(0o777)
-        passwords={name:secrets.token_hex(24) for name in permissions()}
+        rules=permissions()
+        if extra_permissions:
+            import re
+            for identity, policy in extra_permissions.items():
+                if identity in rules or not re.fullmatch(r'[a-z][a-z0-9_-]{0,40}',identity):
+                    raise ValueError('Duplicate or invalid fixture identity')
+                if not isinstance(policy,dict) or set(policy)!={'publish','subscribe'}:
+                    raise ValueError('Explicit fixture publish/subscribe policy required')
+                for value in policy.values():
+                    if not isinstance(value,dict) or set(value)!={'allow'} or not isinstance(value['allow'],list) or any(not isinstance(x,str) or not x or len(x)>160 for x in value['allow']):
+                        raise ValueError('Invalid fixture subject policy')
+                rules[identity]=policy
+        passwords={name:secrets.token_hex(24) for name in rules}
         certificate=config_dir/'cert.pem';key=config_dir/'key.pem'
         subprocess.run(['openssl','req','-x509','-newkey','rsa:2048','-nodes','-keyout',str(key),'-out',str(certificate),
           '-days','1','-subj','/CN=localhost','-addext','subjectAltName=DNS:localhost,IP:127.0.0.1'],capture_output=True,check=True,timeout=30)
@@ -66,7 +78,7 @@ def broker(runtime):
         config={'port':4222,'max_payload':8192,'max_connections':16,
           'jetstream':{'store_dir':'/store','max_memory_store':8388608,'max_file_store':16777216},
           'tls':{'cert_file':'/lab/cert.pem','key_file':'/lab/key.pem','handshake_first':True,'timeout':3},
-          'authorization':{'users':[{'user':user,'password':passwords[user],'permissions':rules} for user,rules in permissions().items()]}}
+          'authorization':{'users':[{'user':user,'password':passwords[user],'permissions':policy} for user,policy in rules.items()]}}
         (config_dir/'nats.json').write_text(json.dumps(config));(config_dir/'nats.json').chmod(0o644)
         def owned():
             value=command(cli+['inspect','--format','{{index .Config.Labels "'+label+'"}}',name])
