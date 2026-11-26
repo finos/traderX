@@ -32,10 +32,11 @@ def route(method, target):
             ('account-service', r'/account(?:user)?/(?:[1-9][0-9]*)?'),
             ('position-service', r'/(?:positions|trades)/(?:[1-9][0-9]*)?'),
             ('order-matcher', r'/orders(?:\?accountId=[1-9][0-9]*|/[A-Za-z0-9-]{1,128})?'),
+            ('reference-data', r'/stocks'),
+            ('price-publisher', r'/prices(?:/[A-Z0-9][A-Z0-9._-]{0,15})?'),
         ),
         'POST': (
             ('order-matcher', r'/orders(?:/[A-Za-z0-9-]{1,128}/cancel)?'),
-            ('trade-service', r'/trade/'),
         ),
     }
     for service, pattern in patterns.get(method, ()):
@@ -82,7 +83,7 @@ class ApiProxy:
     def __init__(self, backends, context=None, *, loopback_fixture=False):
         self.backends = dict(backends)
         for service, origin in self.backends.items():
-            if service not in {'account-service', 'position-service', 'order-matcher', 'trade-service'}:
+            if service not in {'account-service', 'position-service', 'order-matcher', 'reference-data', 'price-publisher'}:
                 raise ValueError('Unapproved backend service')
             parsed = urllib.parse.urlsplit(origin)
             if (not parsed.hostname or parsed.username or parsed.password or parsed.path or

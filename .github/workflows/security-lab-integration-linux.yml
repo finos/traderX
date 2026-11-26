@@ -48,6 +48,9 @@ jobs:
           python -m unittest discover -s scripts/security-lab -p 'test_browser_session.py'
           python -m unittest discover -s scripts/security-lab -p 'test_browser_broker.py'
           python -m unittest discover -s scripts/security-lab -p 'test_authenticated_trading.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_order_consumers.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_integrated_deployment.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_private_materializer.py'
       - name: Build candidates and exercise HTTP to PostgreSQL
         shell: bash
         env:
@@ -62,14 +65,18 @@ jobs:
           python scripts/security-lab/render_read_security.py --output-dir "$runtime/position-service"
           (cd "$runtime/position-service" && bash gradlew --no-daemon --max-workers=1 '-Dorg.gradle.jvmargs=-Xmx384m -XX:MaxMetaspaceSize=256m' test bootJar)
           python scripts/security-lab/verify_browser_api.py --runtime-dir "$runtime" --output "$runtime/evidence/browser-api.json"
-          python scripts/security-lab/verify_browser_broker.py --runtime-dir "$runtime" --output "$runtime/evidence/browser-broker.json"
-          python scripts/security-lab/verify_authenticated_trading.py --runtime-dir "$runtime" --output "$runtime/evidence/authenticated-trading.json"
+          # Independent candidates share built artifacts, never live containers.
+          # A failure stays red but must not hide the other campaign's result.
+          candidate_failed=0
+          python scripts/security-lab/verify_browser_broker.py --runtime-dir "$runtime" --output "$runtime/evidence/browser-broker.json" || candidate_failed=1
+          python scripts/security-lab/verify_authenticated_trading.py --runtime-dir "$runtime" --output "$runtime/evidence/authenticated-trading.json" || candidate_failed=1
           python scripts/security-lab/verify_execution_http.py --runtime-dir "$runtime" --output "$runtime/evidence/http.json"
           python scripts/security-lab/verify_execution_events.py --runtime-dir "$runtime" --output "$runtime/evidence/events.json"
           python scripts/security-lab/verify_execution_adversarial.py --runtime-dir "$runtime" --output "$runtime/evidence/adversarial.json"
           python scripts/security-lab/verify_event_delivery.py --runtime-dir "$runtime" --output "$runtime/evidence/broker-delivery.json"
           python scripts/security-lab/verify_event_delivery_adversarial.py --runtime-dir "$runtime" --output "$runtime/evidence/broker-adversarial.json"
           python scripts/security-lab/verify_worker_process.py --runtime-dir "$runtime" --output "$runtime/evidence/worker-process.json"
+          test "$candidate_failed" = 0
   application-consumers:
     # Separate hosted runner and generated root; no shared generation targets.
     runs-on: ubuntu-latest

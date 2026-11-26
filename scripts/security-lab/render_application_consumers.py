@@ -7,6 +7,8 @@ from pathlib import Path
 import subprocess
 import tarfile
 from render_account_security import ROOT, PROFILE, replace_once
+from render_order_consumers import apply as apply_order_consumers
+from render_trading_ui import apply as apply_trading_ui
 
 OVERLAY = ROOT / 'specs/019-traderx-security-lab/generation/application-consumers'
 
@@ -85,10 +87,17 @@ def render(target):
                 dest=target/relative; dest.parent.mkdir(parents=True,exist_ok=True)
                 dest.write_bytes(archive.extractfile(member).read()); dest.chmod(member.mode & 0o777)
     app=target/'main/app'
+    angular=target/'angular.json';configuration=json.loads(angular.read_text())
+    configuration['projects']['main-application']['architect']['build']['configurations']['production']['optimization']={
+        'scripts':True,'styles':{'minify':True,'inlineCritical':False},'fonts':False}
+    angular.write_text(json.dumps(configuration,indent=2)+'\n')
+    index=target/'main/index.html';index.write_text(replace_once(index.read_text(),'<base href="." />','<base href="/" />'))
     for name in ('trade','position'):
         path=app/f'trade/{name}-blotter/{name}-blotter.component.ts'
         path.write_text(blotter(path.read_text(),name=='position'))
     path=app/'service/trade-feed.service.ts'; path.write_text(feed(path.read_text()))
+    apply_order_consumers(target)
+    apply_trading_ui(target)
     path=app/'app.module.ts'
     source="import { browserSessionInterceptor } from './security/browser-session';\n"+path.read_text()
     source=replace_once(source,'provideHttpClient, withInterceptorsFromDi,','provideHttpClient, withInterceptors, withInterceptorsFromDi,')
@@ -109,7 +118,7 @@ def render(target):
   </main>
   <ng-container *ngIf="state === 'signed-in'">
     <p>Signed in as {{ session.subject }} <button type="button" (click)="session.logout()">Sign out</button></p>
-    <p role="status">Authenticated API and account-scoped settlement notifications. Live market and order updates remain a separate integration checkpoint.</p>
+    <p role="status">Authenticated limit orders and account-scoped settlement notifications. Orders and quotes refresh through bounded HTTP snapshots.</p>
 '''+path.read_text()+'''
   </ng-container>
 </ng-container>
@@ -117,7 +126,9 @@ def render(target):
     dest=app/'security'; dest.mkdir(exist_ok=True)
     for path in OVERLAY.glob('*.ts'):
         if path.name != 'broker-feed.service.ts': (dest/path.name).write_bytes(path.read_bytes())
-    inputs=[Path(__file__).resolve(),ROOT/'scripts/security-lab/render_account_security.py',PROFILE/'baseline.lock.json',*sorted(OVERLAY.glob('*.ts'))]
+    inputs=[Path(__file__).resolve(),ROOT/'scripts/security-lab/render_account_security.py',
+        ROOT/'scripts/security-lab/render_order_consumers.py',ROOT/'scripts/security-lab/render_trading_ui.py',
+        PROFILE/'baseline.lock.json',*sorted(OVERLAY.glob('*.ts'))]
     manifest={'scope':'Cookie-session, mediated broker and snapshot consumer source candidate; cumulative deployment/trading remains pending',
         'generated_commit':baseline['generated_commit'],
         'inputs':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in inputs},

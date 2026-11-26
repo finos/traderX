@@ -9,7 +9,7 @@ cookie and a CSRF value; access and ID tokens remain on the session server.
 - BAPI-01: Use the existing authorization-code/PKCE and nonce/state checks against
   the pinned TLS Keycloak fixture. Revalidate the access token and finite signing
   key snapshot on protected requests; expired sessions fail closed.
-- BAPI-02: Forward only enumerated account, position/history and order routes to
+- BAPI-02: Forward only enumerated account, position/history, order and market-data routes to
   explicitly configured backends. Never accept a caller-selected destination or
   forward caller authorization, role, account, cookie or forwarding headers.
 - BAPI-03: Require the exact browser Origin and session CSRF token on mutations.
@@ -29,8 +29,19 @@ cookie and a CSRF value; access and ID tokens remain on the session server.
   HTTP calls to the same-origin boundary and attaches the session CSRF value only
   to same-origin mutations. Sign-out, API 401 and the server-provided expiry clear
   the view and cancel outstanding application reads. No silent token refresh is
-  implied. Until scoped broker access is integrated, this candidate must not open
-  the inherited anonymous NATS WebSocket; display that limitation to the learner.
+  implied. Use the mediated cookie-authorized notification endpoint described in
+  `browser-broker-session.md`; never open the inherited anonymous NATS WebSocket.
+- BAPI-08: Expose the explicit limit-order ticket through the authenticated matcher.
+  Remove the legacy immediate-booking ticket and deny its `/trade-service/trade/`
+  endpoint. The legacy path lacks the price and settlement contract of this
+  profile; this is a deliberate change to the learner workflow, not full C3 parity.
+  Require a finite positive price, whole positive quantity and the selected account;
+  the matcher independently enforces all business permission and order rules.
+- BAPI-09: Permit read-only `/reference-data/stocks` and `/price-publisher/prices`
+  (optionally one bounded ticker segment) at fixed HTTPS origins. Order and selected
+  quote views use bounded HTTP snapshots, refreshed after settlement/reconnect.
+  Market quotes are informational and do not establish execution or authorization.
+  Operator directory endpoints, forced fills and arbitrary queries remain absent.
 
 ## Acceptance sequence
 

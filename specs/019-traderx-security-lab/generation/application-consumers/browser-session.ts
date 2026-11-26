@@ -66,7 +66,7 @@ export class BrowserSession {
 
 export const browserSessionInterceptor: HttpInterceptorFn = (request, next) => {
     const url = new URL(request.url, window.location.origin);
-    const application = /^\/(?:api\/)?(?:account-service|position-service|order-matcher|trade-service)(?:\/|$)/.test(url.pathname);
+    const application = /^\/(?:api\/)?(?:account-service|position-service|order-matcher|trade-service|reference-data|price-publisher)(?:\/|$)/.test(url.pathname);
     if (!application) return next(request);
     const session = inject(BrowserSession);
     // No auth material goes to an external URL, even if it resembles an API path.

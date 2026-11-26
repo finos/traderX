@@ -29,9 +29,11 @@ class BrowserApiTests(unittest.TestCase):
             ('GET','/api/account-service/accountuser/','account-service','/accountuser/'),
             ('GET','/api/order-matcher/orders?accountId=62654','order-matcher','/orders?accountId=62654'),
             ('POST','/api/order-matcher/orders/abc-123/cancel','order-matcher','/orders/abc-123/cancel'),
-            ('POST','/api/trade-service/trade/','trade-service','/trade/')):
+            ('GET','/api/reference-data/stocks','reference-data','/stocks'),
+            ('GET','/api/price-publisher/prices/IBM','price-publisher','/prices/IBM')):
             selected=route(method,target)
             self.assertEqual((selected.service,selected.path),(service,path))
+        with self.assertRaises(BoundaryError):route('POST','/api/trade-service/trade/')
 
     def test_json_keeps_decimal_bytes_but_rejects_duplicate_keys_and_non_objects(self):
         raw=b'{"price": 99.1234567890123456789}'
