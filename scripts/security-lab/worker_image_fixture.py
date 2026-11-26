@@ -27,9 +27,19 @@ LABEL='traderx.security-lab.worker-peers'
 ACK_PROBE=f'$JS.ACK.{STREAM}.ACCOUNT_A.0.0.0.0.0'
 STAGES=frozenset(('guard','pins','pull_database','pull_broker','private_directory','network_plan','certificates',
     'database_files','broker_files','network_create','network_verify','volume_create','database_create','broker_create',
-    'database_start','broker_start','database_ready','broker_ready','bootstrap','active','cleanup','private_cleanup'))
+    'database_start','broker_start','database_ready','broker_ready','bootstrap','active','cleanup','private_cleanup',
+    'ack_write','ack_validate','ack_reload','ack_probe'))
 ERROR_TYPES=frozenset(('ValueError','RuntimeError','OSError','PermissionError','FileNotFoundError','TimeoutError',
     'SubprocessError','KeyError','TypeError','JSONDecodeError','other'))
+
+
+PROBE_CODES=frozenset(('framing','info','authentication','unexpected_response','no_decision','conflicting_decision'))
+
+
+class ProbeFailure(ValueError):
+    def __init__(self,code):
+        self.code=code if code in PROBE_CODES else 'unexpected_response'
+        super().__init__('Broker permission probe failed; private protocol withheld')
 
 
 class FixtureFailure(RuntimeError):
@@ -42,6 +52,7 @@ def setup_failure(stage,error):
     kind=type(error).__name__
     details={'peer':'unknown','category':'unclassified','running':None,'exit_code':None,'oom_killed':None,
              'stage':stage if stage in STAGES else 'guard','error_type':kind if kind in ERROR_TYPES else 'other'}
+    if isinstance(error,ProbeFailure):details['probe_code']=error.code
     return FixtureFailure(details)
 
 
@@ -237,15 +248,15 @@ def permission_probe(address,ca,password):
             def line():
                 nonlocal budget
                 value=stream.readline(min(1024,budget)+1);budget-=len(value)
-                if not value.endswith(b'\r\n') or budget<0:raise ValueError('Bounded broker protocol required')
+                if not value.endswith(b'\r\n') or budget<0:raise ProbeFailure('framing')
                 return value
-            if not line().startswith(b'INFO '):raise ValueError('Broker INFO unavailable')
+            if not line().startswith(b'INFO '):raise ProbeFailure('info')
             connect=json.dumps({'user':'consumer-a','pass':password,'verbose':True,'pedantic':True,'lang':'python','version':'fixture','protocol':1}).encode()
             connection.sendall(b'CONNECT '+connect+b'\r\nPING\r\n')
             while True:
                 value=line()
                 if value==b'PONG\r\n':break
-                if value!=b'+OK\r\n':raise ValueError('Broker permission probe authentication unavailable')
+                if value!=b'+OK\r\n':raise ProbeFailure('authentication')
             connection.sendall(b'PUB '+ACK_PROBE.encode()+b' 4\r\n+ACK\r\nPING\r\n')
             accepted=denied=False
             while True:
@@ -253,9 +264,35 @@ def permission_probe(address,ca,password):
                 if value==b'PONG\r\n':break
                 if value==b'+OK\r\n':accepted=True
                 elif value.startswith(b'-ERR ') and b'Permissions Violation for Publish' in value:denied=True
-                else:raise ValueError('Unexpected broker permission response')
-            if accepted==denied:raise ValueError('Ambiguous broker permission decision')
+                else:raise ProbeFailure('unexpected_response')
+            if accepted==denied:raise ProbeFailure('conflicting_decision' if accepted else 'no_decision')
             return accepted
+
+
+
+def change_ack_permission(docker,name,owner,directory,passwords,address,ca,allowed):
+    """Owned policy reload with private, fixed-stage failure evidence."""
+    stage='ack_write'
+    try:
+        config=peer_config(passwords,allowed);owned(docker,'container',name,owner)
+        pending=directory/'nats.pending';pending.write_text(json.dumps(config));pending.chmod(0o440)
+        result=subprocess.run(['sudo','-n','chown','0:'+str(os.getgid()),str(pending)],capture_output=True,timeout=10)
+        if result.returncode:raise RuntimeError('Broker policy file ownership unavailable')
+        os.replace(pending,directory/'nats.json')
+        stage='ack_validate'
+        # The pinned official image declares nats-server as its PATH-resolved CMD.
+        docker('exec',name,'nats-server','-t','-c','/lab/nats.json')
+        stage='ack_reload';docker('kill','--signal=HUP',name)
+        stage='ack_probe';deadline=time.monotonic()+10
+        while time.monotonic()<deadline:
+            try:
+                if permission_probe(address,ca,passwords['consumer-a'])==allowed:return
+            except OSError:pass
+            time.sleep(.1)
+        raise RuntimeError('Broker ACK permission change unverified')
+    except Exception as error:
+        failure=setup_failure(stage,error);failure.details['peer']='broker'
+        raise failure from None
 
 
 def broker_info(connection):
@@ -341,20 +378,7 @@ def _fixture(runtime,progress):
         def restart_broker():
             owned(docker,'container',broker_name,owner);docker('restart','--time','10',broker_name,timeout=30);broker_ready()
         def set_consumer_ack_allowed(allowed):
-            config=peer_config(passwords,allowed);owned(docker,'container',broker_name,owner)
-            pending=broker_config/'nats.pending';pending.write_text(json.dumps(config));pending.chmod(0o440)
-            result=subprocess.run(['sudo','-n','chown','0:'+str(os.getgid()),str(pending)],capture_output=True,timeout=10)
-            if result.returncode:raise RuntimeError('Broker policy file ownership unavailable')
-            os.replace(pending,broker_config/'nats.json')
-            docker('exec',broker_name,'nats-server','-t','-c','/lab/nats.json')
-            docker('kill','--signal=HUP',broker_name)
-            deadline=time.monotonic()+10
-            while time.monotonic()<deadline:
-                try:
-                    if permission_probe(addresses['nats-broker'],ca,passwords['consumer-a'])==allowed:return
-                except OSError:pass
-                time.sleep(.1)
-            raise RuntimeError('Broker ACK permission change unverified')
+            change_ack_permission(docker,broker_name,owner,broker_config,passwords,addresses['nats-broker'],ca,allowed)
         try:
             progress['stage']='network_create'
             network_attempted=True

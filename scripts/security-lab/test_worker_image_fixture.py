@@ -115,6 +115,33 @@ class WorkerImageFixtureTests(unittest.TestCase):
         self.assertNotIn('http',allow);self.assertTrue(allow['tls']['handshake_first'])
         with self.assertRaises(ValueError):peers.peer_config(passwords,'false')
 
+    def test_ack_reload_reports_fixed_substage_without_secret_errors(self):
+        passwords={name:'private-password' for name in peers.permissions()}
+        for failstage in ('ack_write','ack_validate','ack_reload','ack_probe',None):
+            with self.subTest(stage=failstage),tempfile.TemporaryDirectory() as temp:
+                docker=Mock()
+                def execute(*args,**kwargs):
+                    stage='ack_validate' if args[0]=='exec' else 'ack_reload'
+                    if stage==failstage:raise RuntimeError('private-password in command failure')
+                docker.side_effect=execute
+                probe=Mock(return_value=False)
+                if failstage=='ack_probe':probe.side_effect=peers.ProbeFailure('conflicting_decision')
+                ownership=Mock()
+                if failstage=='ack_write':ownership.side_effect=PermissionError('private-password in filename')
+                with patch.object(peers,'owned',ownership),patch.object(peers.subprocess,'run',return_value=subprocess.CompletedProcess([],0)),patch.object(peers,'permission_probe',probe):
+                    if failstage:
+                        with self.assertRaises(peers.FixtureFailure) as failure:
+                            peers.change_ack_permission(docker,'broker','owner',Path(temp),passwords,'172.28.240.3',Path('/ca'),False)
+                        self.assertEqual(failure.exception.details['stage'],failstage)
+                        self.assertEqual(failure.exception.details['peer'],'broker')
+                        self.assertNotIn('private-password',str(failure.exception)+json.dumps(failure.exception.details))
+                        if failstage=='ack_probe':self.assertEqual(failure.exception.details['probe_code'],'conflicting_decision')
+                    else:
+                        peers.change_ack_permission(docker,'broker','owner',Path(temp),passwords,'172.28.240.3',Path('/ca'),False)
+                        self.assertEqual([call.args for call in docker.call_args_list],[('exec','broker','nats-server','-t','-c','/lab/nats.json'),('kill','--signal=HUP','broker')])
+                        self.assertFalse((Path(temp)/'nats.pending').exists())
+                        self.assertEqual((Path(temp)/'nats.json').stat().st_mode&0o777,0o440)
+
     def test_cleanup_attempts_all_owned_resources_after_one_failure_and_refuses_success(self):
         docker=Mock()
         def execute(*args,**kwargs):
