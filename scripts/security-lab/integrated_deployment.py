@@ -12,7 +12,8 @@ ROLES={'account-service':18088,'position-service':18090,
        'browser-session':18447,
        'event-publisher':None,'event-consumer':None}
 WORKERS={'event-publisher','event-consumer','browser-session'}
-MATERIALIZED_ROLES=WORKERS|{'position-service'}
+JAVA_ROLES={'position-service','account-service','trade-processor'}
+MATERIALIZED_ROLES=WORKERS|JAVA_ROLES
 DEPS={'database':(5432,'tls'),'nats-broker':(4222,'tls'),
       'identity':(8443,'https'),'reference-data':(18085,'https'),'price-publisher':(18100,'https')}
 EDGES={
@@ -133,12 +134,13 @@ def image(role,value,source,revision,platform):
         prefix += ['--']
         if argv[:len(prefix)]!=prefix or len(argv)<=len(prefix) or not Path(argv[len(prefix)]).is_absolute():
             raise ValueError('Private-file runtime requires reviewed materializer argv')
-    if role=='position-service':
-        from java_runtime import KEYS
+    if role in JAVA_ROLES:
+        from java_runtime import role_contract
+        expected_keys=role_contract(role)['keys']
         expected=['/usr/local/bin/python','/opt/traderx/private_materializer.py','--source','/run/projected','--target','/run/private/config']
-        expected += [part for key in KEYS for part in ('--key',key)]
-        expected += ['--','/usr/local/bin/python','/opt/traderx/java_runtime.py','--role','position-service','--config','/run/private/config/config.json']
-        if keys!=KEYS or argv!=expected:raise ValueError('Protected position adapter contract required')
+        expected += [part for key in expected_keys for part in ('--key',key)]
+        expected += ['--','/usr/local/bin/python','/opt/traderx/java_runtime.py','--role',role,'--config','/run/private/config/config.json']
+        if keys!=expected_keys or argv!=expected:raise ValueError('Protected '+role.removesuffix('-service')+' adapter contract required')
     return argv
 
 

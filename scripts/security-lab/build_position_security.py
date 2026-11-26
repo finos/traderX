@@ -1,4 +1,4 @@
-"""Build only the generated position candidate and bind its JAR to passing tests."""
+"""Verify reviewed Java builds; retain the position-only command-line interface."""
 import argparse
 import os
 from pathlib import Path
@@ -16,6 +16,39 @@ from resource_operation import operation
 JAR = 'build/libs/position-service-specfirst-0.1.0.jar'
 STATUS = 'built-and-tested-not-deployed'
 LIMIT = 256 * 1024 * 1024
+SPECS = {
+    'position-service': {'jar': JAR, 'stem': 'position', 'package': 'finos.traderx.positionservice',
+        'application': 'PositionServiceApplication', 'tests': ('ReadApiSecurityTest', 'ReadDatabaseAuthorizationTest'),
+        'minimum_tests': 11, 'classes': ('security/ReadSecurity', 'security/TradingAccess',
+                                       'controller/PositionController', 'controller/TradeController')},
+    'account-service': {'jar': 'build/libs/account-service-specfirst-0.1.0.jar', 'stem': 'account',
+        'package': 'finos.traderx.accountservice', 'application': 'AccountServiceApplication',
+        'tests': ('AccountAccessTest',), 'minimum_tests': 3,
+        'classes': ('security/AccountSecurity', 'security/AccountAccess',
+                    'controller/AccountController', 'controller/AccountUserController')},
+    'trade-processor': {'jar': 'build/libs/trade-processor-specfirst-0.1.0.jar', 'stem': 'processor',
+        'package': 'finos.traderx.tradeprocessor', 'application': 'TradeProcessorApplication',
+        'tests': ('ProcessorApiSecurityTest',), 'minimum_tests': 7,
+        'classes': ('security/TradingSecurity', 'security/ExecutionController')},
+}
+
+
+def role_spec(role):
+    if not isinstance(role, str) or role not in SPECS:
+        raise ValueError('Reviewed Java build role required')
+    return SPECS[role]
+
+
+def render_role(target, role):
+    role_spec(role)
+    if role == 'position-service':
+        render(target)
+    elif role == 'account-service':
+        from render_account_security import render as account
+        account(target)
+    else:
+        from render_trading_security import render as trading
+        trading(target, 'trade-processor')
 
 
 def regular(path, limit=4 * 1024 * 1024):
@@ -28,7 +61,7 @@ def regular(path, limit=4 * 1024 * 1024):
     return data
 
 
-def generation(root):
+def generation(root, role='position-service'):
     """Re-render canonical source: a self-declared or incomplete hash list is insufficient."""
     root = Path(root)
     if not root.is_absolute() or root.resolve() != root:
@@ -36,10 +69,10 @@ def generation(root):
     actual = compiler.read_json(root / 'security-generation.json')
     with tempfile.TemporaryDirectory(prefix='position-source-check-') as temporary:
         expected_root = Path(temporary).resolve() / 'source'
-        render(expected_root)
+        render_role(expected_root, role)
         expected = compiler.read_json(expected_root / 'security-generation.json')
     if actual != expected:
-        raise ValueError('Generated position manifest differs from canonical renderer')
+        raise ValueError('Generated Java manifest differs from canonical renderer')
     for name, digest in expected['files'].items():
         if compiler.sha(regular(root / name)) != digest:
             raise ValueError('Generated position source drift')
@@ -54,7 +87,8 @@ def generation(root):
     return actual
 
 
-def test_results(root):
+def test_results(root, role='position-service'):
+    spec = role_spec(role)
     root = Path(root)
     paths = sorted((root / 'build/test-results/test').glob('TEST-*.xml'))
     if not paths or len(paths) > 64:
@@ -83,65 +117,67 @@ def test_results(root):
             totals[key] += counts[key]
         files[path.relative_to(root).as_posix()] = compiler.sha(data)
     required = set()
-    package = root / 'src/test/java/finos/traderx/positionservice/security'
-    for name in ('ReadApiSecurityTest', 'ReadDatabaseAuthorizationTest'):
+    package = root / 'src/test/java' / spec['package'].replace('.', '/') / 'security'
+    for name in spec['tests']:
         text = regular(package / (name + '.java')).decode()
         methods = re.findall(r'@Test\s+void\s+(\w+)\s*\(', text)
         if not methods:
             raise ValueError('Required security tests absent')
-        required.update(('finos.traderx.positionservice.security.' + name, method) for method in methods)
-    if not required.issubset(passed) or len(required) < 11:
-        raise ValueError('Required position authorization tests did not pass')
+        required.update((spec['package'] + '.security.' + name, method) for method in methods)
+    if not required.issubset(passed) or len(required) < spec['minimum_tests']:
+        raise ValueError('Required Java role authorization tests did not pass')
     return {'files': files, 'totals': totals}
 
 
-def artifacts(root):
+def artifacts(root, role='position-service'):
+    spec = role_spec(role)
     root = Path(root)
-    generated = generation(root)
+    generated = generation(root, role)
     jars = sorted(path.relative_to(root).as_posix() for path in (root / 'build/libs').glob('*.jar')
                   if not path.name.endswith('-plain.jar'))
-    if jars != [JAR]:
-        raise ValueError('Exactly the approved position bootJar is required')
-    data = regular(root / JAR, LIMIT)
+    if jars != [spec['jar']]:
+        raise ValueError('Exactly the approved Java role bootJar is required')
+    data = regular(root / spec['jar'], LIMIT)
     return {'generation_sha256': compiler.sha(compiler.encoded(generated)),
-            'jar': {'path': JAR, 'sha256': compiler.sha(data), 'size': len(data)},
-            'test_results': test_results(root)}
+            'jar': {'path': spec['jar'], 'sha256': compiler.sha(data), 'size': len(data)},
+            'test_results': test_results(root, role)}
 
 
-def verify(root, report):
+def verify(root, report, role='position-service'):
     regular(Path(report))
     actual = compiler.read_json(Path(report))
-    expected = {'schema_version': 1, 'service': 'position-service', 'status': STATUS,
-                'source_manifest': compiler.source_manifest(), **artifacts(Path(root))}
+    expected = {'schema_version': 1, 'service': role, 'status': STATUS,
+                'source_manifest': compiler.source_manifest(), **artifacts(Path(root), role)}
     if actual != expected:
         raise ValueError('Position build report, source, JAR or test evidence drift')
     return actual
 
 
-def build(runtime, java_home):
+def build(runtime, java_home, role='position-service'):
+    spec = role_spec(role)
     if not portability.isolated_linux() or os.environ.get('GITHUB_ACTIONS') != 'true':
         raise ValueError('Position Java build requires isolated hosted Linux')
     runtime = Path(runtime).resolve()
     with operation(runtime, 'build'):
-        target = runtime / 'position-security-build'
-        report = runtime / 'evidence/position-security-build.json'
+        target = runtime / (spec['stem'] + '-security-build')
+        report = runtime / ('evidence/' + spec['stem'] + '-security-build.json')
         if target.exists() or report.exists():
             raise ValueError('Fresh position build directory required')
-        render(target)
-        generation(target)
+        render_role(target, role)
+        generation(target, role)
         report.parent.mkdir(exist_ok=True)
         env = dict(os.environ, JAVA_HOME=str(java_home), GRADLE_OPTS='-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=1')
-        log_path = report.parent / 'position-security-build.log'
+        log_path = report.parent / (spec['stem'] + '-security-build.log')
         try:
             with log_path.open('x') as log:
                 subprocess.run(['bash', 'gradlew', '--no-daemon', '--max-workers=1',
                     '-Dorg.gradle.jvmargs=-Xmx384m -XX:MaxMetaspaceSize=256m', 'clean', 'test', 'bootJar'],
                     cwd=target, env=env, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=600)
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
-            record_failure(runtime, 'position-service', target, log_path, error)
-            raise RuntimeError('Position build failed; bounded diagnostics recorded') from None
-        value = {'schema_version': 1, 'service': 'position-service', 'status': STATUS,
-                 'source_manifest': compiler.source_manifest(), **artifacts(target)}
+            record_failure(runtime, role, target, log_path, error)
+            raise RuntimeError(spec['stem'].capitalize() + ' build failed; bounded diagnostics recorded') from None
+        value = {'schema_version': 1, 'service': role, 'status': STATUS,
+                 'source_manifest': compiler.source_manifest(), **artifacts(target, role)}
         with report.open('x') as output:
             output.write(compiler.encoded(value).decode())
         return value

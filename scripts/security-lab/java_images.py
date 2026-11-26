@@ -1,4 +1,4 @@
-"""Prepare and inspect one verified position-service image; never build or publish."""
+"""Prepare and inspect explicit verified Java role images; never build or publish."""
 import argparse
 import ast
 import hashlib
@@ -12,6 +12,7 @@ import zipfile
 import build_position_security as build
 import integrated_deployment as compiler
 import runtime_images
+import java_runtime
 
 ROLE = 'position-service'
 LOCK = compiler.STATE / 'system/java-runtime-images.lock.json'
@@ -21,19 +22,20 @@ KEYS = ['config.json', 'database-ca.pem', 'entitlements.properties', 'public.pem
 STARTUP = b'SELECT 1;\n'
 
 
-def argv():
+def argv(role=ROLE):
+    keys = java_runtime.role_contract(role)['keys']
     command = ['/usr/local/bin/python', '/opt/traderx/private_materializer.py',
                '--source', '/run/projected', '--target', '/run/private/config']
-    command += [value for key in KEYS for value in ('--key', key)]
+    command += [value for key in keys for value in ('--key', key)]
     return command + ['--', '/usr/local/bin/python', '/opt/traderx/java_runtime.py',
-                      '--role', ROLE, '--config', '/run/private/config/config.json']
+                      '--role', role, '--config', '/run/private/config/config.json']
 
 
-def jar_bytes(root):
-    data = build.regular(Path(root) / build.JAR, build.LIMIT)
-    required = {'finos/traderx/positionservice/' + name + '.class' for name in (
-        'PositionServiceApplication', 'security/ReadSecurity', 'security/TradingAccess',
-        'controller/PositionController', 'controller/TradeController')}
+def jar_bytes(root, role=ROLE):
+    spec = build.role_spec(role)
+    data = build.regular(Path(root) / spec['jar'], build.LIMIT)
+    required = {spec['package'].replace('.', '/') + '/' + name + '.class'
+                for name in (spec['application'], *spec['classes'])}
     with zipfile.ZipFile(io.BytesIO(data)) as jar:
         names = jar.namelist()
         if len(names) != len(set(names)) or len(names) > 100000:
@@ -41,21 +43,21 @@ def jar_bytes(root):
         if any(PurePosixPath(name).is_absolute() or '..' in PurePosixPath(name).parts or '\\' in name for name in names):
             raise ValueError('Invalid JAR entry path')
         if not {'BOOT-INF/classes/' + name for name in required}.issubset(names):
-            raise ValueError('Position security classes absent from bootJar')
+            raise ValueError('Java role security classes absent from bootJar')
         manifest = jar.getinfo('META-INF/MANIFEST.MF')
         if manifest.file_size > 16384:
             raise ValueError('Bounded bootJar manifest required')
         text = jar.read(manifest).decode().replace('\r\n', '\n').replace('\n ', '')
         fields = dict(line.split(': ', 1) for line in text.splitlines() if ': ' in line)
         if (fields.get('Main-Class') != 'org.springframework.boot.loader.launch.JarLauncher' or
-                fields.get('Start-Class') != 'finos.traderx.positionservice.PositionServiceApplication'):
-            raise ValueError('Explicit position bootJar entrypoint required')
+                fields.get('Start-Class') != spec['package'] + '.' + spec['application']):
+            raise ValueError('Explicit Java role bootJar entrypoint required')
     return data
 
 
-def inputs(root, report):
-    verified = build.verify(root, report)
-    files = {'application.jar': jar_bytes(root), 'source/startup-check.sql': STARTUP}
+def inputs(root, report, role=ROLE):
+    verified = build.verify(root, report, role=role)
+    files = {'application.jar': jar_bytes(root, role), 'source/startup-check.sql': STARTUP}
     for name in sorted(FILES):
         files['source/' + name] = build.regular(SOURCE / name)
     for name in FILES:
@@ -70,21 +72,23 @@ def inputs(root, report):
     return files, verified
 
 
-def labels(revision, report):
+def labels(revision, report, role=ROLE):
+    contract = java_runtime.role_contract(role)
     return {'org.opencontainers.image.revision': revision,
-            'traderx.security-lab.role': ROLE,
+            'traderx.security-lab.role': role,
             'traderx.security-lab.source-manifest': report['source_manifest']['sha256'],
             'traderx.security-lab.config-interface': 'private-config-v1',
             'traderx.security-lab.bind-address': '0.0.0.0',
-            'traderx.security-lab.transport': 'https', 'traderx.security-lab.port': '18090',
+            'traderx.security-lab.transport': 'https', 'traderx.security-lab.port': str(contract['port']),
             'traderx.security-lab.jar-sha256': report['jar']['sha256'],
             'traderx.security-lab.build-report-sha256': compiler.sha(compiler.encoded(report))}
 
 
-def prepare(root, report, output, revision):
+def prepare(root, report, output, revision, role=ROLE):
+    contract = java_runtime.role_contract(role)
     if not re.fullmatch(r'[0-9a-f]{40}', revision):
         raise ValueError('Explicit source revision required')
-    files, verified = inputs(root, report)
+    files, verified = inputs(root, report, role)
     lock = compiler.read_json(LOCK)
     python = compiler.read_json(runtime_images.LOCK)['base']
     if lock['platform'] != 'linux/amd64' or lock['java_major'] != 21:
@@ -102,15 +106,15 @@ def prepare(root, report, output, revision):
         'RUN chmod 0755 /app',
         'RUN /opt/java/openjdk/bin/java -Djava.awt.headless=true --version && /usr/local/bin/python --version',
         'RUN mkdir -p /run/projected /run/private /tmp && chown 10001:10001 /run/private /tmp && chmod 0700 /run/private',
-        'WORKDIR /opt/traderx', 'EXPOSE 18090']
-    dockerfile += ['LABEL ' + key + '=' + json.dumps(value) for key, value in sorted(labels(revision, verified).items())]
-    dockerfile += ['USER 10001:10001', 'ENTRYPOINT ' + json.dumps(argv()), 'CMD []']
+        'WORKDIR /opt/traderx', 'EXPOSE ' + str(contract['port'])]
+    dockerfile += ['LABEL ' + key + '=' + json.dumps(value) for key, value in sorted(labels(revision, verified, role).items())]
+    dockerfile += ['USER 10001:10001', 'ENTRYPOINT ' + json.dumps(argv(role)), 'CMD []']
     files['Dockerfile'] = ('\n'.join(dockerfile) + '\n').encode()
     files['.dockerignore'] = b'**\n!Dockerfile\n!application.jar\n!source/\n!source/java_runtime.py\n!source/private_materializer.py\n!source/startup-check.sql\n'
-    record = {'schema_version': 1, 'role': ROLE, 'platform': lock['platform'], 'source_commit': revision,
+    record = {'schema_version': 1, 'role': role, 'platform': lock['platform'], 'source_commit': revision,
               'source_manifest': verified['source_manifest'], 'python_base': python, 'jre': lock['jre'],
               'jar': verified['jar'], 'build_report_sha256': compiler.sha(compiler.encoded(verified)),
-              'command': argv(), 'keys': KEYS,
+              'command': argv(role), 'keys': contract['keys'],
               'context_files': {name: compiler.sha(data) for name, data in sorted(files.items())},
               'status': 'build-context-prepared-not-image-built-or-runtime-accepted'}
     files['image-build.json'] = compiler.encoded(record)
@@ -181,23 +185,24 @@ def filesystem(layout, manifest, expected):
         raise ValueError('Packaged runtime parent directory ownership or traversal mode changed')
 
 
-def inspect(layout, name, revision, root, report):
+def inspect(layout, name, revision, root, report, role=ROLE):
+    contract = java_runtime.role_contract(role)
     if not re.fullmatch(r'[a-z0-9][a-z0-9./:_-]+', name) or not re.fullmatch(r'[0-9a-f]{40}', revision):
         raise ValueError('Explicit local image reference and revision required')
-    files, verified = inputs(root, report)
+    files, verified = inputs(root, report, role)
     layout = Path(layout).resolve()
     index = compiler.read_json(layout / 'index.json')
     if len(index.get('manifests', [])) != 1:
         raise ValueError('Single-platform unattested local export required')
     entry = {'image': name + '@' + index['manifests'][0]['digest'], 'oci_layout': str(layout),
-             'secret': 'private-position-service', 'keys': KEYS}
-    actual = compiler.image(ROLE, entry, verified['source_manifest'], revision, 'linux/amd64')
-    if actual != argv():
+             'secret': 'private-' + role, 'keys': contract['keys']}
+    actual = compiler.image(role, entry, verified['source_manifest'], revision, 'linux/amd64')
+    if actual != argv(role):
         raise ValueError('Packaged Java launcher command changed')
     manifest = compiler.blob(layout, index['manifests'][0])
     config = compiler.blob(layout, manifest['config'])
     actual_labels = config['config'].get('Labels', {})
-    if any(actual_labels.get(key) != value for key, value in labels(revision, verified).items()):
+    if any(actual_labels.get(key) != value for key, value in labels(revision, verified, role).items()):
         raise ValueError('Packaged Java build labels differ')
     expected = {'app/application.jar': (verified['jar']['sha256'], 0o444)}
     expected.update({'opt/traderx/' + name.removeprefix('source/'): (compiler.sha(data), 0o555)
@@ -211,6 +216,7 @@ def main():
     commands = parser.add_subparsers(dest='action', required=True)
     for action in ('prepare', 'inspect'):
         command = commands.add_parser(action)
+        command.add_argument('--role', choices=java_runtime.ROLES, default=ROLE)
         command.add_argument('--generated-root', type=Path, required=True)
         command.add_argument('--build-report', type=Path, required=True)
         command.add_argument('--source-commit', required=True)
@@ -220,8 +226,8 @@ def main():
             command.add_argument('--layout', type=Path, required=True)
             command.add_argument('--image-name', required=True)
     args = parser.parse_args()
-    value = (prepare(args.generated_root, args.build_report, args.output, args.source_commit)
-             if args.action == 'prepare' else inspect(args.layout, args.image_name, args.source_commit, args.generated_root, args.build_report))
+    value = (prepare(args.generated_root, args.build_report, args.output, args.source_commit, role=args.role)
+             if args.action == 'prepare' else inspect(args.layout, args.image_name, args.source_commit, args.generated_root, args.build_report, role=args.role))
     print(json.dumps(value, sort_keys=True))
 
 

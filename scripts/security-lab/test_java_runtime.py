@@ -18,6 +18,50 @@ def configuration():
 
 
 class JavaRuntimeTests(unittest.TestCase):
+    def test_role_audiences_ports_matcher_subject_and_entitlements_are_explicit(self):
+        for role,port in (('position-service',18090),('account-service',18088),('trade-processor',18091)):
+            config=configuration();config['role']=role
+            if role=='trade-processor':
+                config['identity'].update(audience='traderx-execution',matcher_subject='matcher-123')
+            value=runtime.properties(config,role=role).decode()
+            self.assertIn('server.port='+str(port)+'\n',value)
+            self.assertIn('sslmode=verify-full',value)
+            self.assertIn('spring.sql.init.mode=always\n',value)
+            self.assertEqual('lab.execution.matcher-subject=matcher-123\n' in value,role=='trade-processor')
+            self.assertEqual('lab.identity.entitlements-file=' in value,role!='trade-processor')
+            for other in runtime.ROLES:
+                if other!=role:
+                    with self.assertRaisesRegex(ValueError,'role configuration'):runtime.validate(config,role=other)
+        for matcher in ('','${UNTRUSTED}','valid\ninjected=1','x'*129):
+            config=configuration();config['role']='trade-processor'
+            config['identity'].update(audience='traderx-execution',matcher_subject=matcher)
+            with self.assertRaises(ValueError):runtime.validate(config,role='trade-processor')
+        config=configuration();config['role']='trade-processor'
+        with self.assertRaises(ValueError):runtime.validate(config,role='trade-processor')
+        config['identity']['matcher_subject']='matcher'
+        with self.assertRaisesRegex(ValueError,'audience'):runtime.validate(config,role='trade-processor')
+        config=configuration();config['identity']['matcher_subject']='matcher'
+        with self.assertRaises(ValueError):runtime.validate(config)
+        with self.assertRaisesRegex(ValueError,'Reviewed'):runtime.role_contract('order-matcher')
+
+    def test_per_role_private_inventory_refuses_borrowed_or_missing_keys(self):
+        for role in ('account-service','trade-processor'):
+            config=configuration();config['role']=role
+            if role=='trade-processor':config['identity'].update(audience='traderx-execution',matcher_subject='matcher')
+            with tempfile.TemporaryDirectory() as temporary:
+                root=Path(temporary).resolve()
+                for name in runtime.role_contract(role)['keys']:
+                    (root/name).write_bytes(b'fixture');(root/name).chmod(0o600)
+                (root/'config.json').write_text(json.dumps(config))
+                if role=='account-service':(root/'entitlements.properties').write_text('reader=read-only:22214\n')
+                with patch.object(runtime,'PRIVATE',root),patch.object(runtime,'CONFIG',root/'config.json'):
+                    self.assertEqual(runtime.load_config(role)['role'],role)
+                    extra=root/('entitlements.properties' if role=='trade-processor' else 'matcher-subject')
+                    extra.write_text('unexpected');extra.chmod(0o600)
+                    with self.assertRaisesRegex(ValueError,'inventory'):runtime.load_config(role)
+                    extra.unlink();(root/'tls.p12').unlink()
+                    with self.assertRaisesRegex(ValueError,'inventory'):runtime.load_config(role)
+
     def test_properties_fix_transport_scope_and_keep_credentials_out_of_argv(self):
         config=configuration();value=runtime.properties(config).decode()
         self.assertIn('server.address=0.0.0.0\n',value);self.assertIn('server.port=18090\n',value)

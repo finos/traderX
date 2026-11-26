@@ -34,9 +34,9 @@ class IntegratedDeploymentTests(unittest.TestCase):
             argv=['/usr/local/bin/python','/opt/traderx/private_materializer.py','--source','/run/projected','--target','/run/private/config']
             argv += [p for key in keys for p in ('--key',key)]
             argv += ['--','/usr/local/bin/python','/opt/traderx/entrypoint.py','--config','/run/private/config/config.json']
-        if role=='position-service':
-            from java_runtime import KEYS
-            keys=list(KEYS)
+        if role in compiler.JAVA_ROLES:
+            from java_runtime import role_contract
+            keys=list(role_contract(role)['keys'])
             argv=['/usr/local/bin/python','/opt/traderx/private_materializer.py','--source','/run/projected','--target','/run/private/config']
             argv += [p for key in keys for p in ('--key',key)]
             argv += ['--','/usr/local/bin/python','/opt/traderx/java_runtime.py','--role',role,'--config','/run/private/config/config.json']
@@ -121,6 +121,23 @@ class IntegratedDeploymentTests(unittest.TestCase):
         def change_role(config):config['config']['Entrypoint'][-3]='account-service'
         self.config['workloads']['position-service']=self.make_image('position-service',change_role)
         with self.assertRaisesRegex(ValueError,'position adapter'):self.compile()
+
+    def test_account_and_processor_are_materialized_with_distinct_exact_role_contracts(self):
+        from java_runtime import role_contract
+        docs=json.loads(self.compile()['application-core.json'])['items']
+        for role,port in (('account-service',18088),('trade-processor',18091)):
+            deployment=next(d for d in docs if d['kind']=='Deployment' and d['metadata']['name']==role)
+            pod=deployment['spec']['template']['spec']
+            self.assertEqual(len(pod['volumes']),3)
+            self.assertIn({'name':'private','mountPath':'/run/private'},pod['containers'][0]['volumeMounts'])
+            self.assertEqual(pod['containers'][0]['ports'],[{'name':'https','containerPort':port}])
+            secret=next(v['secret'] for v in pod['volumes'] if v['name']=='runtime')
+            self.assertEqual([item['key'] for item in secret['items']],role_contract(role)['keys'])
+            self.assertEqual('entitlements.properties' in role_contract(role)['keys'],role=='account-service')
+            def changed_role(config):config['config']['Entrypoint'][-3]='position-service'
+            self.config['workloads'][role]=self.make_image(role,changed_role)
+            with self.assertRaisesRegex(ValueError,'adapter'):self.compile()
+            self.config['workloads'][role]=self.make_image(role)
 
     def test_network_allows_only_gateway_boundary_and_explicit_dependencies(self):
         docs=json.loads(self.compile()['application-core.json'])['items']

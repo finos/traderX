@@ -17,6 +17,30 @@ import java_runtime
 from render_read_security import render
 
 
+def synthetic_build(root, role):
+    """Small non-executable artifacts for Python binding tests; never Java acceptance."""
+    spec=build.role_spec(role)
+    generated=root/'generated';build.render_role(generated,role)
+    jar=generated/spec['jar'];jar.parent.mkdir(parents=True)
+    with zipfile.ZipFile(jar,'w') as archive:
+        archive.writestr('META-INF/MANIFEST.MF','Main-Class: org.springframework.boot.loader.launch.JarLauncher\nStart-Class: '+spec['package']+'.'+spec['application']+'\n')
+        for name in (spec['application'],*spec['classes']):
+            archive.writestr('BOOT-INF/classes/'+spec['package'].replace('.','/')+'/'+name+'.class',b'synthetic-not-bytecode')
+    results=generated/'build/test-results/test';results.mkdir(parents=True)
+    for name in spec['tests']:
+        source=generated/'src/test/java'/spec['package'].replace('.','/')/'security'/(name+'.java')
+        methods=re.findall(r'@Test\s+void\s+(\w+)\s*\(',source.read_text())
+        classname=spec['package']+'.security.'+name
+        suite=ET.Element('testsuite',name=classname,tests=str(len(methods)),failures='0',errors='0',skipped='0')
+        for method in methods:ET.SubElement(suite,'testcase',classname=classname,name=method+'()')
+        (results/('TEST-'+classname+'.xml')).write_bytes(ET.tostring(suite))
+    report=root/'build.json'
+    value={'schema_version':1,'service':role,'status':build.STATUS,
+           'source_manifest':compiler.source_manifest(),**build.artifacts(generated,role)}
+    report.write_bytes(compiler.encoded(value))
+    return generated,report,jar
+
+
 class JavaImageTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -126,10 +150,10 @@ class JavaImageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'security classes'):
             images.prepare(self.generated, self.report, self.root / 'bad', '0' * 40)
 
-    def layout(self, alter_file=None, alter_config=None, alter_directory=None):
+    def layout(self, alter_file=None, alter_config=None, alter_directory=None, role=images.ROLE):
         layout = self.root / ('oci-' + str(len(list(self.root.glob('oci-*')))))
         layout.mkdir()
-        source, verified = images.inputs(self.generated, self.report)
+        source, verified = images.inputs(self.generated, self.report, role=role)
         files = {'app/application.jar': (source['application.jar'], 0o444)}
         files.update({'opt/traderx/' + name.removeprefix('source/'): (data, 0o555)
                       for name, data in source.items() if name.startswith('source/')})
@@ -152,8 +176,8 @@ class JavaImageTests(unittest.TestCase):
         layer = admission_fixture.put(layout, archive.getvalue(), False)
         layer['mediaType'] = 'application/vnd.oci.image.layer.v1.tar'
         config = {'architecture': 'amd64', 'os': 'linux', 'rootfs': {'type': 'layers', 'diff_ids': [layer['digest']]},
-                  'config': {'User': '10001:10001', 'Entrypoint': images.argv(), 'Cmd': None,
-                             'Labels': images.labels('0' * 40, verified)}}
+                  'config': {'User': '10001:10001', 'Entrypoint': images.argv(role), 'Cmd': None,
+                             'Labels': images.labels('0' * 40, verified, role=role)}}
         if alter_config:
             alter_config(config)
         config_descriptor = admission_fixture.put(layout, config)
@@ -227,6 +251,41 @@ class JavaImageTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'hosted'):
                 build.build(self.root / 'runtime', Path('/not-java'))
             run.assert_not_called()
+
+    def test_additional_roles_bind_their_own_source_tests_jar_entrypoint_and_private_keys(self):
+        for role in ('account-service','trade-processor'):
+            root=self.root/role;root.mkdir()
+            self.generated,self.report,self.jar=synthetic_build(root,role)
+            contract=java_runtime.role_contract(role)
+            record=images.prepare(self.generated,self.report,root/'context','0'*40,role=role)
+            self.assertEqual(record['role'],role)
+            self.assertEqual(record['keys'],contract['keys'])
+            self.assertEqual(record['command'][-3],role)
+            self.assertIn('EXPOSE '+str(contract['port']),(root/'context/Dockerfile').read_text())
+            self.assertEqual(build.test_results(self.generated,role)['totals']['tests'],build.SPECS[role]['minimum_tests'])
+            layout=self.layout(role=role)
+            entry=images.inspect(layout,'local/'+role,'0'*40,self.generated,self.report,role=role)
+            self.assertEqual(entry['secret'],'private-'+role)
+            self.assertEqual(entry['keys'],contract['keys'])
+            # Even hash-consistent metadata cannot substitute another role's
+            # launch contract, test evidence or build report.
+            def wrong_role(config):config['config']['Entrypoint'][-3]='position-service'
+            with self.assertRaisesRegex(ValueError,'adapter'):
+                images.inspect(self.layout(role=role,alter_config=wrong_role),'local/'+role,'0'*40,self.generated,self.report,role=role)
+            with self.assertRaises(ValueError):build.verify(self.generated,self.report,role='position-service')
+            test=next((self.generated/'build/test-results/test').glob('TEST-*.xml'))
+            suite=ET.fromstring(test.read_bytes());suite.find('testcase').set('classname','foreign.role.Test')
+            test.write_bytes(ET.tostring(suite))
+            with self.assertRaisesRegex(ValueError,'required|Required'):build.test_results(self.generated,role)
+
+    def test_arbitrary_build_role_and_cross_role_jar_are_not_accepted(self):
+        for role in ('order-matcher','arbitrary',None):
+            with self.assertRaisesRegex(ValueError,'Reviewed'):build.role_spec(role)
+            with self.assertRaisesRegex(ValueError,'Reviewed'):images.argv(role)
+        root=self.root/'processor';root.mkdir()
+        generated,report,jar=synthetic_build(root,'trade-processor')
+        jar.write_bytes(self.jar.read_bytes())
+        with self.assertRaisesRegex(ValueError,'security classes'):images.jar_bytes(generated,'trade-processor')
 
 
 if __name__ == '__main__':

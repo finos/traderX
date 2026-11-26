@@ -1,4 +1,4 @@
-"""Fixed private Spring startup adapter for the protected position image only."""
+"""Fixed private Spring startup adapters for explicitly reviewed Java roles."""
 import argparse
 from datetime import datetime, timezone, timedelta
 import ipaddress
@@ -15,6 +15,11 @@ PRIVATE=Path('/run/private/config')
 CONFIG=PRIVATE/'config.json'
 PROPERTIES=Path('/run/private/java/application.properties')
 KEYS=['config.json','database-ca.pem','entitlements.properties','public.pem','tls.p12']
+ROLES={
+    'position-service':{'port':18090,'audience':'traderx-api','keys':KEYS},
+    'account-service':{'port':18088,'audience':'traderx-api','keys':KEYS},
+    'trade-processor':{'port':18091,'audience':'traderx-execution',
+        'keys':['config.json','database-ca.pem','public.pem','tls.p12']}}
 JAVA='/opt/java/openjdk/bin/java'
 JAR='/app/application.jar'
 LIMIT=1024*1024
@@ -29,10 +34,16 @@ def scalar(value,pattern):
     return value
 
 
-def validate(config,now=None):
+def role_contract(role):
+    if not isinstance(role,str) or role not in ROLES:raise ValueError('Reviewed Java role required')
+    return ROLES[role]
+
+
+def validate(config,now=None,role='position-service'):
+    contract=role_contract(role)
     exact(config,('version','role','database','identity','tls'))
-    if type(config['version']) is not int or config['version']!=1 or config['role']!='position-service':
-        raise ValueError('Protected position configuration required')
+    if type(config['version']) is not int or config['version']!=1 or config['role']!=role:
+        raise ValueError('Protected Java role configuration required')
     database=config['database'];exact(database,('host','port','name','username','password'))
     host=scalar(database['host'],r'[a-z0-9](?:[a-z0-9.-]{0,251}[a-z0-9])?')
     try:ipaddress.IPv4Address(host)
@@ -44,12 +55,14 @@ def validate(config,now=None):
     scalar(database['username'],r'[a-z][a-z0-9_]{0,62}')
     if database['username'] in ('postgres','traderx'):raise ValueError('Scoped application identity required')
     scalar(database['password'],r'[A-Za-z0-9_-]{16,256}')
-    identity=config['identity'];exact(identity,('issuer','audience','key_not_after'))
+    identity=config['identity'];exact(identity,('issuer','audience','key_not_after','matcher_subject')
+        if role=='trade-processor' else ('issuer','audience','key_not_after'))
+    if role=='trade-processor':scalar(identity['matcher_subject'],r'[A-Za-z0-9_-]{1,128}')
     issuer=scalar(identity['issuer'],r'https://[A-Za-z0-9./:_-]{1,240}')
     parsed=urlsplit(issuer)
     if not parsed.hostname or parsed.username or parsed.password or parsed.query or parsed.fragment or parsed.port==0:
         raise ValueError('HTTPS issuer required')
-    if identity['audience']!='traderx-api':raise ValueError('Protected API audience required')
+    if identity['audience']!=contract['audience']:raise ValueError('Protected API audience required')
     stamp=scalar(identity['key_not_after'],r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z')
     expiry=datetime.strptime(stamp,'%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
     now=now or datetime.now(timezone.utc)
@@ -71,16 +84,19 @@ def private_file(path):
     return raw
 
 
-def load_config():
+def load_config(role='position-service'):
+    keys=role_contract(role)['keys']
     def unique(items):
         result={}
         for key,value in items:
             if key in result:raise ValueError('Duplicate configuration key')
             result[key]=value
         return result
-    config=validate(json.loads(private_file(CONFIG),object_pairs_hook=unique))
-    for name in KEYS:
+    if set(os.listdir(PRIVATE))!=set(keys):raise ValueError('Exact role private file inventory required')
+    config=validate(json.loads(private_file(CONFIG),object_pairs_hook=unique),role=role)
+    for name in keys:
         if name!='config.json':private_file(PRIVATE/name)
+    if role=='trade-processor':return config
     # The Java security candidate validates RSA trust, PKCS12 and entitlement
     # semantics again. Refuse interpolation/newlines in its subject map here.
     subjects=set()
@@ -95,10 +111,10 @@ def load_config():
     return config
 
 
-def properties(config):
-    validate(config);db=config['database'];identity=config['identity']
+def properties(config,role='position-service'):
+    validate(config,role=role);db=config['database'];identity=config['identity']
     values={
-        'server.address':'0.0.0.0','server.port':'18090','server.forward-headers-strategy':'none',
+        'server.address':'0.0.0.0','server.port':str(ROLES[role]['port']),'server.forward-headers-strategy':'none',
         'server.ssl.enabled':'true','server.ssl.key-store':'file:'+str(PRIVATE/'tls.p12'),
         'server.ssl.key-store-type':'PKCS12','server.ssl.key-store-password':config['tls']['password'],
         'server.ssl.enabled-protocols':'TLSv1.3,TLSv1.2','server.max-http-request-header-size':'16KB',
@@ -117,8 +133,9 @@ def properties(config):
         'logging.level.org.hibernate.SQL':'OFF','logging.level.org.springframework.jdbc':'WARN',
         'lab.identity.issuer':identity['issuer'],'lab.identity.audience':identity['audience'],
         'lab.identity.public-key-file':str(PRIVATE/'public.pem'),
-        'lab.identity.entitlements-file':str(PRIVATE/'entitlements.properties'),
         'lab.identity.key-not-after':identity['key_not_after']}
+    if role=='trade-processor':values['lab.execution.matcher-subject']=identity['matcher_subject']
+    else:values['lab.identity.entitlements-file']=str(PRIVATE/'entitlements.properties')
     return ''.join(key+'='+values[key]+'\n' for key in sorted(values)).encode('ascii')
 
 
@@ -145,7 +162,8 @@ def write_properties(raw):
 
 
 def check_environment(environment):
-    forbidden=('SPRING_','SERVER_','DATABASE_','LAB_','MANAGEMENT_','LOGGING_','POSITION_SERVICE_')
+    forbidden=('SPRING_','SERVER_','DATABASE_','LAB_','MANAGEMENT_','LOGGING_',
+               'POSITION_SERVICE_','ACCOUNT_SERVICE_','TRADE_PROCESSOR_')
     if any(key.upper().startswith(forbidden) or key in ('JAVA_TOOL_OPTIONS','JDK_JAVA_OPTIONS','_JAVA_OPTIONS','CLASSPATH') for key in environment):
         raise ValueError('Runtime environment overrides refused')
 
@@ -157,11 +175,11 @@ def argv():
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--role',required=True,choices=('position-service',));parser.add_argument('--config',required=True)
+    parser.add_argument('--role',required=True,choices=ROLES);parser.add_argument('--config',required=True)
     args=parser.parse_args()
     try:
         if os.geteuid()!=10001 or os.getegid()!=10001 or args.config!=str(CONFIG):raise ValueError('Fixed runtime identity and config required')
-        check_environment(os.environ);write_properties(properties(load_config()))
+        check_environment(os.environ);write_properties(properties(load_config(args.role),role=args.role))
     except Exception:
         print('Protected Java configuration refused; private details withheld.',file=sys.stderr);return 2
     os.execve(JAVA,argv(),{'PATH':'/usr/bin:/bin','LANG':'C.UTF-8','TZ':'UTC'})

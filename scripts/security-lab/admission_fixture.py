@@ -23,9 +23,9 @@ def image(root,role,source,revision,alter=None):
         argv=['/usr/local/bin/python','/opt/traderx/private_materializer.py','--source','/run/projected','--target','/run/private/config']
         argv += [part for key in keys for part in ('--key',key)]
         argv += ['--','/usr/local/bin/python','/opt/traderx/entrypoint.py','--config','/run/private/config/config.json']
-    if role=='position-service':
-        from java_runtime import KEYS
-        keys=list(KEYS)
+    if role in compiler.JAVA_ROLES:
+        from java_runtime import role_contract
+        keys=list(role_contract(role)['keys'])
         argv=['/usr/local/bin/python','/opt/traderx/private_materializer.py','--source','/run/projected','--target','/run/private/config']
         argv += [part for key in keys for part in ('--key',key)]
         argv += ['--','/usr/local/bin/python','/opt/traderx/java_runtime.py','--role',role,'--config','/run/private/config/config.json']
