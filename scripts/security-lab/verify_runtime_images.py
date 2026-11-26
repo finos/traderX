@@ -21,7 +21,7 @@ import time
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.x509.oid import NameOID
+from cryptography.x509.oid import NameOID, ExtendedKeyUsageOID
 import jwt
 
 import integrated_deployment as compiler
@@ -32,6 +32,30 @@ from runtime_launcher import BACKENDS
 ROLES=('browser-session','event-publisher','event-consumer')
 REFUSAL='Packaged runtime configuration refused; private details withheld.'
 LABEL='traderx.security-lab.image-smoke'
+STAGES=frozenset(('configuration','verify_images','network','issuer','browser_start','browser_ready',
+    'browser_assets','browser_boundaries','worker_event_publisher','worker_event_consumer','cleanup','evidence'))
+PHASE='configuration'
+CHECKS=frozenset(('all_loaded_config_digests_match_inspected_oci','owned_network_is_internal',
+    'packaged_browser_verified_https_ready','untrusted_browser_certificate_rejected','actual_angular_static_index_and_csp_served',
+    'actual_angular_entrypoint_in_index','actual_angular_entrypoint_served','anonymous_packaged_api_denied',
+    'root_config_not_served','materialized_config_not_served','private_key_not_served','browser_port_published_only_on_loopback',
+    'actual_nonroot_readonly_capability_and_private_file_boundaries','event_publisher_mismatched_role_fails_closed_without_private_output',
+    'event_consumer_mismatched_role_fails_closed_without_private_output','owned_containers_network_and_private_fixture_cleaned'))
+
+
+class SmokeFailure(RuntimeError):
+    def __init__(self,check):self.check=check
+
+
+def stage(name):
+    global PHASE
+    if name not in STAGES:raise ValueError('Invalid fixed smoke stage')
+    PHASE=name
+
+
+def failure(error):
+    return {'status':'failed','stage':PHASE,
+        'check':error.check if isinstance(error,SmokeFailure) and error.check in CHECKS else 'runtime_boundary_unavailable'}
 
 
 class Docker:
@@ -76,13 +100,23 @@ def certificates(root,gateway):
     ca=(x509.CertificateBuilder().subject_name(subject).issuer_name(subject).public_key(ca_key.public_key())
         .serial_number(x509.random_serial_number()).not_valid_before(now-datetime.timedelta(minutes=1))
         .not_valid_after(now+datetime.timedelta(hours=1)).add_extension(x509.BasicConstraints(ca=True,path_length=0),critical=True)
+        .add_extension(x509.KeyUsage(digital_signature=False,content_commitment=False,key_encipherment=False,
+            data_encipherment=False,key_agreement=False,key_cert_sign=True,crl_sign=True,encipher_only=None,decipher_only=None),critical=True)
+        .add_extension(x509.SubjectKeyIdentifier.from_public_key(ca_key.public_key()),critical=False)
+        .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_key.public_key()),critical=False)
         .sign(ca_key,hashes.SHA256()))
     key=rsa.generate_private_key(public_exponent=65537,key_size=2048)
     leaf=(x509.CertificateBuilder().subject_name(x509.Name([x509.NameAttribute(NameOID.COMMON_NAME,'localhost')]))
         .issuer_name(subject).public_key(key.public_key()).serial_number(x509.random_serial_number())
         .not_valid_before(now-datetime.timedelta(minutes=1)).not_valid_after(now+datetime.timedelta(hours=1))
         .add_extension(x509.SubjectAlternativeName([x509.DNSName('localhost'),x509.IPAddress(ipaddress.ip_address(gateway))]),critical=False)
-        .add_extension(x509.BasicConstraints(ca=False,path_length=None),critical=True).sign(ca_key,hashes.SHA256()))
+        .add_extension(x509.BasicConstraints(ca=False,path_length=None),critical=True)
+        .add_extension(x509.SubjectKeyIdentifier.from_public_key(key.public_key()),critical=False)
+        .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_key.public_key()),critical=False)
+        .add_extension(x509.ExtendedKeyUsage([ExtendedKeyUsageOID.SERVER_AUTH]),critical=False)
+        .add_extension(x509.KeyUsage(digital_signature=True,content_commitment=False,key_encipherment=True,
+            data_encipherment=False,key_agreement=False,key_cert_sign=False,crl_sign=False,encipher_only=None,decipher_only=None),critical=True)
+        .sign(ca_key,hashes.SHA256()))
     values={'ca.pem':ca.public_bytes(serialization.Encoding.PEM),'tls.crt':leaf.public_bytes(serialization.Encoding.PEM),
             'tls.key':key.private_bytes(serialization.Encoding.PEM,serialization.PrivateFormat.PKCS8,serialization.NoEncryption())}
     for name,value in values.items():
@@ -165,13 +199,16 @@ from pathlib import Path
 def file(path):
  s=os.stat(path);return [s.st_uid,s.st_gid,stat.S_IMODE(s.st_mode)]
 status=dict(line.split(':',1) for line in Path('/proc/self/status').read_text().splitlines() if ':' in line)
+mounts=[line.split(' - ',1) for line in Path('/proc/self/mountinfo').read_text().splitlines()]
+private_fs=[after.split()[0] for before,after in mounts if before.split()[4]=='/run/private']
 blocked=False
 try:
  fd=os.open('/rootfs-image-smoke',os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600);os.close(fd)
 except OSError:blocked=True
 print(json.dumps({'uid':os.getuid(),'gid':os.getgid(),'projected':file('/run/projected/config.json'),
  'private':file('/run/private/config/config.json'),'directory':file('/run/private/config'),
- 'no_new_privileges':status['NoNewPrivs'].strip(),'capabilities':status['CapEff'].strip(),'root_write_denied':blocked}))
+ 'no_new_privileges':status['NoNewPrivs'].strip(),'capabilities':status['CapEff'].strip(),'root_write_denied':blocked,
+ 'private_filesystem':private_fs}))
 '''
 
 
@@ -182,11 +219,12 @@ def check_restrictions(container,probe):
     if not any(item in ('no-new-privileges','no-new-privileges:true') for item in host.get('SecurityOpt',[])):
         raise ValueError('Container privilege escalation not disabled')
     mounts={item['Destination']:item for item in container['Mounts']}
-    if mounts.get('/run/projected',{}).get('RW') is not False or mounts.get('/run/private',{}).get('Type')!='tmpfs':
+    private_tmpfs=mounts.get('/run/private',{}).get('Type')=='tmpfs' or '/run/private' in host.get('Tmpfs',{})
+    if mounts.get('/run/projected',{}).get('RW') is not False or not private_tmpfs:
         raise ValueError('Private configuration mount boundary not applied')
     expected={'uid':10001,'gid':10001,'projected':[0,10001,0o440],
         'private':[10001,10001,0o600],'directory':[10001,10001,0o700],
-        'no_new_privileges':'1','capabilities':'0000000000000000','root_write_denied':True}
+        'no_new_privileges':'1','capabilities':'0000000000000000','root_write_denied':True,'private_filesystem':['tmpfs']}
     if probe!=expected:raise ValueError('Materialized identity or file boundary not enforced')
 
 
@@ -206,23 +244,27 @@ def cleanup_owned(docker,names,network,owner):
 
 
 def campaign(runtime,manifest):
+    stage('configuration')
     if not portability.isolated_linux() or os.environ.get('GITHUB_ACTIONS')!='true':raise ValueError('Image execution requires isolated hosted Linux')
     runtime=Path(runtime).resolve();runtime.mkdir(parents=True,exist_ok=True)
-    docker=Docker(runtime);verified=verified_images(manifest,docker)
+    stage('verify_images');docker=Docker(runtime);verified=verified_images(manifest,docker)
     owner=secrets.token_hex(12);network='traderx-image-smoke-'+owner;names=[];checks=[]
     def check(condition,name):
-        if not condition:raise RuntimeError('Image smoke boundary failed')
+        if name not in CHECKS:raise ValueError('Invalid fixed smoke check')
+        if not condition:raise SmokeFailure(name)
         checks.append(name)
     check(True,'all_loaded_config_digests_match_inspected_oci')
     with tempfile.TemporaryDirectory(prefix='image-smoke-',dir=runtime) as temporary:
         root=Path(temporary)
         try:
+            stage('network')
             docker('network','create','--internal','--label',LABEL+'='+owner,network)
             info=json.loads(docker('network','inspect',network).stdout)[0]
             check(info.get('Internal') is True,'owned_network_is_internal')
             gateway=info['IPAM']['Config'][0]['Gateway'];ipaddress.IPv4Address(gateway)
-            values,jwks=certificates(root,gateway)
+            stage('issuer');values,jwks=certificates(root,gateway)
             with issuer_peer(root,gateway,jwks) as issuer:
+                stage('browser_start')
                 with socket.socket() as listener:listener.bind(('127.0.0.1',0));port=listener.getsockname()[1]
                 config={'version':1,'origin':f'https://localhost:{port}','issuer':issuer+'/realms/image-smoke',
                     'client_id':'image-smoke-browser','audience':'image-smoke-api','listen_host':'0.0.0.0','listen_port':18447,
@@ -232,7 +274,7 @@ def campaign(runtime,manifest):
                 name='traderx-image-browser-'+owner;names.append(name)
                 docker(*launch_args(name,network,owner,projection,verified['browser-session']['config_digest'],port))
                 context=ssl.create_default_context(cafile=root/'ca.pem')
-                deadline=time.monotonic()+30;ready=False
+                stage('browser_ready');deadline=time.monotonic()+30;ready=False
                 while time.monotonic()<deadline:
                     try:
                         if request(port,context,'/health/ready')[0]==200:ready=True;break
@@ -245,13 +287,13 @@ def campaign(runtime,manifest):
                 try:request(port,ssl.create_default_context(),'/health/ready')
                 except ssl.SSLCertVerificationError:untrusted=True
                 check(untrusted,'untrusted_browser_certificate_rejected')
-                status,headers,body=request(port,context,'/trade')
+                stage('browser_assets');status,headers,body=request(port,context,'/trade')
                 check(status==200 and b'<app-root' in body and "script-src 'self'" in headers.get('Content-Security-Policy',''),'actual_angular_static_index_and_csp_served')
                 matches=re.findall(rb'<script[^>]+src="((?:\./|/)?main-[A-Za-z0-9_-]{6,64}\.js)"',body)
                 check(len(matches)==1,'actual_angular_entrypoint_in_index')
                 path='/'+matches[0].decode().removeprefix('./').lstrip('/')
                 check(request(port,context,path)[0]==200,'actual_angular_entrypoint_served')
-                check(request(port,context,'/api/order-matcher/orders')[0]==401,'anonymous_packaged_api_denied')
+                stage('browser_boundaries');check(request(port,context,'/api/order-matcher/orders')[0]==401,'anonymous_packaged_api_denied')
                 for path,label in (('/config.json','root_config_not_served'),('/run/private/config/config.json','materialized_config_not_served'),('/tls.key','private_key_not_served')):
                     check(request(port,context,path)[0]==404,label)
                 container=json.loads(docker('inspect',name).stdout)[0]
@@ -260,14 +302,19 @@ def campaign(runtime,manifest):
                 probe=json.loads(docker('exec',name,'/usr/local/bin/python','-c',PRIVATE_PROBE).stdout)
                 check_restrictions(container,probe);check(True,'actual_nonroot_readonly_capability_and_private_file_boundaries')
                 for role in ('event-publisher','event-consumer'):
+                    stage('worker_'+role.replace('-','_'))
                     projection=projected(root,role,worker_config(role,gateway),values)
                     name='traderx-image-'+role+'-'+owner;names.append(name)
                     docker(*launch_args(name,network,owner,projection,verified[role]['config_digest']))
                     code=docker('wait',name,timeout=20).stdout.strip()
                     logs=docker('logs','--tail','10',name)
                     check(code=='2' and (logs.stdout+logs.stderr).strip()==REFUSAL,role.replace('-','_')+'_mismatched_role_fails_closed_without_private_output')
-        finally:cleanup_owned(docker,names,network,owner)
+        finally:
+            previous=PHASE;stage('cleanup')
+            cleanup_owned(docker,names,network,owner)
+            stage(previous)
     check(True,'owned_containers_network_and_private_fixture_cleaned')
+    stage('evidence')
     return {'status':'passed','source_commit':manifest['source_commit'],'scope':'Actual inspected Python images: browser startup/static/anonymous boundary and worker configuration rejection only',
         'images':verified,'checks':checks,'limitations':[
             'Synthetic TLS signing-key peer supplies no real OIDC login or business API; no browser trading or issuer-provider integration claim.',
@@ -286,8 +333,8 @@ def main():
         value=campaign(args.runtime_dir,compiler.read_json(args.images))
         args.output.parent.mkdir(parents=True,exist_ok=True);args.output.write_bytes(compiler.encoded(value))
         print('Inspected image startup and configuration smoke passed; business delivery remains a separate gate.')
-    except Exception:
-        print('Image smoke failed; private diagnostics withheld.')
+    except Exception as error:
+        print(json.dumps(failure(error),sort_keys=True))
         return 1
     finally:signal.signal(signal.SIGTERM,old)
     return 0

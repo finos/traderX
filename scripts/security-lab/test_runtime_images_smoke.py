@@ -2,6 +2,8 @@ import copy
 import json
 from pathlib import Path
 import subprocess
+import http.client
+import ssl
 import tempfile
 import unittest
 from unittest.mock import Mock, patch
@@ -81,10 +83,32 @@ class RuntimeImageSmokeTests(unittest.TestCase):
                    'SecurityOpt':['no-new-privileges:true']},'Mounts':[{'Destination':'/run/projected','RW':False},
                    {'Destination':'/run/private','Type':'tmpfs'}]}
         probe={'uid':10001,'gid':10001,'projected':[0,10001,0o440],'private':[10001,10001,0o600],
-               'directory':[10001,10001,0o700],'no_new_privileges':'1','capabilities':'0000000000000000','root_write_denied':True}
+               'directory':[10001,10001,0o700],'no_new_privileges':'1','capabilities':'0000000000000000','root_write_denied':True,'private_filesystem':['tmpfs']}
         smoke.check_restrictions(container,probe)
-        for delta in ({'uid':0},{'private':[10001,10001,0o644]},{'root_write_denied':False},{'capabilities':'0000000000000001'}):
+        container['Mounts']=container['Mounts'][:1];container['HostConfig']['Tmpfs']={'/run/private':'mode=0700'}
+        smoke.check_restrictions(container,probe)
+        for delta in ({'uid':0},{'private':[10001,10001,0o644]},{'root_write_denied':False},{'capabilities':'0000000000000001'},{'private_filesystem':['ext4']}):
             with self.assertRaises(ValueError):smoke.check_restrictions(container,dict(probe,**delta))
+
+    def test_fixture_chain_passes_strict_verified_tls_without_docker(self):
+        _,keys=smoke.certificates(self.root,'127.0.0.1')
+        context=ssl.create_default_context(cafile=self.root/'ca.pem')
+        context.verify_flags|=ssl.VERIFY_X509_STRICT
+        with smoke.issuer_peer(self.root,'127.0.0.1',keys) as origin:
+            port=int(origin.rsplit(':',1)[1]);connection=http.client.HTTPSConnection('127.0.0.1',port,context=context,timeout=2)
+            try:
+                connection.request('GET','/realms/image-smoke/protocol/openid-connect/certs')
+                reply=connection.getresponse();self.assertEqual(reply.status,200)
+                self.assertEqual(json.loads(reply.read()),keys)
+            finally:connection.close()
+
+    def test_failure_diagnostics_never_echo_exception_or_private_material(self):
+        smoke.stage('browser_ready')
+        self.assertEqual(smoke.failure(ValueError('secret-password')),{
+            'status':'failed','stage':'browser_ready','check':'runtime_boundary_unavailable'})
+        self.assertEqual(smoke.failure(smoke.SmokeFailure('packaged_browser_verified_https_ready'))['check'],'packaged_browser_verified_https_ready')
+        self.assertEqual(smoke.failure(smoke.SmokeFailure('secret-password'))['check'],'runtime_boundary_unavailable')
+        with self.assertRaises(ValueError):smoke.stage('private-stage-input')
 
     def test_cleanup_only_removes_owned_resources_and_continues_after_failure(self):
         def command(*args,**kwargs):

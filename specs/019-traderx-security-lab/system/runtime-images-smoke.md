@@ -21,7 +21,7 @@ no privilege escalation and bounded CPU/memory/processes. Root-owned projected
 keys have mode 0440 and group 10001, mounted read-only. The launcher materializes
 them into a private tmpfs as UID 10001, files 0600 and directory 0700. Inspect the
 running browser's actual identity, permissions and capability state, including
-a denied root-filesystem write.
+a denied root-filesystem write and tmpfs identity from `/proc/self/mountinfo`.
 
 Each worker receives structurally valid configuration for the other worker mode.
 It must exit with the fixed sanitized configuration-refusal message before
@@ -34,5 +34,8 @@ Use unique ownership labels for containers/network, remove only owned resources
 on success and failure, remove the temporary private fixture, and withhold raw
 container output or credentials from evidence. A failed cleanup prevents a passed
 result. Local unit tests mock Docker and verify digest binding, permissions,
-execution arguments, role mismatch and cleanup ownership; only the hosted image
+execution arguments, role mismatch and cleanup ownership. A local loopback test
+also verifies the fixture certificate chain with strict X.509 validation.
+Failures report only fixed stage/check identifiers, never exception text or
+container logs. Only the hosted image
 execution supplies runtime proof.
