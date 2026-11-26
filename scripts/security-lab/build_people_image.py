@@ -124,7 +124,7 @@ def publish_files(root):
             files[relative] = digest
         elif relative not in ('PeopleService.WebApi', 'PeopleService.WebApi.pdb',
                               'appsettings.json', 'appsettings.Development.json',
-                              'MockDirectory/people.json'):
+                              'MockDirectory/people.json', 'web.config'):
             raise ValueError('Unexpected publish output')
     required = {'PeopleService.WebApi.dll', 'PeopleService.WebApi.deps.json',
                 'PeopleService.WebApi.runtimeconfig.json'}

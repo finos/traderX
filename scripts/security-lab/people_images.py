@@ -4,6 +4,7 @@ import hashlib
 import json
 from pathlib import Path, PurePosixPath
 import re
+import struct
 import tarfile
 
 import build_people_image as build
@@ -105,12 +106,16 @@ def filesystem(layout, manifest, expected):
     directories = {'opt', 'opt/traderx'}
     for name in expected:
         directories.update(p.as_posix() for p in PurePosixPath(name).parents if p.as_posix() != '.')
+    runtime_directories = {'usr', 'usr/local', 'usr/local/bin', 'usr/share',
+                           'usr/share/dotnet'}
+    tracked = directories | runtime_directories | {'usr/share/dotnet/dotnet'}
     for descriptor in manifest['layers']:
         if descriptor['mediaType'] not in ('application/vnd.oci.image.layer.v1.tar',
                                             'application/vnd.oci.image.layer.v1.tar+gzip'):
             raise ValueError('Reviewed tar/gzip layers required')
         path = layout / 'blobs/sha256' / descriptor['digest'].split(':')[1]
         count = size = 0
+        whiteouts, additions = [], []
         with tarfile.open(path, 'r|*') as tar:
             for member in tar:
                 count += 1
@@ -122,42 +127,101 @@ def filesystem(layout, manifest, expected):
                     raise ValueError('Invalid OCI path')
                 rel = name.as_posix()
                 if name.name == '.wh..wh..opq':
-                    prefix = name.parent.as_posix() + '/'
-                    if prefix == './':
-                        state.clear()
-                    else:
-                        state = {k: v for k, v in state.items() if not k.startswith(prefix)}
+                    if not member.isfile() or member.size:
+                        raise ValueError('Invalid OCI opaque whiteout')
+                    whiteouts.append(('opaque', name.parent.as_posix()))
                     continue
                 if name.name.startswith('.wh.'):
-                    erased = (name.parent / name.name[4:]).as_posix()
-                    state = {k: v for k, v in state.items() if k != erased and not k.startswith(erased + '/')}
+                    if not member.isfile() or member.size or name.name == '.wh.':
+                        raise ValueError('Invalid OCI whiteout')
+                    whiteouts.append(('remove', (name.parent / name.name[4:]).as_posix()))
                     continue
-                if rel not in ('opt', 'opt/traderx') and not rel.startswith('opt/traderx/'):
+                if (rel not in tracked and not rel.startswith('opt/traderx/')
+                        and not re.fullmatch(r'usr/local/bin/python(?:3(?:\.\d+)?)?', rel)):
                     continue
-                if rel in directories and not member.isdir():
-                    raise ValueError('OCI application ancestor is not a directory')
-                if not member.isdir():
-                    state = {k: v for k, v in state.items() if not k.startswith(rel + '/')}
-                digest = None
+                if rel in directories | runtime_directories and not member.isdir():
+                    raise ValueError('OCI required ancestor is not a directory: ' + rel)
+                digest, header = None, b''
                 if member.isfile():
                     if member.size > build.LIMIT:
-                        raise ValueError('OCI application file exceeds bound')
+                        raise ValueError('OCI tracked file exceeds bound')
                     stream = tar.extractfile(member)
                     h = hashlib.sha256()
                     for part in iter(lambda: stream.read(1024 * 1024), b''):
+                        if not header and (rel == 'usr/share/dotnet/dotnet'
+                                           or rel.startswith('usr/local/bin/python')):
+                            header = part[:65536]
                         h.update(part)
                     digest = h.hexdigest()
-                state[rel] = (member.isdir(), member.isfile(), member.uid, member.gid, member.mode & 0o7777, digest)
-    if set(state) != directories | set(expected):
+                additions.append((rel, (member.isdir(), member.isfile(), member.issym(), member.uid,
+                                        member.gid, member.mode & 0o7777, digest, member.linkname,
+                                        header, member.size)))
+        # OCI whiteouts mask lower layers only, irrespective of tar entry order.
+        for kind, name in whiteouts:
+            if kind == 'opaque':
+                prefix = '' if name == '.' else name + '/'
+                state = {k: v for k, v in state.items() if not k.startswith(prefix)}
+            else:
+                state = {k: v for k, v in state.items() if k != name and not k.startswith(name + '/')}
+        for rel, item in additions:
+            if not item[0]:
+                state = {k: v for k, v in state.items() if not k.startswith(rel + '/')}
+            state[rel] = item
+    app_state = {k: v for k, v in state.items() if k == 'opt' or k == 'opt/traderx'
+                 or k.startswith('opt/traderx/')}
+    if set(app_state) != directories | set(expected):
         raise ValueError('OCI application inventory differs')
-    for name in directories:
-        isdir, _, uid, gid, mode, _ = state[name]
+    for name in directories | runtime_directories:
+        if name not in state:
+            raise ValueError('Required OCI parent directory missing')
+        isdir, _, _, uid, gid, mode, _, _, _, _ = state[name]
         if not isdir or uid != 0 or gid != 0 or mode not in (0o555, 0o755):
-            raise ValueError('Unsafe OCI application parent directory')
+            raise ValueError('Unsafe OCI parent directory')
     for name, (digest, mode) in expected.items():
-        _, isfile, uid, gid, actual_mode, actual_digest = state[name]
+        _, isfile, _, uid, gid, actual_mode, actual_digest, _, _, _ = state[name]
         if not isfile or uid != 0 or gid != 0 or actual_mode != mode or actual_digest != digest:
             raise ValueError('OCI application file differs')
+    executable(state, 'usr/share/dotnet/dotnet', allow_python_links=False)
+    executable(state, 'usr/local/bin/python', allow_python_links=True)
+
+
+def executable(state, path, *, allow_python_links):
+    seen = set()
+    while True:
+        if path in seen or path not in state:
+            raise ValueError('Missing or cyclic OCI executable')
+        seen.add(path)
+        _, isfile, issym, uid, gid, mode, _, link, header, size = state[path]
+        if uid != 0 or gid != 0:
+            raise ValueError('Unsafe OCI executable ownership')
+        if issym and allow_python_links:
+            if not re.fullmatch(r'python3(?:\.\d+)?', link):
+                raise ValueError('Unreviewed Python executable link')
+            path = 'usr/local/bin/' + link
+            continue
+        if not isfile or mode not in (0o555, 0o755) or not amd64_elf(header, size):
+            raise ValueError('Unsafe or non-amd64 OCI executable')
+        return
+
+
+def amd64_elf(header, size):
+    """Check executable structure, not provenance or dynamic-library compatibility."""
+    if len(header) < 64 or header[:7] != b'\x7fELF\x02\x01\x01':
+        return False
+    fields = struct.unpack_from('<HHIQQQIHHHHHH', header, 16)
+    kind, machine, version, entry, offset = fields[:5]
+    ehsize, phsize, phcount = fields[7:10]
+    if (kind not in (2, 3) or machine != 62 or version != 1 or not entry
+            or ehsize != 64 or phsize != 56 or not 1 <= phcount <= 128
+            or offset < 64 or offset + phsize * phcount > min(size, len(header))):
+        return False
+    segments = set()
+    for index in range(phcount):
+        kind, _, pos, _, _, length, memory, _ = struct.unpack_from('<IIQQQQQQ', header, offset + index * phsize)
+        if pos + length > size or (kind == 1 and memory < length):
+            return False
+        segments.add(kind)
+    return {1, 3}.issubset(segments)
 
 
 def inspect(layout, name, revision, root, publish, report):
