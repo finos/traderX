@@ -78,7 +78,7 @@ describe('Application browser session', () => {
     });
     it('does not open the inherited anonymous NATS socket in the session candidate', () => {
         const socket=spyOn(window,'WebSocket');
-        const bus=new TradeFeedService();
+        const bus=TestBed.inject(TradeFeedService);
         const remove=bus.subscribeSettlement('/accounts/62654/trades',()=>{});
         expect(socket).not.toHaveBeenCalled(); remove();
     });

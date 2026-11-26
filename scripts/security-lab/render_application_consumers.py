@@ -66,32 +66,10 @@ def blotter(source, position=False):
 
 
 def feed(source):
-    source = section(source, '    private connect() {', '    private resolveWebSocketUrl(', '''    private connect() {
-        // Live authenticated broker mediation/issuance is a separate acceptance gate.
-        // Never fall back to the C3 anonymous WebSocket in this candidate.
-        this.connectionStateSubject.next('disconnected');
-    }''')
-    source = "import { settlementMatches } from 'main/app/security/settlement-snapshot';\n" + source
-    source = replace_once(source, 'type SubscriptionRecord = {', 'type SubscriptionRecord = {\n    settlement?: boolean;')
-    source = replace_once(source, 'this.dispatchMessage(this.pendingMsg.sid, payload);', 'this.dispatchMessage(this.pendingMsg.sid, payload, this.pendingMsg.subject);')
-    source = replace_once(source, 'private dispatchMessage(sid: number, payloadText: string)', 'private dispatchMessage(sid: number, payloadText: string, subject: string)')
-    source = replace_once(source, '            const parsed = JSON.parse(payloadText);', '''            const parsed = JSON.parse(payloadText);
-            if (record.settlement) {
-                if (subject === record.topic && settlementMatches(subject, parsed)) record.callback();
-                return;
-            }''')
-    source = replace_once(source, "            console.error('Failed to parse NATS websocket payload', err);", "            console.warn('Invalid message rejected');")
-    return replace_once(source, '    public unSubscribe(', '''    public subscribeSettlement(topic: string, callback: () => void): () => void {
-        if (!/^\\/accounts\\/[1-9][0-9]*\\/(trades|positions)$/.test(topic)) throw new Error('Explicit settlement account required');
-        const sid = this.nextSid++;
-        this.subscriptions.set(sid, { sid, topic, callback, settlement: true });
-        this.connect();
-        this.sendRaw(`SUB ${topic} ${sid}\\r\\n`);
-        this.sendRaw('PING\\r\\n');
-        return () => this.removeSubscription(sid);
-    }
-
-    public unSubscribe(''')
+    # Fail on unexpected pinned input before replacing the transport candidate.
+    if 'export class TradeFeedService' not in source or 'private connect() {' not in source:
+        raise ValueError('Pinned feed boundary changed')
+    return (OVERLAY/'broker-feed.service.ts').read_text().replace("from './broker-notifications'", "from '../security/broker-notifications'")
 
 
 def render(target):
@@ -131,15 +109,16 @@ def render(target):
   </main>
   <ng-container *ngIf="state === 'signed-in'">
     <p>Signed in as {{ session.subject }} <button type="button" (click)="session.logout()">Sign out</button></p>
-    <p role="status">Authenticated API candidate. Live market and settlement notifications await the scoped broker checkpoint.</p>
+    <p role="status">Authenticated API and account-scoped settlement notifications. Live market and order updates remain a separate integration checkpoint.</p>
 '''+path.read_text()+'''
   </ng-container>
 </ng-container>
 ''')
     dest=app/'security'; dest.mkdir(exist_ok=True)
-    for path in OVERLAY.glob('*.ts'): (dest/path.name).write_bytes(path.read_bytes())
+    for path in OVERLAY.glob('*.ts'):
+        if path.name != 'broker-feed.service.ts': (dest/path.name).write_bytes(path.read_bytes())
     inputs=[Path(__file__).resolve(),ROOT/'scripts/security-lab/render_account_security.py',PROFILE/'baseline.lock.json',*sorted(OVERLAY.glob('*.ts'))]
-    manifest={'scope':'Cookie-session and snapshot consumer source candidate; authenticated broker and cumulative trading remain pending',
+    manifest={'scope':'Cookie-session, mediated broker and snapshot consumer source candidate; cumulative deployment/trading remains pending',
         'generated_commit':baseline['generated_commit'],
         'inputs':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in inputs},
         'files':{str(p.relative_to(target)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(target.rglob('*')) if p.is_file()}}

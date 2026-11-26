@@ -38,9 +38,10 @@ class Store:
         self.prune();return self.sessions.get(key)
 
 class BrowserServer:
-    def __init__(self,cert,key,context,jwks,api_proxy=None):
+    def __init__(self,cert,key,context,jwks,api_proxy=None,broker_events=None):
         self.store=Store();self.access=TokenVerifier(jwks);self.identity=TokenVerifier(jwks,audience=CLIENT);self.context=context
         self.api_proxy=api_proxy
+        self.broker_events=broker_events
         owner=self
         class Handler(BaseHTTPRequestHandler):
             def log_message(self,*args):pass
@@ -67,6 +68,24 @@ class BrowserServer:
                         except Exception:
                             owner.store.sessions.pop(self.cookie(SESSION),None)
                             session=None
+                    if path=='/events':
+                        if not session:return self.reply(401,'Sign in required')
+                        if self.command!='GET':return self.reply(405,'Read-only notification endpoint')
+                        if owner.broker_events is None:return self.reply(503,'Notification feed not configured')
+                        from browser_broker import FeedError
+                        try:
+                            parsed=urllib.parse.urlsplit(self.path)
+                            if parsed.fragment or len(self.path)>160:raise ValueError('Invalid event query')
+                            query=urllib.parse.parse_qs(parsed.query,keep_blank_values=True,strict_parsing=True,max_num_fields=1)
+                            if query and set(query)!={'after'}:raise ValueError('Invalid event query')
+                            after=query['after'][0] if query else None
+                            revision,data=owner.broker_events.poll(session['subject'],after,session.get('broker_revision'))
+                            session['broker_revision']=revision
+                            return self.reply(200,data)
+                        except FeedError as error:
+                            if error.status==403:owner.store.sessions.pop(self.cookie(SESSION),None)
+                            return self.reply(error.status,str(error))
+                        except ValueError:return self.reply(400,'Invalid notification query')
                     if owner.api_proxy and path.startswith('/api/') and not re.fullmatch(r'/api/(account|accountuser)/(\d+)?',path):
                         if not session:return self.reply(401,'Sign in required')
                         try:

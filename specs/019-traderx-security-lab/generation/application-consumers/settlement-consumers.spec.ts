@@ -34,9 +34,11 @@ describe('Settlement notification contract', () => {
         const service: any = Object.create(TradeFeedService.prototype);
         const callback = jasmine.createSpy('invalidate');
         service.subscriptions = new Map([[1, {topic:'/accounts/22214/trades', settlement:true, callback}]]);
-        service.dispatchMessage(1, JSON.stringify(envelope()), '/accounts/62654/trades');
+        const {payload: foreignPayload, ...foreign}=envelope(62654);
+        service.dispatchNotification({...foreign, topic:'/accounts/62654/trades', accountId:62654});
         expect(callback).not.toHaveBeenCalled();
-        service.dispatchMessage(1, JSON.stringify(envelope()), '/accounts/22214/trades');
+        const {payload, ...metadata}=envelope();
+        service.dispatchNotification({...metadata, topic:'/accounts/22214/trades', accountId:22214});
         expect(callback).toHaveBeenCalledOnceWith();
     });
 });

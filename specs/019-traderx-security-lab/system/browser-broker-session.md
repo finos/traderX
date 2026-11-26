@@ -14,6 +14,8 @@ It is **mediated broker access**, not browser NATS credential issuance.
   TLS. That identity can subscribe only to its two settlement subjects and has
   no publish rights. Broker administration, other accounts and execution subjects
   remain inaccessible. Native NATS ports are not browser endpoints.
+  Publish denial uses `deny: [">" ]` explicitly: an empty NATS allow list is not
+  deny-all, as explained in the [NATS authorization reference](https://docs.nats.io/learn/security/authorization).
 - BBR-03: Validate canonical event envelopes and actual subjects before copying
   only identity/account/kind/sequence metadata to bounded buffers. Notifications
   invalidate HTTP snapshots; no business values, credentials or bearer tokens

@@ -48,6 +48,26 @@ def permissions():
          for name,durable in [('consumer-a','ACCOUNT_A'),('consumer-b','ACCOUNT_B')]}}
 
 
+def fixture_permissions(extra=None):
+    import re
+    rules=permissions()
+    if extra:
+        for identity,policy in extra.items():
+            if identity in rules or not re.fullmatch(r'[a-z][a-z0-9_-]{0,40}',identity):
+                raise ValueError('Duplicate or invalid fixture identity')
+            if not isinstance(policy,dict) or set(policy)!={'publish','subscribe'}:
+                raise ValueError('Explicit fixture publish/subscribe policy required')
+            for value in policy.values():
+                if not isinstance(value,dict) or not value or not set(value)<={'allow','deny'}:
+                    raise ValueError('Explicit fixture subject policy required')
+                if any(not isinstance(subjects,list) or any(not isinstance(x,str) or not x or len(x)>160 for x in subjects) for subjects in value.values()):
+                    raise ValueError('Invalid fixture subject policy')
+                if not any(value.values()):
+                    raise ValueError('Empty NATS lists are not a deny-all policy')
+            rules[identity]=policy
+    return rules
+
+
 @contextmanager
 def broker(runtime, extra_permissions=None):
     cli=docker(runtime);run_id=uuid.uuid4().hex;name='traderx-events-'+run_id[:12]
@@ -58,18 +78,7 @@ def broker(runtime, extra_permissions=None):
         private=Path(temp);config_dir=private/'config';data_dir=private/'data'
         config_dir.mkdir(mode=0o755);config_dir.chmod(0o755)
         data_dir.mkdir(mode=0o777);data_dir.chmod(0o777)
-        rules=permissions()
-        if extra_permissions:
-            import re
-            for identity, policy in extra_permissions.items():
-                if identity in rules or not re.fullmatch(r'[a-z][a-z0-9_-]{0,40}',identity):
-                    raise ValueError('Duplicate or invalid fixture identity')
-                if not isinstance(policy,dict) or set(policy)!={'publish','subscribe'}:
-                    raise ValueError('Explicit fixture publish/subscribe policy required')
-                for value in policy.values():
-                    if not isinstance(value,dict) or set(value)!={'allow'} or not isinstance(value['allow'],list) or any(not isinstance(x,str) or not x or len(x)>160 for x in value['allow']):
-                        raise ValueError('Invalid fixture subject policy')
-                rules[identity]=policy
+        rules=fixture_permissions(extra_permissions)
         passwords={name:secrets.token_hex(24) for name in rules}
         certificate=config_dir/'cert.pem';key=config_dir/'key.pem'
         subprocess.run(['openssl','req','-x509','-newkey','rsa:2048','-nodes','-keyout',str(key),'-out',str(certificate),
