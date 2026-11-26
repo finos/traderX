@@ -16,7 +16,13 @@ the `/trade` index and hashed JavaScript, CSP, client rejection of the server
 certificate without the fixture CA, anonymous API denial and inaccessible
 configuration/key paths.
 The synthetic issuer supplies signing keys only. It listens on the owned internal
-Docker network's gateway address; the browser port is published only on loopback.
+Docker network's gateway address. The browser requests a loopback-only port
+mapping. Some Docker versions suppress publication on internal-only networks;
+the verifier checks the effective mapping and records the actual probe route.
+With no mapping, it connects only to the inspected address on its owned internal
+network while verifying the `localhost` certificate and fixed Host header. An
+effective but unreachable mapping fails; it cannot silently fall back. Direct
+internal probing does not establish that a learner-facing port is available.
 There is no real OIDC login or authenticated business API claim in this campaign.
 
 All three containers use UID/GID 10001, a read-only root, dropped capabilities,
