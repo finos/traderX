@@ -92,6 +92,10 @@ def render(target):
         'scripts':True,'styles':{'minify':True,'inlineCritical':False},'fonts':False}
     angular.write_text(json.dumps(configuration,indent=2)+'\n')
     index=target/'main/index.html';index.write_text(replace_once(index.read_text(),'<base href="." />','<base href="/" />'))
+    package=target/'package.json';metadata=json.loads(package.read_text())
+    metadata['scripts']['build']=replace_once(metadata['scripts']['build'],'--base-href=.','--base-href=/')
+    metadata['scripts']['build']=replace_once(metadata['scripts']['build'],'--output-path=./dist','--output-path=./dist/main-application')
+    package.write_text(json.dumps(metadata,indent=2)+'\n')
     for name in ('trade','position'):
         path=app/f'trade/{name}-blotter/{name}-blotter.component.ts'
         path.write_text(blotter(path.read_text(),name=='position'))
