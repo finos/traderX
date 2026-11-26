@@ -11,3 +11,5 @@ The implementation currently lives in the [C3 experimental profile](../012-platf
 Start with the [specification](spec.md), [learning contract](learning-contract.json), [plan](plan.md), [tasks](tasks.md), and [prototype quickstart](quickstart.md). CALM will be a separate successor, comparing manually implemented boundaries with model-derived controls against the same evidence contract.
 
 The current integration work connects the [real Angular browser journey](system/browser-journey.md) to the authenticated services and builds the first [runnable Python role images](system/runtime-images.md). Their hosted evidence advances the [Phase 1/2 acceptance boundary](system/integrated-acceptance.md); it does not publish or activate the generated state.
+
+See the [first-release completion assessment](system/completion-roadmap.md) for the remaining acceptance blocks, planning estimate and explicitly deferred follow-on work.

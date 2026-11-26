@@ -40,6 +40,14 @@ files. Fixture administration and authoritative evidence stay outside workers.
 Use the existing process-recovery campaign's acknowledgment gates and SQL
 assertions as a starting point. Add a separate container fixture and verifier;
 do not reinterpret its host-process, loopback-database results as image evidence.
+For the consumer post-commit case, the fixture may temporarily deny only that
+consumer's broker acknowledgment subjects. Observe committed SQL effects and
+the durable's unacknowledged delivery independently, then kill the still-running
+container. Restore and verify the normal broker permissions before restarting
+the identical image. Record this as an injected broker-permission failure, not
+network loss or host power loss. A container that exits before the controlled
+kill does not satisfy this interruption case. The packaged worker must not gain
+a test-only pause, acknowledgment bypass or special fixture mode.
 Export only fixed check identifiers, immutable image/source identities, bounded
 counts and nonsecret event identities. Never upload private configuration,
 credentials, raw container logs or database connection strings.

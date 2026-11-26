@@ -2,6 +2,10 @@
 
 The current Phase 1/2 work follows the [integrated acceptance boundary](system/integrated-acceptance.md): authenticated application journey first, then the same journey under enforced deployment controls. Independent component campaigns remain checkpoints, not completion of either full phase.
 
+The [completion assessment](system/completion-roadmap.md) groups the remaining
+release gates and records a 5–10 focused-working-day planning range as of
+26 November; this is not a completion claim or a calendar commitment.
+
 The [26 November checkpoint](evidence/2026-11-26-phase-one-two.json) advances both
 phases at source `5dd9f72d`: 47 live authenticated trading/delivery/API checks,
 27 broker-session checks, 30 operator-directory checks, 38 Chrome component
