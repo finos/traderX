@@ -9,6 +9,7 @@ on:
       - 'specs/019-traderx-security-lab/system/sql/**'
       - 'specs/019-traderx-security-lab/system/jetstream-images.lock.json'
       - 'specs/019-traderx-security-lab/system/runtime-images.lock.json'
+      - 'specs/019-traderx-security-lab/system/java-runtime-images.lock.json'
       - 'specs/019-traderx-security-lab/generation/**'
       - '.github/workflows/security-lab-integration-linux.yml'
 permissions:
@@ -329,4 +330,70 @@ jobs:
           name: security-worker-image-delivery
           path: ${{ runner.temp }}/worker-images.json
           if-no-files-found: error
+          retention-days: 7
+  position-image:
+    # Independent hosted runner; private fixture data and images are never published.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Build and verify protected position image with HTTPS and PostgreSQL TLS
+        env:
+          TRADERX_LAB_ISOLATED_LINUX: '1'
+        run: |
+          set -euo pipefail
+          umask 077
+          python -m pip install -r scripts/security-lab/requirements.txt
+          python -m pip install 'cryptography==50.0.2' 'PyJWT==2.15.1'
+          python -m pip install --require-hashes -r scripts/security-lab/requirements-delivery.txt
+          python -m unittest discover -s scripts/security-lab -p 'test_java*.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_position_image.py'
+          python scripts/security-lab/checkpoint.py fetch-baseline
+          runtime="$(mktemp -d "$RUNNER_TEMP/traderx-position-image.XXXXXXXX")"
+          builder="traderx-position-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          trap 'docker buildx rm "$builder" >/dev/null 2>&1 || true; rm -rf "$runtime"' EXIT
+          mkdir "$runtime/evidence"
+          python scripts/security-lab/build_position_security.py --runtime-dir "$runtime" --java-home "$JAVA_HOME"
+          python scripts/security-lab/java_images.py prepare --generated-root "$runtime/position-security-build" --build-report "$runtime/evidence/position-security-build.json" --source-commit "$GITHUB_SHA" --output "$runtime/context-position-service"
+          buildkit="$(python -c 'import json; print(json.load(open("specs/019-traderx-security-lab/system/runtime-images.lock.json"))["buildkit"]["reference"])')"
+          docker buildx create --name "$builder" --driver docker-container --driver-opt "image=$buildkit"
+          reference="traderx-local/position-service:$GITHUB_SHA"
+          docker buildx build --builder "$builder" --platform linux/amd64 --network none --provenance=false --sbom=false --tag "$reference" --output "type=oci,oci-mediatypes=true,dest=$runtime/position.oci.tar" --output "type=docker,dest=$runtime/position.docker.tar" "$runtime/context-position-service"
+          python - "$runtime/position.oci.tar" "$runtime/oci-position-service" <<'PY'
+          import pathlib, sys, tarfile
+          destination = pathlib.Path(sys.argv[2]); destination.mkdir()
+          with tarfile.open(sys.argv[1]) as archive:
+              archive.extractall(destination, filter='data')
+          PY
+          python scripts/security-lab/java_images.py inspect --layout "$runtime/oci-position-service" --image-name "$reference" --source-commit "$GITHUB_SHA" --generated-root "$runtime/position-security-build" --build-report "$runtime/evidence/position-security-build.json" > "$runtime/image-entry.json"
+          docker load --input "$runtime/position.docker.tar"
+          docker buildx rm "$builder"
+          python - "$runtime" "$GITHUB_SHA" "$reference" <<'PY'
+          import json, pathlib, sys
+          root = pathlib.Path(sys.argv[1])
+          manifest = {'source_commit': sys.argv[2], 'runtime_reference': sys.argv[3],
+                      'image': json.loads((root / 'image-entry.json').read_text()),
+                      'generated_root': str(root / 'position-security-build'),
+                      'build_report': str(root / 'evidence/position-security-build.json')}
+          (root / 'position-image.json').write_text(json.dumps(manifest))
+          PY
+          result=0
+          python scripts/security-lab/verify_position_image.py --runtime-dir "$runtime" --image "$runtime/position-image.json" --output "$runtime/evidence/position-image.json" || result=$?
+          cp "$runtime/evidence/position-image.json" "$RUNNER_TEMP/position-image.json"
+          exit "$result"
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: security-position-image
+          path: ${{ runner.temp }}/position-image.json
+          if-no-files-found: warn
           retention-days: 7

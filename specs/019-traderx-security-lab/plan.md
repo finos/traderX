@@ -39,9 +39,13 @@ images, verified SQL/broker TLS, twelve credential/certificate rejection cases,
 publisher replay and consumer pre/post-commit recovery. Independent effects
 remain one trade and one position projection; no business trade is rebooked.
 
-Next implement S019-06a3b1 with the position-service image and reusable private
-Spring configuration/TLS adapter, then b2–b4 for remaining Java/.NET services
-and support-service composition.
+S019-06a3b1 now has an implemented [private Spring/image contract](system/java-runtime.md),
+verified build/OCI tooling and a dedicated hosted HTTPS/PostgreSQL acceptance
+campaign. Acceptance remains pending its first successful hosted run. Three
+subagents implemented independent adapter, packaging and live-test work.
+Copilot PR [#521](https://github.com/finos/traderX/pull/521) supplies a separately
+reviewed .NET adapter candidate; actual .NET image acceptance remains b3.
+Continue b2–b4 for the remaining Java/.NET services and support composition.
 Provision issuer/broker/market-data TLS, complete their permitted gateway/egress
 flows, and activate one cumulative cluster before closing S019-04/05/06. The
 admission campaign uses synthetic OCI files and unscheduled probes; it is not

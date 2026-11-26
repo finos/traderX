@@ -63,3 +63,13 @@ socket and preflight; do not substitute the Linux isolation assumptions.
 The Linux GitHub Actions workflow runs on a fresh hosted runner without
 repository secrets and removes its temporary runtime on exit. A workflow run
 must actually succeed before claiming live integration validation.
+
+## Protected position image
+
+The independent `position-image` job builds the canonical protected position
+bootJar, verifies its Java authorization test results, and exports/inspects an
+actual immutable OCI image. Its private launcher and TLS acceptance follow
+[java-runtime.md](java-runtime.md). It exercises actual scoped position/history
+reads, identity denials, HTTPS and PostgreSQL certificate verification, restricted
+execution and owned cleanup. Only sanitized JSON is uploaded; no image is
+published. This gate does not activate Kubernetes or close cumulative acceptance.
