@@ -1,3 +1,4 @@
+import asyncio
 import copy
 import json
 from pathlib import Path
@@ -5,7 +6,7 @@ import subprocess
 import tempfile
 from types import SimpleNamespace as NS
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import verify_worker_images as campaign
 
@@ -60,6 +61,29 @@ class WorkerImageTests(unittest.TestCase):
             self.assertEqual(evidence['error'], 'worker_image_campaign_failed')
         self.assertEqual(campaign.failure(campaign.Failure('worker_oom_result'))['error'], 'worker_oom_result')
 
+    def test_fixture_stage_and_error_type_are_fixed_and_sanitized(self):
+        from worker_image_fixture import FixtureFailure
+        evidence = campaign.failure(FixtureFailure({'stage': 'network_plan', 'error_type': 'TypeError'}))
+        self.assertEqual(evidence['peer']['stage'], 'network_plan')
+        self.assertEqual(evidence['peer']['error_type'], 'TypeError')
+        for private in ('private-sentinel', ['private-sentinel']):
+            value = campaign.peer_diagnostic({'stage': private, 'error_type': private})
+            self.assertEqual(value['stage'], 'guard')
+            self.assertEqual(value['error_type'], 'other')
+            self.assertNotIn('private-sentinel', json.dumps(value))
+
+    def test_broker_closes_if_subsequent_database_connection_fails(self):
+        broker = NS(close=AsyncMock())
+        fixture = {'broker': {'host_endpoint': 'tls://synthetic:4222', 'passwords': {'bootstrap': 'secret'}, 'ca': Path('/ca')},
+                   'database': {'host': 'database', 'hostaddr': '192.0.2.2', 'ca': Path('/ca')}, 'database_password': 'secret'}
+        async def exercise():
+            with patch.object(campaign, 'connect_broker', AsyncMock(return_value=broker)), \
+                    patch('psycopg.AsyncConnection.connect', AsyncMock(side_effect=OSError('private-sentinel'))):
+                with self.assertRaises(OSError):
+                    async with campaign.administration(fixture): self.fail('SQL connect should fail')
+            broker.close.assert_awaited_once()
+        asyncio.run(exercise())
+
     def postcommit(self):
         initial = NS(ack_floor=NS(consumer_seq=0, stream_seq=0))
         info = NS(num_ack_pending=1, ack_floor=NS(consumer_seq=0, stream_seq=0), delivered=NS(stream_seq=2))
@@ -100,6 +124,20 @@ class WorkerImageTests(unittest.TestCase):
     def test_secret_log_detection_prevents_success(self):
         worker = self.worker(Mock(return_value=result('private-sentinel')))
         with self.assertRaisesRegex(campaign.Failure, '^worker_output_secret$'): worker.logs()
+
+    def test_failed_launch_absence_must_be_independently_confirmed_for_cleanup(self):
+        for stderr, remaining, accepted in (('No such container: owned', '', True),
+                                             ('daemon unavailable', '', False),
+                                             ('No such container: owned', 'unexpected-id', False)):
+            docker = Mock(side_effect=lambda *args, **kw: subprocess.CompletedProcess([], 1, '', stderr)
+                          if args[0] == 'inspect' else result(remaining))
+            worker = self.worker(docker); worker.fixture = {'owner': 'owner'}
+            if accepted:
+                worker.cleanup()
+                self.assertEqual(docker.call_args.args[:2], ('ps', '-aq'))
+            else:
+                with self.assertRaises(campaign.Failure): worker.cleanup()
+            self.assertFalse(any(call.args[0] == 'rm' for call in docker.call_args_list))
 
     def test_every_restart_revalidates_immutable_identity_and_owned_cleanup_on_failure(self):
         digest = 'sha256:' + 'a' * 64

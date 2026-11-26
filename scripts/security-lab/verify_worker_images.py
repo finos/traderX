@@ -1,7 +1,7 @@
 """Hosted delivery/recovery campaign using the exact inspected worker OCI images."""
 import argparse
 import asyncio
-from contextlib import contextmanager
+from contextlib import asynccontextmanager, contextmanager
 import copy
 import hashlib
 import json
@@ -70,15 +70,41 @@ def failure(error):
 
 
 def peer_diagnostic(details):
+    from worker_image_fixture import STAGES, ERROR_TYPES
     details = details if isinstance(details, dict) else {}
     categories = ('unclassified', 'storage_capacity', 'readonly_filesystem', 'tls_private_key',
                   'permissions', 'authentication', 'tls_configuration', 'configuration', 'memory_limit')
     code = details.get('exit_code')
+    stage, kind = details.get('stage'), details.get('error_type')
     return {'peer': details.get('peer') if details.get('peer') in ('database', 'broker') else 'unknown',
             'category': details.get('category') if details.get('category') in categories else 'unclassified',
             'running': details.get('running') if type(details.get('running')) is bool else None,
             'oom_killed': details.get('oom_killed') if type(details.get('oom_killed')) is bool else None,
-            'exit_code': code if type(code) is int and 0 <= code <= 255 else None}
+            'exit_code': code if type(code) is int and 0 <= code <= 255 else None,
+            'stage': stage if isinstance(stage, str) and stage in STAGES else 'guard',
+            'error_type': kind if isinstance(kind, str) and kind in ERROR_TYPES else 'other'}
+
+
+@asynccontextmanager
+async def administration(fixture):
+    """Close a connected broker even if the subsequent verified SQL connect fails."""
+    import psycopg
+    nc = gate = None
+    try:
+        nc = await connect_broker(fixture['broker']['host_endpoint'], 'bootstrap',
+                                  fixture['broker']['passwords']['bootstrap'], fixture['broker']['ca'])
+        gate = await psycopg.AsyncConnection.connect(host=fixture['database']['host'],
+            hostaddr=fixture['database']['hostaddr'], port=5432, dbname='traderx', user='traderx',
+            password=fixture['database_password'], autocommit=True, connect_timeout=3,
+            sslmode='verify-full', sslrootcert=str(fixture['database']['ca']))
+        yield nc, gate
+    finally:
+        try:
+            if gate is not None:
+                await gate.close()
+        finally:
+            if nc is not None:
+                await nc.close()
 
 
 def postcommit_visible(running, effects, initial, info, delivered, execution):
@@ -210,6 +236,24 @@ class WorkerImage:
         if self.state().get('OOMKilled') is not False:
             raise Failure('worker_oom_result')
 
+    def cleanup(self):
+        label = self.docker('inspect', '--format', '{{index .Config.Labels "' + images.LABEL + '"}}', self.name, check=False)
+        if label.returncode:
+            # A refused launch can leave no container. Confirm absence through a
+            # second successful query; transport errors are never treated as absence.
+            if 'No such' not in label.stderr:
+                raise Failure('worker_cleanup_ownership')
+            found = self.docker('ps', '-aq', '--filter', 'name=^/' + self.name + '$')
+            if found.stdout.strip():
+                raise Failure('worker_cleanup_ownership')
+            return
+        if label.stdout.strip() != self.fixture['owner']:
+            raise Failure('worker_cleanup_ownership')
+        try:
+            self.logs()
+        finally:
+            self.docker('rm', '-f', self.name)
+
     @contextmanager
     def run(self):
         try:
@@ -226,17 +270,10 @@ class WorkerImage:
             raise
         finally:
             if self.started:
-                label = self.docker('inspect', '--format', '{{index .Config.Labels "' + images.LABEL + '"}}', self.name, check=False)
-                if label.returncode or label.stdout.strip() != self.fixture['owner']:
-                    raise Failure('worker_cleanup_ownership')
-                try:
-                    self.logs()
-                finally:
-                    self.docker('rm', '-f', self.name)
+                self.cleanup()
 
 
 async def campaign(runtime, manifest):
-    import psycopg
     from nats.js.api import StreamConfig, ConsumerConfig, StorageType, AckPolicy, DiscardPolicy
     from worker_image_fixture import fixture
     if not portability.isolated_linux() or os.environ.get('GITHUB_ACTIONS') != 'true':
@@ -299,11 +336,7 @@ async def campaign(runtime, manifest):
         def encrypted(role):
             return admin(f"SELECT count(*) FROM pg_stat_activity a JOIN pg_stat_ssl s USING(pid) WHERE a.usename='{role}' AND s.ssl AND s.version IN ('TLSv1.2','TLSv1.3');") == '1'
 
-        nc = await connect_broker(f['broker']['host_endpoint'], 'bootstrap', f['broker']['passwords']['bootstrap'], f['broker']['ca'])
-        gate = await psycopg.AsyncConnection.connect(host=f['database']['host'], hostaddr=f['database']['hostaddr'],
-            port=5432, dbname='traderx', user='traderx', password=f['database_password'],
-            autocommit=True, connect_timeout=3, sslmode='verify-full', sslrootcert=str(f['database']['ca']))
-        try:
+        async with administration(f) as (nc, gate):
             js = nc.jetstream()
             await js.add_stream(config=StreamConfig(name=STREAM, subjects=SUBJECTS, storage=StorageType.FILE,
                 max_bytes=8388608, max_msgs=10000, max_age=86400, discard=DiscardPolicy.NEW,
@@ -394,9 +427,6 @@ async def campaign(runtime, manifest):
                   (await js.stream_info(STREAM)).state.messages == 3, 'idle_same_image_restart_no_extra_delivery_effects')
             check(fingerprint(sql, f['database_password']) == before, 'delivery_recovery_does_not_rebook_business_trade')
             check(count('receipts') == 1, 'one_authoritative_settlement_receipt')
-        finally:
-            await gate.close()
-            await nc.close()
         phase('cleanup')
     checks.append('owned_workers_peers_network_and_private_files_cleaned')
     return {'status': 'passed', 'source_commit': manifest['source_commit'],
