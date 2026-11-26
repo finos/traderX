@@ -46,6 +46,7 @@ Completed prototype evidence and granular implementation history are in the [C3 
 - [ ] S019-04d Validate real browser-cookie order creation/cancellation, live matcher service credentials, TLS execution and independent SQL settlement/outbox outcomes together.
 - [ ] S019-05a Integrate mediated read-only browser notifications with account-scoped TLS broker identities, policy revocation and bounded reconnect/reset handling.
 - [ ] S019-06a Compile and validate an opt-in integrated deployment with verified build/image inputs, ordered migrations, private configuration materialization and explicit network/exposure/admission contracts.
+- [ ] S019-04e Run the actual Angular login → limit order → settlement → mediated notification → scoped snapshot journey with supervised delivery and independent SQL effects in one environment; see `system/integrated-acceptance.md`.
 - [ ] S019-04c Integrate remaining read APIs and Angular session/CSRF flow; validate direct-backend and full trading outcomes together.
 - [ ] S019-04 Integrate account/order/cancel/operator authorization and deny bypass routes while normal trading passes.
 - [ ] S019-05 Cut over live authenticated NATS, scoped subjects, browser issuance and reconnect/revocation checks.

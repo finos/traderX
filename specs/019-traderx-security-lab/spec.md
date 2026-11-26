@@ -18,6 +18,10 @@ Carry forward C3 trading and observability; add staged, attributable security le
 
 - **FR-019-09:** Initialize telemetry volumes under a dedicated non-root tokenless identity, retain evidence across graceful pod recreation, and isolate the log collector exception with scoped admission and read-only discovery permissions. Verify actual stored logs, metrics, traces and dashboard state; service readiness alone is insufficient.
 
+- **FR-019-15:** Serve the generated trading UI and explicit API routes through one configured HTTPS session origin. Keep bearer and broker credentials server-side. Use the existing explicit limit-order journey, scoped snapshot reads and read-only settlement notifications; disable the legacy immediate-booking route. Directory access requires a private operator grant and remains outside the public application proxy. Session expiry, denial, logout and account changes must clear stale views and cancel obsolete work.
+
+- **FR-019-16:** Before activating the integrated candidate, verify actual OCI bytes, source/interface declarations, private configuration delivery, ordered migrations and the exact dependency graph. Stage workloads at zero replicas. Validate workload/image restrictions against the Kubernetes API and separately verify live network and application behavior; neither offline manifests nor server dry-runs establish cumulative acceptance.
+
 ## Nonfunctional requirements
 
 - **NFR-019-01:** Run one full cluster at a time; serialize heavy experiments, expose resource preflight and lightweight checkpoints, and measure memory/startup/latency/throughput.

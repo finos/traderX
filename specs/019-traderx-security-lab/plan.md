@@ -1,5 +1,7 @@
 # State 019 implementation plan
 
+The current Phase 1/2 work follows the [integrated acceptance boundary](system/integrated-acceptance.md): authenticated application journey first, then the same journey under enforced deployment controls. Independent component campaigns remain checkpoints, not completion of either full phase.
+
 1. Register the planned C3 child and review existing checkpoint evidence. Publish a draft portal preview and tracking issue.
 2. Promote the profile into deterministic state generation/start/stop/test entrypoints; preserve pinned fixtures and earlier states.
 3. Integrate identity into the trading UI and owning APIs, then cut over authenticated NATS with dynamic account subjects and browser credentials.
