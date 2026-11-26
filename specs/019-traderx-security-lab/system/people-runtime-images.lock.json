@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "platform": "linux/amd64",
+  "runtime": {
+    "reference": "mcr.microsoft.com/dotnet/aspnet:9.0-bookworm-slim@sha256:a60942190e73c283ebb767e76f847ec2a442a6d31795f9d335aa939557555249",
+    "index_digest": "sha256:22db800f670f4c21327f463df2a0bc8f0947b44f58c13e582ab4ed7e34310f3e",
+    "metadata_source": "https://mcr.microsoft.com/v2/dotnet/aspnet/manifests/9.0-bookworm-slim"
+  },
+  "native_libraries": {
+    "/usr/lib/x86_64-linux-gnu/libicudata.so.72.1": "libicudata.so.72",
+    "/usr/lib/x86_64-linux-gnu/libicui18n.so.72.1": "libicui18n.so.72",
+    "/usr/lib/x86_64-linux-gnu/libicuuc.so.72.1": "libicuuc.so.72",
+    "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30": "libstdc++.so.6",
+    "/lib/x86_64-linux-gnu/libgcc_s.so.1": "libgcc_s.so.1"
+  },
+  "native_metadata_sources": [
+    "https://github.com/dotnet/dotnet-docker/blob/a2831a5c5f6fe48f413a0840b207488d1ecd8903/src/runtime-deps/9.0/bookworm-slim/amd64/Dockerfile",
+    "https://deb.debian.org/debian/pool/main/i/icu/",
+    "https://deb.debian.org/debian/pool/main/g/gcc-12/"
+  ],
+  "python_base_lock": "specs/019-traderx-security-lab/system/runtime-images.lock.json",
+  "metadata_verified_on": "2026-11-26",
+  "limitations": "Registry config and image layers were not fetched; native compatibility requires hosted verification."
+}
