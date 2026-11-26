@@ -73,3 +73,8 @@ actual immutable OCI image. Its private launcher and TLS acceptance follow
 reads, identity denials, HTTPS and PostgreSQL certificate verification, restricted
 execution and owned cleanup. Only sanitized JSON is uploaded; no image is
 published. This gate does not activate Kubernetes or close cumulative acceptance.
+
+For a packaging-specific failure, dispatch the workflow with `campaign=position-image`
+to run that job alone; `all` is the default. Focused diagnostics do not substitute
+for the complete regression run before accepting a checkpoint. This avoids
+repeated unrelated Java/Angular downloads while debugging startup.

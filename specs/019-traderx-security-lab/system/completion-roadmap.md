@@ -5,7 +5,8 @@ evidence or a delivery commitment. Checkpoints are tracked in [tasks](../tasks.m
 the [integrated contract](integrated-acceptance.md) defines completion.
 
 The real trader/reader browser journey, three Python image builds and the
-43-check packaged-worker TLS/recovery campaign are accepted checkpoints. The remaining work is mainly packaging, cumulative control
+43-check packaged-worker TLS/recovery campaign and 41-check position-image
+HTTPS/scoped-read/SQL-TLS campaign are accepted checkpoints. The remaining work is mainly packaging, cumulative control
 integration and release validation. Passing components do not establish that
 their combined deployment is secure or reproducible.
 
@@ -43,8 +44,10 @@ must not be advertised as implemented experiments until their own gates pass.
 ## Immediate next gate
 
 S019-06a3c is accepted in the [packaged-worker evidence](../evidence/2026-11-26-worker-image-delivery.json).
-Next, S019-06a3b1 packages position-service to establish the Java private
-configuration and verified PostgreSQL TLS adapter; then reuse that adapter for
-the other Java services and treat the .NET interface separately. Keep local
+S019-06a3b1 now has [41 passing image checks](../evidence/2026-11-26-position-image.json).
+Next reuse the verified private Spring interface for account, matcher and processor
+(S019-06a3b2), then package the separately reviewed .NET adapter (b3) and provision
+support-service TLS/flows (b4). Copilot PR #521 supplies the .NET launcher only;
+its nine source tests do not establish image or operator-directory acceptance. Keep local
 Docker and Citrix untouched; continue with disposable hosted Linux execution
 and small local source tests.

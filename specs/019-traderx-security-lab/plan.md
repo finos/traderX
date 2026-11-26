@@ -41,8 +41,12 @@ remain one trade and one position projection; no business trade is rebooked.
 
 S019-06a3b1 now has an implemented [private Spring/image contract](system/java-runtime.md),
 verified build/OCI tooling and a dedicated hosted HTTPS/PostgreSQL acceptance
-campaign. Acceptance remains pending its first successful hosted run. Three
+campaign. [Forty-one hosted checks pass](evidence/2026-11-26-position-image.json)
+at `071df5a2`: verified HTTPS, scoped reads, identity denials, SQL TLS, failed
+untrusted-CA startup before HTTP, private files and unchanged business data. Three
 subagents implemented independent adapter, packaging and live-test work.
+All seven [full regression jobs](https://github.com/finos/traderX/actions/runs/45900564353)
+pass at that same functional source; local regression is 403 Python tests.
 Copilot PR [#521](https://github.com/finos/traderX/pull/521) supplies a separately
 reviewed .NET adapter candidate; actual .NET image acceptance remains b3.
 Continue b2–b4 for the remaining Java/.NET services and support composition.

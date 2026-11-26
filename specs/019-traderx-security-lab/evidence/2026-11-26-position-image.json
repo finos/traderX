@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-26",
+  "status": "passed-bounded-position-image-checkpoint",
+  "task": "S019-06a3b1",
+  "source_branch_commit": "071df5a27d31928e765f2f10a5dad2422a3c5ce8",
+  "hosted_checkout_commit": "071df5a27d31928e765f2f10a5dad2422a3c5ce8",
+  "hosted_run": "https://github.com/finos/traderX/actions/runs/45900152799",
+  "hosted_job": "https://github.com/finos/traderX/actions/runs/45900152799/job/140183676745",
+  "artifact": "security-position-image",
+  "artifact_file_sha256": "c7ee3b4c0f254bef86b35001a4e931bfecb22ce1c40d29c91b25bcccb5b9ed0b",
+  "focused_python_tests": 27,
+  "local_python_regression_tests": 403,
+  "build": {
+    "jar": {
+      "path": "build/libs/position-service-specfirst-0.1.0.jar",
+      "sha256": "7a38d596e2efd2b188d51d58bc20f83fa7ca321f10e6b3879ba05024fa7d6a85",
+      "size": 45781158
+    },
+    "build_report_sha256": "60a4d6b84381c2e889076675faf94248141e12438ce0b3cb9c05df07dd2f4172",
+    "python_base": {
+      "index_digest": "sha256:e60ad028afdcdd14772a3d46decf0eaf616720f9102aeb4397a2045ff6718c3d",
+      "metadata_source": "https://registry-1.docker.io/v2/library/python/manifests/3.14-slim-bookworm",
+      "reference": "python:3.14.10-slim-bookworm@sha256:59f6892d5620527923071f2ae8c374f90a9208728b70ff6e72e80d75ae2dc8ff"
+    },
+    "jre": {
+      "config_digest": "sha256:0e061db544f0307438fa3104d5127b5753033bd9590f6b91c1988a61a02e409a",
+      "index_digest": "sha256:a8bff88f760e87e0c8844f8461f807c203fd5e8f78c951c843024647e965eaf5",
+      "metadata_source": "https://registry-1.docker.io/v2/library/eclipse-temurin/manifests/21-jre-jammy",
+      "reference": "eclipse-temurin:21-jre-jammy@sha256:04bcffe1d3d31b0829c827e2c5c30c82f1768e16eae880d11961910c33db7456"
+    }
+  },
+  "source_manifest_sha256": "64f8dbca709f3513b070a147cbe34111c56279f076e1f2493471c2ed21c60a38",
+  "position_image": {
+    "status": "passed",
+    "source_commit": "071df5a27d31928e765f2f10a5dad2422a3c5ce8",
+    "image": {
+      "config_digest": "sha256:493c27c6254e7798309bab2c97f9397254c035b9668c8fb0ade3012e709e73ca",
+      "manifest_digest": "sha256:a45c5358e228c0ef63717753386672f12dc67546f7114e6960b23ea3b51236fa",
+      "runtime_id": "sha256:a45c5358e228c0ef63717753386672f12dc67546f7114e6960b23ea3b51236fa",
+      "identity_kind": "oci-manifest"
+    },
+    "peer_images": {
+      "database": "ghcr.io/finos/traderx-c3/database@sha256:1aa68521a486e2c217e6d1b1328ae3d01816302eeddbeb664f34445d6844f022",
+      "broker": "docker.io/library/nats@sha256:c20b78366bab4531b2ae36e660f7cb7e533d956fc927aaf5c88e6ba6e5e054e4"
+    },
+    "checks": [
+      "immutable_position_image_revalidated",
+      "untrusted_database_ca_terminates_startup",
+      "untrusted_database_ca_no_data_effects",
+      "verified_https_database_health_up",
+      "restricted_runtime_and_private_materialization",
+      "no_credentials_in_argv_or_environment",
+      "https_untrusted_client_ca_rejected",
+      "https_mismatched_hostname_rejected",
+      "positions_anonymous_denied",
+      "positions_malformed_denied",
+      "positions_invalid_signature_denied",
+      "positions_foreign_issuer_denied",
+      "positions_foreign_audience_denied",
+      "positions_expired_denied",
+      "positions_unknown_subject_denied",
+      "positions_reader_collection_scoped",
+      "positions_reader_own_account_scoped",
+      "positions_reader_cross_account_denied",
+      "positions_trader_collection_scoped",
+      "positions_trader_own_account_scoped",
+      "positions_trader_cross_account_denied",
+      "trades_anonymous_denied",
+      "trades_malformed_denied",
+      "trades_invalid_signature_denied",
+      "trades_foreign_issuer_denied",
+      "trades_foreign_audience_denied",
+      "trades_expired_denied",
+      "trades_unknown_subject_denied",
+      "trades_reader_collection_scoped",
+      "trades_reader_own_account_scoped",
+      "trades_reader_cross_account_denied",
+      "trades_trader_collection_scoped",
+      "trades_trader_own_account_scoped",
+      "trades_trader_cross_account_denied",
+      "operator_detailed_health_allowed",
+      "reader_detailed_health_denied",
+      "operator_has_no_implicit_account_scope",
+      "runtime_sql_connections_all_encrypted",
+      "runtime_sql_role_is_scoped_nonadmin",
+      "all_reads_and_rejections_leave_business_data_unchanged",
+      "owned_image_fixture_cleaned"
+    ],
+    "resource_limits": {
+      "memory_mib": 768,
+      "pids": 128,
+      "tmp_mib": 64
+    },
+    "source_sha256": {
+      "scripts/security-lab/verify_position_image.py": "44fab75d21927d883a1d80f8cbced1adb0ced5726aa9c7cbd5310e194748f2f7",
+      "scripts/security-lab/worker_image_fixture.py": "6637621c978fc6fe508013e417ca73468794e07b8c91455aa6bd83236551a954",
+      "scripts/security-lab/java_runtime.py": "8eb92d3c6ffb35a7869e967be07e227fc518aba59fe1e2d50ddf9d336365817a",
+      "scripts/security-lab/java_images.py": "a43a159e9f4b5dc385e2d7efd852e1d08b6b549661003b6bdb368f87f36aaff3"
+    },
+    "limitations": [
+      "Signed fixture JWTs and static entitlements; no Keycloak or browser flow claim.",
+      "Actual read-only Java/SQL image; no Kubernetes deployment acceptance.",
+      "Shared owned peer fixture starts NATS, which this read-only campaign does not use."
+    ]
+  },
+  "parallel_work": {
+    "subagents": [
+      "private Java adapter and compiler integration",
+      "verified build and OCI packaging",
+      "actual image HTTPS/PostgreSQL campaign"
+    ],
+    "copilot": {
+      "pull_request": "https://github.com/finos/traderX/pull/521",
+      "session": "343c900a-4c1c-4335-9467-669a639aaa41",
+      "status": "reviewed-adapter-incorporated-not-runtime-accepted",
+      "implementation_commit": "afe50a62",
+      "review_fix_commit": "d4d6d783",
+      "focused_tests": 9,
+      "review_fixes": [
+        "Fixed synthetic directory asset path despite private content root",
+        "Reject encrypted PEM without interactive OpenSSL password prompt"
+      ]
+    }
+  },
+  "limits": [
+    "No Kubernetes activation or cumulative gateway/CNI/image-signature claim.",
+    "Remaining Java roles, actual .NET image and support-service TLS composition remain open.",
+    "Private static trust and synthetic signed tokens do not establish live issuer provisioning or rotation.",
+    "NATS starts as an unused peer in the shared owned fixture.",
+    "No local heavy build, image publication or Main merge."
+  ],
+  "full_suite_position_rerun": {
+    "hosted_run": "https://github.com/finos/traderX/actions/runs/45900564353",
+    "hosted_job": "https://github.com/finos/traderX/actions/runs/45900564353/job/140185031366",
+    "status": "passed",
+    "check_count": 41,
+    "artifact_file_sha256": "b187d2b2e14679878dd7c0b3b8941c29242f5b61018e1d105b1cde0aef184390",
+    "image": {
+      "config_digest": "sha256:06fcb367f066fa1e38bf0300bfe83428829a407eab9c15c522c403a5c6b4fe89",
+      "manifest_digest": "sha256:54fbaf816704fc2795cda975233e58d33a5a98328ed5a6bfa76cc30305e0f197",
+      "runtime_id": "sha256:54fbaf816704fc2795cda975233e58d33a5a98328ed5a6bfa76cc30305e0f197",
+      "identity_kind": "oci-manifest"
+    }
+  },
+  "full_regression": {
+    "hosted_run": "https://github.com/finos/traderX/actions/runs/45900564353",
+    "source_branch_commit": "071df5a27d31928e765f2f10a5dad2422a3c5ce8",
+    "status": "passed",
+    "jobs": {
+      "position-image": {
+        "status": "success",
+        "job_id": 140185031366
+      },
+      "integrated-admission": {
+        "status": "success",
+        "job_id": 140185031617
+      },
+      "people-authorization": {
+        "status": "success",
+        "job_id": 140185031624
+      },
+      "application-consumers": {
+        "status": "success",
+        "job_id": 140185031637
+      },
+      "browser-journey": {
+        "status": "success",
+        "job_id": 140185031655
+      },
+      "integration": {
+        "status": "success",
+        "job_id": 140185031690
+      },
+      "runtime-images": {
+        "status": "success",
+        "job_id": 140185031774
+      }
+    }
+  }
+}

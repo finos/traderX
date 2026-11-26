@@ -1,7 +1,8 @@
 # Java private configuration and position image acceptance
 
 S019-06a3b1 establishes the first Java image boundary for State 019. It is an
-implementation candidate until its hosted image campaign passes. The later
+accepted bounded checkpoint after [41 hosted checks](../evidence/2026-11-26-position-image.json)
+passed on 26 November 2026. The later
 account, matcher and processor images reuse the reviewed interface only after
 their own service-specific tests. This does not activate a Kubernetes workload.
 
@@ -107,3 +108,21 @@ hosted startup, HTTPS and SQL checks to pass. Packaged JAR, launcher and startup
 SQL bytes are checked against verified build inputs; this is not an image signing
 or general supply-chain provenance claim. Public-key trust is a finite snapshot,
 not issuer provisioning or rotation acceptance.
+
+## Remaining Java role plan (not implemented by this checkpoint)
+
+Account and processor packaging may proceed independently; matcher follows its
+identity, processor and broker dependencies. Every role needs its own actual
+image acceptance, even where it reuses the position launcher's private-file code.
+
+| Role | Required interface differences | Acceptance and known integration work |
+| --- | --- | --- |
+| Account | HTTPS 18088, `traderx-api` audience, scoped account SQL role, same five private keys | Compare real reads to SQL; deny foreign-account and write requests. Remove or explicitly neutralize the inherited unused `PeopleValidationService` URL dependency without enabling account-to-people access. |
+| Processor | HTTPS 18091, `traderx-execution` audience, exact matcher subject; no user entitlement file | Preserve disabled legacy controllers/subscribers. Authenticated internal settlement occurs once; wrong subject/audience, arbitrary bodies and legacy routes leave data unchanged. Requires bootstrap and execution migrations. |
+| Matcher | HTTPS 18110, user entitlements plus private service-client/broker secrets and outbound truststore | Position's PostgreSQL CA does not configure JVM HTTPS/NATS trust. Provision the identity client, processor and authenticated TLS broker; verify price-to-order-to-settlement/outbox, cancellation, retry and invalid credential/certificate cases. |
+
+Matcher must explicitly disable seed orders and legacy anonymous trade/price URL
+behavior, keep Hibernate schema mutation disabled, and use bounded polling and
+fixed HTTPS/TLS destinations. Static trust snapshots and future truststore
+rotation remain explicit limits. These requirements do not establish Kubernetes
+network-policy enforcement or activate the staged deployment.
