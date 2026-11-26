@@ -118,16 +118,69 @@ def has_symlink_ancestor(name, links):
                if parent.as_posix() != '.')
 
 
+class PathInventory:
+    """Index descendants so unrelated paths are never scanned during removal."""
+    LIMIT = 200000
+    REFERENCE_LIMIT = 1000000
+
+    def __init__(self):
+        self.items = {}
+        self.descendants = {}
+        self.references = 0
+
+    def __contains__(self, name):
+        return name in self.items
+
+    def __len__(self):
+        return len(self.items)
+
+    def put(self, name, value):
+        if name not in self.items:
+            parents = [parent.as_posix() for parent in PurePosixPath(name).parents
+                       if parent.as_posix() != '.']
+            if len(self.items) >= self.LIMIT or self.references + len(parents) > self.REFERENCE_LIMIT:
+                raise ValueError('OCI path index exceeds bound')
+            for parent in parents:
+                self.descendants.setdefault(parent, set()).add(name)
+            self.references += len(parents)
+        self.items[name] = value
+
+    def discard(self, name):
+        if name not in self.items:
+            return
+        del self.items[name]
+        for parent in PurePosixPath(name).parents:
+            parent = parent.as_posix()
+            if parent == '.':
+                continue
+            children = self.descendants[parent]
+            children.remove(name)
+            self.references -= 1
+            if not children:
+                del self.descendants[parent]
+
+    def remove(self, name, *, include_self):
+        if name == '.':
+            self.items.clear()
+            self.descendants.clear()
+            self.references = 0
+            return
+        for child in tuple(self.descendants.get(name, ())):
+            self.discard(child)
+        if include_self:
+            self.discard(name)
+
+
 def filesystem(layout, manifest, expected, diff_ids):
     """Reconstruct relevant final paths, including whiteouts and all ancestors."""
-    state = {}
+    state = PathInventory()
     directories = {'opt', 'opt/traderx'}
     for name in expected:
         directories.update(p.as_posix() for p in PurePosixPath(name).parents if p.as_posix() != '.')
     runtime_directories = {'usr', 'usr/local', 'usr/local/bin', 'usr/share',
                            'usr/share/dotnet'}
     tracked = directories | runtime_directories | {'usr/share/dotnet/dotnet'}
-    links = set()
+    links = PathInventory()
     if not isinstance(diff_ids, list) or len(diff_ids) != len(manifest['layers']):
         raise ValueError('OCI uncompressed layer inventory mismatch')
     for descriptor, diff_id in zip(manifest['layers'], diff_ids):
@@ -147,9 +200,12 @@ def filesystem(layout, manifest, expected, diff_ids):
                 if count > 200000 or size > 8 * 1024**3 or member.size < 0:
                     raise ValueError('OCI layer exceeds bound')
                 name = PurePosixPath(member.name)
-                if name.is_absolute() or '..' in name.parts or '\\' in member.name:
+                if (name.is_absolute() or '..' in name.parts or '\\' in member.name
+                        or len(member.name) > 4096 or len(name.parts) > 256):
                     raise ValueError('Invalid OCI path')
                 rel = name.as_posix()
+                if rel == '.' and not member.isdir():
+                    raise ValueError('Invalid OCI root entry')
                 if name.name == '.wh..wh..opq':
                     if not member.isfile() or member.size:
                         raise ValueError('Invalid OCI opaque whiteout')
@@ -187,44 +243,42 @@ def filesystem(layout, manifest, expected, diff_ids):
                 raise ValueError('OCI whiteout traverses a symlink ancestor')
         for kind, name, _ in whiteouts:
             if kind == 'opaque':
-                prefix = '' if name == '.' else name + '/'
-                state = {k: v for k, v in state.items() if not k.startswith(prefix)}
-                links = {k for k in links if not k.startswith(prefix)}
+                state.remove(name, include_self=False)
+                links.remove(name, include_self=False)
             else:
-                state = {k: v for k, v in state.items() if k != name and not k.startswith(name + '/')}
-                links = {k for k in links if k != name and not k.startswith(name + '/')}
+                state.remove(name, include_self=True)
+                links.remove(name, include_self=True)
         for rel, isdir, issym, islink, target, item in additions:
             if has_symlink_ancestor(rel, links) or has_symlink_ancestor(rel, layer_links):
                 raise ValueError('OCI entry traverses a symlink ancestor')
             if islink:
                 link_path = PurePosixPath(target)
                 if (link_path.is_absolute() or '..' in link_path.parts or '\\' in target
+                        or len(target) > 4096 or len(link_path.parts) > 256
                         or link_path.as_posix() in links or link_path.as_posix() in layer_links
                         or has_symlink_ancestor(link_path.as_posix(), links)
                         or has_symlink_ancestor(link_path.as_posix(), layer_links)):
                     raise ValueError('OCI hardlink traverses a symlink')
             if not isdir:
-                state = {k: v for k, v in state.items() if not k.startswith(rel + '/')}
-                links = {k for k in links if not k.startswith(rel + '/')}
+                state.remove(rel, include_self=False)
+                links.remove(rel, include_self=False)
             links.discard(rel)
             if issym:
-                links.add(rel)
-            if len(links) > 200000:
-                raise ValueError('OCI symlink inventory exceeds bound')
+                links.put(rel, True)
             if item is not None:
-                state[rel] = item
-    app_state = {k: v for k, v in state.items() if k == 'opt' or k == 'opt/traderx'
+                state.put(rel, item)
+    app_state = {k: v for k, v in state.items.items() if k == 'opt' or k == 'opt/traderx'
                  or k.startswith('opt/traderx/')}
     if set(app_state) != directories | set(expected):
         raise ValueError('OCI application inventory differs')
     for name in directories | runtime_directories:
         if name not in state:
             raise ValueError('Required OCI parent directory missing')
-        isdir, _, _, uid, gid, mode, _, _, _, _ = state[name]
+        isdir, _, _, uid, gid, mode, _, _, _, _ = state.items[name]
         if not isdir or uid != 0 or gid != 0 or mode not in (0o555, 0o755):
             raise ValueError('Unsafe OCI parent directory')
     for name, (digest, mode) in expected.items():
-        _, isfile, _, uid, gid, actual_mode, actual_digest, _, _, _ = state[name]
+        _, isfile, _, uid, gid, actual_mode, actual_digest, _, _, _ = state.items[name]
         if not isfile or uid != 0 or gid != 0 or actual_mode != mode or actual_digest != digest:
             raise ValueError('OCI application file differs')
     executable(state, 'usr/share/dotnet/dotnet', allow_python_links=False)
@@ -237,7 +291,7 @@ def executable(state, path, *, allow_python_links):
         if path in seen or path not in state:
             raise ValueError('Missing or cyclic OCI executable')
         seen.add(path)
-        _, isfile, issym, uid, gid, mode, _, link, header, size = state[path]
+        _, isfile, issym, uid, gid, mode, _, link, header, size = state.items[path]
         if uid != 0 or gid != 0:
             raise ValueError('Unsafe OCI executable ownership')
         if issym and allow_python_links:
