@@ -97,6 +97,9 @@ def prepare(root, report, output, revision):
         'ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 JAVA_HOME=/opt/java/openjdk',
         'COPY --chmod=0555 source/ /opt/traderx/',
         'COPY --chmod=0444 application.jar /app/application.jar',
+        # COPY can create its implicit parent with the file's non-executable
+        # mode. The non-root JVM must be able to traverse /app to open the JAR.
+        'RUN chmod 0755 /app',
         'RUN /opt/java/openjdk/bin/java -Djava.awt.headless=true --version && /usr/local/bin/python --version',
         'RUN mkdir -p /run/projected /run/private /tmp && chown 10001:10001 /run/private /tmp && chmod 0700 /run/private',
         'WORKDIR /opt/traderx', 'EXPOSE 18090']
@@ -123,6 +126,9 @@ def prepare(root, report, output, revision):
 def filesystem(layout, manifest, expected):
     """Bind actual final OCI files, not only self-declared labels, to build inputs."""
     found = {}
+    required_directories = {parent.as_posix() for name in expected
+                            for parent in PurePosixPath(name).parents if parent.as_posix() != '.'}
+    directories = {}
     for descriptor in manifest['layers']:
         if descriptor['mediaType'] not in ('application/vnd.oci.image.layer.v1.tar', 'application/vnd.oci.image.layer.v1.tar+gzip'):
             raise ValueError('Reviewed tar/gzip Java image export required')
@@ -141,11 +147,15 @@ def filesystem(layout, manifest, expected):
                 if name.name == '.wh..wh..opq':
                     prefix = name.parent.as_posix().rstrip('.') + '/'
                     found = {key: value for key, value in found.items() if not key.startswith(prefix.lstrip('/'))}
+                    directories = {key: value for key, value in directories.items() if not key.startswith(prefix.lstrip('/'))}
                     continue
                 if name.name.startswith('.wh.'):
                     erased = (name.parent / name.name[4:]).as_posix()
                     found = {key: value for key, value in found.items() if key != erased and not key.startswith(erased + '/')}
+                    directories = {key: value for key, value in directories.items() if key != erased and not key.startswith(erased + '/')}
                     continue
+                if relative in required_directories:
+                    directories[relative] = (member.isdir(), member.uid, member.gid, member.mode & 0o7777)
                 if not member.isdir() and (relative.startswith('opt/traderx/') or relative.startswith('app/')) and relative not in expected:
                     raise ValueError('Unexpected packaged application file')
                 for key in expected:
@@ -165,6 +175,10 @@ def filesystem(layout, manifest, expected):
                 found[relative] = digest
     if set(found) != set(expected):
         raise ValueError('Verified JAR/runtime file absent from final OCI filesystem')
+    if set(directories) != required_directories or any(
+            not is_directory or uid != 0 or gid != 0 or mode not in (0o555, 0o755)
+            for is_directory, uid, gid, mode in directories.values()):
+        raise ValueError('Packaged runtime parent directory ownership or traversal mode changed')
 
 
 def inspect(layout, name, revision, root, report):

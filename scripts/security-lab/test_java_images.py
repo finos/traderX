@@ -63,6 +63,7 @@ class JavaImageTests(unittest.TestCase):
         recipe = (output / 'Dockerfile').read_text()
         self.assertIn('USER 10001:10001', recipe)
         self.assertIn('COPY --from=jre /opt/java/openjdk/ /opt/java/openjdk/', recipe)
+        self.assertIn('RUN chmod 0755 /app', recipe)
         self.assertIn('--version', recipe)
         self.assertNotIn('COPY . ', recipe)
         self.assertNotIn('apt-get', recipe)
@@ -125,7 +126,7 @@ class JavaImageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'security classes'):
             images.prepare(self.generated, self.report, self.root / 'bad', '0' * 40)
 
-    def layout(self, alter_file=None, alter_config=None):
+    def layout(self, alter_file=None, alter_config=None, alter_directory=None):
         layout = self.root / ('oci-' + str(len(list(self.root.glob('oci-*')))))
         layout.mkdir()
         source, verified = images.inputs(self.generated, self.report)
@@ -136,6 +137,13 @@ class JavaImageTests(unittest.TestCase):
             alter_file(files)
         archive = io.BytesIO()
         with tarfile.open(fileobj=archive, mode='w') as tar:
+            for name in ('app', 'opt', 'opt/traderx'):
+                member = tarfile.TarInfo(name)
+                member.type = tarfile.DIRTYPE
+                member.mode = 0o755
+                if alter_directory:
+                    alter_directory(member)
+                tar.addfile(member)
             for name, (data, mode) in files.items():
                 member = tarfile.TarInfo(name)
                 member.size = len(data)
@@ -171,6 +179,39 @@ class JavaImageTests(unittest.TestCase):
             lambda files: files.pop('app/application.jar')):
             with self.assertRaises(ValueError):
                 images.inspect(self.layout(alter_file=mutation), 'local/position-service:unit', '0' * 40, self.generated, self.report)
+
+    def test_oci_parent_directory_traversal_and_ownership_are_required(self):
+        # Correct file bytes/mode cannot compensate for an inaccessible parent:
+        # this is the actual hosted JVM "Unable to access jarfile" failure.
+        for name, attribute, value in (
+                ('app', 'mode', 0o444), ('app', 'mode', 0o700),
+                ('app', 'uid', 10001), ('app', 'gid', 10001),
+                ('opt/traderx', 'mode', 0o666), ('opt', 'mode', 0o777)):
+            def mutate(member):
+                if member.name == name:
+                    setattr(member, attribute, value)
+            with self.assertRaisesRegex(ValueError, 'parent directory'):
+                images.inspect(self.layout(alter_directory=mutate), 'local/position-service:unit',
+                               '0' * 40, self.generated, self.report)
+
+    def test_later_chmod_layer_repairs_implicit_copy_parent_mode(self):
+        layout = self.layout(alter_directory=lambda member: setattr(member, 'mode', 0o444)
+                             if member.name == 'app' else None)
+        manifest = compiler.blob(layout, compiler.read_json(layout / 'index.json')['manifests'][0])
+        archive = io.BytesIO()
+        with tarfile.open(fileobj=archive, mode='w') as tar:
+            member = tarfile.TarInfo('app')
+            member.type = tarfile.DIRTYPE
+            member.mode = 0o755
+            tar.addfile(member)
+        repaired = admission_fixture.put(layout, archive.getvalue(), False)
+        repaired['mediaType'] = 'application/vnd.oci.image.layer.v1.tar'
+        manifest['layers'].append(repaired)
+        files, verified = images.inputs(self.generated, self.report)
+        expected = {'app/application.jar': (verified['jar']['sha256'], 0o444)}
+        expected.update({'opt/traderx/' + name.removeprefix('source/'): (compiler.sha(data), 0o555)
+                         for name, data in files.items() if name.startswith('source/')})
+        images.filesystem(layout, manifest, expected)
 
     def test_wrong_oci_labels_platform_uid_and_entrypoint_rejected(self):
         for mutation in (
