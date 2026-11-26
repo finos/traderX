@@ -4,7 +4,7 @@ import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { CHECK_IDS, validateConfig, notificationAccounts, failureCode } from './browser_journey.mjs';
+import { CHECK_IDS, validateConfig, notificationAccounts, failureCode, fill } from './browser_journey.mjs';
 
 const config = () => ({ origin: 'https://localhost:18447', issuer: 'https://localhost:18446/realms/lab',
     frontendRoot: '/tmp/frontend', executablePath: '/usr/bin/chromium', profileDir: '/tmp/isolated-profile',
@@ -44,7 +44,7 @@ test('configuration errors produce only bounded fixed diagnostics, never private
         const result = spawnSync(process.execPath, [new URL('./browser_journey.mjs', import.meta.url).pathname, '--config', path], { encoding: 'utf8' });
         assert.equal(result.status, 1);
         assert.deepEqual(JSON.parse(result.stdout), { status: 'failed', phase: 'configuration', checks: [], error: 'unexpected_error',
-            diagnostics: { pageErrors: 0, cspErrors: 0, sessionStatus: 0, accountStatus: 0, location: 'unknown', angularCodes: [] } });
+            diagnostics: { pageErrors: 0, cspErrors: 0, sessionStatus: 0, accountStatus: 0, location: 'unknown', angularCodes: [], cspDirectives: [] } });
         assert.equal(result.stderr, '');
         assert(!result.stdout.includes('sentinel-private-value'));
         assert(!result.stdout.includes('private-password'));
@@ -56,4 +56,12 @@ test('failure categories never echo private URLs, credentials or arbitrary excep
     assert.equal(failureCode(new Error('net::ERR_CERT_AUTHORITY_INVALID at https://private/?token=secret')), 'certificate_trust');
     assert.equal(failureCode(new Error('account_snapshot_missing')), 'account_snapshot_missing');
     assert.equal(failureCode(new Error('private-password')), 'unexpected_error');
+});
+
+test('form filling uses supported locator replacement without keyboard chord APIs', async () => {
+    const calls = [];
+    const page = { locator: selector => ({ fill: async value => calls.push({selector,value}) }) };
+    await fill(page, '#password', 'private-password');
+    await fill(page, '#orderQuantityField', 2);
+    assert.deepEqual(calls, [{selector:'#password',value:'private-password'},{selector:'#orderQuantityField',value:'2'}]);
 });

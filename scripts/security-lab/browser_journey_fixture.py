@@ -133,9 +133,10 @@ def driver_failure(value):
     phases={'configuration','browser_launch','trader_login','trader_order','ready_for_price','ready_for_delivery',
             'settled_grids','cancel_order','logout','reader_login','reader_denials'}
     phases.update(role+'_login_'+step for role in ('trader','reader') for step in
-        ('initial_page','signin_link','provider_navigation','credentials','callback','accounts','account_menu'))
+        ('initial_page','signin_link','provider_navigation','credentials','username','password','callback','accounts','account_menu'))
     phase=value.get('phase') if value.get('phase') in phases else 'unclassified'
     codes={'timeout','certificate_trust','tls_failure','connection_unavailable','unexpected_error','check_failed',
+        'unsupported_api','element_not_clickable','context_destroyed',
         'unexpected_login_origin','unexpected_callback_origin','account_snapshot_missing','account_label_missing',
         'order_submission_rejected','invalid_created_order','logout_unconfirmed','initial_settlement_snapshots_missing',
         'actual_broker_notifications_missing','notification_snapshots_not_refreshed','settled_trade_not_rendered',
@@ -149,6 +150,9 @@ def driver_failure(value):
         if supplied.get('location') in ('app','issuer','other','unknown'):safe['location']=supplied['location']
         values=supplied.get('angularCodes')
         if isinstance(values,list) and len(values)<=8 and all(isinstance(item,str) and re.fullmatch(r'NG[0-9]{4,6}',item) for item in values):safe['angularCodes']=values
+        directives=supplied.get('cspDirectives')
+        allowed={'default-src','script-src','script-src-elem','style-src','style-src-elem','font-src','img-src','connect-src','frame-src','frame-ancestors','form-action','base-uri','object-src'}
+        if isinstance(directives,list) and len(directives)<=len(allowed) and all(isinstance(item,str) and item in allowed for item in directives):safe['cspDirectives']=directives
     return 'Browser journey driver failed during '+phase+'; code='+code+'; diagnostics='+json.dumps(safe,sort_keys=True)+'; private diagnostics withheld'
 
 

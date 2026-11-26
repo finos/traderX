@@ -25,10 +25,11 @@ export const CHECK_IDS = Object.freeze([
 const checks = [];
 let phase = 'configuration';
 const diagnostics = { pageErrors: 0, cspErrors: 0, sessionStatus: 0, accountStatus: 0,
-    location: 'unknown', angularCodes: [] };
+    location: 'unknown', angularCodes: [], cspDirectives: [] };
 
 export const FAILURE_CODES = Object.freeze([
     'timeout', 'certificate_trust', 'tls_failure', 'connection_unavailable', 'unexpected_error',
+    'unsupported_api', 'element_not_clickable', 'context_destroyed',
     'check_failed', 'invalid_configuration', 'invalid_origin', 'invalid_issuer', 'invalid_private_path',
     'invalid_credentials', 'invalid_account', 'distinct_accounts_required', 'unexpected_fixture_terms',
     'absolute_configuration_required', 'private_configuration_required', 'invalid_notification_response',
@@ -44,6 +45,9 @@ export function failureCode(error) {
     const message = typeof error?.message === 'string' ? error.message : '';
     if (FAILURE_CODES.includes(message)) return message;
     if (error?.name === 'TimeoutError') return 'timeout';
+    if (error?.name === 'TypeError' && /is not a function/.test(message)) return 'unsupported_api';
+    if (/not clickable|not an Element|not of type HTMLElement/i.test(message)) return 'element_not_clickable';
+    if (/Execution context was destroyed|Cannot find context with specified id/i.test(message)) return 'context_destroyed';
     if (/net::ERR_CERT_[A-Z_]+/.test(message)) return 'certificate_trust';
     if (/net::ERR_SSL_[A-Z_]+/.test(message)) return 'tls_failure';
     if (/net::ERR_CONNECTION_(?:REFUSED|CLOSED|RESET|TIMED_OUT)/.test(message)) return 'connection_unavailable';
@@ -143,11 +147,10 @@ async function clickText(page, selector, text, contains = false) {
     throw new Error('visible_control_missing');
 }
 
-async function fill(page, selector, value) {
-    await page.waitForSelector(selector, { visible: true });
-    await page.click(selector, { clickCount: 3 });
-    await page.keyboard.press('Control+A');
-    await page.type(selector, String(value));
+export async function fill(page, selector, value) {
+    // Puppeteer.press accepts one KeyInput, not Playwright-style Control+A chords.
+    // The supported locator API waits for an editable element and replaces its value.
+    await page.locator(selector).fill(String(value));
 }
 
 async function login(page, config, role, observed) {
@@ -159,8 +162,9 @@ async function login(page, config, role, observed) {
     phase = `${role}_login_provider_navigation`;
     await Promise.all([page.waitForNavigation({ waitUntil: 'domcontentloaded' }), page.click('a[href="/login"]')]);
     demand(new URL(page.url()).origin === new URL(config.issuer).origin, 'unexpected_login_origin');
-    phase = `${role}_login_credentials`;
+    phase = `${role}_login_username`;
     await fill(page, '#username', config.users[role].username);
+    phase = `${role}_login_password`;
     await fill(page, '#password', config.users[role].password);
     phase = `${role}_login_callback`;
     await Promise.all([page.waitForNavigation({ waitUntil: 'domcontentloaded' }), page.click('#kc-login')]);
@@ -259,6 +263,8 @@ export async function run(config) {
             const text = message.text();
             if (/Content Security Policy|Refused to (?:execute|load|apply)/i.test(text)) {
                 observed.csp++; diagnostics.cspErrors = Math.min(1000, diagnostics.cspErrors + 1);
+                for (const name of ['default-src','script-src','script-src-elem','style-src','style-src-elem','font-src','img-src','connect-src','frame-src','frame-ancestors','form-action','base-uri','object-src'])
+                    if (new RegExp('\\b'+name+'\\b').test(text) && !diagnostics.cspDirectives.includes(name)) diagnostics.cspDirectives.push(name);
             }
             else if (message.type() === 'error' && !/^Failed to load resource: the server responded with a status of (401|403)\b/.test(text)) {
                 if (phase === 'reader_denials') track((async () => {
