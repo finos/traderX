@@ -180,3 +180,48 @@ jobs:
           path.chmod(0o700)
           PY
           python scripts/security-lab/verify_integrated_admission.py --kind "$RUNNER_TEMP/kind-v0.31.0" --runtime-dir "$RUNNER_TEMP/traderx-admission" --output "$RUNNER_TEMP/traderx-admission-evidence.json"
+  browser-journey:
+    # One real browser and its actual APIs on a dedicated disposable runner.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Build and exercise the actual browser trading journey
+        env:
+          TRADERX_LAB_ISOLATED_LINUX: '1'
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
+          NG_CLI_ANALYTICS: 'false'
+        run: |
+          set -euo pipefail
+          umask 077
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libnss3-tools
+          python -m pip install -r scripts/security-lab/requirements.txt
+          python -m pip install 'cryptography==50.0.2' 'PyJWT==2.15.1'
+          python -m pip install --require-hashes -r scripts/security-lab/requirements-delivery.txt
+          python scripts/security-lab/checkpoint.py fetch-baseline
+          runtime="$(mktemp -d "$RUNNER_TEMP/traderx-browser-journey.XXXXXXXX")"
+          trap 'rm -rf "$runtime"' EXIT
+          mkdir "$runtime/evidence"
+          python scripts/security-lab/build_trading_security.py --runtime-dir "$runtime" --java-home "$JAVA_HOME"
+          python scripts/security-lab/build_account_security.py --runtime-dir "$runtime" --java-home "$JAVA_HOME"
+          python scripts/security-lab/render_read_security.py --output-dir "$runtime/position-service"
+          (cd "$runtime/position-service" && bash gradlew --no-daemon --max-workers=1 '-Dorg.gradle.jvmargs=-Xmx384m -XX:MaxMetaspaceSize=256m' test bootJar)
+          python scripts/security-lab/render_application_consumers.py --output-dir "$runtime/application-consumers"
+          (cd "$runtime/application-consumers" && npm ci --ignore-scripts --no-audit --no-fund && npm run build)
+          export CHROME_BIN="$(command -v google-chrome)"
+          test -x "$CHROME_BIN"
+          python -m unittest discover -s scripts/security-lab -p 'test_browser_journey*.py'
+          python scripts/security-lab/verify_browser_journey.py --runtime-dir "$runtime" --output "$runtime/evidence/browser-journey.json"
