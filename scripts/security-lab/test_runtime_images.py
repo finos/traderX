@@ -46,6 +46,7 @@ class RuntimeImageTests(unittest.TestCase):
         dockerfile=(output/'Dockerfile').read_text()
         self.assertIn('USER 10001:10001',dockerfile);self.assertIn('--no-index',dockerfile)
         self.assertIn('--require-hashes',dockerfile);self.assertIn('COPY --chmod=0555 source/',dockerfile)
+        self.assertIn('RUN umask 022 && python -m pip install',dockerfile)
         self.assertNotIn('COPY . ',dockerfile);self.assertNotIn('ARG ',dockerfile)
         self.assertIn(self.lock['base']['reference'],dockerfile)
         self.assertTrue(set(value['context_files'])<={str(p.relative_to(output)) for p in output.rglob('*') if p.is_file()})

@@ -105,7 +105,7 @@ def prepare(role,wheelhouse,output,revision,frontend_root=None):
     # The wheels are installed in a builder stage so their archives never enter
     # the final filesystem. No network is needed by either stage's RUN steps.
     dockerfile=[f'FROM {lock["base"]["reference"]} AS dependencies','COPY wheels/ /wheels/','COPY requirements.txt /requirements.txt',
-        'RUN python -m pip install --no-index --find-links=/wheels --require-hashes --no-deps --no-compile --no-cache-dir --target=/packages -r /requirements.txt',
+        'RUN umask 022 && python -m pip install --no-index --find-links=/wheels --require-hashes --no-deps --no-compile --no-cache-dir --target=/packages -r /requirements.txt',
         f'FROM {lock["base"]["reference"]}',
         'ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONPATH=/opt/traderx:/opt/packages',
         'COPY --from=dependencies /packages/ /opt/packages/',

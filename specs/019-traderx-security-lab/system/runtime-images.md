@@ -70,13 +70,14 @@ Each context contains its exact Dockerfile, source allowlist, dependencies and
 Docker's context by `.dockerignore`. Do not add arbitrary files or change the
 Dockerfile after preparation. Dependencies install using `--no-index`,
 `--require-hashes`, `--no-deps` and a fixed wheel inventory. The final stage copies
-installed packages, not wheel archives. Application source/static file modes are
+installed packages, not wheel archives. Dependency installation explicitly uses
+umask 022 so final packages remain readable by the non-root user. Application source/static file modes are
 explicitly readable by UID 10001 even if the host uses umask 077.
 
 The parent CI job creates a uniquely named docker-container BuildKit builder with
 `buildkit.reference` from the lock, without changing the default builder. Build
 one role at a time with `--platform linux/amd64 --network none --provenance=false`
-and two local exports: `type=oci,dest=<role>.oci.tar` and
+and two local exports: `type=oci,oci-mediatypes=true,dest=<role>.oci.tar` and
 `type=docker,dest=<role>.docker.tar`. The registry pull of the digest-pinned Python
 base happens on that hosted runner; build-step networking remains disabled.
 BuildKit is separately privileged build infrastructure, never an application
