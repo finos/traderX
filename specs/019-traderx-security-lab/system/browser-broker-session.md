@@ -54,3 +54,20 @@ disconnect/reconnect refresh, logout/expired-cookie denial and server-owned
 policy revocation. Real broker tests and Angular HTTP-double tests are separate
 proofs. Full gateway/deployment and cumulative trading acceptance remain open
 until the parent Phase 1/2 campaign combines them.
+
+## Order and quote snapshot bridge
+
+The generated order blotter uses a bounded HTTP snapshot every two seconds until
+an explicit order-notification contract is integrated. Settlement invalidations
+and broker reconnect also refresh it. Each response is filtered to the captured
+account scope and terminal orders are removed. Account changes immediately clear
+rows and dispose old requests/timers; API denial clears the snapshot. Cancel
+success requests a fresh snapshot and rejection is visible to the learner.
+
+Order blotter quotes and the selected order-ticket quote also refresh through the
+existing quote HTTP API every two seconds. Only one request per snapshot can be
+active, responses time out after five seconds, timer ticks coalesce, and ticker
+changes/disposal cancel old results. Quote data never changes an already entered
+limit price. This is HTTP snapshot refresh, not market-data streaming or a new
+permission to publish NATS messages. Gateway routing and the live browser
+acceptance campaign must include the existing price snapshot endpoints.
