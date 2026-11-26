@@ -30,10 +30,16 @@ class IntegratedDeploymentTests(unittest.TestCase):
         layout=self.root/role;layout.mkdir(exist_ok=True)
         keys=['ca.pem','config.json']
         argv=['/usr/bin/java','-jar','/app/candidate.jar']
-        if role in compiler.WORKERS:
+        if role in compiler.MATERIALIZED_ROLES:
             argv=['/usr/local/bin/python','/opt/traderx/private_materializer.py','--source','/run/projected','--target','/run/private/config']
             argv += [p for key in keys for p in ('--key',key)]
             argv += ['--','/usr/local/bin/python','/opt/traderx/entrypoint.py','--config','/run/private/config/config.json']
+        if role=='position-service':
+            from java_runtime import KEYS
+            keys=list(KEYS)
+            argv=['/usr/local/bin/python','/opt/traderx/private_materializer.py','--source','/run/projected','--target','/run/private/config']
+            argv += [p for key in keys for p in ('--key',key)]
+            argv += ['--','/usr/local/bin/python','/opt/traderx/java_runtime.py','--role',role,'--config','/run/private/config/config.json']
         labels={'org.opencontainers.image.revision':self.revision,'traderx.security-lab.role':role,
             'traderx.security-lab.source-manifest':self.source['sha256'],'traderx.security-lab.config-interface':'private-config-v1',
             'traderx.security-lab.bind-address':'0.0.0.0','traderx.security-lab.transport':'https','traderx.security-lab.port':str(compiler.ROLES[role])}
@@ -99,6 +105,22 @@ class IntegratedDeploymentTests(unittest.TestCase):
         self.config['workloads']['event-publisher']=self.make_image('event-publisher')
         self.config['workloads']['position-service']=self.make_image('position-service',lambda c:c['config'].update(Env=['DATABASE_PASSWORD=not-a-real-secret']))
         with self.assertRaisesRegex(ValueError,'credential'):self.compile()
+
+    def test_position_requires_exact_adapter_and_writable_private_mount(self):
+        docs=json.loads(self.compile()['application-core.json'])['items']
+        deployment=next(d for d in docs if d['kind']=='Deployment' and d['metadata']['name']=='position-service')
+        pod=deployment['spec']['template']['spec']
+        self.assertEqual(len(pod['volumes']),3)
+        self.assertIn({'name':'private','mountPath':'/run/private'},pod['containers'][0]['volumeMounts'])
+        self.assertEqual(pod['containers'][0]['ports'],[{'name':'https','containerPort':18090}])
+        self.assertNotIn('position-service',compiler.WORKERS)
+        for argv in (['/usr/bin/java','-jar','/app/application.jar'],
+                     ['/usr/local/bin/python','/opt/traderx/java_runtime.py','--role','account-service']):
+            self.config['workloads']['position-service']=self.make_image('position-service',lambda c:c['config'].update(Entrypoint=argv))
+            with self.assertRaisesRegex(ValueError,'materializer'):self.compile()
+        def change_role(config):config['config']['Entrypoint'][-3]='account-service'
+        self.config['workloads']['position-service']=self.make_image('position-service',change_role)
+        with self.assertRaisesRegex(ValueError,'position adapter'):self.compile()
 
     def test_network_allows_only_gateway_boundary_and_explicit_dependencies(self):
         docs=json.loads(self.compile()['application-core.json'])['items']

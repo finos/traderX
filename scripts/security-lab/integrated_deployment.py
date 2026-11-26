@@ -12,6 +12,7 @@ ROLES={'account-service':18088,'position-service':18090,
        'browser-session':18447,
        'event-publisher':None,'event-consumer':None}
 WORKERS={'event-publisher','event-consumer','browser-session'}
+MATERIALIZED_ROLES=WORKERS|{'position-service'}
 DEPS={'database':(5432,'tls'),'nats-broker':(4222,'tls'),
       'identity':(8443,'https'),'reference-data':(18085,'https'),'price-publisher':(18100,'https')}
 EDGES={
@@ -37,6 +38,7 @@ def source_manifest():
         paths.update(p for p in directory.rglob('*') if p.is_file())
     paths.add(ROOT/'specs/012-platform-convergence-c3/security-lab/baseline.lock.json')
     paths.add(STATE/'system/runtime-images.lock.json')
+    paths.add(STATE/'system/java-runtime-images.lock.json')
     values={str(p.relative_to(ROOT)):sha(p.read_bytes()) for p in sorted(paths)}
     return {'files':values,'sha256':sha(encoded(values))}
 
@@ -125,12 +127,18 @@ def image(role,value,source,revision,platform):
             or 'config.json' not in keys or any(not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,63}',k) for k in keys)
             or not isinstance(value['secret'],str) or not NAME.fullmatch(value['secret'])):
         raise ValueError('Explicit private Secret key inventory required')
-    if role in WORKERS:
+    if role in MATERIALIZED_ROLES:
         prefix=[argv[0],'/opt/traderx/private_materializer.py','--source','/run/projected','--target','/run/private/config']
         prefix += [part for key in keys for part in ('--key',key)]
         prefix += ['--']
         if argv[:len(prefix)]!=prefix or len(argv)<=len(prefix) or not Path(argv[len(prefix)]).is_absolute():
             raise ValueError('Private-file runtime requires reviewed materializer argv')
+    if role=='position-service':
+        from java_runtime import KEYS
+        expected=['/usr/local/bin/python','/opt/traderx/private_materializer.py','--source','/run/projected','--target','/run/private/config']
+        expected += [part for key in KEYS for part in ('--key',key)]
+        expected += ['--','/usr/local/bin/python','/opt/traderx/java_runtime.py','--role','position-service','--config','/run/private/config/config.json']
+        if keys!=KEYS or argv!=expected:raise ValueError('Protected position adapter contract required')
     return argv
 
 
@@ -168,7 +176,7 @@ def workload(name,entry,argv,namespace):
              {'name':'runtime','secret':{'secretName':entry['secret'],'optional':False,'defaultMode':0o440,
                 'items':[{'key':key,'path':key} for key in entry['keys']]}}]
     mounts=[{'name':'tmp','mountPath':'/tmp'},{'name':'runtime','mountPath':'/run/projected','readOnly':True}]
-    if name in WORKERS:
+    if name in MATERIALIZED_ROLES:
         volumes.append({'name':'private','emptyDir':{'sizeLimit':'16Mi'}})
         mounts.append({'name':'private','mountPath':'/run/private'})
     container={'name':name,'image':entry['image'],'imagePullPolicy':'IfNotPresent','command':argv,
@@ -200,7 +208,7 @@ def admission(namespace,entries,commands):
         pairs=[]
         for role,entry in sorted(entries.items()):
             keycheck=' && '.join(f'v.secret.items.exists(i, i.key == {json.dumps(key)} && i.path == {json.dumps(key)})' for key in entry['keys'])
-            count=3 if role in WORKERS else 2
+            count=3 if role in MATERIALIZED_ROLES else 2
             memory='768Mi' if role in ('account-service','position-service','trade-processor','order-matcher') else '256Mi'
             pairs.append(f'({labels}["app"] == {json.dumps(role)} && {c}.image == {json.dumps(entry["image"])}'
                 f' && {pod}.serviceAccountName == {json.dumps("lab-"+role)} && has({c}.command) && {c}.command == {json.dumps(commands[role])}'
