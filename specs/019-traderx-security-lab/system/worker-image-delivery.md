@@ -3,7 +3,9 @@
 S019-06a3c follows the accepted [Python image smoke](runtime-images-smoke.md).
 It closes the gap between a worker image rejecting invalid configuration and
 that same packaged worker completing its intended work under restricted execution.
-This is a planned acceptance contract, not an implemented or passed campaign.
+The [26 November hosted checkpoint](../evidence/2026-11-26-worker-image-delivery.json)
+passes all 43 checks at source `1b40c4cc`. This accepts the packaged-worker
+Docker campaign; it does not close cumulative Kubernetes deployment acceptance.
 
 ## Inputs and execution boundary
 
@@ -66,3 +68,22 @@ This campaign does not establish Kubernetes networking, gateway/WAF enforcement,
 image signatures, a separate consumer-database trust boundary or cumulative
 deployment acceptance. Java/.NET packaging and support-service composition remain
 S019-06a3b. The full [integrated acceptance](integrated-acceptance.md) still applies.
+
+## Recorded result
+
+The campaign retained two outbox rows and produced three broker messages because
+one event was deliberately replayed beyond broker deduplication. Consumer storage
+contained exactly two inbox rows, one trade projection and one position projection.
+The authoritative settlement receipt remained singular and business-table
+fingerprints did not change during delivery/recovery. Both worker roles rejected
+all six credential/CA/hostname variants before causing any delivery effect.
+
+Actual SQL sessions were observed encrypted, and actual process/mount probes
+verified non-root execution, read-only roots and private materialization. The
+same inspected image IDs were reused on each replacement. The external ACK gate
+was independently observed both denied and restored before consumer recovery.
+Private fixtures and all owned containers, volume and network were removed.
+
+The first hosted attempts exposed fixture compatibility bugs: null Docker IPAM
+configuration and protocol-1 NATS INFO updates. Focused regression tests cover
+both; acceptance comes from the succeeding hosted run, not those unit tests alone.

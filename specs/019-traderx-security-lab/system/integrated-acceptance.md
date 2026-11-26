@@ -67,8 +67,10 @@ The [first Python image checkpoint](runtime-images.md) is deliberately narrower:
 three actual OCI builds, verified browser HTTPS/static startup under restricted
 mounts, and worker role/configuration rejection. [Its smoke contract](runtime-images-smoke.md)
 does not establish successful image-based SQL/broker delivery. S019-06a3c requires
-that positive path, including replay and restart, before those workers can be
-accepted in the cumulative deployment. The [real Angular journey](browser-journey.md)
+that positive path, including replay and restart. Its
+[43-check hosted checkpoint](../evidence/2026-11-26-worker-image-delivery.json)
+now passes; accepting those workers in the cumulative deployment still requires
+the surrounding controls and application journey. The [real Angular journey](browser-journey.md)
 runs actual source-built services independently of this packaging checkpoint.
 
 ## What follows

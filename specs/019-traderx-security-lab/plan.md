@@ -33,9 +33,15 @@ Trader and reader use separate browser contexts; provider-wide logout is not
 claimed. Same-campaign operator, expiry and full interruption checks remain in
 the broader Phase 1 contract; this checkpoint does not close the whole phase.
 
-Next execute [S019-06a3c packaged-worker TLS delivery](system/worker-image-delivery.md)
-using the accepted Python images, before the remaining S019-06a3b1–b4 Java/.NET
-packages, private configuration interfaces and support-service composition.
+The [packaged-worker checkpoint](evidence/2026-11-26-worker-image-delivery.json)
+closes S019-06a3c at `1b40c4cc`: 43 hosted checks pass using actual immutable
+images, verified SQL/broker TLS, twelve credential/certificate rejection cases,
+publisher replay and consumer pre/post-commit recovery. Independent effects
+remain one trade and one position projection; no business trade is rebooked.
+
+Next implement S019-06a3b1 with the position-service image and reusable private
+Spring configuration/TLS adapter, then b2–b4 for remaining Java/.NET services
+and support-service composition.
 Provision issuer/broker/market-data TLS, complete their permitted gateway/egress
 flows, and activate one cumulative cluster before closing S019-04/05/06. The
 admission campaign uses synthetic OCI files and unscheduled probes; it is not

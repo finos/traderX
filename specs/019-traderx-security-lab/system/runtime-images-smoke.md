@@ -35,8 +35,8 @@ a denied root-filesystem write and tmpfs identity from `/proc/self/mountinfo`.
 Each worker receives structurally valid configuration for the other worker mode.
 It must exit with the fixed sanitized configuration-refusal message before
 opening database/broker connections. This establishes packaging and fail-closed
-role binding only; successful image-based PostgreSQL/NATS delivery remains a
-separate milestone. No Kubernetes deployment, image signature or cumulative
+role binding only; successful image-based PostgreSQL/NATS delivery is established
+by the separate [worker-image campaign](worker-image-delivery.md). No Kubernetes deployment, image signature or cumulative
 application acceptance is established here.
 
 Use unique ownership labels for containers/network, remove only owned resources

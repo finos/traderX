@@ -4,8 +4,8 @@ Assessment date: 26 November 2026. This is a planning estimate, not acceptance
 evidence or a delivery commitment. Checkpoints are tracked in [tasks](../tasks.md);
 the [integrated contract](integrated-acceptance.md) defines completion.
 
-The real trader/reader browser journey and three Python image builds are accepted
-checkpoints. The remaining work is mainly packaging, cumulative control
+The real trader/reader browser journey, three Python image builds and the
+43-check packaged-worker TLS/recovery campaign are accepted checkpoints. The remaining work is mainly packaging, cumulative control
 integration and release validation. Passing components do not establish that
 their combined deployment is secure or reproducible.
 
@@ -13,7 +13,7 @@ their combined deployment is secure or reproducible.
 
 | Work block | Completion evidence | Estimated focused effort |
 | --- | --- | --- |
-| Packaging and transport | Packaged workers pass TLS delivery/replay/restart; Java and .NET images consume private configuration and enforce identity; support services are provisioned | 1–2 working days |
+| Packaging and transport | Worker TLS delivery/replay/restart is accepted; remaining Java and .NET images consume private configuration and enforce identity, and support services are provisioned | 1–2 working days |
 | Cumulative hardened deployment | One deployment passes real trading, broader identity/recovery cases, gateway/WAF, CNI, scoped SQL/broker and trusted-image boundaries; external evidence survives restart | 2–4 working days |
 | Residual misuse and runtime comparison | Outside-grant denial and within-grant canary effects, one runtime engine in observation/enforcement modes, independent outcomes and two resets | 1–2 working days |
 | Learner and release validation | Guided experiments/assessments, control/evidence mapping, resource/performance measurements, unattended fresh-clone reproduction and contributor walkthrough | 1–2 working days |
@@ -42,9 +42,9 @@ must not be advertised as implemented experiments until their own gates pass.
 
 ## Immediate next gate
 
-S019-06a3c: execute the [packaged-worker delivery contract](worker-image-delivery.md)
-using the existing immutable Python images. Keep local Docker and Citrix
-untouched; use disposable hosted Linux execution and small local source tests.
-After this gate, package position-service first to establish the Java private
-configuration and verified PostgreSQL TLS adapter, then reuse that adapter for
-the other Java services. Treat the .NET interface separately.
+S019-06a3c is accepted in the [packaged-worker evidence](../evidence/2026-11-26-worker-image-delivery.json).
+Next, S019-06a3b1 packages position-service to establish the Java private
+configuration and verified PostgreSQL TLS adapter; then reuse that adapter for
+the other Java services and treat the .NET interface separately. Keep local
+Docker and Citrix untouched; continue with disposable hosted Linux execution
+and small local source tests.
