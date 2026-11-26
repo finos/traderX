@@ -18,6 +18,21 @@ LOCK = compiler.STATE / 'system/people-runtime-images.lock.json'
 SOURCE = compiler.ROOT / 'scripts/security-lab'
 KEYS = sorted(people_runtime.FILES)
 COMMAND = ['/usr/local/bin/python', '/opt/traderx/people_runtime.py']
+NATIVE_DIR = 'usr/lib/x86_64-linux-gnu'
+NATIVE_LIBRARIES = {
+    '/usr/lib/x86_64-linux-gnu/libicudata.so.72.1': 'libicudata.so.72',
+    '/usr/lib/x86_64-linux-gnu/libicui18n.so.72.1': 'libicui18n.so.72',
+    '/usr/lib/x86_64-linux-gnu/libicuuc.so.72.1': 'libicuuc.so.72',
+    '/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30': 'libstdc++.so.6',
+    '/lib/x86_64-linux-gnu/libgcc_s.so.1': 'libgcc_s.so.1',
+}
+
+
+def runtime_lock():
+    lock = compiler.read_json(LOCK)
+    if lock['platform'] != 'linux/amd64' or lock['native_libraries'] != NATIVE_LIBRARIES:
+        raise ValueError('Reviewed native runtime inventory required')
+    return lock
 
 
 def inputs(root, publish, report):
@@ -39,6 +54,7 @@ def labels(revision, report):
             'traderx.security-lab.transport': 'https',
             'traderx.security-lab.port': '18089',
             'traderx.security-lab.assembly-sha256': report['assembly_sha256'],
+            'traderx.security-lab.people-runtime-lock-sha256': compiler.sha(compiler.encoded(runtime_lock())),
             'traderx.security-lab.build-report-sha256': compiler.sha(compiler.encoded(report))}
 
 
@@ -46,7 +62,7 @@ def prepare(root, publish, report, output, revision):
     if not re.fullmatch(r'[0-9a-f]{40}', revision):
         raise ValueError('Explicit source revision required')
     files, verified = inputs(root, publish, report)
-    lock, python = compiler.read_json(LOCK), compiler.read_json(runtime_images.LOCK)
+    lock, python = runtime_lock(), compiler.read_json(runtime_images.LOCK)
     if lock['platform'] != 'linux/amd64' or python['platform'] != 'linux/amd64':
         raise ValueError('Reviewed AMD64 platform required')
     for reference in (lock['runtime']['reference'], python['base']['reference']):
@@ -54,8 +70,10 @@ def prepare(root, publish, report, output, revision):
             raise ValueError('Digest-pinned runtime required')
     recipe = [f'FROM {lock["runtime"]["reference"]} AS dotnet',
               f'FROM {python["base"]["reference"]}',
-              'COPY --from=dotnet /usr/share/dotnet/ /usr/share/dotnet/',
-              'ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1',
+              'COPY --from=dotnet /usr/share/dotnet/ /usr/share/dotnet/']
+    recipe += [f'COPY --from=dotnet --chmod=0444 {source} /{NATIVE_DIR}/{target}'
+               for source, target in NATIVE_LIBRARIES.items()]
+    recipe += ['ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1',
               'COPY --chmod=0444 application/ /opt/traderx/',
               'COPY --chmod=0555 source/ /opt/traderx/',
               'RUN chmod 0755 /opt /opt/traderx /opt/traderx/MockDirectory',
@@ -68,6 +86,8 @@ def prepare(root, publish, report, output, revision):
     record = {'schema_version': 1, 'role': ROLE, 'platform': 'linux/amd64',
               'source_commit': revision, 'source_manifest': verified['source_manifest'],
               'runtime': lock['runtime'], 'python_base': python['base'],
+              'native_libraries': lock['native_libraries'],
+              'runtime_lock_sha256': compiler.sha(compiler.encoded(lock)),
               'build_report_sha256': compiler.sha(compiler.encoded(verified)),
               'command': COMMAND, 'keys': KEYS,
               'context_files': {name: compiler.sha(data) for name, data in sorted(files.items())},
@@ -211,8 +231,9 @@ def filesystem(layout, manifest, expected, diff_ids):
     for name in expected:
         directories.update(p.as_posix() for p in PurePosixPath(name).parents if p.as_posix() != '.')
     runtime_directories = {'usr', 'usr/local', 'usr/local/bin', 'usr/share',
-                           'usr/share/dotnet'}
-    tracked = directories | runtime_directories | {'usr/share/dotnet/dotnet'}
+                           'usr/share/dotnet', 'usr/lib', NATIVE_DIR}
+    native_paths = {NATIVE_DIR + '/' + name for name in NATIVE_LIBRARIES.values()}
+    tracked = directories | runtime_directories | native_paths | {'usr/share/dotnet/dotnet'}
     links = PathInventory(budget)
     def protected(name):
         return (name in tracked or name.startswith('opt/traderx/')
@@ -269,12 +290,13 @@ def filesystem(layout, manifest, expected, diff_ids):
                     stream = tar.extractfile(member)
                     h = hashlib.sha256()
                     for part in iter(lambda: stream.read(1024 * 1024), b''):
-                        if not header and (rel == 'usr/share/dotnet/dotnet'
+                        if not header and (rel in native_paths or rel == 'usr/share/dotnet/dotnet'
                                            or rel.startswith('usr/local/bin/python')):
                             header = part[:65536]
                         h.update(part)
                     digest = h.hexdigest()
-                elf_valid = bool(header) and amd64_elf(header, member.size)
+                elf_valid = (shared_elf(header) if rel in native_paths
+                             else bool(header) and amd64_elf(header, member.size))
                 item = (member.isdir(), member.isfile(), member.issym(), member.uid,
                         member.gid, member.mode & 0o7777, digest, member.linkname,
                         elf_valid, member.size) if relevant else None
@@ -328,6 +350,17 @@ def filesystem(layout, manifest, expected, diff_ids):
             raise ValueError('OCI application file differs')
     executable(state, 'usr/share/dotnet/dotnet', allow_python_links=False)
     executable(state, 'usr/local/bin/python', allow_python_links=True)
+    for name in native_paths:
+        if name not in state:
+            raise ValueError('Required OCI native library missing')
+        _, isfile, _, uid, gid, mode, _, _, elf_valid, _ = state.items[name]
+        if not isfile or uid != 0 or gid != 0 or mode != 0o444 or not elf_valid:
+            raise ValueError('Unsafe OCI native library')
+
+
+def shared_elf(header):
+    return (len(header) >= 64 and header[:7] == b'\x7fELF\x02\x01\x01'
+            and struct.unpack_from('<HHI', header, 16) == (3, 62, 1))
 
 
 def executable(state, path, *, allow_python_links):
