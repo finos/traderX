@@ -248,3 +248,11 @@ hosted regression includes 474 passing source tests. See
 closed, while real support-service provisioning and cumulative deployment remain
 open. Reviewed Copilot .NET packaging/native inputs are incorporated as source
 preparation; actual image startup/HTTPS/operator acceptance is the next gate.
+
+The security-practitioner walkthrough now follows the
+[security-cost evaluation contract](system/security-cost-evaluation.md). Baseline
+per-path timing, offered load/queues/errors, tail latency and complete platform
+resource/operating cost precede optimization claims. S019-14 compares alternative
+infrastructure/mesh implementations against identical security outcomes; explicit
+compensating-control decisions record residual risk and an accountable owner.
+No universal trading budget or mesh performance improvement is assumed.

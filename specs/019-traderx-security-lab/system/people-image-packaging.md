@@ -174,3 +174,27 @@ properties. The existing integrated compiler has not been changed to admit this
 private people adapter; integrated rollout and the broader S019-06a3 remain
 separate gates. Hashes and digest pins are not signatures, provenance
 attestation, vulnerability assessment or full supply-chain assurance.
+
+## Hosted actual-image campaign contract
+
+The `people-image` workflow scope builds the canonical tested application,
+revalidates actual OCI bytes, and runs the inspected immutable image on an owned
+internal-only bridge. The API must operate with 256 MiB, UID/GID 10001, read-only
+root, private tmpfs, exact five-key Kubernetes-style projection and no host port.
+Client TLS CA/hostname rejection, exact operator directory results, user/claim
+scope denials, bounded queries, unavailable routes/mutations, unchanged packaged
+directory, trust expiry and actual same-image restart must pass. Startup alone is
+insufficient because the directory service is instantiated lazily.
+
+A separate fixed `PeopleNativeProbe.dll`, built without package sources and
+mounted read-only into the same immutable image, tests Turkish casing and French
+decimal formatting. Its source/artifacts/report are verified before execution;
+it is not the application launcher and its success is not application acceptance.
+The application is tested separately without changing its entrypoint or private
+configuration contract. Only bounded booleans and hashes enter native evidence.
+
+This is an inherited C3/.NET 9 compatibility checkpoint. S019-06a3b3r requires
+migration to a supported runtime and identical regression before release. A
+passing compatibility campaign does not waive that requirement or accept the
+combined deployment. Runtime resource limits are observed configuration, not
+throughput or tail-latency measurements.

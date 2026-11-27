@@ -55,3 +55,10 @@ operational/resource tradeoffs and reproducible steps. Decide whether it merits 
 separate TraderX successor state after the compatibility exercise. Then evaluate
 how CALM could describe and generate those same controls, preserving the already
 planned standalone CALM comparison.
+
+The [security-cost evaluation contract](security-cost-evaluation.md) defines the
+shared threat/outcome/cost panel, per-path workload methodology, tail-latency and
+queue/error accounting, and explicit compensating-control decision record.
+Infrastructure and mesh alternatives must earn their claimed benefit through
+those measurements; neither reduced application code nor transport identity
+alone establishes equivalent business protection or improved trading latency.

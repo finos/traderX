@@ -11,6 +11,7 @@ on:
           - position-image
           - java-core-images
           - matcher-image
+          - people-image
   pull_request:
     paths:
       - 'scripts/security-lab/**'
@@ -592,5 +593,75 @@ jobs:
         with:
           name: security-matcher-image
           path: ${{ runner.temp }}/matcher-image.json
+          if-no-files-found: warn
+          retention-days: 7
+  people-image:
+    if: github.event_name != 'workflow_dispatch' || inputs.campaign == 'all' || inputs.campaign == 'people-image'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '9.0.x'
+      - name: Build and verify the actual private people image
+        env:
+          TRADERX_LAB_ISOLATED_LINUX: '1'
+        run: |
+          set -euo pipefail
+          umask 077
+          python -m pip install -r scripts/security-lab/requirements.txt
+          python -m pip install 'cryptography==50.0.2' 'PyJWT==2.15.1'
+          python -m pip install --require-hashes -r scripts/security-lab/requirements-delivery.txt
+          python scripts/security-lab/checkpoint.py fetch-baseline
+          python -m unittest discover -s scripts/security-lab -p 'test_people*.py'
+          python - <<'PYSDK'
+          import json, pathlib, re, subprocess
+          versions = [line.split()[0] for line in subprocess.check_output(['dotnet','--list-sdks'],text=True).splitlines()]
+          sdk = max((v for v in versions if re.fullmatch(r'9\.0\.\d{3}',v)), key=lambda v:tuple(map(int,v.split('.'))))
+          pathlib.Path('global.json').write_text(json.dumps({'sdk':{'version':sdk,'rollForward':'disable'}}))
+          PYSDK
+          runtime="$(mktemp -d "$RUNNER_TEMP/traderx-people-image.XXXXXXXX")"
+          cp global.json "$runtime/global.json"
+          builder="traderx-people-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          trap 'docker buildx rm "$builder" >/dev/null 2>&1 || true; rm -rf "$runtime"; rm -f global.json' EXIT
+          python scripts/security-lab/build_people_image.py --runtime-dir "$runtime"
+          python scripts/security-lab/build_people_native_probe.py --runtime-dir "$runtime"
+          python scripts/security-lab/people_images.py prepare --generated-root "$runtime/people-service" --publish-dir "$runtime/people-publish" --build-report "$runtime/people-build.json" --source-commit "$GITHUB_SHA" --output "$runtime/context-people"
+          buildkit="$(python -c 'import json; print(json.load(open("specs/019-traderx-security-lab/system/runtime-images.lock.json"))["buildkit"]["reference"])')"
+          docker buildx create --name "$builder" --driver docker-container --driver-opt "image=$buildkit"
+          reference="traderx-local/people-service:$GITHUB_SHA"
+          docker buildx build --builder "$builder" --platform linux/amd64 --network none --provenance=false --sbom=false --tag "$reference" --output "type=oci,oci-mediatypes=true,dest=$runtime/people.oci.tar" --output "type=docker,dest=$runtime/people.docker.tar" "$runtime/context-people"
+          python - "$runtime/people.oci.tar" "$runtime/oci-people" <<'PYEXTRACT'
+          import pathlib,sys,tarfile
+          target=pathlib.Path(sys.argv[2]);target.mkdir()
+          with tarfile.open(sys.argv[1]) as archive:archive.extractall(target,filter='data')
+          PYEXTRACT
+          python scripts/security-lab/people_images.py inspect --layout "$runtime/oci-people" --name "$reference" --source-commit "$GITHUB_SHA" --generated-root "$runtime/people-service" --publish-dir "$runtime/people-publish" --build-report "$runtime/people-build.json" > "$runtime/people-entry.json"
+          docker load --input "$runtime/people.docker.tar"
+          docker buildx rm "$builder"
+          python - "$runtime" "$GITHUB_SHA" "$reference" <<'PYMANIFEST'
+          import json,pathlib,sys
+          root=pathlib.Path(sys.argv[1])
+          manifest={'source_commit':sys.argv[2],'runtime_reference':sys.argv[3],
+              'image':json.loads((root/'people-entry.json').read_text()),'generated_root':str(root/'people-service'),
+              'publish_dir':str(root/'people-publish'),'build_report':str(root/'people-build.json'),
+              'native_probe':str(root/'people-native-probe')}
+          (root/'people-image-input.json').write_text(json.dumps(manifest))
+          PYMANIFEST
+          result=0
+          python scripts/security-lab/verify_people_image.py --runtime-dir "$runtime" --image "$runtime/people-image-input.json" --output "$runtime/people-image.json" || result=$?
+          cp "$runtime/people-image.json" "$RUNNER_TEMP/people-image.json"
+          exit "$result"
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: security-people-image
+          path: ${{ runner.temp }}/people-image.json
           if-no-files-found: warn
           retention-days: 7
