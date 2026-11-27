@@ -29,6 +29,10 @@ def image(root,role,source,revision,alter=None):
         argv=['/usr/local/bin/python','/opt/traderx/private_materializer.py','--source','/run/projected','--target','/run/private/config']
         argv += [part for key in keys for part in ('--key',key)]
         argv += ['--','/usr/local/bin/python','/opt/traderx/java_runtime.py','--role',role,'--config','/run/private/config/config.json']
+    if role=='people-service':
+        from people_runtime import FILES
+        keys=sorted(FILES)
+        argv=['/usr/local/bin/python','/opt/traderx/people_runtime.py']
     labels={'org.opencontainers.image.revision':revision,'traderx.security-lab.role':role,
         'traderx.security-lab.source-manifest':source['sha256'],'traderx.security-lab.config-interface':'private-config-v1',
         'traderx.security-lab.bind-address':'0.0.0.0','traderx.security-lab.transport':'https','traderx.security-lab.port':str(compiler.ROLES[role]),

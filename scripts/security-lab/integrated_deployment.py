@@ -14,6 +14,8 @@ ROLES={'account-service':18088,'position-service':18090,
 WORKERS={'event-publisher','event-consumer','browser-session'}
 JAVA_ROLES={'position-service','account-service','trade-processor','order-matcher'}
 MATERIALIZED_ROLES=WORKERS|JAVA_ROLES
+# The .NET launcher materializes its projection internally, without a wrapper.
+PRIVATE_ROLES=MATERIALIZED_ROLES|{'people-service'}
 DEPS={'database':(5432,'tls'),'nats-broker':(4222,'tls'),
       'identity':(8443,'https'),'reference-data':(18085,'https'),'price-publisher':(18100,'https')}
 EDGES={
@@ -142,6 +144,10 @@ def image(role,value,source,revision,platform):
         expected += [part for key in expected_keys for part in ('--key',key)]
         expected += ['--','/usr/local/bin/python','/opt/traderx/java_runtime.py','--role',role,'--config','/run/private/config/config.json']
         if keys!=expected_keys or argv!=expected:raise ValueError('Protected '+role.removesuffix('-service')+' adapter contract required')
+    if role=='people-service':
+        from people_runtime import FILES
+        if keys!=sorted(FILES) or argv!=['/usr/local/bin/python','/opt/traderx/people_runtime.py']:
+            raise ValueError('Protected people adapter contract required')
     return argv
 
 
@@ -179,7 +185,7 @@ def workload(name,entry,argv,namespace):
              {'name':'runtime','secret':{'secretName':entry['secret'],'optional':False,'defaultMode':0o440,
                 'items':[{'key':key,'path':key} for key in entry['keys']]}}]
     mounts=[{'name':'tmp','mountPath':'/tmp'},{'name':'runtime','mountPath':'/run/projected','readOnly':True}]
-    if name in MATERIALIZED_ROLES:
+    if name in PRIVATE_ROLES:
         volumes.append({'name':'private','emptyDir':{'sizeLimit':'16Mi'}})
         mounts.append({'name':'private','mountPath':'/run/private'})
     container={'name':name,'image':entry['image'],'imagePullPolicy':'IfNotPresent','command':argv,
@@ -211,7 +217,7 @@ def admission(namespace,entries,commands):
         pairs=[]
         for role,entry in sorted(entries.items()):
             keycheck=' && '.join(f'v.secret.items.exists(i, i.key == {json.dumps(key)} && i.path == {json.dumps(key)})' for key in entry['keys'])
-            count=3 if role in MATERIALIZED_ROLES else 2
+            count=3 if role in PRIVATE_ROLES else 2
             memory='768Mi' if role in ('account-service','position-service','trade-processor','order-matcher') else '256Mi'
             pairs.append(f'({labels}["app"] == {json.dumps(role)} && {c}.image == {json.dumps(entry["image"])}'
                 f' && {pod}.serviceAccountName == {json.dumps("lab-"+role)} && has({c}.command) && {c}.command == {json.dumps(commands[role])}'

@@ -40,6 +40,10 @@ class IntegratedDeploymentTests(unittest.TestCase):
             argv=['/usr/local/bin/python','/opt/traderx/private_materializer.py','--source','/run/projected','--target','/run/private/config']
             argv += [p for key in keys for p in ('--key',key)]
             argv += ['--','/usr/local/bin/python','/opt/traderx/java_runtime.py','--role',role,'--config','/run/private/config/config.json']
+        if role=='people-service':
+            from people_runtime import FILES
+            keys=sorted(FILES)
+            argv=['/usr/local/bin/python','/opt/traderx/people_runtime.py']
         labels={'org.opencontainers.image.revision':self.revision,'traderx.security-lab.role':role,
             'traderx.security-lab.source-manifest':self.source['sha256'],'traderx.security-lab.config-interface':'private-config-v1',
             'traderx.security-lab.bind-address':'0.0.0.0','traderx.security-lab.transport':'https','traderx.security-lab.port':str(compiler.ROLES[role])}
@@ -138,6 +142,37 @@ class IntegratedDeploymentTests(unittest.TestCase):
             self.config['workloads'][role]=self.make_image(role,changed_role)
             with self.assertRaisesRegex(ValueError,'adapter'):self.compile()
             self.config['workloads'][role]=self.make_image(role)
+
+    def test_people_uses_internal_materialization_exact_keys_and_private_volume(self):
+        from people_runtime import FILES
+        documents=json.loads(self.compile()['application-core.json'])['items']
+        deployment=next(d for d in documents if d['kind']=='Deployment' and d['metadata']['name']=='people-service')
+        pod=deployment['spec']['template']['spec'];container=pod['containers'][0]
+        command=['/usr/local/bin/python','/opt/traderx/people_runtime.py']
+        self.assertEqual(container['command'],command)
+        self.assertEqual(container['ports'],[{'name':'https','containerPort':18089}])
+        self.assertEqual(len(pod['volumes']),3)
+        self.assertIn({'name':'private','emptyDir':{'sizeLimit':'16Mi'}},pod['volumes'])
+        self.assertIn({'name':'private','mountPath':'/run/private'},container['volumeMounts'])
+        projected=next(v['secret'] for v in pod['volumes'] if v['name']=='runtime')
+        self.assertEqual(projected['items'],[{'key':name,'path':name} for name in sorted(FILES)])
+        self.assertEqual(projected['defaultMode'],0o440)
+        self.assertNotIn('people-service',compiler.MATERIALIZED_ROLES)
+        self.assertIn('people-service',compiler.PRIVATE_ROLES)
+        policy=next(d for d in documents if d['kind']=='ValidatingAdmissionPolicy' and d['metadata']['name'].endswith('-pods'))
+        checks=' '.join(v['expression'] for v in policy['spec']['validations'])
+        self.assertIn('"people-service"',checks)
+        self.assertIn(json.dumps(command),checks)
+        for name in FILES:self.assertIn('i.key == '+json.dumps(name),checks)
+        for unsafe in (["/usr/share/dotnet/dotnet","/opt/traderx/PeopleService.WebApi.dll"],
+                       command+['--config','/tmp/config.json'],
+                       ['/usr/local/bin/python','/opt/traderx/private_materializer.py','--source','/run/projected',
+                        '--target','/run/private/config','--key','config.json','--',*command]):
+            self.config['workloads']['people-service']=self.make_image('people-service',lambda c:c['config'].update(Entrypoint=unsafe))
+            with self.assertRaisesRegex(ValueError,'people adapter'):self.compile()
+        self.config['workloads']['people-service']=self.make_image('people-service')
+        self.config['workloads']['people-service']['keys']=['ca.pem','config.json']
+        with self.assertRaisesRegex(ValueError,'people adapter'):self.compile()
 
     def test_network_allows_only_gateway_boundary_and_explicit_dependencies(self):
         docs=json.loads(self.compile()['application-core.json'])['items']
