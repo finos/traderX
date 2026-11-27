@@ -185,6 +185,25 @@ class PeopleImageTests(unittest.TestCase):
                          (self.source / build.ASSET).read_bytes())
         self.assertEqual(images.COMMAND[-1], '/opt/traderx/people_runtime.py')
 
+    def test_sdk_empty_static_manifests_allow_only_build_publish_marker(self):
+        built = (self.source / build.DLL).parent / build.STATIC_ENDPOINTS
+        published = self.publish / build.STATIC_ENDPOINTS
+        built.write_bytes(compiler.encoded({'Version': 1, 'ManifestType': 'Build', 'Endpoints': []}))
+        accepted = {'Version': 1, 'ManifestType': 'Publish', 'Endpoints': []}
+        published.write_bytes(compiler.encoded(accepted))
+        value = build.artifacts(self.source, self.publish, self.value['fixture'])
+        self.assertEqual(value['publish_files'][build.STATIC_ENDPOINTS], compiler.sha(published.read_bytes()))
+        for invalid in ({**accepted, 'Endpoints': [{'Route': '/unexpected'}]},
+                        {**accepted, 'Version': 2}, {**accepted, 'ManifestType': 'Build'},
+                        {**accepted, 'Unknown': True}):
+            published.write_bytes(compiler.encoded(invalid))
+            with self.subTest(invalid=invalid), self.assertRaises(ValueError):
+                build.artifacts(self.source, self.publish, self.value['fixture'])
+        published.write_bytes(compiler.encoded(accepted))
+        (self.publish / 'dependency.dll').write_bytes(b'changed dependency')
+        with self.assertRaisesRegex(ValueError, 'differ from loopback build'):
+            build.artifacts(self.source, self.publish, self.value['fixture'])
+
     def test_native_libraries_are_required_regular_safe_amd64(self):
         for target in images.NATIVE_LIBRARIES.values():
             name = images.NATIVE_DIR + '/' + target

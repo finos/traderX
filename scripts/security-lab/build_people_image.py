@@ -18,6 +18,7 @@ STATUS = 'loopback-fixture-passed-image-not-accepted'
 LIMIT = 256 * 1024 * 1024
 METADATA = {'PeopleService.WebApi.deps.json', 'PeopleService.WebApi.runtimeconfig.json',
             'PeopleService.WebApi.staticwebassets.endpoints.json'}
+STATIC_ENDPOINTS = 'PeopleService.WebApi.staticwebassets.endpoints.json'
 
 def fixture_checks():
     checks = []
@@ -145,10 +146,21 @@ def artifacts(root, publish, fixture):
     assembly = compiler.sha(regular(Path(root) / DLL))
     asset = compiler.sha(regular(Path(root) / ASSET))
     tested = tested_files(root)
-    if files != tested:
+    comparable = dict(files)
+    if STATIC_ENDPOINTS in files or STATIC_ENDPOINTS in tested:
+        # The SDK deliberately marks the build and publish manifests differently.
+        # This API serves no static assets: allow only the exact empty manifests,
+        # keeping the published bytes in the inventory and image binding.
+        for directory, kind in ((Path(root) / PROJECT / 'bin/Release/net9.0', 'Build'),
+                                (Path(publish), 'Publish')):
+            manifest = compiler.read_json(directory / STATIC_ENDPOINTS)
+            if manifest != {'Version': 1, 'ManifestType': kind, 'Endpoints': []}:
+                raise ValueError('Unexpected static asset endpoint manifest')
+        comparable[STATIC_ENDPOINTS] = tested[STATIC_ENDPOINTS]
+    if comparable != tested:
         # Only bounded artifact names, never configuration or file contents.
-        changed = sorted(name for name in files.keys() | tested.keys()
-                         if files.get(name) != tested.get(name))
+        changed = sorted(name for name in comparable.keys() | tested.keys()
+                         if comparable.get(name) != tested.get(name))
         safe = [name for name in changed if re.fullmatch(r'[A-Za-z0-9_.-]{1,160}', name)]
         raise ValueError('Published assemblies or runtime metadata differ from loopback build: '
                          + ', '.join(safe[:128]))
