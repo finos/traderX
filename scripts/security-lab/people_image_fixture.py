@@ -131,7 +131,9 @@ class PeopleImage:
         self.f['names'].append(self.name)
         args=images.launch_args(self.name,self.f['network'],self.f['owner'],self.target,self.identity['runtime_id'])
         args[args.index('--memory')+1]='256m';args[args.index('--pids-limit')+1]='64'
-        args=args[:-1]+['--memory-swap','256m','--log-driver','local','--log-opt','max-size=1m','--log-opt','max-file=1',args[-1]]
+        # The local driver rejects compression with only one retained log file.
+        args=args[:-1]+['--memory-swap','256m','--log-driver','local','--log-opt','max-size=1m',
+                       '--log-opt','max-file=1','--log-opt','compress=false',args[-1]]
         failed=False
         try:
             result=self.docker(*args,check=False)

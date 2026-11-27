@@ -53,6 +53,10 @@ class PeopleImageTests(unittest.TestCase):
         self.assertEqual(caught.exception.code,'container_launch_refused')
         self.assertEqual(caught.exception.diagnostic,{'daemon_categories':['failed to initialize logging driver']})
         self.assertEqual(app.docker.call_args.args,('rm','-f','owned'))
+        launch=app.docker.call_args_list[0].args
+        options=[launch[index+1] for index,value in enumerate(launch) if value=='--log-opt']
+        self.assertIn('max-file=1',options)
+        self.assertIn('compress=false',options)
 
     def test_projected_secret_is_one_generation_and_has_exact_keys(self):
         names=set(fixture.people_runtime.FILES)-{'config.json'}
