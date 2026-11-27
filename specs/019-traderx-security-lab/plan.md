@@ -236,3 +236,8 @@ and application-update journey passes with intended denials. Phase two closes
 only after that same journey runs with all advertised deployment controls.
 Offline compiler tests, component candidates and missing image/identity inputs
 must not be relabeled as either completion gate.
+
+The next image gate follows [matcher-image.md](system/matcher-image.md): parallel
+private-runtime/packaging, owned TLS-peer and actual matcher/processor acceptance
+work, followed by one hosted campaign and full regression. A bounded synthetic
+OAuth peer is explicitly distinct from the later Keycloak provisioning gate.
