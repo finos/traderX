@@ -23,8 +23,9 @@ import integrated_deployment as compiler
 import verify_runtime_images as images
 import verify_position_image as position
 
-PORTS={'account-service':18088,'trade-processor':18091}
+PORTS={'account-service':18088,'trade-processor':18091,'order-matcher':18110}
 KEYS={role:tuple(name for name in position.KEYS if role!='trade-processor' or name!='entitlements.properties') for role in PORTS}
+KEYS['order-matcher']=tuple(sorted((*position.KEYS,'broker-ca.pem','broker-secret','client-secret','identity-ca.pem','processor-ca.pem')))
 Failure=position.Failure
 rejected_database_startup=position.rejected_database_startup
 
@@ -128,7 +129,22 @@ class JavaImage(position.PositionImage):
         self.name='traderx-java-image-'+secrets.token_hex(10)
         self.target=projected(root,self.name,config,materials)
         self.secrets=(config['database']['password'],config['tls']['password'])
+        if self.role=='order-matcher':
+            self.secrets+=tuple(materials[name].decode('ascii').strip() for name in ('broker-secret','client-secret'))
         self.address=None
+
+    def diagnostics(self):
+        value=super().diagnostics()
+        if self.role=='order-matcher':
+            log=self.docker('logs','--tail','160',self.name)
+            text=log.stdout+log.stderr
+            if any(secret in text for secret in self.secrets):raise Failure('private_output_detected')
+            categories={category for marker,category in (
+                ('broker-failure=tls','broker_tls'),('broker-failure=io','broker_io'),
+                ('broker-failure=configuration','broker_configuration'),
+                ('Service token unavailable','service_token_unavailable')) if marker in text}
+            value['categories']=sorted(set(value.get('categories',[]))|categories)
+        return value
 
     def request(self,context,path,bearer=None,hostname=None,method='GET',body=None,headers=None):
         return request(self.role,self.address,context,path,bearer,hostname,method,body,headers)
@@ -163,7 +179,11 @@ class JavaImage(position.PositionImage):
 
 def private_java_probe(role):
     port,_=role_contract(role)
-    return position.PRIVATE_JAVA_PROBE.replace("=='18090'","=='"+str(port)+"'")
+    probe=position.PRIVATE_JAVA_PROBE.replace("=='18090'","=='"+str(port)+"'")
+    if role=='order-matcher':
+        probe=probe.replace("secrets=[c['database']['password'].encode(),c['tls']['password'].encode()]",
+            "secrets=[c['database']['password'].encode(),c['tls']['password'].encode()]+[Path('/run/private/config/'+name).read_bytes().strip() for name in ('broker-secret','client-secret')]")
+    return probe
 
 
 def wrong_database_ca_stopped(app,context):

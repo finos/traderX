@@ -27,9 +27,17 @@ class JavaImageFixtureTests(unittest.TestCase):
             leaf.verify_directly_issued_by(x509.load_pem_x509_certificate(ca))
             self.assertEqual(leaf.extensions.get_extension_for_class(x509.SubjectAlternativeName).value.get_values_for_type(x509.DNSName),[role])
             self.assertIn("=='"+str(port)+"'",fixture.private_java_probe(role))
-            self.assertEqual('entitlements.properties' in fixture.KEYS[role],role=='account-service')
+            self.assertEqual('entitlements.properties' in fixture.KEYS[role],role in ('account-service','order-matcher'))
         self.assertEqual(position.PRIVATE_JAVA_PROBE,original);self.assertEqual(position.ISSUER,issuer)
         with self.assertRaises(ValueError):fixture.certificate_material('unreviewed')
+
+    def test_matcher_materials_and_probe_include_every_outbound_secret(self):
+        self.assertEqual(len(fixture.KEYS['order-matcher']),10)
+        self.assertIn('identity-ca.pem',fixture.KEYS['order-matcher'])
+        self.assertIn('processor-ca.pem',fixture.KEYS['order-matcher'])
+        probe=fixture.private_java_probe('order-matcher')
+        self.assertIn("('broker-secret','client-secret')",probe)
+        self.assertIn("=='18110'",probe)
 
     def test_request_uses_instance_role_port_tls_hostname_and_method(self):
         context=Mock();wrapped=Mock();context.wrap_socket.return_value=wrapped
