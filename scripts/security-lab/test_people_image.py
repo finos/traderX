@@ -39,6 +39,9 @@ class PeopleImageTests(unittest.TestCase):
         self.assertNotIn('private-',json.dumps(value))
         self.assertEqual(fixture.daemon_categories('private-token: failed to initialize logging driver: max-file'),
                          ['failed to initialize logging driver','max-file'])
+        value=fixture.diagnostic({},'   at System.Certificate.Load(String privateKey) in /private/secret:line 1\n')
+        self.assertEqual(value['framework_frames'],['System.Certificate.Load'])
+        self.assertNotIn('private',json.dumps(value))
 
     def test_cleanup_log_failure_preserves_primary_launch_failure(self):
         app=fixture.PeopleImage.__new__(fixture.PeopleImage)

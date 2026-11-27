@@ -91,9 +91,13 @@ def request(address,context,path,bearer=None,hostname='localhost',method='GET',h
 
 
 def diagnostic(state,text):
-    return {'running':state.get('Running') is True,'oom_killed':state.get('OOMKilled') is True,
+    value={'running':state.get('Running') is True,'oom_killed':state.get('OOMKilled') is True,
         'exit_code':state.get('ExitCode') if type(state.get('ExitCode')) is int else None,
         'markers':sorted({value for marker,value in MARKERS.items() if marker in text})}
+    # Only framework symbol names, without arguments, source paths or messages.
+    frames=re.findall(r'^\s*at ((?:System|Microsoft)\.[A-Za-z0-9_.+`<>]{1,240})\(',text,re.MULTILINE)
+    if frames:value['framework_frames']=list(dict.fromkeys(frames))[:24]
+    return value
 
 
 def daemon_categories(text):
