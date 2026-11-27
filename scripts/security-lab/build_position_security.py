@@ -26,6 +26,14 @@ SPECS = {
         'tests': ('AccountAccessTest',), 'minimum_tests': 3,
         'classes': ('security/AccountSecurity', 'security/AccountAccess',
                     'controller/AccountController', 'controller/AccountUserController')},
+    'order-matcher': {'jar': 'build/libs/order-matcher-specfirst-0.1.0.jar', 'stem': 'matcher',
+        'package': 'finos.traderx.ordermatcher', 'application': 'OrderMatcherApplication',
+        'tests': ('OrderAcceptedAuthorityTest','OrderApiSecurityTest','OrderBrokerConnectionTest',
+                  'OrderDatabaseAuthorizationTest','OrderExecutionDispatchTest','OrderMatcherExecutionTest',
+                  'OrderServiceTokenTest','TradingAccessTest'), 'minimum_tests': 41,
+        'classes': ('security/TradingSecurity','security/TradingAccess','security/AcceptedOrderAuthority',
+                    'security/BrokerConnection','security/MatcherExecution','security/ServiceTokenClient',
+                    'controller/OrderController','service/OrderMatcherService','service/PricingNatsSubscriberService')},
     'trade-processor': {'jar': 'build/libs/trade-processor-specfirst-0.1.0.jar', 'stem': 'processor',
         'package': 'finos.traderx.tradeprocessor', 'application': 'TradeProcessorApplication',
         'tests': ('ProcessorApiSecurityTest',), 'minimum_tests': 7,
@@ -48,7 +56,7 @@ def render_role(target, role):
         account(target)
     else:
         from render_trading_security import render as trading
-        trading(target, 'trade-processor')
+        trading(target, role)
 
 
 def regular(path, limit=4 * 1024 * 1024):

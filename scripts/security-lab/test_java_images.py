@@ -253,7 +253,7 @@ class JavaImageTests(unittest.TestCase):
             run.assert_not_called()
 
     def test_additional_roles_bind_their_own_source_tests_jar_entrypoint_and_private_keys(self):
-        for role in ('account-service','trade-processor'):
+        for role in ('account-service','trade-processor','order-matcher'):
             root=self.root/role;root.mkdir()
             self.generated,self.report,self.jar=synthetic_build(root,role)
             contract=java_runtime.role_contract(role)
@@ -279,7 +279,7 @@ class JavaImageTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'required|Required'):build.test_results(self.generated,role)
 
     def test_arbitrary_build_role_and_cross_role_jar_are_not_accepted(self):
-        for role in ('order-matcher','arbitrary',None):
+        for role in ('unreviewed-service','arbitrary',None):
             with self.assertRaisesRegex(ValueError,'Reviewed'):build.role_spec(role)
             with self.assertRaisesRegex(ValueError,'Reviewed'):images.argv(role)
         root=self.root/'processor';root.mkdir()

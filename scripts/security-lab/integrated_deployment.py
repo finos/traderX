@@ -12,7 +12,7 @@ ROLES={'account-service':18088,'position-service':18090,
        'browser-session':18447,
        'event-publisher':None,'event-consumer':None}
 WORKERS={'event-publisher','event-consumer','browser-session'}
-JAVA_ROLES={'position-service','account-service','trade-processor'}
+JAVA_ROLES={'position-service','account-service','trade-processor','order-matcher'}
 MATERIALIZED_ROLES=WORKERS|JAVA_ROLES
 DEPS={'database':(5432,'tls'),'nats-broker':(4222,'tls'),
       'identity':(8443,'https'),'reference-data':(18085,'https'),'price-publisher':(18100,'https')}

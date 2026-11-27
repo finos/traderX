@@ -122,10 +122,10 @@ class IntegratedDeploymentTests(unittest.TestCase):
         self.config['workloads']['position-service']=self.make_image('position-service',change_role)
         with self.assertRaisesRegex(ValueError,'position adapter'):self.compile()
 
-    def test_account_and_processor_are_materialized_with_distinct_exact_role_contracts(self):
+    def test_java_roles_are_materialized_with_distinct_exact_role_contracts(self):
         from java_runtime import role_contract
         docs=json.loads(self.compile()['application-core.json'])['items']
-        for role,port in (('account-service',18088),('trade-processor',18091)):
+        for role,port in (('account-service',18088),('trade-processor',18091),('order-matcher',18110)):
             deployment=next(d for d in docs if d['kind']=='Deployment' and d['metadata']['name']==role)
             pod=deployment['spec']['template']['spec']
             self.assertEqual(len(pod['volumes']),3)
@@ -133,7 +133,7 @@ class IntegratedDeploymentTests(unittest.TestCase):
             self.assertEqual(pod['containers'][0]['ports'],[{'name':'https','containerPort':port}])
             secret=next(v['secret'] for v in pod['volumes'] if v['name']=='runtime')
             self.assertEqual([item['key'] for item in secret['items']],role_contract(role)['keys'])
-            self.assertEqual('entitlements.properties' in role_contract(role)['keys'],role=='account-service')
+            self.assertEqual('entitlements.properties' in role_contract(role)['keys'],role!='trade-processor')
             def changed_role(config):config['config']['Entrypoint'][-3]='position-service'
             self.config['workloads'][role]=self.make_image(role,changed_role)
             with self.assertRaisesRegex(ValueError,'adapter'):self.compile()

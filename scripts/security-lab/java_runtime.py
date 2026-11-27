@@ -7,6 +7,9 @@ import os
 from pathlib import Path
 import re
 import secrets
+import ssl
+import subprocess
+import tempfile
 import stat
 import sys
 from urllib.parse import urlsplit
@@ -15,11 +18,15 @@ PRIVATE=Path('/run/private/config')
 CONFIG=PRIVATE/'config.json'
 PROPERTIES=Path('/run/private/java/application.properties')
 KEYS=['config.json','database-ca.pem','entitlements.properties','public.pem','tls.p12']
+MATCHER_KEYS=sorted(KEYS+['broker-ca.pem','broker-secret','client-secret','identity-ca.pem','processor-ca.pem'])
+OUTBOUND=PROPERTIES.parent/'outbound-trust.p12'
+KEYTOOL='/opt/java/openjdk/bin/keytool'
 ROLES={
     'position-service':{'port':18090,'audience':'traderx-api','keys':KEYS},
     'account-service':{'port':18088,'audience':'traderx-api','keys':KEYS},
     'trade-processor':{'port':18091,'audience':'traderx-execution',
-        'keys':['config.json','database-ca.pem','public.pem','tls.p12']}}
+        'keys':['config.json','database-ca.pem','public.pem','tls.p12']},
+    'order-matcher':{'port':18110,'audience':'traderx-api','keys':MATCHER_KEYS}}
 JAVA='/opt/java/openjdk/bin/java'
 JAR='/app/application.jar'
 LIMIT=1024*1024
@@ -41,7 +48,8 @@ def role_contract(role):
 
 def validate(config,now=None,role='position-service'):
     contract=role_contract(role)
-    exact(config,('version','role','database','identity','tls'))
+    exact(config,('version','role','database','identity','tls','execution','broker')
+        if role=='order-matcher' else ('version','role','database','identity','tls'))
     if type(config['version']) is not int or config['version']!=1 or config['role']!=role:
         raise ValueError('Protected Java role configuration required')
     database=config['database'];exact(database,('host','port','name','username','password'))
@@ -68,6 +76,19 @@ def validate(config,now=None,role='position-service'):
     now=now or datetime.now(timezone.utc)
     if not now<expiry<=now+timedelta(hours=8):raise ValueError('Bounded current identity trust required')
     exact(config['tls'],('password',));scalar(config['tls']['password'],r'[A-Za-z0-9_-]{16,256}')
+    if role=='order-matcher':
+        execution=config['execution'];exact(execution,('endpoint','token_endpoint','client_id'))
+        endpoint=scalar(execution['endpoint'],r'https://[a-z0-9.-]+:18091/internal/executions/')
+        peer=urlsplit(endpoint)
+        if not peer.hostname or any(not re.fullmatch(r'[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?',part) for part in peer.hostname.split('.')):
+            raise ValueError('Explicit processor HTTPS host required')
+        if execution['token_endpoint']!=issuer+'/protocol/openid-connect/token':
+            raise ValueError('Service token endpoint must belong to the trusted issuer')
+        scalar(execution['client_id'],r'[A-Za-z0-9_-]{1,128}')
+        broker=config['broker'];exact(broker,('host','port','username'))
+        scalar(broker['host'],r'[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?')
+        if type(broker['port']) is not int or broker['port']!=4222:raise ValueError('Fixed TLS broker port required')
+        scalar(broker['username'],r'[A-Za-z0-9_-]{1,64}')
     return config
 
 
@@ -96,6 +117,11 @@ def load_config(role='position-service'):
     config=validate(json.loads(private_file(CONFIG),object_pairs_hook=unique),role=role)
     for name in keys:
         if name!='config.json':private_file(PRIVATE/name)
+    if role=='order-matcher':
+        for name in ('broker-secret','client-secret'):
+            scalar(private_file(PRIVATE/name).decode('ascii'),r'[A-Za-z0-9_-]{16,256}')
+        for name in ('broker-ca.pem','identity-ca.pem','processor-ca.pem'):
+            public_certificate(private_file(PRIVATE/name))
     if role=='trade-processor':return config
     # The Java security candidate validates RSA trust, PKCS12 and entitlement
     # semantics again. Refuse interpolation/newlines in its subject map here.
@@ -136,6 +162,21 @@ def properties(config,role='position-service'):
         'lab.identity.key-not-after':identity['key_not_after']}
     if role=='trade-processor':values['lab.execution.matcher-subject']=identity['matcher_subject']
     else:values['lab.identity.entitlements-file']=str(PRIVATE/'entitlements.properties')
+    if role=='order-matcher':
+        values.update({
+            'spring.jpa.database-platform':'org.hibernate.dialect.PostgreSQLDialect',
+            'spring.jpa.hibernate.naming.physical-strategy':'org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl',
+            'spring.jpa.open-in-view':'false','order.matcher.seed-enabled':'false',
+            'order.matcher.publisher':'nats','order.matcher.pricing-subscriber.enabled':'true',
+            'order.matcher.tick-ms':'1000','order.matcher.fill-full-threshold':'1000',
+            # These inherited metadata fields are never used for network access
+            # by the protected execution path. Never retain anonymous defaults.
+            'order.matcher.price-service-url':'disabled','order.matcher.trade-service-url':'disabled',
+            'nats.address':'tls://'+config['broker']['host']+':4222',
+            'lab.broker.username':config['broker']['username'],'lab.broker.secret-file':str(PRIVATE/'broker-secret'),
+            'lab.execution.enabled':'true','lab.execution.endpoint':config['execution']['endpoint'],
+            'lab.execution.token-endpoint':config['execution']['token_endpoint'],
+            'lab.execution.client-id':config['execution']['client_id'],'lab.execution.secret-file':str(PRIVATE/'client-secret')})
     return ''.join(key+'='+values[key]+'\n' for key in sorted(values)).encode('ascii')
 
 
@@ -161,16 +202,49 @@ def write_properties(raw):
     finally:os.close(fd)
 
 
+def public_certificate(raw):
+    # One public X.509 PEM per reviewed peer: no key, bundle or extra content.
+    if not re.fullmatch(rb'-----BEGIN CERTIFICATE-----\r?\n[A-Za-z0-9+/=\r\n]+\r?\n-----END CERTIFICATE-----\r?\n?',raw):
+        raise ValueError('Single public certificate required')
+    ssl.PEM_cert_to_DER_cert(raw.decode('ascii'))
+
+
+def outbound_truststore():
+    # write_properties has already reserved and checked this owned 0700 parent.
+    parent=PROPERTIES.parent
+    info=parent.lstat()
+    if not stat.S_ISDIR(info.st_mode) or info.st_uid!=os.geteuid() or stat.S_IMODE(info.st_mode)!=0o700:
+        raise ValueError('Private trust output directory required')
+    if OUTBOUND.exists() or OUTBOUND.is_symlink():raise ValueError('Fresh trust store required')
+    with tempfile.TemporaryDirectory(prefix='.outbound-',dir=parent) as temporary:
+        store=Path(temporary)/'trust.p12'
+        for alias in ('identity','processor','broker'):
+            certificate=PRIVATE/(alias+'-ca.pem');public_certificate(private_file(certificate))
+            # importcert can create only trustedCertEntry entries; never import
+            # a private key or use the server key-store password here.
+            subprocess.run([KEYTOOL,'-importcert','-noprompt','-J-Xmx64m','-alias',alias,'-file',str(certificate),
+                '-keystore',str(store),'-storetype','PKCS12','-storepass','changeit'],
+                stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=True,timeout=15,
+                env={'PATH':'/usr/bin:/bin','LANG':'C.UTF-8'},umask=0o077)
+        private_file(store)
+        os.link(store,OUTBOUND,follow_symlinks=False)
+
+
 def check_environment(environment):
     forbidden=('SPRING_','SERVER_','DATABASE_','LAB_','MANAGEMENT_','LOGGING_',
-               'POSITION_SERVICE_','ACCOUNT_SERVICE_','TRADE_PROCESSOR_')
+               'POSITION_SERVICE_','ACCOUNT_SERVICE_','TRADE_PROCESSOR_','ORDER_MATCHER_','NATS_')
     if any(key.upper().startswith(forbidden) or key in ('JAVA_TOOL_OPTIONS','JDK_JAVA_OPTIONS','_JAVA_OPTIONS','CLASSPATH') for key in environment):
         raise ValueError('Runtime environment overrides refused')
 
 
-def argv():
-    return [JAVA,'-Xmx256m','-XX:MaxMetaspaceSize=192m','-XX:+ExitOnOutOfMemoryError','-jar',JAR,
-            '--spring.config.location=file:'+str(PROPERTIES)]
+def argv(role='position-service'):
+    role_contract(role)
+    command=[JAVA,'-Xmx256m','-XX:MaxMetaspaceSize=192m','-XX:+ExitOnOutOfMemoryError']
+    if role=='order-matcher':
+        # Public-cert-only trust store. changeit is not a private credential.
+        command+=['-Djavax.net.ssl.trustStore='+str(OUTBOUND),
+                  '-Djavax.net.ssl.trustStoreType=PKCS12','-Djavax.net.ssl.trustStorePassword=changeit']
+    return command+['-jar',JAR,'--spring.config.location=file:'+str(PROPERTIES)]
 
 
 def main():
@@ -180,9 +254,10 @@ def main():
     try:
         if os.geteuid()!=10001 or os.getegid()!=10001 or args.config!=str(CONFIG):raise ValueError('Fixed runtime identity and config required')
         check_environment(os.environ);write_properties(properties(load_config(args.role),role=args.role))
+        if args.role=='order-matcher':outbound_truststore()
     except Exception:
         print('Protected Java configuration refused; private details withheld.',file=sys.stderr);return 2
-    os.execve(JAVA,argv(),{'PATH':'/usr/bin:/bin','LANG':'C.UTF-8','TZ':'UTC'})
+    os.execve(JAVA,argv(args.role),{'PATH':'/usr/bin:/bin','LANG':'C.UTF-8','TZ':'UTC'})
 
 
 if __name__=='__main__':raise SystemExit(main())
