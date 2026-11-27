@@ -45,6 +45,7 @@ jobs:
           python -m pip install -r scripts/security-lab/requirements.txt
           python -m pip install 'cryptography==50.0.2' 'PyJWT==2.15.1'
           python -m pip install --require-hashes -r scripts/security-lab/requirements-delivery.txt
+          python -m pip install --require-hashes -r scripts/security-lab/requirements-nats.txt
           python scripts/security-lab/checkpoint.py fetch-baseline
           python -m unittest discover -s scripts/security-lab -p 'test_*.py'
   integration:
