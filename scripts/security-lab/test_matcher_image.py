@@ -83,5 +83,20 @@ class MatcherImageTests(unittest.TestCase):
         self.assertNotIn('private-password',json.dumps(value))
         with self.assertRaises(ValueError):campaign.phase('private-password')
 
+    def test_pending_reservation_cannot_hide_extra_or_changed_authority(self):
+        order='ord-013-1';execution='00000000-0000-4000-8000-000000000001';issuer='https://identity.example.test'
+        row={'execution':execution,'order':order,'account':62654,'security':'IBM','side':'Buy','quantity':2,
+             'price':99,'subject':'lab-trader','issuer':issuer,'terms':order+'|62654|IBM|Buy|2|100'}
+        self.assertTrue(campaign.reservation_matches([row],order,execution,issuer))
+        self.assertFalse(campaign.reservation_matches([row,row],order,execution,issuer))
+        for name,value in (('price',100),('quantity',3),('account',22214),('subject','operator'),('terms','changed')):
+            self.assertFalse(campaign.reservation_matches([dict(row,**{name:value})],order,execution,issuer))
+
+    def test_cancellation_ledger_snapshot_includes_complete_receipt_and_outbox_rows(self):
+        queries=[]
+        result=campaign.ledger_snapshot({'admin':lambda sql:queries.append(sql) or '0|empty'})
+        self.assertEqual(set(result),{'reservations','receipts','events'})
+        self.assertTrue(all('to_jsonb(t)' in sql and 'md5(string_agg' in sql and 'WHERE' not in sql for sql in queries))
+
 
 if __name__=='__main__':unittest.main()

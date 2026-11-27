@@ -33,6 +33,7 @@ PHASES={'configuration','images','fixture','broker_negatives','processor_start',
         'authorization','reservation','matcher_recovery','settlement','duplicate','cancellation','cleanup'}
 CHECKS={'immutable_matcher_and_processor_images_revalidated','bad_service_credential_rejected_by_oauth_peer',
     'configured_matcher_broker_identity_cannot_publish_execution',
+    'pending_reservation_has_exact_accepted_terms',
     'failed_grant_has_one_reservation_and_no_settlement','accepted_order_records_scoped_user_authority',
     'actual_price_subscriber_reserves_execution','same_image_retry_preserves_reserved_execution',
     'live_oauth_grant_and_https_processor_settle_order','exact_independent_trade_position_order_and_receipt',
@@ -125,6 +126,16 @@ def protected(f,orders=(),execution=None,reservations=False):
             for table,where in exclusions.items()}
 
 
+def reservation_matches(rows,order,execution,issuer):
+    return rows==[{'execution':execution,'order':order,'account':62654,'security':'IBM','side':'Buy',
+        'quantity':2,'price':99,'subject':'lab-trader','issuer':issuer,'terms':order+'|62654|IBM|Buy|2|100'}]
+
+
+def ledger_snapshot(f):
+    return {table:f['admin']("SELECT count(*),coalesce(md5(string_agg(x::text,'' ORDER BY x::text)),'empty') FROM (SELECT to_jsonb(t) x FROM lab_execution."+table+' t) s;')
+            for table in ('reservations','receipts','events')}
+
+
 def broker_rejected(app,context,kind,authentication_before,f):
     deadline=time.monotonic()+90;served=False
     while app.inspect()['State'].get('Running') is True and time.monotonic()<deadline:
@@ -214,6 +225,8 @@ def campaign(runtime,manifests):
                 wait_for(lambda:f['admin'](f"SELECT count(*) FROM lab_execution.reservations WHERE order_id='{order}';")=='1')
                 check(True,'actual_price_subscriber_reserves_execution')
                 execution=str(uuid.UUID(f['admin'](f"SELECT execution_id FROM lab_execution.reservations WHERE order_id='{order}';")))
+                reserved=json.loads(f['admin']("SELECT coalesce(json_agg(json_build_object('execution',execution_id,'order',order_id,'account',account_id,'security',security,'side',side,'quantity',quantity,'price',price,'subject',accepted_subject,'issuer',accepted_issuer,'terms',accepted_terms)),'[]'::json) FROM lab_execution.reservations;"))
+                check(reservation_matches(reserved,order,execution,f['oauth']['issuer']),'pending_reservation_has_exact_accepted_terms')
                 wait_for(lambda:f['oauth_counts']()['rejected']>rejections)
                 check(True,'bad_service_credential_rejected_by_oauth_peer')
                 check(protected(f,orders=(order,))==initial_protected and f['admin']('SELECT count(*) FROM lab_execution.receipts;')=='0' and
@@ -252,11 +265,12 @@ def campaign(runtime,manifests):
                 for name,route,method in (('reader_cancel','/orders/'+cancel+'/cancel','POST'),('foreign_account_read','/orders/'+cancel,'GET')):
                     code,_=app.request(matcher_context,route,bearer=bearer(f,'lab-reader'),method=method)
                     check(code==403,name+'_denied');check(snapshot(f)==stable,name+'_no_effects')
-                unchanged=protected(f,orders=(cancel,),reservations=True)
+                unchanged=protected(f,orders=(cancel,),reservations=True);unchanged_ledger=ledger_snapshot(f)
                 code,_=app.request(matcher_context,'/orders/'+cancel+'/cancel',bearer=bearer(f),method='POST')
                 check(code==200 and f['admin'](f"SELECT status||'|'||remainingquantity FROM orderbook WHERE orderid='{cancel}';")=='CANCELED|0',
                       'authorized_cancellation_exact_state')
                 check(protected(f,orders=(cancel,),reservations=True)==unchanged and
+                      ledger_snapshot(f)==unchanged_ledger and
                       f['admin'](f"SELECT count(*) FROM lab_execution.reservations WHERE order_id='{cancel}';")=='0',
                       'cancellation_preserves_other_rows_and_has_no_reservation')
                 counts=f['admin']("SELECT usename,count(*),count(*) FILTER(WHERE s.ssl AND s.version IN ('TLSv1.2','TLSv1.3')) FROM pg_stat_activity a LEFT JOIN pg_stat_ssl s USING(pid) WHERE usename IN ('lab_order_matcher','lab_trade_processor') GROUP BY usename ORDER BY usename;").splitlines()
