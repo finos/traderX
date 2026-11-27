@@ -87,6 +87,14 @@ def diagnostic(state,text):
         'markers':sorted({value for marker,value in MARKERS.items() if marker in text})}
 
 
+def daemon_categories(text):
+    markers=('permission denied','failed to initialize logging driver','invalid argument',
+             'OCI runtime create failed','no such file or directory','read-only file system',
+             'does not support reading','not a directory','executable file not found',
+             'failed to create shim task','cgroup','max-size','max-file')
+    return [marker for marker in markers if marker.lower() in text.lower()]
+
+
 class PeopleImage:
     def __init__(self,fixture,identity,config,materials):
         self.f=fixture;self.docker=fixture['docker'];self.identity=identity
@@ -98,8 +106,11 @@ class PeopleImage:
         if info['Config'].get('Labels',{}).get(images.LABEL)!=self.f['owner']:raise Failure('ownership')
         return info
     def diagnostics(self):
-        logs=self.docker('logs','--tail','120',self.name);raw=logs.stdout+logs.stderr
+        logs=self.docker('logs','--tail','120',self.name,check=False);raw=logs.stdout+logs.stderr
         if any(value and value in raw for value in self.sensitive):raise Failure('private_output_detected')
+        if logs.returncode:
+            raise Failure('container_logs_unavailable',dict(diagnostic(self.inspect()['State'],''),
+                          daemon_categories=daemon_categories(raw)))
         return diagnostic(self.inspect()['State'],raw)
     def request(self,context,path,**kwargs):
         token=kwargs.get('bearer')
@@ -121,8 +132,12 @@ class PeopleImage:
         args=images.launch_args(self.name,self.f['network'],self.f['owner'],self.target,self.identity['runtime_id'])
         args[args.index('--memory')+1]='256m';args[args.index('--pids-limit')+1]='64'
         args=args[:-1]+['--memory-swap','256m','--log-driver','local','--log-opt','max-size=1m','--log-opt','max-file=1',args[-1]]
+        failed=False
         try:
-            self.docker(*args);info=self.inspect()
+            result=self.docker(*args,check=False)
+            if result.returncode:
+                raise Failure('container_launch_refused',{'daemon_categories':daemon_categories(result.stderr)})
+            info=self.inspect()
             if info['Image'] not in (self.identity['runtime_id'],self.identity['config_digest']) or info['Config']['Image']!=self.identity['runtime_id']:
                 raise Failure('loaded_image_changed')
             if not info['State'].get('Running'):
@@ -130,11 +145,19 @@ class PeopleImage:
             self.address=info['NetworkSettings']['Networks'][self.f['network']]['IPAddress']
             if ipaddress.ip_address(self.address) not in self.f['subnet']:raise Failure('network_address')
             yield self
+        except BaseException:
+            failed=True
+            raise
         finally:
             result=self.docker('container','inspect',self.name,check=False)
             if result.returncode==0:
                 self.inspect()
-                try:self.diagnostics()
+                try:
+                    try:self.diagnostics()
+                    except Exception:
+                        # Preserve the primary failure; an unreadable log must
+                        # still fail an otherwise successful campaign.
+                        if not failed:raise
                 finally:self.docker('rm','-f',self.name)
             elif 'No such' not in result.stderr:raise Failure('cleanup_inspection')
 

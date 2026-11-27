@@ -37,6 +37,22 @@ class PeopleImageTests(unittest.TestCase):
         value=fixture.diagnostic({'Running':False,'ExitCode':1,'OOMKilled':False},'private-token\nUnhandled exception\nprivate-key')
         self.assertEqual(value,{'running':False,'exit_code':1,'oom_killed':False,'markers':['unhandled_exception']})
         self.assertNotIn('private-',json.dumps(value))
+        self.assertEqual(fixture.daemon_categories('private-token: failed to initialize logging driver: max-file'),
+                         ['failed to initialize logging driver','max-file'])
+
+    def test_cleanup_log_failure_preserves_primary_launch_failure(self):
+        app=fixture.PeopleImage.__new__(fixture.PeopleImage)
+        app.name='owned';app.target=Path('/projection');app.identity={'runtime_id':'sha256:fixed'}
+        app.f={'names':[],'network':'owned-network','owner':'owned'}
+        app.docker=Mock(side_effect=[Mock(returncode=1,stderr='failed to initialize logging driver'),
+                                    Mock(returncode=0),Mock(returncode=0)])
+        app.inspect=Mock(return_value={})
+        app.diagnostics=Mock(side_effect=fixture.Failure('container_logs_unavailable'))
+        with self.assertRaises(fixture.Failure) as caught:
+            with app.run():self.fail('Failed container cannot yield')
+        self.assertEqual(caught.exception.code,'container_launch_refused')
+        self.assertEqual(caught.exception.diagnostic,{'daemon_categories':['failed to initialize logging driver']})
+        self.assertEqual(app.docker.call_args.args,('rm','-f','owned'))
 
     def test_projected_secret_is_one_generation_and_has_exact_keys(self):
         names=set(fixture.people_runtime.FILES)-{'config.json'}
