@@ -18,7 +18,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import ExtendedKeyUsageOID, NameOID
 
 import bootstrap_database
-from jetstream_fixture import image_for_arch, permissions, STREAM
+from jetstream_fixture import image_for_arch, permissions, fixture_permissions, STREAM
 import portability
 from verify_bootstrap import require
 from verify_runtime_images import Docker
@@ -201,9 +201,9 @@ def private_files(directory,values,gid):
         if result.returncode:raise RuntimeError('Private peer file ownership unavailable')
 
 
-def peer_config(passwords,ack_allowed=True):
+def peer_config(passwords,ack_allowed=True,extra_permissions=None):
     if type(ack_allowed) is not bool:raise ValueError('Explicit ACK permission required')
-    rules=permissions()
+    rules=fixture_permissions(extra_permissions)
     if not ack_allowed:
         rules['consumer-a']['publish']['allow']=[value for value in rules['consumer-a']['publish']['allow'] if not value.startswith('$JS.ACK.')]
     return {'port':4222,'max_payload':8192,'max_connections':16,
@@ -239,8 +239,10 @@ def nats_args(name,network,owner,address,image,config,store,user):
         '--mount',f'type=bind,src={config},dst=/lab,readonly','--mount',f'type=bind,src={store},dst=/store',image,'-c','/lab/nats.json']
 
 
-def permission_probe(address,ca,password):
+def permission_probe(address,ca,password,*,user='consumer-a',subject=ACK_PROBE):
     """Return actual publish decision for a nonexistent sequence, never an effect."""
+    if (user,subject) not in (('consumer-a',ACK_PROBE),('matcher','/accounts/62654/trades')):
+        raise ValueError('Unreviewed permission probe')
     context=ssl.create_default_context(cafile=ca)
     with socket.create_connection((address,4222),timeout=3) as raw:
         with context.wrap_socket(raw,server_hostname=address) as connection:
@@ -265,14 +267,14 @@ def permission_probe(address,ca,password):
                 if value==b'PING\r\n':connection.sendall(b'PONG\r\n');return True
                 return False
             info(line())
-            connect=json.dumps({'user':'consumer-a','pass':password,'verbose':True,'pedantic':True,'lang':'python','version':'fixture','protocol':1}).encode()
+            connect=json.dumps({'user':user,'pass':password,'verbose':True,'pedantic':True,'lang':'python','version':'fixture','protocol':1}).encode()
             connection.sendall(b'CONNECT '+connect+b'\r\nPING\r\n')
             while True:
                 value=line()
                 if control(value):continue
                 if value==b'PONG\r\n':break
                 if value!=b'+OK\r\n':raise ProbeFailure('authentication')
-            connection.sendall(b'PUB '+ACK_PROBE.encode()+b' 4\r\n+ACK\r\nPING\r\n')
+            connection.sendall(b'PUB '+subject.encode()+b' 4\r\n+ACK\r\nPING\r\n')
             accepted=denied=False
             while True:
                 value=line()
@@ -286,11 +288,11 @@ def permission_probe(address,ca,password):
 
 
 
-def change_ack_permission(docker,name,owner,directory,passwords,address,ca,allowed):
+def change_ack_permission(docker,name,owner,directory,passwords,address,ca,allowed,extra_permissions=None):
     """Owned policy reload with private, fixed-stage failure evidence."""
     stage='ack_write'
     try:
-        config=peer_config(passwords,allowed);owned(docker,'container',name,owner)
+        config=peer_config(passwords,allowed,extra_permissions);owned(docker,'container',name,owner)
         pending=directory/'nats.pending';pending.write_text(json.dumps(config));pending.chmod(0o440)
         result=subprocess.run(['sudo','-n','chown','0:'+str(os.getgid()),str(pending)],capture_output=True,timeout=10)
         if result.returncode:raise RuntimeError('Broker policy file ownership unavailable')
@@ -320,7 +322,7 @@ def broker_info(connection):
 
 
 @contextmanager
-def _fixture(runtime,progress):
+def _fixture(runtime,progress,extra_permissions=None):
     if not portability.isolated_linux() or os.environ.get('GITHUB_ACTIONS')!='true' or os.getuid()<=0 or os.getgid()<=0:
         raise ValueError('Worker peers require unprivileged isolated hosted Linux')
     runtime=Path(runtime).resolve();docker=Docker(runtime);owner=secrets.token_hex(12)
@@ -340,14 +342,14 @@ def _fixture(runtime,progress):
         gateway=str(subnet.network_address+1);addresses={'database':str(subnet.network_address+2),'nats-broker':str(subnet.network_address+3)}
         progress['stage']='certificates'
         material=tls_material(addresses);ca=private/'ca.pem';ca.write_bytes(material['ca.pem']);ca.chmod(0o600)
-        passwords={name:secrets.token_hex(24) for name in permissions()};password=secrets.token_hex(32)
+        passwords={name:secrets.token_hex(24) for name in fixture_permissions(extra_permissions)};password=secrets.token_hex(32)
         database_config=private/'database';broker_config=private/'broker';store=private/'store';store.mkdir(mode=0o700)
         hba=('local all all trust\nhostnossl all all 0.0.0.0/0 reject\nhostssl all all '+str(subnet)+' scram-sha-256\nhost all all 0.0.0.0/0 reject\n')
         progress['stage']='database_files'
         private_files(database_config,{**material['database'],'ca.pem':material['ca.pem'],'password':password.encode(),
                                      'pg_hba.conf':hba.encode()},70)
         progress['stage']='broker_files'
-        private_files(broker_config,{**material['nats-broker'],'nats.json':json.dumps(peer_config(passwords)).encode()},os.getgid())
+        private_files(broker_config,{**material['nats-broker'],'nats.json':json.dumps(peer_config(passwords,extra_permissions=extra_permissions)).encode()},os.getgid())
         db_name=network+'-database';broker_name=network+'-broker'
         def inspected(name,address):
             value=owned(docker,'container',name,owner)
@@ -394,7 +396,7 @@ def _fixture(runtime,progress):
         def restart_broker():
             owned(docker,'container',broker_name,owner);docker('restart','--time','10',broker_name,timeout=30);broker_ready()
         def set_consumer_ack_allowed(allowed):
-            change_ack_permission(docker,broker_name,owner,broker_config,passwords,addresses['nats-broker'],ca,allowed)
+            change_ack_permission(docker,broker_name,owner,broker_config,passwords,addresses['nats-broker'],ca,allowed,extra_permissions)
         try:
             progress['stage']='network_create'
             network_attempted=True
@@ -414,10 +416,10 @@ def _fixture(runtime,progress):
             progress['stage']='broker_ready';broker_ready()
             progress['stage']='bootstrap';admin(bootstrap_database.render(reference,identities))
             progress['stage']='active'
-            yield {'network':network,'owner':owner,'docker':docker,'private':private,'ca':ca,
+            yield {'network':network,'gateway':gateway,'owner':owner,'docker':docker,'private':private,'ca':ca,
                 'database':{'host':'database','hostaddr':addresses['database'],'port':5432,'name':'traderx','ca':ca,'password':password,'image':database_image},
                 'broker':{'endpoint':'tls://nats-broker:4222','host_endpoint':'tls://'+addresses['nats-broker']+':4222',
-                          'ca':ca,'passwords':passwords,'image':broker_image},
+                          'ca':ca,'passwords':passwords,'image':broker_image,'container_name':broker_name},
                 'sql':sql,'admin':admin,'database_password':password,'identities':identities,
                 'restart_database':restart_database,'restart_broker':restart_broker,'set_consumer_ack_allowed':set_consumer_ack_allowed}
         finally:
@@ -426,10 +428,11 @@ def _fixture(runtime,progress):
 
 
 @contextmanager
-def fixture(runtime):
+def fixture(runtime,extra_permissions=None):
     progress={'stage':'guard'}
     try:
-        with _fixture(runtime,progress) as value:yield value
+        active=_fixture(runtime,progress) if extra_permissions is None else _fixture(runtime,progress,extra_permissions)
+        with active as value:yield value
     except FixtureFailure as error:
         error.details.setdefault('stage',progress['stage'])
         error.details.setdefault('error_type','RuntimeError')
