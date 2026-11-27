@@ -527,11 +527,14 @@ jobs:
           builder="traderx-matcher-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           trap 'docker buildx rm "$builder" >/dev/null 2>&1 || true; rm -rf "$runtime"' EXIT
           mkdir "$runtime/evidence"
+          # Java builds require an idle owned runner. Finish both before BuildKit starts.
+          for role in trade-processor order-matcher; do
+            python scripts/security-lab/build_java_security.py --role "$role" --runtime-dir "$runtime" --java-home "$JAVA_HOME"
+          done
           buildkit="$(python -c 'import json; print(json.load(open("specs/019-traderx-security-lab/system/runtime-images.lock.json"))["buildkit"]["reference"])')"
           docker buildx create --name "$builder" --driver docker-container --driver-opt "image=$buildkit"
           for role in trade-processor order-matcher; do
             case "$role" in trade-processor) stem=processor;; order-matcher) stem=matcher;; esac
-            python scripts/security-lab/build_java_security.py --role "$role" --runtime-dir "$runtime" --java-home "$JAVA_HOME"
             python scripts/security-lab/java_images.py prepare --role "$role" --generated-root "$runtime/$stem-security-build" --build-report "$runtime/evidence/$stem-security-build.json" --source-commit "$GITHUB_SHA" --output "$runtime/context-$stem"
             reference="traderx-local/$role:$GITHUB_SHA"
             docker buildx build --builder "$builder" --platform linux/amd64 --network none --provenance=false --sbom=false --tag "$reference" --output "type=oci,oci-mediatypes=true,dest=$runtime/$stem.oci.tar" --output "type=docker,dest=$runtime/$stem.docker.tar" "$runtime/context-$stem"
