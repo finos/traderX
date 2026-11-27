@@ -98,5 +98,16 @@ class MatcherImageTests(unittest.TestCase):
         self.assertEqual(set(result),{'reservations','receipts','events'})
         self.assertTrue(all('to_jsonb(t)' in sql and 'md5(string_agg' in sql and 'WHERE' not in sql for sql in queries))
 
+    def test_bounded_observation_failure_reports_fixed_check_and_sanitized_runtime(self):
+        app=Mock();app.diagnostics.return_value={'running':False,'exit_code':1,'categories':['broker_tls','private-secret']}
+        name='scoped_order_fill_publication_observed'
+        with self.assertRaises(campaign.Failure) as caught:
+            campaign.wait_for(lambda:False,seconds=0,check_name=name,app=app)
+        result=campaign.failure(caught.exception)
+        self.assertEqual(result['error'],name)
+        self.assertEqual(result['runtime']['exit_code'],1)
+        self.assertNotIn('private-secret',json.dumps(result))
+        with self.assertRaises(ValueError):campaign.wait_for(lambda:True,check_name='private-secret')
+
 
 if __name__=='__main__':unittest.main()

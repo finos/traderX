@@ -33,6 +33,7 @@ PHASES={'configuration','images','fixture','broker_negatives','processor_start',
         'authorization','reservation','matcher_recovery','settlement','duplicate','cancellation','cleanup'}
 CHECKS={'immutable_matcher_and_processor_images_revalidated','bad_service_credential_rejected_by_oauth_peer',
     'configured_matcher_broker_identity_cannot_publish_execution',
+    'scoped_order_fill_publication_observed','scoped_order_cancellation_publication_observed',
     'pending_reservation_has_exact_accepted_terms',
     'failed_grant_has_one_reservation_and_no_settlement','accepted_order_records_scoped_user_authority',
     'actual_price_subscriber_reserves_execution','same_image_retry_preserves_reserved_execution',
@@ -104,13 +105,16 @@ def order_id(raw):
     return value
 
 
-def wait_for(probe,seconds=30):
+def wait_for(probe,seconds=30,check_name=None,app=None):
+    if check_name is not None and check_name not in CHECKS:raise ValueError('Unknown fixed observation')
     deadline=time.monotonic()+seconds
     while time.monotonic()<deadline:
         value=probe()
         if value:return value
         time.sleep(.1)
-    raise RuntimeError('Bounded observation unavailable')
+    error=Failure(check_name or '')
+    if app is not None:error.runtime_diagnostic=app.diagnostics()
+    raise error
 
 
 def protected(f,orders=(),execution=None,reservations=False):
@@ -166,9 +170,12 @@ def campaign(runtime,manifests):
     if not portability.isolated_linux() or os.environ.get('GITHUB_ACTIONS')!='true':raise ValueError('Hosted Linux required')
     if not isinstance(manifests,dict) or set(manifests)!={ROLE,'trade-processor'}:raise ValueError('Exact paired image manifests required')
     checks=[]
-    def check(value,name):
+    def check(value,name,app=None):
         if name not in CHECKS:raise ValueError('Unknown fixed check')
-        if not value:raise Failure(name)
+        if not value:
+            error=Failure(name)
+            if app is not None:error.runtime_diagnostic=app.diagnostics()
+            raise error
         checks.append(name);print(json.dumps({'type':'matcher_image_checkpoint','check':name,'result':'passed','campaign_status':'incomplete'}),flush=True)
     phase('images');docker=images.Docker(runtime)
     identities={role:verified_image(manifest,docker,role) for role,manifest in manifests.items()}
@@ -197,7 +204,7 @@ def campaign(runtime,manifests):
             else:values['broker-secret']=secrets.token_hex(24).encode()
             rejected_before=f['broker_auth_rejections']()
             with matcher(changed,values).run() as app:
-                check(broker_rejected(app,matcher_context,kind,rejected_before,f),kind+'_boundary_rejection')
+                check(broker_rejected(app,matcher_context,kind,rejected_before,f),kind+'_boundary_rejection',app)
             check(snapshot(f)==before,kind+'_no_effects')
         phase('processor_start')
         with JavaImage(f,root,identities['trade-processor'],configuration['trade-processor'],processor_material).run() as processor:
@@ -222,12 +229,12 @@ def campaign(runtime,manifests):
                       'accepted_order_records_scoped_user_authority')
                 phase('reservation');rejections=f['oauth_counts']()['rejected']
                 f['publish_price'](99)
-                wait_for(lambda:f['admin'](f"SELECT count(*) FROM lab_execution.reservations WHERE order_id='{order}';")=='1')
+                wait_for(lambda:f['admin'](f"SELECT count(*) FROM lab_execution.reservations WHERE order_id='{order}';")=='1',check_name='actual_price_subscriber_reserves_execution',app=app)
                 check(True,'actual_price_subscriber_reserves_execution')
                 execution=str(uuid.UUID(f['admin'](f"SELECT execution_id FROM lab_execution.reservations WHERE order_id='{order}';")))
                 reserved=json.loads(f['admin']("SELECT coalesce(json_agg(json_build_object('execution',execution_id,'order',order_id,'account',account_id,'security',security,'side',side,'quantity',quantity,'price',price,'subject',accepted_subject,'issuer',accepted_issuer,'terms',accepted_terms)),'[]'::json) FROM lab_execution.reservations;"))
                 check(reservation_matches(reserved,order,execution,f['oauth']['issuer']),'pending_reservation_has_exact_accepted_terms')
-                wait_for(lambda:f['oauth_counts']()['rejected']>rejections)
+                wait_for(lambda:f['oauth_counts']()['rejected']>rejections,check_name='bad_service_credential_rejected_by_oauth_peer',app=app)
                 check(True,'bad_service_credential_rejected_by_oauth_peer')
                 check(protected(f,orders=(order,))==initial_protected and f['admin']('SELECT count(*) FROM lab_execution.receipts;')=='0' and
                       f['admin']('SELECT count(*) FROM lab_execution.events;')=='0' and
@@ -237,10 +244,12 @@ def campaign(runtime,manifests):
             grants=f['oauth_counts']()['accepted']
             with matcher().run() as app:
                 app.ready(matcher_context)
-                wait_for(lambda:f['admin'](f"SELECT status FROM orderbook WHERE orderid='{order}';")=='FILLED')
+                wait_for(lambda:f['admin'](f"SELECT status FROM orderbook WHERE orderid='{order}';")=='FILLED',check_name='live_oauth_grant_and_https_processor_settle_order',app=app)
                 check(f['admin'](f"SELECT count(*) FROM lab_execution.reservations WHERE order_id='{order}' AND execution_id='{execution}';")=='1',
                       'same_image_retry_preserves_reserved_execution')
                 check(f['oauth_counts']()['accepted']>grants,'live_oauth_grant_and_https_processor_settle_order')
+                wait_for(lambda:f['order_observed'](order,'FILLED'),check_name='scoped_order_fill_publication_observed',app=app)
+                check(True,'scoped_order_fill_publication_observed')
                 phase('settlement')
                 expected=f['admin'](f"SELECT (SELECT count(*) FROM lab_execution.receipts WHERE execution_id='{execution}' AND trade_id='{execution}'), (SELECT count(*) FROM trades WHERE id='{execution}' AND accountid=62654 AND security='IBM' AND side='Buy' AND quantity=2 AND price=99 AND state='Settled'), (SELECT count(*) FROM positions WHERE accountid=62654 AND security='IBM' AND quantity=2 AND averagecostbasis=99), (SELECT count(*) FROM orderbook WHERE orderid='{order}' AND accountid=62654 AND security='IBM' AND quantity=2 AND remainingquantity=0 AND status='FILLED' AND lastfillquantity=2 AND lastexecutionprice=99);")
                 check(expected=='1|1|1|1' and f['admin']('SELECT count(*) FROM lab_execution.receipts;')=='1','exact_independent_trade_position_order_and_receipt')
@@ -252,7 +261,7 @@ def campaign(runtime,manifests):
                 def price_seen():
                     code,raw=app.request(matcher_context,'/orders/'+order,bearer=bearer(f))
                     return code==200 and json.loads(raw)['marketPrice']==98
-                wait_for(price_seen)
+                wait_for(price_seen,check_name='repeated_price_processed_without_duplicate_business_effects',app=app)
                 check(snapshot(f)==stable,'repeated_price_processed_without_duplicate_business_effects')
                 code,raw=processor.request(processor_context,'/internal/executions/'+execution,
                     bearer=bearer(f,f['oauth']['matcher_subject'],'traderx-execution'),method='POST')
@@ -273,12 +282,16 @@ def campaign(runtime,manifests):
                       ledger_snapshot(f)==unchanged_ledger and
                       f['admin'](f"SELECT count(*) FROM lab_execution.reservations WHERE order_id='{cancel}';")=='0',
                       'cancellation_preserves_other_rows_and_has_no_reservation')
+                wait_for(lambda:f['order_observed'](cancel,'CANCELED'),check_name='scoped_order_cancellation_publication_observed',app=app)
+                check(True,'scoped_order_cancellation_publication_observed')
+                observed_orders=f['order_events']()
                 counts=f['admin']("SELECT usename,count(*),count(*) FILTER(WHERE s.ssl AND s.version IN ('TLSv1.2','TLSv1.3')) FROM pg_stat_activity a LEFT JOIN pg_stat_ssl s USING(pid) WHERE usename IN ('lab_order_matcher','lab_trade_processor') GROUP BY usename ORDER BY usename;").splitlines()
                 check(len(counts)==2 and all(int(row.split('|')[1])>0 and row.split('|')[1]==row.split('|')[2] for row in counts),
                       'matcher_and_processor_sql_connections_verified_encrypted')
         peers={name:f[name]['image'] for name in ('database','broker')};phase('cleanup')
     check(True,'owned_matcher_campaign_cleaned')
     return {'status':'passed','source_commit':manifests[ROLE]['source_commit'],'images':identities,'peer_images':peers,'checks':checks,
+        'observed_order_updates':observed_orders,
         'counts':{'orders':2,'reservations':1,'receipts':1,'outbox_events':2},
         'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in
             (Path(__file__).resolve(),ROOT/'scripts/security-lab/java_image_fixture.py',ROOT/'scripts/security-lab/matcher_image_fixture.py',MIGRATION,SETTLEMENT,CANCELLATION,EVENTS)},
