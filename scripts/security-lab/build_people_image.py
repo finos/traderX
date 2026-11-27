@@ -144,8 +144,14 @@ def artifacts(root, publish, fixture):
     files, inventory = publish_files(publish)
     assembly = compiler.sha(regular(Path(root) / DLL))
     asset = compiler.sha(regular(Path(root) / ASSET))
-    if files != tested_files(root):
-        raise ValueError('Published assemblies or runtime metadata differ from loopback build')
+    tested = tested_files(root)
+    if files != tested:
+        # Only bounded artifact names, never configuration or file contents.
+        changed = sorted(name for name in files.keys() | tested.keys()
+                         if files.get(name) != tested.get(name))
+        safe = [name for name in changed if re.fullmatch(r'[A-Za-z0-9_.-]{1,160}', name)]
+        raise ValueError('Published assemblies or runtime metadata differ from loopback build: '
+                         + ', '.join(safe[:128]))
     if {name for name in files if name.endswith('.dll')} != declared_assemblies(publish):
         raise ValueError('Assemblies differ from declared runtime dependencies')
     if files['PeopleService.WebApi.dll'] != assembly:

@@ -30,6 +30,7 @@ CHECKS={'immutable_people_image_revalidated','native_culture_operations_pass','v
  'owned_people_image_fixture_cleaned'}
 VARIANTS=('anonymous','reader','trader','unknown_subject','malformed','wrong_signature','wrong_issuer','wrong_audience','expired','provider_role_only')
 CHECKS|={name+'_denied_without_directory' for name in VARIANTS}
+CHECKS|={role+'_'+route+'_denied_without_directory' for role in ('anonymous','reader','trader') for route in ('search','validation')}
 ROUTES={'swagger':'/swagger/index.html','metrics':'/metrics','wrong_case':'/people/GetPerson','trailing_slash':'/People/GetPerson/',
  'private_config':'/run/private/config/config.json','private_key':'/run/private/config/server-key.pem'}
 CHECKS|={name+'_unavailable' for name in (*ROUTES,'mutation')}
@@ -121,6 +122,10 @@ def campaign(runtime,manifest):
                 expected_status=403 if variant in ('reader','trader','unknown_subject','provider_role_only') else 401
                 check(status==expected_status and b'user01' not in body and b'Alice' not in body,variant+'_denied_without_directory')
             token=bearer(signing,alternate)
+            for role in ('anonymous','reader','trader'):
+                for route,path in (('search','/People/GetMatchingPeople?searchText=Alice&take=1'),('validation','/People/ValidatePerson?employeeId=E0001')):
+                    status,_,body=app.request(context,path,bearer=bearer(signing,alternate,role))
+                    check(status==(401 if role=='anonymous' else 403) and b'user01' not in body and b'Alice' not in body,role+'_'+route+'_denied_without_directory')
             status,headers,body=app.request(context,PATH,bearer=token)
             check(status==200 and json.loads(body)==expected,'operator_exact_packaged_person')
             check(headers.get('cache-control')=='no-store' and 'access-control-allow-origin' not in headers,'directory_response_no_store_no_cors')
