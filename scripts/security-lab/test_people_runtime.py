@@ -191,6 +191,7 @@ class PeopleRuntimeTests(unittest.TestCase):
         self.assertEqual(environment['Kestrel__Endpoints__Https__Url'], 'https://0.0.0.0:18089')
         self.assertNotIn('Kestrel__Endpoints__Http__Url', environment)
         self.assertEqual(set(environment), {
+            'HOME',
             'LAB_IDENTITY_ISSUER',
             'LAB_IDENTITY_AUDIENCE',
             'LAB_IDENTITY_KEY_NOT_AFTER',
@@ -201,6 +202,7 @@ class PeopleRuntimeTests(unittest.TestCase):
             'Kestrel__Endpoints__Https__Certificate__KeyPath',
             'PeopleJsonFilePath',
         })
+        self.assertEqual(environment['HOME'], '/run/private/home')
         self.assertEqual(environment['PeopleJsonFilePath'], '/opt/traderx/MockDirectory/people.json')
         self.assertTrue(Path(environment['PeopleJsonFilePath']).is_absolute())
         self.assertFalse(Path(environment['PeopleJsonFilePath']).is_relative_to(runtime.PRIVATE))
@@ -212,6 +214,18 @@ class PeopleRuntimeTests(unittest.TestCase):
             [runtime.DOTNET, runtime.APPLICATION, '--contentRoot', str(runtime.PRIVATE)],
             environment,
         )
+
+    def test_private_home_is_owned_bounded_and_rejects_unsafe_existing_paths(self):
+        path=self.private.parent/'home'
+        runtime.prepare_home(path,os.geteuid(),os.getegid())
+        runtime.prepare_home(path,os.geteuid(),os.getegid())
+        self.assertEqual(path.stat().st_mode&0o777,0o700)
+        path.chmod(0o755)
+        with self.assertRaises(ValueError):runtime.prepare_home(path,os.geteuid(),os.getegid())
+        path.chmod(0o700)
+        link=self.private.parent/'home-link';link.symlink_to(path,target_is_directory=True)
+        with self.assertRaises(OSError):runtime.prepare_home(link,os.geteuid(),os.getegid())
+        with self.assertRaises(ValueError):runtime.prepare_home(path,os.geteuid()+1,os.getegid())
 
     def test_real_tls_material_and_encrypted_key_rejection_never_prompt(self):
         from cryptography import x509

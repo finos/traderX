@@ -66,6 +66,15 @@ the public key path and role path to the exact `LAB_IDENTITY_*` names consumed
 by the existing `DirectoryTrust.Load()`. That code performs the final lifetime,
 RSA import, issuer/audience, signature and operator-role checks.
 
+The application receives a fixed `HOME=/run/private/home` inside its existing
+bounded temporary volume. The launcher creates or validates that directory as
+UID/GID10001-owned, `0700` and not a symlink. Linux .NET certificate-chain setup looks
+up a user certificate-store directory even for read-only operations; the fixed
+UID has no passwd home. This path is supplied by the launcher, never inherited,
+and does not mount a host home or modify system trust. Any per-process certificate
+store/cache disappears with that private volume. The root filesystem stays
+read-only and the five-file configuration inventory stays under `config/`.
+
 The launcher supplies only the Kestrel `Https` endpoint at
 `https://0.0.0.0:18089`, using Kestrel's PEM `Certificate:Path` and `KeyPath`.
 It does not set `LAB_PEOPLE_LOOPBACK_PORT`, `ASPNETCORE_URLS`, or any HTTP

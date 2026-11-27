@@ -139,7 +139,7 @@ def campaign(runtime,manifest):
             for name,path in (('oversized_query','/People/GetMatchingPeople?searchText=Alice&take=9999'),('short_query','/People/GetMatchingPeople?searchText=Al'),('ambiguous_query','/People/GetPerson?logonId=user01&employeeId=E0001')):
                 check(app.request(context,path,bearer=token)[0]==400,name+'_rejected')
             private=json.loads(app.docker('exec',app.name,'/usr/local/bin/python','-c',fixture.PRIVATE_PROBE).stdout)
-            check(private['files']=={name:[10001,10001,0o600] for name in people_runtime.FILES} and private['directory']==[10001,10001,0o700] and private['exact_environment'] and private['exact_command'] and not private['private_key_exposed'],'exact_private_launcher_and_environment')
+            check(private['files']=={name:[10001,10001,0o600] for name in people_runtime.FILES} and private['directory']==[10001,10001,0o700] and private['home']==[10001,10001,0o700] and private['exact_environment'] and private['exact_command'] and not private['private_key_exposed'],'exact_private_launcher_and_environment')
             check(private['directory_sha256']==directory_hash,'packaged_directory_unchanged')
             check(private['icu_loaded'],'native_icu_libraries_loaded')
         PHASE='restart'

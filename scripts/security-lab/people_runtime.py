@@ -14,6 +14,7 @@ from private_materializer import materialize
 
 PROJECTED = Path('/run/projected')
 PRIVATE = Path('/run/private/config')
+RUNTIME_HOME = Path('/run/private/home')
 DOTNET = '/usr/share/dotnet/dotnet'
 APPLICATION = '/opt/traderx/PeopleService.WebApi.dll'
 DIRECTORY = '/opt/traderx/MockDirectory/people.json'
@@ -287,8 +288,27 @@ def reject_environment_overrides(environ):
             raise ValueError('Inherited application configuration is prohibited')
 
 
+def prepare_home(path=RUNTIME_HOME, expected_uid=10001, expected_gid=10001):
+    path = Path(path)
+    if not path.is_absolute() or path.parent.resolve(strict=True) != path.parent:
+        raise ValueError('Fixed private home parent required')
+    path.mkdir(mode=0o700, exist_ok=True)
+    fd = os.open(path, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try:
+        info = os.fstat(fd)
+        if (not stat.S_ISDIR(info.st_mode) or info.st_uid != expected_uid
+                or info.st_gid != expected_gid or stat.S_IMODE(info.st_mode) != 0o700):
+            raise ValueError('Unsafe private runtime home')
+    finally:
+        os.close(fd)
+
+
 def application_environment(config):
     return {
+        # .NET's Linux certificate-chain setup needs a user-store root even
+        # when reading only. UID10001 has no passwd home; use the existing
+        # private tmpfs, never an inherited or host-mounted home directory.
+        'HOME': str(RUNTIME_HOME),
         'LAB_IDENTITY_ISSUER': config['issuer'],
         'LAB_IDENTITY_AUDIENCE': config['audience'],
         'LAB_IDENTITY_KEY_NOT_AFTER': config['key_not_after'],
@@ -314,6 +334,7 @@ def main():
         validate_projection(PROJECTED)
         materialize(PROJECTED, PRIVATE, list(FILES))
         config = validate_configuration()
+        prepare_home()
         exec_application(application_environment(config))
     except Exception:
         sys.stderr.write(SANITIZED_FAILURE)

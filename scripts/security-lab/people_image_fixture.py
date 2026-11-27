@@ -206,6 +206,7 @@ key=(root/'server-key.pem').read_bytes().strip()
 cmd=Path('/proc/1/cmdline').read_bytes()
 maps=Path('/proc/1/maps').read_text()
 print(json.dumps({'files':{p.name:mode(p) for p in root.iterdir()},'directory':mode(root),
+ 'home':mode(Path('/run/private/home')),
  'private_key_exposed':key in cmd or any(key in v for v in env.values()),'exact_environment':env==expected,
  'exact_command':cmd.split(b'\\0')[:-1]==[b'/usr/share/dotnet/dotnet',b'/opt/traderx/PeopleService.WebApi.dll',b'--contentRoot',b'/run/private/config'],
  'directory_sha256':hashlib.sha256(Path('/opt/traderx/MockDirectory/people.json').read_bytes()).hexdigest(),
