@@ -178,6 +178,9 @@ class PeopleImageTests(unittest.TestCase):
         self.assertEqual(result['native_libraries'], images.NATIVE_LIBRARIES)
         for source, target in images.NATIVE_LIBRARIES.items():
             self.assertIn(f'COPY --from=dotnet --chmod=0444 {source} /{images.NATIVE_DIR}/{target}', recipe)
+            self.assertIn('/' + images.NATIVE_DIR + '/' + target,
+                          next(line for line in recipe.splitlines() if line.startswith('RUN rm -f ')))
+        self.assertLess(recipe.index('RUN rm -f '), recipe.index('COPY --from=dotnet --chmod=0444'))
         self.assertNotIn('DOTNET_', recipe)
         self.assertNotIn('ASPNETCORE_', recipe)
         self.assertNotIn('COPY . ', recipe)

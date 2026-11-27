@@ -70,7 +70,12 @@ def prepare(root, publish, report, output, revision):
             raise ValueError('Digest-pinned runtime required')
     recipe = [f'FROM {lock["runtime"]["reference"]} AS dotnet',
               f'FROM {python["base"]["reference"]}',
-              'COPY --from=dotnet /usr/share/dotnet/ /usr/share/dotnet/']
+              'COPY --from=dotnet /usr/share/dotnet/ /usr/share/dotnet/',
+              # COPY otherwise follows an inherited library symlink and leaves
+              # that alias in place. The accepted inventory requires regular,
+              # read-only files at these exact loader paths.
+              'RUN rm -f ' + ' '.join('/' + NATIVE_DIR + '/' + target
+                                     for target in NATIVE_LIBRARIES.values())]
     recipe += [f'COPY --from=dotnet --chmod=0444 {source} /{NATIVE_DIR}/{target}'
                for source, target in NATIVE_LIBRARIES.items()]
     recipe += ['ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1',
