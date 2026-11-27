@@ -29,7 +29,8 @@ hosted acceptance. The [people packaging contract](system/people-image-packaging
 records the private .NET interface and native composition. Its inherited .NET 9
 compatibility result is not a supported-runtime claim. The
 [twelve-job regression](https://github.com/finos/traderX/actions/runs/45953040241)
-is still in progress at this plan checkpoint; its overall result is not claimed.
+passes at `8f1b6fe9`, including 490 Python source tests and a second successful
+fresh people-image build. See the [bounded image evidence](evidence/2026-11-27-people-image.json).
 
 ## Next: real dependencies and support composition
 

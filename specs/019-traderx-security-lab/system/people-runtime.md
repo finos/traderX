@@ -1,9 +1,9 @@
 # .NET people-service private runtime contract
 
-This is a bounded, opt-in adapter candidate for the operator-only people-service.
-It is a prerequisite input to S019-06a3b3, not completion of that task or
-acceptance of an integrated deployment. It does not modify the existing host
-fixture or enable a deployment cutover.
+This is the bounded, opt-in private adapter for the operator-only people-service.
+S019-06a3b3 has [43 passing actual-image checks](../evidence/2026-11-27-people-image.json).
+That accepts this interface, not an integrated deployment, supported-runtime
+release or deployment cutover.
 
 ## Runtime and projection contract
 
@@ -89,17 +89,17 @@ operator authorization, JWT claim validation, and no-store response behavior.
 `JsonDirectoryService` otherwise resolves `MockDirectory/people.json` under
 that private content root. The launcher therefore sets the non-secret
 `PeopleJsonFilePath` to the fixed absolute path
-`/opt/traderx/MockDirectory/people.json`. The future image must package the
-reviewed synthetic directory asset at exactly that location and verify its
-bytes; it is not another projected Secret or a caller-configurable path.
-An authenticated operator lookup against that packaged asset remains a hosted
-acceptance requirement. HTTPS liveness alone cannot prove directory usability.
+`/opt/traderx/MockDirectory/people.json`. The image packages the reviewed
+synthetic directory asset at exactly that location, with its bytes verified by
+inspection; it is not another projected Secret or a caller-configurable path.
+Authenticated operator lookup, search and validation against that packaged asset
+pass separately from HTTPS liveness, which alone cannot prove directory usability.
 
-The strict projection and launcher are additive; they do not change
-`Program.cs`, `DirectoryTrust.cs`, existing host-fixture semantics, image
-builders, integrated deployment configuration or workflows. The published
-artifact must place the app DLL and runtime at the fixed paths above and invoke
-this launcher; that packaging work is not included here.
+The strict projection and launcher retain `Program.cs`, `DirectoryTrust.cs` and
+existing host-fixture semantics. The [image tooling](people-image-packaging.md)
+places the DLL and runtime at the fixed paths and invokes this launcher; the
+deployment compiler supplies the matching private configuration and mounts while
+remaining staged at zero replicas.
 
 ## Safe logging and acceptance boundary
 
@@ -116,6 +116,6 @@ failure output without Docker or starting the .NET application. A real PEM
 regression checks successful certificate loading and bounded encrypted-key
 rejection with no OpenSSL prompt. They do not prove image
 contents, actual Kestrel HTTPS startup, TLS client verification, operator token
-authorization, directory behavior or cluster policy. Those remain explicit
-hosted-image and integrated acceptance gates for S019-06a3b3 and the broader
-S019-06a3 work.
+authorization, directory behavior or cluster policy. The separate actual-image
+campaign proves the bounded image/HTTPS/operator behavior; Kubernetes policy,
+volume behavior and the broader S019-06a3 integration remain open.

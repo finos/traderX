@@ -47,7 +47,7 @@ same application journey. Collect evidence outside the application workloads.
 
 | Gate | Required observation |
 | --- | --- |
-| Artifact and configuration | Actual image digest matches verified OCI bytes; startup consumes the declared private configuration |
+| Artifact and configuration | Actual image digest matches verified OCI bytes; startup consumes the declared private configuration; actual Kubernetes Secret projections and `fsGroup`/`emptyDir` permissions, including inherited setgid bits and private runtime-home restart behavior, pass rather than being inferred from Docker tmpfs fixtures |
 | Workload and image admission | Exact approved candidate accepted; altered image, privileges, command and configuration rejected |
 | Gateway and identity | Approved application routes work; direct backend, broker and operator paths are unreachable to an ordinary client |
 | WAF variation | Same inputs and application state in disabled, detect and block modes; backend receipt recorded separately |

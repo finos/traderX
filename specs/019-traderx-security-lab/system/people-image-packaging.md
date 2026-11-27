@@ -1,14 +1,17 @@
-# People-service image packaging candidate
+# People-service image packaging and bounded acceptance
 
-This is preparatory tooling for S019-06a3b3, **not an accepted image or
-deployment**. The protected runtime contract remains
+S019-06a3b3 passes **43 actual-image checks** at `8f1b6fe9`; see the
+[recorded evidence](../evidence/2026-11-27-people-image.json). This accepts the
+private image interface, not the combined deployment or a supported-runtime
+release. The protected runtime contract remains
 [people-runtime.md](people-runtime.md). The existing generated .NET project has
 no .NET test project. The hosted builder compiles the pinned C3-derived source,
 then runs the existing real Keycloak/operator authorization campaign against the
 generated DLL over its explicitly scoped loopback HTTP fixture. It subsequently
 publishes without rebuilding and refuses a different published DLL. The campaign
-also binds the synthetic directory asset. This is not a test of the private
-launcher, image, Kestrel HTTPS, or integrated deployment.
+also binds the synthetic directory asset. That build fixture is distinct from
+the subsequent actual-image campaign described below, which tests the private
+launcher, Kestrel HTTPS and operator directory behavior.
 
 ## CLI and evidence
 
@@ -53,7 +56,10 @@ campaign, including its repeated labels. The report's fixture checks are consist
 artifacts can fabricate them. The revision is an explicit caller-supplied label;
 the content hashes do not independently authenticate that revision.
 The Web SDK's `web.config`, when present, is hashed in the full publish
-inventory but excluded from the image context.
+inventory but excluded from the image context. The empty static-assets manifest
+must have exactly `Version: 1`, no endpoints and the SDK
+`ManifestType: Build` → `Publish` transition; all other runtime metadata and
+assembly bytes remain identical. The published manifest bytes stay hash-bound.
 
 `prepare` writes a new offline context and `image-build.json` with the context
 hashes, source/report hashes, pinned bases, command and projection inventory.
@@ -103,7 +109,7 @@ manifest digest), `oci_layout` (absolute directory), `secret`
 (`private-people-service`) and sorted `keys`. Neither result is runtime
 acceptance evidence.
 
-For a **future authorized hosted image gate**, use the isolated builder and
+For the **hosted image gate**, use the isolated builder and
 pinned BuildKit reference described in [runtime-images.md](runtime-images.md).
 With an already created uniquely named `$OWNED_BUILDER`, a new context and a
 fresh output path, the export shape is:
@@ -143,8 +149,9 @@ The final stage is the Python base, so it does not inherit the .NET base image's
 | `/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30` | `libstdc++.so.6` |
 | `/lib/x86_64-linux-gnu/libgcc_s.so.1` | `libgcc_s.so.1` |
 
-These are copied as regular `0444` files, not as package symlinks, with the
-runtime sonames as destinations. No network package install, invariant
+Inherited entries at those exact destinations are removed before copying, so
+BuildKit cannot preserve a base-image symlink. The pinned libraries are copied
+as regular `0444` files with the runtime sonames as destinations. No network package install, invariant
 globalization override or floating image is used. The pinned
 [Microsoft runtime-deps Dockerfile](https://github.com/dotnet/dotnet-docker/blob/a2831a5c5f6fe48f413a0840b207488d1ecd8903/src/runtime-deps/9.0/bookworm-slim/amd64/Dockerfile)
 lists `libicu72`, `libstdc++6`, `libgcc-s1`, libc and OpenSSL. The Debian
@@ -153,27 +160,30 @@ bookworm/AMD64 package files in the
 [GCC 12](https://deb.debian.org/debian/pool/main/g/gcc-12/) pools identify
 the listed library paths. This metadata review is not an inspection of the
 pinned image layers: if an expected path is absent, BuildKit must fail.
-Both bases use Debian Bookworm, but their package patch levels and the full
-native dependency closure have not been compared or exercised. Actual
-compatibility and globalization behavior remain required hosted checks.
+Both bases use Debian Bookworm. The accepted hosted campaign exercises native
+globalization and the actual application HTTPS/operator path; it is not an
+exhaustive comparison of package patch levels or native dependency closure.
 
 The projection must have Kubernetes-style `..data` generation semantics; a
 plain directory of five regular files is not an equivalent fixture. The
-eventual runtime must enforce read-only root, UID/GID 10001, private writable
+runtime must enforce read-only root, UID/GID 10001, private writable
 volumes, dropped capabilities and the other restrictions in the runtime and
 integrated acceptance contracts.
 
-## Pending acceptance
+## Accepted checkpoint and remaining gates
 
-Build and inspect the actual image on a disposable hosted runner, then verify
-native .NET startup, TLS hostname/CA validation, operator lookup using the
-packaged directory, negative authorization/trust cases, projection and
-filesystem boundaries, cleanup and immutable image identity. A mocked OCI
-unit test or the loopback source fixture cannot establish any of these image
-properties. The existing integrated compiler has not been changed to admit this
-private people adapter; integrated rollout and the broader S019-06a3 remain
-separate gates. Hashes and digest pins are not signatures, provenance
-attestation, vulnerability assessment or full supply-chain assurance.
+The hosted campaign runs the unchanged image entrypoint with the exact five-key
+projection, proves native culture operations independently, verifies TLS and all
+three operator routes, rejects ordinary identities, and tests trust expiry,
+restart, private files and owned cleanup. The launcher provides a checked private
+home for .NET certificate-store lookup; it does not inherit a host home or bypass
+TLS validation. The compiler now aligns the people command, key inventory and
+private writable mount with that interface, but retains zero replicas.
+
+Real support-service provisioning, Kubernetes volume/CNI behavior, full
+integration and supported-runtime migration remain open. Hashes and digest pins
+are not signatures, provenance attestation, vulnerability assessment or full
+supply-chain assurance. Those separate release requirements are not waived.
 
 ## Hosted actual-image campaign contract
 

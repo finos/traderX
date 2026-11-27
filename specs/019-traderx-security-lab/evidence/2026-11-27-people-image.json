@@ -1,0 +1,220 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-27",
+  "date_timezone": "Asia/Jerusalem",
+  "status": "passed-bounded-people-image-checkpoint",
+  "task": "S019-06a3b3",
+  "source_branch_commit": "8f1b6fe9c5893421a1bf5bc8e2fe1eae73e5c508",
+  "hosted_checkout_commit": "8f1b6fe9c5893421a1bf5bc8e2fe1eae73e5c508",
+  "hosted_run": "https://github.com/finos/traderX/actions/runs/45952663140",
+  "hosted_job": "https://github.com/finos/traderX/actions/runs/45952663140/job/140351877530",
+  "artifact": "security-people-image",
+  "artifact_file_sha256": "d283d4818a871a2bd1717ba6c4b73ac05fd2982fb95e5b6d5ac0497f8eb8221a",
+  "check_count": 43,
+  "build": {
+    "build_report_sha256": "d2f62101a14f58c7c7d7ef195e7f084876b7d236a7d66c7a75270b499a8e44f6",
+    "runtime": {
+      "index_digest": "sha256:22db800f670f4c21327f463df2a0bc8f0947b44f58c13e582ab4ed7e34310f3e",
+      "metadata_source": "https://mcr.microsoft.com/v2/dotnet/aspnet/manifests/9.0-bookworm-slim",
+      "reference": "mcr.microsoft.com/dotnet/aspnet:9.0-bookworm-slim@sha256:a60942190e73c283ebb767e76f847ec2a442a6d31795f9d335aa939557555249"
+    },
+    "python_base": {
+      "index_digest": "sha256:e60ad028afdcdd14772a3d46decf0eaf616720f9102aeb4397a2045ff6718c3d",
+      "metadata_source": "https://registry-1.docker.io/v2/library/python/manifests/3.14-slim-bookworm",
+      "reference": "python:3.14.10-slim-bookworm@sha256:59f6892d5620527923071f2ae8c374f90a9208728b70ff6e72e80d75ae2dc8ff"
+    },
+    "runtime_lock_sha256": "a7405e008bba02f0b8ae5d3f4c54cef1ea8aa64b983b7ac4ddaca1ac75a6c545",
+    "native_libraries": {
+      "/lib/x86_64-linux-gnu/libgcc_s.so.1": "libgcc_s.so.1",
+      "/usr/lib/x86_64-linux-gnu/libicudata.so.72.1": "libicudata.so.72",
+      "/usr/lib/x86_64-linux-gnu/libicui18n.so.72.1": "libicui18n.so.72",
+      "/usr/lib/x86_64-linux-gnu/libicuuc.so.72.1": "libicuuc.so.72",
+      "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30": "libstdc++.so.6"
+    },
+    "source_manifest_sha256": "48c5acb5ebed88d3ae7556f311e78b1dbab3f815ef7ba751e752dc7a84990c06",
+    "assembly_sha256": "6db6e401aaa14892f7e6c0b0220fb131b88130a8890fb5f6d5e78d94107a9221"
+  },
+  "campaign": {
+    "status": "passed",
+    "source_commit": "8f1b6fe9c5893421a1bf5bc8e2fe1eae73e5c508",
+    "image": {
+      "config_digest": "sha256:af25b6a5da7076a9c1fa67ce3a6e25e606b543da251d703869438a034f92a646",
+      "manifest_digest": "sha256:b8cd2ddcee5a167a97033f9e7c54de55adc490386588fe6ac0b29b4654e1c764",
+      "runtime_id": "sha256:b8cd2ddcee5a167a97033f9e7c54de55adc490386588fe6ac0b29b4654e1c764",
+      "identity_kind": "oci-manifest"
+    },
+    "checks": [
+      "immutable_people_image_revalidated",
+      "native_culture_operations_pass",
+      "verified_https_ready",
+      "restricted_private_runtime",
+      "untrusted_https_ca_rejected",
+      "wrong_https_hostname_rejected",
+      "anonymous_denied_without_directory",
+      "reader_denied_without_directory",
+      "trader_denied_without_directory",
+      "unknown_subject_denied_without_directory",
+      "malformed_denied_without_directory",
+      "wrong_signature_denied_without_directory",
+      "wrong_issuer_denied_without_directory",
+      "wrong_audience_denied_without_directory",
+      "expired_denied_without_directory",
+      "provider_role_only_denied_without_directory",
+      "anonymous_search_denied_without_directory",
+      "anonymous_validation_denied_without_directory",
+      "reader_search_denied_without_directory",
+      "reader_validation_denied_without_directory",
+      "trader_search_denied_without_directory",
+      "trader_validation_denied_without_directory",
+      "operator_exact_packaged_person",
+      "directory_response_no_store_no_cors",
+      "operator_bounded_search",
+      "operator_validation",
+      "swagger_unavailable",
+      "metrics_unavailable",
+      "wrong_case_unavailable",
+      "trailing_slash_unavailable",
+      "private_config_unavailable",
+      "private_key_unavailable",
+      "mutation_unavailable",
+      "oversized_query_rejected",
+      "short_query_rejected",
+      "ambiguous_query_rejected",
+      "exact_private_launcher_and_environment",
+      "packaged_directory_unchanged",
+      "native_icu_libraries_loaded",
+      "same_image_restart_preserves_directory_result",
+      "expired_trust_snapshot_denies_operator",
+      "expired_trust_retains_liveness",
+      "owned_people_image_fixture_cleaned"
+    ],
+    "directory_sha256": "906c7a253d651c8ab9378f1cacf04527274bdf75870fba2068c0216534b314cc",
+    "native_probe": {
+      "result": {
+        "status": "passed",
+        "turkish_uppercase": true,
+        "french_decimal": true
+      },
+      "report_sha256": "c5fe1d501265836d1653b565979ab2b9ab6701ec0edf006968d3c4966df3e669",
+      "scope": "Separate fixed culture probe in the same immutable image; application startup is checked independently."
+    },
+    "limitations": [
+      "Static synthetic JWT trust tests the image interface, not live provider provisioning or key rotation.",
+      "Directory remains operator-only and read-only; subject/person binding and live grant reload remain separate.",
+      "Pinned .NET 9 is inherited from C3; supported-runtime migration is required before release.",
+      "No cumulative Kubernetes, gateway, CNI, performance or production-readiness acceptance follows."
+    ]
+  },
+  "resource_scope": {
+    "platform": "linux/amd64",
+    "memory_limit_mib": 256,
+    "pid_limit": 64,
+    "cpu_limit": 1,
+    "host_ports": [],
+    "network": "owned internal-only Docker bridge",
+    "identity": "10001:10001",
+    "root_filesystem": "read-only",
+    "home": "private owned 0700 /run/private/home within existing bounded tmpfs"
+  },
+  "limitations": [
+    "Static synthetic JWT trust tests the image interface, not live provider provisioning or key rotation.",
+    "Directory remains operator-only and read-only; subject/person binding and live grant reload remain separate.",
+    "Pinned .NET 9 is inherited from C3; supported-runtime migration is required before release.",
+    "No cumulative Kubernetes, gateway, CNI, performance or production-readiness acceptance follows.",
+    "Image/source hash inspection does not establish signature, provenance or supply-chain admission acceptance.",
+    "Docker projected-secret/tmpfs checks do not establish actual Kubernetes fsGroup, setgid inheritance, volume restart or CNI behavior.",
+    "The private fixed culture probe is separate from application execution; operator lookups are not evidence of culture-sensitive business logic or trading hot-path performance.",
+    "Heavy builds and runtime checks executed only on disposable hosted Linux; no local Docker changes or image publication."
+  ],
+  "independent_repeat": {
+    "hosted_run": "https://github.com/finos/traderX/actions/runs/45953040241",
+    "hosted_job": "https://github.com/finos/traderX/actions/runs/45953040241/job/140353077953",
+    "status": "passed",
+    "artifact_file_sha256": "6c5197c9054183eac681becb3e819fe55859a4a1c506d2f8ec7c6186be50ee11",
+    "check_count": 43,
+    "image": {
+      "config_digest": "sha256:bee827c47901d0241f59af4663b98785bceb60696c155c79e40c10cd906f07c4",
+      "manifest_digest": "sha256:e09805aa92b83af5ba5fe2ac1cf971ef683c19548a17805537075eaf745b1e2c",
+      "runtime_id": "sha256:e09805aa92b83af5ba5fe2ac1cf971ef683c19548a17805537075eaf745b1e2c",
+      "identity_kind": "oci-manifest"
+    },
+    "native_probe": {
+      "result": {
+        "status": "passed",
+        "turkish_uppercase": true,
+        "french_decimal": true
+      },
+      "report_sha256": "c5fe1d501265836d1653b565979ab2b9ab6701ec0edf006968d3c4966df3e669",
+      "scope": "Separate fixed culture probe in the same immutable image; application startup is checked independently."
+    }
+  },
+  "hosted_python_regression_tests": 490,
+  "full_regression": {
+    "hosted_run": "https://github.com/finos/traderX/actions/runs/45953040241",
+    "source_commit": "8f1b6fe9c5893421a1bf5bc8e2fe1eae73e5c508",
+    "status": "passed",
+    "python_source_tests": 490,
+    "jobs": [
+      {
+        "name": "integration",
+        "status": "success",
+        "url": "https://github.com/finos/traderX/actions/runs/45953040241/job/140353077658"
+      },
+      {
+        "name": "matcher-image",
+        "status": "success",
+        "url": "https://github.com/finos/traderX/actions/runs/45953040241/job/140353077890"
+      },
+      {
+        "name": "people-authorization",
+        "status": "success",
+        "url": "https://github.com/finos/traderX/actions/runs/45953040241/job/140353077902"
+      },
+      {
+        "name": "integrated-admission",
+        "status": "success",
+        "url": "https://github.com/finos/traderX/actions/runs/45953040241/job/140353077903"
+      },
+      {
+        "name": "runtime-images",
+        "status": "success",
+        "url": "https://github.com/finos/traderX/actions/runs/45953040241/job/140353077926"
+      },
+      {
+        "name": "source-tests",
+        "status": "success",
+        "url": "https://github.com/finos/traderX/actions/runs/45953040241/job/140353077932"
+      },
+      {
+        "name": "application-consumers",
+        "status": "success",
+        "url": "https://github.com/finos/traderX/actions/runs/45953040241/job/140353077941"
+      },
+      {
+        "name": "people-image",
+        "status": "success",
+        "url": "https://github.com/finos/traderX/actions/runs/45953040241/job/140353077953"
+      },
+      {
+        "name": "trade-processor-image",
+        "status": "success",
+        "url": "https://github.com/finos/traderX/actions/runs/45953040241/job/140353077982"
+      },
+      {
+        "name": "position-image",
+        "status": "success",
+        "url": "https://github.com/finos/traderX/actions/runs/45953040241/job/140353077988"
+      },
+      {
+        "name": "account-service-image",
+        "status": "success",
+        "url": "https://github.com/finos/traderX/actions/runs/45953040241/job/140353077993"
+      },
+      {
+        "name": "browser-journey",
+        "status": "success",
+        "url": "https://github.com/finos/traderX/actions/runs/45953040241/job/140353078025"
+      }
+    ]
+  }
+}
