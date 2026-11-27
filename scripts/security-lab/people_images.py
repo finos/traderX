@@ -355,7 +355,10 @@ def filesystem(layout, manifest, expected, diff_ids):
             raise ValueError('Required OCI native library missing')
         _, isfile, _, uid, gid, mode, _, _, elf_valid, _ = state.items[name]
         if not isfile or uid != 0 or gid != 0 or mode != 0o444 or not elf_valid:
-            raise ValueError('Unsafe OCI native library')
+            # Reviewed fixed paths and scalar properties only; no file contents.
+            raise ValueError('Unsafe OCI native library: ' + json.dumps({
+                'name': name, 'regular': isfile, 'uid': uid, 'gid': gid,
+                'mode': oct(mode), 'amd64_shared_elf': elf_valid}, sort_keys=True))
 
 
 def shared_elf(header):
