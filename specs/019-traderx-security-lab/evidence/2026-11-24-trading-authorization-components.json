@@ -1,0 +1,109 @@
+{
+  "date": "2026-11-24",
+  "status": "component-verified-not-deployed",
+  "scope": "Direct trade/order HTTP authorization candidates from pinned C3; not full S019-04 acceptance",
+  "python_tests": 187,
+  "services": [
+    {
+      "service": "trade-service",
+      "jar_sha256": "84f2dde9ae4b47606e621bbd3222089ad6dcab523d501ab87997d31418102634",
+      "tests": 10,
+      "suites": [
+        {
+          "name": "finos.traderx.messaging.socketio.SocketIOJsonContractTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0
+        },
+        {
+          "name": "finos.traderx.tradeservice.security.TradeApiSecurityTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0
+        },
+        {
+          "name": "finos.traderx.tradeservice.security.TradingAccessTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0
+        }
+      ],
+      "generated_commit": "cfa6992e47ee16ba78c27cad8539b03bf03afeec",
+      "source_commit": "ca0f66429bdf95552da0655eed56e34c4af67185",
+      "inputs": {
+        "scripts/security-lab/render_trading_security.py": "0a1f9c99152244a197e737296a41561e0fef15d84dbc540ce68061d95bd35949",
+        "specs/012-platform-convergence-c3/security-lab/baseline.lock.json": "3b7042fce1317a0055ef5cdf24647c60c3800a5d7dc24a033819a9b90264765b",
+        "scripts/security-lab/render_account_security.py": "a1de9b55a06b289c14ffd7e956cd2ce0f53e9bc35250d7eabf74536ad1b554a5",
+        "specs/012-platform-convergence-c3/security-lab/generation/account-security/AccountSecurity.java": "4d29e4779f219728dae2fec35020fa1413309ad1b4bb330c45edcd5d3e83ba23",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/TradingAccess.java": "80e2095dad8954aa7c1f3d110a5fbe067ea4cf24419072532e1cac7694dabca3",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/tests/OrderApiSecurityTest.java": "63fdefab9b1d63abf2963997170ea3695408b43556fec8f78a419b6667c6ec1b",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/tests/OrderDatabaseAuthorizationTest.java": "ce3766e2f93b39867e12914fab48387319a4d126d25ca6a24e53479145edd2d8",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/tests/SecurityTestSupport.java": "2e04dd3f76ed31c91329cd63cb900994d08133f7646bd974ad5846a3ecd77a44",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/tests/TradeApiSecurityTest.java": "d56304e639665950cbe37786e3d93f1808280e58b47cfd87b2f337213930f9ec",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/tests/TradingAccessTest.java": "e2f5fa0a156702f55ba27bf841244b2e1a41d46a3b8a9a06a7d3a6c1b7e6595c"
+      }
+    },
+    {
+      "service": "order-matcher",
+      "jar_sha256": "c5cde437a13c9e77b7adc22ba8756cfeccb00b7028bd9f45bbafeb402f772684",
+      "tests": 14,
+      "suites": [
+        {
+          "name": "finos.traderx.ordermatcher.OrderMatcherApplicationTests",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0
+        },
+        {
+          "name": "finos.traderx.ordermatcher.security.OrderApiSecurityTest",
+          "tests": 10,
+          "failures": 0,
+          "errors": 0
+        },
+        {
+          "name": "finos.traderx.ordermatcher.security.OrderDatabaseAuthorizationTest",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0
+        },
+        {
+          "name": "finos.traderx.ordermatcher.security.TradingAccessTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0
+        }
+      ],
+      "generated_commit": "cfa6992e47ee16ba78c27cad8539b03bf03afeec",
+      "source_commit": "ca0f66429bdf95552da0655eed56e34c4af67185",
+      "inputs": {
+        "scripts/security-lab/render_trading_security.py": "0a1f9c99152244a197e737296a41561e0fef15d84dbc540ce68061d95bd35949",
+        "specs/012-platform-convergence-c3/security-lab/baseline.lock.json": "3b7042fce1317a0055ef5cdf24647c60c3800a5d7dc24a033819a9b90264765b",
+        "scripts/security-lab/render_account_security.py": "a1de9b55a06b289c14ffd7e956cd2ce0f53e9bc35250d7eabf74536ad1b554a5",
+        "specs/012-platform-convergence-c3/security-lab/generation/account-security/AccountSecurity.java": "4d29e4779f219728dae2fec35020fa1413309ad1b4bb330c45edcd5d3e83ba23",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/TradingAccess.java": "80e2095dad8954aa7c1f3d110a5fbe067ea4cf24419072532e1cac7694dabca3",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/tests/OrderApiSecurityTest.java": "63fdefab9b1d63abf2963997170ea3695408b43556fec8f78a419b6667c6ec1b",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/tests/OrderDatabaseAuthorizationTest.java": "ce3766e2f93b39867e12914fab48387319a4d126d25ca6a24e53479145edd2d8",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/tests/SecurityTestSupport.java": "2e04dd3f76ed31c91329cd63cb900994d08133f7646bd974ad5846a3ecd77a44",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/tests/TradeApiSecurityTest.java": "d56304e639665950cbe37786e3d93f1808280e58b47cfd87b2f337213930f9ec",
+        "specs/012-platform-convergence-c3/security-lab/generation/trading-security/tests/TradingAccessTest.java": "e2f5fa0a156702f55ba27bf841244b2e1a41d46a3b8a9a06a7d3a6c1b7e6595c"
+      }
+    }
+  ],
+  "checks": [
+    "Actual RS256 token verification through Spring HTTP security filters",
+    "Wrong issuer/audience, expired, malformed and wrong-key tokens denied before effects",
+    "Server-side roles/account scope override spoofed headers and signed caller role claims",
+    "Trade authorization precedes downstream calls/publication; verified bearer forwarded only to account validation",
+    "Order lists filtered; create/cancel scoped to entitled accounts; cancellation uses persisted ownership",
+    "Operator read routes isolated; force-fill and undeclared routes denied",
+    "Full matcher Boot/H2 test proves denied creation/cancellation leaves rows unchanged and permitted cancellation persists",
+    "Deterministic overlays and input/output hash verification; sequential bounded Java builds"
+  ],
+  "limitations": [
+    "No deployed image pins or running C3 services changed.",
+    "HTTP tests use freshly generated test keys, not live Keycloak sign-in.",
+    "H2 row checks run inside the component test process; not independent PostgreSQL outcome collection.",
+    "Mock/no-op publishers do not establish NATS isolation or asynchronous settlement.",
+    "Background execution authority, remaining read APIs, Angular/session/CSRF integration and live positive/negative cutover remain open."
+  ]
+}

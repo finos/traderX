@@ -1,0 +1,123 @@
+[
+  {
+    "id": "waf-match",
+    "layers": [
+      "waf"
+    ],
+    "positive_and_negative": "Ordinary request succeeds; compare disabled/detect/block without claiming exploitation",
+    "ccc_candidate": "CCC.LB.CN11",
+    "status": "not-run"
+  },
+  {
+    "id": "account-authorization",
+    "layers": [
+      "application"
+    ],
+    "positive_and_negative": "Owner may read/trade; other account and read-only write rejected",
+    "ccc_candidate": null,
+    "status": "not-run"
+  },
+  {
+    "id": "network-unrelated",
+    "layers": [
+      "network"
+    ],
+    "positive_and_negative": "Required database connection succeeds; unrelated collector denied",
+    "ccc_candidate": "CCC.K8S.CN06",
+    "status": "not-run"
+  },
+  {
+    "id": "nats-publish",
+    "layers": [
+      "broker"
+    ],
+    "positive_and_negative": "Market subscription succeeds; browser execution publication rejected",
+    "ccc_candidate": null,
+    "status": "not-run"
+  },
+  {
+    "id": "database-grant",
+    "layers": [
+      "database"
+    ],
+    "positive_and_negative": "Required operation succeeds; unrelated table or administrative operation denied",
+    "ccc_candidate": "CCC.RDMS.CN07",
+    "status": "not-run"
+  },
+  {
+    "id": "database-business-canary",
+    "layers": [
+      "application",
+      "database",
+      "runtime"
+    ],
+    "positive_and_negative": "Existing service client writes within grants but outside initiating user authorization; observe actual synthetic state",
+    "ccc_candidate": null,
+    "status": "not-run"
+  },
+  {
+    "id": "runtime-fixture",
+    "layers": [
+      "runtime"
+    ],
+    "positive_and_negative": "Ordinary operation succeeds; bounded unexpected process/file action observed or prevented",
+    "ccc_candidate": "CCC.K8S.CN23",
+    "status": "not-run"
+  },
+  {
+    "id": "admission-workload",
+    "layers": [
+      "admission"
+    ],
+    "positive_and_negative": "Restricted workload admitted; nonconforming workload denied",
+    "ccc_candidate": "CCC.K8S.CN05",
+    "status": "not-run"
+  },
+  {
+    "id": "image-trust",
+    "layers": [
+      "admission"
+    ],
+    "positive_and_negative": "Approved signed image admitted; unapproved image denied",
+    "ccc_candidate": "CCC.K8S.CN04",
+    "status": "not-run"
+  },
+  {
+    "id": "external-exposure",
+    "layers": [
+      "gateway",
+      "network"
+    ],
+    "positive_and_negative": "Application route available; operator and direct backend unavailable",
+    "ccc_candidate": "CCC.K8S.CN19",
+    "status": "not-run"
+  },
+  {
+    "id": "cluster-permissions",
+    "layers": [
+      "kubernetes-rbac"
+    ],
+    "positive_and_negative": "Normal workload operates; unrelated secret access and mutation denied",
+    "ccc_candidate": "CCC.K8S.CN02",
+    "status": "not-run"
+  },
+  {
+    "id": "secret-isolation",
+    "layers": [
+      "kubernetes-rbac",
+      "application"
+    ],
+    "positive_and_negative": "Own injected credential works; unrelated credential inaccessible and rotation succeeds",
+    "ccc_candidate": "CCC.K8S.CN07",
+    "status": "not-run"
+  },
+  {
+    "id": "evidence-retention",
+    "layers": [
+      "evidence-store"
+    ],
+    "positive_and_negative": "Collector accepts legitimate events; application identity cannot alter stored evidence",
+    "ccc_candidate": "CCC.K8S.CN14",
+    "status": "not-run"
+  }
+]

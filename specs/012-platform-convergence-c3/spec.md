@@ -27,6 +27,10 @@
 - NFR-01107: Generated artifacts MUST include a GHCR run bundle for running this state from published images.
 - NFR-01108: C3 generated-runtime workflows SHALL inherit the Kubernetes rollout-plus-service-readiness preflight from state `010`, including published-image timeout guidance for Apple Silicon.
 
+## Experimental security profile
+
+An opt-in [Security Lab specification](security-lab/spec.md) defines SL-FR/SL-NFR requirements for a hardened C3 comparison profile. Its [plan](security-lab/plan.md) and [tasks](security-lab/tasks.md) track implementation separately. This experimental work does not change C3 defaults, catalog lineage or completion status; runtime acceptance remains pending.
+
 ## Success Criteria
 
 - SC-01101: Convergence metadata appears in generated learning docs and visual graphs.

@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-27",
+  "date_timezone": "Asia/Jerusalem",
+  "status": "passed-bounded-matcher-image-checkpoint",
+  "task": "S019-06a3b2c",
+  "source_branch_commit": "27e5e927ca1572cad6daa9b8739b525497fcbade",
+  "hosted_checkout_commit": "27e5e927ca1572cad6daa9b8739b525497fcbade",
+  "hosted_run": "https://github.com/finos/traderX/actions/runs/45944446218",
+  "hosted_job": "https://github.com/finos/traderX/actions/runs/45944446218/job/140325835907",
+  "artifact": "security-matcher-image",
+  "artifact_file_sha256": "4d120f4166bc559e1d579ed5222f91a939713b5e2d6e2b11778f5056a09903cc",
+  "hosted_python_regression_tests": 474,
+  "check_count": 46,
+  "builds": {
+    "trade-processor": {
+      "jar": {
+        "path": "build/libs/trade-processor-specfirst-0.1.0.jar",
+        "sha256": "1a89433aa4285616241070ec3ae67901c04ae357bb38e249932313abc07932f8",
+        "size": 78485522
+      },
+      "build_report_sha256": "c389e5fcf0bfd7f9c1506438b7d5f0cd51332606fe709167441aa6db84b1ee8f",
+      "jre": {
+        "config_digest": "sha256:0e061db544f0307438fa3104d5127b5753033bd9590f6b91c1988a61a02e409a",
+        "index_digest": "sha256:a8bff88f760e87e0c8844f8461f807c203fd5e8f78c951c843024647e965eaf5",
+        "metadata_source": "https://registry-1.docker.io/v2/library/eclipse-temurin/manifests/21-jre-jammy",
+        "reference": "eclipse-temurin:21-jre-jammy@sha256:04bcffe1d3d31b0829c827e2c5c30c82f1768e16eae880d11961910c33db7456"
+      },
+      "python_base": {
+        "index_digest": "sha256:e60ad028afdcdd14772a3d46decf0eaf616720f9102aeb4397a2045ff6718c3d",
+        "metadata_source": "https://registry-1.docker.io/v2/library/python/manifests/3.14-slim-bookworm",
+        "reference": "python:3.14.10-slim-bookworm@sha256:59f6892d5620527923071f2ae8c374f90a9208728b70ff6e72e80d75ae2dc8ff"
+      }
+    },
+    "order-matcher": {
+      "jar": {
+        "path": "build/libs/order-matcher-specfirst-0.1.0.jar",
+        "sha256": "f0dd1b36eb3c115543d307a9713a12c376431355f1005afbf95ec6be2fa65306",
+        "size": 78664931
+      },
+      "build_report_sha256": "7cc26c06474bcef27c671202e55366fbd9adfe7fb5386d99ed404f43f48ead7c",
+      "jre": {
+        "config_digest": "sha256:0e061db544f0307438fa3104d5127b5753033bd9590f6b91c1988a61a02e409a",
+        "index_digest": "sha256:a8bff88f760e87e0c8844f8461f807c203fd5e8f78c951c843024647e965eaf5",
+        "metadata_source": "https://registry-1.docker.io/v2/library/eclipse-temurin/manifests/21-jre-jammy",
+        "reference": "eclipse-temurin:21-jre-jammy@sha256:04bcffe1d3d31b0829c827e2c5c30c82f1768e16eae880d11961910c33db7456"
+      },
+      "python_base": {
+        "index_digest": "sha256:e60ad028afdcdd14772a3d46decf0eaf616720f9102aeb4397a2045ff6718c3d",
+        "metadata_source": "https://registry-1.docker.io/v2/library/python/manifests/3.14-slim-bookworm",
+        "reference": "python:3.14.10-slim-bookworm@sha256:59f6892d5620527923071f2ae8c374f90a9208728b70ff6e72e80d75ae2dc8ff"
+      }
+    }
+  },
+  "source_manifest_sha256": "b352558ac762cd9fc8dcd17c138e82192c2d4df85ec0116946725246fb799ff5",
+  "campaign": {
+    "status": "passed",
+    "source_commit": "27e5e927ca1572cad6daa9b8739b525497fcbade",
+    "images": {
+      "order-matcher": {
+        "config_digest": "sha256:b3b90c533a6e19cb8d1e0ee4acde5deb2f7351608be73df6afdcae29288e7707",
+        "manifest_digest": "sha256:b69973987e10dbd2bd4dda26e777b11687d163bd209f5d23853aa52b65772e18",
+        "runtime_id": "sha256:b69973987e10dbd2bd4dda26e777b11687d163bd209f5d23853aa52b65772e18",
+        "identity_kind": "oci-manifest"
+      },
+      "trade-processor": {
+        "config_digest": "sha256:d979da6bf09cd58e8716bece9f542cad766a930abf4902423c7bfc51ab981bb3",
+        "manifest_digest": "sha256:b9f81904cdfa1d79eff4b3f912b6869714e73d78da9d6676503b6c6dc335cf99",
+        "runtime_id": "sha256:b9f81904cdfa1d79eff4b3f912b6869714e73d78da9d6676503b6c6dc335cf99",
+        "identity_kind": "oci-manifest"
+      }
+    },
+    "peer_images": {
+      "database": "ghcr.io/finos/traderx-c3/database@sha256:1aa68521a486e2c217e6d1b1328ae3d01816302eeddbeb664f34445d6844f022",
+      "broker": "docker.io/library/nats@sha256:c20b78366bab4531b2ae36e660f7cb7e533d956fc927aaf5c88e6ba6e5e054e4"
+    },
+    "checks": [
+      "immutable_matcher_and_processor_images_revalidated",
+      "configured_matcher_broker_identity_cannot_publish_execution",
+      "wrong_broker_ca_boundary_rejection",
+      "wrong_broker_ca_no_effects",
+      "wrong_broker_hostname_boundary_rejection",
+      "wrong_broker_hostname_no_effects",
+      "wrong_broker_password_boundary_rejection",
+      "wrong_broker_password_no_effects",
+      "processor_restricted_private_runtime",
+      "processor_credentials_not_exposed",
+      "matcher_restricted_private_runtime",
+      "matcher_credentials_not_exposed",
+      "anonymous_denied",
+      "anonymous_no_effects",
+      "reader_denied",
+      "reader_no_effects",
+      "foreign_account_denied",
+      "foreign_account_no_effects",
+      "wrong_audience_denied",
+      "wrong_audience_no_effects",
+      "wrong_subject_denied",
+      "wrong_subject_no_effects",
+      "malformed_denied",
+      "malformed_no_effects",
+      "accepted_order_records_scoped_user_authority",
+      "actual_price_subscriber_reserves_execution",
+      "pending_reservation_has_exact_accepted_terms",
+      "bad_service_credential_rejected_by_oauth_peer",
+      "failed_grant_has_one_reservation_and_no_settlement",
+      "same_image_retry_preserves_reserved_execution",
+      "live_oauth_grant_and_https_processor_settle_order",
+      "scoped_order_fill_publication_observed",
+      "exact_independent_trade_position_order_and_receipt",
+      "two_exact_account_outbox_events",
+      "settlement_preserves_unrelated_business_and_all_reservations",
+      "repeated_price_processed_without_duplicate_business_effects",
+      "duplicate_execution_request_idempotent",
+      "reader_cancel_denied",
+      "reader_cancel_no_effects",
+      "foreign_account_read_denied",
+      "foreign_account_read_no_effects",
+      "authorized_cancellation_exact_state",
+      "cancellation_preserves_other_rows_and_has_no_reservation",
+      "scoped_order_cancellation_publication_observed",
+      "matcher_and_processor_sql_connections_verified_encrypted",
+      "owned_matcher_campaign_cleaned"
+    ],
+    "observed_order_updates": [
+      {
+        "orderId": "ord-013-0001",
+        "status": "NEW",
+        "accountId": 62654
+      },
+      {
+        "orderId": "ord-013-0001",
+        "status": "FILLED",
+        "accountId": 62654
+      },
+      {
+        "orderId": "ord-013-0002",
+        "status": "NEW",
+        "accountId": 62654
+      },
+      {
+        "orderId": "ord-013-0002",
+        "status": "CANCELED",
+        "accountId": 62654
+      }
+    ],
+    "counts": {
+      "orders": 2,
+      "reservations": 1,
+      "receipts": 1,
+      "outbox_events": 2
+    },
+    "source_sha256": {
+      "scripts/security-lab/verify_matcher_image.py": "3c917a068c27a924592ed30e5fdcb61c24a86ce95654d91f0972feb8b2987209",
+      "scripts/security-lab/java_image_fixture.py": "432f224cf1dab10383344c11fc73d9e9bfc9dc5ff03dde0a9e605a1c939ad725",
+      "scripts/security-lab/matcher_image_fixture.py": "d2980522af19ff93353df7d0cb199cac6b4c4590e36728d1b10a174ba8f7860c",
+      "specs/019-traderx-security-lab/system/sql/execution-reservations.sql": "f11d808436862d0db1350a517b61ff04ee608a01da9975c474652678c3129057",
+      "specs/019-traderx-security-lab/system/sql/execution-settlement.sql": "2ff3c247e6de32b7d15f7a83c00708ad44c883ddb48c279316ee4aa98055cb65",
+      "specs/019-traderx-security-lab/system/sql/execution-cancellation.sql": "054d37b931c993182aacd0dfd91fb3a6d8859dc2d31b50e23de85029d023595f",
+      "specs/019-traderx-security-lab/system/sql/execution-events.sql": "c578a5702246c21bd8493512466a6a4f9eaba3822dac358d8f24f8bedf551106"
+    },
+    "limitations": [
+      "Strict synthetic OAuth client-credentials peer, not Keycloak provisioning; real Keycloak browser journey remains separate.",
+      "Synthetic scoped IBM price producer; actual matcher and processor images, TLS and SQL effects.",
+      "Outbox committed only; broker delivery and cumulative Kubernetes deployment remain separate acceptance boundaries."
+    ]
+  },
+  "remaining_acceptance": [
+    "Actual .NET image native startup, HTTPS and operator lookup.",
+    "Real issuer/broker/market-data provisioning and complete permitted deployment flows.",
+    "Cumulative gateway/WAF, CNI, signed-image admission and independent evidence.",
+    "Residual-authority/runtime comparison and clean-machine learner release."
+  ],
+  "full_regression": {
+    "status": "passed",
+    "job_count": 11,
+    "source_commit": "27e5e927ca1572cad6daa9b8739b525497fcbade",
+    "hosted_run": "https://github.com/finos/traderX/actions/runs/45944446218",
+    "hosted_python_regression_tests": 474
+  }
+}

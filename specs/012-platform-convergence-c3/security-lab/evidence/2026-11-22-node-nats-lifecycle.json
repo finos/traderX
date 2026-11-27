@@ -1,0 +1,43 @@
+{
+  "status": "passed",
+  "recorded_at": "2026-11-22T19:37:21.894526+00:00",
+  "run_id": "d058daffeb4246679432ce5eecd6c01c",
+  "broker_image": "docker.io/library/nats@sha256:5e09808726b0d7500a68b07998e14a5f6d4109956d17ac221d180bc995eef314",
+  "node_publisher": {
+    "status": "passed",
+    "health": "ok",
+    "subject": "pricing.AAPL",
+    "observer_received": true,
+    "tls_first": true,
+    "identity": "pricer",
+    "invalid-password": "startup-rejected",
+    "untrusted-ca": "startup-rejected",
+    "source_hashes": {
+      "src/main.js": "1ea8b2d839e5fd2746de823e4c7b8219a44faf5151ab766803a2eee8706adb84",
+      "src/nats-options.js": "0a153db0354502bff5efb49b7201170bd0e26cc334528e4b30fa34440618ffc9",
+      "package-lock.json": "90854c216537d4b34c3d4eead25cf6eb9c1b3757b6084c8bd5488e74904fbf5d"
+    },
+    "nats_client_version": "2.29.3",
+    "lifecycle": {
+      "status": "passed",
+      "unchanged_credentials_reconnect": "fresh-price-same-process",
+      "retired_fresh_login": "explicit-authentication-denial",
+      "rotation": "fresh-price-after-file-update-and-process-replacement",
+      "health_after_rotation": "ok",
+      "limitations": [
+        "Broker restart deliberately closes all sessions; does not test password reload effects on established sessions.",
+        "Price stream delivery during broker outage is not guaranteed; fresh timestamps are verified after recovery.",
+        "No claim of credential hot reload or Spring service lifecycle coverage."
+      ]
+    }
+  },
+  "protocol_cases": 28,
+  "cleanup_verified": true,
+  "source_hashes": {
+    "nats_fixture.py": "74946130ab9c69019147f10af41d540c7a47de9a3f4203c1bd16d82af8ffe93e",
+    "verify_nats.py": "4080cf9341f93991ab264ca106697bb1d472ce09181d5be5743676bc77ba18bb",
+    "requirements-nats.txt": "e06ec34921620d5241c601baf8bc92df15f26ec3298d7de8992bb9a2f971f437",
+    "verify_node_publisher.py": "bc9d37352193f3473815cf8ae6fd36d8841671d77f030ec437a1b95b35f29b63",
+    "verify_node_lifecycle.py": "02e26759978ac833c26524553599bd1cec918c29fc8072b31ab332dd7c603941"
+  }
+}

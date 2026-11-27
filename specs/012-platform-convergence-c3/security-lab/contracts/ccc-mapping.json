@@ -1,0 +1,97 @@
+{
+  "catalog_version": null,
+  "status": "unverified-candidate-mapping-from-design-input",
+  "catalog_source": "https://ccc.finos.org/",
+  "controls": [
+    {
+      "control": "CCC.LB.CN11",
+      "scenario": "waf-match",
+      "assessment_requirement": null,
+      "implementation": null,
+      "evidence": [],
+      "result": "not-assessed",
+      "limitation": "Verify versioned catalog and exact assessment wording; local lab is not managed-cloud compliance"
+    },
+    {
+      "control": "CCC.K8S.CN06",
+      "scenario": "network-unrelated",
+      "assessment_requirement": null,
+      "implementation": null,
+      "evidence": [],
+      "result": "not-assessed",
+      "limitation": "Verify versioned catalog and exact assessment wording; local lab is not managed-cloud compliance"
+    },
+    {
+      "control": "CCC.RDMS.CN07",
+      "scenario": "database-grant",
+      "assessment_requirement": null,
+      "implementation": null,
+      "evidence": [],
+      "result": "not-assessed",
+      "limitation": "Verify versioned catalog and exact assessment wording; local lab is not managed-cloud compliance"
+    },
+    {
+      "control": "CCC.K8S.CN23",
+      "scenario": "runtime-fixture",
+      "assessment_requirement": null,
+      "implementation": null,
+      "evidence": [],
+      "result": "not-assessed",
+      "limitation": "Verify versioned catalog and exact assessment wording; local lab is not managed-cloud compliance"
+    },
+    {
+      "control": "CCC.K8S.CN05",
+      "scenario": "admission-workload",
+      "assessment_requirement": null,
+      "implementation": null,
+      "evidence": [],
+      "result": "not-assessed",
+      "limitation": "Verify versioned catalog and exact assessment wording; local lab is not managed-cloud compliance"
+    },
+    {
+      "control": "CCC.K8S.CN04",
+      "scenario": "image-trust",
+      "assessment_requirement": null,
+      "implementation": null,
+      "evidence": [],
+      "result": "not-assessed",
+      "limitation": "Verify versioned catalog and exact assessment wording; local lab is not managed-cloud compliance"
+    },
+    {
+      "control": "CCC.K8S.CN19",
+      "scenario": "external-exposure",
+      "assessment_requirement": null,
+      "implementation": null,
+      "evidence": [],
+      "result": "not-assessed",
+      "limitation": "Verify versioned catalog and exact assessment wording; local lab is not managed-cloud compliance"
+    },
+    {
+      "control": "CCC.K8S.CN02",
+      "scenario": "cluster-permissions",
+      "assessment_requirement": null,
+      "implementation": null,
+      "evidence": [],
+      "result": "not-assessed",
+      "limitation": "Verify versioned catalog and exact assessment wording; local lab is not managed-cloud compliance"
+    },
+    {
+      "control": "CCC.K8S.CN07",
+      "scenario": "secret-isolation",
+      "assessment_requirement": null,
+      "implementation": null,
+      "evidence": [],
+      "result": "not-assessed",
+      "limitation": "Verify versioned catalog and exact assessment wording; local lab is not managed-cloud compliance"
+    },
+    {
+      "control": "CCC.K8S.CN14",
+      "scenario": "evidence-retention",
+      "assessment_requirement": null,
+      "implementation": null,
+      "evidence": [],
+      "result": "not-assessed",
+      "limitation": "Verify versioned catalog and exact assessment wording; local lab is not managed-cloud compliance"
+    }
+  ]
+}

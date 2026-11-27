@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "scenario": "sql",
+  "run_id": "c104a508-6853-4fd1-8c34-b42abc9a7db4",
+  "cookie_login_verified": true,
+  "anonymous_denied": true,
+  "wrong_code_denied": true,
+  "cross_origin_denied": true,
+  "csrf_denied": true,
+  "evidence_download_verified": true
+}

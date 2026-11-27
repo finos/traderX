@@ -1,0 +1,88 @@
+{
+  "status": "passed",
+  "scope": "Four candidate images deployed in the isolated lab; broker authentication unchanged",
+  "started_at": "2026-11-22T20:30:10.748510+00:00",
+  "completed_at": "2026-11-22T20:35:56.551227+00:00",
+  "images": {
+    "trade-service": "docker.io/library/traderx-security-trade-service@sha256:f661fd8387d6147cb8b9ba9758de46f66d97a2ac277707c47a44c769003c3a19",
+    "trade-processor": "docker.io/library/traderx-security-trade-processor@sha256:06c0a731c38b0c058251c30d544bc815bf252cf6638f89afa45ee6aa72edb866",
+    "order-matcher": "docker.io/library/traderx-security-order-matcher@sha256:143ebd36ee7a2381878cdd4d233816bb5b46f9b5fb2bc3d2f839094459dfd788",
+    "price-publisher": "docker.io/library/traderx-security-price-publisher@sha256:64e84c38ba73be9f856a5d5928cbd884ad8256bedfeecd6fe4569e99c06877e8"
+  },
+  "previous_images": {
+    "trade-service": {
+      "image": "ghcr.io/finos/traderx-c3/trade-service@sha256:51e7af4b8d022f86d5ad6e21dc1433b4504b51b9cf9ecf62aa95c13622fbdc2c",
+      "imagePullPolicy": "IfNotPresent"
+    },
+    "trade-processor": {
+      "image": "ghcr.io/finos/traderx-c3/trade-processor@sha256:0542e8da8bb22fff281a11f25f229dfdaa6acd982fe76a592a3eb0629fc8bab7",
+      "imagePullPolicy": "IfNotPresent"
+    },
+    "order-matcher": {
+      "image": "ghcr.io/finos/traderx-c3/order-matcher@sha256:087bbe0b1db70953c2eddf4b67c5defeba4d57bfa8409a6ba4a161c09303a646",
+      "imagePullPolicy": "IfNotPresent"
+    },
+    "price-publisher": {
+      "image": "ghcr.io/finos/traderx-c3/price-publisher@sha256:266ec64e24c0de519bbf05ac931fe1fd8a0dc36f1b7d5c02d6b89c75a4160016",
+      "imagePullPolicy": "IfNotPresent"
+    }
+  },
+  "deployment_checks": [
+    {
+      "service": "trade-service",
+      "ready": true,
+      "non_image_spec_preserved": true
+    },
+    {
+      "service": "trade-processor",
+      "ready": true,
+      "non_image_spec_preserved": true
+    },
+    {
+      "service": "order-matcher",
+      "ready": true,
+      "non_image_spec_preserved": true
+    },
+    {
+      "service": "price-publisher",
+      "ready": true,
+      "non_image_spec_preserved": true
+    }
+  ],
+  "workload_checks": "passed",
+  "sql_checks": "passed",
+  "full_c3_smoke": "passed",
+  "workload_pods": [
+    {
+      "name": "trade-service",
+      "pod_uid": "1b7f39e1-7ea3-4407-b40b-e86820e14c51",
+      "image": "docker.io/library/traderx-security-trade-service@sha256:f661fd8387d6147cb8b9ba9758de46f66d97a2ac277707c47a44c769003c3a19"
+    },
+    {
+      "name": "trade-processor",
+      "pod_uid": "50a6696d-3e9e-4498-9aad-275a5c820508",
+      "image": "docker.io/library/traderx-security-trade-processor@sha256:06c0a731c38b0c058251c30d544bc815bf252cf6638f89afa45ee6aa72edb866"
+    },
+    {
+      "name": "order-matcher",
+      "pod_uid": "6673a201-e21c-40c9-b7c1-adf60e313f4d",
+      "image": "docker.io/library/traderx-security-order-matcher@sha256:143ebd36ee7a2381878cdd4d233816bb5b46f9b5fb2bc3d2f839094459dfd788"
+    },
+    {
+      "name": "price-publisher",
+      "pod_uid": "8fcc36f1-1181-4fed-9a93-a33ad3643f64",
+      "image": "docker.io/library/traderx-security-price-publisher@sha256:64e84c38ba73be9f856a5d5928cbd884ad8256bedfeecd6fe4569e99c06877e8"
+    }
+  ],
+  "evidence_sha256": {
+    "workloads/workloads-result.json": "8542f7fb2716bcde583e11f524e846b348bd4c5a326229cfdd525d3874b1f218",
+    "sql/database-permissions-result.json": "d8a0aaa12010c32ae53bf9aa71f19b29cb17bdc0cf583d2b90b0ab7259b6c338",
+    "trading.log": "d76dfc20a066afcf2d9ed4fd50781d5fe731457074c81c833ddb6bfd0d6ef4c7"
+  },
+  "limitations": [
+    "Images imported and pinned locally; not published or signed.",
+    "NATS still uses the original anonymous configuration; secure hooks are opt-in.",
+    "OIDC, business-account authorization, browser broker credentials and subject migration remain pending.",
+    "Synthetic account/trade records were changed by the inherited smoke suite."
+  ]
+}

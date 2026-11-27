@@ -1,0 +1,52 @@
+{
+  "id": "4ee39e87-5087-4fb6-907f-9a8c1bab6986",
+  "scenario": "platform",
+  "mode": "acceptance",
+  "status": "blocked",
+  "started_at": "2026-11-23T05:36:35.828206+00:00",
+  "finished_at": "2026-11-23T05:36:38.681184+00:00",
+  "error": "Capacity check blocked this run before execution: Full acceptance requires the security-lab control plane running. Stop the account development environment before full acceptance.",
+  "resource_preflight": {
+    "status": "blocked",
+    "mode": "acceptance",
+    "reasons": [
+      "Full acceptance requires the security-lab control plane running.",
+      "Stop the account development environment before full acceptance."
+    ],
+    "required_headroom_bytes": 805306368,
+    "observation": {
+      "host_pressure": "normal",
+      "docker_memory_bytes": 6213808128,
+      "containers": [
+        {
+          "name": "traderx-account-dev-account-1",
+          "memory_bytes": 308071628
+        },
+        {
+          "name": "traderx-account-dev-database-1",
+          "memory_bytes": 96343162
+        },
+        {
+          "name": "traderx-account-dev-people-1",
+          "memory_bytes": 67748495
+        },
+        {
+          "name": "buildx_buildkit_traderx-009-recovery0",
+          "memory_bytes": 24547164
+        }
+      ]
+    },
+    "limitations": [
+      "Snapshot only; not a reservation or a guarantee against subsequent pressure.",
+      "Docker container working sets omit some VM/kernel overhead; margins are provisional.",
+      "Readiness does not establish application health or security acceptance."
+    ]
+  },
+  "browser_verified": true,
+  "subprocess_exit_code_present": false,
+  "source_sha256": {
+    "console.py": "c864b543ad02f606880737fc775a54e9b98e240e90efaf03b684961c381707ed",
+    "resource_preflight.py": "bbdca6afb3232e2a86b40736c334cdc906dd50e80d67b8d819b32662e983bd5c",
+    "resource_operation.py": "0ae1189e317544b3fe0041c234f7d54ad205165d25fd2120e98b79220226b34f"
+  }
+}

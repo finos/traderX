@@ -1,0 +1,123 @@
+{
+  "date": "2026-11-24",
+  "status": "passed",
+  "scope": "Recovered retained validation cluster; not uninterrupted fresh creation or independent clean machine",
+  "consolidation": {
+    "retired": "Stopped State 014 cluster only, after explicit approval",
+    "archive": "Full offline node volume and rootfs, metadata, gzip/tar validation and SHA-256 verification; private archive retained outside source control",
+    "archive_bytes": 4514572898,
+    "restore_tested": false,
+    "security_cluster_identities_preserved": true,
+    "docker_disk_limit_changed": false,
+    "docker_memory_changed": false
+  },
+  "capacity_after_consolidation": {
+    "total_bytes": 62671097856,
+    "used_bytes": 47234097152,
+    "available_bytes": 12220284928,
+    "used_percent": 75.368229962287,
+    "host_pressure_during_test": "normal"
+  },
+  "runtime": {
+    "status": "passed",
+    "scope": "Cumulative runtime candidate; remaining security gates are not implied",
+    "telemetry": {
+      "status": "passed",
+      "scope": "Live telemetry lifecycle",
+      "business_services_running": [
+        "account-service",
+        "order-matcher",
+        "people-service",
+        "position-service",
+        "price-publisher",
+        "reference-data",
+        "trade-processor",
+        "trade-service"
+      ],
+      "namespace": "traderx-security-lab-019",
+      "dashboard_uid": "lab5a8e481a9b47",
+      "log_marker": "STATE019_LOG_082a8f141a6b74573f9faf61",
+      "trace_id": "bec3551c280c5d8db975e8534888b2c4",
+      "span_ids": [
+        "L0RfWDPESLw="
+      ],
+      "historical_metric": [
+        {
+          "metric": {
+            "__name__": "up",
+            "instance": "prometheus:9090",
+            "job": "prometheus"
+          },
+          "value": [
+            1795541451.074,
+            "1"
+          ]
+        }
+      ],
+      "pvcs": {
+        "loki": "196a3c34-644a-48ce-b74f-ba33a145b08f",
+        "tempo": "82705444-933f-43a9-9735-19f33a85bb3b",
+        "prometheus": "c692e596-d50f-4439-9795-3851ab3e0a44",
+        "grafana": "08945f0e-3809-40a2-8bd4-f830eaa563e0"
+      },
+      "old_pods": {
+        "grafana": "ec306a08-e648-4331-9258-7e77c808f1a0",
+        "loki": "d7aa05b9-07d5-4f4e-977e-230248568b01",
+        "prometheus": "9a5daa93-5cb9-4cc7-b293-a0e08cbe31db",
+        "tempo": "dcb09153-4520-463d-9189-773176d64ce8"
+      },
+      "new_pods": {
+        "grafana": "935518fc-a880-4728-bb49-69b146e34fb7",
+        "loki": "8b96b012-7d0b-4c97-8c2e-c47e95944488",
+        "prometheus": "bdca901f-5ab1-4d19-b4b1-28bc52734c00",
+        "tempo": "9ec7d800-52b1-4803-98dc-094035fd2517"
+      },
+      "collector_boundary": {
+        "admission_denials": [
+          "writable-host",
+          "host-root",
+          "long-token"
+        ],
+        "rbac_checks": 6
+      },
+      "limitations": [
+        "Collector checkpoints use emptyDir; log replay/duplication after restart is possible.",
+        "Grafana retains the reference demo login; operator authentication remains pending.",
+        "Persistent logs do not establish tamper-resistant audit evidence; network/operator controls remain pending.",
+        "No continuous-load, zero-loss telemetry or production durability claim."
+      ]
+    },
+    "trading": {
+      "status": "passed",
+      "scope": "Bounded live trading candidate, not full hardened state",
+      "namespace": "traderx-security-lab-019",
+      "trade_id": "e7686874-f5a6-4fe2-a90f-898cd183ffca",
+      "order_id": "ord-013-0008",
+      "checks": [
+        "account read",
+        "trade submission",
+        "asynchronous settlement",
+        "independent SQL settlement",
+        "unknown ticker rejected",
+        "unknown account rejected",
+        "order creation",
+        "account order listing",
+        "cancellation with SQL outcome",
+        "unsafe workload denied by scoped admission"
+      ],
+      "limitations": [
+        "Anonymous reference NATS and existing business APIs; identity/broker cutover remains pending.",
+        "Telemetry persistence, collector migration, WAF/network integration and full-state CI not covered."
+      ]
+    }
+  },
+  "limitations": [
+    "Historical failed runs remain recorded; this is a separate successful recovery campaign.",
+    "Loki WAL protection remained enabled; no privilege expansion or write-throttle bypass.",
+    "Full hardened-state authorization, messaging, network/gateway and release acceptance remain open."
+  ],
+  "shutdown": {
+    "candidate_stop": "passed",
+    "both_security_clusters": "stopped; data retained"
+  }
+}

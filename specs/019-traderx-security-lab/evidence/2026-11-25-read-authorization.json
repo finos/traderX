@@ -1,0 +1,81 @@
+{
+  "status": "passed-component-candidate-not-deployed",
+  "date": "2026-11-25",
+  "scope": "position/history owning APIs; people authorization remains unimplemented",
+  "tests": {
+    "java": 11,
+    "python": 2
+  },
+  "suites": [
+    {
+      "name": "finos.traderx.positionservice.security.ReadApiSecurityTest",
+      "tests": "10",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "finos.traderx.positionservice.security.ReadDatabaseAuthorizationTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    }
+  ],
+  "jar_sha256": "2736699effe704b7e3cb3e298d22b796e6437099b7f58eb2895af45902aa80a2",
+  "generation": {
+    "scope": "Position/history API candidate; people and deployed UI integration pending",
+    "service": "position-service",
+    "generated_commit": "cfa6992e47ee16ba78c27cad8539b03bf03afeec",
+    "source_commit": "ca0f66429bdf95552da0655eed56e34c4af67185",
+    "inputs": {
+      "scripts/security-lab/render_read_security.py": "b4aec7722876ef155c2d4fe416805bc57c8bc653f78684574c5b1105144af560",
+      "scripts/security-lab/render_account_security.py": "a1de9b55a06b289c14ffd7e956cd2ce0f53e9bc35250d7eabf74536ad1b554a5",
+      "specs/012-platform-convergence-c3/security-lab/baseline.lock.json": "3b7042fce1317a0055ef5cdf24647c60c3800a5d7dc24a033819a9b90264765b",
+      "specs/012-platform-convergence-c3/security-lab/generation/account-security/AccountSecurity.java": "4d29e4779f219728dae2fec35020fa1413309ad1b4bb330c45edcd5d3e83ba23",
+      "specs/012-platform-convergence-c3/security-lab/generation/trading-security/TradingAccess.java": "c2e6bbfee366a959cca96c60a7bddace619fbc0d2b74e9278ef4090e34044464",
+      "specs/012-platform-convergence-c3/security-lab/generation/trading-security/tests/SecurityTestSupport.java": "2e04dd3f76ed31c91329cd63cb900994d08133f7646bd974ad5846a3ecd77a44",
+      "specs/012-platform-convergence-c3/security-lab/generation/read-security/ReadApiSecurityTest.java": "a9db124da393c400d27515e830228323a92922fae334652a361b2a0d73977204",
+      "specs/012-platform-convergence-c3/security-lab/generation/read-security/ReadDatabaseAuthorizationTest.java": "f23fa7bcf886c6dbc34e0abdf675eb236e06029c27368e5ff5a763af393c6afe"
+    },
+    "files": {
+      "Dockerfile": "4fb3c92a6648c37c04aa860680663f544408526c89ad42f3712db08f0c29bec1",
+      "Dockerfile.compose": "6cdd580f9c61c3393c0c406b48b0a04b28c4ef16e489150589bf24bfeef895b5",
+      "README.md": "27a13d4b61fe2a7313750eaaa39b665e7d717e94f42a75ef3e5ce32901e9b848",
+      "SPEC.manifest.json": "abe7de6393f0710e2bf9134901d3231f878418b89440bbb14d1d234853794e54",
+      "build.gradle": "9721fec2546d768d118f0843964e97793e0db1f017b5825d9cb7f49a8d781581",
+      "gradle/wrapper/gradle-wrapper.jar": "81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f",
+      "gradle/wrapper/gradle-wrapper.properties": "0d8f5425a63f59516412696fae5787bf2e5a6aa52bb004e65cf121cc34efaa86",
+      "gradlew": "734b3879d3501dce471cf0522d3bcbafe76873d9fc5129345b67fb43bd15e933",
+      "gradlew.bat": "57931b17dd228e5c24dac90e815d0bf82477e831a4618dfab4136f5446b42a9f",
+      "openapi.yaml": "8fef285b69e9c5da422bcb1d3cd9a36bbe73f5520a5945fc8e7b4d6f55c60743",
+      "settings.gradle": "cea9f4077bb4e677fcdb9979c498fe5eaac4614bea96a4951f18db76a0e543f7",
+      "src/main/java/finos/traderx/positionservice/OpenApiConfig.java": "6b74f370070619ccf363c39069b21a46007e987cc07fa7263b6053bae171362b",
+      "src/main/java/finos/traderx/positionservice/PositionServiceApplication.java": "b32dac33eaaf46dc8d05914738070aecc5ce5af491d9e4d788544d81f6d9a8b5",
+      "src/main/java/finos/traderx/positionservice/controller/DocsController.java": "cb042a5d245c9121a4bb7ac021cd6e8a85f4b4d81f0e28b639527ecb4cde3860",
+      "src/main/java/finos/traderx/positionservice/controller/HealthController.java": "4d1d78e3613fc85e95da4d6e152278b63a4623bb0adeb60bd1ea695645ce1d95",
+      "src/main/java/finos/traderx/positionservice/controller/PositionController.java": "9f1e70e47407a3a653963d6c579aba72dc4d1aff8b74b39997e9ead78da64872",
+      "src/main/java/finos/traderx/positionservice/controller/TradeController.java": "eb372933960b5ab30906264468b84664cc5b8363b1e7ec3de5ba6b8aa978e63e",
+      "src/main/java/finos/traderx/positionservice/model/Position.java": "bead26cf07640b13f38ee578d06b72c0a7b20cededcc263171980b3cb1be6114",
+      "src/main/java/finos/traderx/positionservice/model/Trade.java": "db9a0a82d97136a959c747a5eab0391e1e0e742bb18e9b7ee6616aed8fee643e",
+      "src/main/java/finos/traderx/positionservice/repository/PositionRepository.java": "326cb33d731d66fcd4542962605afc4381ce53997948579c02db295e62417a02",
+      "src/main/java/finos/traderx/positionservice/repository/TradeRepository.java": "cf0b85b496d4ab1ca6069b701961cc564a3eb1133988a13dbbcaa90e21219504",
+      "src/main/java/finos/traderx/positionservice/security/ReadSecurity.java": "792687fd1b1b60030dbfcbeac76f64d9dd538861073f249cc734e8a2d9662505",
+      "src/main/java/finos/traderx/positionservice/security/TradingAccess.java": "b2cfb3614f0fa207fe89fbf4da00732dd3fbc73dcf7fa8a4b6f1f44ab4537b47",
+      "src/main/java/finos/traderx/positionservice/service/PositionService.java": "06b6762013632d7dd6f7fbad15de148e2f2d2536b19041dde43a81f0d2cac58a",
+      "src/main/java/finos/traderx/positionservice/service/TradeService.java": "ae00a4564f5176e3861038016a25ae596084f5717b0bab7305980dfd6260db76",
+      "src/main/resources/application.properties": "783e9b63fbdf635a0721ae51bb2b3f51e73005018f0135ec0ea9982bb2e9bd2b",
+      "src/main/resources/test-application.properties": "9c8e3b8df4859ec55cdda1b0b88ac6c6a89d4284bdef6cab57d843aacc3ac38e",
+      "src/main/test/java/finos/traderx/positionservice/PositionServiceApplicationTests.java": "cb56b94be07ab171bd2f2b1ab6ec4d51478effd17eabaab25a2f2c4d9aa49d5e",
+      "src/test/java/finos/traderx/positionservice/security/ReadApiSecurityTest.java": "f11dd544c9095bb9b45577bffcff598c7f30fe44d62b5f3ec0c9cf159af060d0",
+      "src/test/java/finos/traderx/positionservice/security/ReadDatabaseAuthorizationTest.java": "a65e280a8bd36e79075c941eddfda18f3b0f8f3f58f53fbcb2319822af1923a7",
+      "src/test/java/finos/traderx/positionservice/security/SecurityTestSupport.java": "d0b9db9e6ebc7b1f111420c9546d62c691dfd74c252c0a1f676188ef8edbc188"
+    }
+  },
+  "limitations": [
+    "RSA-signed fixture tokens, not live Keycloak",
+    "H2 and mocked collaborators, not PostgreSQL integration",
+    "People-service directory bindings and Angular/session integration remain open",
+    "No runtime image cutover or deployed State019 acceptance"
+  ]
+}

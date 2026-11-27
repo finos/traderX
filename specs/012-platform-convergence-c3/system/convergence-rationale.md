@@ -12,3 +12,9 @@ Rationale:
 ## Learning evidence at this checkpoint
 
 At C3, the learning contract requires functional and platform evidence from one snapshot. A learning partner checks the 011 predecessor route, the C2 capabilities retained through 010 and 011, and the source of the running images. The dotted C2 relationship supplies context rather than a second generation parent. The canonical `learning-contract.json` supplies objective mappings, diagnostic questions, graduated hints and assessment evidence for both human and agent-assisted study.
+
+## Security Lab child — #510
+
+State 019 is a planned optional C3 child. Its prototype currently resides under this pack to preserve pinned experiments while generation is promoted. C3 remains the trading/platform checkpoint; fixture security results are not claims about every live C3 boundary. The child adds staged control evidence, residual-authority learning and a later runtime comparison; CALM is a separate successor.
+
+The State 019 offline checkpoint now verifies the existing pinned C3 snapshot independently of a maintainer checkout. This does not rebase that tested snapshot onto current C3 or claim new runtime enforcement.

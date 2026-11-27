@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-27",
+  "date_timezone": "Asia/Jerusalem",
+  "status": "passed-bounded-processor-image-checkpoint",
+  "task": "S019-06a3b2b",
+  "source_branch_commit": "75ef3cc93f0d353b718f24208785ce2e38b1ea95",
+  "hosted_checkout_commit": "8bbbc906d8c8585fea8954e71067dc788516c7a6",
+  "hosted_run": "https://github.com/finos/traderX/actions/runs/45905166697",
+  "hosted_job": "https://github.com/finos/traderX/actions/runs/45905166697/job/140200077318",
+  "artifact": "security-trade-processor-image",
+  "artifact_file_sha256": "30015655c7fb0ed221c03f75b4adc44d10c714104f3c09623e17b67c30f09fb6",
+  "local_python_regression_tests": 427,
+  "check_count": 51,
+  "build": {
+    "jar": {
+      "path": "build/libs/trade-processor-specfirst-0.1.0.jar",
+      "sha256": "815d348f27665772f29fe4a13d7679c75805dc8320bca3e2de3d1b487321fb10",
+      "size": 78485522
+    },
+    "build_report_sha256": "ce082eaf79a6463b17d24634dd143ea80ee059941ee481f30874dc172b5cf1b9",
+    "python_base": {
+      "index_digest": "sha256:e60ad028afdcdd14772a3d46decf0eaf616720f9102aeb4397a2045ff6718c3d",
+      "metadata_source": "https://registry-1.docker.io/v2/library/python/manifests/3.14-slim-bookworm",
+      "reference": "python:3.14.10-slim-bookworm@sha256:59f6892d5620527923071f2ae8c374f90a9208728b70ff6e72e80d75ae2dc8ff"
+    },
+    "jre": {
+      "config_digest": "sha256:0e061db544f0307438fa3104d5127b5753033bd9590f6b91c1988a61a02e409a",
+      "index_digest": "sha256:a8bff88f760e87e0c8844f8461f807c203fd5e8f78c951c843024647e965eaf5",
+      "metadata_source": "https://registry-1.docker.io/v2/library/eclipse-temurin/manifests/21-jre-jammy",
+      "reference": "eclipse-temurin:21-jre-jammy@sha256:04bcffe1d3d31b0829c827e2c5c30c82f1768e16eae880d11961910c33db7456"
+    }
+  },
+  "source_manifest_sha256": "448043eea4ca5bea91cc3a3952bfae6cb3689417051e3576de6697f1228bdeba",
+  "campaign": {
+    "status": "passed",
+    "source_commit": "8bbbc906d8c8585fea8954e71067dc788516c7a6",
+    "image": {
+      "config_digest": "sha256:1ba01d8e32efd7920ca6817d678893e2b6d462ff61c405b6a4c405c603fed83b",
+      "manifest_digest": "sha256:cf26b27f6b639231960f42673db9c77916bc17acfdcb5b123279ce634e9ae6f1",
+      "runtime_id": "sha256:cf26b27f6b639231960f42673db9c77916bc17acfdcb5b123279ce634e9ae6f1",
+      "identity_kind": "oci-manifest"
+    },
+    "peer_images": {
+      "database": "ghcr.io/finos/traderx-c3/database@sha256:1aa68521a486e2c217e6d1b1328ae3d01816302eeddbeb664f34445d6844f022",
+      "broker": "docker.io/library/nats@sha256:c20b78366bab4531b2ae36e660f7cb7e533d956fc927aaf5c88e6ba6e5e054e4"
+    },
+    "checks": [
+      "immutable_processor_image_revalidated",
+      "scoped_matcher_reserves_two_synthetic_orders",
+      "untrusted_database_ca_terminates_before_http",
+      "untrusted_database_ca_no_effects",
+      "verified_https_database_health_up",
+      "restricted_private_processor_runtime",
+      "credentials_absent_from_argv_and_environment",
+      "untrusted_https_ca_rejected",
+      "mismatched_https_hostname_rejected",
+      "anonymous_execution_denied",
+      "anonymous_no_effects",
+      "malformed_denied",
+      "malformed_no_effects",
+      "invalid_signature_denied",
+      "invalid_signature_no_effects",
+      "foreign_issuer_denied",
+      "foreign_issuer_no_effects",
+      "foreign_audience_denied",
+      "foreign_audience_no_effects",
+      "expired_denied",
+      "expired_no_effects",
+      "wrong_subject_denied",
+      "wrong_subject_no_effects",
+      "body_override_denied",
+      "body_override_no_effects",
+      "invalid_execution_identifier_denied",
+      "invalid_execution_identifier_no_effects",
+      "unknown_execution_denied",
+      "unknown_execution_no_effects",
+      "legacy_trade_denied",
+      "legacy_trade_no_effects",
+      "legacy_order_denied",
+      "legacy_order_no_effects",
+      "legacy_health_denied",
+      "legacy_health_no_effects",
+      "legacy_metrics_denied",
+      "legacy_metrics_no_effects",
+      "legacy_error_denied",
+      "legacy_error_no_effects",
+      "execution_get_denied",
+      "execution_get_no_effects",
+      "correct_matcher_receives_execution_receipt",
+      "one_authoritative_trade_position_and_receipt",
+      "settlement_preserves_unrelated_business_rows_and_all_reservations",
+      "two_committed_account_outbox_events",
+      "unrelated_reserved_order_remains_untouched",
+      "duplicate_execution_is_idempotent",
+      "all_runtime_sql_connections_encrypted",
+      "processor_sql_identity_nonadministrative",
+      "same_immutable_processor_restarts_and_replays_idempotently",
+      "owned_processor_image_fixture_cleaned"
+    ],
+    "counts": {
+      "reservations": 2,
+      "settlements": 1,
+      "outbox_events": 2
+    },
+    "source_sha256": {
+      "scripts/security-lab/verify_processor_image.py": "14a53a7d1658744b79c2393e3cb3e755f3453a9fe1337f11149c6483d495d954",
+      "scripts/security-lab/java_image_fixture.py": "0b6af241bbbbf65528954164148a34e3b3891a841f71b14d85d5a120adc962a4",
+      "scripts/security-lab/java_runtime.py": "86517440a80d3dbaf816e25f3b803b25fd62d15c75345d4f68951ee1b8776605",
+      "scripts/security-lab/java_images.py": "3b6369a167b69d0a312c8c5c67f3a35b5b658f92ede9e98e15f9215cd43dee24",
+      "specs/019-traderx-security-lab/system/sql/execution-reservations.sql": "f11d808436862d0db1350a517b61ff04ee608a01da9975c474652678c3129057",
+      "specs/019-traderx-security-lab/system/sql/execution-settlement.sql": "2ff3c247e6de32b7d15f7a83c00708ad44c883ddb48c279316ee4aa98055cb65",
+      "specs/019-traderx-security-lab/system/sql/execution-events.sql": "c578a5702246c21bd8493512466a6a4f9eaba3822dac358d8f24f8bedf551106"
+    },
+    "limitations": [
+      "Signed fixture JWTs, not an actual Keycloak service grant or browser/matcher workflow.",
+      "Real packaged processor and scoped TLS SQL; synthetic accepted-order/reservation fixture.",
+      "Two SQL outbox rows committed; publishing/consumption is a separate accepted worker campaign.",
+      "Owned NATS peer unused; no Kubernetes cumulative deployment claim."
+    ]
+  },
+  "parallel_work": [
+    "shared private Java role/build/compiler interface agent",
+    "account renderer and shared fixture/account acceptance agent",
+    "processor acceptance and unrelated-effect review correction agent"
+  ],
+  "limits": [
+    "No Kubernetes workload activation or cumulative control acceptance.",
+    "Fixture JWTs and finite trust snapshots do not prove issuer/client provisioning or rotation.",
+    "Matcher and actual .NET image acceptance remain separate open tasks.",
+    "No local heavy execution, image publication or Main merge."
+  ],
+  "full_regression": {
+    "status": "passed",
+    "hosted_run": "https://github.com/finos/traderX/actions/runs/45905166697",
+    "source_branch_commit": "75ef3cc93f0d353b718f24208785ce2e38b1ea95",
+    "jobs": {
+      "integrated-admission": {
+        "status": "success",
+        "job_id": 140200076896
+      },
+      "position-image": {
+        "status": "success",
+        "job_id": 140200077145
+      },
+      "application-consumers": {
+        "status": "success",
+        "job_id": 140200077166
+      },
+      "people-authorization": {
+        "status": "success",
+        "job_id": 140200077183
+      },
+      "runtime-images": {
+        "status": "success",
+        "job_id": 140200077222
+      },
+      "integration": {
+        "status": "success",
+        "job_id": 140200077224
+      },
+      "browser-journey": {
+        "status": "success",
+        "job_id": 140200077292
+      },
+      "trade-processor-image": {
+        "status": "success",
+        "job_id": 140200077318
+      },
+      "account-service-image": {
+        "status": "success",
+        "job_id": 140200077324
+      }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "started_at": "2026-11-22T14:28:37.408886+00:00",
+  "before": {
+    "marker": "LAB_LOG_BOUNDARY_de7cc9a10ca04100a2083647919d84a5",
+    "pod": "lab-log-08c935a719",
+    "received_in_loki": true
+  },
+  "checkpoint_sha256": "71a7a8dacb5595b6e651b1931a75a809af4495c119fc839096bf0015bdf0a363",
+  "phase": "complete",
+  "after": {
+    "marker": "LAB_LOG_BOUNDARY_2fbe358d40504dcd975b1a489888ab7b",
+    "pod": "lab-log-38559d3d48",
+    "received_in_loki": true
+  },
+  "completed_at": "2026-11-22T14:29:41.428590+00:00",
+  "baseline": {
+    "pod-security.kubernetes.io/enforce": "baseline",
+    "pod-security.kubernetes.io/enforce-version": "v1.35"
+  },
+  "duplicate_replay_possible": true
+}

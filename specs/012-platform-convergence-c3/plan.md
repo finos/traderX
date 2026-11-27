@@ -2,6 +2,8 @@
 
 ## Scope
 
+- Experimental opt-in Security Lab work follows [its separate staged plan](security-lab/plan.md); C3 generation remains unchanged.
+
 - Transition from `011-tilt-kubernetes-dev-loop` to `012-platform-convergence-c3`.
 - Track focus: `devex`.
 - Define requirement deltas and generation/test hooks.

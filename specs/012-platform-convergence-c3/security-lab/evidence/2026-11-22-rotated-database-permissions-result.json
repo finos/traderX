@@ -1,0 +1,265 @@
+{
+  "scenario": "database-permissions",
+  "status": "passed",
+  "recorded_at": "2026-11-22T15:46:55.937426+00:00",
+  "services": [
+    {
+      "service": "account-service",
+      "role": "lab_account",
+      "privileged_flags": false,
+      "table_permissions_verified": 35,
+      "positive_transaction_rolled_back": true,
+      "jdbc_sessions": 10,
+      "denied_operations": [
+        "schema-ddl",
+        "role-administration",
+        "unrelated-read",
+        "delete-outside-grants"
+      ],
+      "sqlstate": "42501"
+    },
+    {
+      "service": "position-service",
+      "role": "lab_position",
+      "privileged_flags": false,
+      "table_permissions_verified": 35,
+      "positive_transaction_rolled_back": true,
+      "jdbc_sessions": 10,
+      "denied_operations": [
+        "schema-ddl",
+        "role-administration",
+        "unrelated-read",
+        "delete-outside-grants"
+      ],
+      "sqlstate": "42501"
+    },
+    {
+      "service": "trade-processor",
+      "role": "lab_trade_processor",
+      "privileged_flags": false,
+      "table_permissions_verified": 35,
+      "positive_transaction_rolled_back": true,
+      "jdbc_sessions": 10,
+      "denied_operations": [
+        "schema-ddl",
+        "role-administration",
+        "unrelated-read",
+        "delete-outside-grants"
+      ],
+      "sqlstate": "42501"
+    },
+    {
+      "service": "order-matcher",
+      "role": "lab_order_matcher",
+      "privileged_flags": false,
+      "table_permissions_verified": 35,
+      "positive_transaction_rolled_back": true,
+      "jdbc_sessions": 10,
+      "denied_operations": [
+        "schema-ddl",
+        "role-administration",
+        "unrelated-read",
+        "delete-outside-grants"
+      ],
+      "sqlstate": "42501"
+    }
+  ],
+  "admission_checks": [
+    {
+      "service": "account-service",
+      "case": "literal-password",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "account-service",
+      "case": "other-service-secret",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "account-service",
+      "case": "extra-environment",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "account-service",
+      "case": "direct-pod-bootstrap-secret",
+      "denied_by": "traderx-lab-sql-identities-pods"
+    },
+    {
+      "service": "position-service",
+      "case": "literal-password",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "position-service",
+      "case": "other-service-secret",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "position-service",
+      "case": "extra-environment",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "position-service",
+      "case": "direct-pod-bootstrap-secret",
+      "denied_by": "traderx-lab-sql-identities-pods"
+    },
+    {
+      "service": "trade-processor",
+      "case": "literal-password",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "trade-processor",
+      "case": "other-service-secret",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "trade-processor",
+      "case": "extra-environment",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "trade-processor",
+      "case": "direct-pod-bootstrap-secret",
+      "denied_by": "traderx-lab-sql-identities-pods"
+    },
+    {
+      "service": "order-matcher",
+      "case": "literal-password",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "order-matcher",
+      "case": "other-service-secret",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "order-matcher",
+      "case": "extra-environment",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "order-matcher",
+      "case": "runtime-ddl",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "order-matcher",
+      "case": "direct-pod-bootstrap-secret",
+      "denied_by": "traderx-lab-sql-identities-pods"
+    },
+    {
+      "service": "database",
+      "case": "literal-bootstrap-password",
+      "denied_by": "traderx-lab-sql-identities"
+    }
+  ],
+  "legacy_admin_jdbc_sessions": 0,
+  "known_bootstrap_password_rejected": true,
+  "bootstrap_secret_reference_verified": true,
+  "limitations": [
+    "Service grants do not enforce initiating user/account permissions.",
+    "Each account positive control advances the sequence once; synthetic row writes are rolled back.",
+    "Bootstrap operator remains a separate privileged identity. Position-service runtime rotation verified; other identities have not been rotated in this exercise."
+  ],
+  "source_hashes": {
+    "database_permissions.py": "3ed62241586bae869fea3d63f39826046032889b03eb795ca769759a72a22978",
+    "migrate-database-permissions.py": "255de4c0b2799e2e738ef4f466a06a9f42c0dc324f624a02dc56e7aef21d471d",
+    "verify_database_permissions.py": "1df29c559f78acb67a42d403b2ed73242138fccd37772fd6a776e9adb06ec764",
+    "database_rotation.py": "e504a7a3317fd29eaae987bda4a845d3bf3210b1503fb38d965e7348dd78f9d4",
+    "rotate-database-credential.py": "a5bcfd32f9bd1c4f490b44c8d5fe0d2d789736b1ec649f6dbbdcbe9125b55fa5"
+  },
+  "rotation": {
+    "phase": "complete",
+    "started_at": "2026-11-22T15:42:11.890989+00:00",
+    "completed_at": "2026-11-22T15:43:21.774246+00:00",
+    "old_pod_uid": "a0ad460e-7497-46e2-85df-ffdbffa1ede5",
+    "new_pod_uid": "db32bf60-0aaa-4aec-ad07-cb6342238ff4",
+    "old_secret_version": "19458",
+    "new_secret_version": "21452",
+    "sessions_before": [
+      {
+        "pid": 66,
+        "started": "2026-11-22T15:28:28.659997+00:00"
+      },
+      {
+        "pid": 72,
+        "started": "2026-11-22T15:28:29.141383+00:00"
+      },
+      {
+        "pid": 76,
+        "started": "2026-11-22T15:28:29.549608+00:00"
+      },
+      {
+        "pid": 80,
+        "started": "2026-11-22T15:28:29.975911+00:00"
+      },
+      {
+        "pid": 86,
+        "started": "2026-11-22T15:28:30.257317+00:00"
+      },
+      {
+        "pid": 90,
+        "started": "2026-11-22T15:28:30.497444+00:00"
+      },
+      {
+        "pid": 94,
+        "started": "2026-11-22T15:28:30.919821+00:00"
+      },
+      {
+        "pid": 98,
+        "started": "2026-11-22T15:28:31.261672+00:00"
+      },
+      {
+        "pid": 100,
+        "started": "2026-11-22T15:28:31.72666+00:00"
+      },
+      {
+        "pid": 113,
+        "started": "2026-11-22T15:28:32.397266+00:00"
+      }
+    ],
+    "sessions_after": [
+      {
+        "pid": 3524,
+        "started": "2026-11-22T15:42:45.945633+00:00"
+      },
+      {
+        "pid": 3526,
+        "started": "2026-11-22T15:42:46.792711+00:00"
+      },
+      {
+        "pid": 3528,
+        "started": "2026-11-22T15:42:47.115094+00:00"
+      },
+      {
+        "pid": 3530,
+        "started": "2026-11-22T15:42:47.289873+00:00"
+      },
+      {
+        "pid": 3532,
+        "started": "2026-11-22T15:42:47.501442+00:00"
+      },
+      {
+        "pid": 3540,
+        "started": "2026-11-22T15:42:47.657971+00:00"
+      }
+    ],
+    "old_fresh_login_rejected": true,
+    "new_login_passed": true,
+    "old_jdbc_sessions_survived_change": 10,
+    "old_jdbc_sessions_drained": true,
+    "trading_smoke_sha256": "bb4fee39f03c6e2f1e177af715650d3478ca2d959f553ec840bb9e916ba8fd56",
+    "service": "position-service",
+    "role": "lab_position",
+    "status": "passed",
+    "limitations": [
+      "Historical rotation; console rechecks current login rejection without rotating again.",
+      "Password change alone does not terminate existing sessions.",
+      "No-surge restart can briefly interrupt position reads."
+    ],
+    "retired_login_rechecked": true
+  }
+}

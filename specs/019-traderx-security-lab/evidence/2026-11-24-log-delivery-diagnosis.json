@@ -1,0 +1,46 @@
+{
+  "date": "2026-11-24",
+  "status": "root-cause-verified-rerun-pending",
+  "observations": {
+    "collector": "Read access to the synthetic log file verified; API discovery and Loki sink health succeed.",
+    "loki_wal": "disk usage exceeded threshold, throttling writes; usage_percent=90.48%, threshold_percent=90.00%",
+    "ingestion": "HTTP 500: Ingester is shutting down",
+    "node_df_kib": {
+      "total": 61202244,
+      "used": 55374036,
+      "available": 2686884
+    },
+    "health_limitation": "Ready endpoints do not establish successful ingestion."
+  },
+  "fix": {
+    "minimum_available_bytes": 2147483648,
+    "maximum_used_percent_exclusive": 85,
+    "scope": [
+      "image loading",
+      "platform doctor",
+      "cumulative start/test",
+      "standalone telemetry start/test"
+    ],
+    "protective_loki_threshold": "unchanged",
+    "automatic_pruning": false
+  },
+  "validation": {
+    "python_tests": 185,
+    "repository_gates": "four passed",
+    "docs_build": "passed",
+    "live_negative_disk_check": {
+      "status": "passed",
+      "check": "Current high-usage filesystem refused before runtime mutation",
+      "error": "Node disk needs at least 2 GiB available and usage below 85% (Loki throttles at 90%); preserve data and explicitly free space or increase disk capacity"
+    }
+  },
+  "remaining": [
+    "Capacity change requires explicit review; no disk resize or additional prune performed.",
+    "Telemetry persistence and trading rerun pending capacity recovery.",
+    "Unattended fresh-create and independent clean-machine acceptance remain open."
+  ],
+  "references": [
+    "https://grafana.com/docs/loki/latest/operations/troubleshooting/troubleshoot-operations/",
+    "https://github.com/grafana/loki/issues/23769"
+  ]
+}

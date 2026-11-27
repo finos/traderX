@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "ready_deployments": 19,
+  "inherited_c3_trading_smoke": "passed",
+  "reference_manifests_reapplied": false,
+  "state_014": "stopped-restart-disabled",
+  "provider_run_id": "e7b4d8043f7343faa1c66b58272c37a3",
+  "trading_log_sha256": "5737167212689410e0da8a8b791221edea425ad8fb791c3f7e75c5990877b08a",
+  "unit_tests": {
+    "passed": 62,
+    "log_sha256": "38a81dfeb4e3c0d45ce4a9945f4636cd4e74741a1c7788de112b9e5ea21730ee"
+  },
+  "repository_gates": {
+    "frontmatter": "passed",
+    "root_spec_kit": "passed",
+    "readiness": "passed",
+    "coverage": "passed"
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "phase": "complete",
+  "started_at": "2026-11-22T15:42:11.890989+00:00",
+  "completed_at": "2026-11-22T15:43:21.774246+00:00",
+  "old_pod_uid": "a0ad460e-7497-46e2-85df-ffdbffa1ede5",
+  "new_pod_uid": "db32bf60-0aaa-4aec-ad07-cb6342238ff4",
+  "old_secret_version": "19458",
+  "new_secret_version": "21452",
+  "sessions_before": [
+    {
+      "pid": 66,
+      "started": "2026-11-22T15:28:28.659997+00:00"
+    },
+    {
+      "pid": 72,
+      "started": "2026-11-22T15:28:29.141383+00:00"
+    },
+    {
+      "pid": 76,
+      "started": "2026-11-22T15:28:29.549608+00:00"
+    },
+    {
+      "pid": 80,
+      "started": "2026-11-22T15:28:29.975911+00:00"
+    },
+    {
+      "pid": 86,
+      "started": "2026-11-22T15:28:30.257317+00:00"
+    },
+    {
+      "pid": 90,
+      "started": "2026-11-22T15:28:30.497444+00:00"
+    },
+    {
+      "pid": 94,
+      "started": "2026-11-22T15:28:30.919821+00:00"
+    },
+    {
+      "pid": 98,
+      "started": "2026-11-22T15:28:31.261672+00:00"
+    },
+    {
+      "pid": 100,
+      "started": "2026-11-22T15:28:31.72666+00:00"
+    },
+    {
+      "pid": 113,
+      "started": "2026-11-22T15:28:32.397266+00:00"
+    }
+  ],
+  "sessions_after": [
+    {
+      "pid": 3524,
+      "started": "2026-11-22T15:42:45.945633+00:00"
+    },
+    {
+      "pid": 3526,
+      "started": "2026-11-22T15:42:46.792711+00:00"
+    },
+    {
+      "pid": 3528,
+      "started": "2026-11-22T15:42:47.115094+00:00"
+    },
+    {
+      "pid": 3530,
+      "started": "2026-11-22T15:42:47.289873+00:00"
+    },
+    {
+      "pid": 3532,
+      "started": "2026-11-22T15:42:47.501442+00:00"
+    },
+    {
+      "pid": 3540,
+      "started": "2026-11-22T15:42:47.657971+00:00"
+    }
+  ],
+  "old_fresh_login_rejected": true,
+  "new_login_passed": true,
+  "old_jdbc_sessions_survived_change": 10,
+  "old_jdbc_sessions_drained": true,
+  "trading_smoke_sha256": "bb4fee39f03c6e2f1e177af715650d3478ca2d959f553ec840bb9e916ba8fd56",
+  "service": "position-service",
+  "role": "lab_position",
+  "status": "passed",
+  "limitations": [
+    "Historical rotation; console rechecks current login rejection without rotating again.",
+    "Password change alone does not terminate existing sessions.",
+    "No-surge restart can briefly interrupt position reads."
+  ]
+}

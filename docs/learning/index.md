@@ -31,6 +31,7 @@ For the visual progression map, see [Visual Learning Paths](/docs/learning-paths
 | [012: Establish a reusable platform checkpoint](/docs/learning/state-012-platform-convergence-c3) | Treat C3 as a combined platform and functional checkpoint for subsequent branches. | [011-tilt-kubernetes-dev-loop](/docs/learning/state-011-tilt-kubernetes-dev-loop) |
 | [013: Explore a platform abstraction as an alternative](/docs/learning/state-013-radius-kubernetes-platform) | Use Radius to describe the application and its resource relationships on Kubernetes. | [012-platform-convergence-c3](/docs/learning/state-012-platform-convergence-c3) |
 | [014: Pass intent between applications without executing a trade](/docs/learning/state-014-fdc3-intent-interoperability) | Add FDC3 context and intent handling through Sail so another application can open a prefilled ticket. | [012-platform-convergence-c3](/docs/learning/state-012-platform-convergence-c3) |
+| [019: Measure security boundaries and residual authority](/docs/learning/state-019-traderx-security-lab) | Target: learners can reproduce layered security, explain residual risk and evaluate security/cost tradeoffs; integrated acceptance and performance measurements are pending. | [012-platform-convergence-c3](/docs/learning/state-012-platform-convergence-c3) |
 
 ## How To Use This Section
 

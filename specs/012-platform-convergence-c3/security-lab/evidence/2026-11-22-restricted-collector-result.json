@@ -1,0 +1,173 @@
+{
+  "scenario": "collector-boundary",
+  "status": "passed",
+  "recorded_at": "2026-11-22T14:53:46.390632+00:00",
+  "application_admission": [
+    {
+      "case": "privileged",
+      "denied_by": "Pod Security Admission restricted:v1.35"
+    },
+    {
+      "case": "host-network",
+      "denied_by": "Pod Security Admission restricted:v1.35"
+    },
+    {
+      "case": "host-pid",
+      "denied_by": "Pod Security Admission restricted:v1.35"
+    },
+    {
+      "case": "host-ipc",
+      "denied_by": "Pod Security Admission restricted:v1.35"
+    },
+    {
+      "case": "host-path",
+      "denied_by": "Pod Security Admission restricted:v1.35"
+    },
+    {
+      "case": "capability",
+      "denied_by": "Pod Security Admission restricted:v1.35"
+    },
+    {
+      "case": "unconfined",
+      "denied_by": "Pod Security Admission restricted:v1.35"
+    },
+    {
+      "case": "host-port",
+      "denied_by": "Pod Security Admission restricted:v1.35"
+    },
+    {
+      "case": "root",
+      "denied_by": "Pod Security Admission restricted:v1.35"
+    },
+    {
+      "case": "escalation",
+      "denied_by": "Pod Security Admission restricted:v1.35"
+    },
+    {
+      "case": "missing-seccomp",
+      "denied_by": "Pod Security Admission restricted:v1.35"
+    },
+    {
+      "case": "missing-drop",
+      "denied_by": "Pod Security Admission restricted:v1.35"
+    }
+  ],
+  "collector_admission": [
+    {
+      "case": "host-root",
+      "denied_by": "traderx-lab-log-collector-pods"
+    },
+    {
+      "case": "writable-host",
+      "denied_by": "traderx-lab-log-collector-pods"
+    },
+    {
+      "case": "privileged",
+      "denied_by": "traderx-lab-log-collector-pods"
+    },
+    {
+      "case": "capability",
+      "denied_by": "traderx-lab-log-collector-pods"
+    },
+    {
+      "case": "writable-root",
+      "denied_by": "traderx-lab-log-collector-pods"
+    },
+    {
+      "case": "default-identity",
+      "denied_by": "traderx-lab-log-collector-pods"
+    },
+    {
+      "case": "unapproved-image",
+      "denied_by": "traderx-lab-log-collector-pods"
+    },
+    {
+      "case": "shell-command",
+      "denied_by": "traderx-lab-log-collector-pods"
+    },
+    {
+      "case": "extra-container",
+      "denied_by": "traderx-lab-log-collector-pods"
+    },
+    {
+      "case": "long-token",
+      "denied_by": "traderx-lab-log-collector-pods"
+    },
+    {
+      "case": "host-network",
+      "denied_by": "traderx-lab-log-collector-pods"
+    },
+    {
+      "case": "secret-volume",
+      "denied_by": "traderx-lab-log-collector-pods"
+    },
+    {
+      "case": "debug-container",
+      "denied_by": "traderx-lab-log-collector-pods"
+    }
+  ],
+  "permissions": [
+    {
+      "operation": "list pods",
+      "allowed": true
+    },
+    {
+      "operation": "list nodes",
+      "allowed": true
+    },
+    {
+      "operation": "list namespaces",
+      "allowed": true
+    },
+    {
+      "operation": "get secrets",
+      "allowed": false
+    },
+    {
+      "operation": "create deployments",
+      "allowed": false
+    },
+    {
+      "operation": "create pods",
+      "allowed": false
+    },
+    {
+      "operation": "update namespaces",
+      "allowed": false
+    },
+    {
+      "operation": "update configmaps",
+      "allowed": false
+    }
+  ],
+  "fresh_log_delivery": {
+    "marker": "LAB_LOG_BOUNDARY_4dd888d86f0d490398a8022698583e7b",
+    "pod": "lab-log-9d82bb4df5",
+    "received_in_loki": true
+  },
+  "collector": {
+    "namespace": "traderx-security-infra",
+    "pod_uid": "7699d4c9-f1a5-4d54-bda3-dd9052c65b1d",
+    "image": "docker.io/timberio/vector@sha256:d11443983ccc190d87965e01b49149b1aeed0af34b7d8753a98996c194ff684d",
+    "uid": 0,
+    "capabilities": "none",
+    "no_new_privileges": true,
+    "seccomp_mode": 2,
+    "root_readonly": true,
+    "host_logs_readonly": true,
+    "explicit_api_token_lifetime_seconds": 3600
+  },
+  "application_policy": "restricted:v1.35",
+  "baseline_allows_root_writable_pod_dry_run": false,
+  "limitations": [
+    "Restricted does not require read-only roots, resource bounds or token suppression for unrelated workloads; named workload policies add these controls.",
+    "Collector can read all mounted node pod-log files; namespace filter is collection scope.",
+    "Fresh checkpoint replay can duplicate old logs."
+  ],
+  "source_hashes": {
+    "collector_boundary.py": "e82fbc9d8e4b100b30aa756ae986746ffea8dd8430f2d58b359b3ec15b35ebc8",
+    "isolate-collector.py": "972e23ea534eb698953d51294f10c80f3e52fa6851c33fb4ea5fc89987aa906a",
+    "verify_collector.py": "af2933949827d7655548526c2c53bcc243eb23c9756e4024d1428f404c45e897",
+    "log_probe.py": "219b7a43ec3fd1f68e9bb9ac9b756894ead95e1eefbd06ab5f005f4717ca8556"
+  }
+}

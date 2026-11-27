@@ -1,0 +1,8 @@
+{
+  "run_id": "f7db44a0-57c0-4629-a08f-6b7ba05fa256",
+  "status": "passed",
+  "unauthenticated_denied": true,
+  "wrong_password_denied": true,
+  "csrf_and_origin_denied": true,
+  "evidence_download_verified": true
+}

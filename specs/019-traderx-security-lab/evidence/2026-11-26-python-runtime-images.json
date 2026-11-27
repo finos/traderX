@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-26",
+  "status": "passed-bounded-image-checkpoint",
+  "task": "S019-06a3a",
+  "source_branch_commit": "04b42265e06427014cac92891c0d9505d708ea5a",
+  "hosted_checkout_commit": "463ca5b625b48daacd17b52791597edc7e9ec5a4",
+  "hosted_run": "https://github.com/finos/traderX/actions/runs/45774719041",
+  "hosted_job": "https://github.com/finos/traderX/actions/runs/45774719041/job/139755496941",
+  "dependency_lock_sha256": "f6f95b6630241e3a4e6fdee9ded2d38f143c58652b41d00c72255db6d4fc35f3",
+  "local_python_tests": 337,
+  "local_driver_tests": 10,
+  "required_spec_gates": "passed",
+  "runtime_images": {
+    "browser_probe": {
+      "host_origin_verified": true,
+      "mode": "internal-direct",
+      "tls_server_name": "localhost"
+    },
+    "checks": [
+      "all_loaded_images_bound_to_inspected_oci",
+      "owned_network_is_internal",
+      "packaged_browser_verified_https_ready",
+      "untrusted_browser_certificate_rejected",
+      "actual_angular_static_index_and_csp_served",
+      "actual_angular_entrypoint_in_index",
+      "actual_angular_entrypoint_served",
+      "anonymous_packaged_api_denied",
+      "root_config_not_served",
+      "materialized_config_not_served",
+      "private_key_not_served",
+      "browser_internal_network_has_no_host_port_mapping",
+      "actual_nonroot_readonly_capability_and_private_file_boundaries",
+      "event_publisher_mismatched_role_fails_closed_without_private_output",
+      "event_consumer_mismatched_role_fails_closed_without_private_output",
+      "owned_containers_network_and_private_fixture_cleaned"
+    ],
+    "images": {
+      "browser-session": {
+        "config_digest": "sha256:7edb6a64c101e2e46139614ecec84109336950912a74ec46bceea7e49d270d9d",
+        "identity_kind": "oci-manifest",
+        "manifest_digest": "sha256:3da7f4e2b612c1783686fc18ccceab78689a97fe8c84c3b77341bd5331efc8c2",
+        "runtime_id": "sha256:3da7f4e2b612c1783686fc18ccceab78689a97fe8c84c3b77341bd5331efc8c2"
+      },
+      "event-consumer": {
+        "config_digest": "sha256:d42dc10837fe7e8513d234f71f29c2af8ade89def872486d06b71b72c55a189b",
+        "identity_kind": "oci-manifest",
+        "manifest_digest": "sha256:d44a6cf03b41b9ba5c5c6597e47b88de16e95e0472e51f19b108af3b7de59d42",
+        "runtime_id": "sha256:d44a6cf03b41b9ba5c5c6597e47b88de16e95e0472e51f19b108af3b7de59d42"
+      },
+      "event-publisher": {
+        "config_digest": "sha256:9e25f05e31441eb5863f7f08b05312cea10c894eed58de60488aecf961991bcf",
+        "identity_kind": "oci-manifest",
+        "manifest_digest": "sha256:d0cc7ad0dc3bc271ef04b80ce9420d6a5287c1d75227d9077d950bcf51c3a6e1",
+        "runtime_id": "sha256:d0cc7ad0dc3bc271ef04b80ce9420d6a5287c1d75227d9077d950bcf51c3a6e1"
+      }
+    },
+    "limitations": [
+      "Synthetic TLS signing-key peer supplies no real OIDC login or business API; no browser trading or issuer-provider integration claim.",
+      "Workers deliberately reject mismatched roles before connecting; actual image-based PostgreSQL/NATS delivery remains a separate gate.",
+      "When an internal-only bridge suppresses host publication, verified TLS probes use its owned container address; localhost publication is not claimed in that mode.",
+      "This is an isolated Docker smoke, not Kubernetes admission, image signature verification, or cumulative deployed-state acceptance."
+    ],
+    "scope": "Actual inspected Python images: browser startup/static/anonymous boundary and worker configuration rejection only",
+    "source_commit": "463ca5b625b48daacd17b52791597edc7e9ec5a4",
+    "status": "passed"
+  },
+  "remaining": [
+    "S019-06a3b: remaining Java/.NET image adapters and dependency provisioning",
+    "S019-06a3c: successful packaged publisher/consumer TLS delivery, restart and replay",
+    "Cumulative gateway, CNI, signed-image and authenticated trading/recovery acceptance"
+  ],
+  "operational_constraints": {
+    "local_docker_changed": false,
+    "local_citrix_changed": false,
+    "screen_sharing_used": false,
+    "main_merged": false,
+    "images_published": false,
+    "generated_state_published": false
+  }
+}

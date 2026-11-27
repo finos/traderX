@@ -1,0 +1,37 @@
+{
+  "status": "passed",
+  "scope": "Persistent Docker database fixture; Kubernetes adapter not exercised",
+  "image": "ghcr.io/finos/traderx-c3/database@sha256:1aa68521a486e2c217e6d1b1328ae3d01816302eeddbeb664f34445d6844f022",
+  "restarts": 2,
+  "runtime_logins_per_start": 4,
+  "seed_fingerprints": {
+    "accounts": "7|72a4fe764ea70f6e757b8f5ead09895c",
+    "accountusers": "18|7ed8c1e84deb16de3db65374daca90ae",
+    "positions": "4|1e8d4eee0a3ba235c5983d3f0c42b1b8",
+    "trades": "4|5c45c656427f09169126455b91f5ae00",
+    "orderbook": "0|empty"
+  },
+  "committed_canary_preserved": true,
+  "mismatched_binding_refused": true,
+  "limits": {
+    "memory_mib": 256,
+    "cpu": 1,
+    "host_ports": 0
+  },
+  "limitations": [
+    "Does not validate PVC provisioning, Kubernetes rollout or normal trading.",
+    "Owned disposable volume removed after verification."
+  ],
+  "date": "2026-11-24",
+  "task": "S019-03c3",
+  "local_tests": 129,
+  "kubernetes_adapter_tests": 13,
+  "required_spec_gates": "passed",
+  "checkpoint_reproduction": "byte-identical",
+  "owned_fixture_cleanup": "no containers or volumes remaining",
+  "source_sha256": {
+    "scripts/security-lab/database_lifecycle.py": "361c205328df1320dd94232dbc0fccf7ac3f62e3507f57d74cf9edf6afcc4a22",
+    "scripts/security-lab/verify_database_restart.py": "947bd3c1a9b594cd38d28b4aae207c4abeebadf6e48a650eb23dee3917534ec8",
+    "scripts/security-lab/verify_bootstrap.py": "02e247c32b8a43ff7d7adb4014370ae2896eae6242694a0bf65015c9703a646c"
+  }
+}

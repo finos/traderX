@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "platform": "linux/amd64",
+  "python_version": "3.14.10",
+  "base": {
+    "reference": "python:3.14.10-slim-bookworm@sha256:59f6892d5620527923071f2ae8c374f90a9208728b70ff6e72e80d75ae2dc8ff",
+    "index_digest": "sha256:e60ad028afdcdd14772a3d46decf0eaf616720f9102aeb4397a2045ff6718c3d",
+    "metadata_source": "https://registry-1.docker.io/v2/library/python/manifests/3.14-slim-bookworm"
+  },
+  "wheels": {
+    "nats-py": {
+      "version": "2.17.0",
+      "filename": "nats_py-2.17.0-py3-none-any.whl",
+      "url": "https://files.pythonhosted.org/packages/b4/5a/dbc821dce27cf8f322f36fc99ad2b5c61d37f0b6a96604077aae892ccffb/nats_py-2.17.0-py3-none-any.whl",
+      "size": 97786,
+      "sha256": "fc7d01f68957462220d6bdce310cad1707eeb5fbd369903d84217b18ea341c0e",
+      "metadata_source": "https://pypi.org/pypi/nats-py/2.17.0/json"
+    },
+    "psycopg": {
+      "version": "3.3.9",
+      "filename": "psycopg-3.3.9-py3-none-any.whl",
+      "url": "https://files.pythonhosted.org/packages/52/5d/a7957d1b5484f8e5094a15b1a400929324f978b670bd4a95179e1a012ec2/psycopg-3.3.9-py3-none-any.whl",
+      "size": 219041,
+      "sha256": "d2d7d04a1ce6dab4f5b27316bea3b52585cafa2f2d631e5b09dd69823f5c26f6",
+      "metadata_source": "https://pypi.org/pypi/psycopg/3.3.9/json"
+    },
+    "psycopg-binary": {
+      "version": "3.3.9",
+      "filename": "psycopg_binary-3.3.9-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "url": "https://files.pythonhosted.org/packages/2a/d5/ba4839c38d9d35daa815cb18dfe462582f783ba83b9d932692bb903fba01/psycopg_binary-3.3.9-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "size": 3918359,
+      "sha256": "4992acd5a7479013d52615b8c23fdce9bc22f3cacbfb1007fa474e6b5ebe94c7",
+      "metadata_source": "https://pypi.org/pypi/psycopg-binary/3.3.9/json"
+    },
+    "simplejson": {
+      "version": "4.3.0",
+      "filename": "simplejson-4.3.0-py3-none-any.whl",
+      "url": "https://files.pythonhosted.org/packages/e7/d0/4e7cb7326ac0fd56d226e61a7a4cdf98b071aded443cfcd730c19f357650/simplejson-4.3.0-py3-none-any.whl",
+      "size": 80711,
+      "sha256": "48d5d79d723300b49f18bbd88d786c0410cc58b869c121024a132e2e49f9cf35",
+      "metadata_source": "https://pypi.org/pypi/simplejson/4.3.0/json"
+    },
+    "pyjwt": {
+      "version": "2.15.1",
+      "filename": "pyjwt-2.15.1-py3-none-any.whl",
+      "url": "https://files.pythonhosted.org/packages/50/ca/44de4e75f8aadc457f0634be3b542815078ded46dca30efb960edeecad6e/pyjwt-2.15.1-py3-none-any.whl",
+      "size": 33860,
+      "sha256": "42d59d631f7768a1028a64c7ff581a9bf7519804daf91fc5b6c56e30eec5e193",
+      "metadata_source": "https://pypi.org/pypi/pyjwt/2.15.1/json"
+    },
+    "cryptography": {
+      "version": "50.0.2",
+      "filename": "cryptography-50.0.2-cp311-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "url": "https://files.pythonhosted.org/packages/21/69/64cef1f702bf6657e0cc186ed1a2891d50d29fb41586b254e1c07adea261/cryptography-50.0.2-cp311-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "size": 4719841,
+      "sha256": "630ebfea3bf689d075f82316324ff7433dc447fe6bc1bfc76524b74b4a9567d2",
+      "metadata_source": "https://pypi.org/pypi/cryptography/50.0.2/json"
+    },
+    "cffi": {
+      "version": "2.1.1",
+      "filename": "cffi-2.1.1-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "url": "https://files.pythonhosted.org/packages/e9/02/4e7d553a7ac4b4238b38b3c1b80d486e9d4436f8d2acbf87a0997fe3f402/cffi-2.1.1-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "size": 221525,
+      "sha256": "b0431303acaea1089ad4b3e9ce4e6518193def1118d4073ca848635ee4ea2e96",
+      "metadata_source": "https://pypi.org/pypi/cffi/2.1.1/json"
+    },
+    "pycparser": {
+      "version": "3.12",
+      "filename": "pycparser-3.12-py3-none-any.whl",
+      "url": "https://files.pythonhosted.org/packages/b6/ae/315bbeee126a769cbde43cf4908acb4b40408d8bf8bbf334dd7368d8dadf/pycparser-3.12-py3-none-any.whl",
+      "size": 62600,
+      "sha256": "a076f3f489b39b43ed13563a1dafe42447445bec2e294154ec5c57fcdda4c85e",
+      "metadata_source": "https://pypi.org/pypi/pycparser/3.12/json"
+    }
+  },
+  "buildkit": {
+    "reference": "moby/buildkit:buildx-stable-1@sha256:7583a0667093d941826bcd1d2878d6a360dfd08a82c93e6d6a6f6cce78801e12",
+    "index_digest": "sha256:baf6138eb8c37644800c7c913fba051e840ebb9ba13eaf92d92ef9a1712d0b4c",
+    "metadata_source": "https://registry-1.docker.io/v2/moby/buildkit/manifests/buildx-stable-1",
+    "scope": "Owned hosted build infrastructure only; not application runtime"
+  }
+}

@@ -22,6 +22,7 @@ tracks:
       - 011-tilt-kubernetes-dev-loop
       - 012-platform-convergence-c3
       - 013-radius-kubernetes-platform
+      - 019-traderx-security-lab
   architecture:
     description: "Architecture substitutions and platform-component changes."
     states:
@@ -41,6 +42,7 @@ tracks:
     description: "Optional side branches not in primary publish lineage."
     states:
       - 013-radius-kubernetes-platform
+      - 019-traderx-security-lab
   convergence:
     description: "Named convergence milestones (C0/C1/C2/C3)."
     states:
@@ -147,3 +149,10 @@ stateCatalog:
     isConvergence: false
     lineageRole: canonical
     spec: specs/014-fdc3-intent-interoperability/spec.md
+  - id: 019-traderx-security-lab
+    previous:
+      - 012-platform-convergence-c3
+    convergenceLevel: none
+    isConvergence: false
+    lineageRole: optional
+    spec: specs/019-traderx-security-lab/spec.md

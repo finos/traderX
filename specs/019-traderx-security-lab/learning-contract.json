@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "state": "019-traderx-security-lab",
+  "title": "Measure security boundaries and residual authority",
+  "purpose": "Help developers and security practitioners explain what controls prevent, detect and still permit in a trading application, then measure what those protections cost. Learn in phases before comparing runtime products or platform alternatives.",
+  "entryAssumptions": "C3 normal trading and its Kubernetes runtime are understood; no production data is used.",
+  "concepts": [
+    "A reachable destination is not unlimited database authority; scoped service authority is not end-user business authorization.",
+    "An alert or killed process does not prove that impact was prevented.",
+    "A compensating control must meet the same security objective and preserve business correctness; fewer application code lines or faster requests alone do not establish an equivalent boundary.",
+    "Security cost depends on the path: request latency, committed settlement and visible notifications are different outcomes, and moving work to a proxy or asynchronous queue does not remove its cost."
+  ],
+  "runtimePrerequisites": "The integrated state is planned. Prototype onboarding is explicitly limited to its verified host and fixture scope; run only one full cluster at a time.",
+  "entryMode": "combined",
+  "transitions": [
+    {
+      "from": "012-platform-convergence-c3",
+      "carriesForward": "Trading, Kubernetes and observability.",
+      "motivation": "A working application does not yet explain its security boundaries.",
+      "increment": "Add staged controls, bounded experiments, independent outcome evidence and a method for comparing security cost.",
+      "objectiveIds": [
+        "attribute-control",
+        "measure-residual",
+        "reproduce-recover",
+        "measure-control-cost"
+      ],
+      "evidence": "Positive trading plus attributable negative checks and residual-authority outcomes in the same pinned deployment; matched-workload cost measurements before crediting an alternative control."
+    }
+  ],
+  "before": "C3 demonstrates normal trading.",
+  "after": "Target: learners can reproduce layered security, explain residual risk and evaluate security/cost tradeoffs; integrated acceptance and performance measurements are pending.",
+  "objectives": [
+    {
+      "id": "attribute-control",
+      "outcome": "Explain which security layer intervened using correlated decisions and independent state evidence."
+    },
+    {
+      "id": "measure-residual",
+      "outcome": "Distinguish denied out-of-grant operations from residual misuse of legitimate service authority, then compare detection with prevention."
+    },
+    {
+      "id": "reproduce-recover",
+      "outcome": "Reproduce a bounded experiment, restore synthetic data and verify that legitimate trading continues within a measured resource budget."
+    },
+    {
+      "id": "measure-control-cost",
+      "outcome": "Compare a control and a proposed replacement against the same security and business-correctness outcomes, using per-path p95/p99 latency, throughput, resource use and operating effort to justify retaining, replacing, combining or deferring them."
+    }
+  ],
+  "walkthrough": [
+    {
+      "id": "control-boundaries",
+      "objectiveIds": [
+        "attribute-control",
+        "measure-residual",
+        "reproduce-recover"
+      ],
+      "availability": "unavailable",
+      "action": "Planned integrated walkthrough: predict a decision, run positive and negative controls, inspect effects, compare runtime modes and reset. Prototype checkpoint evidence is available separately.",
+      "expected": "Attribute each decision and resulting state; do not infer prevention from an alert or claim a fixture is integrated.",
+      "references": [
+        "/specs/traderx-security-lab/quickstart",
+        "/specs/traderx-security-lab/tasks",
+        "/specs/traderx-security-lab/spec"
+      ]
+    },
+    {
+      "id": "security-cost-comparison",
+      "objectiveIds": [
+        "measure-control-cost"
+      ],
+      "availability": "unavailable",
+      "action": "Planned exercise after cumulative baseline acceptance: choose one path, such as order submission through committed settlement, and predict the cost of its controls. Declare workload and trading-owner budgets, collect repeated baseline measurements, then evaluate a separately gated alternative against identical security and correctness checks. Keep operator lookup, reads and asynchronous notification timings distinct. A service-mesh comparison belongs to the separate follow-on, not this baseline implementation.",
+      "expected": "An evidence-backed decision joins the intervening layer and final SQL/message effects with p95/p99 latency, throughput, errors/queues, CPU/memory and whole-system operating effort. Report sample counts and uncertainty. Record unmeasured or incomplete results explicitly; a mesh reducing code or overhead remains a hypothesis until tested.",
+      "references": [
+        "/specs/traderx-security-lab/system/security-cost-evaluation",
+        "/specs/traderx-security-lab/system/platform-control-comparison"
+      ]
+    }
+  ],
+  "assessments": [
+    {
+      "objectiveIds": [
+        "attribute-control",
+        "measure-residual",
+        "reproduce-recover"
+      ],
+      "question": "A service talks to its allowed database and a runtime alert fires. What proves prevention and successful recovery?",
+      "guidance": "Inspect independent canary and downstream effects after settling, compare the same inputs across profiles, reset and rerun positive trading; record resource costs and limitations."
+    },
+    {
+      "objectiveIds": [
+        "measure-control-cost"
+      ],
+      "question": "A proposed service mesh removes application TLS configuration and improves average response time. What evidence would justify it as a replacement or compensating control, and what responsibility might still belong to the application?",
+      "guidance": "Compare the same pinned workload, identities, threats, failure cases and independent business outcomes, including cancellation, replay and within-grant misuse. Keep account authorization unless the candidate actually receives and enforces that context. Compare per-path p95/p99 and settlement latency, throughput, errors/queues, CPU/memory and proxy/control-plane resource use, plus setup, rotation, debugging and upgrade effort. Record sample counts, uncertainty, residual risk and an accountable retain/replace/combine/defer decision against declared budgets. Current measurements are absent and budgets are unspecified; no efficiency or equivalent-protection claim is yet justified."
+    }
+  ],
+  "limitations": [
+    "Planned generated state; current evidence covers individual checkpoints and candidate integrations only.",
+    "CVE/OSERA is optional and planned; CALM is a separate successor. Local checks are not compliance certification.",
+    "Per-path performance and operating costs are unmeasured, and trading-owner latency/availability budgets are not yet declared. Service-mesh or ingress savings are hypotheses for a separate follow-on comparison; neither that comparison nor CALM is required to finish the manually established baseline."
+  ],
+  "coaching": [
+    {
+      "objectiveIds": [
+        "attribute-control",
+        "measure-residual",
+        "reproduce-recover"
+      ],
+      "diagnosticQuestion": "Which identity and authority does each boundary actually enforce?",
+      "predictionPrompt": "Predict whether a within-grant write by a compromised service will be distinguishable from normal work.",
+      "hints": [
+        "Follow the identity from the user through the process and database role.",
+        "Inspect final state independently; an alert is a separate observation."
+      ],
+      "misconception": "Strong networking or a runtime alert guarantees that all business-unauthorized writes are prevented.",
+      "evidenceToRequest": "Pinned configuration, correlated decisions, independent before/after outcomes, reset evidence and continued trading."
+    },
+    {
+      "objectiveIds": [
+        "measure-control-cost"
+      ],
+      "diagnosticQuestion": "Where does a request wait before its business effect is committed, and which component has enough identity context to authorize that effect?",
+      "predictionPrompt": "Predict which cost a gateway or service mesh might remove, move or add, and which account-level decision it cannot make from workload identity alone.",
+      "hints": [
+        "Draw one complete request-to-effect path before selecting timing points; include queues and asynchronous work.",
+        "Replay the same load and negative scenarios, count unsuccessful work, and compare tail latency with independent final state.",
+        "Count proxy and control-plane resources and operating effort alongside application code removed; keep an unmeasured result unknown."
+      ],
+      "misconception": "A service mesh with less application code and a lower average latency necessarily provides equivalent security at lower total cost.",
+      "evidenceToRequest": "Pinned baseline/candidate configurations, identical security and business-correctness results, matched-load per-path p95/p99 with sample counts and uncertainty, whole-system resource and operating costs, declared budgets and a decision documenting residual risk."
+    }
+  ]
+}

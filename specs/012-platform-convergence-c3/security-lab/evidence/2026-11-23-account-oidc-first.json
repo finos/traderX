@@ -1,0 +1,263 @@
+{
+  "run_id": "609e182c02c046118d0ba6a48222088f",
+  "started_at": "2026-11-23T06:31:22.581525+00:00",
+  "status": "passed",
+  "scope": "real-provider-PKCE-to-local-Spring-account-API",
+  "image": "quay.io/keycloak/keycloak@sha256:7e66a96e4739239070aeaf72e4c5decf0f7f682cfc725b9f7ea2b336eaba38b3",
+  "cases": [
+    {
+      "id": "verified-tls-discovery-and-loopback-boundary",
+      "status": "passed"
+    },
+    {
+      "id": "reader-real-provider-filtered-account-api",
+      "status": "passed"
+    },
+    {
+      "id": "reader-real-provider-filtered-membership-api",
+      "status": "passed"
+    },
+    {
+      "id": "reader-real-provider-own-account",
+      "status": "passed"
+    },
+    {
+      "id": "reader-real-provider-cross-account-denied",
+      "status": "passed"
+    },
+    {
+      "id": "reader-real-provider-POST-account-denied",
+      "status": "passed"
+    },
+    {
+      "id": "reader-real-provider-PUT-account-denied",
+      "status": "passed"
+    },
+    {
+      "id": "reader-real-provider-cross-accountuser-denied",
+      "status": "passed"
+    },
+    {
+      "id": "reader-real-provider-POST-accountuser-denied",
+      "status": "passed"
+    },
+    {
+      "id": "reader-real-provider-PUT-accountuser-denied",
+      "status": "passed"
+    },
+    {
+      "id": "reader-real-provider-id-token-api-denied",
+      "status": "passed"
+    },
+    {
+      "id": "reader-code-pkce-signed-token-and-entitlements",
+      "status": "passed"
+    },
+    {
+      "id": "reader-id-token-not-api-token",
+      "status": "passed"
+    },
+    {
+      "id": "reader-code-reuse-denied",
+      "status": "passed"
+    },
+    {
+      "id": "reader-tampered-token-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-real-provider-filtered-account-api",
+      "status": "passed"
+    },
+    {
+      "id": "trader-real-provider-filtered-membership-api",
+      "status": "passed"
+    },
+    {
+      "id": "trader-real-provider-own-account",
+      "status": "passed"
+    },
+    {
+      "id": "trader-real-provider-cross-account-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-real-provider-POST-account-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-real-provider-PUT-account-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-real-provider-cross-accountuser-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-real-provider-POST-accountuser-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-real-provider-PUT-accountuser-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-real-provider-id-token-api-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-code-pkce-signed-token-and-entitlements",
+      "status": "passed"
+    },
+    {
+      "id": "trader-id-token-not-api-token",
+      "status": "passed"
+    },
+    {
+      "id": "trader-code-reuse-denied",
+      "status": "passed"
+    },
+    {
+      "id": "trader-tampered-token-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-real-provider-filtered-account-api",
+      "status": "passed"
+    },
+    {
+      "id": "operator-real-provider-filtered-membership-api",
+      "status": "passed"
+    },
+    {
+      "id": "operator-real-provider-cross-account-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-real-provider-POST-account-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-real-provider-PUT-account-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-real-provider-cross-accountuser-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-real-provider-POST-accountuser-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-real-provider-PUT-accountuser-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-real-provider-id-token-api-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-code-pkce-signed-token-and-entitlements",
+      "status": "passed"
+    },
+    {
+      "id": "operator-id-token-not-api-token",
+      "status": "passed"
+    },
+    {
+      "id": "operator-code-reuse-denied",
+      "status": "passed"
+    },
+    {
+      "id": "operator-tampered-token-denied",
+      "status": "passed"
+    },
+    {
+      "id": "wrong-password-denied",
+      "status": "passed"
+    },
+    {
+      "id": "wrong-pkce-verifier-denied",
+      "status": "passed"
+    },
+    {
+      "id": "missing-pkce-denied",
+      "status": "passed"
+    },
+    {
+      "id": "alternate-redirect-denied",
+      "status": "passed"
+    },
+    {
+      "id": "password-grant-disabled",
+      "status": "passed"
+    },
+    {
+      "id": "real-provider-api-database-unchanged",
+      "status": "passed"
+    },
+    {
+      "id": "provider-outage-unexpired-token-within-trust-window",
+      "status": "passed"
+    }
+  ],
+  "limitations": [
+    "Local candidate only; C3, browser sessions and other services unchanged.",
+    "Disposable development-mode provider; explicit process replacement, not automatic JWKS rotation.",
+    "Unexpired tokens remain usable offline until token or trust expiry; no immediate revocation.",
+    "Rotation-only access-token lifetime is 900 seconds; normal fixture lifetime remains 120 seconds."
+  ],
+  "resource_preflight": {
+    "status": "ready",
+    "mode": "fixture",
+    "reasons": [],
+    "required_headroom_bytes": 1610612736,
+    "observation": {
+      "host_pressure": "normal",
+      "docker_memory_bytes": 6213808128,
+      "containers": [
+        {
+          "name": "traderx-account-dev-account-1",
+          "memory_bytes": 377906790
+        },
+        {
+          "name": "traderx-account-dev-people-1",
+          "memory_bytes": 15896412
+        },
+        {
+          "name": "traderx-account-dev-database-1",
+          "memory_bytes": 127401984
+        },
+        {
+          "name": "buildx_buildkit_traderx-009-recovery0",
+          "memory_bytes": 63302533
+        }
+      ]
+    },
+    "limitations": [
+      "Snapshot only; not a reservation or a guarantee against subsequent pressure.",
+      "Docker container working sets omit some VM/kernel overhead; margins are provisional.",
+      "Readiness does not establish application health or security acceptance."
+    ]
+  },
+  "image_config_id": "sha256:61a6cd8c36da8fc92bb79f092ef9f49f69c3313f61e01a03f3eff72b41f946a5",
+  "architecture": "arm64",
+  "public_key_sha256": "a0059604673e16a843d36109e585ac1a94c94c75f30a70ce02f60b66891ecb38",
+  "database_before_sha256": "02e0697ac4800c57c6e80e667ff478eba71c94001d9b31acbcd212eb9755720c",
+  "database_after_sha256": "02e0697ac4800c57c6e80e667ff478eba71c94001d9b31acbcd212eb9755720c",
+  "cleanup": "complete",
+  "finished_at": "2026-11-23T06:33:07.291762+00:00",
+  "source_sha256": {
+    "identity_fixture.py": "af78aa40c8fcb389eaf50c527d3da4c891b63939675f8ff75e6ea2ca9cdbbe52",
+    "verify_identity.py": "1ac875d6088beaea0295797cbf040f6454acb07af428142ad9d618b3e6bee761",
+    "requirements-identity.txt": "fdecabe5fe314d1daac0548970117334f1b827db9a10a5e21731ddccdcde6b05",
+    "resource_preflight.py": "bbdca6afb3232e2a86b40736c334cdc906dd50e80d67b8d819b32662e983bd5c",
+    "account_oidc.py": "b42567bbbec3aa6e52cc669dcd44ac047c44523c6c8006b1b130215a16e28627"
+  },
+  "resource_sample": {
+    "combined_working_set_mib": 901.87,
+    "scope": "one four-container sample; excludes Docker VM overhead and does not establish peaks",
+    "full_clusters": "stopped"
+  }
+}

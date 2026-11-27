@@ -1,0 +1,172 @@
+{
+  "scenario": "database-permissions",
+  "status": "passed",
+  "recorded_at": "2026-11-22T15:32:46.946094+00:00",
+  "services": [
+    {
+      "service": "account-service",
+      "role": "lab_account",
+      "privileged_flags": false,
+      "table_permissions_verified": 35,
+      "positive_transaction_rolled_back": true,
+      "jdbc_sessions": 10,
+      "denied_operations": [
+        "schema-ddl",
+        "role-administration",
+        "unrelated-read",
+        "delete-outside-grants"
+      ],
+      "sqlstate": "42501"
+    },
+    {
+      "service": "position-service",
+      "role": "lab_position",
+      "privileged_flags": false,
+      "table_permissions_verified": 35,
+      "positive_transaction_rolled_back": true,
+      "jdbc_sessions": 10,
+      "denied_operations": [
+        "schema-ddl",
+        "role-administration",
+        "unrelated-read",
+        "delete-outside-grants"
+      ],
+      "sqlstate": "42501"
+    },
+    {
+      "service": "trade-processor",
+      "role": "lab_trade_processor",
+      "privileged_flags": false,
+      "table_permissions_verified": 35,
+      "positive_transaction_rolled_back": true,
+      "jdbc_sessions": 10,
+      "denied_operations": [
+        "schema-ddl",
+        "role-administration",
+        "unrelated-read",
+        "delete-outside-grants"
+      ],
+      "sqlstate": "42501"
+    },
+    {
+      "service": "order-matcher",
+      "role": "lab_order_matcher",
+      "privileged_flags": false,
+      "table_permissions_verified": 35,
+      "positive_transaction_rolled_back": true,
+      "jdbc_sessions": 10,
+      "denied_operations": [
+        "schema-ddl",
+        "role-administration",
+        "unrelated-read",
+        "delete-outside-grants"
+      ],
+      "sqlstate": "42501"
+    }
+  ],
+  "admission_checks": [
+    {
+      "service": "account-service",
+      "case": "literal-password",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "account-service",
+      "case": "other-service-secret",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "account-service",
+      "case": "extra-environment",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "account-service",
+      "case": "direct-pod-bootstrap-secret",
+      "denied_by": "traderx-lab-sql-identities-pods"
+    },
+    {
+      "service": "position-service",
+      "case": "literal-password",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "position-service",
+      "case": "other-service-secret",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "position-service",
+      "case": "extra-environment",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "position-service",
+      "case": "direct-pod-bootstrap-secret",
+      "denied_by": "traderx-lab-sql-identities-pods"
+    },
+    {
+      "service": "trade-processor",
+      "case": "literal-password",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "trade-processor",
+      "case": "other-service-secret",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "trade-processor",
+      "case": "extra-environment",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "trade-processor",
+      "case": "direct-pod-bootstrap-secret",
+      "denied_by": "traderx-lab-sql-identities-pods"
+    },
+    {
+      "service": "order-matcher",
+      "case": "literal-password",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "order-matcher",
+      "case": "other-service-secret",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "order-matcher",
+      "case": "extra-environment",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "order-matcher",
+      "case": "runtime-ddl",
+      "denied_by": "traderx-lab-sql-identities"
+    },
+    {
+      "service": "order-matcher",
+      "case": "direct-pod-bootstrap-secret",
+      "denied_by": "traderx-lab-sql-identities-pods"
+    },
+    {
+      "service": "database",
+      "case": "literal-bootstrap-password",
+      "denied_by": "traderx-lab-sql-identities"
+    }
+  ],
+  "legacy_admin_jdbc_sessions": 0,
+  "known_bootstrap_password_rejected": true,
+  "bootstrap_secret_reference_verified": true,
+  "limitations": [
+    "Service grants do not enforce initiating user/account permissions.",
+    "Each account positive control advances the sequence once; synthetic row writes are rolled back.",
+    "Bootstrap operator remains a separate privileged identity. Credential rotation is a separate acceptance step."
+  ],
+  "source_hashes": {
+    "database_permissions.py": "3ed62241586bae869fea3d63f39826046032889b03eb795ca769759a72a22978",
+    "migrate-database-permissions.py": "255de4c0b2799e2e738ef4f466a06a9f42c0dc324f624a02dc56e7aef21d471d",
+    "verify_database_permissions.py": "9679b97bdabc223794bfe703b18a0064adf5e4d5ff8d2916b704a0186a410102"
+  }
+}

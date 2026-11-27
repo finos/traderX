@@ -1,0 +1,77 @@
+{
+  "status": "local-candidate-verified-C3-not-deployed",
+  "scope": "Account service only; other services and streams remain to inventory",
+  "generated_commit": "cfa6992e47ee16ba78c27cad8539b03bf03afeec",
+  "source_hashes": {
+    "AccountController.java": "fa2b30bfc62c53dfcd80f7fa3eba41da73acefe67b8c8142846a63bd2e621f39",
+    "AccountUserController.java": "b9fba53f48f62c69f9dc4c6f28bbf88012b38f319f591580173a647c2cd347e5"
+  },
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/account/{id}",
+      "source": "AccountController.java",
+      "required_policy": "Authorize requested account ID before lookup; deny outside server-owned scope",
+      "live_enforcement": "C3-not-deployed",
+      "local_candidate_enforcement": "verified; server-owned account scope"
+    },
+    {
+      "method": "GET",
+      "path": "/account/",
+      "source": "AccountController.java",
+      "required_policy": "Filter results by server-side entitlements before returning",
+      "live_enforcement": "C3-not-deployed",
+      "local_candidate_enforcement": "verified; server-owned account scope"
+    },
+    {
+      "method": "POST",
+      "path": "/account/",
+      "source": "AccountController.java",
+      "required_policy": "Deny ordinary read-only/trader callers; privileged provisioning contract required",
+      "live_enforcement": "C3-not-deployed",
+      "local_candidate_enforcement": "verified; all writes denied including operator"
+    },
+    {
+      "method": "PUT",
+      "path": "/account/",
+      "source": "AccountController.java",
+      "required_policy": "Deny ordinary read-only/trader callers; privileged provisioning contract required",
+      "live_enforcement": "C3-not-deployed",
+      "local_candidate_enforcement": "verified; all writes denied including operator"
+    },
+    {
+      "method": "GET",
+      "path": "/accountuser/{id}",
+      "source": "AccountUserController.java",
+      "required_policy": "Authorize requested account ID before lookup; deny outside server-owned scope",
+      "live_enforcement": "C3-not-deployed",
+      "local_candidate_enforcement": "verified; server-owned account scope"
+    },
+    {
+      "method": "GET",
+      "path": "/accountuser/",
+      "source": "AccountUserController.java",
+      "required_policy": "Filter results by server-side entitlements before returning",
+      "live_enforcement": "C3-not-deployed",
+      "local_candidate_enforcement": "verified; server-owned account scope"
+    },
+    {
+      "method": "POST",
+      "path": "/accountuser/",
+      "source": "AccountUserController.java",
+      "required_policy": "Deny ordinary read-only/trader callers; privileged provisioning contract required",
+      "live_enforcement": "C3-not-deployed",
+      "local_candidate_enforcement": "verified; all writes denied including operator"
+    },
+    {
+      "method": "PUT",
+      "path": "/accountuser/",
+      "source": "AccountUserController.java",
+      "required_policy": "Deny ordinary read-only/trader callers; privileged provisioning contract required",
+      "live_enforcement": "C3-not-deployed",
+      "local_candidate_enforcement": "verified; all writes denied including operator"
+    }
+  ],
+  "critical_boundary": "Account-user membership writes must not let ordinary users grant themselves account access. The current getAccountUserById method calls findByAccountId: the URL ID is an account ID and returns the first membership ordered by username. Authorize that account before returning membership information. Existing legacy usernames require a trusted issuer/subject mapping, not a caller-supplied username.",
+  "evidence": "../evidence/2026-11-23-account-authorization.json"
+}

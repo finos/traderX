@@ -293,7 +293,7 @@ if ! awk "BEGIN {exit !(${spring_metric_sample_count} > 0)}"; then
 fi
 
 echo "[check] promtail daemonset is available"
-kubectl rollout status daemonset/promtail -n "${NAMESPACE}" --timeout=180s >/dev/null
+kubectl rollout status daemonset/promtail -n "${TRADERX_LOG_COLLECTOR_NAMESPACE:-${NAMESPACE}}" --timeout=180s >/dev/null
 
 echo "[check] grafana loki datasource has ingesting log streams"
 now_ms=$(($(date +%s) * 1000))

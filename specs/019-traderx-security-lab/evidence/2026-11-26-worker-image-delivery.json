@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-26",
+  "status": "passed-bounded-worker-image-checkpoint",
+  "task": "S019-06a3c",
+  "source_branch_commit": "1b40c4cc9ca6721e6b461fcc38e51ee3638f1b0d",
+  "hosted_checkout_commit": "6419846cc0736f569e06cef3f4a719826a9da082",
+  "hosted_run": "https://github.com/finos/traderX/actions/runs/45792356893",
+  "hosted_job": "https://github.com/finos/traderX/actions/runs/45792356893/job/139814310568",
+  "artifact": "security-worker-image-delivery",
+  "artifact_file_sha256": "a6e27d6e03c41738158d5b59602c72e5dd73869bca78168fa88745baed4bff21",
+  "focused_tests": 29,
+  "worker_image_delivery": {
+    "status": "passed",
+    "source_commit": "6419846cc0736f569e06cef3f4a719826a9da082",
+    "worker_images": {
+      "event-publisher": {
+        "config_digest": "sha256:bc3fa08a3de5091e3fad62e9b48eaa53062d4e5fb95955c9d104a41a79007eac",
+        "manifest_digest": "sha256:f09177238aa790d3f1239f4464aa5a377e039ccabce775edc26922e3ba4b7dd3",
+        "runtime_id": "sha256:f09177238aa790d3f1239f4464aa5a377e039ccabce775edc26922e3ba4b7dd3",
+        "identity_kind": "oci-manifest"
+      },
+      "event-consumer": {
+        "config_digest": "sha256:b2c7fb2ad0d814ca54a00fd4c210545f38b2e47f9db8e0bfecd39fbe7d782de3",
+        "manifest_digest": "sha256:f74e449f5e6ac8f859ce2a6d9ab59df356eede7b1c681737592ee3be7c950953",
+        "runtime_id": "sha256:f74e449f5e6ac8f859ce2a6d9ab59df356eede7b1c681737592ee3be7c950953",
+        "identity_kind": "oci-manifest"
+      }
+    },
+    "peer_images": {
+      "database": "ghcr.io/finos/traderx-c3/database@sha256:1aa68521a486e2c217e6d1b1328ae3d01816302eeddbeb664f34445d6844f022",
+      "broker": "docker.io/library/nats@sha256:c20b78366bab4531b2ae36e660f7cb7e533d956fc927aaf5c88e6ba6e5e054e4"
+    },
+    "checks": [
+      "inspected_immutable_images_revalidated",
+      "event_publisher_database_password_terminal_rejection",
+      "event_publisher_database_password_no_effects",
+      "event_publisher_broker_password_terminal_rejection",
+      "event_publisher_broker_password_no_effects",
+      "event_publisher_database_ca_terminal_rejection",
+      "event_publisher_database_ca_no_effects",
+      "event_publisher_broker_ca_terminal_rejection",
+      "event_publisher_broker_ca_no_effects",
+      "event_publisher_database_hostname_terminal_rejection",
+      "event_publisher_database_hostname_no_effects",
+      "event_publisher_broker_hostname_terminal_rejection",
+      "event_publisher_broker_hostname_no_effects",
+      "event_consumer_database_password_terminal_rejection",
+      "event_consumer_database_password_no_effects",
+      "event_consumer_broker_password_terminal_rejection",
+      "event_consumer_broker_password_no_effects",
+      "event_consumer_database_ca_terminal_rejection",
+      "event_consumer_database_ca_no_effects",
+      "event_consumer_broker_ca_terminal_rejection",
+      "event_consumer_broker_ca_no_effects",
+      "event_consumer_database_hostname_terminal_rejection",
+      "event_consumer_database_hostname_no_effects",
+      "event_consumer_broker_hostname_terminal_rejection",
+      "event_consumer_broker_hostname_no_effects",
+      "publisher_restricted_nonroot_private_materialization_verified",
+      "publisher_sql_session_verified_encrypted",
+      "broker_accepts_before_publisher_sql_ack",
+      "killed_publisher_has_no_sql_ack",
+      "same_image_replays_after_broker_dedupe_window",
+      "consumer_restricted_nonroot_private_materialization_verified",
+      "consumer_sql_session_verified_encrypted",
+      "consumer_precommit_has_unacked_delivery",
+      "precommit_kill_rolls_back_inbox_and_projection",
+      "scoped_consumer_ack_permission_fault_confirmed_by_broker_probe",
+      "committed_effect_visible_while_ack_gate_holds_running_worker",
+      "postcommit_kill_preserves_exactly_one_effect",
+      "scoped_consumer_ack_permission_restored_and_confirmed",
+      "consumer_same_image_recovery_deduplicates_committed_effect",
+      "idle_same_image_restart_no_extra_delivery_effects",
+      "delivery_recovery_does_not_rebook_business_trade",
+      "one_authoritative_settlement_receipt",
+      "owned_workers_peers_network_and_private_files_cleaned"
+    ],
+    "counts": {
+      "outbox": 2,
+      "broker_messages": 3,
+      "inbox": 2,
+      "trade_projection": 1,
+      "position_projection": 1
+    },
+    "source_sha256": {
+      "scripts/security-lab/verify_worker_images.py": "e8e057632d5c09221eaa3488efeea444e011cd062f92981a28af2ae2828453e4",
+      "scripts/security-lab/worker_image_fixture.py": "6637621c978fc6fe508013e417ca73468794e07b8c91455aa6bd83236551a954",
+      "scripts/security-lab/delivery_worker.py": "dd7ce23cea44e5b0c90d6858fd6e803a3f8aca59eb9b4fbb1a529e39a507c1be",
+      "scripts/security-lab/event_delivery.py": "c1866e75a1a34d3ee6c1660a2b32503cf50918909c20ad0e9f5714d657303d03",
+      "specs/019-traderx-security-lab/system/sql/execution-reservations.sql": "f11d808436862d0db1350a517b61ff04ee608a01da9975c474652678c3129057",
+      "specs/019-traderx-security-lab/system/sql/execution-settlement.sql": "2ff3c247e6de32b7d15f7a83c00708ad44c883ddb48c279316ee4aa98055cb65",
+      "specs/019-traderx-security-lab/system/sql/execution-events.sql": "c578a5702246c21bd8493512466a6a4f9eaba3822dac358d8f24f8bedf551106",
+      "specs/019-traderx-security-lab/system/sql/execution-consumer.sql": "f640fddc816a4877358c770169208366571bc3b96115320178016114da63b791"
+    },
+    "limitations": [
+      "Hosted Docker image acceptance; no Kubernetes composition claim.",
+      "Postcommit fault denies only broker ACK permission; actual SIGKILL, not host power loss.",
+      "Synthetic settlement and SQL gates; same-database reference projection."
+    ]
+  },
+  "remaining": [
+    "S019-06a3b1: position-service image and reusable private Spring configuration/verified PostgreSQL TLS adapter.",
+    "S019-06a3b2-b4: remaining Java images, separate .NET adapter and support-service composition.",
+    "Cumulative application, gateway/WAF, CNI, image-signature, external-evidence and recovery acceptance.",
+    "Residual-authority/runtime comparison and clean-machine learner/release validation."
+  ],
+  "operational_constraints": {
+    "local_docker_changed": false,
+    "local_citrix_changed": false,
+    "screen_sharing_used": false,
+    "main_merged": false,
+    "images_published": false,
+    "generated_state_published": false
+  },
+  "local_python_tests": 366,
+  "required_spec_gates": "passed",
+  "hosted_regressions": {
+    "status": "passed",
+    "jobs": [
+      "integration",
+      "people-authorization",
+      "integrated-admission",
+      "browser-journey",
+      "runtime-images",
+      "application-consumers"
+    ],
+    "source_branch_commit": "1b40c4cc9ca6721e6b461fcc38e51ee3638f1b0d"
+  }
+}

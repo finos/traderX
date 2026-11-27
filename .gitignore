@@ -489,3 +489,6 @@ website/yarn-error.log*
 
 # Local Seam Tests
 tests/seam-tests/__pycache__/
+
+# Isolated offline security checkpoint dependencies
+.venv-security-checkpoint/

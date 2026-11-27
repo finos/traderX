@@ -53,6 +53,7 @@ flowchart TB
   S012_platform_convergence_c3["012: Platform Convergence C3 [C3]"]
   S013_radius_kubernetes_platform["013: Radius Platform on Kubernetes (Optional)"]
   S014_fdc3_intent_interoperability["014: FDC3 Intent Interoperability on C3"]
+  S019_traderx_security_lab["019: TraderX Security Lab (Planned)"]
   S001_baseline_uncontainerized_parity --> S002_edge_proxy_uncontainerized
   S002_edge_proxy_uncontainerized --> S003_agentic_harness_foundation
   S003_agentic_harness_foundation --> S004_containerized_compose_runtime
@@ -66,6 +67,7 @@ flowchart TB
   S011_tilt_kubernetes_dev_loop --> S012_platform_convergence_c3
   S012_platform_convergence_c3 --> S013_radius_kubernetes_platform
   S012_platform_convergence_c3 --> S014_fdc3_intent_interoperability
+  S012_platform_convergence_c3 -.-> S019_traderx_security_lab
   S009_order_management_matcher -.-> S012_platform_convergence_c3
   click S001_baseline_uncontainerized_parity href "/docs/learning/state-001-baseline-uncontainerized-parity" "Open State 001 Learning Guide"
   click S002_edge_proxy_uncontainerized href "/docs/learning/state-002-edge-proxy-uncontainerized" "Open State 002 Learning Guide"
@@ -81,6 +83,7 @@ flowchart TB
   click S012_platform_convergence_c3 href "/docs/learning/state-012-platform-convergence-c3" "Open State 012 Learning Guide"
   click S013_radius_kubernetes_platform href "/docs/learning/state-013-radius-kubernetes-platform" "Open State 013 Learning Guide"
   click S014_fdc3_intent_interoperability href "/docs/learning/state-014-fdc3-intent-interoperability" "Open State 014 Learning Guide"
+  click S019_traderx_security_lab href "/docs/learning/state-019-traderx-security-lab" "Open State 019 Learning Guide"
   classDef convergence fill:#d7f5dd,stroke:#2e7d32,stroke-width:2px
   class S004_containerized_compose_runtime convergence
   class S007_observability_lgtm_compose convergence
@@ -106,6 +109,7 @@ flowchart TB
 | **[`012-platform-convergence-c3`](pathname:///specs/platform-convergence-c3)** [(C3)](pathname:///docs/spec-kit/convergence-states#c3) | [link](pathname:///specs/platform-convergence-c3) | [link](pathname:///specs/platform-convergence-c3/system/architecture) | [link](pathname:///specs/platform-convergence-c3/system/runtime-topology) | [link](pathname:///docs/learning/state-012-platform-convergence-c3) | [code/generated-state-012-platform-convergence-c3](https://github.com/finos/traderX/tree/code/generated-state-012-platform-convergence-c3) |
 | [`013-radius-kubernetes-platform`](pathname:///specs/radius-kubernetes-platform) | [link](pathname:///specs/radius-kubernetes-platform) | [link](pathname:///specs/radius-kubernetes-platform/system/architecture) | [link](pathname:///specs/radius-kubernetes-platform/system/runtime-topology) | [link](pathname:///docs/learning/state-013-radius-kubernetes-platform) | [code/generated-state-013-radius-kubernetes-platform](https://github.com/finos/traderX/tree/code/generated-state-013-radius-kubernetes-platform) |
 | [`014-fdc3-intent-interoperability`](pathname:///specs/fdc3-intent-interoperability) | [link](pathname:///specs/fdc3-intent-interoperability) | [link](pathname:///specs/fdc3-intent-interoperability/system/architecture) | [link](pathname:///specs/fdc3-intent-interoperability/system/runtime-topology) | [link](pathname:///docs/learning/state-014-fdc3-intent-interoperability) | [code/generated-state-014-fdc3-intent-interoperability](https://github.com/finos/traderX/tree/code/generated-state-014-fdc3-intent-interoperability) |
+| [`019-traderx-security-lab`](pathname:///specs/traderx-security-lab) | [link](pathname:///specs/traderx-security-lab) | [link](pathname:///specs/traderx-security-lab/system/architecture) | [link](pathname:///specs/traderx-security-lab/system/system-context) | [link](pathname:///docs/learning/state-019-traderx-security-lab) | `n/a` |
 
 ## Swimlane View
 
@@ -136,6 +140,7 @@ flowchart TB
     S011_tilt_kubernetes_dev_loop["011: Tilt Local Dev on Kubernetes"]
     S012_platform_convergence_c3["012: Platform Convergence C3 [C3]"]
     S013_radius_kubernetes_platform["013: Radius Platform on Kubernetes (Optional)"]
+    S019_traderx_security_lab["019: TraderX Security Lab (Planned)"]
   end
   S001_baseline_uncontainerized_parity --> S002_edge_proxy_uncontainerized
   S002_edge_proxy_uncontainerized --> S003_agentic_harness_foundation
@@ -150,6 +155,7 @@ flowchart TB
   S011_tilt_kubernetes_dev_loop --> S012_platform_convergence_c3
   S012_platform_convergence_c3 --> S013_radius_kubernetes_platform
   S012_platform_convergence_c3 --> S014_fdc3_intent_interoperability
+  S012_platform_convergence_c3 -.-> S019_traderx_security_lab
   S009_order_management_matcher -.-> S012_platform_convergence_c3
   classDef convergence fill:#d7f5dd,stroke:#2e7d32,stroke-width:2px
 ```

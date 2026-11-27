@@ -1,0 +1,103 @@
+{
+  "date": "2026-11-24",
+  "tasks": [
+    "S019-03c4",
+    "S019-03c5"
+  ],
+  "database": {
+    "status": "passed",
+    "scope": "Live Kubernetes database-only lifecycle",
+    "namespace": "traderx-security-lab-019",
+    "cluster_uid": "bfc5e657-7efd-4eb9-ab2a-8afaa66a88f4",
+    "pvc_uid": "b87b4270-75f8-493d-847a-d957ee84893b",
+    "pod_uids": [
+      "883ea18c-cfd6-49ad-a382-ff8e5e4a33ef",
+      "0e179899-0b0b-4699-a48b-81f9d744a3f2",
+      "8c457abe-374c-478e-9d57-0ba59d4a43fc"
+    ],
+    "immutable_secret_count": 5,
+    "restarts": 2,
+    "injected_transaction_failure_recovered": true,
+    "canary_preserved": true,
+    "seed_fingerprints": {
+      "accounts": "7|72a4fe764ea70f6e757b8f5ead09895c",
+      "accountusers": "18|7ed8c1e84deb16de3db65374daca90ae",
+      "positions": "4|1e8d4eee0a3ba235c5983d3f0c42b1b8",
+      "trades": "4|5c45c656427f09169126455b91f5ae00",
+      "orderbook": "0|empty"
+    },
+    "final_state": "database stopped; PVC and five Secrets retained",
+    "limitations": [
+      "No application, telemetry, business authorization or trading acceptance in this campaign."
+    ]
+  },
+  "trading": {
+    "status": "passed",
+    "scope": "Bounded live trading candidate, not full hardened state",
+    "namespace": "traderx-security-lab-019",
+    "trade_id": "8870bd01-c5ce-40a9-8dfd-b4639ad6b0f9",
+    "order_id": "ord-013-0009",
+    "checks": [
+      "account read",
+      "trade submission",
+      "asynchronous settlement",
+      "independent SQL settlement",
+      "unknown ticker rejected",
+      "unknown account rejected",
+      "order creation",
+      "account order listing",
+      "cancellation with SQL outcome",
+      "unsafe workload denied by scoped admission"
+    ],
+    "limitations": [
+      "Anonymous reference NATS and existing business APIs; identity/broker cutover remains pending.",
+      "Telemetry persistence, collector migration, WAF/network integration and full-state CI not covered."
+    ]
+  },
+  "resources": {
+    "status": "ready",
+    "mode": "acceptance",
+    "reasons": [],
+    "required_headroom_bytes": 805306368,
+    "observation": {
+      "host_pressure": "normal",
+      "docker_memory_bytes": 6213808128,
+      "containers": [
+        {
+          "name": "traderx-security-lab-control-plane",
+          "memory_bytes": 4558034042
+        },
+        {
+          "name": "buildx_buildkit_traderx-009-recovery0",
+          "memory_bytes": 30282874
+        }
+      ]
+    },
+    "limitations": [
+      "Snapshot only; not a reservation or a guarantee against subsequent pressure.",
+      "Docker container working sets omit some VM/kernel overhead; margins are provisional.",
+      "Readiness does not establish application health or security acceptance."
+    ]
+  },
+  "source_sha256": {
+    "scripts/security-lab/database_lifecycle.py": "3e4d6116a6c522b5b136e437ddca6700b1bf57d99f9e82c3b6169bcb869d6e14",
+    "scripts/security-lab/trading_lifecycle.py": "3dab92f4e1249404e13580c171be0d0b037742a64e6863cdaa1cfc869eebb990",
+    "scripts/security-lab/verify_kubernetes_database.py": "2e22d1b926b90c0ae97f51691e02da5ef1f4a474fa9c4290e9930eb55b25416e",
+    "scripts/security-lab/verify_trading_lifecycle.py": "fa804b6e8685a47d975ee01a0e0fba7f09b21984130d576ecec9a80eb36e6b84"
+  },
+  "review_notes": [
+    "Initial trading verifier assumed the submission ID was the committed ID; corrected to reflect pinned C3 null request ID and processor-generated UUID.",
+    "All fifteen candidate Deployments stopped afterward; PVCs and Secrets retained.",
+    "Older prototype replica settings saved privately before scaling it down; state-014 never started."
+  ],
+  "limitations": [
+    "Four stateful telemetry services and collector lifecycle not integrated.",
+    "Business authentication, NATS authorization, WAF/network integration and image trust remain pending.",
+    "Not full-state or clean-machine acceptance."
+  ],
+  "local_tests": 139,
+  "required_spec_gates": "passed",
+  "checkpoint_reproduction": "byte-identical",
+  "final_host_state": "Both clusters and lightweight account lab stopped; candidate PVCs and Secrets retained",
+  "local_browser_restore": "Blocked by expired identity/certificate trust; renewed localhost certificate awaits successful keychain trust update"
+}

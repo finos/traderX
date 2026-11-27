@@ -99,13 +99,14 @@ Use the [learning-partner protocol](/docs/learning/how-to-learn#learn-with-an-ag
 
 - Published images can differ from local edits and may use emulation on Apple Silicon. Startup timing alone is not a functional regression verdict.
 - This is an educational local demonstration. Passing its checks does not establish production readiness, financial settlement, or correctness under every failure mode.
+- The experimental Security Lab has an evidence-linked [learning progression](/specs/platform-convergence-c3/security-lab/progression) and [residual-risk experiments](/specs/platform-convergence-c3/security-lab/contracts/residual-risk). Verified checkpoints are distinct from isolated fixtures and planned work. Assumed compromise does not prove a real exploit; the CVE/OSERA branch requires its own evidence. A separate CALM follow-on state will compare manual and model-driven controls with the same tests. The complete hardened profile and follow-on state are not yet accepted.
 
 
 ## Position In Learning Graph
 
 - Previous state(s): [011-tilt-kubernetes-dev-loop](/docs/learning/state-011-tilt-kubernetes-dev-loop)
 - Dotted-line parent(s): [009-order-management-matcher](/docs/learning/state-009-order-management-matcher)
-- Next state(s): [013-radius-kubernetes-platform](/docs/learning/state-013-radius-kubernetes-platform), [014-fdc3-intent-interoperability](/docs/learning/state-014-fdc3-intent-interoperability)
+- Next state(s): [013-radius-kubernetes-platform](/docs/learning/state-013-radius-kubernetes-platform), [014-fdc3-intent-interoperability](/docs/learning/state-014-fdc3-intent-interoperability), [019-traderx-security-lab](/docs/learning/state-019-traderx-security-lab)
 
 ## Convergence Metadata
 

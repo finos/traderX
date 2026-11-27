@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-24",
+  "task": "S019-03f",
+  "status": "offline-validation-passed",
+  "chart_sha256": "0c7592eb75179ecf46dd3ec22145916f0164c4401214ea15afb5b230b1d11a21",
+  "render_sha256": "996a802e2c1b3870c7a19a5b5fde8e89ccec1189aa9bcf334b3ba218c2e2bff1",
+  "unique_images": 3,
+  "rendered_container_entries": 9,
+  "repeat_bundles": "byte-identical",
+  "helm_version": "v3.17.3",
+  "profile_difference": "Optional Hubble disabled for fresh setup to avoid nondeterministic embedded private TLS keys; existing cluster unchanged.",
+  "focused_tests": 9,
+  "checks": [
+    "bad chart refused before Helm",
+    "wrong Helm version refused",
+    "no overwrite or partial accepted bundle",
+    "symlink and bundle drift refused",
+    "checkpoint failure blocks creation",
+    "existing cluster/container refused",
+    "failed creation retains journal without cleanup",
+    "simulated creation uses explicit kubeconfig/context and records UID",
+    "plan has no subprocesses"
+  ],
+  "quality_gates": "frontmatter/root SpecKit/readiness/spec coverage passed",
+  "website": "394 Markdown pages and 15 learning journeys",
+  "live_cluster_create": "not run",
+  "browser_lab": "left running",
+  "citrix": "untouched",
+  "limitations": [
+    "No new live provisioning or network-enforcement acceptance.",
+    "Helm version is checked, not executable provenance; artifact hashes are not signatures.",
+    "Live fresh-platform, clean-machine and standalone generated-state acceptance remain pending."
+  ]
+}

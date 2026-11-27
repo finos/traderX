@@ -1,0 +1,22 @@
+{
+  "coraza_release": "0.6.0",
+  "coraza_zip_sha256": "cca4e3c75cf6b2e615907f936a1b6dcd0955250e0fb7d3b1c2ecef807d84603c",
+  "publisher_digest_verified": true,
+  "wasm_sha256": "f36e710529167482df820b790981230092da098d26d21aebb16f1d9c8c4e26d5",
+  "envoy": {
+    "source": "envoyproxy/envoy:v1.40.2",
+    "index_digest": "sha256:8de97e654644827d62afdbf7e1d3dc9fee01a8690d410dd1c63a30dc6b6cecbb",
+    "digest": "sha256:401cf6645d36f5e599dd26eec125a0a9d21c92267bc37b702d24c327b1ed889a",
+    "platform": "linux/arm64",
+    "image": "docker.io/envoyproxy/envoy@sha256:401cf6645d36f5e599dd26eec125a0a9d21c92267bc37b702d24c327b1ed889a"
+  },
+  "backend": {
+    "source": "python:3.13-alpine",
+    "index_digest": "sha256:9ef1a599f863231c3d91e941389bfdc4a2d6070557243d54df1a4e57015b960e",
+    "digest": "sha256:9cf2fdca7b3dd6082fd160ff5b8664f108c7441e200018a36554b2e8028f45df",
+    "platform": "linux/arm64",
+    "image": "docker.io/library/python@sha256:9cf2fdca7b3dd6082fd160ff5b8664f108c7441e200018a36554b2e8028f45df"
+  },
+  "coraza_core": "3.3.3",
+  "scope": "compatibility spike; dependency/admission assessment required before hardened baseline"
+}

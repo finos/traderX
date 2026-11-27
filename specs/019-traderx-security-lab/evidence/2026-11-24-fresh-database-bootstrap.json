@@ -1,0 +1,67 @@
+{
+  "status": "passed",
+  "scope": "two disposable PostgreSQL instances; no application or Kubernetes deployment",
+  "image": "ghcr.io/finos/traderx-c3/database@sha256:1aa68521a486e2c217e6d1b1328ae3d01816302eeddbeb664f34445d6844f022",
+  "rounds": [
+    {
+      "round": 1,
+      "counts": {
+        "accounts": 7,
+        "accountusers": 18,
+        "positions": 4,
+        "trades": 4,
+        "orderbook": 0
+      },
+      "fingerprints": {
+        "accounts": "7|72a4fe764ea70f6e757b8f5ead09895c",
+        "accountusers": "18|7ed8c1e84deb16de3db65374daca90ae",
+        "positions": "4|1e8d4eee0a3ba235c5983d3f0c42b1b8",
+        "trades": "4|5c45c656427f09169126455b91f5ae00",
+        "orderbook": "0|empty"
+      },
+      "privilege_and_operation_checks": 156,
+      "repeat_bootstrap": "refused-with-data-and-original-credentials-preserved"
+    },
+    {
+      "round": 2,
+      "counts": {
+        "accounts": 7,
+        "accountusers": 18,
+        "positions": 4,
+        "trades": 4,
+        "orderbook": 0
+      },
+      "fingerprints": {
+        "accounts": "7|72a4fe764ea70f6e757b8f5ead09895c",
+        "accountusers": "18|7ed8c1e84deb16de3db65374daca90ae",
+        "positions": "4|1e8d4eee0a3ba235c5983d3f0c42b1b8",
+        "trades": "4|5c45c656427f09169126455b91f5ae00",
+        "orderbook": "0|empty"
+      },
+      "privilege_and_operation_checks": 156,
+      "repeat_bootstrap": "refused-with-data-and-original-credentials-preserved"
+    }
+  ],
+  "injected_failure": "transaction rolled back objects and roles before clean retry",
+  "limits": {
+    "memory": "256Mi",
+    "cpu": 1,
+    "host_ports": 0
+  },
+  "limitations": [
+    "Local database fixture only; full trading and cluster lifecycle remain pending.",
+    "Fresh bootstrap refuses existing data; it is not a migration or reset.",
+    "Privileges are service-level; user/business authorization remains a separate boundary."
+  ],
+  "source_sha256": {
+    "scripts/security-lab/bootstrap_database.py": "a3fa3a13a589d349be4f2e9b1ec65311573ad78ca64a0343858a2c5adbfdd6cd",
+    "scripts/security-lab/verify_bootstrap.py": "1db05aad998a2878b7651c4cfab570aa99a88828568948f15db61d7b5d0fc33d",
+    "scripts/security-lab/database_permissions.py": "3ed62241586bae869fea3d63f39826046032889b03eb795ca769759a72a22978"
+  },
+  "additional_checks": [
+    "Existing non-public user-schema canary preserved after refusal",
+    "No fixture-owned containers remain after campaign",
+    "107 local Python tests passed",
+    "Offline checkpoint repeats byte-for-byte"
+  ]
+}

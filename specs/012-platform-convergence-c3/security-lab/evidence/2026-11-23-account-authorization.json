@@ -1,0 +1,640 @@
+{
+  "run_id": "23ef6c3e026b4f46b877cc630dd9da2a",
+  "status": "passed",
+  "started_at": "2026-11-23T06:20:00.677735+00:00",
+  "scope": "real-Spring-account-API-with-test-signed-tokens",
+  "jar_sha256": "2995eb200cd4407dcd647a2a89d31aed6ec6f0447278ffac9ebd91cadd736133",
+  "public_key_sha256": "d862612e055153fcdfa42acb28f2a14ac39401575a39c1413f87f5a35df00eb3",
+  "cycles": [
+    {
+      "cycle": 1,
+      "cases": [
+        {
+          "id": "anonymous-read",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "spoofed-identity-headers",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-reader-filtered-accounts",
+          "http_status": 200,
+          "outcome": "allowed"
+        },
+        {
+          "id": "lab-reader-filtered-memberships",
+          "http_status": 200,
+          "outcome": "allowed"
+        },
+        {
+          "id": "lab-reader-own-account",
+          "http_status": 200,
+          "outcome": "allowed"
+        },
+        {
+          "id": "lab-reader-own-membership",
+          "http_status": 200,
+          "outcome": "allowed"
+        },
+        {
+          "id": "lab-reader-cross-account",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-reader-cross-membership",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-reader-unknown-object",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-reader-POST-account",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-reader-POST-membership",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-reader-PUT-account",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-reader-PUT-membership",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-trader-filtered-accounts",
+          "http_status": 200,
+          "outcome": "allowed"
+        },
+        {
+          "id": "lab-trader-filtered-memberships",
+          "http_status": 200,
+          "outcome": "allowed"
+        },
+        {
+          "id": "lab-trader-own-account",
+          "http_status": 200,
+          "outcome": "allowed"
+        },
+        {
+          "id": "lab-trader-own-membership",
+          "http_status": 200,
+          "outcome": "allowed"
+        },
+        {
+          "id": "lab-trader-cross-account",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-trader-cross-membership",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-trader-unknown-object",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-trader-POST-account",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-trader-POST-membership",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-trader-PUT-account",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-trader-PUT-membership",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-operator-filtered-accounts",
+          "http_status": 200,
+          "outcome": "allowed"
+        },
+        {
+          "id": "lab-operator-filtered-memberships",
+          "http_status": 200,
+          "outcome": "allowed"
+        },
+        {
+          "id": "lab-operator-cross-account",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-operator-cross-membership",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-operator-unknown-object",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-operator-POST-account",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-operator-POST-membership",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-operator-PUT-account",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-operator-PUT-membership",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "unmapped-principal",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "unlisted-method-DELETE",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "unlisted-method-PATCH",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "unlisted-method-HEAD",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "unlisted-method-OPTIONS",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "unlisted-operator-route",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "cross-origin-access",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "wrong-issuer",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "wrong-audience",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "id-token-audience",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "expired",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "future-issued-at",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "future-not-before",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "missing-expiry",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "missing-issued-at",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "missing-subject",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "blank-subject",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "missing-audience",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "wrong-signature",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "wrong-rsa-algorithm",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "hmac-algorithm",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "unsigned",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "malformed",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "tampered-token",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "unmapped-empty-list",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "mapped-empty-list",
+          "http_status": 200,
+          "outcome": "allowed"
+        }
+      ],
+      "before_sha256": "c7f6a4d43aa407d8ed1b356da8d216330bd055f4d942ff05791346d6d5855cde",
+      "after_denials_sha256": "c7f6a4d43aa407d8ed1b356da8d216330bd055f4d942ff05791346d6d5855cde",
+      "reset_restored": true
+    },
+    {
+      "cycle": 2,
+      "cases": [
+        {
+          "id": "anonymous-read",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "spoofed-identity-headers",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-reader-filtered-accounts",
+          "http_status": 200,
+          "outcome": "allowed"
+        },
+        {
+          "id": "lab-reader-filtered-memberships",
+          "http_status": 200,
+          "outcome": "allowed"
+        },
+        {
+          "id": "lab-reader-own-account",
+          "http_status": 200,
+          "outcome": "allowed"
+        },
+        {
+          "id": "lab-reader-own-membership",
+          "http_status": 200,
+          "outcome": "allowed"
+        },
+        {
+          "id": "lab-reader-cross-account",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-reader-cross-membership",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-reader-unknown-object",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-reader-POST-account",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-reader-POST-membership",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-reader-PUT-account",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-reader-PUT-membership",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-trader-filtered-accounts",
+          "http_status": 200,
+          "outcome": "allowed"
+        },
+        {
+          "id": "lab-trader-filtered-memberships",
+          "http_status": 200,
+          "outcome": "allowed"
+        },
+        {
+          "id": "lab-trader-own-account",
+          "http_status": 200,
+          "outcome": "allowed"
+        },
+        {
+          "id": "lab-trader-own-membership",
+          "http_status": 200,
+          "outcome": "allowed"
+        },
+        {
+          "id": "lab-trader-cross-account",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-trader-cross-membership",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-trader-unknown-object",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-trader-POST-account",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-trader-POST-membership",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-trader-PUT-account",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-trader-PUT-membership",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-operator-filtered-accounts",
+          "http_status": 200,
+          "outcome": "allowed"
+        },
+        {
+          "id": "lab-operator-filtered-memberships",
+          "http_status": 200,
+          "outcome": "allowed"
+        },
+        {
+          "id": "lab-operator-cross-account",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-operator-cross-membership",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-operator-unknown-object",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-operator-POST-account",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-operator-POST-membership",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-operator-PUT-account",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "lab-operator-PUT-membership",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "unmapped-principal",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "unlisted-method-DELETE",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "unlisted-method-PATCH",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "unlisted-method-HEAD",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "unlisted-method-OPTIONS",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "unlisted-operator-route",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "cross-origin-access",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "wrong-issuer",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "wrong-audience",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "id-token-audience",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "expired",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "future-issued-at",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "future-not-before",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "missing-expiry",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "missing-issued-at",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "missing-subject",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "blank-subject",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "missing-audience",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "wrong-signature",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "wrong-rsa-algorithm",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "hmac-algorithm",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "unsigned",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "malformed",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "tampered-token",
+          "http_status": 401,
+          "outcome": "denied"
+        },
+        {
+          "id": "unmapped-empty-list",
+          "http_status": 403,
+          "outcome": "denied"
+        },
+        {
+          "id": "mapped-empty-list",
+          "http_status": 200,
+          "outcome": "allowed"
+        }
+      ],
+      "before_sha256": "c7f6a4d43aa407d8ed1b356da8d216330bd055f4d942ff05791346d6d5855cde",
+      "after_denials_sha256": "c7f6a4d43aa407d8ed1b356da8d216330bd055f4d942ff05791346d6d5855cde",
+      "reset_restored": true
+    }
+  ],
+  "limitations": [
+    "Test signer is not a live Keycloak login-to-API integration.",
+    "Loopback HTTP development only; C3, other APIs, browser sessions and broker authorization are unchanged.",
+    "Static public-key trust expires after eight hours; dynamic rotation/revocation is not implemented.",
+    "All account/membership writes are denied; privileged provisioning and trading authorization remain separate."
+  ],
+  "finished_at": "2026-11-23T06:22:30.036670+00:00",
+  "source_sha256": {
+    "scripts/security-lab/verify_account_authorization.py": "13e258c16d9ce929ae47c1fc33b05d8fcc0a6ec0af2f61eae1881eadf0982266",
+    "scripts/security-lab/account_dev.py": "5fd010f74edd732b306ef4869928caf17ae71df10708de0756a39673d8274b93"
+  },
+  "resource_observation": {
+    "combined_working_set_mib": 486.11,
+    "account_mib": 353.3,
+    "database_mib": 117.7,
+    "people_mib": 15.11,
+    "scope": "one post-test sample; excludes Docker VM overhead and startup peaks",
+    "c3": "stopped",
+    "state_014": "stopped"
+  },
+  "startup_notes": [
+    "Initial parallel Compose pulls failed with missing pinned images before API testing.",
+    "Sequential pull/create retained image references; two subsequent retained-container reset cycles passed. Image-removal actor remains unidentified."
+  ]
+}

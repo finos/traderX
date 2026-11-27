@@ -1,0 +1,55 @@
+name: Security Lab Offline Checkpoint
+on:
+  pull_request:
+    paths:
+      - 'scripts/security-lab/**'
+      - 'scripts/test-state-019-checkpoint.sh'
+      - 'specs/012-platform-convergence-c3/security-lab/**'
+      - 'specs/019-traderx-security-lab/**'
+      - '.github/workflows/security-lab-checkpoint.yml'
+permissions:
+  contents: read
+jobs:
+  offline-checkpoint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+      - name: Install compiler dependency
+        run: python -m pip install -r scripts/security-lab/requirements.txt
+      - name: Test offline failure and integrity boundaries
+        run: python -m unittest discover -s scripts/security-lab -p 'test_checkpoint.py'
+      - name: Test fresh database bootstrap compiler
+        run: python -m unittest discover -s scripts/security-lab -p 'test_bootstrap_database.py'
+      - name: Test private credential persistence
+        run: python -m unittest discover -s scripts/security-lab -p 'test_credential_store.py'
+      - name: Fetch immutable reference snapshot
+        run: python scripts/security-lab/checkpoint.py fetch-baseline
+      - name: Validate composed controls against the pinned snapshot
+        run: python -m unittest discover -s scripts/security-lab -p 'test_control_bundle.py'
+      - name: Test database lifecycle ownership and failure boundaries
+        run: python -m unittest discover -s scripts/security-lab -p 'test_database_lifecycle.py'
+      - name: Test bounded trading candidate composition
+        run: python -m unittest discover -s scripts/security-lab -p 'test_trading_lifecycle.py'
+      - name: Test telemetry lifecycle and cumulative policy coverage
+        run: |
+          python -m unittest discover -s scripts/security-lab -p 'test_telemetry_lifecycle.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_state_lifecycle.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_state_candidate.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_platform_readiness.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_platform_setup.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_cluster_identity.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_storage_preflight.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_resource_operation.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_labctl.py'
+      - name: Validate CCC assessment references and scope
+        run: |
+          python scripts/security-lab/validate_ccc_assessment.py
+          python -m unittest discover -s scripts/security-lab -p 'test_validate_ccc_assessment.py'
+      - name: Reproduce and verify checkpoint without a cluster
+        run: TRADERX_SECURITY_PYTHON=python bash scripts/test-state-019-checkpoint.sh

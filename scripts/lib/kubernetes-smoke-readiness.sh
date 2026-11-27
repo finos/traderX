@@ -43,9 +43,10 @@ traderx_k8s_rollout_status_all() {
     kubectl rollout status "${deployment}" -n "${namespace}" --timeout="${timeout}" >/dev/null
   done
 
-  if kubectl get daemonset/promtail -n "${namespace}" >/dev/null 2>&1; then
-    echo "[wait] rollout daemonset/promtail in namespace ${namespace}"
-    kubectl rollout status daemonset/promtail -n "${namespace}" --timeout="${timeout}" >/dev/null
+  local collector_namespace="${TRADERX_LOG_COLLECTOR_NAMESPACE:-${namespace}}"
+  if kubectl get daemonset/promtail -n "${collector_namespace}" >/dev/null 2>&1; then
+    echo "[wait] rollout daemonset/promtail in namespace ${collector_namespace}"
+    kubectl rollout status daemonset/promtail -n "${collector_namespace}" --timeout="${timeout}" >/dev/null
   fi
 }
 
@@ -68,8 +69,8 @@ traderx_wait_for_traderx_ingress_readiness() {
     "account-service|${ingress_url}/account-service/actuator/health|200"
     "account-lookup|${ingress_url}/account-service/account/22214|200"
     "position-service|${ingress_url}/position-service/health/ready|200"
-    "trade-service|${ingress_url}/trade-service/health|200"
-    "trade-processor|${ingress_url}/trade-processor/health|200"
+    "trade-service|${ingress_url}/trade-service/actuator/health|200"
+    "trade-processor|${ingress_url}/trade-processor/actuator/health|200"
     "price-publisher|${ingress_url}/price-publisher/health|200"
     "order-matcher|${ingress_url}/order-matcher/health|200"
     "grafana|${ingress_url}/grafana/api/health|200"

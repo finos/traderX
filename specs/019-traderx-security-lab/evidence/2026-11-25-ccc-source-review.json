@@ -1,0 +1,29 @@
+{
+  "date": "2026-11-25",
+  "status": "catalog-text-and-release-pins-verified",
+  "controls": 10,
+  "requirements": 31,
+  "sources": [
+    {
+      "release_tag": "orchestration/k8s/v2026.11",
+      "commit": "f36872f7ff09bd4db6670f560707107bc3c0a548",
+      "catalog_url": "https://github.com/finos/common-cloud-controls/blob/f36872f7ff09bd4db6670f560707107bc3c0a548/catalogs/orchestration/k8s/controls.yaml",
+      "sha256": "c1bf393cb801d7face308daa3147831505d232080ac9540c2c481654ae8d624b"
+    },
+    {
+      "release_tag": "networking/loadbalancer/v2026.11",
+      "commit": "56a388a18a6f2fdf13d933a0f9eddb16c8c9ccac",
+      "catalog_url": "https://github.com/finos/common-cloud-controls/blob/56a388a18a6f2fdf13d933a0f9eddb16c8c9ccac/catalogs/networking/loadbalancer/controls.yaml",
+      "sha256": "6d8cfd5d041e032c6ce7e1f2572ad1f35a22c498e1bad64c48db1e10c02f9424"
+    },
+    {
+      "release_tag": "database/relational/v2026.11",
+      "commit": "56a388a18a6f2fdf13d933a0f9eddb16c8c9ccac",
+      "catalog_url": "https://github.com/finos/common-cloud-controls/blob/56a388a18a6f2fdf13d933a0f9eddb16c8c9ccac/catalogs/database/relational/controls.yaml",
+      "sha256": "c5e3690ff9fcc9b4af746b898f36c71db9882f2c14c9861155150511c454b32c"
+    }
+  ],
+  "limitations": [
+    "Source review and offline map validation do not prove deployed control coverage or compliance."
+  ]
+}

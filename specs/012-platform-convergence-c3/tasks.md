@@ -1,5 +1,7 @@
 # Tasks: 012-platform-convergence-c3
 
+Experimental Security Lab tasks are tracked in [security-lab/tasks.md](security-lab/tasks.md), with runtime milestones explicitly incomplete.
+
 - [x] T00601 Define functional deltas in `requirements/functional-delta.md`.
 - [x] T00602 Define non-functional deltas in `requirements/nonfunctional-delta.md`.
 - [x] T00603 Define contract deltas in `contracts/contract-delta.md`.

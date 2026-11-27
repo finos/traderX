@@ -28,3 +28,7 @@ runner in generated snapshots. The pack carries the exact generated production
 initialization SQL so the reference tests remain runnable in Kubernetes descendants
 that remove Compose-only directories. This preserves the inherited NFR-01323
 regression obligation without retaining obsolete runtime components.
+
+## Security Lab compatibility hooks — #510
+
+Opt-in NATS credential and TLS configuration is added to the canonical matcher publisher/subscriber inputs for the C3-derived security experiment. Anonymous defaults and the C2 trading contract remain intact. These hooks enable candidate compatibility tests; they do not claim live broker authorization or alter the convergence parent.
