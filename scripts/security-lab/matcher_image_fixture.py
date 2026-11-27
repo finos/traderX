@@ -7,6 +7,7 @@ import http.client
 import ipaddress
 import json
 import math
+import re
 from pathlib import Path
 import secrets
 import socket
@@ -31,8 +32,9 @@ REALM='/realms/matcher-fixture'
 TOKEN_PATH=REALM+'/protocol/openid-connect/token'
 BROKER_PERMISSIONS={
     'matcher':{'publish':{'allow':['/accounts/62654/orders']},'subscribe':{'allow':['pricing.*']}},
-    'pricing-fixture':{'publish':{'allow':['pricing.IBM']},'subscribe':{'deny':['>']}}}
-STAGES=frozenset(('token_start','token_ready','token_cleanup','broker_diagnostics','price_publish','publication_probe'))
+    'pricing-fixture':{'publish':{'allow':['pricing.IBM']},'subscribe':{'deny':['>']}},
+    'order-observer':{'publish':{'deny':['>']},'subscribe':{'allow':['/accounts/62654/orders']}}}
+STAGES=frozenset(('token_start','token_ready','token_cleanup','broker_diagnostics','price_publish','publication_probe','observer_start','observer_receive','observer_cleanup'))
 
 
 class MatcherFixtureFailure(RuntimeError):
@@ -189,6 +191,87 @@ class TokenPeer:
         self.server=None
 
 
+
+ORDER_STATUSES=frozenset(('NEW','PARTIALLY_FILLED','FILLED','CANCELED','REJECTED'))
+
+
+def order_summary(data):
+    if not isinstance(data,bytes) or len(data)>8192:raise ValueError('Bounded order event required')
+    def unique(items):
+        value={}
+        for key,item in items:
+            if key in value:raise ValueError('Duplicate order field')
+            value[key]=item
+        return value
+    event=json.loads(data,object_pairs_hook=unique)
+    if (not isinstance(event,dict) or type(event.get('accountId')) is not int or event['accountId']!=62654
+        or not isinstance(event.get('orderId'),str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,64}',event['orderId'])
+        or not isinstance(event.get('status'),str) or event['status'] not in ORDER_STATUSES):raise ValueError('Invalid bounded order event')
+    return {name:event[name] for name in ('orderId','status','accountId')}
+
+
+class OrderObserver:
+    def __init__(self,f):
+        self.f=f;self.lock=threading.Lock();self.values=[];self.failed=False
+        self.started=threading.Event();self.stopping=threading.Event();self.thread=None
+
+    def receive(self,data):
+        try:
+            summary=order_summary(data)
+            with self.lock:
+                if summary in self.values:return
+                if len(self.values)>=128:raise ValueError('Bounded order inventory exhausted')
+                self.values.append(summary)
+        except Exception:
+            with self.lock:self.failed=True
+
+    async def run(self):
+        connection=None;errors=[]
+        try:
+            f=self.f
+            connection=await connect_broker(f['broker']['host_endpoint'],'order-observer',f['broker']['passwords']['order-observer'],f['broker']['ca'],errors)
+            async def message(value):self.receive(value.data)
+            await connection.subscribe('/accounts/62654/orders',cb=message)
+            await connection.flush(timeout=3)
+            if errors:raise ValueError('Observer subscription refused')
+            self.started.set()
+            while not self.stopping.is_set():
+                if errors:raise ValueError('Observer transport failed')
+                await asyncio.sleep(.1)
+        except Exception:
+            with self.lock:self.failed=True
+            self.started.set()
+        finally:
+            if connection is not None:
+                try:
+                    async with asyncio.timeout(3):await connection.close()
+                except Exception:
+                    with self.lock:self.failed=True
+
+    def start(self):
+        self.thread=threading.Thread(target=lambda:asyncio.run(self.run()),daemon=True);self.thread.start()
+        if not self.started.wait(6):raise MatcherFixtureFailure('observer_start')
+        self.events();return self
+
+    def events(self):
+        with self.lock:
+            if self.failed:raise MatcherFixtureFailure('observer_receive')
+            return [dict(value) for value in self.values]
+
+    def observed(self,order_id,status):
+        if not isinstance(order_id,str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,64}',order_id) or status not in ORDER_STATUSES:
+            raise ValueError('Explicit bounded order observation required')
+        return {'orderId':order_id,'status':status,'accountId':62654} in self.events()
+
+    def close(self):
+        self.stopping.set()
+        if self.thread is not None:
+            self.thread.join(timeout=6)
+            if self.thread.is_alive():raise MatcherFixtureFailure('observer_cleanup')
+        with self.lock:
+            if self.failed:raise MatcherFixtureFailure('observer_cleanup')
+
+
 def verified_gateway(f):
     info=peers.owned(f['docker'],'network',f['network'],f['owner'])
     gateway=str(ipaddress.IPv4Address(f['gateway']));pools=info.get('IPAM',{}).get('Config')
@@ -231,21 +314,27 @@ def matcher_publication_denied(f):
 @contextmanager
 def fixture(runtime):
     with peers.fixture(runtime,extra_permissions=BROKER_PERMISSIONS) as f:
-        peer=None;stage='token_start'
+        peer=None;observer=None;stage='token_start'
         try:
             gateway=verified_gateway(f);peer=TokenPeer(gateway,f['private']/'matcher-issuer')
             stage='token_ready';peer.start()
+            stage='observer_start';observer=OrderObserver(f);observer.start()
             enriched=dict(f,oauth={'issuer':peer.issuer,'token_endpoint':peer.token_endpoint,'client_id':CLIENT_ID,
                 'client_secret':peer.client_secret,'matcher_subject':SUBJECT,'audience':AUDIENCE,'ca':peer.ca,
                 'public_key':peer.signing_key.public_key().public_bytes(serialization.Encoding.PEM,serialization.PublicFormat.SubjectPublicKeyInfo),
                 'signing_key':peer.signing_key},oauth_counts=peer.counts,
                 publish_price=lambda price=99:publish_price(f,price),broker_auth_rejections=lambda:broker_auth_rejections(f),
-                matcher_publication_denied=lambda:matcher_publication_denied(f))
+                matcher_publication_denied=lambda:matcher_publication_denied(f),order_events=observer.events,order_observed=observer.observed)
             stage='active';yield enriched
         except Exception:
             if stage=='active':raise
             raise MatcherFixtureFailure(stage) from None
         finally:
+            failed=None
+            if observer is not None:
+                try:observer.close()
+                except Exception:failed='observer_cleanup'
             if peer is not None:
                 try:peer.close()
-                except Exception:raise MatcherFixtureFailure('token_cleanup') from None
+                except Exception:failed='token_cleanup'
+            if failed:raise MatcherFixtureFailure(failed) from None
