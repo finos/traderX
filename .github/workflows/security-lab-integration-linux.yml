@@ -20,11 +20,33 @@ on:
       - 'specs/019-traderx-security-lab/system/jetstream-images.lock.json'
       - 'specs/019-traderx-security-lab/system/runtime-images.lock.json'
       - 'specs/019-traderx-security-lab/system/java-runtime-images.lock.json'
+      - 'specs/019-traderx-security-lab/system/people-runtime-images.lock.json'
       - 'specs/019-traderx-security-lab/generation/**'
       - '.github/workflows/security-lab-integration-linux.yml'
 permissions:
   contents: read
 jobs:
+  source-tests:
+    if: github.event_name != 'workflow_dispatch' || inputs.campaign == 'all'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run complete lightweight security source regression
+        run: |
+          python -m pip install -r scripts/security-lab/requirements.txt
+          python -m pip install 'cryptography==50.0.2' 'PyJWT==2.15.1'
+          python -m pip install --require-hashes -r scripts/security-lab/requirements-delivery.txt
+          python scripts/security-lab/checkpoint.py fetch-baseline
+          python -m unittest discover -s scripts/security-lab -p 'test_*.py'
   integration:
     if: github.event_name != 'workflow_dispatch' || inputs.campaign == 'all'
     runs-on: ubuntu-latest
@@ -156,6 +178,7 @@ jobs:
           python -m pip install 'cryptography==50.0.2' 'PyJWT==2.15.1'
           python scripts/security-lab/checkpoint.py fetch-baseline
           python -m unittest discover -s scripts/security-lab -p 'test_people_security.py'
+          python -m unittest discover -s scripts/security-lab -p 'test_people_images.py'
           runtime="$(mktemp -d "$RUNNER_TEMP/traderx-people-integration.XXXXXXXX")"
           trap 'rm -rf "$runtime"' EXIT
           python scripts/security-lab/render_people_security.py --output-dir "$runtime/people-service"

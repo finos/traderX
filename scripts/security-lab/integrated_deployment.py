@@ -40,6 +40,7 @@ def source_manifest():
     paths.add(ROOT/'specs/012-platform-convergence-c3/security-lab/baseline.lock.json')
     paths.add(STATE/'system/runtime-images.lock.json')
     paths.add(STATE/'system/java-runtime-images.lock.json')
+    paths.add(STATE/'system/people-runtime-images.lock.json')
     values={str(p.relative_to(ROOT)):sha(p.read_bytes()) for p in sorted(paths)}
     return {'files':values,'sha256':sha(encoded(values))}
 
