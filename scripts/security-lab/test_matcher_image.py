@@ -74,6 +74,24 @@ class MatcherImageTests(unittest.TestCase):
             for kind in ('wrong_broker_ca','wrong_broker_hostname'):
                 self.assertEqual(campaign.broker_rejected(app,Mock(),kind,0,fixture),expected)
 
+    def test_wrapped_broker_tls_requires_broker_and_tls_evidence(self):
+        app=Mock();app.inspect.return_value={'State':{'Running':False}}
+        fixture={'broker_auth_rejections':lambda:0}
+        valid={'running':False,'exit_code':1,'oom_killed':False,'tls_rejection':True,
+               'markers':[],'categories':['broker_io','tls_handshake','tls_certificate_chain']}
+        for kind in ('wrong_broker_ca','wrong_broker_hostname'):
+            app.diagnostics.return_value=valid
+            self.assertTrue(campaign.broker_rejected(app,Mock(),kind,0,fixture))
+            for changes in (
+                {'categories':['tls_handshake','tls_certificate_chain']},
+                {'categories':['broker_io']},
+                {'categories':['broker_io','tls_keystore_password']},
+                {'tls_rejection':False}, {'exit_code':2}, {'oom_killed':True}, {'running':True},
+                {'categories':valid['categories']+['broker_configuration']},
+                {'markers':['configuration_refused']}):
+                app.diagnostics.return_value=dict(valid,**changes)
+                self.assertFalse(campaign.broker_rejected(app,Mock(),kind,0,fixture),changes)
+
     def test_runtime_diagnostics_never_copy_raw_error_text(self):
         error=RuntimeError('private-password')
         error.runtime_diagnostic={'categories':['broker_tls','private-password'],'exception_classes':['java.io.IOException'],

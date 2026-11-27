@@ -147,9 +147,18 @@ def broker_rejected(app,context,kind,authentication_before,f):
         except (OSError,http.client.HTTPException):pass
         time.sleep(.25)
     detail=app.diagnostics()
-    boundary=('broker_tls' in detail.get('categories',[]) if kind!='wrong_broker_password' else
-              'broker_io' in detail.get('categories',[]) and f['broker_auth_rejections']()>authentication_before)
-    return not served and detail['running'] is False and detail['exit_code'] not in (None,0,2) and not detail['oom_killed'] and boundary
+    categories=set(detail.get('categories',[]))
+    # jnats may report the TLS handshake on its connection thread while returning a
+    # plain IOException to BrokerConnection. Require both broker attribution and
+    # actual TLS evidence; an unrelated JVM/SQL TLS error alone cannot pass.
+    broker_tls=('broker_tls' in categories or ('broker_io' in categories and
+                detail.get('tls_rejection') is True and
+                bool(categories & {'tls_certificate_chain','tls_handshake'})))
+    boundary=(broker_tls if kind!='wrong_broker_password' else
+              'broker_io' in categories and f['broker_auth_rejections']()>authentication_before)
+    refused=('broker_configuration' in categories or 'configuration_refused' in detail.get('markers',[]))
+    return (not served and detail['running'] is False and detail['exit_code'] not in (None,0,2)
+            and not detail['oom_killed'] and not refused and boundary)
 
 
 def assert_restrictions(app,role,check):
