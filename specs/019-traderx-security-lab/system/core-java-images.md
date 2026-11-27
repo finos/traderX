@@ -1,8 +1,9 @@
 # Account and execution image acceptance
 
 This extends the accepted [position image](java-runtime.md) under S019-06a3b2.
-Account and processor are independent image checkpoints; matcher remains a later
-checkpoint with identity-client and outbound HTTPS/NATS trust prerequisites.
+Account and processor are independent image checkpoints. The subsequent
+[matcher checkpoint](matcher-image.md) now passes 46 actual-image checks with
+private service-client credentials and explicit outbound HTTPS/NATS trust.
 The [44-check account](../evidence/2026-11-27-account-image.json) and
 [51-check processor](../evidence/2026-11-27-processor-image.json) image campaigns
 pass at `75ef3cc9`. Neither activates the staged Kubernetes deployment or closes
@@ -85,6 +86,6 @@ The `java-core-images` workflow scope is for focused diagnostics; full regressio
 remains required before recording accepted milestones. Only sanitized JSON
 results may be uploaded. Images and synthetic private materials are not published.
 
-Matcher packaging, actual .NET image acceptance, issuer/broker/market-data flows,
+Actual .NET image acceptance, real issuer/broker/market-data provisioning,
 network enforcement, signed-image admission and the complete learner journey remain
 open. The [completion roadmap](completion-roadmap.md) defines the first release.

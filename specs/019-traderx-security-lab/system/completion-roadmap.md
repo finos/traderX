@@ -1,12 +1,13 @@
 # First-release completion assessment
 
-Assessment date: 26 November 2026. This is a planning estimate, not acceptance
+Assessment date: 27 November 2026. This is a planning estimate, not acceptance
 evidence or a delivery commitment. Checkpoints are tracked in [tasks](../tasks.md);
 the [integrated contract](integrated-acceptance.md) defines completion.
 
 The real trader/reader browser journey, three Python image builds and the
 43-check packaged-worker TLS/recovery campaign and 41-check position-image
-HTTPS/scoped-read/SQL-TLS campaign are accepted checkpoints. The remaining work is mainly packaging, cumulative control
+HTTPS/scoped-read/SQL-TLS campaign are accepted checkpoints. Account (44 checks),
+processor (51) and matcher (46) actual-image campaigns are now accepted too. The remaining work is mainly packaging, cumulative control
 integration and release validation. Passing components do not establish that
 their combined deployment is secure or reproducible.
 
@@ -14,7 +15,7 @@ their combined deployment is secure or reproducible.
 
 | Work block | Completion evidence | Estimated focused effort |
 | --- | --- | --- |
-| Packaging and transport | Worker TLS delivery/replay/restart is accepted; remaining Java and .NET images consume private configuration and enforce identity, and support services are provisioned | 1–2 working days |
+| Packaging and transport | Worker TLS delivery/replay/restart is accepted; Java core images are accepted; the .NET image still needs native/HTTPS/operator proof, and real support services must be provisioned | 1–2 working days |
 | Cumulative hardened deployment | One deployment passes real trading, broader identity/recovery cases, gateway/WAF, CNI, scoped SQL/broker and trusted-image boundaries; external evidence survives restart | 2–4 working days |
 | Residual misuse and runtime comparison | Outside-grant denial and within-grant canary effects, one runtime engine in observation/enforcement modes, independent outcomes and two resets | 1–2 working days |
 | Learner and release validation | Guided experiments/assessments, control/evidence mapping, resource/performance measurements, unattended fresh-clone reproduction and contributor walkthrough | 1–2 working days |
@@ -47,9 +48,14 @@ S019-06a3c is accepted in the [packaged-worker evidence](../evidence/2026-11-26-
 S019-06a3b1 now has [41 passing image checks](../evidence/2026-11-26-position-image.json).
 Account (b2a) and processor (b2b) now have 44 and 51 passing actual-image checks
 respectively; see [account evidence](../evidence/2026-11-27-account-image.json) and
-[processor evidence](../evidence/2026-11-27-processor-image.json). Next package
-matcher with its service-client identity and explicit outbound HTTPS/NATS trust
-(b2c), then accept the actual .NET image (b3) and support-service TLS/flows (b4). Copilot PR #521 supplies the .NET launcher only;
-its nine source tests do not establish image or operator-directory acceptance. Keep local
-Docker and Citrix untouched; continue with disposable hosted Linux execution
-and small local source tests.
+[processor evidence](../evidence/2026-11-27-processor-image.json). Matcher (b2c) now
+has [46 passing actual-image checks](../evidence/2026-11-27-matcher-image.json),
+closing b2. The full eleven-job regression and 474 source tests pass at `27e5e927`.
+
+Next accept the actual .NET image (b3), then real support-service TLS/flows (b4).
+Copilot PRs #521/#522 supplied reviewed launcher/build/OCI tooling and a pinned
+Debian-bookworm native composition. Source tests and ELF inspection do not prove
+native startup, Kestrel HTTPS or operator-directory behavior in the actual image.
+The matcher image campaign uses a synthetic HTTPS client-credentials issuer;
+real provider provisioning remains b4. Keep local Docker and Citrix untouched;
+continue with disposable hosted Linux execution.

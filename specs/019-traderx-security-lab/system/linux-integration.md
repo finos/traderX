@@ -89,3 +89,29 @@ selects these jobs for diagnosis; the default full run also preserves all existi
 position, Python image, browser, delivery and admission checks. Only sanitized
 `security-account-service-image` and `security-trade-processor-image` JSON artifacts
 are retained. A processor outbox commit is not proof of later broker delivery.
+
+## Matcher image and complete source regression
+
+The `matcher-image` job follows [matcher-image.md](matcher-image.md). It builds
+processor and matcher Java artifacts sequentially before starting BuildKit: the
+resource preflight correctly refuses a second Java build while a builder
+container is running. Both immutable images are then inspected and loaded into
+the same owned, disposable network. `campaign=matcher-image` selects this job for
+focused diagnostics; full regression is still required for acceptance.
+
+The campaign uses verified PostgreSQL/NATS TLS and an owned synthetic HTTPS
+client-credentials peer. It checks broker trust/credential rejection, scoped user
+requests, failed service credentials without settlement, recovery of the same
+pending reservation, exact settlement/outbox effects, duplicate suppression,
+cancellation and independently observed account-scoped order updates. The
+synthetic issuer does not establish real Keycloak provisioning. The outbox result
+does not claim broker delivery of the settlement events; that is a separate
+worker campaign. Only sanitized `security-matcher-image` JSON is retained.
+
+The independent `source-tests` job fetches the pinned baseline and runs the full
+Python test discovery, including the pinned WebSocket client dependency. This
+keeps the complete lightweight regression reproducible on hosted Linux without
+requiring a maintained local virtual environment. The people-authorization job
+also checks the preparatory .NET packaging tooling; its existing source-built
+operator campaign does not accept the proposed .NET OCI image or native-library
+composition.

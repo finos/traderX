@@ -91,3 +91,20 @@ A passing image campaign does not close CNI enforcement, gateway/WAF coverage,
 signed-image admission, external evidence retention, credential/trust rotation,
 the .NET image, cumulative deployment or the full learner journey. Keep those
 limits visible in the [completion roadmap](completion-roadmap.md).
+
+## Accepted bounded checkpoint — 27 November 2026
+
+[46 actual-image checks](../evidence/2026-11-27-matcher-image.json) pass at
+`27e5e927`. The [full eleven-job hosted run](https://github.com/finos/traderX/actions/runs/45944446218)
+also passes, including 474 source tests and existing browser, trading, delivery,
+directory, image and admission regressions. One pending reservation survives
+incorrect service credentials and an actual matcher-image restart; corrected
+credentials produce one settlement/receipt and two outbox rows. Fill and
+cancellation notifications are independently observed in the canonical scoped
+NATS envelope. Unrelated business rows and ledger state remain unchanged.
+
+The runner builds both Java artifacts before starting BuildKit, retaining the
+idle-runner resource guard. TLS rejection attribution handles the broker client's
+wrapped IOException only with explicit TLS evidence and terminal non-OOM failure;
+timeouts and configuration errors do not count. None of these results closes the
+remaining acceptance boundaries above.

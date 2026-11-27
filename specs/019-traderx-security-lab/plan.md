@@ -241,3 +241,10 @@ The next image gate follows [matcher-image.md](system/matcher-image.md): paralle
 private-runtime/packaging, owned TLS-peer and actual matcher/processor acceptance
 work, followed by one hosted campaign and full regression. A bounded synthetic
 OAuth peer is explicitly distinct from the later Keycloak provisioning gate.
+
+Matcher image acceptance now passes 46 checks at `27e5e927`; the full eleven-job
+hosted regression includes 474 passing source tests. See
+[evidence](evidence/2026-11-27-matcher-image.json). The Java core image group is
+closed, while real support-service provisioning and cumulative deployment remain
+open. Reviewed Copilot .NET packaging/native inputs are incorporated as source
+preparation; actual image startup/HTTPS/operator acceptance is the next gate.
