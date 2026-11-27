@@ -37,6 +37,7 @@ class JavaImageFixtureTests(unittest.TestCase):
         self.assertIn('processor-ca.pem',fixture.KEYS['order-matcher'])
         probe=fixture.private_java_probe('order-matcher')
         self.assertIn("('broker-secret','client-secret')",probe)
+        self.assertIn("'truststore':mode('/run/private/java/outbound-trust.p12')",probe)
         self.assertIn("=='18110'",probe)
 
     def test_request_uses_instance_role_port_tls_hostname_and_method(self):

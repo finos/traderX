@@ -183,6 +183,8 @@ def private_java_probe(role):
     if role=='order-matcher':
         probe=probe.replace("secrets=[c['database']['password'].encode(),c['tls']['password'].encode()]",
             "secrets=[c['database']['password'].encode(),c['tls']['password'].encode()]+[Path('/run/private/config/'+name).read_bytes().strip() for name in ('broker-secret','client-secret')]")
+        probe=probe.replace("'properties':mode('/run/private/java/application.properties')",
+            "'truststore':mode('/run/private/java/outbound-trust.p12'),'properties':mode('/run/private/java/application.properties')")
     return probe
 
 
