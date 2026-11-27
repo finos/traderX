@@ -203,7 +203,13 @@ def order_summary(data):
             if key in value:raise ValueError('Duplicate order field')
             value[key]=item
         return value
-    event=json.loads(data,object_pairs_hook=unique)
+    envelope=json.loads(data,object_pairs_hook=unique)
+    # Canonical C3 NatsJSONPublisher emits NatsEnvelope<OrderResponse>.
+    # Bind its declared topic/type as well as the independently scoped subscription.
+    if (not isinstance(envelope,dict) or set(envelope)!={'topic','payload','date','from','type'}
+        or envelope['topic']!='/accounts/62654/orders' or envelope['type']!='OrderResponse'):
+        raise ValueError('Canonical scoped order envelope required')
+    event=envelope['payload']
     if (not isinstance(event,dict) or type(event.get('accountId')) is not int or event['accountId']!=62654
         or not isinstance(event.get('orderId'),str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,64}',event['orderId'])
         or not isinstance(event.get('status'),str) or event['status'] not in ORDER_STATUSES):raise ValueError('Invalid bounded order event')

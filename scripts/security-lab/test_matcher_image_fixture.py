@@ -114,25 +114,29 @@ class MatcherImageFixtureTests(unittest.TestCase):
         rules=fixture.BROKER_PERMISSIONS['order-observer']
         self.assertEqual(rules,{'publish':{'deny':['>']},'subscribe':{'allow':['/accounts/62654/orders']}})
         observer=fixture.OrderObserver({})
+        def wire(event,**changes):
+            return json.dumps(dict({'topic':'/accounts/62654/orders','type':'OrderResponse','payload':event,
+                                    'date':0,'from':'order-matcher'},**changes)).encode()
         event={'orderId':'fixture-order-1','accountId':62654,'status':'FILLED','private-field':'never-export'}
-        observer.receive(json.dumps(event).encode());observer.receive(json.dumps(event).encode())
+        observer.receive(wire(event));observer.receive(wire(event))
         self.assertEqual(observer.events(),[{'orderId':'fixture-order-1','status':'FILLED','accountId':62654}])
         self.assertTrue(observer.observed('fixture-order-1','FILLED'))
         self.assertFalse(observer.observed('fixture-order-1','NEW'))
         self.assertNotIn('never-export',json.dumps(observer.events()))
-        for index in range(127):observer.receive(json.dumps(dict(event,orderId='bounded-'+str(index))).encode())
+        for index in range(127):observer.receive(wire(dict(event,orderId='bounded-'+str(index))))
         self.assertEqual(len(observer.events()),128)
-        observer.receive(json.dumps(dict(event,orderId='overflow')).encode())
+        observer.receive(wire(dict(event,orderId='overflow')))
         with self.assertRaises(fixture.MatcherFixtureFailure):observer.events()
-        for raw in (json.dumps(dict(event,accountId=22214)).encode(),json.dumps(dict(event,status='INVENTED')).encode(),
-                    b'{"orderId":"a","orderId":"b","accountId":62654,"status":"NEW"}',b'x'*8193):
+        for raw in (wire(dict(event,accountId=22214)),wire(dict(event,status='INVENTED')),
+                    wire(event,topic='/accounts/22214/orders'),wire(event,type='Trade'),json.dumps(event).encode(),
+                    b'{"topic":"/accounts/62654/orders","type":"OrderResponse","date":0,"from":"order-matcher","payload":{"orderId":"a","orderId":"b","accountId":62654,"status":"NEW"}}',b'x'*8193):
             with self.assertRaises((ValueError,UnicodeError)):fixture.order_summary(raw)
 
     def test_observer_starts_after_verified_subscription_and_closes_client(self):
         f={'broker':{'host_endpoint':'tls://172.28.240.3:4222','passwords':{'order-observer':'private-password'},'ca':Path('/ca')}}
         connection=AsyncMock()
         async def subscribe(subject,cb):
-            await cb(Mock(data=b'{"orderId":"owned","accountId":62654,"status":"CANCELED"}'))
+            await cb(Mock(data=b'{"topic":"/accounts/62654/orders","type":"OrderResponse","date":0,"from":"order-matcher","payload":{"orderId":"owned","accountId":62654,"status":"CANCELED"}}'))
         connection.subscribe.side_effect=subscribe
         with patch.object(fixture,'connect_broker',new=AsyncMock(return_value=connection)) as connect:
             observer=fixture.OrderObserver(f).start()
