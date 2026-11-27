@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import ssl
 import time
+import traceback
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -173,6 +174,14 @@ def main():
     except Exception as error:
         result={'status':'failed','phase':PHASE,'error':error.code if isinstance(error,fixture.Failure) else 'people_image_campaign_failed'}
         if isinstance(error,fixture.Failure) and error.diagnostic:result['runtime']=error.diagnostic
+        if not isinstance(error,fixture.Failure):
+            # Source coordinates only: never exception messages, locals or lines
+            # that could contain private paths, tokens or configuration.
+            allowed={'verify_people_image.py','people_image_fixture.py','verify_runtime_images.py'}
+            result['source_frames']=[{'module':Path(frame.filename).name,'line':frame.lineno}
+                for frame in traceback.extract_tb(error.__traceback__)
+                if Path(frame.filename).name in allowed][-8:]
+            result['exception_kind']=type(error).__name__ if type(error) in (ValueError,RuntimeError,KeyError,TypeError,OSError,PermissionError) else 'other'
     args.output.parent.mkdir(parents=True,exist_ok=True);args.output.write_text(json.dumps(result,indent=2)+'\n')
     print(json.dumps(result));return 0 if result['status']=='passed' else 1
 

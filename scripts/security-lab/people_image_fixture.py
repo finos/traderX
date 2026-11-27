@@ -125,6 +125,8 @@ class PeopleImage:
             self.docker(*args);info=self.inspect()
             if info['Image'] not in (self.identity['runtime_id'],self.identity['config_digest']) or info['Config']['Image']!=self.identity['runtime_id']:
                 raise Failure('loaded_image_changed')
+            if not info['State'].get('Running'):
+                raise Failure('startup_failed',self.diagnostics())
             self.address=info['NetworkSettings']['Networks'][self.f['network']]['IPAddress']
             if ipaddress.ip_address(self.address) not in self.f['subnet']:raise Failure('network_address')
             yield self
