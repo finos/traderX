@@ -26,7 +26,16 @@ PHASE='configuration'
 MARKERS={'People service private configuration refused; details withheld.':'configuration_refused',
  'Couldn\'t find a valid ICU package':'icu_missing','error while loading shared libraries':'native_library_missing',
  'Failed to create CoreCLR':'coreclr_failed','Out of memory':'memory','Unhandled exception':'unhandled_exception',
- 'Now listening on:':'listening','Application started.':'started'}
+ 'Now listening on:':'listening','Application started.':'started',
+ 'System.IO.IOException':'io_exception','System.IO.FileNotFoundException':'file_not_found',
+ 'System.UnauthorizedAccessException':'file_access_denied','System.InvalidOperationException':'invalid_operation',
+ 'System.TypeInitializationException':'type_initialization','System.TypeLoadException':'type_load',
+ 'System.DllNotFoundException':'native_library_not_found','System.Security.Cryptography.CryptographicException':'cryptography',
+ 'System.Net.Sockets.SocketException':'socket','libgssapi_krb5':'native_gssapi','libssl':'native_ssl',
+ 'System.OutOfMemoryException':'managed_memory','Invalid trusted issuer':'identity_issuer',
+ 'Explicit HTTPS endpoint required':'https_configuration','Missing trusted identity configuration':'identity_configuration',
+ 'DirectoryTrust.Load':'identity_load','WebApplication.CreateBuilder':'host_builder',
+ 'KestrelServerImpl':'kestrel_start','System.Security.Cryptography.X509Certificates':'certificate_loading'}
 
 class Failure(RuntimeError):
     def __init__(self,code,diagnostic=None):
