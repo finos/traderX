@@ -33,7 +33,7 @@
     "@cucumber/pretty-formatter": "1.0.1",
     "@eslint/js": "^9.19.0",
     "@types/expect": "24.3.2",
-    "@types/lodash": "4.14.167",
+    "@types/lodash": "4.17.28",
     "@types/node": "^20.16.11",
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^8.18.2",
